@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj, computed, inject, onClickOutside, ref, watch } from '#imports'
+import { ActiveCellInj, ReadonlyInj, computed, inject, onClickOutside, ref, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -12,6 +12,10 @@ const { modelValue, isPk = false } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 let isYearInvalid = $ref(false)
 
@@ -55,6 +59,21 @@ watch(
 )
 
 const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case 'Escape':
+      if (open.value) {
+        e.stopPropagation()
+        open.value = false
+      }
+      break
+  }
+})
 </script>
 
 <template>
@@ -66,10 +85,10 @@ const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :open="readOnly || (localState && isPk) ? false : open"
-    :dropdown-class-name="`${randomClass} nc-picker-year`"
-    @click="open = !open"
-    @change="open = !open"
+    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
+    :dropdown-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''}`"
+    @click="open = (active || editable) && !open"
+    @change="open = (active || editable) && !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

@@ -8,6 +8,7 @@ import {
   message,
   ref,
   useI18n,
+  useMenuCloseOnEsc,
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
@@ -79,11 +80,15 @@ async function changeLockType(type: LockType) {
 }
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
+
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
 </script>
 
 <template>
   <div>
-    <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
+    <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
           <component

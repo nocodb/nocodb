@@ -5,6 +5,7 @@ import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
+  EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
   computed,
@@ -14,6 +15,7 @@ import {
   ref,
   useEventListener,
   useProject,
+  useSelectedCellKeyupListener,
   watch,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
@@ -34,6 +36,8 @@ const column = inject(ColumnInj)!
 const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 const selectedIds = ref<string[]>([])
 
@@ -85,18 +89,6 @@ const selectedTitles = computed(() =>
     : [],
 )
 
-const handleKeys = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Escape':
-      e.preventDefault()
-      isOpen.value = false
-      break
-    case 'Enter':
-      e.stopPropagation()
-      break
-  }
-}
-
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
     isOpen.value = false
@@ -131,7 +123,24 @@ watch(
 )
 
 watch(isOpen, (n, _o) => {
-  if (!n) aselect.value?.$el.blur()
+  if (!n) {
+    aselect.value?.$el?.querySelector('input')?.blur()
+  } else {
+    aselect.value?.$el?.querySelector('input')?.focus()
+  }
+})
+
+useSelectedCellKeyupListener(active, (e) => {
+  switch (e.key) {
+    case 'Escape':
+      isOpen.value = false
+      break
+    case 'Enter':
+      if (active.value && !isOpen.value) {
+        isOpen.value = true
+      }
+      break
+  }
 })
 </script>
 
@@ -139,17 +148,17 @@ watch(isOpen, (n, _o) => {
   <a-select
     ref="aselect"
     v-model:value="vModel"
+    v-model:open="isOpen"
     mode="multiple"
     class="w-full"
     :bordered="false"
     :show-arrow="!readOnly"
     :show-search="false"
-    :open="isOpen"
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"
-    dropdown-class-name="nc-dropdown-multi-select-cell"
-    @keydown="handleKeys"
-    @click="isOpen = !isOpen"
+    :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
+    @keydown.enter.stop
+    @click="isOpen = (active || editable) && !isOpen"
   >
     <a-select-option
       v-for="op of options"
@@ -179,7 +188,7 @@ watch(isOpen, (n, _o) => {
         class="rounded-tag"
         :style="{ display: 'flex', alignItems: 'center' }"
         :color="options.find((el) => el.title === val)?.color"
-        :closable="active && (vModel.length > 1 || !column?.rqd)"
+        :closable="(active || editable) && (vModel.length > 1 || !column?.rqd)"
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"
       >
@@ -221,18 +230,23 @@ watch(isOpen, (n, _o) => {
   margin-right: -6px;
   margin-left: 3px;
 }
+
 .ms-close-icon:before {
   display: block;
 }
+
 .ms-close-icon:hover {
   color: rgba(0, 0, 0, 0.45);
 }
+
 .rounded-tag {
   @apply py-0 px-[12px] rounded-[12px];
 }
+
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[2px];
 }
+
 :deep(.ant-tag-close-icon) {
   @apply "text-slate-500";
 }

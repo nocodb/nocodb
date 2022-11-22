@@ -14,6 +14,7 @@ import {
   inject,
   ref,
   resolveComponent,
+  useMenuCloseOnEsc,
   useNuxtApp,
   useViewColumns,
   watch,
@@ -119,10 +120,14 @@ const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
+
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
+  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">

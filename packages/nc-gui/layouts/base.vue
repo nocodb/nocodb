@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar, useUIPermission } from '#imports'
+import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
 
 const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 
@@ -13,14 +13,14 @@ const hasSider = ref(false)
 
 const sidebar = ref<HTMLDivElement>()
 
-const { isUIAllowed } = useUIPermission()
-
 const logout = () => {
   signOut()
   navigateTo('/signin')
 }
 
 const { hooks } = useNuxtApp()
+
+const isDashboard = computed(() => !!route.params.projectType)
 
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */
 hooks.hook('page:finish', () => {
@@ -39,7 +39,7 @@ hooks.hook('page:finish', () => {
     <a-layout class="!flex-col">
       <a-layout-header
         v-if="!route.meta.public && signedIn && !route.meta.hideHeader"
-        class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg"
+        class="flex !bg-primary items-center text-white !pl-2 !pr-5"
       >
         <div
           v-if="!route.params.projectType"
@@ -52,7 +52,10 @@ hooks.hook('page:finish', () => {
             <template #title>
               {{ currentVersion }}
             </template>
-            <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            <div class="flex items-center gap-2">
+              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img v-show="!isDashboard" width="90" alt="NocoDB" src="~/assets/img/brand/text.png" />
+            </div>
           </a-tooltip>
         </div>
 
@@ -87,27 +90,30 @@ hooks.hook('page:finish', () => {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
-                    <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
-
-                    <span class="prose group-hover:text-primary"> {{ email }}</span>
+                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
+                    <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
+                    <div class="prose group-hover:text-primary">
+                      <div>Account</div>
+                      <div class="text-xs text-gray-500">{{ email }}</div>
+                    </div>
                   </nuxt-link>
                 </a-menu-item>
 
                 <a-menu-divider class="!m-0" />
-                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
+                <!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
                     class="nc-project-menu-item group !no-underline"
-                    to="/apps"
+                    to="/admin/users"
                   >
-                    <MdiStorefrontOutline class="mt-1 group-hover:text-accent" />&nbsp;
+                    <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
 
-                    <span class="prose group-hover:text-primary">{{ $t('title.appStore') }}</span>
+                    &lt;!&ndash; todo: i18n &ndash;&gt;
+                    <span class="prose group-hover:text-primary">Account management</span>
                   </nuxt-link>
                 </a-menu-item>
 
-                <a-menu-divider class="!m-0" />
+                <a-menu-divider class="!m-0" /> -->
 
                 <a-menu-item key="1" class="!rounded-b group">
                   <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">

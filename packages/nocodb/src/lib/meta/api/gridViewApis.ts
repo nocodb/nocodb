@@ -1,6 +1,7 @@
 import { Request, Router } from 'express';
 // @ts-ignore
 import Model from '../../models/Model';
+import { Tele } from 'nc-help';
 // @ts-ignore
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { ViewTypes } from 'nocodb-sdk';
@@ -10,7 +11,6 @@ import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import Project from '../../models/Project';
 import View from '../../models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 
 // @ts-ignore

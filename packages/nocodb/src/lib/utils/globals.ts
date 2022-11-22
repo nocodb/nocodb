@@ -37,6 +37,7 @@ export enum MetaTable {
   API_TOKENS = 'nc_api_tokens',
   SYNC_SOURCE = 'nc_sync_source_v2',
   SYNC_LOGS = 'nc_sync_logs_v2',
+  STORE = 'nc_store',
 }
 
 export const orderedMetaTables = [
@@ -135,6 +136,7 @@ export enum CacheScope {
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
   API_TOKEN = 'apiToken',
   INSTANCE_META = 'instanceMeta',
+  USER_PROJECT = 'userProject',
 }
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',

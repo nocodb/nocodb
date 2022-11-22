@@ -441,6 +441,397 @@
       },
       "parameters": []
     },
+    "/api/v1/tokens": {
+      "get": {
+        "summary": "Organisation API Tokens List",
+        "operationId": "org-tokens-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "allOf": [
+                              {
+                                "$ref": "#/components/schemas/ApiToken"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "created_by": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            ],
+                            "type": "object"
+                          }
+                        },
+                        "pageInfo": {
+                          "$ref": "#/components/schemas/Paginated"
+                        }
+                      },
+                      "required": [
+                        "list",
+                        "pageInfo"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "Org tokens"
+        ]
+      },
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "org-tokens-create",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiToken"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org tokens"
+        ]
+      }
+    },
+    "/api/v1/license": {
+      "get": {
+        "summary": "App license get",
+        "operationId": "org-license-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "Org license"
+        ]
+      },
+      "parameters": [],
+      "post": {
+        "summary": "App license get",
+        "operationId": "org-license-set",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org license"
+        ]
+      }
+    },
+    "/api/v1/app-settings": {
+      "get": {
+        "summary": "App settings get",
+        "operationId": "org-app-settings-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "invite_only_signup": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "Org app settings"
+        ]
+      },
+      "parameters": [],
+      "post": {
+        "summary": "App app settings get",
+        "operationId": "org-app-settings-set",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "invite_only_signup": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org app settings"
+        ]
+      }
+    },
+    "/api/v1/tokens/{token}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "token",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "delete": {
+        "summary": "",
+        "operationId": "org-tokens-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org tokens"
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "summary": "Organisation Users",
+        "operationId": "org-users-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "uniqueItems": true,
+                          "minItems": 1,
+                          "items": {
+                            "$ref": "#/components/schemas/User"
+                          }
+                        },
+                        "pageInfo": {
+                          "$ref": "#/components/schemas/Paginated"
+                        }
+                      },
+                      "required": [
+                        "list",
+                        "pageInfo"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "Org users"
+        ]
+      },
+      "parameters": [],
+      "post": {
+        "summary": "Organisation User Add",
+        "operationId": "org-users-add",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org users"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "Organisation User Update",
+        "operationId": "org-users-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          },
+          "description": ""
+        }
+      },
+      "delete": {
+        "summary": "Organisation User Delete",
+        "operationId": "org-users-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": ""
+      }
+    },
+    "/api/v1/users/{userId}/resend-invite": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Organisation User Invite",
+        "operationId": "org-users-resend-invite",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/generate-reset-url": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Organisation User Generate Password Reset Token",
+        "operationId": "org-users-generate-password-reset-token",
+        "tags": [
+          "Org users"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reset_password_token": {
+                      "type": "string"
+                    },
+                    "reset_password_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/users": {
       "get": {
         "summary": "Project users",
@@ -4961,9 +5352,6 @@
         "description": "",
         "parameters": [
           {
-            "schema": {
-              "type": "array"
-            },
             "in": "query",
             "name": "ids",
             "required": true
@@ -6291,8 +6679,7 @@
             "format": "email"
           },
           "roles": {
-            "type": "string",
-            "format": "email"
+            "type": "string"
           },
           "date_of_birth": {
             "type": "string",
@@ -8496,7 +8883,12 @@
           },
           "description": {
             "type": "string"
-          }
+          },
+          "fk_user_id": {
+            "type": "string"
+          },
+          "created_at": {},
+          "updated_at": {}
         }
       },
       "HookLog": {

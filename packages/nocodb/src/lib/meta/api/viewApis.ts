@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express';
 // @ts-ignore
 import Model from '../../models/Model';
+import { Tele } from 'nc-help';
 // @ts-ignore
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 // @ts-ignore
@@ -12,7 +13,6 @@ import Project from '../../models/Project';
 import View from '../../models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 // @ts-ignore
 export async function viewGet(req: Request, res: Response<Table>) {}

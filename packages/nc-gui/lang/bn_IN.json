@@ -104,7 +104,9 @@
       "creator": "স্রষ্টা",
       "editor": "সম্পাদক",
       "commenter": "মন্তব্যকারী",
-      "viewer": "দর্শক"
+      "viewer": "দর্শক",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL View"
   },
@@ -200,6 +202,7 @@
     "codeSnippet": "Code Snippet"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "এর মাধ্যমে অবহিত করুন",
     "projName": "প্রকল্পের নাম",
     "tableName": "Table name",
@@ -296,7 +299,8 @@
     "signUpWithGoogle": "Sign up with Google",
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
-    "welcomeToNc": "Welcome to NocoDB!"
+    "welcomeToNc": "Welcome to NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
     "createProject": "প্রকল্প তৈরি করুন",
@@ -341,12 +345,14 @@
     "invite": "আমন্ত্রণ",
     "inviteMore": "আরও আমন্ত্রণ",
     "inviteTeam": "দলকে আমন্ত্রণ করুন",
+    "inviteUser": "Invite User",
     "inviteToken": "টোকেনকে আমন্ত্রণ করুন",
     "newUser": "নতুন ব্যবহারকারী",
     "editUser": "ব্যবহারকারী সম্পাদনা করুন",
     "deleteUser": "প্রকল্প থেকে ব্যবহারকারী সরান",
     "resendInvite": "आमंत्रण ईमेल दोबारा भेजे",
     "copyInviteURL": "অনুলিপি ইউআরএল আমন্ত্রণ করুন",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "নতুন ভূমিকা",
     "reloadRoles": "পুনরায় লোড ভূমিকা",
     "nextPage": "পরবর্তী পৃষ্ঠা",
@@ -480,6 +486,10 @@
   },
   "msg": {
     "info": {
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "প্রতি পৃষ্ঠায় সারি",
       "upload": "আপলোড করতে ফাইল নির্বাচন করুন",
       "upload_sub": "অথবা ফাইল টেনে আনুন",
@@ -591,6 +601,7 @@
       "tableDeleted": "Deleted table successfully",
       "generatePublicShareableReadonlyBase": "Generate publicly shareable readonly base",
       "deleteViewConfirmation": "Are you sure you want to delete this view?",
+      "deleteTokenConfirmation": "Are you sure you want to delete this token?",
       "deleteTableConfirmation": "Do you want to delete the table",
       "showM2mTables": "Show M2M Tables",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
@@ -653,7 +664,8 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty."
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",
@@ -683,13 +695,16 @@
       "tableDataExported": "Successfully exported all table data",
       "updated": "Successfully updated",
       "sharedViewDeleted": "Deleted shared view successfully",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "View renamed successfully",
       "tokenGenerated": "Token generated successfully",
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "Successfully added user to project",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
@@ -699,7 +714,9 @@
       "webhookTested": "Webhook tested successfully",
       "columnUpdated": "Column updated",
       "columnCreated": "Column created",
-      "passwordChanged": "Password changed successfully. Please login again."
+      "passwordChanged": "Password changed successfully. Please login again.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

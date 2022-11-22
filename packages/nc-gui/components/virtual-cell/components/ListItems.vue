@@ -1,18 +1,20 @@
 <script lang="ts" setup>
+import type { Card } from 'ant-design-vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   ColumnInj,
   Empty,
+  IsPublicInj,
   computed,
   inject,
   ref,
   useLTARStoreOrThrow,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useVModel,
   watch,
 } from '#imports'
-import { IsPublicInj } from '~/context'
 
 const props = defineProps<{ modelValue: boolean }>()
 
@@ -38,6 +40,8 @@ const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const selectedRowIndex = ref(0)
+
 const linkRow = async (row: Record<string, any>) => {
   if (isNew.value) {
     addLTARRef(row, column?.value as ColumnType)
@@ -54,6 +58,7 @@ watch(vModel, (nextVal, prevVal) => {
     childrenExcludedListPagination.query = ''
     childrenExcludedListPagination.page = 1
     loadChildrenExcludedList()
+    selectedRowIndex.value = 0
   }
 })
 
@@ -98,6 +103,49 @@ const newRowState = computed(() => {
 watch(expandedFormDlg, (nexVal) => {
   if (!nexVal && !isNew.value) vModel.value = false
 })
+
+useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'ArrowLeft':
+      e.stopPropagation()
+      e.preventDefault()
+      if (childrenExcludedListPagination.page > 1) childrenExcludedListPagination.page--
+      break
+    case 'ArrowRight':
+      e.stopPropagation()
+      e.preventDefault()
+      if (
+        childrenExcludedList.value?.pageInfo &&
+        childrenExcludedListPagination.page <
+          (childrenExcludedList.value.pageInfo.totalRows || 1) / childrenExcludedListPagination.size
+      )
+        childrenExcludedListPagination.page++
+      break
+    case 'ArrowUp':
+      selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)
+      e.stopPropagation()
+      e.preventDefault()
+      break
+    case 'ArrowDown':
+      selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
+      e.stopPropagation()
+      e.preventDefault()
+      break
+    case 'Enter':
+      {
+        const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
+        if (selectedRow) {
+          linkRow(selectedRow)
+          e.stopPropagation()
+          e.preventDefault()
+        }
+      }
+      break
+  }
+})
+const activeRow = (vNode?: InstanceType<typeof Card>) => {
+  vNode?.$el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+}
 </script>
 
 <template>
@@ -115,6 +163,7 @@ watch(expandedFormDlg, (nexVal) => {
           :placeholder="$t('placeholder.filterQuery')"
           class="max-w-[200px]"
           size="small"
+          @keydown.capture.stop
         />
 
         <div class="flex-1" />
@@ -132,7 +181,9 @@ watch(expandedFormDlg, (nexVal) => {
           <a-card
             v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
+            :ref="selectedRowIndex === i ? activeRow : null"
             class="!my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
+            :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
             {{ refRow[relatedTablePrimaryValueProp] }}
@@ -174,5 +225,9 @@ watch(expandedFormDlg, (nexVal) => {
 <style scoped>
 :deep(.ant-pagination-item a) {
   line-height: 21px !important;
+}
+
+:deep(.nc-selected-row) {
+  @apply !ring;
 }
 </style>

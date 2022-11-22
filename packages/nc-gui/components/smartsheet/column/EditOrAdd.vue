@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useEventListener } from '@vueuse/core'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
@@ -114,6 +115,12 @@ onMounted(() => {
   // for cases like formula
   if (formState.value && !formState.value.column_name) {
     formState.value.column_name = formState.value?.title
+  }
+})
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    emit('cancel')
   }
 })
 </script>

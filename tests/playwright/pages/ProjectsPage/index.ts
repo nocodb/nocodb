@@ -54,6 +54,10 @@ export class ProjectsPage extends BasePage {
     await this.rootPage.waitForTimeout(2000);
   }
 
+  async checkProjectCreateButton({ exists = true }) {
+    await expect(this.rootPage.locator('.nc-new-project-menu:visible')).toHaveCount(exists ? 1 : 0);
+  }
+
   async reloadProjects() {
     const reloadUiAction = this.get().locator('[data-testid="projects-reload-button"]').click();
     await this.waitForResponse({

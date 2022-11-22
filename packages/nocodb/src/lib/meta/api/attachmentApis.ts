@@ -2,10 +2,10 @@
 import { Request, Response, Router } from 'express';
 import multer from 'multer';
 import { nanoid } from 'nanoid';
-import { Tele } from 'nc-help';
 import path from 'path';
 import slash from 'slash';
 import mimetypes, { mimeIcons } from '../../utils/mimeTypes';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import catchError from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';

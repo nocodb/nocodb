@@ -24,7 +24,6 @@ import TimerOutline from '~icons/mdi/timer-outline'
 import Star from '~icons/mdi/star'
 import MathIntegral from '~icons/mdi/math-integral'
 import MovieRoll from '~icons/mdi/movie-roll'
-import Counter from '~icons/mdi/counter'
 import CalendarClock from '~icons/mdi/calendar-clock'
 import ID from '~icons/mdi/identifier'
 import RulerSquareCompass from '~icons/mdi/ruler-square-compass'
@@ -123,16 +122,8 @@ const uiTypes = [
     virtual: 1,
   },
   {
-    name: UITypes.Count,
-    icon: Counter,
-  },
-  {
     name: UITypes.DateTime,
     icon: CalendarClock,
-  },
-  {
-    name: UITypes.AutoNumber,
-    icon: Numeric,
   },
   {
     name: UITypes.Geometry,

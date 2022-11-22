@@ -104,7 +104,9 @@
       "creator": "Skapare",
       "editor": "Redaktör",
       "commenter": "Kommentare",
-      "viewer": "Visare"
+      "viewer": "Visare",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL View"
   },
@@ -200,6 +202,7 @@
     "codeSnippet": "Code Snippet"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "Meddela via",
     "projName": "Projektnamn",
     "tableName": "Tabellnamn",
@@ -296,7 +299,8 @@
     "signUpWithGoogle": "Sign up with Google",
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
-    "welcomeToNc": "Welcome to NocoDB!"
+    "welcomeToNc": "Welcome to NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
     "createProject": "Skapa projekt",
@@ -341,12 +345,14 @@
     "invite": "Inbjudan",
     "inviteMore": "Bjud in mer",
     "inviteTeam": "Bjud in lag",
+    "inviteUser": "Invite User",
     "inviteToken": "Bjud in token",
     "newUser": "Ny användare",
     "editUser": "Redigera användaren",
     "deleteUser": "Ta bort användaren från projektet",
     "resendInvite": "Ändra bjud in e-post",
     "copyInviteURL": "Kopiera inbjudan url",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "Ny roll",
     "reloadRoles": "Ladda om roller",
     "nextPage": "Nästa sida",
@@ -480,6 +486,10 @@
   },
   "msg": {
     "info": {
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "Rader per sida",
       "upload": "Välj fil för att ladda upp",
       "upload_sub": "eller dra och släpp filen",
@@ -653,7 +663,8 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty."
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible"
     },
     "toast": {
       "exportMetadata": "Projektmetadata exporterades framgångsrikt",
@@ -683,13 +694,16 @@
       "tableDataExported": "Successfully exported all table data",
       "updated": "Successfully updated",
       "sharedViewDeleted": "Deleted shared view successfully",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "View renamed successfully",
       "tokenGenerated": "Token generated successfully",
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "Successfully added user to project",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
@@ -699,7 +713,9 @@
       "webhookTested": "Webhook tested successfully",
       "columnUpdated": "Column updated",
       "columnCreated": "Column created",
-      "passwordChanged": "Password changed successfully. Please login again."
+      "passwordChanged": "Password changed successfully. Please login again.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

@@ -4212,7 +4212,8 @@ export class Api<
         path: string;
       },
       data: {
-        files?: any;
+        /** The file to upload. */
+        files: File;
         json?: string;
       },
       params: RequestParams = {}

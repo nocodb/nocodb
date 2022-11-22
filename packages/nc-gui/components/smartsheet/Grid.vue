@@ -423,6 +423,7 @@ onClickOutside(smartTable, (e) => {
 
 const onNavigate = (dir: NavigateDir) => {
   if (selected.row === null || selected.col === null) return
+  editEnabled = false
   switch (dir) {
     case NavigateDir.NEXT:
       if (selected.row < data.value.length - 1) {
@@ -435,8 +436,6 @@ const onNavigate = (dir: NavigateDir) => {
     case NavigateDir.PREV:
       if (selected.row > 0) {
         selected.row--
-      } else {
-        editEnabled = false
       }
       break
   }
@@ -521,11 +520,14 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 // trigger initial data load in grid
 // reloadViewDataHook.trigger()
 
+const switchingTab = ref(false)
+
 watch(
   view,
   async (next, old) => {
     try {
       if (next && next.id !== old?.id) {
+        switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {
           const oldMeta = await getMeta(old.fk_model_id!)
@@ -541,6 +543,8 @@ watch(
       }
     } catch (e) {
       console.log(e)
+    } finally {
+      switchingTab.value = false
     }
   },
   { immediate: true },
@@ -707,7 +711,7 @@ watch(
                     @mouseover="selectBlock(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
-                    <div class="w-full h-full">
+                    <div v-if="!switchingTab" class="w-full h-full">
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(columnObj)"
                         v-model="row.row[columnObj.title]"
@@ -850,8 +854,7 @@ watch(
     text-overflow: ellipsis;
   }
 
-  td.active::after,
-  td.active::before {
+  td.active::after {
     content: '';
     position: absolute;
     z-index: 3;
@@ -864,12 +867,14 @@ watch(
 
   // todo: replace with css variable
   td.active::after {
-    @apply border-2 border-solid border-primary;
+    @apply border-2 border-solid text-primary border-current bg-primary bg-opacity-5;
   }
 
-  td.active::before {
-    @apply bg-primary bg-opacity-5;
-  }
+  //td.active::before {
+  //  content: '';
+  //  z-index:4;
+  //  @apply absolute !w-[10px] !h-[10px] !right-[-5px] !bottom-[-5px] bg-primary;
+  //}
 }
 
 :deep {

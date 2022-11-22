@@ -68,7 +68,7 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     return MultiSelectIcon
   } else if (isSingleSelect(column)) {
     return SingleSelectIcon
-  } else if (isBoolean(column)) {
+  } else if (isBoolean(column, abstractType)) {
     return BooleanIcon
   } else if (isTextArea(column)) {
     return TextAreaIcon

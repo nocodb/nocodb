@@ -189,14 +189,21 @@ export function useViewData(
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
+
+    // to cater the case like when querying with a non-zero offset
+    // the result page may point to the target page where the actual returned data don't display on
+    const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
+    if (expectedPage < paginationData.value.page!) {
+      await changePage(expectedPage)
+    }
+
     if (viewMeta.value?.type === ViewTypes.GRID) {
       await loadAggCommentsCount()
     }
   }
 
   async function loadGalleryData() {
-    if (!viewMeta?.value?.id) return
-
+    if (!viewMeta?.value?.id || isPublic.value) return
     galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
   }
 

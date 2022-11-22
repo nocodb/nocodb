@@ -111,7 +111,6 @@ const vModel = computed({
 })
 
 const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
-  console.log('syncAndNavigate', e.target)
   if (isJSON(column.value)) return
 
   if (currentRow.value.rowMeta.changed || currentRow.value.rowMeta.new) {
@@ -136,7 +135,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   >
     <template v-if="column">
       <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
-      <LazyCellCheckbox v-else-if="isBoolean(column)" v-model="vModel" />
+      <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellMultiSelect v-else-if="isMultiSelect(column)" v-model="vModel" :row-index="props.rowIndex" />

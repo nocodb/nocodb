@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
+import type { InputPassword } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg, message, ref, useRoute, useSharedView, useVModel } from '#imports'
 
 const props = defineProps<{
@@ -24,6 +26,8 @@ const onFinish = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('input').focus()
 </script>
 
 <template>
@@ -42,7 +46,7 @@ const onFinish = async () => {
 
       <a-form ref="formRef" :model="formState" class="mt-2" @finish="onFinish">
         <a-form-item name="password" :rules="[{ required: true, message: 'Password is required' }]">
-          <a-input-password v-model:value="formState.password" placeholder="Enter password" />
+          <a-input-password :ref="focus" v-model:value="formState.password" placeholder="Enter password" />
         </a-form-item>
 
         <a-button type="primary" html-type="submit">Unlock</a-button>

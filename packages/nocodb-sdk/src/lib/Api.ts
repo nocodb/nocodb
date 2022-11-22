@@ -1950,6 +1950,7 @@ export class Api<
       tableId: string,
       data: {
         table_name?: string;
+        title?: string;
         project_id?: string;
       },
       params: RequestParams = {}

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
@@ -9,12 +10,13 @@ import {
   IsKanbanInj,
   ReadonlyInj,
   computed,
+  enumColor,
+  extractSdkResponseErrorMsg,
   inject,
   ref,
-  useEventListener,
+  useSelectedCellKeyupListener,
   watch,
 } from '#imports'
-import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 
 interface Props {
   modelValue?: string | undefined
@@ -39,12 +41,19 @@ const isOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const vModel = computed({
-  get: () => modelValue,
-  set: (val) => emit('update:modelValue', val || null),
-})
+const isPublic = inject(IsPublicInj, ref(false))
 
-const options = computed<SelectOptionType[]>(() => {
+const { $api } = useNuxtApp()
+
+const searchVal = ref()
+
+const { getMeta } = useMetas()
+
+// a variable to keep newly created option value
+// temporary until it's add the option to column meta
+const tempSelectedOptState = ref<string>()
+
+const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
@@ -53,19 +62,27 @@ const options = computed<SelectOptionType[]>(() => {
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
     }
-    return opts
+    return opts.map((o: any) => ({ ...o, value: o.title }))
   }
   return []
 })
 
-const handleClose = (e: MouseEvent) => {
-  if (aselect.value && !aselect.value.$el.contains(e.target)) {
-    isOpen.value = false
-    aselect.value.blur()
-  }
-}
+const isOptionMissing = computed(() => {
+  return (options.value ?? []).every((op) => op.title !== searchVal.value)
+})
 
-useEventListener(document, 'click', handleClose)
+const vModel = computed({
+  get: () => tempSelectedOptState.value ?? modelValue,
+  set: (val) => {
+    if (isOptionMissing.value && val === searchVal.value) {
+      tempSelectedOptState.value = val
+      return addIfMissingAndSave().finally(() => {
+        tempSelectedOptState.value = undefined
+      })
+    }
+    emit('update:modelValue', val || null)
+  },
+})
 
 watch(isOpen, (n, _o) => {
   if (!n) {
@@ -87,6 +104,50 @@ useSelectedCellKeyupListener(active, (e) => {
       break
   }
 })
+
+async function addIfMissingAndSave() {
+  if (!searchVal.value || isPublic.value) return false
+
+  const newOptValue = searchVal.value
+  searchVal.value = ''
+
+  if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
+    try {
+      options.value.push({
+        title: newOptValue,
+        value: newOptValue,
+        color: enumColor.light[(options.value.length + 1) % enumColor.light.length],
+      })
+      column.value.colOptions = { options: options.value.map(({ value: _, ...rest }) => rest) }
+
+      await $api.dbTableColumn.update((column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string), {
+        ...column.value,
+      })
+      vModel.value = newOptValue
+      await getMeta(column.value.fk_model_id!, true)
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+}
+
+const search = () => {
+  searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
+}
+
+const toggleMenu = (e: Event) => {
+  // todo: refactor
+  // check clicked element is clear icon
+  if (
+    (e.target as HTMLElement)?.classList.contains('ant-select-clear') ||
+    (e.target as HTMLElement)?.closest('.ant-select-clear')
+  ) {
+    vModel.value = ''
+    return
+  }
+  isOpen.value = (active.value || editable.value) && !isOpen.value
+}
 </script>
 
 <template>
@@ -96,13 +157,15 @@ useSelectedCellKeyupListener(active, (e) => {
     class="w-full"
     :allow-clear="!column.rqd && active"
     :bordered="false"
-    :open="isOpen"
+    :open="isOpen && (active || editable)"
     :disabled="readOnly"
     :show-arrow="!readOnly && (active || editable || vModel === null)"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
+    :show-search="active || editable"
     @select="isOpen = false"
-    @keydown.enter.stop
-    @click="isOpen = (active || editable) && !isOpen"
+    @keydown.stop
+    @search="search"
+    @click="toggleMenu"
   >
     <a-select-option
       v-for="op of options"
@@ -125,6 +188,15 @@ useSelectedCellKeyupListener(active, (e) => {
         </span>
       </a-tag>
     </a-select-option>
+
+    <a-select-option v-if="searchVal && isOptionMissing && !isPublic" :key="searchVal" :value="searchVal">
+      <div class="flex gap-2 text-gray-500 items-center h-full">
+        <MdiPlusThick class="min-w-4" />
+        <div class="text-xs whitespace-normal">
+          Create new option named <strong>{{ searchVal }}</strong>
+        </div>
+      </div>
+    </a-select-option>
   </a-select>
 </template>
 
@@ -141,6 +213,3 @@ useSelectedCellKeyupListener(active, (e) => {
   opacity: 1;
 }
 </style>
-<!--
-
--->

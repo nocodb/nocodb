@@ -24,7 +24,7 @@ test.describe('Meta sync', () => {
         dbExec = mysqlExec;
         break;
       case 'pg':
-        dbExec = pgExec;
+        dbExec = query => pgExec(query, context);
         break;
     }
   });

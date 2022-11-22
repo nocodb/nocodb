@@ -21,32 +21,7 @@ export class QrCodeOverlay extends BasePage {
     await expect(foundQrValueLabelText).toContain(expectedValue);
   }
 
-  // async toggle() {
-  //   await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
-  // }
-
   async clickCloseButton() {
-    // const closeButton = await this.get().locator('.ant-modal-close-x').click();
     await this.get().locator('.ant-modal-close-x').click();
-    // const closeButton = await this.rootPage.locator('[data-testid="nc-qr-code-large"]');
   }
-
-  // async click({ menu, subMenu }: { menu: string; subMenu: string }) {
-  //   const pMenu = await this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
-  //   await pMenu.locator(`div.nc-project-menu-item:has-text("${menu}"):visible`).click();
-  //   await this.rootPage.waitForTimeout(2000);
-
-  //   if (subMenu) {
-  //     await this.rootPage.locator(`div.nc-project-menu-item:has-text("${subMenu}"):visible`).click();
-  //     await this.rootPage.waitForTimeout(1000);
-  //   }
-  // }
-
-  // async clickPreview(role: string) {
-  //   await this.click({
-  //     menu: 'Preview as',
-  //     subMenu: role,
-  //   });
-  //   await this.rootPage.waitForTimeout(2500);
-  // }
 }

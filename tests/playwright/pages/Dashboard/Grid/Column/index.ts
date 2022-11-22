@@ -74,7 +74,6 @@ export class ColumnPageObject extends BasePage {
         break;
       case 'QrCode':
         await this.get().locator('.ant-select-single').nth(1).click();
-        // await this.get().locator('.ant-select-item').fill(qrCodeValueColumnTitle);
         await this.rootPage
           .locator(`.ant-select-item`, {
             hasText: qrCodeValueColumnTitle,

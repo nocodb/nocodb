@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
 import { EditModeInj, inject, useVModel } from '#imports'
-import { VNodeRef } from '@vue/runtime-core'
 
 interface Props {
   modelValue?: number | string | null
@@ -21,8 +21,8 @@ const focus: VNodeRef = (el) => {
 
 <template>
   <input
-    :ref="focus"
     v-if="editEnabled"
+    :ref="focus"
     v-model="vModel"
     class="w-full !border-none text-base"
     :class="{ '!px-2': editEnabled }"

@@ -711,7 +711,7 @@ watch(
                     @mouseover="selectBlock(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
-                    <div class="w-full h-full" v-if="!switchingTab">
+                    <div v-if="!switchingTab" class="w-full h-full">
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(columnObj)"
                         v-model="row.row[columnObj.title]"

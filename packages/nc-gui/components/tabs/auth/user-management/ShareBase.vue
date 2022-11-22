@@ -136,7 +136,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full" data-nc="nc-share-base-sub-modal">
+  <div class="flex flex-col w-full" data-testid="nc-share-base-sub-modal">
     <div class="flex flex-row items-center space-x-0.5 pl-2 h-[0.8rem]">
       <MdiOpenInNew />
 

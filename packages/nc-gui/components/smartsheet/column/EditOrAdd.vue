@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useEventListener } from '@vueuse/core'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
@@ -116,6 +117,12 @@ onMounted(() => {
     formState.value.column_name = formState.value?.title
   }
 })
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    emit('cancel')
+  }
+})
 </script>
 
 <template>
@@ -124,7 +131,7 @@ onMounted(() => {
     :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
     @click.stop
   >
-    <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-nc="add-or-edit-column">
+    <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
           <a-input

@@ -4,6 +4,7 @@ import {
   IsPublicInj,
   MetaInj,
   ReloadViewDataHookInj,
+  applyLanguageDirection,
   createError,
   createEventHook,
   definePageMeta,
@@ -26,9 +27,8 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 
-const { loadSharedView, sharedView, meta, notFound, password, passwordDlg, passwordError } = useProvideSharedFormStore(
-  route.params.viewId as string,
-)
+const { loadSharedView, sharedView, sharedViewMeta, meta, notFound, password, passwordDlg, passwordError } =
+  useProvideSharedFormStore(route.params.viewId as string)
 
 await loadSharedView()
 
@@ -39,6 +39,8 @@ if (!notFound.value) {
   provide(IsFormInj, ref(true))
 
   useProvideSmartsheetStore(sharedView, meta, true)
+
+  applyLanguageDirection(sharedViewMeta.value.rtl ? 'rtl' : 'ltr')
 } else {
   navigateTo('/error/404')
   throw createError({ statusCode: 404, statusMessage: 'Page Not Found' })

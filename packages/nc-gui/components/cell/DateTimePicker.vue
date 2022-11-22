@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj, inject, ref, useProject, watch } from '#imports'
+import { ActiveCellInj, ReadonlyInj, inject, ref, useProject, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null
+  isPk?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 let isDateInvalid = $ref(false)
 
@@ -55,6 +60,21 @@ watch(
   },
   { flush: 'post' },
 )
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case 'Escape':
+      if (open.value) {
+        e.stopPropagation()
+        open.value = false
+      }
+      break
+  }
+})
 </script>
 
 <template>
@@ -65,12 +85,12 @@ watch(
     class="!w-full !px-0 !border-none"
     format="YYYY-MM-DD HH:mm"
     :placeholder="isDateInvalid ? 'Invalid date' : ''"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :dropdown-class-name="`${randomClass} nc-picker-datetime`"
-    :open="readOnly ? false : open"
-    :disabled="readOnly"
-    @click="open = !open"
+    :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
+    :open="readOnly || (localState && isPk) ? false : open && (active || editable)"
+    :disabled="readOnly || (localState && isPk)"
+    @click="open = (active || editable) && !open"
     @ok="open = !open"
   >
     <template #suffixIcon></template>

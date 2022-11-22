@@ -2,6 +2,7 @@ import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import {
+  ClientType,
   computed,
   createEventHook,
   ref,
@@ -39,6 +40,8 @@ const [setup, use] = useInjectionState(() => {
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
+  const lastOpenedViewMap = ref<Record<string, string>>({})
+
   const projectId = computed(() => route.params.projectId as string)
 
   // todo: refactor path param name and variable name
@@ -52,13 +55,13 @@ const [setup, use] = useInjectionState(() => {
     }
   })
 
-  const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
+  const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || ClientType.MYSQL)
 
   const sqlUi = computed(
     () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
   )
 
-  const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
+  const isMysql = computed(() => ['mysql', ClientType.MYSQL].includes(projectBaseType))
   const isMssql = computed(() => projectBaseType === 'mssql')
   const isPg = computed(() => projectBaseType === 'pg')
   const isSharedBase = computed(() => projectType === 'base')
@@ -165,6 +168,7 @@ const [setup, use] = useInjectionState(() => {
     projectLoadedHook: projectLoadedHook.on,
     reset,
     isLoading,
+    lastOpenedViewMap,
   }
 }, 'useProject')
 

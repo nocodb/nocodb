@@ -89,10 +89,15 @@ export default class SelectOption {
     title: string,
     ncMeta = Noco.ncMeta
   ): Promise<SelectOption> {
-    let data = await ncMeta.metaGet2(null, null, MetaTable.COL_SELECT_OPTIONS, {
-      fk_column_id,
-      title,
-    });
+    const data = await ncMeta.metaGet2(
+      null,
+      null,
+      MetaTable.COL_SELECT_OPTIONS,
+      {
+        fk_column_id,
+        title,
+      }
+    );
 
     return data && new SelectOption(data);
   }

@@ -104,7 +104,9 @@
       "creator": "作成者",
       "editor": "編集者",
       "commenter": "コメンター",
-      "viewer": "閲覧者"
+      "viewer": "閲覧者",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL View"
   },
@@ -200,6 +202,7 @@
     "codeSnippet": "Code Snippet"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "次で通知する",
     "projName": "プロジェクト名",
     "tableName": "テーブルの名前",
@@ -296,7 +299,8 @@
     "signUpWithGoogle": "Sign up with Google",
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
-    "welcomeToNc": "Welcome to NocoDB!"
+    "welcomeToNc": "Welcome to NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
     "createProject": "プロジェクトを作成",
@@ -341,12 +345,14 @@
     "invite": "招待",
     "inviteMore": "さらに招待",
     "inviteTeam": "チームへ招待",
+    "inviteUser": "Invite User",
     "inviteToken": "招待用トークン",
     "newUser": "ユーザーを作成",
     "editUser": "ユーザーを編集",
     "deleteUser": "プロジェクトからユーザーを削除",
     "resendInvite": "招待用メールを再送信",
     "copyInviteURL": "招待用 URL をコピー",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "新しいロール",
     "reloadRoles": "ロールをリロード",
     "nextPage": "次のページ",
@@ -480,6 +486,10 @@
   },
   "msg": {
     "info": {
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "1ページあたりの行数",
       "upload": "アップロードするファイルを選択してください",
       "upload_sub": "またはファイルをドラッグ & ドロップ",
@@ -653,7 +663,8 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty."
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",
@@ -683,13 +694,16 @@
       "tableDataExported": "Successfully exported all table data",
       "updated": "Successfully updated",
       "sharedViewDeleted": "Deleted shared view successfully",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "View renamed successfully",
       "tokenGenerated": "Token generated successfully",
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "Successfully added user to project",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
@@ -699,7 +713,9 @@
       "webhookTested": "Webhook tested successfully",
       "columnUpdated": "列が更新されました",
       "columnCreated": "Column created",
-      "passwordChanged": "Password changed successfully. Please login again."
+      "passwordChanged": "Password changed successfully. Please login again.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

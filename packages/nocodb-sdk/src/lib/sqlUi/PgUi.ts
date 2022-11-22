@@ -1417,8 +1417,6 @@ export class PgUi {
       case 'internal':
       case 'interval':
         return 'string';
-      case 'jsonb':
-        return 'string';
 
       case 'language_handler':
       case 'line':
@@ -1533,6 +1531,7 @@ export class PgUi {
       case 'multipolygon':
         return 'string';
       case 'json':
+      case 'jsonb':
         return 'json';
     }
   }

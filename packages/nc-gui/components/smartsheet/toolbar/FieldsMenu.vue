@@ -14,6 +14,7 @@ import {
   inject,
   ref,
   resolveComponent,
+  useMenuCloseOnEsc,
   useNuxtApp,
   useViewColumns,
   watch,
@@ -119,10 +120,14 @@ const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
+
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
+  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
@@ -139,7 +144,7 @@ const getIcon = (c: ColumnType) =>
     <template #overlay>
       <div
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
-        data-nc="nc-fields-menu"
+        data-testid="nc-fields-menu"
         @click.stop
       >
         <a-card
@@ -167,7 +172,7 @@ const getIcon = (c: ColumnType) =>
                 v-show="filteredFieldList.includes(field)"
                 :key="field.id"
                 class="px-2 py-1 flex items-center"
-                :data-nc="`nc-fields-menu-${field.title}`"
+                :data-testid="`nc-fields-menu-${field.title}`"
                 @click.stop
               >
                 <a-checkbox

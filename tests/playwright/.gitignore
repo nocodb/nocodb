@@ -1,0 +1,9 @@
+node_modules/
+/test-results/
+/playwright-report/
+/playwright-report copy/
+/playwright-report-quick/
+/playwright/.cache/
+.env
+output
+/output copy/

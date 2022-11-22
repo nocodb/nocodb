@@ -9,6 +9,7 @@ import {
   getSortDirectionOptions,
   inject,
   ref,
+  useMenuCloseOnEsc,
   useViewSorts,
   watch,
 } from '#imports'
@@ -37,10 +38,14 @@ watch(
   },
   { immediate: true },
 )
+
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
+  <a-dropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
@@ -55,7 +60,7 @@ watch(
     <template #overlay>
       <div
         class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border"
-        data-nc="nc-sorts-menu"
+        data-testid="nc-sorts-menu"
       >
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">

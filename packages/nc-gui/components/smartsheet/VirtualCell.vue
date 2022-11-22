@@ -1,6 +1,22 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ActiveCellInj, CellValueInj, ColumnInj, IsFormInj, RowInj, inject, provide, ref, toRef, useVirtualCell } from '#imports'
+import {
+  ActiveCellInj,
+  CellValueInj,
+  ColumnInj,
+  IsFormInj,
+  RowInj,
+  inject,
+  isBt,
+  isCount,
+  isFormula,
+  isHm,
+  isLookup,
+  isMm,
+  isRollup,
+  provide,
+  toRef,
+} from '#imports'
 import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
 
@@ -24,8 +40,6 @@ provide(CellValueInj, toRef(props, 'modelValue'))
 
 const isForm = inject(IsFormInj, ref(false))
 
-const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
-
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)
 
@@ -39,12 +53,12 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
-    <LazyVirtualCellHasMany v-if="isHm" />
-    <LazyVirtualCellManyToMany v-else-if="isMm" />
-    <LazyVirtualCellBelongsTo v-else-if="isBt" />
-    <LazyVirtualCellRollup v-else-if="isRollup" />
-    <LazyVirtualCellFormula v-else-if="isFormula" />
-    <LazyVirtualCellCount v-else-if="isCount" />
-    <LazyVirtualCellLookup v-else-if="isLookup" />
+    <LazyVirtualCellHasMany v-if="isHm(column)" />
+    <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
+    <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
+    <LazyVirtualCellRollup v-else-if="isRollup(column)" />
+    <LazyVirtualCellFormula v-else-if="isFormula(column)" />
+    <LazyVirtualCellCount v-else-if="isCount(column)" />
+    <LazyVirtualCellLookup v-else-if="isLookup(column)" />
   </div>
 </template>

@@ -1,8 +1,0 @@
-node_modules/
-/test-results/
-/playwright-report/
-/playwright-report copy/
-/playwright/.cache/
-.env
-output
-/output copy/

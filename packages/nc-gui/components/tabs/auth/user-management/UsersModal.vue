@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import type { Input } from 'ant-design-vue'
 import {
   Form,
   computed,
   extractSdkResponseErrorMsg,
-  isEmail,
   message,
   onMounted,
   projectRoleTagColors,
@@ -14,6 +14,7 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
+  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
@@ -57,7 +58,7 @@ const validators = computed(() => {
             callback('Email is required')
             return
           }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !isEmail(e))
+          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
           if (invalidEmails.length > 0) {
             callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
           } else {
@@ -132,6 +133,10 @@ const clickInviteMore = () => {
   usersData.invitationToken = undefined
   usersData.role = ProjectRole.Viewer
   usersData.emails = undefined
+}
+
+const emailField = (inputEl: typeof Input) => {
+  inputEl?.$el?.focus()
 }
 </script>
 
@@ -222,6 +227,7 @@ const clickInviteMore = () => {
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
 
                     <a-input
+                      :ref="emailField"
                       v-model:value="usersData.emails"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"

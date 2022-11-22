@@ -321,9 +321,6 @@ export const genTest = (apiType, dbType) => {
         settingsPage.openMenu(settingsPage.APPSTORE);
         mainPage.configureSMTP("admin@ex.com", "smtp.ex.com", "8080", "TLS");
 
-        // open form view & enable "email me" option
-        cy.openTableTab("Country", 25);
-
         cy.get(`.nc-view-item.nc-${viewType}-view-item`)
           .contains("Form-1")
           .click();
@@ -335,8 +332,6 @@ export const genTest = (apiType, dbType) => {
 
         settingsPage.openMenu(settingsPage.APPSTORE);
         mainPage.resetSMTP();
-
-        cy.openTableTab("Country", 25);
       });
 
       it(`Validate ${viewType}: Add/ remove field verification"`, () => {

@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import Model from '../../models/Model';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Tele } from 'nc-help';
+import { PagedResponseImpl } from '../helpers/PagedResponse';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
@@ -91,7 +91,10 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const project = await Project.getWithInfo(req.params.projectId);
   const base = project.bases[0];
 
-  if (!req.body.table_name) {
+  if (
+    !req.body.table_name ||
+    (project.prefix && project.prefix === req.body.table_name)
+  ) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
     );

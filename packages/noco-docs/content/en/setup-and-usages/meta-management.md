@@ -1,9 +1,9 @@
 ---
-title: 'Metadata'
+title: 'Team & Settings > Project Metadata'
 description: 'NocoDB Project Metadata'
 position: 600
 category: 'Product'
-menuTitle: 'Metadata'
+menuTitle: 'Team & Settings > Project Metadata'
 ---
 
 Project Metadata includes Database Metadata, UI Access Control and Miscellaneous.

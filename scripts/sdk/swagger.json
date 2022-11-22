@@ -1703,6 +1703,9 @@
                   "table_name": {
                     "type": "string"
                   },
+                  "title": {
+                    "type": "string"
+                  },
                   "project_id": {
                     "type": "string"
                   }

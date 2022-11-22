@@ -25,6 +25,8 @@ const { isUIAllowed } = useUIPermission()
 
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
+const saveRowAndStay = ref(0)
+
 const save = async () => {
   if (isNew.value) {
     const data = await _save(state.value)
@@ -33,6 +35,9 @@ const save = async () => {
   } else {
     await _save()
     reloadTrigger?.trigger()
+  }
+  if (!saveRowAndStay.value) {
+    emit('cancel')
   }
 }
 
@@ -101,14 +106,39 @@ const copyRecordUrl = () => {
     </a-tooltip>
 
     <a-button class="!text mx-1 nc-expand-form-close-btn" @click="emit('cancel')">
-      <!-- Cancel -->
-      {{ $t('general.cancel') }}
+      <div class="flex items-center">
+        <MdiCloseCircleOutline class="mr-1" />
+        <!-- Close -->
+        {{ $t('general.close') }}
+      </div>
     </a-button>
 
-    <a-button :disabled="!isUIAllowed('tableRowUpdate')" type="primary" class="mx-1" @click="save">
-      <!-- Save Row -->
-      {{ $t('activity.saveRow') }}
-    </a-button>
+    <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
+      <template #overlay>
+        <a-menu class="nc-expand-form-save-dropdown-menu">
+          <a-menu-item key="0" class="!py-2 flex gap-2" @click="saveRowAndStay = 0">
+            <div class="flex items-center">
+              <MdiContentSave class="mr-1" />
+              {{ $t('activity.saveAndExit') }}
+            </div>
+          </a-menu-item>
+          <a-menu-item key="1" class="!py-2 flex gap-2 items-center" @click="saveRowAndStay = 1">
+            <div class="flex items-center">
+              <MdiContentSaveEdit class="mr-1" />
+              {{ $t('activity.saveAndStay') }}
+            </div>
+          </a-menu-item>
+        </a-menu>
+      </template>
+      <div v-if="saveRowAndStay === 0" class="flex items-center">
+        <MdiContentSave class="mr-1" />
+        {{ $t('activity.saveAndExit') }}
+      </div>
+      <div v-if="saveRowAndStay === 1" class="flex items-center">
+        <MdiContentSaveEdit class="mr-1" />
+        {{ $t('activity.saveAndStay') }}
+      </div>
+    </a-dropdown-button>
   </div>
 </template>
 

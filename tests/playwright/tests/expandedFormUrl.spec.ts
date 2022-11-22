@@ -37,7 +37,7 @@ test.describe('Expanded form URL', () => {
     // expand row & verify URL
     await viewObj.openExpandedRow({ index: 0 });
     const url = await dashboard.expandedForm.getShareRowUrl();
-    await dashboard.expandedForm.close();
+    await dashboard.expandedForm.escape();
     await dashboard.rootPage.goto(url);
 
     await dashboard.expandedForm.verify({
@@ -81,13 +81,13 @@ test.describe('Expanded form URL', () => {
     // expect(expandedFormUrl).toContain("rowId=1");
 
     // access a new rowID using URL
-    await dashboard.expandedForm.close();
+    await dashboard.expandedForm.escape();
     await dashboard.expandedForm.gotoUsingUrlAndRowId({ rowId: '2' });
     await dashboard.expandedForm.verify({
       header: 'Algeria',
       url: 'rowId=2',
     });
-    await dashboard.expandedForm.close();
+    await dashboard.expandedForm.escape();
 
     // visit invalid rowID
     await dashboard.expandedForm.gotoUsingUrlAndRowId({ rowId: '999' });
@@ -114,12 +114,12 @@ test.describe('Expanded form URL', () => {
     await dashboard.expandedForm.verifyCount({ count: 2 });
 
     // close child card
-    await dashboard.expandedForm.cancel();
+    await dashboard.expandedForm.close();
     await dashboard.expandedForm.verify({
       header: 'Afghanistan',
       url: 'rowId=1',
     });
-    await dashboard.expandedForm.cancel();
+    await dashboard.expandedForm.close();
   }
 
   test('Grid', async () => {

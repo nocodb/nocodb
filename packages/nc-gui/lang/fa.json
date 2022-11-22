@@ -368,6 +368,8 @@
     "setPrimary": "تنظیم به عنوان مقدار اولیه",
     "addRow": "اضافه کردن ردیف جدید",
     "saveRow": "دخیره ردیف",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "وارد کردن ردیف جدید",
     "deleteRow": "حذف ردیف جدید",
     "deleteSelectedRow": "حذف ردیف‌های انتخاب شده",

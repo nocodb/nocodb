@@ -86,4 +86,4 @@ export default `<!DOCTYPE html>
   setTimeout(() => linkEl.classList.add('active'), 2000)
 </script>
 </body>
-</html>`
+</html>`;

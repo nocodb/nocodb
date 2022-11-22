@@ -195,9 +195,15 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       try {
         if (!(await validate())) return
       } catch (e) {
-        console.log(e)
-        console.trace()
-        message.error(t('msg.error.formValidationFailed'))
+        const errorMsgs = e.errorFields
+          ?.map((e: any) => e.errors?.join(', '))
+          .filter(Boolean)
+          .join(', ')
+        if (errorMsgs) {
+          message.error(errorMsgs)
+        } else {
+          message.error(t('msg.error.formValidationFailed'))
+        }
         return
       }
 

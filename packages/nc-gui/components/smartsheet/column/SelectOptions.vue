@@ -174,12 +174,11 @@ watch(inputs, () => {
             />
           </div>
         </template>
-        <template #footer>
-          <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-[10px] my-2">
-            {{ validateInfos['colOptions.options'].help[0][0] }}
-          </div>
-        </template>
       </Draggable>
+    </div>
+
+    <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
+      {{ validateInfos['colOptions.options'].help[0][0] }}
     </div>
     <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
       <div class="flex items-center">

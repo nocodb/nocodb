@@ -54,10 +54,21 @@ export class ExpandedFormPage extends BasePage {
 
   async save({
     waitForRowsData = true,
+    saveAndExitMode = true,
   }: {
     waitForRowsData?: boolean;
+    saveAndExitMode?: boolean;
   } = {}) {
-    const saveRowAction = this.get().locator('button:has-text("Save Row")').click();
+    if (!saveAndExitMode) {
+      await this.get().locator('.nc-expand-form-save-btn .ant-dropdown-trigger').click();
+      const dropdownList = this.rootPage.locator('.nc-expand-form-save-dropdown-menu');
+      await dropdownList.locator('.ant-dropdown-menu-item:has-text("Save & Stay")').click();
+    }
+
+    const saveRowAction = saveAndExitMode
+      ? this.get().locator('button:has-text("Save & Exit")').click()
+      : this.get().locator('button:has-text("Save & Stay")').click();
+
     if (waitForRowsData) {
       await this.waitForResponse({
         uiAction: saveRowAction,
@@ -73,7 +84,10 @@ export class ExpandedFormPage extends BasePage {
       });
     }
 
-    await this.get().press('Escape');
+    if (!saveAndExitMode) {
+      await this.get().press('Escape');
+    }
+
     await this.get().waitFor({ state: 'hidden' });
     await this.verifyToast({ message: `updated successfully.` });
     await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
@@ -84,13 +98,13 @@ export class ExpandedFormPage extends BasePage {
     await expect.poll(() => this.rootPage.url()).toContain(url);
   }
 
-  async close() {
+  async escape() {
     await this.rootPage.keyboard.press('Escape');
     await this.get().waitFor({ state: 'hidden' });
   }
 
-  async cancel() {
-    await this.get().locator('button:has-text("Cancel")').last().click();
+  async close() {
+    await this.get().locator('button:has-text("Close")').last().click();
   }
 
   async openChildCard(param: { column: string; title: string }) {
@@ -104,9 +118,9 @@ export class ExpandedFormPage extends BasePage {
 
   async validateRoleAccess(param: { role: string }) {
     if (param.role === 'commenter' || param.role === 'viewer') {
-      await expect(await this.get().locator('button:has-text("Save Row")')).toBeDisabled();
+      await expect(await this.get().locator('button:has-text("Save & Exit")')).toBeDisabled();
     } else {
-      await expect(await this.get().locator('button:has-text("Save Row")')).toBeEnabled();
+      await expect(await this.get().locator('button:has-text("Save & Exit")')).toBeEnabled();
     }
     if (param.role === 'viewer') {
       await expect(await this.toggleCommentsButton).toHaveCount(0);

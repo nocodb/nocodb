@@ -368,6 +368,8 @@
     "setPrimary": "تعيين كقيمة أساسية",
     "addRow": "إضافة صف جديد",
     "saveRow": "حفظ الصف",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "إدراج صف جديد",
     "deleteRow": "حذف الصف",
     "deleteSelectedRow": "حذف الصفوف المحددة",

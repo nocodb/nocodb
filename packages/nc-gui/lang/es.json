@@ -368,6 +368,8 @@
     "setPrimary": "Establecido como clave primaria",
     "addRow": "Añadir nueva fila",
     "saveRow": "Grabar la fila",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Insertar nueva fila",
     "deleteRow": "Borrar fila",
     "deleteSelectedRow": "Eliminar filas seleccionadas",

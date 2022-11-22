@@ -368,6 +368,8 @@
     "setPrimary": "Tetapkan sebagai nilai utama",
     "addRow": "Tambahkan baris baru",
     "saveRow": "Hemat Baris",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Masukkan baris baru.",
     "deleteRow": "Hapus Baris",
     "deleteSelectedRow": "Hapus baris yang dipilih",

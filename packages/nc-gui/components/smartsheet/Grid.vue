@@ -423,6 +423,7 @@ onClickOutside(smartTable, (e) => {
 
 const onNavigate = (dir: NavigateDir) => {
   if (selected.row === null || selected.col === null) return
+  editEnabled = false
   switch (dir) {
     case NavigateDir.NEXT:
       if (selected.row < data.value.length - 1) {
@@ -435,8 +436,6 @@ const onNavigate = (dir: NavigateDir) => {
     case NavigateDir.PREV:
       if (selected.row > 0) {
         selected.row--
-      } else {
-        editEnabled = false
       }
       break
   }

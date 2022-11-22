@@ -145,9 +145,6 @@ export default class CSVTemplateAdapter {
     }
     // handle numeric case
     if (len === 2 && UITypes.Number in detectedColTypes && UITypes.Decimal in detectedColTypes) {
-      if (detectedColTypes[UITypes.Number] > detectedColTypes[UITypes.Decimal]) {
-        return UITypes.Number
-      }
       return UITypes.Decimal
     }
     // if there are multiple detected column types

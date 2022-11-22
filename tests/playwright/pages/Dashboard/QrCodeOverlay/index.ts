@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import BasePage from '../../Base';
 import { FormPage } from '../Form';
 import { GalleryPage } from '../Gallery';
@@ -11,6 +12,13 @@ export class QrCodeOverlay extends BasePage {
 
   get() {
     return this.rootPage.locator(`.nc-qr-code-large`);
+  }
+
+  async verifyQrValueLabel(expectedValue: string) {
+    const foundQrValueLabelText = await this.get()
+      .locator('[data-testid="nc-qr-code-large-value-label"]')
+      .textContent();
+    await expect(foundQrValueLabelText).toContain(expectedValue);
   }
 
   // async toggle() {

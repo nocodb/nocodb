@@ -73,7 +73,9 @@ test.describe('Virtual Columns', () => {
       // Clicking on qr code in first row and expect it shows a
       // popup with an enlarged version of the qr code
       await dashboard.grid.cell.get({ columnHeader: 'QrCode1', index: 0 }).click();
-      await dashboard.grid.qrCodeOverlay.clickCloseButton();
+      const qrGridOverlay = dashboard.grid.qrCodeOverlay;
+      await qrGridOverlay.verifyQrValueLabel(expectedQrCodeCellValues[0].referencedValue);
+      await qrGridOverlay.clickCloseButton();
 
       await dashboard.closeTab({ title: 'City' });
     });

@@ -368,6 +368,8 @@
     "setPrimary": "Đặt dưới dạng giá trị chính",
     "addRow": "Thêm hàng mới",
     "saveRow": "Lưu hàng.",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Chèn hàng mới",
     "deleteRow": "Xóa hàng",
     "deleteSelectedRow": "Xóa các hàng đã chọn",

@@ -368,6 +368,8 @@
     "setPrimary": "设置为主要值",
     "addRow": "添加新行",
     "saveRow": "保存行",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "插入新行",
     "deleteRow": "删除行",
     "deleteSelectedRow": "删除所选行",

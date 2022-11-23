@@ -368,6 +368,8 @@
     "setPrimary": "ตั้งค่าเป็นค่าปฐมภูมิ",
     "addRow": "เพิ่มแถวใหม่",
     "saveRow": "บันทึกแถว",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "แทรกแถวใหม่",
     "deleteRow": "ลบแถว",
     "deleteSelectedRow": "ลบแถวที่เลือก",

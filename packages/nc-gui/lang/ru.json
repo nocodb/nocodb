@@ -368,6 +368,8 @@
     "setPrimary": "Установить в качестве основного значения",
     "addRow": "Добавить новую строку",
     "saveRow": "Сохранить строку",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Вставить новый строк",
     "deleteRow": "Удалить строку",
     "deleteSelectedRow": "Удалить выбранные строки",

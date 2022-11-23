@@ -28,7 +28,7 @@ export class ProjectsPage extends BasePage {
   }) {
     if (!withoutPrefix) name = this.prefixTitle(name);
 
-    await this.rootPage.locator('.nc-new-project-menu').click();
+    await this.get().locator('.nc-new-project-menu').click();
 
     const createProjectMenu = await this.rootPage.locator('.nc-dropdown-create-project');
 
@@ -38,20 +38,18 @@ export class ProjectsPage extends BasePage {
       await createProjectMenu.locator(`.ant-dropdown-menu-title-content`).nth(1).click();
     }
 
-    // todo: Fast page transition breaks the vue router
-    await this.rootPage.waitForTimeout(2000);
-
     await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
     await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
 
-    await this.rootPage.waitForTimeout(2000);
-
-    await this.rootPage.locator(`button:has-text("Create")`).click({
-      delay: 2000,
+    const createProjectSubmitAction = this.rootPage.locator(`button:has-text("Create")`).click();
+    await this.waitForResponse({
+      uiAction: createProjectSubmitAction,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: '/api/v1/db/meta/projects/',
     });
 
-    // fix me! wait for page to be rendered completely
-    await this.rootPage.waitForTimeout(2000);
+    // wait for dashboard to render
+    await this.rootPage.locator('.nc-container').waitFor({ state: 'visible' });
   }
 
   async checkProjectCreateButton({ exists = true }) {
@@ -91,9 +89,6 @@ export class ProjectsPage extends BasePage {
     withoutPrefix?: boolean;
     waitForAuthTab?: boolean;
   }) {
-    // todo: Fast page transition breaks the vue router
-    await this.rootPage.waitForTimeout(2000);
-
     if (!withoutPrefix) title = this.prefixTitle(title);
 
     let project: any;
@@ -138,7 +133,13 @@ export class ProjectsPage extends BasePage {
     if (!withoutPrefix) title = this.prefixTitle(title);
 
     await this.get().locator(`[data-testid="delete-project-${title}"]`).click();
-    await this.rootPage.locator(`button:has-text("Yes")`).click();
+
+    const deleteProjectAction = this.rootPage.locator(`button:has-text("Yes")`).click();
+    await this.waitForResponse({
+      uiAction: deleteProjectAction,
+      httpMethodsToMatch: ['DELETE'],
+      requestUrlPathToMatch: '/api/v1/db/meta/projects/',
+    });
 
     await this.get().locator('.ant-table-row', { hasText: title }).waitFor({ state: 'hidden' });
   }
@@ -161,9 +162,6 @@ export class ProjectsPage extends BasePage {
     });
     await projRow.locator('.nc-action-btn').nth(0).click();
 
-    // todo: Fast page transition breaks the vue router
-    await this.rootPage.waitForTimeout(2000);
-
     await project.locator('input.nc-metadb-project-name').fill(newTitle);
     // press enter to save
     const submitAction = project.locator('input.nc-metadb-project-name').press('Enter');
@@ -172,9 +170,6 @@ export class ProjectsPage extends BasePage {
       requestUrlPathToMatch: 'api/v1/db/meta/projects/',
       httpMethodsToMatch: ['PATCH'],
     });
-
-    // todo: vue navigation breaks if page changes very quickly
-    await this.rootPage.waitForTimeout(1000);
   }
 
   async openLanguageMenu() {
@@ -187,10 +182,23 @@ export class ProjectsPage extends BasePage {
   }
 
   async verifyLanguage(param: { json: any }) {
-    const title = await this.rootPage.locator(`.nc-project-page-title`);
+    const title = this.rootPage.locator(`.nc-project-page-title`);
     const menu = this.rootPage.locator(`.nc-new-project-menu`);
     await expect(title).toHaveText(param.json.title.myProject);
     await expect(menu).toHaveText(param.json.title.newProj);
     await this.rootPage.locator(`[placeholder="${param.json.activity.searchProject}"]`).waitFor();
+  }
+
+  async openPasswordChangeModal() {
+    // open change password portal
+    await this.rootPage.locator('.nc-menu-accounts').click();
+    await this.rootPage
+      .locator('.nc-dropdown-user-accounts-menu')
+      .getByTestId('nc-menu-accounts__user-settings')
+      .click();
+  }
+
+  async waitForRender() {
+    await this.rootPage.locator('.nc-project-page-title:has-text("My Projects")').waitFor();
   }
 }

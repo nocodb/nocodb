@@ -368,6 +368,8 @@
     "setPrimary": "Uzstādīt kā primāro atslēgu",
     "addRow": "Pievienot ierakstu",
     "saveRow": "Saglabāt ierakstu",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Pievienot jaunu ierakstu",
     "deleteRow": "Dzēst ierakstu",
     "deleteSelectedRow": "Dzēst izvēlētos ierakstus",

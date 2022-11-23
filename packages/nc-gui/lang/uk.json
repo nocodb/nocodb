@@ -368,6 +368,8 @@
     "setPrimary": "Встановлено як первинне значення",
     "addRow": "Додати новий рядок",
     "saveRow": "Рятувати рядок",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Вставте новий рядок",
     "deleteRow": "Видалити рядок",
     "deleteSelectedRow": "Видалити вибрані рядки",

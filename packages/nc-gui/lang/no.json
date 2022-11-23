@@ -368,6 +368,8 @@
     "setPrimary": "Sett som primærverdi",
     "addRow": "Legg til ny rad",
     "saveRow": "Lagre rad",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Sett inn ny rad",
     "deleteRow": "Slett rad",
     "deleteSelectedRow": "Slett utvalgte rader",

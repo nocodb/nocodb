@@ -72,7 +72,13 @@ const setAsPrimaryValue = async () => {
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
+  <a-dropdown
+    v-if="!isLocked"
+    :destroy-popup-on-hide="true"
+    placement="bottomRight"
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-column-operations"
+  >
     <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
 
     <template #overlay>

@@ -174,7 +174,12 @@ const copyProjectMeta = async () => {
 
       <div class="flex-1" />
 
-      <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']" overlay-class-name="nc-dropdown-create-project">
+      <a-dropdown
+        v-if="isUIAllowed('projectCreate', true)"
+        :destroy-popup-on-hide="true"
+        :trigger="['click']"
+        overlay-class-name="nc-dropdown-create-project"
+      >
         <button class="nc-new-project-menu mt-4 md:mt-0">
           <span class="flex items-center w-full">
             {{ $t('title.newProj') }}

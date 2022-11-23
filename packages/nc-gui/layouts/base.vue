@@ -80,7 +80,7 @@ hooks.hook('page:finish', () => {
         </a-tooltip>
 
         <template v-if="signedIn">
-          <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
+          <a-dropdown :destroy-popup-on-hide="true" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <MdiDotsVertical
               data-testid="nc-menu-accounts"
               class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white"

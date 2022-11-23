@@ -45,7 +45,14 @@ useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
+  <a-dropdown
+    v-model:visible="open"
+    :destroy-popup-on-hide="true"
+    offset-y
+    class=""
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-sort-menu"
+  >
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">

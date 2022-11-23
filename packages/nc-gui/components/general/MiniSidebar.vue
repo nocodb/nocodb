@@ -27,7 +27,7 @@ const logout = () => {
     collapsible
     theme="light"
   >
-    <a-dropdown placement="bottom" :trigger="['click']" overlay-class-name="nc-dropdown">
+    <a-dropdown :destroy-popup-on-hide="true" placement="bottom" :trigger="['click']" overlay-class-name="nc-dropdown">
       <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon">
         <a-tooltip placement="bottom">
           <template #title>
@@ -64,7 +64,7 @@ const logout = () => {
     </a-dropdown>
 
     <div id="sidebar" ref="sidebar" class="text-white flex-auto flex flex-col items-center w-full">
-      <a-dropdown :trigger="['contextmenu']" placement="right" overlay-class-name="nc-dropdown">
+      <a-dropdown :destroy-popup-on-hide="true" :trigger="['contextmenu']" placement="right" overlay-class-name="nc-dropdown">
         <div :class="[route.name === 'index' ? 'active' : '']" class="nc-mini-sidebar-item" @click="navigateTo('/')">
           <MdiFolder class="cursor-pointer transform hover:scale-105 text-2xl" />
         </div>

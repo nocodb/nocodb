@@ -212,7 +212,13 @@ onMounted(() => {
               </a-button>
             </a-tooltip>
 
-            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-api-token-mgmt">
+            <a-dropdown
+              :destroy-popup-on-hide="true"
+              :trigger="['click']"
+              class="flex"
+              placement="bottomRight"
+              overlay-class-name="nc-dropdown-api-token-mgmt"
+            >
               <div class="flex flex-row items-center">
                 <a-button type="text" class="!px-0">
                   <div class="flex flex-row items-center h-[1.2rem]">

@@ -486,7 +486,12 @@ watch(view, (nextView) => {
             {{ $t('msg.info.dragDropHide') }}
           </div>
 
-          <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
+          <a-dropdown
+            v-model:visible="showColumnDropdown"
+            :destroy-popup-on-hide="true"
+            :trigger="['click']"
+            overlay-class-name="nc-dropdown-form-add-column"
+          >
             <button type="button" class="group w-full mt-2" @click.stop="showColumnDropdown = true">
               <span class="flex items-center flex-wrap justify-center gap-2 prose-sm text-gray-400">
                 <MdiPlus class="color-transition transform group-hover:(text-accent scale-125)" />

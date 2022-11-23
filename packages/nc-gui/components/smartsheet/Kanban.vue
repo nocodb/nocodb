@@ -311,7 +311,12 @@ watch(view, async (nextView) => {
 <template>
   <div class="flex h-full bg-white px-2" data-testid="nc-kanban-wrapper">
     <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
-      <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-kanban-context-menu">
+      <a-dropdown
+        v-model:visible="contextMenu"
+        :destroy-popup-on-hide="true"
+        :trigger="['contextmenu']"
+        overlay-class-name="nc-dropdown-kanban-context-menu"
+      >
         <!-- Draggable Stack -->
         <Draggable
           v-model="groupingFieldColOptions"
@@ -349,7 +354,11 @@ watch(view, async (nextView) => {
                 <a-layout v-else class="!bg-[#f0f2f5]">
                   <a-layout-header>
                     <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
-                      <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stack-context-menu">
+                      <a-dropdown
+                        :destroy-popup-on-hide="true"
+                        :trigger="['click']"
+                        overlay-class-name="nc-dropdown-kanban-stack-context-menu"
+                      >
                         <div
                           class="flex items-center w-full"
                           :class="{ 'capitalize': stack.title === null, 'cursor-pointer': !isLocked }"

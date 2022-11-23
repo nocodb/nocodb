@@ -230,7 +230,13 @@ const copyPasswordResetUrl = async (user: User) => {
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
             <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
-              <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
+              <a-dropdown
+                :destroy-popup-on-hide="true"
+                :trigger="['click']"
+                class="flex"
+                placement="bottomRight"
+                overlay-class-name="nc-dropdown-user-mgmt"
+              >
                 <div class="flex flex-row items-center">
                   <a-button type="text" class="!px-0">
                     <div class="flex flex-row items-center h-[1.2rem]">

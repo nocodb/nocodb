@@ -312,7 +312,13 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
               </a-button>
             </a-tooltip>
 
-            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
+            <a-dropdown
+              :destroy-popup-on-hide="true"
+              :trigger="['click']"
+              class="flex"
+              placement="bottomRight"
+              overlay-class-name="nc-dropdown-user-mgmt"
+            >
               <div class="flex flex-row items-center">
                 <a-button type="text" class="!px-0">
                   <div class="flex flex-row items-center h-[1.2rem]">

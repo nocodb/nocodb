@@ -1,7 +1,7 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { computed, reactive, ref, unref, useInjectionState, useNuxtApp, useProject } from '#imports'
+import { computed, ref, unref, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -17,12 +17,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const cellRefs = ref<HTMLTableDataCellElement[]>([])
 
-    // state
-    // todo: move to grid view store
-    const search = reactive({
-      field: '',
-      query: '',
-    })
+    const { search } = useFieldQuery(view)
 
     // getters
     const isLocked = computed(() => view.value?.lock_type === 'locked')
@@ -35,21 +30,20 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const xWhere = computed(() => {
       let where
       const col =
-        (meta.value as TableType)?.columns?.find(({ id }) => id === search.field) ||
+        (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
         (meta.value as TableType)?.columns?.find((v) => v.pv)
       if (!col) return
 
-      if (!search.query.trim()) return
+      if (!search.value.query.trim()) return
       if (['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
-        where = `(${col.title},like,%${search.query.trim()}%)`
+        where = `(${col.title},like,%${search.value.query.trim()}%)`
       } else {
-        where = `(${col.title},eq,${search.query.trim()})`
+        where = `(${col.title},eq,${search.value.query.trim()})`
       }
       return where
     })
 
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
-
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
@@ -58,7 +52,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       meta,
       isLocked,
       $api,
-      search,
       xWhere,
       isPkAvail,
       isForm,

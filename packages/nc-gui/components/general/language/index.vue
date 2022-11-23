@@ -1,5 +1,5 @@
 <template>
-  <a-dropdown
+  <LazyGeneralAntDropdownAutoDestroy
     class="select-none color-transition cursor-pointer"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-menu-translate"
@@ -13,5 +13,5 @@
         <GeneralLanguageMenu />
       </a-menu>
     </template>
-  </a-dropdown>
+  </LazyGeneralAntDropdownAutoDestroy>
 </template>

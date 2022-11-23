@@ -45,9 +45,8 @@ useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown
+  <LazyGeneralAntDropdownAutoDestroy
     v-model:visible="open"
-    :destroy-popup-on-hide="true"
     offset-y
     class=""
     :trigger="['click']"
@@ -110,7 +109,7 @@ useMenuCloseOnEsc(open)
         </a-button>
       </div>
     </template>
-  </a-dropdown>
+  </LazyGeneralAntDropdownAutoDestroy>
 </template>
 
 <style scoped>

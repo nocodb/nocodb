@@ -1,5 +1,5 @@
 <template>
-  <a-dropdown :destroy-popup-on-hide="true" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
+  <LazyGeneralAntDropdownAutoDestroy :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
     <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
       <div class="flex gap-2 items-center">
         <MdiDownload class="group-hover:text-accent text-gray-500" />
@@ -13,5 +13,5 @@
         <LazySmartsheetToolbarExportSubActions />
       </a-menu>
     </template>
-  </a-dropdown>
+  </LazyGeneralAntDropdownAutoDestroy>
 </template>

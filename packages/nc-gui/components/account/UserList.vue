@@ -230,8 +230,7 @@ const copyPasswordResetUrl = async (user: User) => {
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
             <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
-              <a-dropdown
-                :destroy-popup-on-hide="true"
+              <LazyGeneralAntDropdownAutoDestroy
                 :trigger="['click']"
                 class="flex"
                 placement="bottomRight"
@@ -276,7 +275,7 @@ const copyPasswordResetUrl = async (user: User) => {
                     </a-menu-item>
                   </a-menu>
                 </template>
-              </a-dropdown>
+              </LazyGeneralAntDropdownAutoDestroy>
             </div>
             <span v-else></span>
           </template>

@@ -39,12 +39,7 @@ onMounted(async () => await fetchReleaseInfo())
 
 <template>
   <div v-if="releaseAlert" class="flex items-center">
-    <a-dropdown
-      :destroy-popup-on-hide="true"
-      :trigger="['click']"
-      placement="bottom"
-      overlay-class-name="nc-dropdown-upgrade-menu"
-    >
+    <LazyGeneralAntDropdownAutoDestroy :trigger="['click']" placement="bottom" overlay-class-name="nc-dropdown-upgrade-menu">
       <a-button class="!bg-primary !border-none">
         <div class="flex gap-1 items-center text-white">
           <span class="text-sm font-weight-medium">{{ $t('activity.upgrade.available') }}</span>
@@ -90,6 +85,6 @@ onMounted(async () => await fetchReleaseInfo())
           </div>
         </div>
       </template>
-    </a-dropdown>
+    </LazyGeneralAntDropdownAutoDestroy>
   </div>
 </template>

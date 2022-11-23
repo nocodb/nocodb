@@ -120,7 +120,7 @@ const tooltipMsg = computed(() => {
       <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 
-    <a-dropdown
+    <LazyGeneralAntDropdownAutoDestroy
       v-model:visible="editColumnDropdown"
       class="h-full"
       :trigger="['click']"
@@ -140,7 +140,7 @@ const tooltipMsg = computed(() => {
           @keydown.stop
         />
       </template>
-    </a-dropdown>
+    </LazyGeneralAntDropdownAutoDestroy>
   </div>
 </template>
 

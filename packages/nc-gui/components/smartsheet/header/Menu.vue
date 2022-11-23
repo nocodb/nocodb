@@ -72,9 +72,8 @@ const setAsPrimaryValue = async () => {
 </script>
 
 <template>
-  <a-dropdown
+  <LazyGeneralAntDropdownAutoDestroy
     v-if="!isLocked"
-    :destroy-popup-on-hide="true"
     placement="bottomRight"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-column-operations"
@@ -110,7 +109,7 @@ const setAsPrimaryValue = async () => {
         </a-menu-item>
       </a-menu>
     </template>
-  </a-dropdown>
+  </LazyGeneralAntDropdownAutoDestroy>
 </template>
 
 <style scoped>

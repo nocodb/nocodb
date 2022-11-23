@@ -220,7 +220,7 @@ const onSearchCloseIconClick = () => {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <a-dropdown :destroy-popup-on-hide="true" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
+    <LazyGeneralAntDropdownAutoDestroy :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
       <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull" :class="{ 'mb-[20px]': isSharedBase }">
         <div class="min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
           <Transition name="slide-left" mode="out-in">
@@ -255,9 +255,8 @@ const onSearchCloseIconClick = () => {
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
-            <a-dropdown
+            <LazyGeneralAntDropdownAutoDestroy
               v-if="!isSharedBase"
-              :destroy-popup-on-hide="true"
               :trigger="['click']"
               overlay-class-name="nc-dropdown-import-menu"
               @click.stop
@@ -321,7 +320,7 @@ const onSearchCloseIconClick = () => {
                   </a-menu-item>
                 </a-menu>
               </template>
-            </a-dropdown>
+            </LazyGeneralAntDropdownAutoDestroy>
           </div>
 
           <div v-if="tables.length" class="transition-height duration-200 overflow-hidden">
@@ -363,7 +362,7 @@ const onSearchCloseIconClick = () => {
                       <GeneralTruncateText>{{ table.title }}</GeneralTruncateText>
                     </div>
 
-                    <a-dropdown
+                    <LazyGeneralAntDropdownAutoDestroy
                       v-if="!isSharedBase && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
                       :trigger="['click']"
                       @click.stop
@@ -389,7 +388,7 @@ const onSearchCloseIconClick = () => {
                           </a-menu-item>
                         </a-menu>
                       </template>
-                    </a-dropdown>
+                    </LazyGeneralAntDropdownAutoDestroy>
                   </div>
                 </GeneralTooltip>
               </div>
@@ -427,7 +426,7 @@ const onSearchCloseIconClick = () => {
           </template>
         </a-menu>
       </template>
-    </a-dropdown>
+    </LazyGeneralAntDropdownAutoDestroy>
 
     <a-divider class="!my-0" />
 

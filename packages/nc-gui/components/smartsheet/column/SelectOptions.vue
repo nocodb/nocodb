@@ -139,7 +139,7 @@ watch(inputs, () => {
               class="nc-child-draggable-icon handle"
               :data-testid="`select-option-column-handle-icon-${element.title}`"
             />
-            <a-dropdown
+            <LazyGeneralAntDropdownAutoDestroy
               v-model:visible="colorMenus[index]"
               :trigger="['click']"
               overlay-class-name="nc-dropdown-select-color-options"
@@ -156,7 +156,7 @@ watch(inputs, () => {
                 :class="{ 'text-[1.75em]': colorMenus[index] }"
                 :style="{ color: element.color }"
               />
-            </a-dropdown>
+            </LazyGeneralAntDropdownAutoDestroy>
 
             <a-input
               ref="inputs"

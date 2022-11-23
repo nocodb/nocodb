@@ -201,9 +201,8 @@ onMounted(() => {
     <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">{{ $t('msg.info.generatePublicShareableReadonlyBase') }}</div>
 
     <div class="mt-4 flex flex-row justify-between mx-1">
-      <a-dropdown
+      <LazyGeneralAntDropdownAutoDestroy
         v-model="showEditBaseDropdown"
-        :destroy-popup-on-hide="true"
         class="flex"
         overlay-class-name="nc-dropdown-shared-base-toggle"
       >
@@ -223,7 +222,7 @@ onMounted(() => {
             </a-menu-item>
           </a-menu>
         </template>
-      </a-dropdown>
+      </LazyGeneralAntDropdownAutoDestroy>
 
       <a-select
         v-if="base?.uuid"

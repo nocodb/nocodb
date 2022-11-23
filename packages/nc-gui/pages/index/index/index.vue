@@ -174,9 +174,8 @@ const copyProjectMeta = async () => {
 
       <div class="flex-1" />
 
-      <a-dropdown
+      <LazyGeneralAntDropdownAutoDestroy
         v-if="isUIAllowed('projectCreate', true)"
-        :destroy-popup-on-hide="true"
         :trigger="['click']"
         overlay-class-name="nc-dropdown-create-project"
       >
@@ -214,7 +213,7 @@ const copyProjectMeta = async () => {
             </a-menu-item>
           </a-menu>
         </template>
-      </a-dropdown>
+      </LazyGeneralAntDropdownAutoDestroy>
     </div>
 
     <Transition name="layout" mode="out-in">

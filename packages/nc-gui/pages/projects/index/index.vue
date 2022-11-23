@@ -71,7 +71,7 @@ const formatTitle = (title: string) =>
     <div v-for="(project, i) of projects" :key="project.id" class="group flex flex-col items-center gap-2">
       <div class="thumbnail" :style="{ '--thumbnail-color': getColorByIndex(i) }" @click="openProject(project)">
         {{ formatTitle(project.title) }}
-        <a-dropdown :destroy-popup-on-hide="true" overlay-class-name="nc-dropdown-project-operations" @click.stop>
+        <LazyGeneralAntDropdownAutoDestroy overlay-class-name="nc-dropdown-project-operations" @click.stop>
           <MdiMenuDown class="menu-icon" />
           <template #overlay>
             <a-menu>
@@ -89,7 +89,7 @@ const formatTitle = (title: string) =>
               </a-menu-item>
             </a-menu>
           </template>
-        </a-dropdown>
+        </LazyGeneralAntDropdownAutoDestroy>
       </div>
 
       <div class="prose-lg font-semibold overflow-ellipsis w-full overflow-hidden text-center capitalize">

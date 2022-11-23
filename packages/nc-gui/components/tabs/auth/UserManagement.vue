@@ -312,8 +312,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
               </a-button>
             </a-tooltip>
 
-            <a-dropdown
-              :destroy-popup-on-hide="true"
+            <LazyGeneralAntDropdownAutoDestroy
               :trigger="['click']"
               class="flex"
               placement="bottomRight"
@@ -344,7 +343,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
                   </a-menu-item>
                 </a-menu>
               </template>
-            </a-dropdown>
+            </LazyGeneralAntDropdownAutoDestroy>
           </template>
         </div>
       </div>

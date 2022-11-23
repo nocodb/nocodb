@@ -178,7 +178,7 @@ const descriptionInput = (el) => {
                 </a-button>
               </a-tooltip>
 
-              <a-dropdown
+              <LazyGeneralAntDropdownAutoDestroy
                 :trigger="['click']"
                 class="flex"
                 placement="bottomRight"
@@ -202,7 +202,7 @@ const descriptionInput = (el) => {
                     </a-menu-item>
                   </a-menu>
                 </template>
-              </a-dropdown>
+              </LazyGeneralAntDropdownAutoDestroy>
             </div>
           </template>
         </a-table-column>

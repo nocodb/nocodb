@@ -311,9 +311,8 @@ watch(view, async (nextView) => {
 <template>
   <div class="flex h-full bg-white px-2" data-testid="nc-kanban-wrapper">
     <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
-      <a-dropdown
+      <LazyGeneralAntDropdownAutoDestroy
         v-model:visible="contextMenu"
-        :destroy-popup-on-hide="true"
         :trigger="['contextmenu']"
         overlay-class-name="nc-dropdown-kanban-context-menu"
       >
@@ -354,8 +353,7 @@ watch(view, async (nextView) => {
                 <a-layout v-else class="!bg-[#f0f2f5]">
                   <a-layout-header>
                     <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
-                      <a-dropdown
-                        :destroy-popup-on-hide="true"
+                      <LazyGeneralAntDropdownAutoDestroy
                         :trigger="['click']"
                         overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                       >
@@ -403,7 +401,7 @@ watch(view, async (nextView) => {
                             </a-menu-item>
                           </a-menu>
                         </template>
-                      </a-dropdown>
+                      </LazyGeneralAntDropdownAutoDestroy>
                     </div>
                   </a-layout-header>
 
@@ -595,7 +593,7 @@ watch(view, async (nextView) => {
             </a-menu-item>
           </a-menu>
         </template>
-      </a-dropdown>
+      </LazyGeneralAntDropdownAutoDestroy>
     </div>
   </div>
 

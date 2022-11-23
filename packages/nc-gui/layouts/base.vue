@@ -80,7 +80,7 @@ hooks.hook('page:finish', () => {
         </a-tooltip>
 
         <template v-if="signedIn">
-          <a-dropdown :destroy-popup-on-hide="true" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
+          <LazyGeneralAntDropdownAutoDestroy :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <MdiDotsVertical
               data-testid="nc-menu-accounts"
               class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white"
@@ -126,7 +126,7 @@ hooks.hook('page:finish', () => {
                 </a-menu-item>
               </a-menu>
             </template>
-          </a-dropdown>
+          </LazyGeneralAntDropdownAutoDestroy>
         </template>
       </a-layout-header>
 

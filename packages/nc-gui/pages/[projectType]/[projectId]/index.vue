@@ -231,7 +231,7 @@ onBeforeUnmount(reset)
             </a-tooltip>
           </a>
 
-          <a-dropdown
+          <LazyGeneralAntDropdownAutoDestroy
             class="h-full min-w-0 flex-1"
             :trigger="['click']"
             placement="bottom"
@@ -496,7 +496,7 @@ onBeforeUnmount(reset)
                 </a-menu-item-group>
               </a-menu>
             </template>
-          </a-dropdown>
+          </LazyGeneralAntDropdownAutoDestroy>
 
           <div
             class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"

@@ -88,12 +88,7 @@ useMenuCloseOnEsc(open)
 
 <template>
   <div>
-    <a-dropdown
-      v-model:visible="open"
-      :destroy-popup-on-hide="true"
-      :trigger="['click']"
-      overlay-class-name="nc-dropdown-actions-menu"
-    >
+    <LazyGeneralAntDropdownAutoDestroy v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
           <component
@@ -236,7 +231,7 @@ useMenuCloseOnEsc(open)
           </a-menu-item-group>
         </a-menu>
       </template>
-    </a-dropdown>
+    </LazyGeneralAntDropdownAutoDestroy>
 
     <LazyDlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-data-only="true" />
 

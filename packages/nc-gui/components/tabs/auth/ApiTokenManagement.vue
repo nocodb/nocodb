@@ -212,8 +212,7 @@ onMounted(() => {
               </a-button>
             </a-tooltip>
 
-            <a-dropdown
-              :destroy-popup-on-hide="true"
+            <LazyGeneralAntDropdownAutoDestroy
               :trigger="['click']"
               class="flex"
               placement="bottomRight"
@@ -237,7 +236,7 @@ onMounted(() => {
                   </a-menu-item>
                 </a-menu>
               </template>
-            </a-dropdown>
+            </LazyGeneralAntDropdownAutoDestroy>
           </div>
         </div>
       </div>

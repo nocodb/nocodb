@@ -486,9 +486,8 @@ watch(view, (nextView) => {
             {{ $t('msg.info.dragDropHide') }}
           </div>
 
-          <a-dropdown
+          <LazyGeneralAntDropdownAutoDestroy
             v-model:visible="showColumnDropdown"
-            :destroy-popup-on-hide="true"
             :trigger="['click']"
             overlay-class-name="nc-dropdown-form-add-column"
           >
@@ -511,7 +510,7 @@ watch(view, (nextView) => {
                 @keydown.stop
               />
             </template>
-          </a-dropdown>
+          </LazyGeneralAntDropdownAutoDestroy>
         </template>
       </Draggable>
     </a-col>

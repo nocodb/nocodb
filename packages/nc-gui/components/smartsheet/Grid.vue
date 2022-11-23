@@ -560,7 +560,7 @@ watch(
     </general-overlay>
 
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
-      <a-dropdown
+      <LazyGeneralAntDropdownAutoDestroy
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
@@ -612,7 +612,7 @@ watch(
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
               >
-                <a-dropdown
+                <LazyGeneralAntDropdownAutoDestroy
                   v-model:visible="addColumnDropdown"
                   :trigger="['click']"
                   overlay-class-name="nc-dropdown-grid-add-column"
@@ -630,7 +630,7 @@ watch(
                       @keydown.stop
                     />
                   </template>
-                </a-dropdown>
+                </LazyGeneralAntDropdownAutoDestroy>
               </th>
             </tr>
           </thead>
@@ -796,7 +796,7 @@ watch(
             </a-menu-item>
           </a-menu>
         </template>
-      </a-dropdown>
+      </LazyGeneralAntDropdownAutoDestroy>
     </div>
 
     <LazySmartsheetPagination />

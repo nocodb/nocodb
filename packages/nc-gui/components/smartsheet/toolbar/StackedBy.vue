@@ -76,7 +76,7 @@ const handleChange = () => {
 </script>
 
 <template>
-  <a-dropdown
+  <LazyGeneralAntDropdownAutoDestroy
     v-if="!IsPublic"
     v-model:visible="open"
     :trigger="['click']"
@@ -122,5 +122,5 @@ const handleChange = () => {
         </div>
       </div>
     </template>
-  </a-dropdown>
+  </LazyGeneralAntDropdownAutoDestroy>
 </template>

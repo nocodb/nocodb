@@ -21,7 +21,7 @@ provide(IsKanbanInj, ref(true))
 </script>
 
 <template>
-  <a-dropdown
+  <LazyGeneralAntDropdownAutoDestroy
     v-if="!IsPublic && isUIAllowed('edit-column')"
     v-model:visible="open"
     :trigger="['click']"
@@ -52,5 +52,5 @@ provide(IsKanbanInj, ref(true))
         @keydown.stop
       />
     </template>
-  </a-dropdown>
+  </LazyGeneralAntDropdownAutoDestroy>
 </template>

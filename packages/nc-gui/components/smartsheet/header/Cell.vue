@@ -35,7 +35,7 @@ const editColumnDropdown = ref(false)
       <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" @edit="editColumnDropdown = true" />
     </template>
 
-    <a-dropdown
+    <LazyGeneralAntDropdownAutoDestroy
       v-model:visible="editColumnDropdown"
       class="h-full"
       :trigger="['click']"
@@ -55,7 +55,7 @@ const editColumnDropdown = ref(false)
           @keydown.stop
         />
       </template>
-    </a-dropdown>
+    </LazyGeneralAntDropdownAutoDestroy>
   </div>
 </template>
 

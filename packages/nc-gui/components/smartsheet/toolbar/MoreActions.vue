@@ -103,7 +103,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
 <template>
   <div>
-    <a-dropdown>
+    <LazyGeneralAntDropdownAutoDestroy>
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-1 items-center">
           <MdiFlashOutline />
@@ -164,7 +164,7 @@ const exportFile = async (exportType: ExportTypes) => {
           </div>
         </div>
       </template>
-    </a-dropdown>
+    </LazyGeneralAntDropdownAutoDestroy>
 
     <LazyDlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-data-only="true" />
 

@@ -29,7 +29,7 @@ test.describe('Virtual Columns', () => {
         });
       }
     }
-    test('creation and showing value in grid view', async () => {
+    test('creation, showing, updating value and change qr col title and reference column', async () => {
       // Add qr code column referencing the City column
       // and compare the base64 encoded codes/src attributes for the first 3 rows.
       // Column data from City table (Sakila DB)
@@ -68,6 +68,7 @@ test.describe('Virtual Columns', () => {
         qrCodeValueColumnTitle: 'City',
       });
 
+
       await qrCodeColumnVerify('QrCode1', expectedQrCodeCellValues);
 
       // Clicking on qr code in first row and expect it shows a
@@ -76,6 +77,18 @@ test.describe('Virtual Columns', () => {
       const qrGridOverlay = dashboard.grid.qrCodeOverlay;
       await qrGridOverlay.verifyQrValueLabel(expectedQrCodeCellValues[0].referencedValue);
       await qrGridOverlay.clickCloseButton();
+
+      // Change the value in the referenced column, first row 
+      // and expect respective QR changes accordingly
+      await dashboard.grid.cell.fillText({ columnHeader: 'City', index: 0, text: 'Hamburg' })
+      const expectedQrCodeCellValuesAfterCityNameChange = [
+        {
+          referencedValue: 'Hamburg', 
+          base64EncodedSrc: 'data:image/png;base64,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'
+        },
+        ...expectedQrCodeCellValues.slice(1)
+      ];
+      await qrCodeColumnVerify('QrCode1', expectedQrCodeCellValuesAfterCityNameChange);
 
       await dashboard.closeTab({ title: 'City' });
     });

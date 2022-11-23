@@ -1,9 +1,9 @@
 ---
 title: "Playwright"
 description: "Overview to playwright based e2e tests"
-position: 3250
+position: 3260
 category: "Engineering"
-menuTitle: "Testing"
+menuTitle: "Playwright Testing"
 ---
 
 ## How to run tests
@@ -50,13 +50,13 @@ npm run test:debug
 </br>
 </br>
 
-For setting up mysql:
+For setting up mysql(sakila):
 
 ```bash
 docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml  up -d
 ```
 
-For setting up postgres:
+For setting up postgres(sakila):
 
 ```bash
 docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml 
@@ -82,31 +82,31 @@ npm run test
 
 - All tests are independent of each other.
 - Each test starts with a fresh project with a fresh sakila database(option to not use sakila db is also there).
-- Each test creates a new user and logs in with that user.
+- Each test creates a new user(email as `user@nocodb.com`) and logs in with that user to the dashboard.
 
 Caveats:
 
-- Some stuffs are shared i.e, users, plugins etc. So be catious while writing tests. A fix for this is in the works.
-- In test, we prefix email and project with its id, which will be deleted after the test is done.
+- Some stuffs are shared i.e, users, plugins etc. So be catious while writing tests touching that. A fix for this is in the works.
+- In test, we prefix email and project with the test id, which will be deleted after the test is done.
 
 ### What to test
 
 - UI verification. This includes verifying the state of the UI element, i.e if the element is visible, if the element has a particular text etc.
-- Test should verify a user flow. A test has a default timeout of 60 seconds. If a test is taking more than 60 seconds, it is a sign that the test should be broken down into smaller tests
-- Deciding what 
-todo: add more
+- Test should verify all user flow. A test has a default timeout of 60 seconds. If a test is taking more than 60 seconds, it is a sign that the test should be broken down into smaller tests.
+- Test should also verify all the side effects the feature(i.e. On adding a new column type, should verify column deletion as well) will have, and also error cases.
+- Test name should be descriptive. It should be easy to understand what the test is doing by just reading the test name.
 
 ### Playwright
 
 - Playwright is a nodejs library for automating chromium, firefox and webkit.
-- For each test, a new browser context is created. This means that each test runs in a new incognito window. In test `page` is provided by playwright where you can do all the actions.
+- For each test, a new browser context is created. This means that each test runs in a new incognito window.
 - For assertion always use `expect` from `@playwright/test` library. This library provides a lot of useful assertions, which also has retry logic built in.
 
 ## Page Objects
 
 - Page objects are used to abstract over the components/page. This makes the tests more readable and maintainable.
 - All page objects are in `tests/playwright/pages` folder.
-- All the test related code should be in page objects. This makes the tests more readable and maintainable.
+- All the test related code should be in page objects.
 - Methods should be as thin as possible and its better to have multiple methods than one big method, which improves reusability.
 
 The methods of a page object can be classified into 2 categories:
@@ -173,8 +173,8 @@ export class ToolbarFilterPage extends BasePage {
 
 Here `BasePage` is an abstract class, which used to enforce structure for all page objects. Thus all page object *should* inherit `BasePage`.
 
-- Common methods like `waitForResponse` and `getClipboardText`.
-- Provides structure for page objects, enforces all Page objects to have `rootPage` property, which is the root page object of the test.
+- Helper methods like `waitForResponse` and `getClipboardText` (this can be access on any page object, with `this.waitForResponse`)
+- Provides structure for page objects, enforces all Page objects to have `rootPage` property, which is the page object created in the test setup.
 - Enforces all pages to have a `get` method which will return the locator of the main container of that page, hence we can have focused dom selection, i.e.
 
 ```js
@@ -214,3 +214,11 @@ async verifyFilter({ title }: { title: string }) {
 
 - If an ui action, causes an api call or the UI state change, then wait for that api call to complete or the UI state to change.
 - What to wait out can be situation specific, but in general, is best to wait for the final state to be reached, i.e. in the case of creating filter, while it seems like waiting for the filter api to complete is enough, but after its return the table rows are reloaded and the UI state changes, so its better to wait for the table rows to be reloaded.
+
+
+## Accessing playwright report in the CI
+
+- Open `Summary` tab in the CI workflow in github actions.
+- Scroll down to `Artifacts` section.
+- Access reports which suffixed with the db type and shard number(corresponding to the CI workerflow name). i.e `playwright-report-mysql-2` is for `playwright-mysql-2` workflow.
+- Download it and run `npm install -D @playwright/test && npx playwright show-report ./` inside the downloaded folder.

@@ -1,9 +1,9 @@
 ---
-title: "Playwright"
+title: "Playwright E2E testing"
 description: "Overview to playwright based e2e tests"
 position: 3260
 category: "Engineering"
-menuTitle: "Playwright Testing"
+menuTitle: "Playwright E2E testing"
 ---
 
 ## How to run tests

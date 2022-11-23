@@ -1,0 +1,216 @@
+---
+title: "Playwright"
+description: "Overview to playwright based e2e tests"
+position: 3250
+category: "Engineering"
+menuTitle: "Testing"
+---
+
+## How to run tests
+
+All the tests reside in `tests/playwright` folder.
+
+Make sure to install the dependencies(in the playwright folder):
+
+```bash
+npm install
+npx playwright install chromium --with-deps
+```
+
+### Run Test Server
+
+Start the backend test server (in `packages/nocodb` folder):
+
+```bash
+npm run watch:run:playwright
+```
+
+Start the frontend test server (in `packages/nc-gui` folder):
+
+```bash
+NUXT_PAGE_TRANSITION_DISABLE=true npm run dev
+```
+
+### Running all tests
+
+For selecting db type, rename `.env.example` to `.env` and set `E2E_DEV_DB_TYPE` to  `sqlite`(default), `mysql` or `pg`.
+
+headless mode(without opening browser):
+
+```bash
+npm run test
+```
+
+with browser:
+
+```bash
+npm run test:debug
+```
+
+</br>
+</br>
+
+For setting up mysql:
+
+```bash
+docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml  up -d
+```
+
+For setting up postgres:
+
+```bash
+docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml 
+```
+
+### Running individual tests
+
+Add `.only` to the test you want to run:
+
+```js
+test.only('should login', async ({ page }) => {
+  // ...
+})
+```
+
+```bash
+npm run test
+```
+
+## Concepts
+
+### Independent tests
+
+- All tests are independent of each other.
+- Each test starts with a fresh project with a fresh sakila database(option to not use sakila db is also there).
+- Each test creates a new user and logs in with that user.
+
+Caveats:
+
+- Some stuffs are shared i.e, users, plugins etc. So be catious while writing tests. A fix for this is in the works.
+- In test, we prefix email and project with its id, which will be deleted after the test is done.
+
+### What to test
+
+- UI verification. This includes verifying the state of the UI element, i.e if the element is visible, if the element has a particular text etc.
+- Test should verify a user flow. A test has a default timeout of 60 seconds. If a test is taking more than 60 seconds, it is a sign that the test should be broken down into smaller tests
+- Deciding what 
+todo: add more
+
+### Playwright
+
+- Playwright is a nodejs library for automating chromium, firefox and webkit.
+- For each test, a new browser context is created. This means that each test runs in a new incognito window. In test `page` is provided by playwright where you can do all the actions.
+- For assertion always use `expect` from `@playwright/test` library. This library provides a lot of useful assertions, which also has retry logic built in.
+
+## Page Objects
+
+- Page objects are used to abstract over the components/page. This makes the tests more readable and maintainable.
+- All page objects are in `tests/playwright/pages` folder.
+- All the test related code should be in page objects. This makes the tests more readable and maintainable.
+- Methods should be as thin as possible and its better to have multiple methods than one big method, which improves reusability.
+
+The methods of a page object can be classified into 2 categories:
+
+- Actions: Performs an UI actions like click, type, select etc. Is also responsible for waiting for the element to be ready and the action to be performed. This included waiting for api calls to complete.
+- Assertions: Asserts the state of the UI element, i.e if the element is visible, if the element has a particular text etc. Use `expect` from `@playwright/test` and if not use `expect.poll` to wait for the assertion to pass.
+
+## Writing a test
+
+Let's write a test for testing filter functionality.
+
+For simplicity, we will have `DashboardPage` implemented, which will have all the methods related to dashboard page and also its child components like Grid, etc.
+
+### Create a test suite
+
+Create a new file `filter.spec.ts` in `tests/playwright/tests` folder and use `setup` method to create a new project and user.
+
+```js
+import { test, expect } from '@playwright/test';
+import setup, { NcContext } from '../setup';
+
+test.describe('Filter', () => {
+  let context: NcContext;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page });
+  })
+
+  test('should filter', async ({ page }) => {
+    // ...
+  });
+});
+```
+
+### Create a page object
+
+Since filter is UI wise scoped to a `Toolbar` , we will add filter page object to `ToolbarPage` page object.
+
+```js
+export class ToolbarPage extends BasePage {
+  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage;
+  readonly filter: ToolbarFilterPage;
+
+  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage) {
+    super(parent.rootPage);
+    this.parent = parent;
+    this.filter = new ToolbarFilterPage(this);
+  }
+}
+```
+
+We will create `ToolbarFilterPage` page object, which will have all the methods related to filter.
+
+```js
+export class ToolbarFilterPage extends BasePage {
+  readonly toolbar: ToolbarPage;
+
+  constructor(toolbar: ToolbarPage) {
+    super(toolbar.rootPage);
+    this.toolbar = toolbar;
+  }
+}
+```
+
+Here `BasePage` is an abstract class, which used to enforce structure for all page objects. Thus all page object *should* inherit `BasePage`.
+
+- Common methods like `waitForResponse` and `getClipboardText`.
+- Provides structure for page objects, enforces all Page objects to have `rootPage` property, which is the root page object of the test.
+- Enforces all pages to have a `get` method which will return the locator of the main container of that page, hence we can have focused dom selection, i.e.
+
+```js
+// This will only select the button inside the container of the concerned page
+await this.get().querySelector('button').count();
+```
+
+### Writing an action method
+
+This a method which will reset/clear all the filters. Since this is an action method, it will also wait for the `delete` filter api to return. Ignoring this api call will cause flakiness in the test, down the line.
+
+```js
+async resetFilter() {
+  await this.waitForResponse({
+    uiAction: this.get().locator('.nc-filter-item-remove-btn').click(),
+    httpMethodsToMatch: ['DELETE'],
+    requestUrlPathToMatch: '/api/v1/db/meta/filters/',
+  });
+}
+```
+
+### Writing an assertion/verification method
+
+Here we use `expect` from `@playwright/test` library, which has retry logic built in.
+
+```js
+import { expect } from '@playwright/test';
+
+async verifyFilter({ title }: { title: string }) {
+  await expect(
+    this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]')
+  ).toBeChecked();
+}
+```
+
+## Tips to avoid flakiness
+
+- If an ui action, causes an api call or the UI state change, then wait for that api call to complete or the UI state to change.
+- What to wait out can be situation specific, but in general, is best to wait for the final state to be reached, i.e. in the case of creating filter, while it seems like waiting for the filter api to complete is enough, but after its return the table rows are reloaded and the UI state changes, so its better to wait for the table rows to be reloaded.

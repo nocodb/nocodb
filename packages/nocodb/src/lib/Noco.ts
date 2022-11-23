@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NcConfig } from '../interface/config';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
 import NcConfigFactory from './utils/NcConfigFactory';
+import { MetaTable } from './utils/globals';
 import { Tele } from 'nc-help';
 
 import NcProjectBuilderCE from './v1-legacy/NcProjectBuilder';
@@ -496,20 +497,20 @@ export default class Noco {
 
   private async initJwt(): Promise<any> {
     if (this.config?.auth?.jwt) {
-      if (!this.config.auth.jwt.secret) {
-        let secret = (
-          await Noco._ncMeta.metaGet('', '', 'nc_store', {
-            key: 'nc_auth_jwt_secret',
-          })
-        )?.value;
-        if (!secret) {
-          await Noco._ncMeta.metaInsert('', '', 'nc_store', {
-            key: 'nc_auth_jwt_secret',
-            value: (secret = uuidv4()),
-          });
-        }
-        this.config.auth.jwt.secret = secret;
+      let secret = (
+        await Noco._ncMeta.metaGet('', '', MetaTable.STORE, {
+          key: 'nc_auth_jwt_secret',
+        })
+      )?.value;
+
+      if (!secret) {
+        await Noco._ncMeta.metaInsert('', '', MetaTable.STORE, {
+          key: 'nc_auth_jwt_secret',
+          value: this.config.auth.jwt.secret ?? (secret = uuidv4()),
+        });
       }
+
+      this.config.auth.jwt.secret = secret;
 
       this.config.auth.jwt.options = this.config.auth.jwt.options || {};
       if (!this.config.auth.jwt.options?.expiresIn) {
@@ -518,12 +519,12 @@ export default class Noco {
       }
     }
     let serverId = (
-      await Noco._ncMeta.metaGet('', '', 'nc_store', {
+      await Noco._ncMeta.metaGet('', '', MetaTable.STORE, {
         key: 'nc_server_id',
       })
     )?.value;
     if (!serverId) {
-      await Noco._ncMeta.metaInsert('', '', 'nc_store', {
+      await Noco._ncMeta.metaInsert('', '', MetaTable.STORE, {
         key: 'nc_server_id',
         value: (serverId = Tele.id),
       });

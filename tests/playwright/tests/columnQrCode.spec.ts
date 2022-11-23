@@ -90,6 +90,22 @@ test.describe('Virtual Columns', () => {
       ];
       await qrCodeColumnVerify('QrCode1', expectedQrCodeCellValuesAfterCityNameChange);
 
+      // Change the QR Code column title
+      await dashboard.grid.column.openEdit({ title: 'QrCode1' });
+      await dashboard.grid.column.fillTitle({ title: 'QrCode1 Renamed' });
+      await dashboard.grid.column.save({ isUpdated: true });
+      await qrCodeColumnVerify('QrCode1 Renamed', expectedQrCodeCellValuesAfterCityNameChange);
+
+      // Change the referenced column title
+      await dashboard.grid.column.openEdit({ title: 'City' });
+      await dashboard.grid.column.fillTitle({ title: 'City Renamed' });
+      await dashboard.grid.column.save({ isUpdated: true });
+      await qrCodeColumnVerify('QrCode1 Renamed', expectedQrCodeCellValuesAfterCityNameChange);
+
+
+
+      // Change to another referenced column
+
       await dashboard.closeTab({ title: 'City' });
     });
 

@@ -151,19 +151,6 @@ export class ColumnPageObject extends BasePage {
   }
 
   async changeReferencedColumnForQrCode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
-    // await this.get().locator('.ant-select-selector > .ant-select-selection-item:nth-child(2').click();
-    // await this.get().locator('.ant-select-single').nth(1).click();
-    
-
-
-    // await this.get().locator('.ant-select-single').nth(1).click();
-    // await this.rootPage
-    //   .locator(`.ant-select-item`, {
-    //     hasText: qrCodeValueColumnTitle,
-    //   })
-    //   .click();
-
-
     await this.get().locator('.nc-qr-code-value-column-select .ant-select-single').click();
     await this.rootPage
       .locator(`.ant-select-item`, {
@@ -172,12 +159,6 @@ export class ColumnPageObject extends BasePage {
       .click();
 
     await this.save();
-
-    // await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
-    // await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
-
-    // // Select column type
-    // await this.rootPage.locator(`text=${type}`).nth(1).click();
   }
 
   async delete({ title }: { title: string }) {

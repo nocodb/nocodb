@@ -17,6 +17,7 @@ const urls = computed(() => replaceUrlsWithLink(result.value))
 const timeout = 3000 // in ms
 
 const showEditFormulaWarning = refAutoReset(false, timeout)
+
 const showClearFormulaWarning = refAutoReset(false, timeout)
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
@@ -24,9 +25,8 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
     case 'Enter':
       showEditFormulaWarning.value = true
       break
-    case 'Delete':
+    default:
       showClearFormulaWarning.value = true
-      break
   }
 })
 </script>
@@ -47,12 +47,10 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       <div v-else>{{ result }}</div>
 
       <div v-if="showEditFormulaWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        <!-- TODO: i18n -->
-        Warning: Formula fields should be configured in the field menu dropdown.
+        {{ $t('msg.info.computedFieldEditWarning') }}
       </div>
       <div v-if="showClearFormulaWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        <!-- TODO: i18n -->
-        Warning: Computed field - unable to clear text.
+        {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
     </div>
   </div>

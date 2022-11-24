@@ -54,7 +54,11 @@ setAdditionalValidations({
 <template>
   <a-row>
     <a-col :span="24">
-      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.qrCodeValueColumn')" v-bind="validateInfos.fk_qr_value_column_id">
+      <a-form-item
+        class="flex w-1/2 pb-2 nc-qr-code-value-column-select"
+        :label="$t('labels.qrCodeValueColumn')"
+        v-bind="validateInfos.fk_qr_value_column_id"
+      >
         <a-select
           v-model:value="vModel.fk_qr_value_column_id"
           :options="columnsAllowedAsQrValue"

@@ -95,6 +95,10 @@ const tbodyEl = ref<HTMLElement>()
 const gridWrapper = ref<HTMLElement>()
 const tableHead = ref<HTMLElement>()
 
+const isAddingColumnAllowed = !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value
+
+const isAddingEmptyRowAllowed = !isView && !isLocked.value && hasEditPermission && !isSqlView.value
+
 const {
   isLoading,
   loadData,
@@ -187,6 +191,7 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
     }
 
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+    const altOrOptionKey = e.altKey
     if (e.key === ' ') {
       if (selected.row !== null && !editEnabled) {
         e.preventDefault()
@@ -205,6 +210,7 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
         return true
       }
     }
+
     if (cmdOrCtrl) {
       switch (e.key) {
         case 'ArrowUp':
@@ -231,6 +237,26 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
           scrollToCell?.()
           editEnabled = false
           return true
+      }
+    }
+
+    if (altOrOptionKey) {
+      switch (e.keyCode) {
+        // wingkwong
+        case 82: {
+          // ALT + R
+          if (isAddingEmptyRowAllowed) {
+            addEmptyRow()
+          }
+          break
+        }
+        case 67: {
+          // ALT + C
+          if (isAddingColumnAllowed) {
+            addColumnDropdown.value = true
+          }
+          break
+        }
       }
     }
   },
@@ -607,7 +633,7 @@ watch(
                 </div>
               </th>
               <th
-                v-if="!readOnly && !isLocked && isUIAllowed('add-column') && !isSqlView"
+                v-if="isAddingColumnAllowed"
                 v-e="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
@@ -741,7 +767,7 @@ watch(
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="!isView && !isLocked && hasEditPermission && !isSqlView">
+            <tr v-if="isAddingEmptyRowAllowed">
               <td
                 v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"

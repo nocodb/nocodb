@@ -573,12 +573,14 @@ export default class Column<T = any> implements ColumnType {
 
     // get qr code columns and delete
     {
-      let qrCodeCols = await NocoCache.getList(CacheScope.COL_QRCODE, [id]);
-      if (!qrCodeCols.length) {
-        qrCodeCols = await ncMeta.metaList2(null, null, MetaTable.COL_QRCODE, {
+      const qrCodeCols = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_QRCODE,
+        {
           condition: { fk_qr_value_column_id: id },
-        });
-      }
+        }
+      );
       for (const qrCodeCol of qrCodeCols) {
         await Column.delete(qrCodeCol.fk_column_id, ncMeta);
       }
@@ -945,6 +947,31 @@ export default class Column<T = any> implements ColumnType {
       if (typeof column.validate === 'string')
         updateObj.validate = column.validate;
       else updateObj.validate = JSON.stringify(column.validate);
+    }
+
+    // get qr code columns and delete if target type is not supported by QR code column type
+    // TODO: consider to extraxt the list of allowedColumnTypesForQrValue into a global one,
+    // ideally in sdk sine it's also used in FE
+    const allowedColumnTypesForQrValue = [
+      UITypes.Formula,
+      UITypes.SingleLineText,
+      UITypes.LongText,
+      UITypes.PhoneNumber,
+      UITypes.URL,
+      UITypes.Email,
+    ];
+    if (!allowedColumnTypesForQrValue.includes(updateObj.uidt)) {
+      const qrCodeCols = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_QRCODE,
+        {
+          condition: { fk_qr_value_column_id: colId },
+        }
+      );
+      for (const qrCodeCol of qrCodeCols) {
+        await Column.delete(qrCodeCol.fk_column_id, ncMeta);
+      }
     }
 
     // get existing cache

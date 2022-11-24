@@ -73,6 +73,7 @@ provide(CellUrlDisableOverlayInj, ref(true))
 const timeout = 3000 // in ms
 
 const showEditWarning = refAutoReset(false, timeout)
+
 const showClearWarning = refAutoReset(false, timeout)
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
@@ -89,7 +90,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 
 <template>
   <div class="h-full">
-    <div class="h-full flex gap-1 overflow-x-auto p-1">
+    <div class="h-full flex gap-1 overflow-x-auto p-1" @dblclick="showEditWarning = true">
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
         <div v-if="isVirtualCol(lookupColumn)">

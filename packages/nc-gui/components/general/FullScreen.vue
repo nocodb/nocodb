@@ -12,6 +12,18 @@ const isSidebarsOpen = computed({
     leftSidebar.toggle(value)
   },
 })
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  if (e.altKey) {
+    switch (e.keyCode) {
+      case 70: {
+        // ALT + F
+        isSidebarsOpen.value = !isSidebarsOpen.value
+        break
+      }
+    }
+  }
+})
 </script>
 
 <template>

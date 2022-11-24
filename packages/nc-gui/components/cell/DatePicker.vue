@@ -76,13 +76,73 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       e.stopPropagation()
-      open.value = true
+      if (!open.value) {
+        // open date picker
+        open.value = true
+      } else {
+        // select the current day
+        const el = document.querySelector('.ant-picker-cell-selected') as HTMLButtonElement
+        if (el) {
+          el.click()
+          open.value = false
+        }
+      }
       break
     case 'Escape':
       if (open.value) {
         e.stopPropagation()
         open.value = false
       }
+      break
+    case 'ArrowLeft':
+      if (!localState) {
+        ;(document.querySelector('.ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
+      } else {
+        const prevEl = document.querySelector('.ant-picker-cell-selected')?.previousElementSibling as HTMLButtonElement
+        if (prevEl) {
+          prevEl.click()
+        } else {
+          // get the last td from previous tr
+          const prevRowLastEl = document
+            .querySelector('.ant-picker-cell-selected')
+            ?.closest('tr')
+            ?.previousElementSibling?.querySelector('td:last-child') as HTMLButtonElement
+          if (prevRowLastEl) {
+            prevRowLastEl.click()
+          } else {
+            // go to the previous month
+            ;(document.querySelector('.ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
+          }
+        }
+      }
+      break
+    case 'ArrowRight':
+      if (!localState) {
+        ;(document.querySelector('.ant-picker-header-next-btn') as HTMLButtonElement)?.click()
+      } else {
+        const nextEl = document.querySelector('.ant-picker-cell-selected')?.nextElementSibling as HTMLButtonElement
+        if (nextEl) {
+          nextEl.click()
+        } else {
+          // get the last td from previous tr
+          const nextRowFirstEl = document
+            .querySelector('.ant-picker-cell-selected')
+            ?.closest('tr')
+            ?.nextElementSibling?.querySelector('td:first-child') as HTMLButtonElement
+          if (nextRowFirstEl) {
+            nextRowFirstEl.click()
+          } else {
+            // go to the next month
+            ;(document.querySelector('.ant-picker-header-next-btn') as HTMLButtonElement)?.click()
+          }
+        }
+      }
+      break
+    case 'ArrowUp':
+      if (!localState) (document.querySelector('.ant-picker-header-super-prev-btn') as HTMLButtonElement)?.click()
+      break
+    case 'ArrowDown':
+      if (!localState) (document.querySelector('.ant-picker-header-super-next-btn') as HTMLButtonElement)?.click()
       break
   }
 })

@@ -216,6 +216,22 @@ const onSearchCloseIconClick = () => {
   filterQuery = ''
   toggleSearchActive(false)
 }
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  if (e.altKey) {
+    switch (e.keyCode) {
+      case 84: {
+        // ALT + T
+        if (isUIAllowed('table-create')) {
+          // prevent the key `T` is inputted to table title input
+          e.preventDefault()
+          openTableCreateDialog()
+        }
+        break
+      }
+    }
+  }
+})
 </script>
 
 <template>

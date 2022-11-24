@@ -141,7 +141,7 @@ export class ColumnPageObject extends BasePage {
   }
 
   async delete({ title }: { title: string }) {
-    await this.grid.get().locator(`th[data-title="${title}"] >> svg.ant-dropdown-trigger`).click();
+    await this.grid.get().locator(`th[data-title="${title}"] >> svg.nc-ui-dt-dropdown`).click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').click();
 

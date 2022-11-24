@@ -242,7 +242,6 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
 
     if (altOrOptionKey) {
       switch (e.keyCode) {
-        // wingkwong
         case 82: {
           // ALT + R
           if (isAddingEmptyRowAllowed) {
@@ -368,7 +367,12 @@ watch(contextMenu, () => {
 const rowRefs = $ref<any[]>()
 
 async function clearCell(ctx: { row: number; col: number } | null) {
-  if (!ctx) return
+  if (
+    !ctx ||
+    !hasEditPermission ||
+    (fields.value[ctx.col].uidt !== UITypes.LinkToAnotherRecord && isVirtualCol(fields.value[ctx.col]))
+  )
+    return
 
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]

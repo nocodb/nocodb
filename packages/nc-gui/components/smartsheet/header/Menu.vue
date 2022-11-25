@@ -13,6 +13,7 @@ import {
   useMetas,
   useNuxtApp,
 } from '#imports'
+import { ActiveViewInj } from '~/context'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 
@@ -21,6 +22,8 @@ const emit = defineEmits(['edit'])
 const column = inject(ColumnInj)
 
 const meta = inject(MetaInj, ref())
+
+const view = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj)
 
@@ -69,10 +72,20 @@ const setAsPrimaryValue = async () => {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
   }
 }
+
+const sortCol = async (direction: 'asc' | 'desc') => {
+  try {
+    $e('a:sort:add', { from: 'column-menu' })
+    await $api.dbTableSort.create(view.value?.id as string, { fk_column_id: column!.value.id, direction })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
+  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']"
+              overlay-class-name="nc-dropdown-column-operations">
     <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
 
     <template #overlay>
@@ -84,6 +97,41 @@ const setAsPrimaryValue = async () => {
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
+
+        <a-divider class="!my-0" />
+
+        <a-menu-item @click="emit('edit')">
+          <div class="nc-column-duplicate nc-header-menu-item">
+            <MdiFileReplaceOutline class="text-primary" />
+            Duplicate
+          </div>
+        </a-menu-item>
+        <a-menu-item @click="emit('edit')">
+          <div class="nc-column-insert-after nc-header-menu-item">
+            <MdiTableColumnPlusAfter class="text-primary" />
+            Insert After
+          </div>
+        </a-menu-item>
+        <a-menu-item @click="emit('edit')">
+          <div class="nc-column-insert-before nc-header-menu-item">
+            <MdiTableColumnPlusBefore class="text-primary" />
+            Insert before
+          </div>
+        </a-menu-item>
+        <a-divider class="!my-0" />
+        <a-menu-item @click="sortCol('asc')">
+          <div class="nc-column-insert-after nc-header-menu-item">
+            <MdiSortAscending class="text-primary" />
+            Sort Ascending
+          </div>
+        </a-menu-item>
+        <a-menu-item @click="sortCol('desc')">
+          <div class="nc-column-insert-before nc-header-menu-item">
+            <MdiSortDescending class="text-primary" />
+            Sort Descending
+          </div>
+        </a-menu-item>
+        <a-divider class="!my-0" />
 
         <a-menu-item v-if="!virtual" @click="setAsPrimaryValue">
           <div class="nc-column-set-primary nc-header-menu-item">

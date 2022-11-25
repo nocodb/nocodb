@@ -36,7 +36,7 @@ if (typeof window !== 'undefined') {
 <template>
   <a-config-provider>
     <NuxtLayout :name="disableBaseLayout ? false : 'base'">
-      <NuxtPage :key="key" />
+      <NuxtPage :transition="false" :key="key" />
     </NuxtLayout>
   </a-config-provider>
 </template>

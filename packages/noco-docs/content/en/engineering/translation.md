@@ -53,7 +53,6 @@ Refer following articles to get additional details about Crowdin Portal usage
 #### GitHub changes
 - Update enumeration in `enums.ts` [packages/nc-gui/lib/enums.ts]
 - Map JSON path in `a.i18n.ts` [packages/nc-gui/plugins/a.i18n.ts]
-- Update array in `6d_language_validation.js` [scripts/cypress/integration/common/6d_language_validation.js]
 #### Crowdin changes [admin only]
 - Open `NocoDB` project
 - Click on `Language` on the home tab

@@ -111,7 +111,7 @@ Caveats:
 
 The methods of a page object can be classified into 2 categories:
 
-- Actions: Performs an UI actions like click, type, select etc. Is also responsible for waiting for the element to be ready and the action to be performed. This included waiting for api calls to complete.
+- Actions: Performs an UI actions like click, type, select etc. Is also responsible for waiting for the element to be ready and the action to be performed. This included waiting for API calls to complete.
 - Assertions: Asserts the state of the UI element, i.e if the element is visible, if the element has a particular text etc. Use `expect` from `@playwright/test` and if not use `expect.poll` to wait for the assertion to pass.
 
 ## Writing a test
@@ -184,7 +184,7 @@ await this.get().querySelector('button').count();
 
 ### Writing an action method
 
-This a method which will reset/clear all the filters. Since this is an action method, it will also wait for the `delete` filter api to return. Ignoring this api call will cause flakiness in the test, down the line.
+This a method which will reset/clear all the filters. Since this is an action method, it will also wait for the `delete` filter API to return. Ignoring this API call will cause flakiness in the test, down the line.
 
 ```js
 async resetFilter() {
@@ -212,8 +212,8 @@ async verifyFilter({ title }: { title: string }) {
 
 ## Tips to avoid flakiness
 
-- If an ui action, causes an api call or the UI state change, then wait for that api call to complete or the UI state to change.
-- What to wait out can be situation specific, but in general, is best to wait for the final state to be reached, i.e. in the case of creating filter, while it seems like waiting for the filter api to complete is enough, but after its return the table rows are reloaded and the UI state changes, so its better to wait for the table rows to be reloaded.
+- If an UI action, causes an API call or the UI state change, then wait for that API call to complete or the UI state to change.
+- What to wait out can be situation specific, but in general, is best to wait for the final state to be reached, i.e. in the case of creating filter, while it seems like waiting for the filter API to complete is enough, but after its return the table rows are reloaded and the UI state changes, so its better to wait for the table rows to be reloaded.
 
 
 ## Accessing playwright report in the CI

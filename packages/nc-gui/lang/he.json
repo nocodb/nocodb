@@ -368,6 +368,8 @@
     "setPrimary": "להגדיר כערך ראשי",
     "addRow": "הוסף שורה חדשה",
     "saveRow": "שמור שורה",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "הכנס שורה חדשה",
     "deleteRow": "מחק שורה",
     "deleteSelectedRow": "מחק את השורות שנבחרו",

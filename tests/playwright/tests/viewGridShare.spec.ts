@@ -39,12 +39,14 @@ test.describe('Shared view', () => {
       isLocallySaved: false,
     });
     // filter
+    await dashboard.grid.toolbar.clickFilter();
     await dashboard.grid.toolbar.filter.addNew({
       columnTitle: 'Address',
       value: 'Ab',
       opType: 'is like',
       isLocallySaved: false,
     });
+    await dashboard.grid.toolbar.clickFilter();
 
     // share with password disabled, download enabled
     await dashboard.grid.toolbar.clickShareView();
@@ -106,12 +108,14 @@ test.describe('Shared view', () => {
     });
 
     if (isMysql(context)) {
+      await sharedPage.grid.toolbar.clickFilter();
       await sharedPage.grid.toolbar.filter.addNew({
         columnTitle: 'District',
         value: 'Ta',
         opType: 'is like',
         isLocallySaved: true,
       });
+      await sharedPage.grid.toolbar.clickFilter();
     }
     await sharedPage.grid.toolbar.fields.toggle({ title: 'LastUpdate', isLocallySaved: true });
     expectedColumns[6].isVisible = false;
@@ -191,12 +195,15 @@ test.describe('Shared view', () => {
       title: 'New Column',
       isVisible: true,
     });
+    await sharedPage2.grid.toolbar.clickFilter();
     await sharedPage2.grid.toolbar.filter.addNew({
       columnTitle: 'Country',
       value: 'New Country',
       opType: 'is like',
       isLocallySaved: true,
     });
+    await sharedPage2.grid.toolbar.clickFilter();
+
     await sharedPage2.grid.cell.verify({
       index: 0,
       columnHeader: 'Country',

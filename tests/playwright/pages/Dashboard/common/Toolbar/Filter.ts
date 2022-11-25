@@ -40,11 +40,6 @@ export class ToolbarFilterPage extends BasePage {
     value: string;
     isLocallySaved: boolean;
   }) {
-    await this.toolbar.clickFilter();
-
-    // todo: If the filter menu is open for the first time for the table, there can will be a api call which will re render the filter menu
-    await this.rootPage.waitForTimeout(1000);
-
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
     await this.rootPage.locator('.nc-filter-field-select').last().click();
@@ -82,9 +77,6 @@ export class ToolbarFilterPage extends BasePage {
       requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
     });
     await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
-
-    await this.toolbar.clickFilter();
-
     await this.toolbar.parent.waitLoading();
   }
 

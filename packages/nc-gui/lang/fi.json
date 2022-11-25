@@ -368,6 +368,8 @@
     "setPrimary": "Aseta ensisijainen arvo",
     "addRow": "Lisää uusi rivi",
     "saveRow": "Tallenna rivi",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Lisää uusi rivi",
     "deleteRow": "Poista rivi",
     "deleteSelectedRow": "Poista valitut rivit",

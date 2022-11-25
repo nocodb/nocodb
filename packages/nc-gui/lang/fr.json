@@ -368,6 +368,8 @@
     "setPrimary": "Définir comme valeur primaire",
     "addRow": "Ajouter une nouvelle ligne",
     "saveRow": "Enregistrer la ligne",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Insérer une nouvelle ligne",
     "deleteRow": "Supprimer la ligne",
     "deleteSelectedRow": "Supprimer les lignes sélectionnées",

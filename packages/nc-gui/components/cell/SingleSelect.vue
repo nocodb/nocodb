@@ -189,7 +189,7 @@ const toggleMenu = (e: Event) => {
     :disabled="readOnly"
     :show-arrow="!readOnly && (active || editable || vModel === null)"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
-    :show-search="active || editable"
+    show-search
     @select="isOpen = false"
     @keydown.stop
     @search="search"

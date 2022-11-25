@@ -368,6 +368,8 @@
     "setPrimary": "Postavite kao primarnu vrijednost",
     "addRow": "Dodaj novi red",
     "saveRow": "Spremanje retka",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Umetnite novi red",
     "deleteRow": "Brisanje retka",
     "deleteSelectedRow": "Izbrišite odabrane retke",

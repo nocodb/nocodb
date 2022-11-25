@@ -57,6 +57,7 @@ export class TreeViewPage extends BasePage {
       responseJsonMatcher: json => json.title === title && json.type === 'table',
     });
 
+    // Tab render is slow for playwright
     await this.dashboard.waitForTabRender({ title });
   }
 

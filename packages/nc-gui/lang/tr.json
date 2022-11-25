@@ -368,6 +368,8 @@
     "setPrimary": "Birincil değer yap",
     "addRow": "Yeni satır ekle",
     "saveRow": "Satırı kaydet",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Yeni Satır Ekle",
     "deleteRow": "Satırı Sil",
     "deleteSelectedRow": "Seçilen Satırları Sil",

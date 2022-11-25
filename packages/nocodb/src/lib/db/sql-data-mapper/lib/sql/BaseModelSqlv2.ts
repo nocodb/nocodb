@@ -2617,7 +2617,9 @@ class BaseModelSqlv2 {
 
       const proto = await this.getProto();
 
-      const result = (await groupedQb)?.map((d) => {
+      let data = await groupedQb;
+      data = this.convertAttachmentType(data);
+      const result = data?.map((d) => {
         d.__proto__ = proto;
         return d;
       });

@@ -57,7 +57,7 @@ Refer following articles to get additional details about Crowdin Portal usage
 - Open `NocoDB` project
 - Click on `Language` on the home tab
 - Select target language, `Update`
-  
+- Update array in `tests/playwright/tests/language.spec.ts`  
   
 ![Screenshot 2022-09-08 at 10 52 59 PM](https://user-images.githubusercontent.com/86527202/189186570-5c1c7cad-6d3f-4937-ab4d-fa7ebe022cb1.png)
   

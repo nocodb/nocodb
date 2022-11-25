@@ -6,6 +6,7 @@ interface Tab {
   title: string
   label: string
   isUIAllowed: ComputedRef<boolean>
+  key: string
 }
 
 const { t } = useI18n()
@@ -17,23 +18,25 @@ const tabsInfo: Tab[] = [
     title: 'Users Management',
     label: t('title.userMgmt'),
     isUIAllowed: computed(() => isUIAllowed('userMgmtTab')),
+    key: 'userMgmtTab'
   },
   {
     title: 'API Token Management',
     label: t('title.apiTokenMgmt'),
     isUIAllowed: computed(() => isUIAllowed('apiTokenTab')),
+    key: 'apiTokenTab'
   },
 ]
 
-const selectedTabKey = $ref(0)
+const visibleTabs = $computed(() => tabsInfo.filter(tab => tab.isUIAllowed.value))
 
-const selectedTab = $computed(() => tabsInfo[selectedTabKey])
+const selectedTabKey = $ref(visibleTabs?.[0].key)
+
 </script>
 
-<template>
-  <div v-if="selectedTab.isUIAllowed">
+<template v-if="visibleTabs.length > 0">
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs !mx-6">
-      <a-tab-pane v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
+      <a-tab-pane v-for="(tab) of visibleTabs" :key="tab.key" class="select-none">
         <template #tab>
           <span>
             {{ tab.label }}
@@ -43,15 +46,14 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKey])
     </a-tabs>
 
     <div class="mx-4 py-6 mt-2">
-      <template v-if="selectedTabKey === 0">
+      <template v-if="selectedTabKey === 'userMgmtTab'">
         <LazyTabsAuthUserManagement />
       </template>
 
-      <template v-else>
+      <template v-else-if="selectedTabKey === 'apiTokenTab'">
         <LazyTabsAuthApiTokenManagement />
       </template>
     </div>
-  </div>
 </template>
 
 <style scoped>

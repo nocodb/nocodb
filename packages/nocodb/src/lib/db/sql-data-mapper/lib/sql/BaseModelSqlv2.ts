@@ -2748,8 +2748,8 @@ class BaseModelSqlv2 {
         }
         data = data.map((d) => {
           attachmentColumns.forEach((col) => {
-            if (d[col.column_name] && typeof d[col.column_name] === 'string') {
-              d[col.column_name] = JSON.parse(d[col.column_name]);
+            if (d[col.title] && typeof d[col.title] === 'string') {
+              d[col.title] = JSON.parse(d[col.title]);
             }
           });
           return d;

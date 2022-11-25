@@ -7,19 +7,21 @@ const showUserModal = ref(false)
 
 const { isUIAllowed } = useUIPermission()
 
-const isShareBaseAllowed =
-  isUIAllowed('newUser') &&
-  route.name !== 'index' &&
-  route.name !== 'index-index-create' &&
-  route.name !== 'index-index-create-external' &&
-  route.name !== 'index-user-index'
+const isShareBaseAllowed = computed(
+  () =>
+    isUIAllowed('newUser') &&
+    route.name !== 'index' &&
+    route.name !== 'index-index-create' &&
+    route.name !== 'index-index-create-external' &&
+    route.name !== 'index-user-index',
+)
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   if (e.altKey) {
     switch (e.keyCode) {
       case 73: {
         // ALT + I
-        if (isShareBaseAllowed) {
+        if (isShareBaseAllowed.value) {
           showUserModal.value = true
         }
         break

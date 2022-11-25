@@ -8,7 +8,13 @@ menuTitle: 'Keyboard Maneuver'
 
 
 ## Shortcuts
-- To be listed
+| Key       | Behaviour               |
+|-----------|-------------------------|
+| `ALT` `t` | Insert new table        |
+| `ALT` `r` | Insert new row          |
+| `ALT` `c` | Insert new column       |
+| `ALT` `f` | Toggle fullscreen mode  |
+| `ALT` `i` | Invite a member to team |
 
 ## General maneuver on GRID
 
@@ -24,5 +30,11 @@ menuTitle: 'Keyboard Maneuver'
 | `Delete`        | Clear cell                                                                           |
 | `Space`         | Expand current row                                                                   |
 | `←` `→` `↑` `↓` | General cell navigation                                                              |
+
+
+## Expanded row maneuver
+| Key         | Behaviour                      |
+|-------------|--------------------------------|
+| `⌘` `Enter` | Save current expanded row item |
 
 

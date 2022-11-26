@@ -12,7 +12,7 @@ import QrCodeScan from '~icons/mdi/qrcode-scan'
 import RollupIcon from '~icons/mdi/movie-roll'
 import CountIcon from '~icons/mdi/counter'
 import SpecificDBTypeIcon from '~icons/mdi/database-settings'
-import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
+import MdiTextSearchVariant from '~icons/mdi/text-search-variant'
 
 const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
   switch (column.uidt) {
@@ -35,13 +35,13 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: TableColumnPlusBefore, color: 'text-accent' }
+          return { icon: MdiTextSearchVariant, color: 'text-accent' }
         case RelationTypes.HAS_MANY:
-          return { icon: TableColumnPlusBefore, color: 'text-yellow-500' }
+          return { icon: MdiTextSearchVariant, color: 'text-yellow-500' }
         case RelationTypes.BELONGS_TO:
-          return { icon: TableColumnPlusBefore, color: 'text-sky-500' }
+          return { icon: MdiTextSearchVariant, color: 'text-sky-500' }
       }
-      return { icon: TableColumnPlusBefore, color: 'text-grey' }
+      return { icon: MdiTextSearchVariant, color: 'text-grey' }
     case UITypes.Rollup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:

@@ -130,11 +130,10 @@ const duplicateColumn = async () => {
       }
       break
   }
+
   try {
     await $api.dbTableColumn.create(meta!.value!.id!, columnCreatePayload)
     await getMeta(meta!.value!.id!, true)
-
-    debugger
 
     const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
 

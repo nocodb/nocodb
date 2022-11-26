@@ -28,6 +28,7 @@ import MovieRoll from '~icons/mdi/movie-roll'
 import CalendarClock from '~icons/mdi/calendar-clock'
 import ID from '~icons/mdi/identifier'
 import RulerSquareCompass from '~icons/mdi/ruler-square-compass'
+import MdiTextSearchVariant from '~icons/mdi/text-search-variant'
 
 const uiTypes = [
   {
@@ -37,7 +38,7 @@ const uiTypes = [
   },
   {
     name: UITypes.Lookup,
-    icon: TableColumnPlusBefore,
+    icon: MdiTextSearchVariant,
     virtual: 1,
   },
   {

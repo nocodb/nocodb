@@ -223,6 +223,9 @@ export function useMultiSelect(
               case 67:
                 await copyValue()
                 break
+              case 86:
+                clearCell(selected as { row: number; col: number }, true)
+                makeEditable(rowObj, columnObj)
             }
           }
 

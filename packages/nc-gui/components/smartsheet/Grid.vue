@@ -369,7 +369,7 @@ watch(contextMenu, () => {
 
 const rowRefs = $ref<any[]>()
 
-async function clearCell(ctx: { row: number; col: number } | null) {
+async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
   if (
     !ctx ||
     !hasEditPermission ||
@@ -386,8 +386,11 @@ async function clearCell(ctx: { row: number; col: number } | null) {
   }
 
   rowObj.row[columnObj.title] = null
-  // update/save cell value
-  await updateOrSaveRow(rowObj, columnObj.title)
+
+  if (!skipUpdate) {
+    // update/save cell value
+    await updateOrSaveRow(rowObj, columnObj.title)
+  }
 }
 
 function makeEditable(row: Row, col: ColumnType) {

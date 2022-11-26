@@ -19,7 +19,6 @@ import {
   isJSON,
   isPercent,
   isPhoneNumber,
-  isPrimary,
   isRating,
   isSet,
   isSingleSelect,

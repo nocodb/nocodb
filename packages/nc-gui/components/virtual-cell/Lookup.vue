@@ -27,14 +27,6 @@ const meta = inject(MetaInj, ref())
 
 const cellValue = inject(CellValueInj, ref())
 
-const arrValue = computed(() => {
-  if (!cellValue.value) return []
-
-  if (Array.isArray(cellValue.value)) return cellValue.value
-
-  return [cellValue.value]
-})
-
 const relationColumn = computed(
   () =>
     meta.value?.columns?.find((c) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
@@ -65,6 +57,19 @@ const lookupColumn = computed(
       | ColumnType
       | undefined,
 )
+
+const arrValue = computed(() => {
+  if (!cellValue.value) return []
+
+  // if lookup column is Attachment and relation type is Belongs to wrap the value in an array
+  // since the attachment component expects an array or JSON string array
+  if (lookupColumn.value?.uidt === UITypes.Attachment && relationColumn.value?.colOptions?.type === RelationTypes.BELONGS_TO)
+    return [cellValue.value]
+
+  if (Array.isArray(cellValue.value)) return cellValue.value
+
+  return [cellValue.value]
+})
 
 provide(MetaInj, lookupTableMeta)
 

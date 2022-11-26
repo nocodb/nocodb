@@ -5,6 +5,35 @@ import { CellRange } from './cellRange'
 import { copyTable, message, reactive, ref, unref, useCopy, useEventListener, useI18n } from '#imports'
 import type { Row } from '~/lib'
 
+function convertCellData(args: { from: UITypes; to: UITypes; value: any }) {
+  const { from, to, value } = args
+  if (from === to) {
+    return value
+  }
+
+  switch (to) {
+    case UITypes.Number:
+      return Number(value)
+    case UITypes.Checkbox:
+      return Boolean(value)
+    case UITypes.Date:
+      return new Date(value)
+    case UITypes.Attachment:
+      try {
+        return typeof value === 'string' ? JSON.parse(value) : value
+      } catch (e) {
+        return []
+      }
+    case UITypes.LinkToAnotherRecord:
+    case UITypes.Lookup:
+    case UITypes.Rollup:
+    case UITypes.Formula:
+      throw new Error(`Unsupported conversion from ${from} to ${to}`)
+    default:
+      return value
+  }
+}
+
 /**
  * Utility to help with multi-selecting rows/cells in the smartsheet
  */
@@ -21,6 +50,8 @@ export function useMultiSelect(
   const { t } = useI18n()
 
   const { copy } = useCopy()
+
+  let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
   const editEnabled = ref(_editEnabled)
 
@@ -224,8 +255,18 @@ export function useMultiSelect(
                 await copyValue()
                 break
               case 86:
-                clearCell(selected as { row: number; col: number }, true)
-                makeEditable(rowObj, columnObj)
+                if (clipboardContext) {
+                  rowObj.row[columnObj.title] = convertCellData({
+                    value: clipboardContext.value,
+                    from: clipboardContext.uidt,
+                    to: columnObj.uidt,
+                  })
+                  e.preventDefault()
+                  makeEditable(rowObj,columnObj)
+                } else {
+                  clearCell(selectedCell as { row: number; col: number }, true)
+                  makeEditable(rowObj, columnObj)
+                }
             }
           }
 

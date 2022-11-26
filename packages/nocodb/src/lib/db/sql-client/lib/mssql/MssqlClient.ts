@@ -356,12 +356,14 @@ class MssqlClient extends KnexClient {
 
     try {
       /** ************** START : create _evolution table if not exists *************** */
-      const exists = await this.sqlClient.schema.withSchema(this.schema).hasTable(args.tn);
+      const exists = await this.sqlClient.schema
+        .withSchema(this.schema)
+        .hasTable(args.tn);
 
       if (!exists) {
-        await this.sqlClient.schema.withSchema(this.schema).createTable(
-          args.tn,
-          function (table) {
+        await this.sqlClient.schema
+          .withSchema(this.schema)
+          .createTable(args.tn, function (table) {
             table.increments();
             table.string('title').notNullable();
             table.string('titleDown').nullable();
@@ -371,8 +373,7 @@ class MssqlClient extends KnexClient {
             table.integer('status').nullable();
             table.dateTime('created');
             table.timestamps();
-          }
-        );
+          });
         log.debug('Table created:', `${this.getTnPath(args.tn)}`);
       } else {
         log.debug(`${this.getTnPath(args.tn)} tables exists`);
@@ -394,7 +395,9 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      result.data.value = await this.sqlClient.schema.withSchema(this.schema).hasTable(args.tn);
+      result.data.value = await this.sqlClient.schema
+        .withSchema(this.schema)
+        .hasTable(args.tn);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -1343,8 +1346,9 @@ class MssqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.trigger_name}`
     try {
-      const query = `${this.querySeparator()}DROP TRIGGER IF EXISTS ${args.trigger_name
-        }`;
+      const query = `${this.querySeparator()}DROP TRIGGER IF EXISTS ${
+        args.trigger_name
+      }`;
 
       await this.sqlClient.raw(query);
 
@@ -1474,7 +1478,8 @@ class MssqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `DROP FUNCTION IF EXISTS ${args.function_name
+              `DROP FUNCTION IF EXISTS ${
+                args.function_name
               };${this.querySeparator()}\n${args.create_function}`,
           },
         ],
@@ -1482,7 +1487,8 @@ class MssqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `DROP FUNCTION IF EXISTS ${args.function_name
+              `DROP FUNCTION IF EXISTS ${
+                args.function_name
               };${this.querySeparator()} ${args.oldCreateFunction}`,
           },
         ],
@@ -1554,7 +1560,8 @@ class MssqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `DROP PROCEDURE IF EXISTS ${args.procedure_name
+              `DROP PROCEDURE IF EXISTS ${
+                args.procedure_name
               };${this.querySeparator()}\n${args.create_procedure}`,
           },
         ],
@@ -1562,7 +1569,8 @@ class MssqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `DROP PROCEDURE IF EXISTS ${args.procedure_name
+              `DROP PROCEDURE IF EXISTS ${
+                args.procedure_name
               };${this.querySeparator()}${args.oldCreateProcedure}`,
           },
         ],
@@ -1627,7 +1635,8 @@ class MssqlClient extends KnexClient {
     try {
       // await this.sqlClient.raw(`DROP TRIGGER ${args.trigger_name}`);
       await this.sqlClient.raw(
-        `ALTER TRIGGER ${args.trigger_name} ON ${this.getTnPath(args.tn)} \n${args.timing
+        `ALTER TRIGGER ${args.trigger_name} ON ${this.getTnPath(args.tn)} \n${
+          args.timing
         } ${args.event}\n AS\n${args.statement}`
       );
 
@@ -1712,7 +1721,8 @@ class MssqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `DROP VIEW ${args.view_name} ; ${this.querySeparator()}${args.oldViewDefination
+              `DROP VIEW ${args.view_name} ; ${this.querySeparator()}${
+                args.oldViewDefination
               };`,
           },
         ],
@@ -1807,7 +1817,10 @@ class MssqlClient extends KnexClient {
 
       const downStatement =
         this.querySeparator() +
-        this.sqlClient.schema.withSchema(this.schema).dropTable(args.table).toString();
+        this.sqlClient.schema
+          .withSchema(this.schema)
+          .dropTable(args.table)
+          .toString();
 
       this.emit(`Success : ${upQuery}`);
 
@@ -1849,7 +1862,15 @@ class MssqlClient extends KnexClient {
                   BEGIN
                       SET NOCOUNT ON;
                       UPDATE ?? Set ?? = GetDate() WHERE ?? in (SELECT ?? FROM Inserted)
-                  END;`, [triggerName, this.getTnPath(args.table_name), this.getTnPath(args.table_name), column.column_name, pk.column_name, pk.column_name]
+                  END;`,
+            [
+              triggerName,
+              this.getTnPath(args.table_name),
+              this.getTnPath(args.table_name),
+              column.column_name,
+              pk.column_name,
+              pk.column_name,
+            ]
           );
 
         upQuery += triggerCreateQuery;
@@ -2051,7 +2072,10 @@ class MssqlClient extends KnexClient {
       /** ************** create up & down statements *************** */
       const upStatement =
         this.querySeparator() +
-        this.sqlClient.schema.withSchema(this.schema).dropTable(args.tn).toString();
+        this.sqlClient.schema
+          .withSchema(this.schema)
+          .dropTable(args.tn)
+          .toString();
       let downQuery = this.querySeparator() + this.createTable(args.tn, args);
 
       this.emit(`Success : ${upStatement}`);
@@ -2065,8 +2089,9 @@ class MssqlClient extends KnexClient {
       for (const relation of relationsList) {
         downQuery +=
           this.querySeparator() +
-          (await this.sqlClient.withSchema(this.schema).schema
-            .table(relation.tn, (table) => {
+          (await this.sqlClient
+            .withSchema(this.schema)
+            .schema.table(relation.tn, (table) => {
               table = table
                 .foreign(relation.cn, null)
                 .references(relation.rcn)
@@ -2109,7 +2134,8 @@ class MssqlClient extends KnexClient {
       )) {
         downQuery +=
           this.querySeparator() +
-          this.sqlClient.schema.withSchema(this.schema)
+          this.sqlClient.schema
+            .withSchema(this.schema)
             .table(tn, function (table) {
               if (non_unique) {
                 table.index(columns, key_name);
@@ -2154,19 +2180,22 @@ class MssqlClient extends KnexClient {
 
     try {
       const self = this;
-      await this.sqlClient.schema.table(this.getTnPath(args.childTable), function (table) {
-        table = table
-          .foreign(args.childColumn, foreignKeyName)
-          .references(args.parentColumn)
-          .on(self.getTnPath(args.parentTable));
+      await this.sqlClient.schema.table(
+        this.getTnPath(args.childTable),
+        function (table) {
+          table = table
+            .foreign(args.childColumn, foreignKeyName)
+            .references(args.parentColumn)
+            .on(self.getTnPath(args.parentTable));
 
-        if (args.onUpdate) {
-          table = table.onUpdate(args.onUpdate);
+          if (args.onUpdate) {
+            table = table.onUpdate(args.onUpdate);
+          }
+          if (args.onDelete) {
+            table = table.onDelete(args.onDelete);
+          }
         }
-        if (args.onDelete) {
-          table = table.onDelete(args.onDelete);
-        }
-      });
+      );
 
       const upStatement =
         this.querySeparator() +
@@ -2227,9 +2256,12 @@ class MssqlClient extends KnexClient {
 
     try {
       const self = this;
-      await this.sqlClient.schema.table(this.getTnPath(args.childTable), function (table) {
-        table.dropForeign(args.childColumn, foreignKeyName);
-      });
+      await this.sqlClient.schema.table(
+        this.getTnPath(args.childTable),
+        function (table) {
+          table.dropForeign(args.childColumn, foreignKeyName);
+        }
+      );
 
       const upStatement =
         this.querySeparator() +
@@ -2557,10 +2589,10 @@ class MssqlClient extends KnexClient {
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
       query += defaultValue
         ? this.genQuery(
-          ` CONSTRAINT  ?? DEFAULT ${defaultValue}`,
-          [`DF_${t}_${n.cn}`],
-          shouldSanitize
-        )
+            ` CONSTRAINT  ?? DEFAULT ${defaultValue}`,
+            [`DF_${t}_${n.cn}`],
+            shouldSanitize
+          )
         : '';
       if (defaultValue) {
         n.default_constraint_name = `DF_${t}_${n.cn}`;
@@ -2572,10 +2604,10 @@ class MssqlClient extends KnexClient {
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
       query += defaultValue
         ? this.genQuery(
-          ` CONSTRAINT ?? DEFAULT ${defaultValue}`,
-          [`DF_${t}_${n.cn}`],
-          shouldSanitize
-        )
+            ` CONSTRAINT ?? DEFAULT ${defaultValue}`,
+            [`DF_${t}_${n.cn}`],
+            shouldSanitize
+          )
         : ' ';
       // shouldSanitize = false;
       query = this.genQuery(

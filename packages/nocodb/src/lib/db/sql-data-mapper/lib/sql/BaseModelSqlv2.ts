@@ -366,9 +366,7 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-    let data = await qb;
-    data = this.convertAttachmentType(data);
-    return data;
+    return this.convertAttachmentType(await qb);
   }
 
   async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {

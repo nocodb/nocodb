@@ -1,7 +1,8 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { computed, ref, unref, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
+import { computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
+import type { SmartsheetStoreEvents } from '~/lib'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -18,6 +19,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const cellRefs = ref<HTMLTableDataCellElement[]>([])
 
     const { search } = useFieldQuery(view)
+
+    const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 
     // getters
     const isLocked = computed(() => view.value?.lock_type === 'locked')
@@ -63,6 +66,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       sorts,
       nestedFilters,
       isSqlView,
+      eventBus,
     }
   },
   'smartsheet-store',

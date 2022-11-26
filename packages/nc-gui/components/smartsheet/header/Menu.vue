@@ -6,6 +6,7 @@ import {
   IsLockedInj,
   MetaInj,
   Modal,
+  ReloadViewDataHookInj,
   extractSdkResponseErrorMsg,
   inject,
   message,
@@ -13,13 +14,19 @@ import {
   useMetas,
   useNuxtApp,
 } from '#imports'
+import { useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
 import { ActiveViewInj } from '~/context'
+import { SmartsheetStoreEvents } from '~/lib'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 
 const emit = defineEmits(['edit'])
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
 const column = inject(ColumnInj)
+
+const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const meta = inject(MetaInj, ref())
 
@@ -77,6 +84,8 @@ const sortCol = async (direction: 'asc' | 'desc') => {
   try {
     $e('a:sort:add', { from: 'column-menu' })
     await $api.dbTableSort.create(view.value?.id as string, { fk_column_id: column!.value.id, direction })
+    eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+    reloadDataHook?.trigger()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -84,8 +93,7 @@ const sortCol = async (direction: 'asc' | 'desc') => {
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']"
-              overlay-class-name="nc-dropdown-column-operations">
+  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
     <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
 
     <template #overlay>

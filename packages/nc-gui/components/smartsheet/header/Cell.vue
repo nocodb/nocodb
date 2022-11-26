@@ -25,7 +25,14 @@ const editColumnDropdown = ref(false)
     :class="{ 'h-full': column, '!text-gray-400': isKanban }"
   >
     <SmartsheetHeaderCellIcon v-if="column" />
-    <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
+    <span
+      v-if="column"
+      class="name cursor-pointer"
+      style="white-space: nowrap"
+      :title="column.title"
+      @dblclick="editColumnDropdown = true"
+      >{{ column.title }}</span
+    >
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 

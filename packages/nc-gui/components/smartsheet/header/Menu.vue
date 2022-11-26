@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import {
   ColumnInj,
@@ -33,6 +33,8 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj)
+
+const fields = inject(FieldsInj, ref([]))
 
 const { $api, $e } = useNuxtApp()
 
@@ -80,7 +82,7 @@ const setAsPrimaryValue = async () => {
   }
 }
 
-const sortCol = async (direction: 'asc' | 'desc') => {
+const sortByColumn = async (direction: 'asc' | 'desc') => {
   try {
     $e('a:sort:add', { from: 'column-menu' })
     await $api.dbTableSort.create(view.value?.id as string, { fk_column_id: column!.value.id, direction })
@@ -90,10 +92,74 @@ const sortCol = async (direction: 'asc' | 'desc') => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {
+  let name = initName
+  let i = 1
+  while (columns.find((c) => c.title === name)) {
+    name = `${initName}_${i}`
+    i++
+  }
+  return name
+}
+
+const duplicateColumn = async () => {
+  let columnCreatePayload = {}
+
+  const duplicateColumnName = getUniqueColumnName(`${column!.value.title}_copy`, meta!.value!.columns!)
+
+  switch (column.value.uidt) {
+    // LTAR
+    // Formula
+    // Lookup
+    // Rollup
+
+    case UITypes.LinkToAnotherRecord:
+    case UITypes.Lookup:
+    case UITypes.Rollup:
+    case UITypes.Formula:
+      return message.info('Not available at the moment')
+    default:
+      columnCreatePayload = {
+        ...column!.value!,
+        ...column!.value.colOptions,
+        title: duplicateColumnName,
+        column_name: duplicateColumnName,
+        id: undefined,
+        colOptions: undefined,
+      }
+      break
+  }
+  try {
+    await $api.dbTableColumn.create(meta!.value!.id!, columnCreatePayload)
+    await getMeta(meta!.value!.id!, true)
+
+    debugger
+
+    const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
+
+    const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+
+    if (currentColumnIndex === gridViewColumnList.length - 2) {
+      return
+    }
+
+    let newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
+
+    await $api.dbViewColumn.update(view.value!.id!, gridViewColumnList[gridViewColumnList.length - 1].id, {
+      order: newColumnOrder,
+    })
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
+  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']"
+              overlay-class-name="nc-dropdown-column-operations">
     <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
 
     <template #overlay>
@@ -108,7 +174,7 @@ const sortCol = async (direction: 'asc' | 'desc') => {
 
         <a-divider class="!my-0" />
 
-        <a-menu-item @click="emit('edit')">
+        <a-menu-item @click="duplicateColumn">
           <div class="nc-column-duplicate nc-header-menu-item">
             <MdiFileReplaceOutline class="text-primary" />
             Duplicate
@@ -127,13 +193,13 @@ const sortCol = async (direction: 'asc' | 'desc') => {
           </div>
         </a-menu-item>
         <a-divider class="!my-0" />
-        <a-menu-item @click="sortCol('asc')">
+        <a-menu-item @click="sortByColumn('asc')">
           <div class="nc-column-insert-after nc-header-menu-item">
             <MdiSortAscending class="text-primary" />
             Sort Ascending
           </div>
         </a-menu-item>
-        <a-menu-item @click="sortCol('desc')">
+        <a-menu-item @click="sortByColumn('desc')">
           <div class="nc-column-insert-before nc-header-menu-item">
             <MdiSortDescending class="text-primary" />
             Sort Descending

@@ -19,6 +19,7 @@ import {
   useViewColumns,
   watch,
 } from '#imports'
+import { useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
 
 const meta = inject(MetaInj, ref())
 
@@ -46,7 +47,16 @@ const {
   hideAll,
   saveOrUpdate,
   metaColumnById,
+  loadViewColumns,
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+
+const { eventBus } = useSmartsheetStoreOrThrow()
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+    loadViewColumns()
+  }
+})
 
 watch(
   sortedAndFilteredFields,

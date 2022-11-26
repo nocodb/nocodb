@@ -26,20 +26,20 @@ import {
   useProject,
 } from '#imports'
 import type { Filter } from '~/lib'
-import SingleSelect from '~/components/cell/SingleSelect'
-import MultiSelect from '~/components/cell/MultiSelect'
-import DatePicker from '~/components/cell/DatePicker'
-import YearPicker from '~/components/cell/YearPicker'
-import DateTimePicker from '~/components/cell/DateTimePicker'
-import TimePicker from '~/components/cell/TimePicker'
-import Rating from '~/components/cell/Rating'
-import Duration from '~/components/cell/Duration'
-import Percent from '~/components/cell/Percent'
-import Currency from '~/components/cell/Currency'
-import Decimal from '~/components/cell/Decimal'
-import Integer from '~/components/cell/Integer'
-import Float from '~/components/cell/Float'
-import Text from '~/components/cell/Text'
+import SingleSelect from '~/components/cell/SingleSelect.vue'
+import MultiSelect from '~/components/cell/MultiSelect.vue'
+import DatePicker from '~/components/cell/DatePicker.vue'
+import YearPicker from '~/components/cell/YearPicker.vue'
+import DateTimePicker from '~/components/cell/DateTimePicker.vue'
+import TimePicker from '~/components/cell/TimePicker.vue'
+import Rating from '~/components/cell/Rating.vue'
+import Duration from '~/components/cell/Duration.vue'
+import Percent from '~/components/cell/Percent.vue'
+import Currency from '~/components/cell/Currency.vue'
+import Decimal from '~/components/cell/Decimal.vue'
+import Integer from '~/components/cell/Integer.vue'
+import Float from '~/components/cell/Float.vue'
+import Text from '~/components/cell/Text.vue'
 
 interface Props {
   column: ColumnType
@@ -79,19 +79,17 @@ const checkTypeFunctions = {
 
 type FilterType = keyof typeof checkTypeFunctions
 
-const { sqlUi } = useProject()
+const { sqlUi } = $(useProject())
 
-const abstractType = $computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+const abstractType = $computed(() => column.value && sqlUi?.getAbstractType(column.value))
 
-const checkType = (type: FilterType) => {
-  if (!column.value) {
+const checkType = (filterType: FilterType) => {
+  const checkTypeFunction = checkTypeFunctions[filterType]
+
+  if (!column.value || !checkTypeFunction) {
     return false
   }
 
-  const checkTypeFunction = checkTypeFunctions[type]
-  if (!checkTypeFunction) {
-    return false
-  }
   return checkTypeFunction(column.value, abstractType)
 }
 
@@ -110,7 +108,7 @@ const booleanOptions = [
   { value: null, label: 'unset' },
 ]
 
-const componentMap: Partial<Record<FilterType & 'default', any>> = {
+const componentMap: Partial<Record<FilterType, any>> = {
   isSingleSelect: SingleSelect,
   isMultiSelect: MultiSelect,
   isDate: DatePicker,
@@ -130,12 +128,35 @@ const filterType = $computed(() => {
   return Object.keys(componentMap).find((key) => checkType(key as FilterType))
 })
 
-const isNumeric = $computed(() => {
-  if (!column.value) {
-    return false
+const componentProps = $computed(() => {
+  switch (filterType) {
+    case 'isSingleSelect':
+    case 'isMultiSelect': {
+      return { disableOptionCreation: true }
+    }
+    case 'isPercent':
+    case 'isDecimal':
+    case 'isFloat':
+    case 'isInt': {
+      return { class: 'h-32px' }
+    }
+    case 'isDuration': {
+      return { showValidationError: false }
+    }
+    default: {
+      return {}
+    }
   }
+})
+
+const hasExtraPadding = $computed(() => {
   return (
-    isPercent(column.value) || isInt(column.value, abstractType) || isDecimal(column.value) || isFloat(column.value, abstractType)
+    column.value &&
+    (isInt(column.value, abstractType) ||
+      isDate(column.value, abstractType) ||
+      isDateTime(column.value, abstractType) ||
+      isTime(column.value, abstractType) ||
+      isYear(column.value, abstractType))
   )
 })
 </script>
@@ -147,13 +168,19 @@ const isNumeric = $computed(() => {
     :disabled="filter.readOnly"
     :options="booleanOptions"
   />
-  <div v-else class="bg-white border-1 flex min-w-120px max-w-170px min-h-32px h-full px-2" @mouseup.stop>
+  <div
+    v-else
+    class="bg-white border-1 flex min-w-120px max-w-170px min-h-32px h-full"
+    :class="{ 'px-2': hasExtraPadding }"
+    @mouseup.stop
+  >
     <component
       :is="filterType ? componentMap[filterType] : Text"
       v-model="filterInput"
       :disabled="filter.readOnly"
       :column="column"
-      :class="{ 'h-32px': isNumeric }"
+      class="flex"
+      v-bind="componentProps"
     />
   </div>
 </template>

@@ -14,6 +14,7 @@ import {
   extractSdkResponseErrorMsg,
   inject,
   ref,
+  useEventListener,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -21,9 +22,10 @@ import {
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
+  disableOptionCreation?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -176,6 +178,14 @@ const toggleMenu = (e: Event) => {
   }
   isOpen.value = (active.value || editable.value) && !isOpen.value
 }
+
+const handleClose = (e: MouseEvent) => {
+  if (aselect.value && !aselect.value.$el.contains(e.target)) {
+    isOpen.value = false
+  }
+}
+
+useEventListener(document, 'click', handleClose)
 </script>
 
 <template>
@@ -217,7 +227,11 @@ const toggleMenu = (e: Event) => {
       </a-tag>
     </a-select-option>
 
-    <a-select-option v-if="searchVal && isOptionMissing && !isPublic" :key="searchVal" :value="searchVal">
+    <a-select-option
+      v-if="searchVal && isOptionMissing && !isPublic && !disableOptionCreation"
+      :key="searchVal"
+      :value="searchVal"
+    >
       <div class="flex gap-2 text-gray-500 items-center h-full">
         <MdiPlusThick class="min-w-4" />
         <div class="text-xs whitespace-normal">

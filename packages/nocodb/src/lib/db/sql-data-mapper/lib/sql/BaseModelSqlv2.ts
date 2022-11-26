@@ -158,9 +158,10 @@ class BaseModelSqlv2 {
       qb.orderBy(this.model.primaryKey.column_name);
     }
 
-    const data = await qb.first();
+    let data = await qb.first();
 
     if (data) {
+      data = this.convertAttachmentType(data);
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
@@ -365,7 +366,8 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-    const data = await qb;
+    let data = await qb;
+    data = this.convertAttachmentType(data);
     return data;
   }
 
@@ -672,10 +674,10 @@ class BaseModelSqlv2 {
     );
 
     let children = await this.extractRawQueryAndExec(finalQb);
-    children = this.convertAttachmentType(children);
     if (this.isMySQL) {
       children = children[0];
     }
+    children = this.convertAttachmentType(children);
     const proto = await (
       await Model.getBaseModelSQL({
         id: rtnId,
@@ -967,8 +969,8 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    const data = await qb;
-
+    let data = await qb;
+    data = this.convertAttachmentType(data);
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -2758,7 +2760,7 @@ class BaseModelSqlv2 {
         });
       }
     }
-    return data;
+    return data.length === 1 ? data[0] : data;
   }
 }
 

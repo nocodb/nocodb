@@ -158,9 +158,10 @@ class BaseModelSqlv2 {
       qb.orderBy(this.model.primaryKey.column_name);
     }
 
-    const data = await qb.first();
+    let data = await qb.first();
 
     if (data) {
+      data = this.convertAttachmentType(data);
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
@@ -365,8 +366,7 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-    const data = await qb;
-    return data;
+    return this.convertAttachmentType(await qb);
   }
 
   async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
@@ -672,10 +672,10 @@ class BaseModelSqlv2 {
     );
 
     let children = await this.extractRawQueryAndExec(finalQb);
-    children = this.convertAttachmentType(children);
     if (this.isMySQL) {
       children = children[0];
     }
+    children = this.convertAttachmentType(children);
     const proto = await (
       await Model.getBaseModelSQL({
         id: rtnId,
@@ -967,8 +967,8 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    const data = await qb;
-
+    let data = await qb;
+    data = this.convertAttachmentType(data);
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -2737,6 +2737,15 @@ class BaseModelSqlv2 {
       : await this.dbDriver.raw(query);
   }
 
+  private _convertAttachmentType(attachmentColumns, d) {
+    attachmentColumns.forEach((col) => {
+      if (d[col.title] && typeof d[col.title] === 'string') {
+        d[col.title] = JSON.parse(d[col.title]);
+      }
+    });
+    return d;
+  }
+
   private convertAttachmentType(data) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
@@ -2745,17 +2754,13 @@ class BaseModelSqlv2 {
         (c) => c.uidt === UITypes.Attachment
       );
       if (attachmentColumns.length) {
-        if (!Array.isArray(data)) {
-          data = [data];
+        if (Array.isArray(data)) {
+          data = data.map((d) =>
+            this._convertAttachmentType(attachmentColumns, d)
+          );
+        } else {
+          this._convertAttachmentType(attachmentColumns, data);
         }
-        data = data.map((d) => {
-          attachmentColumns.forEach((col) => {
-            if (d[col.title] && typeof d[col.title] === 'string') {
-              d[col.title] = JSON.parse(d[col.title]);
-            }
-          });
-          return d;
-        });
       }
     }
     return data;

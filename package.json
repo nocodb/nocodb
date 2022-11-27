@@ -42,7 +42,9 @@
     "doc": "lerna run doc",
     "install:local:dep": "cd packages/nc-lib-gui;npm uninstall -S xc-lib;rm package-lock.json; npm i ../../../xc-lib-private; cd ../xc-instant;npm uninstall -S xc-lib xc-lib-gui;npm i ../../../xc-lib-private;npm i ../xc-lib-gui",
     "install:npm:dep": "cd packages/nc-lib-gui;npm uninstall -S xc-lib; npm i -S xc-lib@latest; cd ../xc-instant;npm uninstall -S xc-lib xc-lib-gui;npm i -S xc-lib@latest xc-lib-gui@latest;npm i ../xc-lib-gui",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "start:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml up -d",
+    "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down"
   },
   "dependencies": {
     "express": "^4.18.1",

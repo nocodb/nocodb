@@ -23,7 +23,7 @@ const loginRootUser = async () => {
 const projectTitleByType = {
   sqlite: 'sampleREST',
   mysql: 'externalREST',
-  pg: 'pgExtREST'
+  pg: 'pgExtREST',
 };
 
 export class TestResetService {
@@ -37,7 +37,7 @@ export class TestResetService {
     parallelId,
     dbType,
     isEmptyProject,
-    workerId
+    workerId,
   }: {
     parallelId: string;
     dbType: string;
@@ -73,7 +73,7 @@ export class TestResetService {
         token,
         dbType: this.dbType,
         parallelId: this.parallelId,
-        workerId: this.workerId
+        workerId: this.workerId,
       });
 
       try {
@@ -96,7 +96,7 @@ export class TestResetService {
     token,
     dbType,
     parallelId,
-    workerId
+    workerId,
   }: {
     token: string;
     dbType: string;
@@ -123,7 +123,7 @@ export class TestResetService {
         token,
         title,
         parallelId,
-        isEmptyProject: this.isEmptyProject
+        isEmptyProject: this.isEmptyProject,
       });
     } else if (dbType == 'mysql') {
       await resetMysqlSakilaProject({
@@ -131,7 +131,7 @@ export class TestResetService {
         title,
         parallelId,
         oldProject: project,
-        isEmptyProject: this.isEmptyProject
+        isEmptyProject: this.isEmptyProject,
       });
     } else if (dbType == 'pg') {
       await resetPgSakilaProject({
@@ -139,12 +139,12 @@ export class TestResetService {
         title,
         parallelId: workerId,
         oldProject: project,
-        isEmptyProject: this.isEmptyProject
+        isEmptyProject: this.isEmptyProject,
       });
     }
 
     return {
-      project: await Project.getByTitle(title)
+      project: await Project.getByTitle(title),
     };
   }
 }
@@ -177,7 +177,7 @@ const removeProjectUsersFromCache = async (project: Project) => {
   const projectUsers: ProjectUser[] = await ProjectUser.getUsersList({
     project_id: project.id,
     limit: 1000,
-    offset: 0
+    offset: 0,
   });
 
   for (const projectUser of projectUsers) {

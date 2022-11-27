@@ -56,12 +56,15 @@ test.describe('Toolbar operations (GRID)', () => {
     await validateFirstRow('Afghanistan');
 
     // Filter column
+    await toolbar.clickFilter();
     await toolbar.filter.addNew({
       columnTitle: 'Country',
       value: 'India',
       opType: 'is equal',
       isLocallySaved: false,
     });
+    await toolbar.clickFilter();
+
     await validateFirstRow('India');
 
     // Reset filter

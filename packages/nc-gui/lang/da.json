@@ -368,6 +368,8 @@
     "setPrimary": "Indstil som primær værdi",
     "addRow": "Tilføj ny række",
     "saveRow": "Gem ro",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Indsæt ny række",
     "deleteRow": "DELETE ROW.",
     "deleteSelectedRow": "Slet de valgte rækker",

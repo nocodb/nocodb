@@ -29,7 +29,9 @@ const searchText = ref<string>('')
 const pagination = reactive({
   total: 0,
   pageSize: 10,
+  position: ['bottomCenter'],
 })
+
 const loadUsers = async (page = currentPage, limit = currentLimit) => {
   currentPage = page
   try {
@@ -158,7 +160,7 @@ const copyPasswordResetUrl = async (user: User) => {
       <a-table
         :row-key="(record) => record.id"
         :data-source="users"
-        :pagination="{ position: ['bottomCenter'] }"
+        :pagination="pagination"
         :loading="isLoading"
         size="small"
         @change="loadUsers($event.current)"

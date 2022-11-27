@@ -368,6 +368,8 @@
     "setPrimary": "Instellen als primaire waarde",
     "addRow": "Nieuwe rij toevoegen",
     "saveRow": "Sla rij op",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Voeg nieuwe rij toe",
     "deleteRow": "Verwijder rij",
     "deleteSelectedRow": "Verwijder geselecteerde rijen",

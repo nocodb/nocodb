@@ -8,7 +8,6 @@ on:
         branches: [develop]
         paths:
             - "packages/nc-gui/**"
-            - "scripts/cypress/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
     pull_request:
@@ -16,7 +15,6 @@ on:
         branches: [develop]
         paths:
             - "packages/nc-gui/**"
-            - "scripts/cypress/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
 
@@ -60,9 +58,6 @@ jobs:
         - name: Install dependencies
           working-directory: ./packages/nocodb
           run: npm install
-        - name: setup mysql
-          working-directory: ./
-          run: docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
         - name: run unit tests
           working-directory: ./packages/nocodb
           run: npm run test:unit

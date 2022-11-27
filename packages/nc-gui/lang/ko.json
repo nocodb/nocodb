@@ -368,6 +368,8 @@
     "setPrimary": "Primary value로 설정",
     "addRow": "행 추가",
     "saveRow": "행 저장",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "행 삽입",
     "deleteRow": "행 삭제",
     "deleteSelectedRow": "선택한 행 삭제",

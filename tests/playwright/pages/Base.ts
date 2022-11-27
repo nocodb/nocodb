@@ -16,9 +16,11 @@ export default abstract class BasePage {
   }
 
   async waitForResponse({
+    // Playwright action that triggers the request i.e locatorSomething.click()
     uiAction,
     httpMethodsToMatch = [],
     requestUrlPathToMatch,
+    // A function that takes the response body and returns true if the response is the one we are looking for
     responseJsonMatcher,
   }: {
     uiAction: Promise<any>;

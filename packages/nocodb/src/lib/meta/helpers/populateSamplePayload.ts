@@ -94,7 +94,14 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.Attachment:
       {
-        return '[{"url":"https://nocodb.com/dummy.png","title":"image.png","mimetype":"image/png","size":0}]';
+        return [
+          {
+            url: 'https://nocodb.com/dummy.png',
+            title: 'image.png',
+            mimetype: 'image/png',
+            size: 0,
+          },
+        ];
       }
       break;
     case UITypes.Checkbox:

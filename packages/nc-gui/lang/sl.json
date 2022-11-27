@@ -368,6 +368,8 @@
     "setPrimary": "Kot primarna vrednost",
     "addRow": "Dodaj novo vrstico",
     "saveRow": "Shrani vrstico",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Vstavite novo vrstico",
     "deleteRow": "Izbriši vrstico",
     "deleteSelectedRow": "Izbrišite izbrane vrstice",

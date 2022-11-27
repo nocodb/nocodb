@@ -368,6 +368,8 @@
     "setPrimary": "Impostare come valore primario",
     "addRow": "Aggiungi nuova riga",
     "saveRow": "Salva riga",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Inserisci nuova riga",
     "deleteRow": "Elimina riga.",
     "deleteSelectedRow": "Elimina righe selezionate",

@@ -77,9 +77,9 @@ export default class SelectOption {
 
     return options?.length
       ? {
-          options: options.map(
-            ({ created_at, updated_at, ...c }) => new SelectOption(c)
-          ),
+          options: options
+            .map(({ created_at, updated_at, ...c }) => new SelectOption(c))
+            .sort((x, y) => x.order - y.order),
         }
       : null;
   }

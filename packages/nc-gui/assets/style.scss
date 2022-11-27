@@ -281,3 +281,8 @@ a {
 .ant-modal {
   @apply !top-[50px];
 }
+
+
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  @apply bg-primary bg-opacity-20;
+}

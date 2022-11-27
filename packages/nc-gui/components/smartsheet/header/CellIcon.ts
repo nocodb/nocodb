@@ -20,7 +20,6 @@ import {
   isJSON,
   isPercent,
   isPhoneNumber,
-  isPrimary,
   isRating,
   isSet,
   isSingleSelect,
@@ -58,7 +57,7 @@ import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 import DurationIcon from '~icons/mdi/timer-outline'
 
 const renderIcon = (column: ColumnType, abstractType: any) => {
-  if (isPrimary(column)) {
+  if (isPrimaryKey(column)) {
     return KeyIcon
   } else if (isJSON(column)) {
     return JSONIcon

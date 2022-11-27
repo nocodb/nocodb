@@ -49,6 +49,8 @@ const searchVal = ref()
 
 const { getMeta } = useMetas()
 
+const { isPg, isMysql } = useProject()
+
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta
 const tempSelectedOptState = ref<string>()
@@ -102,6 +104,13 @@ useSelectedCellKeyupListener(active, (e) => {
         isOpen.value = true
       }
       break
+    default:
+      // toggle only if char key pressed
+      if (e.key?.length === 1) {
+        e.stopPropagation()
+        isOpen.value = true
+      }
+      break
   }
 })
 
@@ -120,9 +129,28 @@ async function addIfMissingAndSave() {
       })
       column.value.colOptions = { options: options.value.map(({ value: _, ...rest }) => rest) }
 
-      await $api.dbTableColumn.update((column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string), {
-        ...column.value,
-      })
+      const updatedColMeta = { ...column.value }
+
+      // todo: refactor and avoid repetition
+      if (updatedColMeta.cdf) {
+        // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
+        if (isPg.value) {
+          updatedColMeta.cdf = updatedColMeta.cdf.substring(
+            updatedColMeta.cdf.indexOf(`'`) + 1,
+            updatedColMeta.cdf.lastIndexOf(`'`),
+          )
+        }
+
+        // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
+        if (!isMysql.value) {
+          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
+        }
+      }
+
+      await $api.dbTableColumn.update(
+        (column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string),
+        updatedColMeta,
+      )
       vModel.value = newOptValue
       await getMeta(column.value.fk_model_id!, true)
     } catch (e) {
@@ -161,7 +189,7 @@ const toggleMenu = (e: Event) => {
     :disabled="readOnly"
     :show-arrow="!readOnly && (active || editable || vModel === null)"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
-    :show-search="active || editable"
+    show-search
     @select="isOpen = false"
     @keydown.stop
     @search="search"

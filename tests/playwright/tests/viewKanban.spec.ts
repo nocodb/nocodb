@@ -142,12 +142,17 @@ test.describe('View', () => {
       });
 
     // verify filter
+    await toolbar.clickFilter({
+      networkValidation: true,
+    });
     await toolbar.filter.addNew({
       columnTitle: 'Title',
       opType: 'is like',
       value: 'BA',
       isLocallySaved: false,
     });
+    await toolbar.clickFilter();
+
     // verify card order
     const order4 = [
       ['BAKED CLEOPATRA', 'BALLROOM MOCKINGBIRD'],
@@ -188,12 +193,16 @@ test.describe('View', () => {
       isAscending: false,
       isLocallySaved: false,
     });
+
+    await toolbar.clickFilter();
     await toolbar.filter.addNew({
       columnTitle: 'Title',
       opType: 'is like',
       value: 'BA',
       isLocallySaved: false,
     });
+    await toolbar.clickFilter();
+
     await toolbar.fields.hideAll();
     await toolbar.fields.toggle({ title: 'Title' });
 

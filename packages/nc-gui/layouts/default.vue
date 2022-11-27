@@ -20,7 +20,7 @@ export default {
 <template>
   <div class="w-full h-full">
     <Teleport :to="hasSidebar ? '#nc-sidebar-left' : null" :disabled="!hasSidebar">
-      <slot name="sidebar" />
+      <slot :key="$route.name" name="sidebar" />
     </Teleport>
 
     <a-layout-content>

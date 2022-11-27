@@ -255,29 +255,6 @@ npm run dev
 
 > nocodb/packages/nocodb 包括 nc-lib-gui，它是 npm 源中托管的 nc-gui 的预构建版本。如果您只想修改后端，则可以在本地启动后端后在浏览器中访问 localhost:8000/dashboard
 
-## 本地运行 Cypress 测试
-
-```shell
-# 安装依赖 (cypress)
-npm install
-
-# 使用 docker compose 运行带有所需数据库的 mysql 数据库
-docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up
-
-# 使用以下命令运行后端 api
-npm run start:api
-
-# 使用以下命令运行前端 Web UI
-npm run start:web
-
-# 等待 3000 和 8080 端口都可用后
-# 使用以下命令运行 cypress 测试
-npm run cypress:run
-
-# 或运行以下命令以使用 GUI 运行它
-npm run cypress:open
-```
-
 # 贡献
 
 参见[贡献指南](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).

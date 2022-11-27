@@ -368,6 +368,8 @@
     "setPrimary": "Ange som primärt värde",
     "addRow": "Lägg till ny rad",
     "saveRow": "Spara rad",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Infoga ny rad",
     "deleteRow": "Radera raden",
     "deleteSelectedRow": "Ta bort valda rader",

@@ -892,7 +892,7 @@ class KnexClient extends SqlClient {
   getMinMax(_columnObject) {}
 
   async mockDb(_args) {
-   // todo: remove method
+    // todo: remove method
   }
 
   async dbCacheInitAsyncKnex(_cbk = null) {

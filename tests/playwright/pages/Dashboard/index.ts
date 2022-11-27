@@ -61,7 +61,7 @@ export class DashboardPage extends BasePage {
   }
 
   async gotoSettings() {
-    await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
+    await this.rootPage.getByTestId('nc-project-menu').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
   }
 
@@ -79,9 +79,6 @@ export class DashboardPage extends BasePage {
   }
 
   async clickHome() {
-    // todo: Fast page transition breaks the vue router
-    await this.rootPage.waitForTimeout(2000);
-
     await this.rootPage.getByTestId('nc-noco-brand-icon').click();
     const projectsPage = new ProjectsPage(this.rootPage);
     await projectsPage.waitToBeRendered();
@@ -124,32 +121,9 @@ export class DashboardPage extends BasePage {
     }
   }
 
-  async openPasswordChangeModal() {
-    // open change password portal
-    await this.rootPage.locator('.nc-menu-accounts').click();
-    await this.rootPage
-      .locator('.nc-dropdown-user-accounts-menu')
-      .getByTestId('nc-menu-accounts__user-settings')
-      .click();
-  }
-
-  // todo: Move this to a seperate page
-  async changePassword({ oldPass, newPass, repeatPass }: { oldPass: string; newPass: string; repeatPass: string }) {
-    // change password
-    const currentPassword = this.rootPage.locator('input[data-testid="nc-user-settings-form__current-password"]');
-    const newPassword = this.rootPage.locator('input[data-testid="nc-user-settings-form__new-password"]');
-    const confirmPassword = this.rootPage.locator('input[data-testid="nc-user-settings-form__new-password-repeat"]');
-
-    await currentPassword.fill(oldPass);
-    await newPassword.fill(newPass);
-    await confirmPassword.fill(repeatPass);
-
-    await this.rootPage.locator('button[data-testid="nc-user-settings-form__submit"]').click();
-  }
-
   async signOut() {
-    await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
-    const projMenu = await this.rootPage.locator('.nc-dropdown-project-menu');
+    await this.rootPage.getByTestId('nc-project-menu').click();
+    const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
     await projMenu.locator('[data-menu-id="account"]:visible').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();

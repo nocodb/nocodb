@@ -417,10 +417,7 @@ class BaseModelSql extends BaseModel {
 
       const query = dbDriver(this.tnPath).insert(insertObj);
 
-      if (
-        this.dbDriver.client === 'pg' ||
-        this.dbDriver.client === 'mssql'
-      ) {
+      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
         query.returning(this.selectQuery(''));
         response = await this._run(query);
       }
@@ -608,12 +605,12 @@ class BaseModelSql extends BaseModel {
         await this.validate(d1);
       }
 
-      const response = (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') ?
-        await this.dbDriver
-          .batchInsert(this.tn, insertDatas, 50)
-          .returning(this.pks[0].cn) :
-        await this.dbDriver
-          .batchInsert(this.tn, insertDatas, 50);
+      const response =
+        this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql'
+          ? await this.dbDriver
+              .batchInsert(this.tn, insertDatas, 50)
+              .returning(this.pks[0].cn)
+          : await this.dbDriver.batchInsert(this.tn, insertDatas, 50);
 
       await this.afterInsertb(insertDatas, null);
 

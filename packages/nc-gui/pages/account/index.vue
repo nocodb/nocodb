@@ -68,6 +68,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               </div>
             </a-menu-item>
             <a-menu-item
+              v-if="isUIAllowed('appStore')"
               key="apps"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
               @click="navigateTo('/account/apps')"

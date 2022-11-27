@@ -271,8 +271,8 @@ const onTagClick = (e: Event, onClose: Function) => {
     class="w-full"
     :bordered="false"
     clear-icon
+    show-search
     :show-arrow="!readOnly"
-    :show-search="active || editable"
     :open="isOpen && (active || editable)"
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"

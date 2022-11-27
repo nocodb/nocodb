@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrCode, UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 import { useVModel } from '#imports'
 
@@ -21,18 +21,14 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
-const allowedColumnTypesForQrValue = [
-  UITypes.Formula,
-  UITypes.SingleLineText,
-  UITypes.LongText,
-  UITypes.PhoneNumber,
-  UITypes.URL,
-  UITypes.Email,
-] as string[]
-
 const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
   return fields.value
-    ?.filter((el) => el.fk_column_id && allowedColumnTypesForQrValue.includes(metaColumnById.value[el.fk_column_id].uidt))
+    ?.filter(
+      (el) =>
+        el.fk_column_id &&
+        // AllowedColumnTypesForQrCode.map((el) => el.toString()).includes(metaColumnById.value[el.fk_column_id].uidt),
+        AllowedColumnTypesForQrCode.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
+    )
     .map((field) => {
       return {
         value: field.fk_column_id,
@@ -54,17 +50,10 @@ setAdditionalValidations({
 <template>
   <a-row>
     <a-col :span="24">
-      <a-form-item
-        class="flex w-1/2 pb-2 nc-qr-code-value-column-select"
-        :label="$t('labels.qrCodeValueColumn')"
-        v-bind="validateInfos.fk_qr_value_column_id"
-      >
-        <a-select
-          v-model:value="vModel.fk_qr_value_column_id"
-          :options="columnsAllowedAsQrValue"
-          placeholder="Select a column for the QR code value"
-          @click.stop
-        />
+      <a-form-item class="flex w-1/2 pb-2 nc-qr-code-value-column-select" :label="$t('labels.qrCodeValueColumn')"
+        v-bind="validateInfos.fk_qr_value_column_id">
+        <a-select v-model:value="vModel.fk_qr_value_column_id" :options="columnsAllowedAsQrValue"
+          placeholder="Select a column for the QR code value" @click.stop />
       </a-form-item>
     </a-col>
   </a-row>

@@ -30,7 +30,7 @@ const pgExec = async (query: string, context: NcContext) => {
 };
 
 const mysqlExec = async query => {
-  // creates a new mysql connection using credentials from cypress.json env's
+  // creates a new mysql connection
   const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',

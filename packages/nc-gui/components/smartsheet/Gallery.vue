@@ -80,7 +80,12 @@ const isRowEmpty = (record: any, col: any) => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
+    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
+      return typeof record.row[coverImageColumn.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.title])
+        : record.row[coverImageColumn.title]
+    }
+    return []
   } catch (e) {
     return []
   }

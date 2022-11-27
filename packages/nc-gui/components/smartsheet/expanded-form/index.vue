@@ -122,11 +122,13 @@ if (isKanban.value) {
   }
 }
 
-const cellWrapperEl = (wrapperEl: HTMLElement) => {
-  nextTick(() => {
-    ;(wrapperEl?.querySelector('input,select,textarea') as HTMLInputElement)?.focus()
+const cellWrapperEl = ref<HTMLElement>()
+
+onMounted(() => {
+  setTimeout(() => {
+    ;(cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus()
   })
-}
+})
 </script>
 
 <script lang="ts">
@@ -163,7 +165,10 @@ export default {
 
               <LazySmartsheetHeaderCell v-else :column="col" />
 
-              <div :ref="i ? null : cellWrapperEl" class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
+              <div
+                :ref="i ? null : (el) => (cellWrapperEl = el)"
+                class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2"
+              >
                 <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
                 <LazySmartsheetCell

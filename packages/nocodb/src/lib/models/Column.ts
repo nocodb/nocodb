@@ -5,7 +5,7 @@ import RollupColumn from './RollupColumn';
 import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
-import { ColumnType, UITypes } from 'nocodb-sdk';
+import { AllowedColumnTypesForQrCode, ColumnType, UITypes } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -950,17 +950,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // get qr code columns and delete if target type is not supported by QR code column type
-    // TODO: consider to extraxt the list of allowedColumnTypesForQrValue into a global one,
-    // ideally in sdk sine it's also used in FE
-    const allowedColumnTypesForQrValue = [
-      UITypes.Formula,
-      UITypes.SingleLineText,
-      UITypes.LongText,
-      UITypes.PhoneNumber,
-      UITypes.URL,
-      UITypes.Email,
-    ];
-    if (!allowedColumnTypesForQrValue.includes(updateObj.uidt)) {
+    if (!AllowedColumnTypesForQrCode.includes(updateObj.uidt)) {
       const qrCodeCols = await ncMeta.metaList2(
         null,
         null,

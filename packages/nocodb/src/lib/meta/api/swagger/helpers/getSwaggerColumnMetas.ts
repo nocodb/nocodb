@@ -40,6 +40,12 @@ export default async (
         case UITypes.Rollup:
           field.type = 'number';
           break;
+        case UITypes.Attachment:
+          field.type = 'array';
+          field.items = {
+            $ref: `#/components/schemas/Attachment`,
+          };
+          break;
         default:
           field.virtual = false;
           SwaggerTypes.setSwaggerType(c, field, dbType);
@@ -58,4 +64,5 @@ export interface SwaggerColumn {
   virtual?: boolean;
   $ref?: any;
   column: Column;
+  items?: any;
 }

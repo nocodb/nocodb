@@ -102,9 +102,9 @@ jobs:
       - name: Fetch develop branch
         working-directory: ./tests/playwright
         run: git fetch origin develop
-      - name: Pull develop branch
-        working-directory: ./tests/playwright
-        run: git pull origin develop
+      # - name: Pull develop branch
+      #   working-directory: ./tests/playwright
+      #   run: git pull origin develop
       - name: Stress test
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} node ./scripts/stressTestNewlyAddedTest.js

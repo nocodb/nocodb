@@ -5,7 +5,7 @@ const exec = util.promisify(require('child_process').exec);
 // Get items from `git diff develop'
 
 void (async () => {
-  const { stdout } = await exec(`git diff develop -- *.spec.ts **/*.spec.ts | grep test\\(`);
+  const { stdout } = await exec(`git diff origin/develop -- *.spec.ts **/*.spec.ts | grep test\\(`);
   // eslint-disable-next-line no-undef
   const dbType = process.env.E2E_DB_TYPE;
 

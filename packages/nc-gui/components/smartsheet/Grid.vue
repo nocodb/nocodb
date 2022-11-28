@@ -205,6 +205,10 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
         return true
       }
     } else if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        // add a line break for types like LongText / JSON
+        return true
+      }
       if (editEnabled) {
         editEnabled = false
         return true

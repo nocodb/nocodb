@@ -47,6 +47,7 @@ export function useMultiSelect(
   makeEditable: Function,
   scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
   keyEventHandler?: Function,
+  syncCellData?: Function,
 ) {
   const { t } = useI18n()
 
@@ -273,6 +274,7 @@ export function useMultiSelect(
                   })
                   e.preventDefault()
                   makeEditable(rowObj, columnObj)
+                  syncCellData?.(selectedCell)
                 } else {
                   clearCell(selectedCell as { row: number; col: number }, true)
                   makeEditable(rowObj, columnObj)

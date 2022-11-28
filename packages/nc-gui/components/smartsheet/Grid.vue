@@ -169,16 +169,24 @@ const getContainerScrollForElement = (
 }
 
 const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyValue, isCellSelected, selectedCell } =
-  useMultiSelect(fields, data, $$(editEnabled), isPkAvail, clearCell, makeEditable, scrollToCell, (e: KeyboardEvent) => {
-    // ignore navigating if picker(Date, Time, DateTime, Year)
-    // or single/multi select options is open
-    const activePickerOrDropdownEl = document.querySelector(
-      '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
-    )
-    if (activePickerOrDropdownEl) {
-      e.preventDefault()
-      return true
-    }
+  useMultiSelect(
+    fields,
+    data,
+    $$(editEnabled),
+    isPkAvail,
+    clearCell,
+    makeEditable,
+    scrollToCell,
+    (e: KeyboardEvent) => {
+      // ignore navigating if picker(Date, Time, DateTime, Year)
+      // or single/multi select options is open
+      const activePickerOrDropdownEl = document.querySelector(
+        '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+      )
+      if (activePickerOrDropdownEl) {
+        e.preventDefault()
+        return true
+      }
 
     // skip keyboard event handling if there is a drawer / modal
     if (isDrawerOrModalExist()) {
@@ -261,7 +269,19 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
         }
       }
     }
-  })
+  },
+    async (ctx: { row: number; col: number }) => {
+      const rowObj = data.value[ctx.row]
+      const columnObj = fields.value[ctx.col]
+
+      if (isVirtualCol(columnObj)) {
+        return
+      }
+
+      // update/save cell value
+      await updateOrSaveRow(rowObj, columnObj.title)
+    },
+  )
 
 function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? selectedCell.row

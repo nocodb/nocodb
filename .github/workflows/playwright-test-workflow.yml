@@ -104,7 +104,7 @@ jobs:
         run: git fetch origin develop
       - name: Stress test
         working-directory: ./tests/playwright
-        run: E2E_DB_TYPE=${{ inputs.db }} ./scripts/stressTestNewlyAddedTest.js
+        run: E2E_DB_TYPE=${{ inputs.db }} node ./scripts/stressTestNewlyAddedTest.js
 
       # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
       # - name: Run quick server and tests (pg)

@@ -60,7 +60,8 @@ function onClick(item: Record<string, any>) {
 <template>
   <a-modal
     v-model:visible="modalVisible"
-    :class="`nc-attachment-modal ${modalVisible ? 'active' : ''}`"
+    class="nc-attachment-modal"
+    :class="{ active: modalVisible }"
     width="80%"
     :footer="null"
     wrap-class-name="nc-modal-attachment-expand-cell"

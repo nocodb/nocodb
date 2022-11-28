@@ -21,13 +21,7 @@ const showEditFormulaWarning = refAutoReset(false, timeout)
 const showClearFormulaWarning = refAutoReset(false, timeout)
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Enter':
-      showEditFormulaWarning.value = true
-      break
-    default:
-      showClearFormulaWarning.value = true
-  }
+  showClearFormulaWarning.value = true
 })
 </script>
 

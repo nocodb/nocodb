@@ -10,13 +10,7 @@ const showEditWarning = refAutoReset(false, timeout)
 const showClearWarning = refAutoReset(false, timeout)
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Enter':
-      showEditWarning.value = true
-      break
-    default:
-      showClearWarning.value = true
-  }
+  showClearWarning.value = true
 })
 </script>
 

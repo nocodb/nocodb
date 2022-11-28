@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useI18n } from '#imports'
-
 const { modelValue } = defineProps<{
   modelValue: boolean
 }>()
@@ -11,8 +9,6 @@ const dialogShow = computed({
   get: () => modelValue,
   set: (v) => emit('update:modelValue', v),
 })
-
-const { t } = useI18n()
 </script>
 
 <template>

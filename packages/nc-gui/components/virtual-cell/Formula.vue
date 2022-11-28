@@ -20,9 +20,7 @@ const showEditFormulaWarning = refAutoReset(false, timeout)
 
 const showClearFormulaWarning = refAutoReset(false, timeout)
 
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
-  showClearFormulaWarning.value = true
-})
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), () => (showClearFormulaWarning.value = true))
 </script>
 
 <template>

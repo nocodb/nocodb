@@ -218,7 +218,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       }
     }
   }
-  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (cmdOrCtrl) {
     switch (e.key) {
       case '/':

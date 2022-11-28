@@ -13,7 +13,9 @@ import {
   openLink,
   projectThemeColors,
   ref,
+  resolveComponent,
   useCopy,
+  useDialog,
   useGlobal,
   useI18n,
   useProject,
@@ -34,6 +36,8 @@ definePageMeta({
 const { theme, defaultTheme } = useTheme()
 
 const { t } = useI18n()
+
+const { $e } = useNuxtApp()
 
 const route = useRoute()
 
@@ -184,6 +188,22 @@ onMounted(() => {
 
 onBeforeUnmount(reset)
 
+function openKeyboardShortcutDialog() {
+  $e('a:actions:keyboard-shortcut')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgKeyboardShortcuts'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
@@ -196,6 +216,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         }
         break
       }
+    }
+  }
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl) {
+    switch (e.key) {
+      case '/':
+        if (!document.querySelector('.nc-modal-keyboard-shortcuts.active')) {
+          openKeyboardShortcutDialog()
+        }
+        break
     }
   }
 })

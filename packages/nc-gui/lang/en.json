@@ -199,7 +199,8 @@
     "quickImportFrom": "Quick Import From",
     "quickImport": "Quick Import",
     "advancedSettings": "Advanced Settings",
-    "codeSnippet": "Code Snippet"
+    "codeSnippet": "Code Snippet",
+    "keyboardShortcut": "Keyboard Shortcuts"
   },
   "labels": {
     "createdBy": "Created By",

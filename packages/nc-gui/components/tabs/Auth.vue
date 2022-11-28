@@ -35,6 +35,7 @@ const selectedTabKey = $ref(visibleTabs?.[0].key)
 </script>
 
 <template v-if="visibleTabs.length > 0">
+  <div>
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs !mx-6">
       <a-tab-pane v-for="(tab) of visibleTabs" :key="tab.key" class="select-none">
         <template #tab>
@@ -54,6 +55,7 @@ const selectedTabKey = $ref(visibleTabs?.[0].key)
         <LazyTabsAuthApiTokenManagement />
       </template>
     </div>
+  </div>
 </template>
 
 <style scoped>

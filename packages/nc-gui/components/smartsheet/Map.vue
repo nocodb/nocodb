@@ -25,14 +25,14 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-console.log('meta', mapMetaData)
-
 const expandForm = (row: RowType, state?: Record<string, any>) => {
+  console.log('expandForm')
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   // debugger
 
   if (rowId) {
+    console.log('if')
     router.push({
       query: {
         ...route.query,
@@ -40,11 +40,27 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
       },
     })
   } else {
+    console.log('else')
     expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
 }
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.query.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        query: {
+          ...route.query,
+          rowId: undefined,
+        },
+      })
+  },
+})
 
 onBeforeMount(async () => {
   await loadMapMeta()
@@ -62,6 +78,7 @@ function addMarker(lat: number, long: number, row: RowType) {
   }
   const newMarker = L.marker([lat, long]).on('click', () => {
     expandForm(row)
+    console.log('click on marker')
   })
   markersClusterGroupRef.value?.addLayer(newMarker)
 
@@ -109,8 +126,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
 onMounted(async () => {
   // TODO: also here add/use viewId suffix approach (see comment below)
   const initialZoomLevel = parseInt(localStorage.getItem(`mapView.zoom${mapMetaData.value.fk_view_id}`) || '10')
-  // const initialBounds = parseInt(localStorage.getItem(`mapView.bounds${mapMetaData.value.fk_view_id}`) || '10')
-  // myMap.setZoom(initialZoomLevel)
+  // const initialBounds = parseInt(localStorage?.getItem(`mapView.bounds${mapMetaData.value.fk_view_id}`))
 
   const myMap = L.map(mapContainerRef.value!).setView([51.505, -0.09], initialZoomLevel)
   myMapRef.value = myMap
@@ -128,12 +144,6 @@ onMounted(async () => {
   myMap.addLayer(markersClusterGroupRef.value)
 
   myMap.on('zoomend', function (params) {
-    const bounds = myMap.getBounds()
-    const newS = bounds.getSouthWest()
-
-    console.log('bounds', newS)
-    console.log('params', params)
-
     if (localStorage != null) {
       // TODO: use current mapView id as suffix to the local storage key,
       // so there are no clashes when there are multiple map views, e.g.:
@@ -141,34 +151,35 @@ onMounted(async () => {
       localStorage.setItem(`mapView.zoom${mapMetaData.value.fk_view_id}`, myMap.getZoom().toString())
     }
   })
-
-  const bounds = myMap.getBounds()
-  console.log(bounds)
+  myMap.on('moveend', function () {
+    const bounds = myMap.getBounds()
+    const newSouthWest = bounds.getSouthWest
+    const newNorthEast = bounds.getNorthEast
+    console.log('bounds', bounds)
+    console.log('boundsSW', newSouthWest)
+    console.log('boundsNE', newNorthEast)
+    if (localStorage != null) {
+      localStorage.setItem(`mapView.bounds${mapMetaData.value.fk_view_id}`, myMap.getBounds().toString())
+    }
+  })
 })
 </script>
 
 <template>
-  <!-- {{ JSON.stringify(expandedFormDlg) }} -->
-  expandedFormRow: {{ JSON.stringify(expandedFormRow) }}
-  <br />
-  expandedFormRowState: {{ JSON.stringify(expandedFormRowState) }}
-  <!-- {{ JSON.stringify(meta) }} -->
-  <!-- {{ JSON.stringify(view) }} -->
-
   <div class="flex flex-col h-full w-full no-underline">
     <div id="mapContainer" ref="mapContainerRef"></div>
   </div>
-  <div :style="{ width: '200px', height: '200px', backgroundColor: 'red' }" class="FOO_BAR"></div>
 
   <Suspense>
     <LazySmartsheetExpandedForm
-      v-model="expandedFormDlg"
-      :row="expandedFormRow"
-      :state="expandedFormRowState"
+      v-if="expandedFormOnRowIdDlg"
+      :key="route.query.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
+      :row-id="route.query.rowId"
       :view="view"
     />
-    <template #fallback> Loading... </template>
   </Suspense>
 </template>
 

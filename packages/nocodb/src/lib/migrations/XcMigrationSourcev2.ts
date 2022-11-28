@@ -9,8 +9,8 @@ import * as nc_018_add_meta_in_view from './v2/nc_018_add_meta_in_view';
 import * as nc_019_add_meta_in_meta_tables from './v2/nc_019_add_meta_in_meta_tables';
 import * as nc_020_kanban_view from './v2/nc_020_kanban_view';
 import * as nc_021_add_fields_in_token from './v2/nc_021_add_fields_in_token';
-import * as nc_023_map_view from './v2/nc_021_map_view';
-import * as nc_024_map_view_column from './v2/nc_022_map_view_column';
+import * as nc_023_map_view from './v2/nc_023_map_view';
+import * as nc_024_map_view_column from './v2/nc_024_map_view_column';
 
 
 

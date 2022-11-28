@@ -105,6 +105,7 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
     expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
+    console.log(state)
   }
 }
 

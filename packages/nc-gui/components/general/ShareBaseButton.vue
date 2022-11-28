@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute, useUIPermission } from '#imports'
+import { isMac, useRoute, useUIPermission } from '#imports'
 
 const route = useRoute()
 
@@ -17,7 +17,8 @@ const isShareBaseAllowed = computed(
 )
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  if (e.altKey) {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
     switch (e.keyCode) {
       case 73: {
         // ALT + I

@@ -3,6 +3,7 @@ import { message } from 'ant-design-vue'
 import type { ViewType } from 'nocodb-sdk'
 import {
   ReloadRowDataHookInj,
+  isMac,
   useExpandedFormStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,

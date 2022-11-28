@@ -7,6 +7,7 @@ import type { VNodeRef } from '#imports'
 import {
   Empty,
   computed,
+  isMac,
   reactive,
   ref,
   resolveComponent,
@@ -218,7 +219,8 @@ const onSearchCloseIconClick = () => {
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  if (e.altKey) {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
     switch (e.keyCode) {
       case 84: {
         // ALT + T

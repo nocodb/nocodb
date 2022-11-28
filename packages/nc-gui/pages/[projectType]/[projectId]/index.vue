@@ -3,6 +3,7 @@ import tinycolor from 'tinycolor2'
 import {
   computed,
   definePageMeta,
+  isMac,
   message,
   navigateTo,
   onBeforeMount,
@@ -184,7 +185,8 @@ onMounted(() => {
 onBeforeUnmount(reset)
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  if (e.altKey) {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
     switch (e.keyCode) {
       case 188: {
         // ALT + ,

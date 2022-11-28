@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useSidebar } from '#imports'
+import { computed, isMac, useSidebar } from '#imports'
 
 const rightSidebar = useSidebar('nc-right-sidebar')
 
@@ -14,7 +14,8 @@ const isSidebarsOpen = computed({
 })
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
-  if (e.altKey) {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
     switch (e.keyCode) {
       case 70: {
         // ALT + F

@@ -117,6 +117,8 @@ onMounted(async () => {
         console.log(e)
       }
     })
+
+    editor.focus()
   }
 })
 

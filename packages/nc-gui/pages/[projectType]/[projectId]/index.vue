@@ -182,6 +182,21 @@ onMounted(() => {
 })
 
 onBeforeUnmount(reset)
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  if (e.altKey) {
+    switch (e.keyCode) {
+      case 188: {
+        // ALT + ,
+        if (isUIAllowed('settings')) {
+          e.preventDefault()
+          toggleDialog(true, 'teamAndAuth')
+        }
+        break
+      }
+    }
+  }
+})
 </script>
 
 <template>

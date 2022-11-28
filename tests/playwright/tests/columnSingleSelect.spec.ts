@@ -70,7 +70,7 @@ test.describe('Single select', () => {
     await grid.column.delete({ title: 'SingleSelect' });
   });
 
-  test('Add new option directly from cell', async () => {
+  test('Old Add new option directly from cell', async () => {
     await grid.cell.selectOption.addNewOption({
       index: 0,
       columnHeader: 'SingleSelect',

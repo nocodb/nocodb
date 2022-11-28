@@ -25,6 +25,14 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
+const getMapZoomLocalStorageKey = (mapMetaData: { value: { fk_view_id: string } }) => {
+  console.log('mapMetaData.value.fk_view_id', mapMetaData.value.fk_view_id)
+  debugger
+  return `mapView.zoom.${mapMetaData.value.fk_view_id}`
+}
+const getMapCenterLocalStorageKey = (mapMetaData: { value: { fk_view_id: string } }) =>
+  `mapView.center.${mapMetaData.value.fk_view_id}`
+
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   console.log('expandForm')
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
@@ -123,13 +131,35 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
   })
 })
 
-onMounted(async () => {
-  // TODO: also here add/use viewId suffix approach (see comment below)
-  const initialZoomLevel = parseInt(localStorage.getItem(`mapView.zoom${mapMetaData.value.fk_view_id}`) || '10')
-  // const initialBounds = parseInt(localStorage?.getItem(`mapView.bounds${mapMetaData.value.fk_view_id}`))
+const resetZoomAndCenterBasedOnLocalStorage = () => {
+  const initialZoomLevel = parseInt(localStorage.getItem(getMapZoomLocalStorageKey(mapMetaData)) || '10')
 
-  const myMap = L.map(mapContainerRef.value!).setView([51.505, -0.09], initialZoomLevel)
+  const initialCenterLocalStorageStr = localStorage.getItem(getMapCenterLocalStorageKey(mapMetaData))
+  const initialCenter = initialCenterLocalStorageStr
+    ? JSON.parse(initialCenterLocalStorageStr)
+    : {
+        lat: 0.0,
+        lng: 0.0,
+      }
+
+  console.log('myMapRef?.value?.setView', myMapRef?.value?.setView)
+  console.log('initialCenter', initialCenter)
+  console.log('initialZoomLevel', initialZoomLevel)
+  alert('HI')
+
+  myMapRef?.value?.setView([initialCenter.lat, initialCenter.lng], initialZoomLevel)
+}
+
+onRenderTriggered(async () => {
+  resetZoomAndCenterBasedOnLocalStorage()
+})
+
+onMounted(async () => {
+  const myMap = L.map(mapContainerRef.value!)
+
   myMapRef.value = myMap
+
+  resetZoomAndCenterBasedOnLocalStorage()
 
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -137,29 +167,20 @@ onMounted(async () => {
   }).addTo(myMap)
 
   markersClusterGroupRef.value = L.markerClusterGroup({
-    iconCreateFunction(cluster) {
+    iconCreateFunction(cluster: { getChildCount: () => number }) {
       return L.divIcon({ html: `${cluster.getChildCount()}`, className: 'geo-map-marker-cluster', iconSize: new L.Point(40, 40) })
     },
   })
   myMap.addLayer(markersClusterGroupRef.value)
 
-  myMap.on('zoomend', function (params) {
+  myMap.on('zoomend', function () {
     if (localStorage != null) {
-      // TODO: use current mapView id as suffix to the local storage key,
-      // so there are no clashes when there are multiple map views, e.g.:
-      // localStorage.setItem(`mapView.${meta?.value.id || 'DEFAULT_ID'}`, this.input)
-      localStorage.setItem(`mapView.zoom${mapMetaData.value.fk_view_id}`, myMap.getZoom().toString())
+      localStorage.setItem(getMapZoomLocalStorageKey(mapMetaData), myMap.getZoom().toString())
     }
   })
   myMap.on('moveend', function () {
-    const bounds = myMap.getBounds()
-    const newSouthWest = bounds.getSouthWest
-    const newNorthEast = bounds.getNorthEast
-    console.log('bounds', bounds)
-    console.log('boundsSW', newSouthWest)
-    console.log('boundsNE', newNorthEast)
     if (localStorage != null) {
-      localStorage.setItem(`mapView.bounds${mapMetaData.value.fk_view_id}`, myMap.getBounds().toString())
+      localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData), JSON.stringify(myMap.getCenter()))
     }
   })
 })

@@ -59,7 +59,7 @@ const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
-        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
+      (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
@@ -106,7 +106,7 @@ useSelectedCellKeyupListener(active, (e) => {
       break
     default:
       // toggle only if char key pressed
-      if (e.key?.length === 1) {
+      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1) {
         e.stopPropagation()
         isOpen.value = true
       }
@@ -143,7 +143,7 @@ async function addIfMissingAndSave() {
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
         if (!isMysql.value) {
-          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
+          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, '\'')
         }
       }
 
@@ -153,7 +153,7 @@ async function addIfMissingAndSave() {
       )
       vModel.value = newOptValue
       await getMeta(column.value.fk_model_id!, true)
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }

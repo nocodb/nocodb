@@ -180,7 +180,7 @@ useSelectedCellKeyupListener(active, (e) => {
       break
     default:
       // toggle only if char key pressed
-      if (e.key?.length === 1) {
+      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1) {
         e.stopPropagation()
         isOpen.value = true
       }

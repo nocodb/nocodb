@@ -1,5 +1,6 @@
 import type { MaybeRef } from '@vueuse/core'
 import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import { copyTable, message, reactive, ref, unref, useCopy, useEventListener, useI18n } from '#imports'
@@ -252,17 +253,26 @@ export function useMultiSelect(
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
+                // set clipboard context only if single cell selected
+                if (rowObj.row[columnObj.title!]) {
+                  clipboardContext = {
+                    value: rowObj.row[columnObj.title!],
+                    uidt: columnObj.uidt,
+                  }
+                } else {
+                  clipboardContext = null
+                }
                 await copyValue()
                 break
               case 86:
                 if (clipboardContext) {
-                  rowObj.row[columnObj.title] = convertCellData({
+                  rowObj.row[columnObj.title!] = convertCellData({
                     value: clipboardContext.value,
                     from: clipboardContext.uidt,
                     to: columnObj.uidt,
                   })
                   e.preventDefault()
-                  makeEditable(rowObj,columnObj)
+                  makeEditable(rowObj, columnObj)
                 } else {
                   clearCell(selectedCell as { row: number; col: number }, true)
                   makeEditable(rowObj, columnObj)

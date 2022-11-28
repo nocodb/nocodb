@@ -76,6 +76,10 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       e.stopPropagation()
+      // if expanded form is active skip resetting the active cell
+      if (document.querySelector('.nc-drawer-expanded-form.active')) {
+        return
+      }
       if (!open.value) {
         // open date picker
         open.value = true
@@ -89,6 +93,10 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       }
       break
     case 'Escape':
+      // if expanded form is active skip resetting the active cell
+      if (document.querySelector('.nc-drawer-expanded-form.active')) {
+        return
+      }
       if (open.value) {
         e.stopPropagation()
         open.value = false

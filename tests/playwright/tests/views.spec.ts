@@ -1,6 +1,5 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-
 import setup from '../setup';
 
 test.describe('Views CRUD Operations', () => {

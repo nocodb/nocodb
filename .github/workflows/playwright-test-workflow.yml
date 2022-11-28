@@ -94,62 +94,59 @@ jobs:
             sleep 2
           done
 
-      # - name: Run Playwright tests
-      #   working-directory: ./tests/playwright
-      #   run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
+      - name: Run Playwright tests
+        working-directory: ./tests/playwright
+        run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
 
       # Stress test added/modified tests
       - name: Fetch develop branch
         working-directory: ./tests/playwright
         run: git fetch origin develop
-      # - name: Pull develop branch
-      #   working-directory: ./tests/playwright
-      #   run: git pull origin develop
       - name: Stress test
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} node ./scripts/stressTestNewlyAddedTest.js
 
       # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
-      # - name: Run quick server and tests (pg)
-      #   if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
-      #   working-directory: ./packages/nocodb
-      #   run: |
-      #     kill -9 $(lsof -t -i:8080)
-      #     npm run watch:run:playwright:pg:cyquick &
-      # - name: Run quick server and tests (sqlite)
-      #   if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
-      #   working-directory: ./packages/nocodb
-      #   run: | 
-      #     kill -9 $(lsof -t -i:8080)
-      #     npm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
-      # - name: Wait for backend & run quick tests
-      #   if: ${{ inputs.db == 'sqlite' }}
-      #   working-directory: ./tests/playwright
-      #   run: |
-      #     while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
-      #       printf '.'
-      #       sleep 2
-      #     done
-      #     PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
-      # - uses: actions/upload-artifact@v3
-      #   if: ${{ inputs.db == 'sqlite' }}
-      #   with:
-      #     name: quick-backend-log-${{ inputs.shard }}
-      #     path: ./packages/nocodb/quick_${{ inputs.shard }}_test_backend.log
-      #     retention-days: 2
-      # - uses: actions/upload-artifact@v3
-      #   if: ${{ inputs.db == 'sqlite' }}
-      #   with:
-      #     name: playwright-report-quick-${{ inputs.shard }}
-      #     path: ./tests/playwright/playwright-report-quick/
-      #     retention-days: 2
+      - name: Run quick server and tests (pg)
+        if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
+        working-directory: ./packages/nocodb
+        run: |
+          kill -9 $(lsof -t -i:8080)
+          npm run watch:run:playwright:pg:cyquick &
+      - name: Run quick server and tests (sqlite)
+        if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
+        working-directory: ./packages/nocodb
+        run: | 
+          kill -9 $(lsof -t -i:8080)
+          npm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
+      - name: Wait for backend & run quick tests
+        if: ${{ inputs.db == 'sqlite' }}
+        working-directory: ./tests/playwright
+        run: |
+          while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
+            printf '.'
+            sleep 2
+          done
+          PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
+      - uses: actions/upload-artifact@v3
+        if: ${{ inputs.db == 'sqlite' }}
+        with:
+          name: quick-backend-log-${{ inputs.shard }}
+          path: ./packages/nocodb/quick_${{ inputs.shard }}_test_backend.log
+          retention-days: 2
+      - uses: actions/upload-artifact@v3
+        if: ${{ inputs.db == 'sqlite' }}
+        with:
+          name: playwright-report-quick-${{ inputs.shard }}
+          path: ./tests/playwright/playwright-report-quick/
+          retention-days: 2
 
-      # - uses: actions/upload-artifact@v3
-      #   if: always()
-      #   with:
-      #     name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
-      #     path: ./tests/playwright/playwright-report/
-      #     retention-days: 2
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
+          path: ./tests/playwright/playwright-report/
+          retention-days: 2
       - uses: actions/upload-artifact@v3
         if: always()
         with:

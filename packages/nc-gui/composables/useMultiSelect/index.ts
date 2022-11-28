@@ -258,7 +258,7 @@ export function useMultiSelect(
                 if (rowObj.row[columnObj.title!]) {
                   clipboardContext = {
                     value: rowObj.row[columnObj.title!],
-                    uidt: columnObj.uidt,
+                    uidt: columnObj.uidt as UITypes,
                   }
                 } else {
                   clipboardContext = null
@@ -266,14 +266,15 @@ export function useMultiSelect(
                 await copyValue()
                 break
               case 86:
+                // const clipboardText = await getClipboardData()
                 if (clipboardContext) {
                   rowObj.row[columnObj.title!] = convertCellData({
                     value: clipboardContext.value,
                     from: clipboardContext.uidt,
-                    to: columnObj.uidt,
+                    to: columnObj.uidt as UITypes,
                   })
                   e.preventDefault()
-                  makeEditable(rowObj, columnObj)
+                  // makeEditable(rowObj, columnObj)
                   syncCellData?.(selectedCell)
                 } else {
                   clearCell(selectedCell as { row: number; col: number }, true)

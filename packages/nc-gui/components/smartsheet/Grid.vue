@@ -255,8 +255,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
         }
       }
     }
-  },
-)
+  })
 
 function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? selectedCell.row

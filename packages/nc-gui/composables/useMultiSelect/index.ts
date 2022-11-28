@@ -1,6 +1,6 @@
 import type { MaybeRef } from '@vueuse/core'
-import type { ColumnType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import { copyTable, message, reactive, ref, unref, useCopy, useEventListener, useI18n } from '#imports'
@@ -266,6 +266,9 @@ export function useMultiSelect(
                 await copyValue()
                 break
               case 86:
+                if(isVirtualCol(columnObj) && (columnObj.uidt !== UITypes.LinkToAnotherRecord || (columnObj.colOptions as LinkToAnotherRecordType)?.type !== RelationTypes.BELONGS_TO)) {
+                  return message.info(t('msg.info.cannotPasteHere'))
+                }
                 // const clipboardText = await getClipboardData()
                 if (clipboardContext) {
                   rowObj.row[columnObj.title!] = convertCellData({
@@ -301,6 +304,7 @@ export function useMultiSelect(
         }
         break
     }
+
   }
 
   useEventListener(document, 'keydown', onKeyDown)

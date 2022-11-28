@@ -33,7 +33,7 @@ let isDateInvalid = $ref(false)
 
 const dateFormat = $computed(() => columnMeta?.value?.meta?.date_format ?? 'YYYY-MM-DD')
 
-const localState = $computed({
+let localState = $computed({
   get() {
     if (!modelValue) {
       return undefined
@@ -151,6 +151,9 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       break
     case 'ArrowDown':
       if (!localState) (document.querySelector('.ant-picker-header-super-next-btn') as HTMLButtonElement)?.click()
+      break
+    case ';':
+      localState = dayjs(new Date())
       break
   }
 })

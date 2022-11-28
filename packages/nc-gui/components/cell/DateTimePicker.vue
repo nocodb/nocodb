@@ -23,7 +23,7 @@ let isDateInvalid = $ref(false)
 
 const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
-const localState = $computed({
+let localState = $computed({
   get() {
     if (!modelValue) {
       return undefined
@@ -72,6 +72,9 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
         e.stopPropagation()
         open.value = false
       }
+      break
+    case ';':
+      localState = dayjs(new Date())
       break
   }
 })

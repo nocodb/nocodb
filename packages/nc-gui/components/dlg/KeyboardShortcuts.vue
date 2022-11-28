@@ -19,7 +19,7 @@ const dialogShow = computed({
     :wrap-class-name="`nc-modal-keyboard-shortcuts ${dialogShow ? 'active' : ''}`"
     @keydown.esc="dialogShow = false"
   >
-    <template #title> {{ $t('general.title.keyboardShortcut') }} </template>
+    <template #title> {{ $t('title.keyboardShortcut') }} </template>
     <!-- TODO:   -->
   </a-modal>
 </template>

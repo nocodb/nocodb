@@ -81,7 +81,7 @@ type FilterType = keyof typeof checkTypeFunctions
 
 const { sqlUi } = $(useProject())
 
-const abstractType = $computed(() => column.value && sqlUi?.getAbstractType(column.value))
+const abstractType = $computed(() => (column.value?.dt && sqlUi ? sqlUi.getAbstractType(column.value) : null))
 
 const checkType = (filterType: FilterType) => {
   const checkTypeFunction = checkTypeFunctions[filterType]

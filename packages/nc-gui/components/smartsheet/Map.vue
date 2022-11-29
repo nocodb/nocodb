@@ -2,6 +2,7 @@
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import 'leaflet.markercluster'
+import { ViewTypes } from 'nocodb-sdk'
 import { IsGalleryInj, IsGridInj, IsMapInj, onMounted, provide, ref } from '#imports'
 
 import type { Row as RowType } from '~/lib'
@@ -25,22 +26,17 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const getMapZoomLocalStorageKey = (mapMetaData: { value: { fk_view_id: string } }) => {
-  console.log('mapMetaData.value.fk_view_id', mapMetaData.value.fk_view_id)
-  debugger
-  return `mapView.zoom.${mapMetaData.value.fk_view_id}`
+const getMapZoomLocalStorageKey = (viewId: string) => {
+  return `mapView.zoom.${viewId}`
 }
-const getMapCenterLocalStorageKey = (mapMetaData: { value: { fk_view_id: string } }) =>
-  `mapView.center.${mapMetaData.value.fk_view_id}`
+const getMapCenterLocalStorageKey = (viewId: string) => `mapView.center.${viewId}`
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
-  console.log('expandForm')
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   // debugger
 
   if (rowId) {
-    console.log('if')
     router.push({
       query: {
         ...route.query,
@@ -48,7 +44,6 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
       },
     })
   } else {
-    console.log('else')
     expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
@@ -86,7 +81,6 @@ function addMarker(lat: number, long: number, row: RowType) {
   }
   const newMarker = L.marker([lat, long]).on('click', () => {
     expandForm(row)
-    console.log('click on marker')
   })
   markersClusterGroupRef.value?.addLayer(newMarker)
 
@@ -132,9 +126,12 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
 })
 
 const resetZoomAndCenterBasedOnLocalStorage = () => {
-  const initialZoomLevel = parseInt(localStorage.getItem(getMapZoomLocalStorageKey(mapMetaData)) || '10')
+  if (mapMetaData?.value?.fk_view_id == null) {
+    return
+  }
+  const initialZoomLevel = parseInt(localStorage.getItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id)) || '10')
 
-  const initialCenterLocalStorageStr = localStorage.getItem(getMapCenterLocalStorageKey(mapMetaData))
+  const initialCenterLocalStorageStr = localStorage.getItem(getMapCenterLocalStorageKey(mapMetaData.value.fk_view_id))
   const initialCenter = initialCenterLocalStorageStr
     ? JSON.parse(initialCenterLocalStorageStr)
     : {
@@ -142,17 +139,8 @@ const resetZoomAndCenterBasedOnLocalStorage = () => {
         lng: 0.0,
       }
 
-  console.log('myMapRef?.value?.setView', myMapRef?.value?.setView)
-  console.log('initialCenter', initialCenter)
-  console.log('initialZoomLevel', initialZoomLevel)
-  alert('HI')
-
   myMapRef?.value?.setView([initialCenter.lat, initialCenter.lng], initialZoomLevel)
 }
-
-onRenderTriggered(async () => {
-  resetZoomAndCenterBasedOnLocalStorage()
-})
 
 onMounted(async () => {
   const myMap = L.map(mapContainerRef.value!)
@@ -174,19 +162,28 @@ onMounted(async () => {
   myMap.addLayer(markersClusterGroupRef.value)
 
   myMap.on('zoomend', function () {
-    if (localStorage != null) {
-      localStorage.setItem(getMapZoomLocalStorageKey(mapMetaData), myMap.getZoom().toString())
+    if (localStorage != null && mapMetaData?.value?.fk_view_id) {
+      localStorage.setItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id), myMap.getZoom().toString())
     }
   })
   myMap.on('moveend', function () {
-    if (localStorage != null) {
-      localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData), JSON.stringify(myMap.getCenter()))
+    if (localStorage != null && mapMetaData?.value?.fk_view_id) {
+      localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData?.value?.fk_view_id), JSON.stringify(myMap.getCenter()))
     }
   })
+})
+
+watch(view, async (nextView) => {
+  if (nextView?.type === ViewTypes.MAP) {
+    await loadMapMeta()
+    await loadMapData()
+    await resetZoomAndCenterBasedOnLocalStorage()
+  }
 })
 </script>
 
 <template>
+  {{ JSON.stringify(mapMetaData) }}
   <div class="flex flex-col h-full w-full no-underline">
     <div id="mapContainer" ref="mapContainerRef"></div>
   </div>

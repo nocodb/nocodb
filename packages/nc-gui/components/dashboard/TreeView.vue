@@ -273,10 +273,23 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-onMounted(() => {
-  if (bases.value.filter((el) => el.enabled)[0]?.id)
-    activeKey.value.push(`collapse-${bases.value.filter((el) => el.enabled)[0].id}`)
-})
+watch(
+  activeTable,
+  (value, oldValue) => {
+    if (value) {
+      if (value !== oldValue) {
+        const fndTable = tables.value.find((el) => el.id === value)
+        if (fndTable) {
+          activeKey.value = [`collapse-${fndTable.base_id}`]
+        }
+      }
+    } else {
+      if (bases.value.filter((el) => el.enabled)[0]?.id)
+        activeKey.value = [`collapse-${bases.value.filter((el) => el.enabled)[0].id}`]
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

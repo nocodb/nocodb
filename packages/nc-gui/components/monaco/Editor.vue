@@ -3,7 +3,7 @@ import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import TypescriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 import type { editor as MonacoEditor } from 'monaco-editor'
-import { deepCompare, onMounted, ref, watch } from '#imports'
+import { deepCompare, onMounted, ref, watch, isDrawerOrModalExist } from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any>
@@ -118,7 +118,10 @@ onMounted(async () => {
       }
     })
 
-    editor.focus()
+    if (!isDrawerOrModalExist()) {
+      // auto focus on json cells only
+      editor.focus()
+    }
   }
 })
 

@@ -3,39 +3,11 @@ import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
+import convertCellData from '~/composables/useMultiSelect/convertCellData'
 import { useMetas } from '~/composables/useMetas'
 import { extractPkFromRow } from '~/utils'
 import { copyTable, message, reactive, ref, unref, useCopy, useEventListener, useI18n } from '#imports'
 import type { Row } from '~/lib'
-
-function convertCellData(args: { from: UITypes; to: UITypes; value: any }) {
-  const { from, to, value } = args
-  if (from === to) {
-    return value
-  }
-
-  switch (to) {
-    case UITypes.Number:
-      return Number(value)
-    case UITypes.Checkbox:
-      return Boolean(value)
-    case UITypes.Date:
-      return new Date(value)
-    case UITypes.Attachment:
-      try {
-        return typeof value === 'string' ? JSON.parse(value) : value
-      } catch (e) {
-        return []
-      }
-    case UITypes.LinkToAnotherRecord:
-    case UITypes.Lookup:
-    case UITypes.Rollup:
-    case UITypes.Formula:
-      throw new Error(`Unsupported conversion from ${from} to ${to}`)
-    default:
-      return value
-  }
-}
 
 /**
  * Utility to help with multi-selecting rows/cells in the smartsheet
@@ -278,6 +250,10 @@ export function useMultiSelect(
                   columnObj.uidt === UITypes.LinkToAnotherRecord &&
                   (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
                 ) {
+                  if (!clipboardContext.value || typeof clipboardContext.value !== 'object') {
+                    return message.info('Invalid data')
+                  }
+
                   rowObj.row[columnObj.title!] = convertCellData({
                     value: clipboardContext.value,
                     from: clipboardContext.uidt,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isMac, useRoute, useUIPermission } from '#imports'
+import { isDrawerOrModalExist, isMac, useRoute, useUIPermission } from '#imports'
 
 const route = useRoute()
 
@@ -22,7 +22,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 73: {
         // ALT + I
-        if (isShareBaseAllowed.value) {
+        if (isShareBaseAllowed.value && !isDrawerOrModalExist()) {
           showUserModal.value = true
         }
         break

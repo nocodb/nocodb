@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, isMac, useSidebar } from '#imports'
+import { computed, isDrawerOrModalExist, isMac, useSidebar } from '#imports'
 
 const rightSidebar = useSidebar('nc-right-sidebar')
 
@@ -19,7 +19,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 70: {
         // ALT + F
-        isSidebarsOpen.value = !isSidebarsOpen.value
+        if (!isDrawerOrModalExist()) {
+          isSidebarsOpen.value = !isSidebarsOpen.value
+        }
         break
       }
     }

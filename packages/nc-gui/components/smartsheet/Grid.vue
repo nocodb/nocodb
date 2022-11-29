@@ -11,6 +11,7 @@ import {
   IsGridInj,
   IsLockedInj,
   MetaInj,
+  NavigateDir,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReadonlyInj,
@@ -22,6 +23,7 @@ import {
   extractPkFromRow,
   inject,
   isColumnRequiredAndNull,
+  isDrawerOrModalExist,
   isMac,
   message,
   onBeforeUnmount,
@@ -42,7 +44,6 @@ import {
   watch,
 } from '#imports'
 import type { Row } from '~/lib'
-import { NavigateDir } from '~/lib'
 
 const { t } = useI18n()
 
@@ -178,8 +179,8 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
       return true
     }
 
-    // if expanded form is active skip keyboard event handling
-    if (document.querySelector('.nc-drawer-expanded-form.active')) {
+    // skip keyboard event handling if there is a drawer / modal
+    if (isDrawerOrModalExist()) {
       return true
     }
 

@@ -6,7 +6,9 @@ import GithubButton from 'vue-github-button'
 import type { VNodeRef } from '#imports'
 import {
   Empty,
+  TabType,
   computed,
+  isDrawerOrModalExist,
   isMac,
   reactive,
   ref,
@@ -20,7 +22,6 @@ import {
   useUIPermission,
   watchEffect,
 } from '#imports'
-import { TabType } from '~/lib'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 
@@ -224,7 +225,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 84: {
         // ALT + T
-        if (isUIAllowed('table-create')) {
+        if (isUIAllowed('table-create') && !isDrawerOrModalExist()) {
           // prevent the key `T` is inputted to table title input
           e.preventDefault()
           openTableCreateDialog()

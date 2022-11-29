@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
 import {
+  TabType,
   computed,
   definePageMeta,
+  extractSdkResponseErrorMsg,
+  isDrawerOrModalExist,
   isMac,
   message,
   navigateTo,
@@ -26,8 +29,6 @@ import {
   useTheme,
   useUIPermission,
 } from '#imports'
-import { TabType } from '~/lib'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
 definePageMeta({
   hideHeader: true,
@@ -210,7 +211,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 188: {
         // ALT + ,
-        if (isUIAllowed('settings')) {
+        if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
           e.preventDefault()
           toggleDialog(true, 'teamAndAuth')
         }
@@ -221,7 +222,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   if (cmdOrCtrl) {
     switch (e.key) {
       case '/':
-        if (!document.querySelector('.nc-modal-keyboard-shortcuts.active')) {
+        if (!isDrawerOrModalExist()) {
           openKeyboardShortcutDialog()
         }
         break

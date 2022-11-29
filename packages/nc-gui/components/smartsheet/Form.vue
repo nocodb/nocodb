@@ -277,7 +277,7 @@ function setFormData() {
   localColumns.value = col
     .filter((f) => f.show && !hiddenColTypes.includes(f.uidt))
     .sort((a, b) => a.order - b.order)
-    .map((c) => ({ ...c, required: !!(c.required || 0) }))
+    .map((c) => ({ ...c, required: !!c.required }))
 
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 

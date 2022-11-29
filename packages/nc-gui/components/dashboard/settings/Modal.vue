@@ -3,14 +3,12 @@ import type { FunctionalComponent, SVGAttributes } from 'vue'
 import AppStore from './AppStore.vue'
 import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
-import { useNuxtApp } from '#app'
-import { useI18n, useUIPermission, useVModel, watch } from '#imports'
+import { DataSourcesSubTab, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
 import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
 import NotebookOutline from '~icons/mdi/notebook-outline'
 import FolderCog from '~icons/mdi/folder-cog'
-import { DataSourcesSubTab } from '~~/lib'
 
 interface Props {
   modelValue: boolean

@@ -165,9 +165,7 @@ export default class Base implements BaseType {
     }
 
     baseDataList.sort(
-      (a, b) =>
-        (a.order != null ? a.order : Infinity) -
-        (b.order != null ? b.order : Infinity)
+      (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
     );
 
     return baseDataList?.map((baseData) => {

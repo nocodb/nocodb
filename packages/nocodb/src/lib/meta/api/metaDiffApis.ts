@@ -559,7 +559,7 @@ export async function baseMetaDiff(req, res) {
   let changes = []
 
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
-  changes = changes.concat(await getMetaDiff(sqlClient, project, base));
+  changes = await getMetaDiff(sqlClient, project, base);
 
   res.json(changes);
 }

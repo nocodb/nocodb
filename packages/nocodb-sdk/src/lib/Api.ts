@@ -1978,7 +1978,9 @@ export class Api<
      */
     create: (
       projectId: string,
-      data: BaseType & { external?: boolean },
+      data: BaseType & {
+        external?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<BaseType, any>({

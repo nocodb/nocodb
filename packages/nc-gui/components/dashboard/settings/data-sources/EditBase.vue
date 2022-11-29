@@ -2,8 +2,12 @@
 import type { BaseType } from 'nocodb-sdk'
 import { Form, Modal, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
+import type { ProjectCreateForm } from '#imports'
 import {
   CertTypes,
+  ClientType,
+  DefaultConnection,
+  SQLiteConnection,
   SSLUsage,
   clientTypes,
   computed,
@@ -20,9 +24,6 @@ import {
   useNuxtApp,
   watch,
 } from '#imports'
-import { ClientType } from '~/lib'
-import { DefaultConnection, SQLiteConnection } from '~/utils'
-import type { ProjectCreateForm } from '~/utils'
 
 const props = defineProps<{
   baseId: string

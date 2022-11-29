@@ -568,7 +568,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </a-layout-sider>
     </template>
 
-    <div :key="$route.fullPath.split('?')[0]">
+    <div>
       <LazyDashboardSettingsModal
         v-model:model-value="dialogOpen"
         v-model:open-key="openDialogKey"

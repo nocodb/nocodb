@@ -20,7 +20,7 @@ import { SmartsheetStoreEvents } from '~/lib'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 
-const emit = defineEmits(['edit'])
+const emit = defineEmits(['edit', 'addColumn'])
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -172,7 +172,13 @@ const addColumn = async (before = false) => {
   } else {
     newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
   }
-  eventBus.emit(SmartsheetStoreEvents.FIELD_ADD, {
+  // eventBus.emit(SmartsheetStoreEvents.FIELD_ADD, {
+  //   columnOrder: {
+  //     order: newColumnOrder,
+  //     viewId: view.value?.id as string,
+  //   },
+  // })
+  emit('addColumn',  {
     columnOrder: {
       order: newColumnOrder,
       viewId: view.value?.id as string,

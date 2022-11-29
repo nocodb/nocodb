@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
-import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
+import { ColumnReqType, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import {
   ColumnInj,
   IsFormInj,
@@ -99,6 +99,19 @@ const tooltipMsg = computed(() => {
   }
   return ''
 })
+
+
+const columnOrder = ref<Pick<ColumnReqType, 'columnOrder'> | null>(null)
+
+const addField = async ( payload) => {
+  columnOrder.value = payload
+  editColumnDropdown.value = true
+}
+
+const closeAddColumnMenu = () => {
+  columnOrder.value = null
+  editColumnDropdown.value = false
+}
 </script>
 
 <template>
@@ -117,7 +130,7 @@ const tooltipMsg = computed(() => {
     <template v-if="!hideMenu">
       <div class="flex-1" />
 
-      <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
+      <LazySmartsheetHeaderMenu @add-column="addField"  v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 
     <a-dropdown
@@ -128,14 +141,14 @@ const tooltipMsg = computed(() => {
       overlay-class-name="nc-dropdown-edit-column"
     >
       <div />
-
       <template #overlay>
         <SmartsheetColumnEditOrAddProvider
           v-if="editColumnDropdown"
-          :column="column"
+          :column="columnOrder ? null : column"
+          :column-position="columnOrder"
           class="w-full"
-          @submit="editColumnDropdown = false"
-          @cancel="editColumnDropdown = false"
+          @submit="closeAddColumnMenu"
+          @cancel="closeAddColumnMenu"
           @click.stop
           @keydown.stop
         />

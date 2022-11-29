@@ -1,8 +1,10 @@
 import type { MaybeRef } from '@vueuse/core'
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
+import { useMetas } from '~/composables/useMetas'
+import { extractPkFromRow } from '~/utils'
 import { copyTable, message, reactive, ref, unref, useCopy, useEventListener, useI18n } from '#imports'
 import type { Row } from '~/lib'
 
@@ -39,6 +41,7 @@ function convertCellData(args: { from: UITypes; to: UITypes; value: any }) {
  * Utility to help with multi-selecting rows/cells in the smartsheet
  */
 export function useMultiSelect(
+  _meta: MaybeRef<TableType>,
   fields: MaybeRef<ColumnType[]>,
   data: MaybeRef<Row[]>,
   _editEnabled: MaybeRef<boolean>,
@@ -49,9 +52,13 @@ export function useMultiSelect(
   keyEventHandler?: Function,
   syncCellData?: Function,
 ) {
+  const meta = ref(_meta)
+
   const { t } = useI18n()
 
   const { copy } = useCopy()
+
+  const { getMeta } = useMetas()
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
@@ -266,9 +273,35 @@ export function useMultiSelect(
                 await copyValue()
                 break
               case 86:
-                if(isVirtualCol(columnObj) && (columnObj.uidt !== UITypes.LinkToAnotherRecord || (columnObj.colOptions as LinkToAnotherRecordType)?.type !== RelationTypes.BELONGS_TO)) {
+                // handle belongs to column
+                if (
+                  columnObj.uidt === UITypes.LinkToAnotherRecord &&
+                  (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
+                ) {
+                  rowObj.row[columnObj.title!] = convertCellData({
+                    value: clipboardContext.value,
+                    from: clipboardContext.uidt,
+                    to: columnObj.uidt as UITypes,
+                  })
+                  e.preventDefault()
+
+                  const foreignKeyColumn: ColumnType = meta.value?.columns.find(
+                    (c) => c.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+                  )
+
+                  const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType)?.fk_related_model_id!)
+
+                  rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(clipboardContext.value, relatedTableMeta!.columns!)
+
+                  // makeEditable(rowObj, columnObj)
+                  return syncCellData?.({ ...selectedCell, updatedColumnTitle: foreignKeyColumn.title })
+                }
+
+                // if it's a virtual column excluding belongs to cell type skip paste
+                if (isVirtualCol(columnObj)) {
                   return message.info(t('msg.info.cannotPasteHere'))
                 }
+
                 // const clipboardText = await getClipboardData()
                 if (clipboardContext) {
                   rowObj.row[columnObj.title!] = convertCellData({
@@ -304,7 +337,6 @@ export function useMultiSelect(
         }
         break
     }
-
   }
 
   useEventListener(document, 'keydown', onKeyDown)

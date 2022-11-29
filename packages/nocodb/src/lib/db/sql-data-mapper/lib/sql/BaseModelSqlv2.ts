@@ -1253,6 +1253,18 @@ class BaseModelSqlv2 {
             };
           }
           break;
+        case UITypes.QrCode:
+          {
+            // @ts-ignore
+            const colOptions: QrCodeColumn = await column.getColOptions();
+            proto.__columnAliases[column.title] = {
+              path: [
+                (await Column.get({ colId: colOptions.fk_qr_value_column_id }))
+                  ?.title,
+              ],
+            };
+          }
+          break;
         case UITypes.LinkToAnotherRecord:
           {
             this._columns[column.title] = column;
@@ -1435,41 +1447,10 @@ class BaseModelSqlv2 {
     const columns = _columns ?? (await this.model.getColumns());
     for (const column of columns) {
       switch (column.uidt) {
-        case 'LinkToAnotherRecord':
-        case 'Lookup':
+        case UITypes.LinkToAnotherRecord:
+        case UITypes.Lookup:
+        case UITypes.QrCode:
           break;
-        case 'QrCode': {
-          const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
-          const qrValueColumn = await Column.get({
-            colId: qrCodeColumn.fk_qr_value_column_id,
-          });
-
-          // If the referenced value cannot be found: cancel current iteration
-          if (qrValueColumn == null) {
-            break;
-          }
-
-          switch (qrValueColumn.uidt) {
-            case UITypes.Formula:
-              try {
-                const selectQb = await this.getSelectQueryBuilderForFormula(
-                  qrValueColumn
-                );
-                qb.select({
-                  [column.column_name]: selectQb.builder,
-                });
-              } catch {
-                continue;
-              }
-              break;
-            default: {
-              qb.select({ [column.column_name]: qrValueColumn.column_name });
-              break;
-            }
-          }
-
-          break;
-        }
         case 'Formula':
           {
             try {

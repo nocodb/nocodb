@@ -148,7 +148,7 @@ useMenuCloseOnEsc(open)
 
           <MdiMenuDown class="text-grey" />
 
-          <span class="nc-count-badge" v-if="numberOfHiddenFields">{{ numberOfHiddenFields }}</span>
+          <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>
         </div>
       </a-button>
     </div>
@@ -240,5 +240,4 @@ useMenuCloseOnEsc(open)
 :deep(.ant-checkbox) {
   @apply top-auto;
 }
-
 </style>

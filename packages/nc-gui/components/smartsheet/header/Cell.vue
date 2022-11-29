@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { ColumnReqType } from 'nocodb-sdk'
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { ColumnInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
-import { SmartsheetStoreEvents } from '~/lib'
 
 const props = defineProps<{ column: ColumnType & { meta: any }; required?: boolean | number; hideMenu?: boolean }>()
 
@@ -20,12 +18,11 @@ provide(ColumnInj, column)
 
 const editColumnDropdown = ref(false)
 
-
 const columnOrder = ref<Pick<ColumnReqType, 'columnOrder'> | null>(null)
 
-const addField = async ( payload) => {
-    columnOrder.value = payload
-    editColumnDropdown.value = true
+const addField = async (payload) => {
+  columnOrder.value = payload
+  editColumnDropdown.value = true
 }
 
 const closeAddColumnMenu = () => {
@@ -54,7 +51,11 @@ const closeAddColumnMenu = () => {
     <template v-if="!hideMenu">
       <div class="flex-1" />
 
-      <LazySmartsheetHeaderMenu @add-column="addField" v-if="!isForm && isUIAllowed('edit-column')" @edit="editColumnDropdown = true" />
+      <LazySmartsheetHeaderMenu
+        v-if="!isForm && isUIAllowed('edit-column')"
+        @add-column="addField"
+        @edit="editColumnDropdown = true"
+      />
     </template>
 
     <a-dropdown

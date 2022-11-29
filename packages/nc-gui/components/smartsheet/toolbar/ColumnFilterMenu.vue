@@ -79,7 +79,7 @@ useMenuCloseOnEsc(open)
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.filter') }}</span>
           <MdiMenuDown class="text-grey" />
 
-          <span class="nc-count-badge" v-if="filtersLength">{{ filtersLength }}</span>
+          <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>
       </a-button>
     </div>

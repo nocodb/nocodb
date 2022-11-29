@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
-import { ColumnReqType, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
+import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import {
   ColumnInj,
   IsFormInj,
@@ -100,10 +100,9 @@ const tooltipMsg = computed(() => {
   return ''
 })
 
-
 const columnOrder = ref<Pick<ColumnReqType, 'columnOrder'> | null>(null)
 
-const addField = async ( payload) => {
+const addField = async (payload) => {
   columnOrder.value = payload
   editColumnDropdown.value = true
 }
@@ -130,7 +129,12 @@ const closeAddColumnMenu = () => {
     <template v-if="!hideMenu">
       <div class="flex-1" />
 
-      <LazySmartsheetHeaderMenu @add-column="addField"  v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
+      <LazySmartsheetHeaderMenu
+        v-if="!isForm && isUIAllowed('edit-column')"
+        :virtual="true"
+        @add-column="addField"
+        @edit="editColumnDropdown = true"
+      />
     </template>
 
     <a-dropdown

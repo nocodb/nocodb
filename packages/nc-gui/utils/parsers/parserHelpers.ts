@@ -20,11 +20,11 @@ const booleanOptions = [
 ]
 const aggBooleanOptions: any = booleanOptions.reduce((obj, o) => ({ ...obj, ...o }), {})
 
-const getColVal = (row: any, col = null) => {
+const getColVal = (row: any, col?: number) => {
   return row && col ? row[col] : row
 }
 
-export const isCheckboxType: any = (values: [], col = null) => {
+export const isCheckboxType: any = (values: [], col?: number) => {
   let options = booleanOptions
   for (let i = 0; i < values.length; i++) {
     const val = getColVal(values[i], col)
@@ -45,7 +45,7 @@ export const getCheckboxValue = (value: any) => {
   return value && aggBooleanOptions[value]
 }
 
-export const isMultiLineTextType = (values: [], col = null) => {
+export const isMultiLineTextType = (values: [], col?: number) => {
   return values.some(
     (r) => (getColVal(r, col) || '').toString().match(/[\r\n]/) || (getColVal(r, col) || '').toString().length > 255,
   )
@@ -107,13 +107,15 @@ export const isDecimalType = (colData: []) =>
     return v && parseInt(v) !== +v
   })
 
-export const isEmailType = (colData: []) =>
-  colData.some((v: any) => {
+export const isEmailType = (colData: [], col?: number) =>
+  colData.some((r: any) => {
+    const v = getColVal(r, col)
     return v && validateEmail(v)
   })
 
-export const isUrlType = (colData: []) =>
-  colData.some((v: any) => {
+export const isUrlType = (colData: [], col?: number) =>
+  colData.some((r: any) => {
+    const v = getColVal(r, col)
     return v && isValidURL(v)
   })
 

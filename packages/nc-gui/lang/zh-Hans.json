@@ -368,7 +368,7 @@
     "setPrimary": "设置为主要值",
     "addRow": "添加新行",
     "saveRow": "保存行",
-    "saveAndExit": "Save & Exit",
+    "saveAndExit": "保存并退出",
     "saveAndStay": "Save & Stay",
     "insertRow": "插入新行",
     "deleteRow": "删除行",
@@ -666,7 +666,8 @@
       "parameterKeyCannotBeEmpty": "参数键不能为空",
       "duplicateParameterKeysAreNotAllowed": "不允许重复的参数键",
       "fieldRequired": "{value} 不能为空。",
-      "projectNotAccessible": "Project not accessible"
+      "projectNotAccessible": "Project not accessible",
+      "copyToClipboardError": "Failed to copy to clipboard"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

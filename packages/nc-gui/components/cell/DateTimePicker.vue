@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ActiveCellInj, ReadonlyInj, inject, ref, useProject, useSelectedCellKeyupListener, watch } from '#imports'
+import {
+  ActiveCellInj,
+  ReadonlyInj,
+  inject,
+  isDrawerOrModalExist,
+  ref,
+  useProject,
+  useSelectedCellKeyupListener,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -65,8 +74,8 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       e.stopPropagation()
-      // if expanded form is active skip resetting the active cell
-      if (document.querySelector('.nc-drawer-expanded-form.active')) {
+      // skip if drawer / modal is active
+      if (isDrawerOrModalExist()) {
         return
       }
       if (!open.value) {
@@ -78,8 +87,8 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       }
       break
     case 'Escape':
-      // if expanded form is active skip resetting the active cell
-      if (document.querySelector('.nc-drawer-expanded-form.active')) {
+      // skip if drawer / modal is active
+      if (isDrawerOrModalExist()) {
         return
       }
       if (open.value) {

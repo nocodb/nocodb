@@ -442,8 +442,8 @@ onClickOutside(smartTable, (e) => {
   )
     return
 
-  // if expanded form is active skip resetting the active cell
-  if (document.querySelector('.nc-drawer-expanded-form.active')) {
+  // skip if drawer / modal is active
+  if (isDrawerOrModalExist()) {
     return
   }
 

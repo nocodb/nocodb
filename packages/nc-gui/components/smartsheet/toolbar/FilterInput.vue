@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { useColumn } from '~/composables/useColumn'
-import { ColumnInj, EditModeInj, computed, provide, toRef } from '#imports'
+import { ColumnInj, EditModeInj, ReadonlyInj, computed, provide, toRef } from '#imports'
 import type { Filter } from '~/lib'
 import SingleSelect from '~/components/cell/SingleSelect'
 import MultiSelect from '~/components/cell/MultiSelect'
@@ -35,9 +35,10 @@ const editEnabled = ref(true)
 
 provide(ColumnInj, column)
 provide(EditModeInj, readonly(editEnabled))
+provide(ReadonlyInj, ref(false))
 
 const types = useColumn(column)
-const { isInt, isFloat, isDecimal, isPercent, isBoolean } = types
+const { isInt, isFloat, isDecimal, isPercent, isBoolean, isDate, isDateTime, isTime, isYear } = types
 
 const filterInput = computed({
   get: () => {
@@ -74,17 +75,26 @@ const componentMap: Partial<Record<FilterType, any>> = {
 
 const filterType = $computed(() => Object.keys(componentMap).find((key) => types[key as FilterType]?.value))
 const isNumeric = $computed(() => isPercent.value || isInt.value || isDecimal.value || isFloat.value)
+
+const hasExtraPadding = $computed(() => {
+  return column.value && (isInt.value || isDate.value || isDateTime.value || isTime.value || isYear.value)
+})
 </script>
 
 <template>
   <a-select v-if="isBoolean" v-model:value="filterInput" :disabled="filter.readOnly" :options="booleanOptions"></a-select>
-  <div v-else class="bg-white border-1 flex min-w-120px max-w-170px min-h-32px h-full px-2" @mouseup.stop>
+  <div
+    v-else
+    class="bg-white border-1 flex min-w-120px max-w-170px min-h-32px h-full items-center"
+    :class="{ 'px-2': hasExtraPadding }"
+    @mouseup.stop
+  >
     <component
-        :is="componentMap[filterType] ?? Text"
-        v-model="filterInput"
-        :column="column"
-        :disabled="filter.readOnly"
-        :class="{ 'h-32px': isNumeric }"
+      :is="componentMap[filterType] ?? Text"
+      v-model="filterInput"
+      :column="column"
+      :disabled="filter.readOnly"
+      :class="{ 'h-32px': isNumeric }"
     />
   </div>
 </template>

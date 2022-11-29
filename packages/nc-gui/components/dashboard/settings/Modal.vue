@@ -163,6 +163,7 @@ watch(
 <template>
   <a-modal
     v-model:visible="vModel"
+    :class="{ active: vModel }"
     :footer="null"
     width="max(90vw, 600px)"
     :closable="false"

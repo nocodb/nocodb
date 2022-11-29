@@ -159,6 +159,7 @@ const activeRow = (vNode?: InstanceType<typeof Card>) => {
 <template>
   <a-modal
     v-model:visible="vModel"
+    :class="{ active: vModel }"
     :footer="null"
     :title="$t('activity.linkRecord')"
     :body-style="{ padding: 0 }"

@@ -145,6 +145,7 @@ const emailField = (inputEl: typeof Input) => {
     :footer="null"
     centered
     :visible="show"
+    :class="{ active: show }"
     :closable="false"
     width="max(50vw, 44rem)"
     wrap-class-name="nc-modal-invite-user-and-share-base"

@@ -182,7 +182,13 @@ async function onSubmit() {
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="loading" wrap-class-name="nc-modal-view-create">
+  <a-modal
+    v-model:visible="vModel"
+    class="!top-[35%]"
+    :class="{ active: vModel }"
+    :confirm-loading="loading"
+    wrap-class-name="nc-modal-view-create"
+  >
     <template #title>
       {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
       {{ $t('objects.view') }}

@@ -345,6 +345,7 @@ const beforeUpload = (file: UploadFile) => {
 <template>
   <a-modal
     v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
     :width="modalWidth"
     wrap-class-name="nc-modal-quick-import"
     @keydown.esc="dialogShow = false"

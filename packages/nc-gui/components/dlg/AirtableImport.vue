@@ -232,6 +232,7 @@ onBeforeUnmount(() => {
 <template>
   <a-modal
     v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
     width="max(30vw, 600px)"
     class="p-2"
     wrap-class-name="nc-modal-airtable-import"

@@ -571,91 +571,109 @@ export interface HookLogType {
   updated_at?: string;
 }
 
-export type ColumnReqType =
-  | {
-      uidt?:
-        | 'ID'
-        | 'SingleLineText'
-        | 'LongText'
-        | 'Attachment'
-        | 'Checkbox'
-        | 'MultiSelect'
-        | 'SingleSelect'
-        | 'Collaborator'
-        | 'Date'
-        | 'Year'
-        | 'Time'
-        | 'PhoneNumber'
-        | 'Email'
-        | 'URL'
-        | 'Number'
-        | 'Decimal'
-        | 'Currency'
-        | 'Percent'
-        | 'Duration'
-        | 'Rating'
-        | 'Count'
-        | 'DateTime'
-        | 'CreateTime'
-        | 'LastModifiedTime'
-        | 'AutoNumber'
-        | 'Geometry'
-        | 'JSON'
-        | 'SpecificDBType'
-        | 'Barcode'
-        | 'Button';
-      id?: string;
-      base_id?: string;
-      fk_model_id?: string;
-      title?: string;
-      dt?: string;
-      np?: string;
-      ns?: string;
-      clen?: string | number;
-      cop?: string;
-      pk?: boolean;
-      pv?: boolean;
-      rqd?: boolean;
-      column_name?: string;
-      un?: boolean;
-      ct?: string;
-      ai?: boolean;
-      unique?: boolean;
-      cdf?: string;
-      cc?: string;
-      csn?: string;
-      dtx?: string;
-      dtxp?: string;
-      dtxs?: string;
-      au?: boolean;
-      ''?: string;
-    }
-  | {
-      uidt: 'LinkToAnotherRecord';
-      title: string;
-      parentId: string;
-      childId: string;
-      type: 'hm' | 'bt' | 'mm';
-    }
-  | {
-      uidt?: 'Rollup';
-      title?: string;
-      fk_relation_column_id?: string;
-      fk_rollup_column_id?: string;
-      rollup_function?: string;
-    }
-  | {
-      uidt?: 'Lookup';
-      title?: string;
-      fk_relation_column_id?: string;
-      fk_lookup_column_id?: string;
-    }
-  | {
-      uidt?: string;
-      formula_raw?: string;
-      formula?: string;
-      title?: string;
-    };
+export interface NormalColumnRequestType {
+  uidt?:
+    | 'ID'
+    | 'SingleLineText'
+    | 'LongText'
+    | 'Attachment'
+    | 'Checkbox'
+    | 'MultiSelect'
+    | 'SingleSelect'
+    | 'Collaborator'
+    | 'Date'
+    | 'Year'
+    | 'Time'
+    | 'PhoneNumber'
+    | 'Email'
+    | 'URL'
+    | 'Number'
+    | 'Decimal'
+    | 'Currency'
+    | 'Percent'
+    | 'Duration'
+    | 'Rating'
+    | 'Count'
+    | 'DateTime'
+    | 'CreateTime'
+    | 'LastModifiedTime'
+    | 'AutoNumber'
+    | 'Geometry'
+    | 'JSON'
+    | 'SpecificDBType'
+    | 'Barcode'
+    | 'Button';
+  id?: string;
+  base_id?: string;
+  fk_model_id?: string;
+  title?: string;
+  dt?: string;
+  np?: string;
+  ns?: string;
+  clen?: string | number;
+  cop?: string;
+  pk?: boolean;
+  pv?: boolean;
+  rqd?: boolean;
+  column_name?: string;
+  un?: boolean;
+  ct?: string;
+  ai?: boolean;
+  unique?: boolean;
+  cdf?: string;
+  cc?: string;
+  csn?: string;
+  dtx?: string;
+  dtxp?: string;
+  dtxs?: string;
+  au?: boolean;
+}
+
+export interface LinkToAnotherColumnReqType {
+  uidt: 'LinkToAnotherRecord';
+  title: string;
+  virtual?: boolean;
+  parentId: string;
+  childId: string;
+  type: 'hm' | 'bt' | 'mm';
+}
+
+export interface RollupColumnReqType {
+  uidt?: 'Rollup';
+  title?: string;
+  fk_relation_column_id?: string;
+  fk_rollup_column_id?: string;
+  rollup_function?: string;
+}
+
+export interface LookupColumnReqType {
+  uidt?: 'Lookup';
+  title?: string;
+  fk_relation_column_id?: string;
+  fk_lookup_column_id?: string;
+}
+
+export interface FormulaColumnReqType {
+  uidt?: string;
+  formula_raw?: string;
+  formula?: string;
+  title?: string;
+}
+
+export type ColumnReqType = (
+  | NormalColumnRequestType
+  | LinkToAnotherColumnReqType
+  | RollupColumnReqType
+  | FormulaColumnReqType
+  | LookupColumnReqType
+) & {
+  column_name?: string;
+  title?: string;
+  columnOrder?: {
+    viewId?: string;
+    order?: number;
+  };
+};
 
 export interface UserInfoType {
   id?: string;

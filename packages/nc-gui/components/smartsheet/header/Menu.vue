@@ -132,8 +132,6 @@ const duplicateColumn = async () => {
   }
 
   try {
-    await $api.dbTableColumn.create(meta!.value!.id!, columnCreatePayload)
-    await getMeta(meta!.value!.id!, true)
 
     const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
 
@@ -145,9 +143,15 @@ const duplicateColumn = async () => {
 
     let newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
 
-    await $api.dbViewColumn.update(view.value!.id!, gridViewColumnList[gridViewColumnList.length - 1].id, {
-      order: newColumnOrder,
+    await $api.dbTableColumn.create(meta!.value!.id!, {
+      ...columnCreatePayload,
+      columnOrder: {
+        order: newColumnOrder,
+        viewId: view.value?.id as string,
+      },
     })
+    await getMeta(meta!.value!.id!, true)
+
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   } catch (e: any) {

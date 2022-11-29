@@ -85,7 +85,11 @@ const setAsPrimaryValue = async () => {
 const sortByColumn = async (direction: 'asc' | 'desc') => {
   try {
     $e('a:sort:add', { from: 'column-menu' })
-    await $api.dbTableSort.create(view.value?.id as string, { fk_column_id: column!.value.id, direction, push_to_top: true })
+    await $api.dbTableSort.create(view.value?.id as string, {
+      fk_column_id: column!.value.id,
+      direction,
+      push_to_top: true,
+    })
     eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
     reloadDataHook?.trigger()
   } catch (e: any) {
@@ -135,12 +139,12 @@ const duplicateColumn = async () => {
     const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
-
-    if (currentColumnIndex === gridViewColumnList.length - 2) {
-      return
+    let newColumnOrder
+    if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order + 1
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
     }
-
-    const newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
 
     await $api.dbTableColumn.create(meta!.value!.id!, {
       ...columnCreatePayload,
@@ -162,22 +166,21 @@ const addColumn = async (before = false) => {
 
   const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
 
-  // if (currentColumnIndex === gridViewColumnList.length - 2) {
-  //   return
-  // }
-
   let newColumnOrder
   if (before) {
-    newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex - 1]?.order) / 2
+    if (currentColumnIndex === 0) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order / 2
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex - 1]?.order) / 2
+    }
   } else {
-    newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
+    if (currentColumnIndex === gridViewColumnList.length - 1) {
+      newColumnOrder = gridViewColumnList[currentColumnIndex].order + 1
+    } else {
+      newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
+    }
   }
-  // eventBus.emit(SmartsheetStoreEvents.FIELD_ADD, {
-  //   columnOrder: {
-  //     order: newColumnOrder,
-  //     viewId: view.value?.id as string,
-  //   },
-  // })
+
   emit('addColumn', {
     column_order: {
       order: newColumnOrder,

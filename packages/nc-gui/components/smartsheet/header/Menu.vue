@@ -179,10 +179,20 @@ const addColumn = async (before = false) => {
     },
   })
 }
+
+const hideField = async () => {
+  const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
+
+  const currentColumn = gridViewColumnList.find((f) => f.fk_column_id === column!.value.id)
+
+  await $api.dbViewColumn.update(view.value.id, currentColumn.id, { show: false })
+  eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+}
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
+  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']"
+              overlay-class-name="nc-dropdown-column-operations">
     <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
 
     <template #overlay>
@@ -192,6 +202,27 @@ const addColumn = async (before = false) => {
             <MdiPencil class="text-primary" />
             <!-- Edit -->
             {{ $t('general.edit') }}
+          </div>
+        </a-menu-item>
+        <a-divider class="!my-0" />
+        <a-menu-item @click="sortByColumn('asc')">
+          <div class="nc-column-insert-after nc-header-menu-item">
+            <MdiSortAscending class="text-primary" />
+            Sort Ascending
+          </div>
+        </a-menu-item>
+        <a-menu-item @click="sortByColumn('desc')">
+          <div class="nc-column-insert-before nc-header-menu-item">
+            <MdiSortDescending class="text-primary" />
+            Sort Descending
+          </div>
+        </a-menu-item>
+
+        <a-divider class="!my-0" />
+        <a-menu-item @click="hideField">
+          <div class="nc-column-insert-before nc-header-menu-item">
+            <MdiEyeOffOutline class="text-primary" />
+            Hide Field
           </div>
         </a-menu-item>
 
@@ -213,19 +244,6 @@ const addColumn = async (before = false) => {
           <div class="nc-column-insert-before nc-header-menu-item">
             <MdiTableColumnPlusBefore class="text-primary" />
             Insert before
-          </div>
-        </a-menu-item>
-        <a-divider class="!my-0" />
-        <a-menu-item @click="sortByColumn('asc')">
-          <div class="nc-column-insert-after nc-header-menu-item">
-            <MdiSortAscending class="text-primary" />
-            Sort Ascending
-          </div>
-        </a-menu-item>
-        <a-menu-item @click="sortByColumn('desc')">
-          <div class="nc-column-insert-before nc-header-menu-item">
-            <MdiSortDescending class="text-primary" />
-            Sort Descending
           </div>
         </a-menu-item>
         <a-divider class="!my-0" />

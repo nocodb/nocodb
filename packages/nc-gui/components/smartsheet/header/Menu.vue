@@ -132,7 +132,6 @@ const duplicateColumn = async () => {
   }
 
   try {
-
     const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
@@ -141,7 +140,7 @@ const duplicateColumn = async () => {
       return
     }
 
-    let newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
+    const newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
 
     await $api.dbTableColumn.create(meta!.value!.id!, {
       ...columnCreatePayload,
@@ -152,17 +151,38 @@ const duplicateColumn = async () => {
     })
     await getMeta(meta!.value!.id!, true)
 
-
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const addColumn = async (before = false) => {
+  const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
+
+  const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
+
+  // if (currentColumnIndex === gridViewColumnList.length - 2) {
+  //   return
+  // }
+
+  let newColumnOrder
+  if (before) {
+    newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex - 1]?.order) / 2
+  } else {
+    newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1]?.order) / 2
+  }
+  eventBus.emit(SmartsheetStoreEvents.FIELD_ADD, {
+    columnOrder: {
+      order: newColumnOrder,
+      viewId: view.value?.id as string,
+    },
+  })
+}
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']"
-              overlay-class-name="nc-dropdown-column-operations">
+  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
     <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
 
     <template #overlay>
@@ -183,13 +203,13 @@ const duplicateColumn = async () => {
             Duplicate
           </div>
         </a-menu-item>
-        <a-menu-item @click="emit('edit')">
+        <a-menu-item @click="addColumn()">
           <div class="nc-column-insert-after nc-header-menu-item">
             <MdiTableColumnPlusAfter class="text-primary" />
             Insert After
           </div>
         </a-menu-item>
-        <a-menu-item @click="emit('edit')">
+        <a-menu-item @click="addColumn(true)">
           <div class="nc-column-insert-before nc-header-menu-item">
             <MdiTableColumnPlusBefore class="text-primary" />
             Insert before

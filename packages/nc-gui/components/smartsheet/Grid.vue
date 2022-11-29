@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -42,7 +42,7 @@ import {
   watch,
 } from '#imports'
 import type { Row } from '~/lib'
-import { NavigateDir } from '~/lib'
+import { NavigateDir, SmartsheetStoreEvents } from '~/lib'
 
 const { t } = useI18n()
 
@@ -71,7 +71,7 @@ const isView = false
 
 let editEnabled = $ref(false)
 
-const { xWhere, isPkAvail, isSqlView } = useSmartsheetStoreOrThrow()
+const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -544,6 +544,20 @@ watch(
   },
   { immediate: true },
 )
+
+const columnPosition = ref<Pick<ColumnReqType, 'columnOrder'> | null>(null)
+
+eventBus.on(async (event, payload) => {
+  if (event === SmartsheetStoreEvents.FIELD_ADD) {
+    columnPosition.value = payload
+    addColumnDropdown.value = true
+  }
+})
+
+const closeAddColumnMenu = () => {
+  columnPosition.value = null
+  addColumnDropdown.value = false
+}
 </script>
 
 <template>
@@ -619,8 +633,9 @@ watch(
                   <template #overlay>
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
-                      @submit="addColumnDropdown = false"
-                      @cancel="addColumnDropdown = false"
+                      :column-position="columnPosition"
+                      @submit="closeAddColumnMenu"
+                      @cancel="closeAddColumnMenu"
                       @click.stop
                       @keydown.stop
                     />

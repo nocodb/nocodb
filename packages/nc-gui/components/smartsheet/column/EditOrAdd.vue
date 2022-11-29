@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import { useEventListener } from '@vueuse/core'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnReqType } from 'nocodb-sdk'
+import { ColumnType, UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
   IsKanbanInj,
   MetaInj,
   ReloadViewDataHookInj,
   computed,
+  defineEmits,
+  defineProps,
   inject,
   message,
   onMounted,
@@ -21,6 +24,10 @@ import {
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
+
+const props = defineProps<{
+  columnPosition?: Pick<ColumnReqType, 'columnOrder'>
+}>()
 
 const emit = defineEmits(['submit', 'cancel'])
 
@@ -71,7 +78,7 @@ const reloadMetaAndData = async () => {
 }
 
 async function onSubmit() {
-  const saved = await addOrUpdate(reloadMetaAndData)
+  const saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
 
   if (!saved) return
 

@@ -86,6 +86,11 @@ a {
   @apply relative after:(absolute top-[-2px] right-[-2px] w-[8px] h-[8px] rounded-full bg-primary content-[''] !z-20);
 }
 
+// badge with count
+.nc-count-badge {
+  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-primary bg-opacity-100 text-white !text-[9px] !z-21;
+}
+
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn {
   @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);

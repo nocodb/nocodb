@@ -63,6 +63,9 @@ useMenuCloseOnEsc(open)
           <!-- Sort -->
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
           <MdiMenuDown class="text-grey" />
+
+
+          <span class="nc-count-badge" v-if="sorts?.length">{{ sorts.length }}</span>
         </div>
       </a-button>
     </div>

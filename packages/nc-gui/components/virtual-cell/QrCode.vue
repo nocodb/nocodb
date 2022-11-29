@@ -25,6 +25,8 @@ const showQrModal = (ev: MouseEvent) => {
 }
 
 const handleModalOkClick = () => (modalVisible.value = false)
+
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
 </script>
 
 <template>
@@ -39,4 +41,10 @@ const handleModalOkClick = () => (modalVisible.value = false)
     {{ $t('labels.qrCodeValueTooLong') }}
   </div>
   <img v-if="qrValue && !tooManyCharsForQrCode" :src="qrCode" alt="QR Code" @click="showQrModal" />
+  <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+    {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}
+  </div>
+  <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+    {{ $t('msg.warning.nonEditableFields.qrFieldsCannotBeDirectlyChanged') }}
+  </div>
 </template>

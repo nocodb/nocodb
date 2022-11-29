@@ -14,7 +14,8 @@ const result = computed(() => (isPg.value ? handleTZ(cellValue?.value) : cellVal
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 
-const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } = useShowNotEditableWarning()
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
+  useShowNotEditableWarning()
 </script>
 
 <template>

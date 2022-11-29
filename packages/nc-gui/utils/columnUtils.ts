@@ -36,11 +36,6 @@ const uiTypes = [
     virtual: 1,
   },
   {
-    name: UITypes.QrCode,
-    icon: QrCodeScan,
-    virtual: 1,
-  },
-  {
     name: UITypes.Lookup,
     icon: TableColumnPlusBefore,
     virtual: 1,
@@ -130,6 +125,11 @@ const uiTypes = [
   {
     name: UITypes.DateTime,
     icon: CalendarClock,
+  },
+  {
+    name: UITypes.QrCode,
+    icon: QrCodeScan,
+    virtual: 1,
   },
   {
     name: UITypes.Geometry,

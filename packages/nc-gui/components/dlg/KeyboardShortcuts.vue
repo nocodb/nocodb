@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { isMac } from '#imports'
+
 const { modelValue } = defineProps<{
   modelValue: boolean
 }>()
@@ -9,6 +11,92 @@ const dialogShow = computed({
   get: () => modelValue,
   set: (v) => emit('update:modelValue', v),
 })
+
+const renderCmdOrCtrlKey = () => {
+  return isMac() ? '⌘' : 'CTRL'
+}
+
+const shortcutList = [
+  {
+    title: 'General',
+    shortcuts: [
+      {
+        keys: ['ALT', 'T'],
+        behaviour: 'Insert new table',
+      },
+      {
+        keys: ['ALT', 'R'],
+        behaviour: 'Insert new row',
+      },
+      {
+        keys: ['ALT', 'C'],
+        behaviour: 'Insert new column',
+      },
+      {
+        keys: ['ALT', 'F'],
+        behaviour: 'Toggle fullscreen mode',
+      },
+      {
+        keys: ['ALT', 'I'],
+        behaviour: 'Invite a member to team',
+      },
+    ],
+  },
+  {
+    title: 'Grid View',
+    shortcuts: [
+      {
+        keys: [renderCmdOrCtrlKey(), '←'],
+        behaviour: 'Jump to leftmost column in this row',
+      },
+      {
+        keys: [renderCmdOrCtrlKey(), '→'],
+        behaviour: 'Jump to rightmost column in this row',
+      },
+      {
+        keys: [renderCmdOrCtrlKey(), '↑'],
+        behaviour: 'Jump to first record in this column (in same page)',
+      },
+      {
+        keys: [renderCmdOrCtrlKey(), '↓'],
+        behaviour: 'Jump to last record in this column (in same page)',
+      },
+      {
+        keys: [renderCmdOrCtrlKey(), 'C'],
+        behaviour: 'Copy cell contents',
+      },
+      {
+        keys: ['Enter'],
+        behaviour: 'Switch cell in focus to EDIT mode; opens modal / picker if cell is associated with one',
+      },
+      {
+        keys: ['Esc'],
+        behaviour: 'Exit cell EDIT mode',
+      },
+      {
+        keys: ['Delete'],
+        behaviour: 'Clear cell',
+      },
+      {
+        keys: ['Space'],
+        behaviour: 'Expand current row',
+      },
+      {
+        keys: ['←', '→', '↑', '↓'],
+        behaviour: 'General cell navigation',
+      },
+    ],
+  },
+  {
+    title: 'Expanded Form',
+    shortcuts: [
+      {
+        keys: [renderCmdOrCtrlKey(), 'Enter'],
+        behaviour: 'Save current expanded row item',
+      },
+    ],
+  },
+]
 </script>
 
 <template>
@@ -20,6 +108,33 @@ const dialogShow = computed({
     @keydown.esc="dialogShow = false"
   >
     <template #title> {{ $t('title.keyboardShortcut') }} </template>
-    <!-- TODO:   -->
+    <a-list
+      v-for="(shortcutItem, shortcutItemIdx) of shortcutList"
+      :key="shortcutItemIdx"
+      class="nc-shortcut-list !mb-5"
+      size="small"
+      bordered
+      :data-source="shortcutItem.shortcuts"
+    >
+      <template #header>
+        <div class="font-bold">{{ shortcutItem.title }}</div>
+      </template>
+      <template #renderItem="{ item }">
+        <a-list-item>
+          <span class="inline-block">
+            <kbd
+              v-for="(key, keyIdx) of item.keys"
+              :key="keyIdx"
+              class="ml-[1px] mr-[1px] px-[8px] py-[3px] border-b-[3px] uppercase border-1 border-solid border-primary border-opacity-50 rounded"
+            >
+              {{ key }}
+            </kbd>
+          </span>
+          <span class="inline-block text-right">
+            {{ item.behaviour }}
+          </span>
+        </a-list-item>
+      </template>
+    </a-list>
   </a-modal>
 </template>

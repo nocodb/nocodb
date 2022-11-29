@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 
+const maxNumberOfAllowedCharsForQrValue = 2000
+
 const cellValue = inject(CellValueInj)
 
 const qrValue = computed(() => String(cellValue?.value))
+
+const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
 const qrCode = useQRCode(qrValue, {
   width: 150,
@@ -24,17 +28,15 @@ const handleModalOkClick = () => (modalVisible.value = false)
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="modalVisible"
-    footer
-    wrap-class-name="nc-qr-code-large"
-    :body-style="{ padding: '0px' }"
-    @ok="handleModalOkClick"
-  >
-    <template #title>
+  <a-modal v-model:visible="modalVisible" wrap-class-name="nc-qr-code-large" :body-style="{ padding: '0px' }"
+    @ok="handleModalOkClick">
+    <template #footer>
       <div class="mr-4" data-testid="nc-qr-code-large-value-label">{{ qrValue }}</div>
     </template>
-    <img v-if="qrValue" :src="qrCodeLarge" alt="QR Code" />
+    <img v-if="qrValue && !tooManyCharsForQrCode" :src="qrCodeLarge" alt="QR Code" />
   </a-modal>
-  <img v-if="qrValue" :src="qrCode" alt="QR Code" @click="showQrModal" />
+  <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+    {{ $t('labels.qrCodeValueTooLong') }}
+  </div>
+  <img v-if="qrValue && !tooManyCharsForQrCode" :src="qrCode" alt="QR Code" @click="showQrModal" />
 </template>

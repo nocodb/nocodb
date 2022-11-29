@@ -545,7 +545,7 @@ watch(
   { immediate: true },
 )
 
-const columnPosition = ref<Pick<ColumnReqType, 'columnOrder'> | null>(null)
+const columnPosition = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {

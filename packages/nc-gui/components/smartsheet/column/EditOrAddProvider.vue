@@ -5,7 +5,7 @@ import { MetaInj, inject, ref, toRef, useProvideColumnCreateStore } from '#impor
 
 interface Props {
   column?: ColumnType & { meta: any }
-  columnPosition?: Pick<ColumnReqType, 'columnOrder'>
+  columnPosition?: Pick<ColumnReqType, 'column_order'>
 }
 
 const props = defineProps<Props>()

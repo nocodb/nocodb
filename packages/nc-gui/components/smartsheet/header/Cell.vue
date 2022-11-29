@@ -18,7 +18,7 @@ provide(ColumnInj, column)
 
 const editColumnDropdown = ref(false)
 
-const columnOrder = ref<Pick<ColumnReqType, 'columnOrder'> | null>(null)
+const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const addField = async (payload) => {
   columnOrder.value = payload

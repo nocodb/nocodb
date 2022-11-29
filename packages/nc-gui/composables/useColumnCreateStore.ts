@@ -191,7 +191,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       if (cdf) formState.value.cdf = formState.value.cdf || null
     }
 
-    const addOrUpdate = async (onSuccess: () => void, columnPosition?: Pick<ColumnReqType, 'columnOrder'>) => {
+    const addOrUpdate = async (onSuccess: () => void, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
       try {
         if (!(await validate())) return
       } catch (e) {

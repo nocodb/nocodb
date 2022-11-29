@@ -85,7 +85,7 @@ const setAsPrimaryValue = async () => {
 const sortByColumn = async (direction: 'asc' | 'desc') => {
   try {
     $e('a:sort:add', { from: 'column-menu' })
-    await $api.dbTableSort.create(view.value?.id as string, { fk_column_id: column!.value.id, direction })
+    await $api.dbTableSort.create(view.value?.id as string, { fk_column_id: column!.value.id, direction, push_to_top: true })
     eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
     reloadDataHook?.trigger()
   } catch (e: any) {
@@ -144,9 +144,9 @@ const duplicateColumn = async () => {
 
     await $api.dbTableColumn.create(meta!.value!.id!, {
       ...columnCreatePayload,
-      columnOrder: {
+      column_order: {
         order: newColumnOrder,
-        viewId: view.value?.id as string,
+        view_id: view.value?.id as string,
       },
     })
     await getMeta(meta!.value!.id!, true)
@@ -178,10 +178,10 @@ const addColumn = async (before = false) => {
   //     viewId: view.value?.id as string,
   //   },
   // })
-  emit('addColumn',  {
-    columnOrder: {
+  emit('addColumn', {
+    column_order: {
       order: newColumnOrder,
-      viewId: view.value?.id as string,
+      view_id: view.value?.id as string,
     },
   })
 }

@@ -26,7 +26,7 @@ import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 const props = defineProps<{
-  columnPosition?: Pick<ColumnReqType, 'columnOrder'>
+  columnPosition?: Pick<ColumnReqType, 'column_order'>
 }>()
 
 const emit = defineEmits(['submit', 'cancel'])

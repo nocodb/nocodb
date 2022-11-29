@@ -669,8 +669,8 @@ export type ColumnReqType = (
 ) & {
   column_name?: string;
   title?: string;
-  columnOrder?: {
-    viewId?: string;
+  column_order?: {
+    view_id?: string;
     order?: number;
   };
 };
@@ -2618,7 +2618,13 @@ export class Api<
      * @request POST:/api/v1/db/meta/views/{viewId}/sorts
      * @response `200` `void` OK
      */
-    create: (viewId: string, data: SortType, params: RequestParams = {}) =>
+    create: (
+      viewId: string,
+      data: SortType & {
+        push_to_top?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'POST',

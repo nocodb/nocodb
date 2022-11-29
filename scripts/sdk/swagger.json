@@ -2286,7 +2286,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Sort"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Sort"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "push_to_top": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                ]
               }
             }
           }
@@ -9195,10 +9207,10 @@
               "title": {
                 "type": "string"
               },
-              "columnOrder": {
+              "column_order": {
                 "type": "object",
                 "properties": {
-                  "viewId": {
+                  "view_id": {
                     "type": "string"
                   },
                   "order": {

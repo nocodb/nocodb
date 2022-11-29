@@ -1211,6 +1211,19 @@ class BaseModelSqlv2 {
     });
   }
 
+  private async getSelectQueryBuilderForFormula(column: Column<any>) {
+    const formula = await column.getColOptions<FormulaColumn>();
+    if (formula.error) throw new Error(`Formula error: ${formula.error}`);
+    const selectQb = await formulaQueryBuilderv2(
+      formula.formula,
+      null,
+      this.dbDriver,
+      this.model
+    );
+
+    return selectQb;
+  }
+
   async getProto() {
     if (this._proto) {
       return this._proto;
@@ -1438,19 +1451,15 @@ class BaseModelSqlv2 {
 
           switch (qrValueColumn.uidt) {
             case UITypes.Formula:
-              {
-                const formula =
-                  await qrValueColumn.getColOptions<FormulaColumn>();
-                if (formula.error) continue;
-                const selectQb = await formulaQueryBuilderv2(
-                  formula.formula,
-                  null,
-                  this.dbDriver,
-                  this.model
+              try {
+                const selectQb = await this.getSelectQueryBuilderForFormula(
+                  qrValueColumn
                 );
                 qb.select({
                   [column.column_name]: selectQb.builder,
                 });
+              } catch {
+                continue;
               }
               break;
             default: {
@@ -1463,22 +1472,20 @@ class BaseModelSqlv2 {
         }
         case 'Formula':
           {
-            const formula = await column.getColOptions<FormulaColumn>();
-            if (formula.error) continue;
-            const selectQb = await formulaQueryBuilderv2(
-              formula.formula,
-              null,
-              this.dbDriver,
-              this.model
-              // this.aliasToColumn
-            );
-            // todo:  verify syntax of as ? / ??
-            qb.select(
-              this.dbDriver.raw(`?? as ??`, [
-                selectQb.builder,
-                sanitize(column.title),
-              ])
-            );
+            try {
+              const selectQb = await this.getSelectQueryBuilderForFormula(
+                column
+              );
+              // todo:  verify syntax of as ? / ??
+              qb.select(
+                this.dbDriver.raw(`?? as ??`, [
+                  selectQb.builder,
+                  sanitize(column.title),
+                ])
+              );
+            } catch {
+              continue;
+            }
           }
           break;
         case 'Rollup':

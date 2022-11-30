@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { useEventListener } from '@vueuse/core'
 import type { ColumnReqType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
@@ -14,6 +13,7 @@ import {
   ref,
   uiTypes,
   useColumnCreateStoreOrThrow,
+  useEventListener,
   useI18n,
   useMetas,
   useNuxtApp,

@@ -30,8 +30,12 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
 </script>
 
 <template>
-  <a-modal v-model:visible="modalVisible" wrap-class-name="nc-qr-code-large" :body-style="{ padding: '0px' }"
-    @ok="handleModalOkClick">
+  <a-modal
+    v-model:visible="modalVisible"
+    wrap-class-name="nc-qr-code-large"
+    :body-style="{ padding: '0px' }"
+    @ok="handleModalOkClick"
+  >
     <template #footer>
       <div class="mr-4" data-testid="nc-qr-code-large-value-label">{{ qrValue }}</div>
     </template>

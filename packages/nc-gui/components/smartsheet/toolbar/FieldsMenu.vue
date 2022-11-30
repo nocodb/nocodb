@@ -16,10 +16,10 @@ import {
   resolveComponent,
   useMenuCloseOnEsc,
   useNuxtApp,
+  useSmartsheetStoreOrThrow,
   useViewColumns,
   watch,
 } from '#imports'
-import { useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
 
 const meta = inject(MetaInj, ref())
 

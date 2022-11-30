@@ -1,24 +1,25 @@
 <script lang="ts" setup>
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import {
+  ActiveViewInj,
   ColumnInj,
   IsLockedInj,
   MetaInj,
   Modal,
   ReloadViewDataHookInj,
+  SmartsheetStoreEvents,
   defineEmits,
   defineProps,
   extractSdkResponseErrorMsg,
+  getUniqueColumnName,
   inject,
   message,
   useI18n,
   useMetas,
   useNuxtApp,
+  useSmartsheetStoreOrThrow,
 } from '#imports'
-import { useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
-import { ActiveViewInj } from '~/context'
-import { SmartsheetStoreEvents } from '~/lib'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 
@@ -92,19 +93,9 @@ const sortByColumn = async (direction: 'asc' | 'desc') => {
     })
     eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
     reloadDataHook?.trigger()
-  } catch (e: any) {
+  } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
-
-const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {
-  let name = initName
-  let i = 1
-  while (columns.find((c) => c.title === name)) {
-    name = `${initName}_${i}`
-    i++
-  }
-  return name
 }
 
 const duplicateColumn = async () => {

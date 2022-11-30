@@ -107,7 +107,7 @@ const addField = async (payload) => {
   editColumnDropdown.value = true
 }
 
-const closeAddColumnMenu = () => {
+const closeAddColumnDropdown = () => {
   columnOrder.value = null
   editColumnDropdown.value = false
 }
@@ -151,8 +151,8 @@ const closeAddColumnMenu = () => {
           :column="columnOrder ? null : column"
           :column-position="columnOrder"
           class="w-full"
-          @submit="closeAddColumnMenu"
-          @cancel="closeAddColumnMenu"
+          @submit="closeAddColumnDropdown"
+          @cancel="closeAddColumnDropdown"
           @click.stop
           @keydown.stop
         />

@@ -11,11 +11,13 @@ import {
   IsGridInj,
   IsLockedInj,
   MetaInj,
+  NavigateDir,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
+  SmartsheetStoreEvents,
   computed,
   createEventHook,
   enumColor,
@@ -42,7 +44,6 @@ import {
   watch,
 } from '#imports'
 import type { Row } from '~/lib'
-import { NavigateDir, SmartsheetStoreEvents } from '~/lib'
 
 const { t } = useI18n()
 
@@ -545,17 +546,17 @@ watch(
   { immediate: true },
 )
 
-const columnPosition = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
-    columnPosition.value = payload
+    columnOrder.value = payload
     addColumnDropdown.value = true
   }
 })
 
-const closeAddColumnMenu = () => {
-  columnPosition.value = null
+const closeAddColumnDropdown = () => {
+  columnOrder.value = null
   addColumnDropdown.value = false
 }
 </script>
@@ -633,9 +634,9 @@ const closeAddColumnMenu = () => {
                   <template #overlay>
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
-                      :column-position="columnPosition"
-                      @submit="closeAddColumnMenu"
-                      @cancel="closeAddColumnMenu"
+                      :column-position="columnOrder"
+                      @submit="closeAddColumnDropdown"
+                      @cancel="closeAddColumnDropdown"
                       @click.stop
                       @keydown.stop
                     />

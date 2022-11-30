@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, computed, handleTZ, inject, ref, refAutoReset, replaceUrlsWithLink, useProject } from '#imports'
+import { CellValueInj, ColumnInj, computed, handleTZ, inject, replaceUrlsWithLink, useProject } from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
@@ -14,13 +14,8 @@ const result = computed(() => (isPg.value ? handleTZ(cellValue?.value) : cellVal
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 
-const timeout = 3000 // in ms
-
-const showEditFormulaWarning = refAutoReset(false, timeout)
-
-const showClearFormulaWarning = refAutoReset(false, timeout)
-
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), () => (showClearFormulaWarning.value = true))
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
+  useShowNotEditableWarning()
 </script>
 
 <template>
@@ -33,15 +28,15 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), () => (showClear
       <span>ERR!</span>
     </a-tooltip>
 
-    <div class="p-2" @dblclick="showEditFormulaWarning = true">
+    <div class="p-2" @dblclick="activateShowEditNonEditableFieldWarning">
       <div v-if="urls" v-html="urls" />
 
       <div v-else>{{ result }}</div>
 
-      <div v-if="showEditFormulaWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}
       </div>
-      <div v-if="showClearFormulaWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
     </div>

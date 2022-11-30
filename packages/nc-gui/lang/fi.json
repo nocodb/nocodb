@@ -241,6 +241,8 @@
     "created": "Luotu",
     "sqlOutput": "SQL-lähtö",
     "addOption": "Lisää vaihtoehto",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "Kokonaistoiminto",
     "dbCreateIfNotExists": "Tietokanta: Luo jos ei ole olemassa",
     "clientKey": "Asiakasnäppäin",
@@ -487,6 +489,12 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",

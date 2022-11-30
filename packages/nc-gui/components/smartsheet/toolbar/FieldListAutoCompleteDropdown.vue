@@ -21,14 +21,17 @@ const localValue = computed({
 const options = computed<SelectProps['options']>(() =>
   meta.value?.columns
     ?.filter((c: ColumnType) => {
-      /** ignore hasmany and manytomany relations if it's using within sort menu */
-      if (isSort) {
+      if (c.uidt === UITypes.QrCode) {
+        return false
+      } else if (isSort) {
+        /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(
           c.uidt === UITypes.LinkToAnotherRecord && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
         )
-        /** ignore virtual fields which are system fields ( mm relation ) */
+        /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       } else {
-        return !c.colOptions || !c.system
+        const isVirtualSystemField = c.colOptions && c.system
+        return !isVirtualSystemField
       }
     })
     .map((c: ColumnType) => ({

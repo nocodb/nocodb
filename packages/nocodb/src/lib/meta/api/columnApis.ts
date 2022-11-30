@@ -490,6 +490,12 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
       Tele.emit('evt', { evt_type: 'relation:created' });
       break;
 
+    case UITypes.QrCode:
+      await Column.insert({
+        ...colBody,
+        fk_model_id: table.id,
+      });
+      break;
     case UITypes.Formula:
       colBody.formula = await substituteColumnAliasWithIdInFormula(
         colBody.formula_raw || colBody.formula,
@@ -715,11 +721,17 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       UITypes.Rollup,
       UITypes.LinkToAnotherRecord,
       UITypes.Formula,
+      UITypes.QrCode,
       UITypes.ForeignKey,
     ].includes(column.uidt)
   ) {
     if (column.uidt === colBody.uidt) {
-      if (column.uidt === UITypes.Formula) {
+      if (column.uidt === UITypes.QrCode) {
+        await Column.update(column.id, {
+          ...column,
+          ...colBody,
+        });
+      } else if (column.uidt === UITypes.Formula) {
         colBody.formula = await substituteColumnAliasWithIdInFormula(
           colBody.formula_raw || colBody.formula,
           table.columns
@@ -745,6 +757,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       UITypes.Rollup,
       UITypes.LinkToAnotherRecord,
       UITypes.Formula,
+      UITypes.QrCode,
       UITypes.ForeignKey,
     ].includes(colBody.uidt)
   ) {
@@ -1430,6 +1443,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
   switch (column.uidt) {
     case UITypes.Lookup:
     case UITypes.Rollup:
+    case UITypes.QrCode:
     case UITypes.Formula:
       await Column.delete(req.params.columnId);
       break;

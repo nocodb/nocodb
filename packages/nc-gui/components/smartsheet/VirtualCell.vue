@@ -13,6 +13,7 @@ import {
   isHm,
   isLookup,
   isMm,
+  isQrCode,
   isRollup,
   provide,
   toRef,
@@ -39,7 +40,6 @@ provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
 
 const isForm = inject(IsFormInj, ref(false))
-
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)
 
@@ -58,6 +58,7 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
     <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
     <LazyVirtualCellRollup v-else-if="isRollup(column)" />
     <LazyVirtualCellFormula v-else-if="isFormula(column)" />
+    <LazyVirtualCellQrCode v-else-if="isQrCode(column)" />
     <LazyVirtualCellCount v-else-if="isCount(column)" />
     <LazyVirtualCellLookup v-else-if="isLookup(column)" />
   </div>

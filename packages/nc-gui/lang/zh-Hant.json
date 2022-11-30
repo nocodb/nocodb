@@ -241,6 +241,8 @@
     "created": "已建立",
     "sqlOutput": "SQL 輸出",
     "addOption": "新增選項",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "匯總功能",
     "dbCreateIfNotExists": "資料庫：不存在則建立",
     "clientKey": "用戶端金鑰",
@@ -487,6 +489,12 @@
     "selectField": "選擇欄位"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "建立者可以建立專案與存取任何受邀請的專案",

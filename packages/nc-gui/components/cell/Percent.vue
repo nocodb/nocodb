@@ -33,6 +33,8 @@ const focus: VNodeRef = (el) => {
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @selectstart.capture.stop
+    @mousedown.stop
   />
   <span v-else>{{ vModel }}</span>
 </template>

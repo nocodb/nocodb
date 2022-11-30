@@ -241,6 +241,8 @@
     "created": "Creado",
     "sqlOutput": "Salida SQL",
     "addOption": "Añadir opción",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "Función agregada",
     "dbCreateIfNotExists": "Base de datos : Crear si no existe",
     "clientKey": "Clave de Cliente",
@@ -487,6 +489,12 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",

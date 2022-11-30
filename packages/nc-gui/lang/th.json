@@ -241,6 +241,8 @@
     "created": "สร้าง",
     "sqlOutput": "เอาต์พุต SQL",
     "addOption": "เพิ่มตัวเลือก",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "ฟังก์ชั่นรวม",
     "dbCreateIfNotExists": "ฐานข้อมูล: สร้างถ้าไม่มีอยู่",
     "clientKey": "รหัสลูกค้า",
@@ -487,6 +489,12 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",

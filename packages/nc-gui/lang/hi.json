@@ -241,6 +241,8 @@
     "created": "बनाया था",
     "sqlOutput": "SQL आउटपुट",
     "addOption": "विकल्प जोड़े",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "कुल समारोह",
     "dbCreateIfNotExists": "डेटाबेस: बनाएं यदि मौजूद नहीं है",
     "clientKey": "ग्राहक कुंजी",
@@ -487,6 +489,12 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",

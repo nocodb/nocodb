@@ -241,6 +241,8 @@
     "created": "생성",
     "sqlOutput": "SQL 출력",
     "addOption": "옵션 추가",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "집합 함수",
     "dbCreateIfNotExists": "데이터베이스 : 존재하지 않는 경우 생성",
     "clientKey": "클라이언트 키",
@@ -487,6 +489,12 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",

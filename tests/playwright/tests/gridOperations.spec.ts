@@ -11,7 +11,7 @@ test.describe('Grid operations', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test.skip('Clipboard support', async () => {
+  test('Clipboard support', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 

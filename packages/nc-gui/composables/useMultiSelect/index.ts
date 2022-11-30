@@ -241,102 +241,103 @@ export function useMultiSelect(
           editEnabled.value = false
         }
         break
-      default: {
-        const rowObj = unref(data)[selectedCell.row]
+      default:
+        {
+          const rowObj = unref(data)[selectedCell.row]
 
-        const columnObj = unref(fields)[selectedCell.col]
+          const columnObj = unref(fields)[selectedCell.col]
 
-        if ((!unref(editEnabled) && e.metaKey) || e.ctrlKey) {
-          switch (e.keyCode) {
-            // copy - ctrl/cmd +c
-            case 67:
-              // set clipboard context only if single cell selected
-              if (rowObj.row[columnObj.title!]) {
-                clipboardContext = {
-                  value: rowObj.row[columnObj.title!],
-                  uidt: columnObj.uidt as UITypes,
-                }
-              } else {
-                clipboardContext = null
-              }
-              await copyValue()
-              break
-            case 86:
-              try {
-                // handle belongs to column
-                if (
-                  columnObj.uidt === UITypes.LinkToAnotherRecord &&
-                  (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
-                ) {
-                  if (!clipboardContext.value || typeof clipboardContext.value !== 'object') {
-                    return message.info('Invalid data')
+          if ((!unref(editEnabled) && e.metaKey) || e.ctrlKey) {
+            switch (e.keyCode) {
+              // copy - ctrl/cmd +c
+              case 67:
+                // set clipboard context only if single cell selected
+                if (rowObj.row[columnObj.title!]) {
+                  clipboardContext = {
+                    value: rowObj.row[columnObj.title!],
+                    uidt: columnObj.uidt as UITypes,
                   }
-                  rowObj.row[columnObj.title!] = convertCellData(
-                    {
-                      value: clipboardContext.value,
-                      from: clipboardContext.uidt,
-                      to: columnObj.uidt as UITypes,
-                    },
-                    isMysql.value,
-                  )
-                  e.preventDefault()
-
-                  const foreignKeyColumn: ColumnType = meta.value?.columns.find(
-                    (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
-                  )
-
-                  const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
-
-                  rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(
-                    clipboardContext.value,
-                    (relatedTableMeta as any)!.columns!,
-                  )
-
-                  return await syncCellData?.({ ...selectedCell, updatedColumnTitle: foreignKeyColumn.title })
-                }
-
-                // if it's a virtual column excluding belongs to cell type skip paste
-                if (isVirtualCol(columnObj)) {
-                  return message.info(t('msg.info.notSupported'))
-                }
-
-                if (clipboardContext) {
-                  rowObj.row[columnObj.title!] = convertCellData(
-                    {
-                      value: clipboardContext.value,
-                      from: clipboardContext.uidt,
-                      to: columnObj.uidt as UITypes,
-                    },
-                    isMysql.value,
-                  )
-                  e.preventDefault()
-                  syncCellData?.(selectedCell)
                 } else {
-                  clearCell(selectedCell as { row: number; col: number }, true)
-                  makeEditable(rowObj, columnObj)
+                  clipboardContext = null
                 }
-              } catch (error) {
-                message.error(await extractSdkResponseErrorMsg(error))
-              }
-          }
-        }
+                await copyValue()
+                break
+              case 86:
+                try {
+                  // handle belongs to column
+                  if (
+                    columnObj.uidt === UITypes.LinkToAnotherRecord &&
+                    (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
+                  ) {
+                    if (!clipboardContext.value || typeof clipboardContext.value !== 'object') {
+                      return message.info('Invalid data')
+                    }
+                    rowObj.row[columnObj.title!] = convertCellData(
+                      {
+                        value: clipboardContext.value,
+                        from: clipboardContext.uidt,
+                        to: columnObj.uidt as UITypes,
+                      },
+                      isMysql.value,
+                    )
+                    e.preventDefault()
 
-        if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
-          return true
-        }
+                    const foreignKeyColumn: ColumnType = meta.value?.columns.find(
+                      (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+                    )
 
-        /** on letter key press make cell editable and empty */
-        if (e.key.length === 1) {
-          if (!unref(isPkAvail) && !rowObj.rowMeta.new) {
-            // Update not allowed for table which doesn't have primary Key
-            return message.info(t('msg.info.updateNotAllowedWithoutPK'))
+                    const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
+                    rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(
+                      clipboardContext.value,
+                      (relatedTableMeta as any)!.columns!,
+                    )
+
+                    return await syncCellData?.({ ...selectedCell, updatedColumnTitle: foreignKeyColumn.title })
+                  }
+
+                  // if it's a virtual column excluding belongs to cell type skip paste
+                  if (isVirtualCol(columnObj)) {
+                    return message.info(t('msg.info.pasteNotSupported'))
+                  }
+
+                  if (clipboardContext) {
+                    rowObj.row[columnObj.title!] = convertCellData(
+                      {
+                        value: clipboardContext.value,
+                        from: clipboardContext.uidt,
+                        to: columnObj.uidt as UITypes,
+                      },
+                      isMysql.value,
+                    )
+                    e.preventDefault()
+                    syncCellData?.(selectedCell)
+                  } else {
+                    clearCell(selectedCell as { row: number; col: number }, true)
+                    makeEditable(rowObj, columnObj)
+                  }
+                } catch (error) {
+                  message.error(await extractSdkResponseErrorMsg(error))
+                }
+            }
           }
-          if (makeEditable(rowObj, columnObj) && columnObj.title) {
-            rowObj.row[columnObj.title] = ''
+
+          if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
+            return true
           }
-          // editEnabled = true
+
+          /** on letter key press make cell editable and empty */
+          if (e.key.length === 1) {
+            if (!unref(isPkAvail) && !rowObj.rowMeta.new) {
+              // Update not allowed for table which doesn't have primary Key
+              return message.info(t('msg.info.updateNotAllowedWithoutPK'))
+            }
+            if (makeEditable(rowObj, columnObj) && columnObj.title) {
+              rowObj.row[columnObj.title] = ''
+            }
+            // editEnabled = true
+          }
         }
-      }
         break
     }
   }

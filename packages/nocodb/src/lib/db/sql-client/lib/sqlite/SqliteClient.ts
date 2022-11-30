@@ -1552,7 +1552,22 @@ class SqliteClient extends KnexClient {
       );
       //downQuery += alterTablePK(args.originalColumns, args.columns, downQuery);
 
-      await this.sqlClient.raw(upQuery);
+      const trx = await this.sqlClient.transaction();
+
+      try {
+        const queries = upQuery.split(';');
+        for (let i = 0; i < queries.length; i++) {
+          if (queries[i].trim() !== '') {
+            await trx.raw(queries[i]);
+          }
+        }
+
+        await trx.commit();
+      } catch (e) {
+        await trx.rollback();
+        log.ppe(e, _func);
+        throw e;
+      }
 
       console.log(upQuery);
 
@@ -1950,30 +1965,43 @@ class SqliteClient extends KnexClient {
     const defaultValue = getDefaultValue(n);
     let shouldSanitize = true;
     if (change === 2) {
-      query += this.genQuery(
-        `ALTER TABLE ?? RENAME COLUMN ?? TO ??`,
-        [t, o.cn, n.cn],
+      let dropFkRestrictionQuery = this.genQuery('PRAGMA foreign_keys = OFF;');
+
+      let backupOldColumnQuery = this.genQuery(
+        `ALTER TABLE ?? RENAME COLUMN ?? TO ??;`,
+        [t, o.cn, `${o.cno}_nc_backup`],
         shouldSanitize
       );
+      
+      let addNewColumnQuery = ''
+      addNewColumnQuery += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      addNewColumnQuery += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
+      addNewColumnQuery += n.cdf ? ` DEFAULT ${n.cdf}` : !n.rqd ? ' ' : ` DEFAULT ''`;
+      addNewColumnQuery += n.rqd ? ` NOT NULL` : ' ';
+      addNewColumnQuery = this.genQuery(`ALTER TABLE ?? ${addNewColumnQuery};`, [t], shouldSanitize);
+
+      let updateNewColumnQuery = this.genQuery(`UPDATE ?? SET ?? = ??;`, [t, n.cn, `${o.cno}_nc_backup`], shouldSanitize);
+
+      let dropOldColumnQuery = this.genQuery(`ALTER TABLE ?? DROP COLUMN ??;`, [t, `${o.cno}_nc_backup`], shouldSanitize);
+
+      let restoreFkRestrictionQuery = this.genQuery('PRAGMA foreign_keys = ON;');
+
+      query = `${dropFkRestrictionQuery}${backupOldColumnQuery}${addNewColumnQuery}${updateNewColumnQuery}${dropOldColumnQuery}${restoreFkRestrictionQuery}`;
     } else if (change === 0) {
       query = existingQuery ? ',' : '';
       query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       query += n.cdf
-        ? n.cdf.includes(',')
-          ? ` DEFAULT ('${n.cdf}')`
-          : ` DEFAULT ${n.cdf}`
-        : ' ';
+        ? ` DEFAULT ${n.cdf}`
+        : !n.rqd ? ' ' : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       query += n.cdf
-        ? n.cdf.includes(',')
-          ? ` DEFAULT ('${n.cdf}')`
-          : ` DEFAULT ${n.cdf}`
-        : ' ';
+        ? ` DEFAULT ${n.cdf}`
+        : !n.rqd ? ' ' : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {

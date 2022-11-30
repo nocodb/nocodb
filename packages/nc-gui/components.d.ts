@@ -179,6 +179,7 @@ declare module '@vue/runtime-core' {
     MdiHook: typeof import('~icons/mdi/hook')['default']
     MdiInformation: typeof import('~icons/mdi/information')['default']
     MdiJson: typeof import('~icons/mdi/json')['default']
+    MdiKeyboard: typeof import('~icons/mdi/keyboard')['default']
     MdiKeyboardReturn: typeof import('~icons/mdi/keyboard-return')['default']
     MdiKeyChange: typeof import('~icons/mdi/key-change')['default']
     MdiKeyStar: typeof import('~icons/mdi/key-star')['default']

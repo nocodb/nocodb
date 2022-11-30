@@ -210,27 +210,30 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
     }
 
     if (cmdOrCtrl) {
-      e.preventDefault()
       switch (e.key) {
         case 'ArrowUp':
+          e.preventDefault()
           selectedCell.row = 0
           selectedCell.col = selectedCell.col ?? 0
           scrollToCell?.()
           editEnabled = false
           return true
         case 'ArrowDown':
+          e.preventDefault()
           selectedCell.row = data.value.length - 1
           selectedCell.col = selectedCell.col ?? 0
           scrollToCell?.()
           editEnabled = false
           return true
         case 'ArrowRight':
+          e.preventDefault()
           selectedCell.row = selectedCell.row ?? 0
           selectedCell.col = fields.value?.length - 1
           scrollToCell?.()
           editEnabled = false
           return true
         case 'ArrowLeft':
+          e.preventDefault()
           selectedCell.row = selectedCell.row ?? 0
           selectedCell.col = 0
           scrollToCell?.()

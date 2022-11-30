@@ -112,30 +112,46 @@ const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {
 const duplicateColumn = async () => {
   let columnCreatePayload = {}
 
+  // generate duplicate column name
   const duplicateColumnName = getUniqueColumnName(`${column!.value.title}_copy`, meta!.value!.columns!)
 
+  // construct column create payload
   switch (column.value.uidt) {
-    // LTAR
-    // Formula
-    // Lookup
-    // Rollup
-
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:
       return message.info('Not available at the moment')
+    case UITypes.SingleSelect:
+    case UITypes.MultiSelect:
+      columnCreatePayload = {
+        ...column!.value!,
+        title: duplicateColumnName,
+        column_name: duplicateColumnName,
+        id: undefined,
+        order: undefined,
+        colOptions: {
+          options:
+            column.value.colOptions?.options?.map((option: Record<string, any>) => ({
+              ...option,
+              id: undefined,
+            })) ?? [],
+        },
+      }
+      break
     default:
       columnCreatePayload = {
         ...column!.value!,
-        ...column!.value.colOptions,
+        ...(column!.value.colOptions ?? {}),
         title: duplicateColumnName,
         column_name: duplicateColumnName,
         id: undefined,
         colOptions: undefined,
+        order: undefined,
       }
       break
   }
+
 
   try {
     const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
@@ -158,6 +174,8 @@ const duplicateColumn = async () => {
     await getMeta(meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+    message.success(t('msg.success.columnDuplicated'))
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -204,7 +222,8 @@ const hideField = async () => {
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
+  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']"
+              overlay-class-name="nc-dropdown-column-operations">
     <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
 
     <template #overlay>
@@ -216,7 +235,8 @@ const hideField = async () => {
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
-        <template v-if="column.uidt !== UITypes.LinkToAnotherRecord || column.colOptions.type !== RelationTypes.BELONGS_TO">
+        <template
+          v-if="column.uidt !== UITypes.LinkToAnotherRecord || column.colOptions.type !== RelationTypes.BELONGS_TO">
           <a-divider class="!my-0" />
           <a-menu-item @click="sortByColumn('asc')">
             <div class="nc-column-insert-after nc-header-menu-item">
@@ -241,7 +261,10 @@ const hideField = async () => {
 
         <a-divider class="!my-0" />
 
-        <a-menu-item @click="duplicateColumn">
+        <a-menu-item
+          v-if="column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.Lookup && !column.pk"
+          @click="duplicateColumn"
+        >
           <div class="nc-column-duplicate nc-header-menu-item">
             <MdiFileReplaceOutline class="text-primary" />
             Duplicate

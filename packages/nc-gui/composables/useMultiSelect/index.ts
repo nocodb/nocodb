@@ -5,7 +5,7 @@ import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from '~/composables/useMultiSelect/convertCellData'
 import { useMetas } from '~/composables/useMetas'
-import { extractPkFromRow } from '~/utils'
+import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
 import { copyTable, message, reactive, ref, unref, useCopy, useEventListener, useI18n } from '#imports'
 import type { Row } from '~/lib'
 
@@ -245,52 +245,58 @@ export function useMultiSelect(
                 await copyValue()
                 break
               case 86:
-                // handle belongs to column
-                if (
-                  columnObj.uidt === UITypes.LinkToAnotherRecord &&
-                  (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
-                ) {
-                  if (!clipboardContext.value || typeof clipboardContext.value !== 'object') {
-                    return message.info('Invalid data')
+                try {
+                  // handle belongs to column
+                  if (
+                    columnObj.uidt === UITypes.LinkToAnotherRecord &&
+                    (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
+                  ) {
+                    if (!clipboardContext.value || typeof clipboardContext.value !== 'object') {
+                      return message.info('Invalid data')
+                    }
+                    rowObj.row[columnObj.title!] = convertCellData({
+                      value: clipboardContext.value,
+                      from: clipboardContext.uidt,
+                      to: columnObj.uidt as UITypes,
+                    })
+                    e.preventDefault()
+
+                    const foreignKeyColumn: ColumnType = meta.value?.columns.find(
+                      (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+                    )
+
+                    const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
+                    rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(
+                      clipboardContext.value,
+                      (relatedTableMeta as any)!.columns!,
+                    )
+
+                    // makeEditable(rowObj, columnObj)
+                    return await syncCellData?.({ ...selectedCell, updatedColumnTitle: foreignKeyColumn.title })
                   }
 
-                  rowObj.row[columnObj.title!] = convertCellData({
-                    value: clipboardContext.value,
-                    from: clipboardContext.uidt,
-                    to: columnObj.uidt as UITypes,
-                  })
-                  e.preventDefault()
+                  // if it's a virtual column excluding belongs to cell type skip paste
+                  if (isVirtualCol(columnObj)) {
+                    return message.info(t('msg.info.notSupported'))
+                  }
 
-                  const foreignKeyColumn: ColumnType = meta.value?.columns.find(
-                    (c) => c.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
-                  )
-
-                  const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType)?.fk_related_model_id!)
-
-                  rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(clipboardContext.value, relatedTableMeta!.columns!)
-
-                  // makeEditable(rowObj, columnObj)
-                  return syncCellData?.({ ...selectedCell, updatedColumnTitle: foreignKeyColumn.title })
-                }
-
-                // if it's a virtual column excluding belongs to cell type skip paste
-                if (isVirtualCol(columnObj)) {
-                  return message.info(t('msg.info.cannotPasteHere'))
-                }
-
-                // const clipboardText = await getClipboardData()
-                if (clipboardContext) {
-                  rowObj.row[columnObj.title!] = convertCellData({
-                    value: clipboardContext.value,
-                    from: clipboardContext.uidt,
-                    to: columnObj.uidt as UITypes,
-                  })
-                  e.preventDefault()
-                  // makeEditable(rowObj, columnObj)
-                  syncCellData?.(selectedCell)
-                } else {
-                  clearCell(selectedCell as { row: number; col: number }, true)
-                  makeEditable(rowObj, columnObj)
+                  // const clipboardText = await getClipboardData()
+                  if (clipboardContext) {
+                    rowObj.row[columnObj.title!] = convertCellData({
+                      value: clipboardContext.value,
+                      from: clipboardContext.uidt,
+                      to: columnObj.uidt as UITypes,
+                    })
+                    e.preventDefault()
+                    // makeEditable(rowObj, columnObj)
+                    syncCellData?.(selectedCell)
+                  } else {
+                    clearCell(selectedCell as { row: number; col: number }, true)
+                    makeEditable(rowObj, columnObj)
+                  }
+                } catch (error) {
+                  message.error(await extractSdkResponseErrorMsg(error))
                 }
             }
           }

@@ -7,6 +7,9 @@ import Result from '../../../util/Result';
 import queries from './sqlite.queries';
 import lodash from 'lodash';
 import _ from 'lodash';
+import { customAlphabet } from 'nanoid';
+
+const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 6);
 
 const log = new Debug('SqliteClient');
 
@@ -1546,6 +1549,9 @@ class SqliteClient extends KnexClient {
 
       const pkQuery = this.alterTablePK(args.columns, args.originalColumns, upQuery);
 
+      await this.sqlClient.raw('PRAGMA foreign_keys = OFF;');
+      await this.sqlClient.raw('PRAGMA legacy_alter_table = ON;');
+
       const trx = await this.sqlClient.transaction();
 
       try {
@@ -1577,6 +1583,9 @@ class SqliteClient extends KnexClient {
         await trx.rollback();
         log.ppe(e, _func);
         throw e;
+      } finally {
+        await this.sqlClient.raw('PRAGMA foreign_keys = ON;');
+        await this.sqlClient.raw('PRAGMA legacy_alter_table = OFF;');
       }
 
       console.log(upQuery);
@@ -1986,11 +1995,11 @@ class SqliteClient extends KnexClient {
     const defaultValue = getDefaultValue(n);
     let shouldSanitize = true;
     if (change === 2) {
-      let dropFkRestrictionQuery = this.genQuery('PRAGMA foreign_keys = OFF;');
+      const suffix = nanoid();
 
       let backupOldColumnQuery = this.genQuery(
         `ALTER TABLE ?? RENAME COLUMN ?? TO ??;`,
-        [t, o.cn, `${o.cno}_nc_backup`],
+        [t, o.cn, `${o.cno}_nc_${suffix}`],
         shouldSanitize
       );
       
@@ -2001,13 +2010,11 @@ class SqliteClient extends KnexClient {
       addNewColumnQuery += n.rqd ? ` NOT NULL` : ' ';
       addNewColumnQuery = this.genQuery(`ALTER TABLE ?? ${addNewColumnQuery};`, [t], shouldSanitize);
 
-      let updateNewColumnQuery = this.genQuery(`UPDATE ?? SET ?? = ??;`, [t, n.cn, `${o.cno}_nc_backup`], shouldSanitize);
+      let updateNewColumnQuery = this.genQuery(`UPDATE ?? SET ?? = ??;`, [t, n.cn, `${o.cno}_nc_${suffix}`], shouldSanitize);
 
-      let dropOldColumnQuery = this.genQuery(`ALTER TABLE ?? DROP COLUMN ??;`, [t, `${o.cno}_nc_backup`], shouldSanitize);
+      let dropOldColumnQuery = this.genQuery(`ALTER TABLE ?? DROP COLUMN ??;`, [t, `${o.cno}_nc_${suffix}`], shouldSanitize);
 
-      let restoreFkRestrictionQuery = this.genQuery('PRAGMA foreign_keys = ON;');
-
-      query = `${dropFkRestrictionQuery}${backupOldColumnQuery}${addNewColumnQuery}${updateNewColumnQuery}${dropOldColumnQuery}${restoreFkRestrictionQuery}`;
+      query = `${backupOldColumnQuery}${addNewColumnQuery}${updateNewColumnQuery}${dropOldColumnQuery}`;
     } else if (change === 0) {
       query = existingQuery ? ',' : '';
       query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);

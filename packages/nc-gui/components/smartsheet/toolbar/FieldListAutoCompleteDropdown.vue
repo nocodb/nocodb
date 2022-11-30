@@ -21,14 +21,17 @@ const localValue = computed({
 const options = computed<SelectProps['options']>(() =>
   meta.value?.columns
     ?.filter((c: ColumnType) => {
-      /** ignore hasmany and manytomany relations if it's using within sort menu */
-      if (isSort) {
+      if (c.uidt === UITypes.QrCode) {
+        return false
+      } else if (isSort) {
+        /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(
           c.uidt === UITypes.LinkToAnotherRecord && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
         )
-        /** ignore virtual fields which are system fields ( mm relation ) */
+        /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       } else {
-        return !c.colOptions || !c.system
+        const isVirtualSystemField = c.colOptions && c.system
+        return !isVirtualSystemField
       }
     })
     .map((c: ColumnType) => ({
@@ -48,14 +51,9 @@ const filterOption = (input: string, option: any) => option.label.toLowerCase()?
 </script>
 
 <template>
-  <a-select
-    v-model:value="localValue"
-    :dropdown-match-select-width="false"
-    show-search
-    :placeholder="$t('placeholder.selectField')"
-    :filter-option="filterOption"
-    dropdown-class-name="nc-dropdown-toolbar-field-list"
-  >
+  <a-select v-model:value="localValue" :dropdown-match-select-width="false" show-search
+    :placeholder="$t('placeholder.selectField')" :filter-option="filterOption"
+    dropdown-class-name="nc-dropdown-toolbar-field-list">
     <a-select-option v-for="option in options" :key="option.value" :label="option.label" :value="option.value">
       <div class="flex gap-2 items-center items-center h-full">
         <component :is="option.icon" class="min-w-5 !mx-0" />

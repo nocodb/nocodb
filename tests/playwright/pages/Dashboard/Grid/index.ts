@@ -5,11 +5,13 @@ import { CellPageObject } from '../common/Cell';
 import { ColumnPageObject } from './Column';
 import { ToolbarPage } from '../common/Toolbar';
 import { ProjectMenuObject } from '../common/ProjectMenu';
+import { QrCodeOverlay } from '../QrCodeOverlay';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly addNewTableButton: Locator;
   readonly dashboardPage: DashboardPage;
+  readonly qrCodeOverlay: QrCodeOverlay;
   readonly column: ColumnPageObject;
   readonly cell: CellPageObject;
   readonly toolbar: ToolbarPage;
@@ -19,6 +21,7 @@ export class GridPage extends BasePage {
     super(dashboardPage.rootPage);
     this.dashboard = dashboardPage;
     this.addNewTableButton = dashboardPage.get().locator('.nc-add-new-table');
+    this.qrCodeOverlay = new QrCodeOverlay(this);
     this.column = new ColumnPageObject(this);
     this.cell = new CellPageObject(this);
     this.toolbar = new ToolbarPage(this);

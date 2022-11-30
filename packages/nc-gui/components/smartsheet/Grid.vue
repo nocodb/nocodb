@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -17,6 +17,7 @@ import {
   ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
+  SmartsheetStoreEvents,
   computed,
   createEventHook,
   enumColor,
@@ -72,7 +73,7 @@ const isView = false
 
 let editEnabled = $ref(false)
 
-const { xWhere, isPkAvail, isSqlView } = useSmartsheetStoreOrThrow()
+const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -583,6 +584,20 @@ watch(
   },
   { immediate: true },
 )
+
+const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+eventBus.on(async (event, payload) => {
+  if (event === SmartsheetStoreEvents.FIELD_ADD) {
+    columnOrder.value = payload
+    addColumnDropdown.value = true
+  }
+})
+
+const closeAddColumnDropdown = () => {
+  columnOrder.value = null
+  addColumnDropdown.value = false
+}
 </script>
 
 <template>
@@ -658,8 +673,9 @@ watch(
                   <template #overlay>
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
-                      @submit="addColumnDropdown = false"
-                      @cancel="addColumnDropdown = false"
+                      :column-position="columnOrder"
+                      @submit="closeAddColumnDropdown"
+                      @cancel="closeAddColumnDropdown"
                       @click.stop
                       @keydown.stop
                     />

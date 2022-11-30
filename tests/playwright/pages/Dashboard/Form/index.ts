@@ -7,6 +7,7 @@ export class FormPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly toolbar: ToolbarPage;
 
+  // todo: All the locator should be private
   readonly addAllButton: Locator;
   readonly removeAllButton: Locator;
   readonly submitButton: Locator;

@@ -4,7 +4,7 @@ import EntityMap from './EntityMap';
 
 const BULK_DATA_BATCH_SIZE = 500;
 const ASSOC_BULK_DATA_BATCH_SIZE = 1000;
-const BULK_PARALLEL_PROCESS = 100;
+const BULK_PARALLEL_PROCESS = 5;
 
 async function readAllData({
   table,

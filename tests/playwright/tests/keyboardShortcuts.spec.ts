@@ -3,7 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import { GridPage } from '../pages/Dashboard/Grid';
 import setup from '../setup';
 
-test.describe.only('Verify shortcuts', () => {
+test.describe('Verify shortcuts', () => {
   let dashboard: DashboardPage, grid: GridPage;
   let context: any;
 

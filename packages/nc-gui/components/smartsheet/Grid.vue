@@ -210,6 +210,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
     }
 
     if (cmdOrCtrl) {
+      e.preventDefault()
       switch (e.key) {
         case 'ArrowUp':
           selectedCell.row = 0

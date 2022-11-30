@@ -241,6 +241,8 @@
     "created": "创造了",
     "sqlOutput": "SQL输出",
     "addOption": "添加选项",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "汇总功能",
     "dbCreateIfNotExists": "数据库 : 如果不存在则创建",
     "clientKey": "客户端 Key",
@@ -487,6 +489,12 @@
     "selectField": "选择字段"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",

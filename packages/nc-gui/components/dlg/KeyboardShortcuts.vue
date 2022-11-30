@@ -40,6 +40,10 @@ const shortcutList = [
         keys: ['ALT', 'I'],
         behaviour: 'Invite a member to team',
       },
+      {
+        keys: ['ALT', ','],
+        behaviour: 'Open Team & Settings',
+      },
     ],
   },
   {
@@ -85,6 +89,105 @@ const shortcutList = [
         keys: ['←', '→', '↑', '↓'],
         behaviour: 'General cell navigation',
       },
+      {
+        keys: ['Tab'],
+        behaviour: 'Move to next cell horizontally; if on last cell, move to next row beginning',
+      },
+    ],
+  },
+  {
+    title: 'Text / Number',
+    shortcuts: [
+      {
+        keys: ['←'],
+        behaviour: 'Move cursor to the left',
+      },
+      {
+        keys: ['→'],
+        behaviour: 'Move cursor to the right',
+      },
+      {
+        keys: ['↑'],
+        behaviour: 'Move cursor to the left',
+      },
+      {
+        keys: ['↓'],
+        behaviour: 'Move cursor to the right',
+      },
+    ],
+  },
+  {
+    title: 'SingleSelect',
+    shortcuts: [
+      {
+        keys: ['↑'],
+        behaviour: 'Move to the previous option',
+      },
+      {
+        keys: ['↓'],
+        behaviour: 'Move to the next option',
+      },
+      {
+        keys: ['Enter'],
+        behaviour: 'Select the current option',
+      },
+    ],
+  },
+  {
+    title: 'MultiSelect',
+    shortcuts: [
+      {
+        keys: ['↑'],
+        behaviour: 'Move to the previous option',
+      },
+      {
+        keys: ['↓'],
+        behaviour: 'Move to the next option',
+      },
+      {
+        keys: ['Enter'],
+        behaviour: 'Select / deselect the current option',
+      },
+    ],
+  },
+  {
+    title: 'Date / DateTime',
+    shortcuts: [
+      {
+        keys: [renderCmdOrCtrlKey(), ';'],
+        behaviour: 'Select current date time',
+      },
+    ],
+  },
+  {
+    title: 'LinkToAnotherRecord',
+    shortcuts: [
+      {
+        keys: ['↑'],
+        behaviour: 'Move to the previous option',
+      },
+      {
+        keys: ['↓'],
+        behaviour: 'Move to the next option',
+      },
+    ],
+  },
+  {
+    title: 'Checkbox',
+    shortcuts: [
+      {
+        keys: ['Enter'],
+        behaviour: 'Toggle',
+      },
+    ],
+  },
+  {
+    title: 'Rating',
+    shortcuts: [
+      {
+        keys: ['<0 ~ Max>'],
+        behaviour: 'Enter number to toggle rating',
+      },
     ],
   },
   {
@@ -92,7 +195,7 @@ const shortcutList = [
     shortcuts: [
       {
         keys: [renderCmdOrCtrlKey(), 'Enter'],
-        behaviour: 'Save current expanded row item',
+        behaviour: 'Save current expanded form item',
       },
     ],
   },

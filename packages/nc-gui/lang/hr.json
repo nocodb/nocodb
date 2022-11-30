@@ -241,6 +241,8 @@
     "created": "Stvoren",
     "sqlOutput": "SQL izlaz",
     "addOption": "Dodajte opciju",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "Agregatna funkcija",
     "dbCreateIfNotExists": "Baza podataka: stvoriti ako ne postoji",
     "clientKey": "Ključ klijenta",
@@ -487,6 +489,12 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",

@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import {
   ColumnInj,
   IsLockedInj,
   MetaInj,
   Modal,
   ReloadViewDataHookInj,
+  defineEmits,
+  defineProps,
   extractSdkResponseErrorMsg,
   inject,
   message,
@@ -156,11 +158,12 @@ const duplicateColumn = async () => {
     await getMeta(meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-  } catch (e: any) {
+  } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
+// add column before or after current column
 const addColumn = async (before = false) => {
   const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
 
@@ -189,6 +192,7 @@ const addColumn = async (before = false) => {
   })
 }
 
+// hide the field in view
 const hideField = async () => {
   const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
 
@@ -212,20 +216,21 @@ const hideField = async () => {
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
-        <a-divider class="!my-0" />
-        <a-menu-item @click="sortByColumn('asc')">
-          <div class="nc-column-insert-after nc-header-menu-item">
-            <MdiSortAscending class="text-primary" />
-            Sort Ascending
-          </div>
-        </a-menu-item>
-        <a-menu-item @click="sortByColumn('desc')">
-          <div class="nc-column-insert-before nc-header-menu-item">
-            <MdiSortDescending class="text-primary" />
-            Sort Descending
-          </div>
-        </a-menu-item>
-
+        <template v-if="column.uidt !== UITypes.LinkToAnotherRecord || column.colOptions.type !== RelationTypes.BELONGS_TO">
+          <a-divider class="!my-0" />
+          <a-menu-item @click="sortByColumn('asc')">
+            <div class="nc-column-insert-after nc-header-menu-item">
+              <MdiSortAscending class="text-primary" />
+              Sort Ascending
+            </div>
+          </a-menu-item>
+          <a-menu-item @click="sortByColumn('desc')">
+            <div class="nc-column-insert-before nc-header-menu-item">
+              <MdiSortDescending class="text-primary" />
+              Sort Descending
+            </div>
+          </a-menu-item>
+        </template>
         <a-divider class="!my-0" />
         <a-menu-item @click="hideField">
           <div class="nc-column-insert-before nc-header-menu-item">

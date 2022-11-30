@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { AllowedColumnTypesForQrCode, UITypes } from 'nocodb-sdk'
+import type { UITypes } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrCode } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 import { useVModel } from '#imports'
 
@@ -50,10 +51,17 @@ setAdditionalValidations({
 <template>
   <a-row>
     <a-col :span="24">
-      <a-form-item class="flex w-1/2 pb-2 nc-qr-code-value-column-select" :label="$t('labels.qrCodeValueColumn')"
-        v-bind="validateInfos.fk_qr_value_column_id">
-        <a-select v-model:value="vModel.fk_qr_value_column_id" :options="columnsAllowedAsQrValue"
-          placeholder="Select a column for the QR code value" @click.stop />
+      <a-form-item
+        class="flex w-1/2 pb-2 nc-qr-code-value-column-select"
+        :label="$t('labels.qrCodeValueColumn')"
+        v-bind="validateInfos.fk_qr_value_column_id"
+      >
+        <a-select
+          v-model:value="vModel.fk_qr_value_column_id"
+          :options="columnsAllowedAsQrValue"
+          placeholder="Select a column for the QR code value"
+          @click.stop
+        />
       </a-form-item>
     </a-col>
   </a-row>

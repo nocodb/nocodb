@@ -51,9 +51,14 @@ const filterOption = (input: string, option: any) => option.label.toLowerCase()?
 </script>
 
 <template>
-  <a-select v-model:value="localValue" :dropdown-match-select-width="false" show-search
-    :placeholder="$t('placeholder.selectField')" :filter-option="filterOption"
-    dropdown-class-name="nc-dropdown-toolbar-field-list">
+  <a-select
+    v-model:value="localValue"
+    :dropdown-match-select-width="false"
+    show-search
+    :placeholder="$t('placeholder.selectField')"
+    :filter-option="filterOption"
+    dropdown-class-name="nc-dropdown-toolbar-field-list"
+  >
     <a-select-option v-for="option in options" :key="option.value" :label="option.label" :value="option.value">
       <div class="flex gap-2 items-center items-center h-full">
         <component :is="option.icon" class="min-w-5 !mx-0" />

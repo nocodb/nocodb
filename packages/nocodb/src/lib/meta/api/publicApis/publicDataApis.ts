@@ -18,6 +18,7 @@ import slash from 'slash';
 import { sanitizeUrlPath } from '../attachmentApis';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { getColumnByIdOrName } from '../dataApis/helpers';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../../constants';
 
 export async function dataList(req: Request, res: Response) {
   try {
@@ -451,6 +452,9 @@ router.post(
   '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
   multer({
     storage: multer.diskStorage({}),
+    limits: {
+      fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+    },
   }).any(),
   catchError(dataInsert)
 );

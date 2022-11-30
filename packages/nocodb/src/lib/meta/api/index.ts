@@ -55,6 +55,7 @@ import importApis from './sync/importApis';
 import syncSourceApis from './sync/syncSourceApis';
 
 const clients: { [id: string]: Socket } = {};
+const jobs: { [id: string]: { last_message: any } } = {};
 
 export default function (router: Router, server) {
   initStrategies(router);
@@ -138,9 +139,16 @@ export default function (router: Router, server) {
     socket.on('event', (args) => {
       Tele.event({ ...args, id });
     });
+    socket.on('subscribe', (room) => {
+      if (room in jobs) {
+        socket.join(room)
+        socket.emit('job')
+        socket.emit('progress', jobs[room].last_message)
+      }
+    })
   });
 
-  importApis(router, clients);
+  importApis(router, io, jobs);
 }
 
 function getHash(str) {

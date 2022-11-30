@@ -4,9 +4,19 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from '~/composables/useMultiSelect/convertCellData'
-import { useMetas } from '~/composables/useMetas'
-import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
-import { copyTable, message, reactive, ref, unref, useCopy, useEventListener, useI18n } from '#imports'
+import {
+  copyTable,
+  extractPkFromRow,
+  extractSdkResponseErrorMsg,
+  message,
+  reactive,
+  ref,
+  unref,
+  useCopy,
+  useEventListener,
+  useI18n,
+  useMetas,
+} from '#imports'
 import type { Row } from '~/lib'
 
 /**
@@ -272,7 +282,6 @@ export function useMultiSelect(
                       (relatedTableMeta as any)!.columns!,
                     )
 
-                    // makeEditable(rowObj, columnObj)
                     return await syncCellData?.({ ...selectedCell, updatedColumnTitle: foreignKeyColumn.title })
                   }
 
@@ -281,7 +290,6 @@ export function useMultiSelect(
                     return message.info(t('msg.info.notSupported'))
                   }
 
-                  // const clipboardText = await getClipboardData()
                   if (clipboardContext) {
                     rowObj.row[columnObj.title!] = convertCellData({
                       value: clipboardContext.value,
@@ -289,7 +297,6 @@ export function useMultiSelect(
                       to: columnObj.uidt as UITypes,
                     })
                     e.preventDefault()
-                    // makeEditable(rowObj, columnObj)
                     syncCellData?.(selectedCell)
                   } else {
                     clearCell(selectedCell as { row: number; col: number }, true)

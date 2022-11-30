@@ -21,8 +21,6 @@ menuTitle: 'Keyboard Maneuver'
 ## General maneuver on GRID
 |             Key | Behaviour                                                                            |
 |----------------:|:-------------------------------------------------------------------------------------|
-|         `⌘` `←` | Jump to leftmost column in this row                                                  |
-|         `⌘` `→` | Jump to rightmost column in this row                                                 |
 |         `⌘` `↑` | Jump to first record in this column (in same page)                                   |
 |         `⌘` `↓` | Jump to last record in this column (in same page)                                    |
 |         `⌘` `C` | Copy cell contents                                                                   |

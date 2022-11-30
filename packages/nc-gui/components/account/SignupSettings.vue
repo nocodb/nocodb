@@ -51,6 +51,6 @@ loadSettings()
 <style scoped>
 :deep(.ant-checkbox-wrapper) {
   @apply !flex-row-reverse !flex !justify-start gap-4;
-  justify-content: start;
+  justify-content: flex-start;
 }
 </style>

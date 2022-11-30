@@ -5,7 +5,7 @@ import RollupColumn from './RollupColumn';
 import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
-import { AllowedColumnTypesForQrCode, ColumnType, UITypes } from 'nocodb-sdk';
+import { ColumnReqType, AllowedColumnTypesForQrCode, ColumnType, UITypes } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -74,7 +74,7 @@ export default class Column<T = any> implements ColumnType {
       [key: string]: any;
       fk_model_id: string;
       uidt: UITypes | string;
-    },
+    } & Pick<ColumnReqType, 'column_order'>,
     ncMeta = Noco.ncMeta
   ) {
     if (!column.fk_model_id) NcError.badRequest('Missing model id');
@@ -130,7 +130,6 @@ export default class Column<T = any> implements ColumnType {
     }
 
     if (!column.uidt) throw new Error('UI Datatype not found');
-    const order = 1;
     const row = await ncMeta.metaInsert2(
       null, //column.project_id || column.base_id,
       null, //column.db_alias,
@@ -152,8 +151,8 @@ export default class Column<T = any> implements ColumnType {
       {
         fk_column_id: row.id,
         fk_model_id: column.fk_model_id,
-        order,
         show: true,
+        column_order: column.column_order,
       },
       ncMeta
     );

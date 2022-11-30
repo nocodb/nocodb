@@ -71,13 +71,15 @@ useMenuCloseOnEsc(open)
 
 <template>
   <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
-    <div :class="{ 'nc-badge nc-active-btn': filtersLength }">
+    <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <MdiFilterOutline />
           <!-- Filter -->
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.filter') }}</span>
           <MdiMenuDown class="text-grey" />
+
+          <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>
       </a-button>
     </div>

@@ -1,5 +1,5 @@
 import clone from 'just-clone'
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
@@ -191,7 +191,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       if (cdf) formState.value.cdf = formState.value.cdf || null
     }
 
-    const addOrUpdate = async (onSuccess: () => void) => {
+    const addOrUpdate = async (onSuccess: () => void, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
       try {
         if (!(await validate())) return
       } catch (e) {
@@ -228,7 +228,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             //   };
             // }
           }
-          await $api.dbTableColumn.create(meta.value?.id as string, formState.value)
+          await $api.dbTableColumn.create(meta.value?.id as string, { ...formState.value, ...columnPosition })
 
           /** if LTAR column then force reload related table meta */
           if (formState.value.uidt === UITypes.LinkToAnotherRecord && meta.value?.id !== formState.value.childId) {

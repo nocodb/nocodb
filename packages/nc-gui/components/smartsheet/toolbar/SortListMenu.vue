@@ -10,6 +10,7 @@ import {
   inject,
   ref,
   useMenuCloseOnEsc,
+  useSmartsheetStoreOrThrow,
   useViewSorts,
   watch,
 } from '#imports'
@@ -19,7 +20,15 @@ const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
 const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.SORT_RELOAD) {
+    loadSorts()
+  }
+})
 
 const columns = computed(() => meta.value?.columns || [])
 
@@ -54,6 +63,8 @@ useMenuCloseOnEsc(open)
           <!-- Sort -->
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
           <MdiMenuDown class="text-grey" />
+
+          <span v-if="sorts?.length" class="nc-count-badge">{{ sorts.length }}</span>
         </div>
       </a-button>
     </div>

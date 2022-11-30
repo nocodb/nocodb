@@ -60,6 +60,14 @@ export class CellPageObject extends BasePage {
     await this.get({ index, columnHeader }).locator('.nc-action-icon.nc-plus').click();
   }
 
+  async verifyCellActiveSelected({ index, columnHeader }: { index: number; columnHeader: string }) {
+    await expect(this.get({ index, columnHeader })).toHaveClass(/active/);
+  }
+
+  async verifyCellEditable({ index, columnHeader }: { index: number; columnHeader: string }) {
+    await this.get({ index, columnHeader }).isEditable();
+  }
+
   async verify({ index, columnHeader, value }: { index: number; columnHeader: string; value: string | string[] }) {
     const _verify = async text => {
       await expect

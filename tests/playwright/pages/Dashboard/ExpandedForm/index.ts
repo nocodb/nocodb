@@ -93,9 +93,11 @@ export class ExpandedFormPage extends BasePage {
     await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
   }
 
-  async verify({ header, url }: { header: string; url: string }) {
+  async verify({ header, url }: { header: string; url?: string }) {
     await expect(this.get().locator(`.nc-expanded-form-header`).last()).toContainText(header);
-    await expect.poll(() => this.rootPage.url()).toContain(url);
+    if (url) {
+      await expect.poll(() => this.rootPage.url()).toContain(url);
+    }
   }
 
   async escape() {

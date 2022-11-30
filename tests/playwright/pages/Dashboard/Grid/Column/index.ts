@@ -17,6 +17,14 @@ export class ColumnPageObject extends BasePage {
     return this.rootPage.locator('form[data-testid="add-or-edit-column"]');
   }
 
+  private getColumnHeader(title: string) {
+    return this.grid.get().locator(`th[data-title="${title}"]`);
+  }
+
+  async clickColumnHeader({ title }: { title: string }) {
+    await this.getColumnHeader(title).click();
+  }
+
   async create({
     title,
     type = 'SingleLineText',
@@ -141,7 +149,7 @@ export class ColumnPageObject extends BasePage {
   }
 
   async delete({ title }: { title: string }) {
-    await this.grid.get().locator(`th[data-title="${title}"] >> svg.ant-dropdown-trigger`).click();
+    await this.getColumnHeader(title).locator('svg.ant-dropdown-trigger').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').click();
 
@@ -162,7 +170,7 @@ export class ColumnPageObject extends BasePage {
     formula?: string;
     format?: string;
   }) {
-    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+    await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
 
     await this.get().waitFor({ state: 'visible' });
@@ -201,9 +209,9 @@ export class ColumnPageObject extends BasePage {
 
   async verify({ title, isVisible = true }: { title: string; isVisible?: boolean }) {
     if (!isVisible) {
-      return await expect(await this.rootPage.locator(`th[data-title="${title}"]`)).not.toBeVisible();
+      return await expect(this.getColumnHeader(title)).not.toBeVisible();
     }
-    await await expect(this.rootPage.locator(`th[data-title="${title}"]`)).toContainText(title);
+    await expect(this.getColumnHeader(title)).toContainText(title);
   }
 
   async verifyRoleAccess(param: { role: string }) {

@@ -23,6 +23,18 @@ export class ViewSidebarPage extends BasePage {
     return this.dashboard.get().locator('.nc-view-sidebar');
   }
 
+  async isVisible() {
+    return await this.get().isVisible();
+  }
+
+  async verifyVisibility({ isVisible }: { isVisible: boolean }) {
+    if (isVisible) {
+      await expect(this.get()).toBeVisible();
+    } else {
+      await expect(this.get()).not.toBeVisible();
+    }
+  }
+
   private async createView({ title, locator }: { title: string; locator: Locator }) {
     await locator.click();
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);

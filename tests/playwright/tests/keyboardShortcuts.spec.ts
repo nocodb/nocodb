@@ -66,6 +66,7 @@ test.describe('Verify shortcuts', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
     await page.waitForTimeout(1500);
     await grid.cell.click({ index: 0, columnHeader: 'Country' });
+    await page.waitForTimeout(1500);
     await page.keyboard.press('Meta+ArrowRight');
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'City List' });
 

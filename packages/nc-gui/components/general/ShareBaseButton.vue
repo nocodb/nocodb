@@ -11,6 +11,7 @@ const isShareBaseAllowed = computed(
   () =>
     isUIAllowed('newUser') &&
     route.name !== 'index' &&
+    route.name !== 'index-index' &&
     route.name !== 'index-index-create' &&
     route.name !== 'index-index-create-external' &&
     route.name !== 'index-user-index',

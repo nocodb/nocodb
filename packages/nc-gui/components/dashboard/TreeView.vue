@@ -16,6 +16,7 @@ import {
   useDialog,
   useNuxtApp,
   useProject,
+  useRoute,
   useTable,
   useTabs,
   useToggle,
@@ -36,6 +37,8 @@ const { activeTab } = useTabs()
 const { deleteTable } = useTable()
 
 const { isUIAllowed } = useUIPermission()
+
+const route = useRoute()
 
 const [searchActive, toggleSearchActive] = useToggle()
 
@@ -219,13 +222,23 @@ const onSearchCloseIconClick = () => {
   toggleSearchActive(false)
 }
 
+const isCreateTableAllowed = computed(
+  () =>
+    isUIAllowed('table-create') &&
+    route.name !== 'index' &&
+    route.name !== 'index-index' &&
+    route.name !== 'index-index-create' &&
+    route.name !== 'index-index-create-external' &&
+    route.name !== 'index-user-index',
+)
+
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
     switch (e.keyCode) {
       case 84: {
         // ALT + T
-        if (isUIAllowed('table-create') && !isDrawerOrModalExist()) {
+        if (isCreateTableAllowed.value && !isDrawerOrModalExist()) {
           // prevent the key `T` is inputted to table title input
           e.preventDefault()
           openTableCreateDialog()

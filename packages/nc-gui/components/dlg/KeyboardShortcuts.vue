@@ -208,6 +208,7 @@ const shortcutList = [
     :class="{ active: dialogShow }"
     width="max(30vw, 600px)"
     class="p-2"
+    :footer="null"
     :wrap-class-name="`nc-modal-keyboard-shortcuts ${dialogShow ? 'active' : ''}`"
     @keydown.esc="dialogShow = false"
   >

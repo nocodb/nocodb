@@ -2,6 +2,7 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import LinkVariant from '~icons/mdi/link-variant'
 import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
+import QrCodeScan from '~icons/mdi/qrcode-scan'
 import FormatColorText from '~icons/mdi/format-color-text'
 import TextSubject from '~icons/mdi/text-subject'
 import JSONIcon from '~icons/mdi/code-json'
@@ -124,6 +125,11 @@ const uiTypes = [
   {
     name: UITypes.DateTime,
     icon: CalendarClock,
+  },
+  {
+    name: UITypes.QrCode,
+    icon: QrCodeScan,
+    virtual: 1,
   },
   {
     name: UITypes.Geometry,

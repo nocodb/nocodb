@@ -82,6 +82,32 @@ export class CellPageObject extends BasePage {
     }
   }
 
+  async verifyQrCodeCell({
+    index,
+    columnHeader,
+    expectedSrcValue,
+  }: {
+    index: number;
+    columnHeader: string;
+    expectedSrcValue: string;
+  }) {
+    const _verify = async expectedQrCodeImgSrc => {
+      await expect
+        .poll(async () => {
+          const qrCell = await this.get({
+            index,
+            columnHeader,
+          });
+          const qrImg = await qrCell.getByRole('img');
+          const qrImgSrc = await qrImg.getAttribute('src');
+          return qrImgSrc;
+        })
+        .toEqual(expectedQrCodeImgSrc);
+    };
+
+    await _verify(expectedSrcValue);
+  }
+
   // todo: Improve param names (i.e value => values)
   // verifyVirtualCell
   //  : virtual relational cell- HM, BT, MM

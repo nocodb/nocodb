@@ -241,6 +241,7 @@
     "created": "Erstellt",
     "sqlOutput": "SQL-Ausgabe",
     "addOption": "Option hinzufügen",
+    "qrCodeValueColumn": "Spalte mit QR-Code-Inhalt",
     "aggregateFunction": "Globale Funktion",
     "dbCreateIfNotExists": "Datenbank: Erstellen, falls nicht vorhanden",
     "clientKey": "Client-Schlüssel",

@@ -8,6 +8,7 @@ import HMIcon from '~icons/mdi/table-arrow-right'
 import BTIcon from '~icons/mdi/table-arrow-left'
 import MMIcon from '~icons/mdi/table-network'
 import FormulaIcon from '~icons/mdi/math-integral'
+import QrCodeScan from '~icons/mdi/qrcode-scan'
 import RollupIcon from '~icons/mdi/movie-roll'
 import CountIcon from '~icons/mdi/counter'
 import SpecificDBTypeIcon from '~icons/mdi/database-settings'
@@ -29,6 +30,8 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
       return { icon: SpecificDBTypeIcon, color: 'text-grey' }
     case UITypes.Formula:
       return { icon: FormulaIcon, color: 'text-grey' }
+    case UITypes.QrCode:
+      return { icon: QrCodeScan, color: 'text-grey' }
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:

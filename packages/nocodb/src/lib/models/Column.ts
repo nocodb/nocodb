@@ -5,7 +5,7 @@ import RollupColumn from './RollupColumn';
 import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
-import { ColumnType, UITypes } from 'nocodb-sdk';
+import { AllowedColumnTypesForQrCode, ColumnType, UITypes } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -18,6 +18,7 @@ import Sort from './Sort';
 import Filter from './Filter';
 import addFormulaErrorIfMissingColumn from '../meta/helpers/addFormulaErrorIfMissingColumn';
 import { NcError } from '../meta/helpers/catchError';
+import QrCodeColumn from './QrCodeColumn';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
@@ -219,6 +220,16 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
+      case UITypes.QrCode: {
+        await QrCodeColumn.insert(
+          {
+            fk_column_id: colId,
+            fk_qr_value_column_id: column.fk_qr_value_column_id,
+          },
+          ncMeta
+        );
+        break;
+      }
       case UITypes.Formula: {
         await FormulaColumn.insert(
           {
@@ -395,6 +406,9 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.Formula:
         res = await FormulaColumn.read(this.id, ncMeta);
         break;
+      case UITypes.QrCode:
+        res = await QrCodeColumn.read(this.id, ncMeta);
+        break;
       // default:
       //   res = await DbColumn.read(this.id);
       //   break;
@@ -557,6 +571,21 @@ export default class Column<T = any> implements ColumnType {
 
     // todo: or instead of delete reset related foreign key value to null and handle in BaseModel
 
+    // get qr code columns and delete
+    {
+      const qrCodeCols = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_QRCODE,
+        {
+          condition: { fk_qr_value_column_id: id },
+        }
+      );
+      for (const qrCodeCol of qrCodeCols) {
+        await Column.delete(qrCodeCol.fk_column_id, ncMeta);
+      }
+    }
+
     // get lookup columns and delete
     {
       let lookups = await NocoCache.getList(CacheScope.COL_LOOKUP, [id]);
@@ -690,6 +719,10 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.Formula:
         colOptionTableName = MetaTable.COL_FORMULA;
         cacheScopeName = CacheScope.COL_FORMULA;
+        break;
+      case UITypes.QrCode:
+        colOptionTableName = MetaTable.COL_QRCODE;
+        cacheScopeName = CacheScope.COL_QRCODE;
         break;
     }
 
@@ -855,6 +888,18 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
+      case UITypes.QrCode: {
+        await ncMeta.metaDelete(null, null, MetaTable.COL_QRCODE, {
+          fk_column_id: colId,
+        });
+
+        await NocoCache.deepDel(
+          CacheScope.COL_QRCODE,
+          `${CacheScope.COL_QRCODE}:${colId}`,
+          CacheDelDirection.CHILD_TO_PARENT
+        );
+        break;
+      }
 
       case UITypes.MultiSelect:
       case UITypes.SingleSelect: {
@@ -902,6 +947,21 @@ export default class Column<T = any> implements ColumnType {
       if (typeof column.validate === 'string')
         updateObj.validate = column.validate;
       else updateObj.validate = JSON.stringify(column.validate);
+    }
+
+    // get qr code columns and delete if target type is not supported by QR code column type
+    if (!AllowedColumnTypesForQrCode.includes(updateObj.uidt)) {
+      const qrCodeCols = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_QRCODE,
+        {
+          condition: { fk_qr_value_column_id: colId },
+        }
+      );
+      for (const qrCodeCol of qrCodeCols) {
+        await Column.delete(qrCodeCol.fk_column_id, ncMeta);
+      }
     }
 
     // get existing cache

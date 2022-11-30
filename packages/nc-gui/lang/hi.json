@@ -695,6 +695,7 @@
       "futureRelease": "जल्द आ रहा है!"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

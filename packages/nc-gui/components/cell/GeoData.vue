@@ -139,7 +139,6 @@ const formState = reactive({
 })
 
 const handleFinish = () => {
-  console.log(`handleFinish - formState: `, formState)
   vModel.value = `${formState.latitude};${formState.longitude}`
   isExpanded = false
 }
@@ -191,15 +190,15 @@ const onGetCurrentLocation = () => {
   <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
-      <a-form :model="formState" class="flex flex-col w-full" @finish="handleFinish">
-        <a-form-item label="Latitude">
+      <a-form :model="formState" class="flex flex-col dropdown" @finish="handleFinish">
+        <a-form-item class="inputLat" label="Lat">
           <a-input v-model:value="formState.latitude" type="number" step="0.0000001" required :max="90" :min="-90" />
         </a-form-item>
-        <a-form-item label="Longitude">
+        <a-form-item class="inputLng" label="Lng">
           <a-input v-model:value="formState.longitude" type="number" step="0.0000001" required :min="-180" :max="180" />
         </a-form-item>
         <a-form-item>
-          <a-form-item>
+          <a-form-item class="button-location">
             <a-button @click="onGetCurrentLocation">Your Location</a-button>
             <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
           </a-form-item>
@@ -215,11 +214,26 @@ const onGetCurrentLocation = () => {
 input[type='number']:focus {
   @apply ring-transparent;
 }
-input {
-  max-width: 150px;
+.dropdown {
+  background-color: beige;
+  // padding-top: 2rem;
+  align-items: start;
+  height: 230px !important;
+  width: 200px !important;
 }
-.heja {
-  background-color: red;
-  padding-top: 2rem;
+.inputLat {
+  width: 180px;
+  margin-top: 2rem;
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+.inputLng {
+  width: 180px;
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+.button-location {
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>

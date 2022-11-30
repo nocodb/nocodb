@@ -1,6 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
-import { ref, useInjectionState } from '#imports'
+import { ref, useInjectionState, useMetas } from '#imports'
 import type { Row } from '~/lib'
 
 const formatData = (list: Row[]) =>
@@ -50,6 +50,51 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       })
     }
 
+    const { getMeta } = useMetas()
+
+    async function insertRow(
+      currentRow: Row,
+      _rowIndex = formattedData.value?.length,
+      ltarState: Record<string, any> = {},
+      {
+        metaValue = meta.value,
+        viewMetaValue = viewMeta.value,
+      }: { metaValue?: MapType; viewMetaValue?: ViewType | MapType } = {},
+    ) {
+      const row = currentRow.row
+      if (currentRow.rowMeta) currentRow.rowMeta.saving = true
+      try {
+        const { missingRequiredColumns, insertObj } = await populateInsertObject({
+          meta: metaValue!,
+          ltarState,
+          getMeta,
+          row,
+        })
+
+        if (missingRequiredColumns.size) return
+
+        const insertedData = await $api.dbViewRow.create(
+          NOCO,
+          project?.value.id as string,
+          metaValue?.id as string,
+          viewMetaValue?.id as string,
+          insertObj,
+        )
+
+        Object.assign(currentRow, {
+          row: { ...insertedData, ...row },
+          rowMeta: { ...(currentRow.rowMeta || {}), new: undefined },
+          oldRow: { ...insertedData },
+        })
+
+        return insertedData
+      } catch (error: any) {
+        message.error(await extractSdkResponseErrorMsg(error))
+      } finally {
+        if (currentRow.rowMeta) currentRow.rowMeta.saving = false
+      }
+    }
+
     return {
       formattedData,
       loadMapData,
@@ -57,6 +102,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       updateMapMeta,
       mapMetaData,
       geoDataFieldColumn,
+      insertRow,
     }
   },
 )

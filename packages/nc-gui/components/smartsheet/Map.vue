@@ -7,17 +7,21 @@ import { IsGalleryInj, IsGridInj, IsMapInj, onMounted, provide, ref } from '#imp
 
 import type { Row as RowType } from '~/lib'
 
+// const props = defineProps<Props>()
+// const emits = defineEmits<Emits>()
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
 provide(IsMapInj, ref(true))
 const route = useRoute()
 const router = useRouter()
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
-const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn } = useMapViewStoreOrThrow()
+// const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
+const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, insertRow } = useMapViewStoreOrThrow()
 
 const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
 const mapContainerRef = ref<HTMLElement>()
 const myMapRef = ref<L.Map>()
+// const submitted = ref(false)
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -25,6 +29,39 @@ const view = inject(ActiveViewInj, ref())
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
+
+// const formState = reactive({})
+
+// const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
+//   meta,
+//   ref({
+//     row: formState,
+//     oldRow: {},
+//     rowMeta: { new: true },
+//   }),
+// )
+
+// async function submitForm() {
+//   const insertedRowData = await insertRow({ row: formState, oldRow: {}, rowMeta: { new: true } })
+
+//   if (insertedRowData) {
+//     await syncLTARRefs(insertedRowData)
+//   }
+//   console.log('onsubmitForm')
+//   submitted.value = true
+// }
+
+
+// interface Props {
+//   // modelValue?: GeoLocationType | null
+//   modelValue?: string | null
+// }
+
+// interface Emits {
+//   (event: 'update:modelValue', model: GeoLocationType): void
+// }
+
+// const vModel = useVModel(props, 'modelValue', emits)
 
 const getMapZoomLocalStorageKey = (viewId: string) => {
   return `mapView.zoom.${viewId}`
@@ -135,7 +172,7 @@ const resetZoomAndCenterBasedOnLocalStorage = () => {
   const initialCenter = initialCenterLocalStorageStr
     ? JSON.parse(initialCenterLocalStorageStr)
     : {
-        lat: 0.0,
+        lat: 51,
         lng: 0.0,
       }
 
@@ -171,6 +208,14 @@ onMounted(async () => {
       localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData?.value?.fk_view_id), JSON.stringify(myMap.getCenter()))
     }
   })
+  myMap.on('contextmenu', async function (e) {
+    // const newRow = await addEmptyRow()
+    const lat = e.latlng.lat
+    const lng = e.latlng.lng
+    addMarker(lat, lng, newRow)
+    expandForm(newRow)
+    // submitForm()
+  })
 })
 
 watch(view, async (nextView) => {
@@ -180,13 +225,28 @@ watch(view, async (nextView) => {
     await resetZoomAndCenterBasedOnLocalStorage()
   }
 })
+
+// openNewRecordFormHook?.on(async () => {
+//   const newRow = await addEmptyRow()
+//   expandForm(newRow)
+// })
 </script>
 
 <template>
-  {{ JSON.stringify(mapMetaData) }}
   <div class="flex flex-col h-full w-full no-underline">
     <div id="mapContainer" ref="mapContainerRef"></div>
   </div>
+
+  <Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :row="expandedFormRow"
+      :state="expandedFormRowState"
+      :meta="meta"
+      :view="view"
+    />
+  </Suspense>
 
   <Suspense>
     <LazySmartsheetExpandedForm

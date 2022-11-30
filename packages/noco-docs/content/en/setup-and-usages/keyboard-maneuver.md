@@ -15,10 +15,10 @@ menuTitle: 'Keyboard Maneuver'
 | `ALT` `c` | Insert new column       |
 | `ALT` `f` | Toggle fullscreen mode  |
 | `ALT` `i` | Invite a member to team |
-| `ALT` `,` | Open Settings menu      |
+| `ALT` `,` | Open `Team & Settings` menu      |
 
 
-## General maneuver on GRID
+## Grid view
 |             Key | Behaviour                                                                            |
 |----------------:|:-------------------------------------------------------------------------------------|
 |         `⌘` `↑` | Jump to first record in this column (in same page)                                   |
@@ -32,7 +32,7 @@ menuTitle: 'Keyboard Maneuver'
 |           `Tab` | Move to next cell horizontally; if on last cell, move to next row beginning          |
 
 
-## Cell-specific maneuver when in EDIT mode (data type dependent)
+## Column type specific
 |        Datatype        |         Key | Behaviour                          |
 |:----------------------:|------------:|:-----------------------------------|
 | Text / Numerical cells |     `←` `→` | Move cursor to the left / right    |
@@ -48,9 +48,9 @@ menuTitle: 'Keyboard Maneuver'
 |         Rating         | `<0 ~ Max>` | Enter number to toggle rating      |
 
 
-## Expanded row maneuver
+## Expanded form
 |         Key | Behaviour                      |
 |------------:|:-------------------------------|
-| `⌘` `Enter` | Save current expanded row item |
+| `⌘` `Enter` | Save current expanded form item |
 
 

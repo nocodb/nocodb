@@ -66,20 +66,21 @@ test.describe('Verify shortcuts', () => {
     await dashboard.treeView.openTable({ title: 'Country' });
     await page.waitForTimeout(1500);
     await grid.cell.click({ index: 0, columnHeader: 'Country' });
-    await page.keyboard.press('Meta+ArrowRight');
+    await page.waitForTimeout(1500);
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowRight' : 'Control+ArrowRight');
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'City List' });
 
     // Cmd + Right arrow
-    await page.keyboard.press('Meta+ArrowLeft');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowLeft' : 'Control+ArrowLeft');
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
 
     // Cmd + up arrow
     await grid.cell.click({ index: 24, columnHeader: 'Country' });
-    await page.keyboard.press('Meta+ArrowUp');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowUp' : 'Control+ArrowUp');
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
 
     // Cmd + down arrow
-    await page.keyboard.press('Meta+ArrowDown');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowDown' : 'Control+ArrowDown');
     await grid.cell.verifyCellActiveSelected({ index: 24, columnHeader: 'Country' });
 
     // Enter to edit and Esc to cancel
@@ -96,7 +97,7 @@ test.describe('Verify shortcuts', () => {
       header: 'Algeria',
     });
     await dashboard.expandedForm.fillField({ columnTitle: 'Country', value: 'NewAlgeria' });
-    await page.keyboard.press('Meta+Enter');
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+Enter' : 'Control+Enter');
     await page.waitForTimeout(2000);
     await grid.cell.verify({ index: 1, columnHeader: 'Country', value: 'NewAlgeria' });
   });

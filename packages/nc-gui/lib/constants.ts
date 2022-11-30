@@ -4,7 +4,10 @@ export const NOCO = 'noco'
 
 export const SYSTEM_COLUMNS = ['id', 'title', 'created_at', 'updated_at']
 
-export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080'
+export const BASE_FALLBACK_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://nocodb-web-frawork-sue-ckpgdjvykt.cn-hangzhou.fcapp.run'
+    : 'https://nocodb-web-frawork-sue-ckpgdjvykt.cn-hangzhou.fcapp.run'
 /**
  * Each permission value means the following
  * `*` - which is wildcard, means all permissions are allowed

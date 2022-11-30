@@ -135,6 +135,9 @@ export default defineNuxtConfig({
       }),
       monacoEditorPlugin({
         languageWorkers: ['json'],
+        customDistPath: (root: string, buildOutDir: string, base: string) => {
+          return buildOutDir + '/' + 'monacoeditorwork'
+        },
       }),
     ],
     define: {

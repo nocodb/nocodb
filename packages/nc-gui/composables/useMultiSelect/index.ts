@@ -16,6 +16,7 @@ import {
   useEventListener,
   useI18n,
   useMetas,
+  useProject,
 } from '#imports'
 import type { Row } from '~/lib'
 
@@ -41,6 +42,8 @@ export function useMultiSelect(
   const { copy } = useCopy()
 
   const { getMeta } = useMetas()
+
+  const { isMysql } = useProject()
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
@@ -264,11 +267,14 @@ export function useMultiSelect(
                     if (!clipboardContext.value || typeof clipboardContext.value !== 'object') {
                       return message.info('Invalid data')
                     }
-                    rowObj.row[columnObj.title!] = convertCellData({
-                      value: clipboardContext.value,
-                      from: clipboardContext.uidt,
-                      to: columnObj.uidt as UITypes,
-                    })
+                    rowObj.row[columnObj.title!] = convertCellData(
+                      {
+                        value: clipboardContext.value,
+                        from: clipboardContext.uidt,
+                        to: columnObj.uidt as UITypes,
+                      },
+                      isMysql.value,
+                    )
                     e.preventDefault()
 
                     const foreignKeyColumn: ColumnType = meta.value?.columns.find(
@@ -291,11 +297,14 @@ export function useMultiSelect(
                   }
 
                   if (clipboardContext) {
-                    rowObj.row[columnObj.title!] = convertCellData({
-                      value: clipboardContext.value,
-                      from: clipboardContext.uidt,
-                      to: columnObj.uidt as UITypes,
-                    })
+                    rowObj.row[columnObj.title!] = convertCellData(
+                      {
+                        value: clipboardContext.value,
+                        from: clipboardContext.uidt,
+                        to: columnObj.uidt as UITypes,
+                      },
+                      isMysql.value,
+                    )
                     e.preventDefault()
                     syncCellData?.(selectedCell)
                   } else {

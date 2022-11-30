@@ -1,18 +1,61 @@
+import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
 
-export default function convertCellData(args: { from: UITypes; to: UITypes; value: any }) {
+export default function convertCellData(args: { from: UITypes; to: UITypes; value: any }, isMysql = false) {
   const { from, to, value } = args
-  if (from === to && from !== UITypes.Attachment) {
+  if (from === to && ![UITypes.Attachment, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year].includes(to)) {
     return value
   }
 
+  const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+
   switch (to) {
-    case UITypes.Number:
-      return Number(value)
+    case UITypes.Number: {
+      const parsedNumber = Number(value)
+      if (isNaN(parsedNumber)) {
+        throw new TypeError(`Cannot convert '${value}' to number`)
+      }
+      return parsedNumber
+    }
     case UITypes.Checkbox:
       return Boolean(value)
-    case UITypes.Date:
-      return new Date(value)
+    case UITypes.Date: {
+      const parsedDate = dayjs(value)
+      if (!parsedDate.isValid()) throw new Error('Not a valid date')
+      return parsedDate.format('YYYY-MM-DD')
+    }
+    case UITypes.DateTime: {
+      const parsedDateTime = dayjs(value)
+      if (!parsedDateTime.isValid()) {
+        throw new Error('Not a valid datetime value')
+      }
+      return parsedDateTime.format(dateFormat)
+    }
+    case UITypes.Time: {
+      let parsedTime = dayjs(value)
+
+      if (!parsedTime.isValid()) {
+        parsedTime = dayjs(value, 'HH:mm:ss')
+      }
+      if (!parsedTime.isValid()) {
+        parsedTime = dayjs(`1999-01-01 ${value}`)
+      }
+      if (!parsedTime.isValid()) {
+        throw new Error('Not a valid time value')
+      }
+      return parsedTime.format(dateFormat)
+    }
+    case UITypes.Year: {
+      const parsedDate = dayjs(value)
+
+      if (!parsedDate.isValid()) {
+        return parsedDate.format('YYYY')
+      }
+      if (/^\d+$/.test(value)) {
+        throw new Error('Not a valid year value')
+      }
+      return value
+    }
     case UITypes.Attachment: {
       let parsedVal
       try {

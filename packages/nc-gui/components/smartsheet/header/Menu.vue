@@ -36,8 +36,6 @@ const view = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj)
 
-const fields = inject(FieldsInj, ref([]))
-
 const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -63,7 +61,7 @@ const deleteColumn = () =>
         }
 
         $e('a:column:delete')
-      } catch (e: any) {
+      } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
@@ -152,7 +150,6 @@ const duplicateColumn = async () => {
       break
   }
 
-
   try {
     const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
 
@@ -222,8 +219,7 @@ const hideField = async () => {
 </script>
 
 <template>
-  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']"
-              overlay-class-name="nc-dropdown-column-operations">
+  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
     <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
 
     <template #overlay>
@@ -235,8 +231,7 @@ const hideField = async () => {
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
-        <template
-          v-if="column.uidt !== UITypes.LinkToAnotherRecord || column.colOptions.type !== RelationTypes.BELONGS_TO">
+        <template v-if="column.uidt !== UITypes.LinkToAnotherRecord || column.colOptions.type !== RelationTypes.BELONGS_TO">
           <a-divider class="!my-0" />
           <a-menu-item @click="sortByColumn('asc')">
             <div class="nc-column-insert-after nc-header-menu-item">

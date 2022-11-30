@@ -1,15 +1,13 @@
 <script lang="ts" setup>
 import { useEventListener } from '@vueuse/core'
 import type { ColumnReqType } from 'nocodb-sdk'
-import { ColumnType, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
   IsKanbanInj,
   MetaInj,
   ReloadViewDataHookInj,
   computed,
-  defineEmits,
-  defineProps,
   inject,
   message,
   onMounted,

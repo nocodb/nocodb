@@ -241,6 +241,8 @@
     "created": "ایجاد شده",
     "sqlOutput": "خروجی SQL",
     "addOption": "افزودن گزینه",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "تابع جمع",
     "dbCreateIfNotExists": "پایگاه داده: ایجاد در صورت عدم وجود",
     "clientKey": "کلید Client",
@@ -487,6 +489,12 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",

@@ -695,6 +695,7 @@
       "futureRelease": "即將推出！"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "外掛移除安裝成功",
       "pluginSettingsSaved": "外掛設定儲存成功",

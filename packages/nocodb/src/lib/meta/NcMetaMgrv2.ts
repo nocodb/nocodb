@@ -11,7 +11,7 @@ import NcPluginMgr from '../v1-legacy/plugins/NcPluginMgr';
 import NcMetaIO from './NcMetaIO';
 import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import ncCreateLookup from './handlersv2/ncCreateLookup';
-import { NC_FILE_FIELD_SIZE } from '../constants';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 // import ncGetMeta from './handlersv2/ncGetMeta';
 
 export default class NcMetaMgrv2 {
@@ -73,7 +73,7 @@ export default class NcMetaMgrv2 {
           // dest: path.join(this.config.toolDir, 'uploads')
         }),
         limits: {
-          fieldSize: NC_FILE_FIELD_SIZE,
+          fieldSize: NC_ATTACHMENT_FIELD_SIZE,
         },
       });
       // router.post(this.config.dashboardPath, upload.single('file'));

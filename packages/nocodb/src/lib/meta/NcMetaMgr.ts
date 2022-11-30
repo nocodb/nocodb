@@ -41,7 +41,7 @@ import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
 import { UITypes } from 'nocodb-sdk';
 import { Tele } from 'nc-help';
-import { NC_FILE_FIELD_SIZE } from '../constants';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -134,7 +134,7 @@ export default class NcMetaMgr {
           // dest: path.join(this.config.toolDir, 'uploads')
         }),
         limits: {
-          fieldSize: NC_FILE_FIELD_SIZE,
+          fieldSize: NC_ATTACHMENT_FIELD_SIZE,
         },
       });
       // router.post(this.config.dashboardPath, upload.single('file'));

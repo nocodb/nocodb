@@ -695,6 +695,7 @@
       "futureRelease": "Wkrótce!"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "Pomyślnie zaktualizowano UI ACL dla tabel",
       "pluginUninstalled": "Wtyczka odinstalowana pomyślnie",
       "pluginSettingsSaved": "Ustawienia wtyczki zapisane pomyślnie",

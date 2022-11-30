@@ -59,7 +59,7 @@ const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
-      (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
+        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
@@ -143,7 +143,7 @@ async function addIfMissingAndSave() {
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
         if (!isMysql.value) {
-          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, '\'')
+          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
 

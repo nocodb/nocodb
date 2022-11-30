@@ -14,7 +14,7 @@ export default function convertCellData(args: { from: UITypes; to: UITypes; valu
     case UITypes.Date:
       return new Date(value)
     case UITypes.Attachment: {
-      let parsedVal;
+      let parsedVal
       try {
         parsedVal = typeof value === 'string' ? JSON.parse(value) : value
         parsedVal = Array.isArray(parsedVal) ? parsedVal : [parsedVal]

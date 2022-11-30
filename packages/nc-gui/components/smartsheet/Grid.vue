@@ -271,7 +271,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
         }
       }
     },
-    async (ctx: { row: number; col?: number, updatedColumnTitle?: string }) => {
+    async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
       const rowObj = data.value[ctx.row]
       const columnObj = (ctx.col !== null && ctx.col !== undefined) ? fields.value[ctx.col] : null
 

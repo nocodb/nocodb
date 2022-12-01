@@ -190,4 +190,33 @@ const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {
   return name
 }
 
-export { uiTypes, getUIDTIcon, getUniqueColumnName, isColumnRequiredAndNull, isColumnRequired, isVirtualColRequired }
+const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
+  let uidt: UITypes
+  if (typeof colOrUidt === 'object') {
+    uidt = colOrUidt.uidt as UITypes
+  } else {
+    uidt = colOrUidt
+  }
+  return [
+    UITypes.LongText,
+    UITypes.SingleLineText,
+    UITypes.Number,
+    UITypes.PhoneNumber,
+    UITypes.Email,
+    UITypes.Decimal,
+    UITypes.Currency,
+    UITypes.Percent,
+    UITypes.Duration,
+    UITypes.JSON,
+  ].includes(uidt)
+}
+
+export {
+  uiTypes,
+  isTypableInputColumn,
+  getUIDTIcon,
+  getUniqueColumnName,
+  isColumnRequiredAndNull,
+  isColumnRequired,
+  isVirtualColRequired,
+}

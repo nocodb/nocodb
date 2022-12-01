@@ -10,6 +10,7 @@ import {
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   isMac,
+  isTypableInputColumn,
   message,
   reactive,
   ref,
@@ -248,22 +249,7 @@ export function useMultiSelect(
 
           const columnObj = unref(fields)[selectedCell.col]
 
-          if (
-            (!unref(editEnabled) ||
-              [
-                UITypes.DateTime,
-                UITypes.Date,
-                UITypes.Year,
-                UITypes.Time,
-                UITypes.Lookup,
-                UITypes.Rollup,
-                UITypes.Formula,
-                UITypes.Attachment,
-                UITypes.Checkbox,
-                UITypes.Rating,
-              ].includes(columnObj.uidt as UITypes)) &&
-            (isMac() ? e.metaKey : e.ctrlKey)
-          ) {
+          if ((!unref(editEnabled) || !isTypableInputColumn(columnObj)) && (isMac() ? e.metaKey : e.ctrlKey)) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
@@ -350,7 +336,7 @@ export function useMultiSelect(
               // Update not allowed for table which doesn't have primary Key
               return message.info(t('msg.info.updateNotAllowedWithoutPK'))
             }
-            if (makeEditable(rowObj, columnObj) && columnObj.title) {
+            if (isTypableInputColumn(columnObj) && makeEditable(rowObj, columnObj) && columnObj.title) {
               rowObj.row[columnObj.title] = ''
             }
             // editEnabled = true

@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
@@ -35,6 +35,8 @@ export class ColumnPageObject extends BasePage {
     relationType = '',
     rollupType = '',
     format = '',
+    insertAfterColumnTitle,
+    insertBeforeColumnTitle,
   }: {
     title: string;
     type?: string;
@@ -45,8 +47,19 @@ export class ColumnPageObject extends BasePage {
     relationType?: string;
     rollupType?: string;
     format?: string;
+    insertBeforeColumnTitle?: string;
+    insertAfterColumnTitle?: string;
   }) {
-    await this.grid.get().locator('.nc-column-add').click();
+    if (insertBeforeColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before"):visible').click();
+    } else if (insertAfterColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert After"):visible').click();
+    } else {
+      await this.grid.get().locator('.nc-column-add').click();
+    }
+
     await this.rootPage.waitForTimeout(500);
     await this.fillTitle({ title });
     await this.rootPage.waitForTimeout(500);
@@ -54,8 +67,6 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(500);
 
     switch (type) {
-      case 'SingleTextLine':
-        break;
       case 'SingleSelect':
       case 'MultiSelect':
         await this.selectOption.addOption({
@@ -142,6 +153,30 @@ export class ColumnPageObject extends BasePage {
     }
 
     await this.save();
+
+    // verify column inserted after the target column
+    if (insertAfterColumnTitle) {
+      const headersText = await this.grid.get().locator(`th`).allTextContents();
+
+      await expect(
+        this.grid
+          .get()
+          .locator(`th`)
+          .nth(headersText.findIndex(title => title.startsWith(insertAfterColumnTitle)) + 1)
+      ).toHaveText(title);
+    }
+
+    // verify column inserted before the target column
+    if (insertBeforeColumnTitle) {
+      const headersText = await this.grid.get().locator(`th`).allTextContents();
+
+      await expect(
+        this.grid
+          .get()
+          .locator(`th`)
+          .nth(headersText.findIndex(title => title.startsWith(insertBeforeColumnTitle)) - 1)
+      ).toHaveText(title);
+    }
   }
 
   async fillTitle({ title }: { title: string }) {
@@ -155,7 +190,7 @@ export class ColumnPageObject extends BasePage {
     await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
 
     // Select column type
-    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
+    await this.rootPage.locator(`text=${type}:visible`).nth(1).click();
   }
 
   async changeReferencedColumnForQrCode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {

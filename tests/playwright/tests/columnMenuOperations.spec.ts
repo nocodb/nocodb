@@ -38,7 +38,7 @@ const columns = [
   },
 ];
 
-test.describe('Duplicate column', () => {
+test.describe('Column menu operations', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -47,7 +47,7 @@ test.describe('Duplicate column', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test('Duplicate text field', async () => {
+  test('Duplicate fields', async () => {
     await dashboard.treeView.openTable({ title: 'Film' });
 
     for (const { title, type } of columns) {
@@ -64,6 +64,41 @@ test.describe('Duplicate column', () => {
         expectedTitle: `${title}_copy_1`,
       });
     }
+    await dashboard.closeTab({ title: 'Film' });
+  });
+  test('Insert after', async () => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    await dashboard.grid.column.create({
+      title: 'InsertAfterColumn',
+      type: 'SingleLineText',
+      insertAfterColumnTitle: 'Title',
+    });
+
+    await dashboard.grid.column.create({
+      title: 'InsertAfterColumn1',
+      type: 'SingleLineText',
+      insertAfterColumnTitle: 'Store List',
+    });
+
+    await dashboard.closeTab({ title: 'Film' });
+  });
+
+  test('Insert before', async () => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    await dashboard.grid.column.create({
+      title: 'InsertBeforeColumn',
+      type: 'SingleLineText',
+      insertBeforeColumnTitle: 'Title',
+    });
+
+    await dashboard.grid.column.create({
+      title: 'InsertBeforeColumn1',
+      type: 'SingleLineText',
+      insertBeforeColumnTitle: 'Store List',
+    });
+
     await dashboard.closeTab({ title: 'Film' });
   });
 });

@@ -36,23 +36,11 @@ test.describe('Table Column Operations', () => {
       columnTitle: 'Title',
       value: 'value_a',
     });
-    await dashboard.expandedForm.save({ saveAndExitMode: true });
+    await dashboard.expandedForm.save();
     await grid.cell.verify({
       index: 0,
       columnHeader: 'Title',
       value: 'value_a',
-    });
-
-    await grid.openExpandedRow({ index: 0 });
-    await dashboard.expandedForm.fillField({
-      columnTitle: 'Title',
-      value: 'value_a_a',
-    });
-    await dashboard.expandedForm.save({ saveAndExitMode: false });
-    await grid.cell.verify({
-      index: 0,
-      columnHeader: 'Title',
-      value: 'value_a_a',
     });
 
     await grid.deleteRow(0);

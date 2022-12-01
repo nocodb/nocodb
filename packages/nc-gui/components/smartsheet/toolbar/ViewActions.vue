@@ -241,6 +241,7 @@ useMenuCloseOnEsc(open)
 
     <a-modal
       v-model:visible="sharedViewListDlg"
+      :class="{ active: sharedViewListDlg }"
       :title="$t('activity.listSharedView')"
       width="max(900px,60vw)"
       :footer="null"

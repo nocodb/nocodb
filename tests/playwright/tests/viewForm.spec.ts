@@ -3,6 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import { SettingTab } from '../pages/Dashboard/Settings';
 import setup from '../setup';
 import { FormPage } from '../pages/Dashboard/Form';
+import { SharedFormPage } from '../pages/SharedForm';
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
@@ -200,5 +201,33 @@ test.describe('Form view', () => {
       message: 'Plugin uninstalled successfully',
     });
     await dashboard.settings.close();
+  });
+
+  test('Form share, verify attachment file', async () => {
+    await dashboard.treeView.createTable({ title: 'New' });
+
+    await dashboard.grid.column.create({
+      title: 'Attachment',
+      type: 'Attachment',
+    });
+
+    await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
+    await dashboard.form.toolbar.clickShareView();
+    const formLink = await dashboard.form.toolbar.shareView.getShareLink();
+
+    await dashboard.rootPage.goto(formLink);
+
+    const sharedForm = new SharedFormPage(dashboard.rootPage);
+    await sharedForm.cell.attachment.addFile({
+      columnHeader: 'Attachment',
+      filePath: `${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`,
+    });
+    await sharedForm.cell.fillText({
+      columnHeader: 'Title',
+      text: 'Text',
+    });
+
+    await sharedForm.submit();
+    await sharedForm.verifySuccessMessage();
   });
 });

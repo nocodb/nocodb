@@ -115,6 +115,7 @@ const emailInput = ref((el) => {
 
 <template>
   <a-modal
+    :class="{ active: show }"
     :footer="null"
     centered
     :visible="show"

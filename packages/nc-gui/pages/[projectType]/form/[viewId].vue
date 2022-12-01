@@ -64,6 +64,7 @@ watch(
 
     <a-modal
       v-model:visible="passwordDlg"
+      :class="{ active: passwordDlg }"
       :closable="false"
       width="min(100%, 450px)"
       centered

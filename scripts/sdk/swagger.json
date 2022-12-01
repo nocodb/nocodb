@@ -2286,7 +2286,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Sort"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Sort"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "push_to_top": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                ]
               }
             }
           }
@@ -8957,213 +8969,254 @@
           }
         }
       },
-      "ColumnReq": {
-        "oneOf": [
-          {
-            "properties": {
-              "uidt": {
-                "type": "string",
-                "enum": [
-                  "ID",
-                  "SingleLineText",
-                  "LongText",
-                  "Attachment",
-                  "Checkbox",
-                  "MultiSelect",
-                  "SingleSelect",
-                  "Collaborator",
-                  "Date",
-                  "Year",
-                  "Time",
-                  "PhoneNumber",
-                  "Email",
-                  "URL",
-                  "Number",
-                  "Decimal",
-                  "Currency",
-                  "Percent",
-                  "Duration",
-                  "Rating",
-                  "Count",
-                  "DateTime",
-                  "CreateTime",
-                  "LastModifiedTime",
-                  "AutoNumber",
-                  "Geometry",
-                  "JSON",
-                  "SpecificDBType",
-                  "Barcode",
-                  "Button"
-                ]
-              },
-              "id": {
-                "type": "string"
-              },
-              "base_id": {
-                "type": "string"
-              },
-              "fk_model_id": {
-                "type": "string"
-              },
-              "title": {
-                "type": "string"
-              },
-              "dt": {
-                "type": "string"
-              },
-              "np": {
-                "type": "string"
-              },
-              "ns": {
-                "type": "string"
-              },
-              "clen": {
-                "type": [
-                  "string",
-                  "integer"
-                ]
-              },
-              "cop": {
-                "type": "string"
-              },
-              "pk": {
-                "type": "boolean"
-              },
-              "pv": {
-                "type": "boolean"
-              },
-              "rqd": {
-                "type": "boolean"
-              },
-              "column_name": {
-                "type": "string"
-              },
-              "un": {
-                "type": "boolean"
-              },
-              "ct": {
-                "type": "string"
-              },
-              "ai": {
-                "type": "boolean"
-              },
-              "unique": {
-                "type": "boolean"
-              },
-              "cdf": {
-                "type": "string"
-              },
-              "cc": {
-                "type": "string"
-              },
-              "csn": {
-                "type": "string"
-              },
-              "dtx": {
-                "type": "string"
-              },
-              "dtxp": {
-                "type": "string"
-              },
-              "dtxs": {
-                "type": "string"
-              },
-              "au": {
-                "type": "boolean"
-              },
-              "": {
-                "type": "string"
-              }
-            }
+      "NormalColumnRequest": {
+        "properties": {
+          "uidt": {
+            "type": "string",
+            "enum": [
+              "ID",
+              "SingleLineText",
+              "LongText",
+              "Attachment",
+              "Checkbox",
+              "MultiSelect",
+              "SingleSelect",
+              "Collaborator",
+              "Date",
+              "Year",
+              "Time",
+              "PhoneNumber",
+              "Email",
+              "URL",
+              "Number",
+              "Decimal",
+              "Currency",
+              "Percent",
+              "Duration",
+              "Rating",
+              "Count",
+              "DateTime",
+              "CreateTime",
+              "LastModifiedTime",
+              "AutoNumber",
+              "Geometry",
+              "JSON",
+              "SpecificDBType",
+              "Barcode",
+              "Button"
+            ]
           },
+          "id": {
+            "type": "string"
+          },
+          "base_id": {
+            "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "dt": {
+            "type": "string"
+          },
+          "np": {
+            "type": "string"
+          },
+          "ns": {
+            "type": "string"
+          },
+          "clen": {
+            "type": [
+              "string",
+              "integer"
+            ]
+          },
+          "cop": {
+            "type": "string"
+          },
+          "pk": {
+            "type": "boolean"
+          },
+          "pv": {
+            "type": "boolean"
+          },
+          "rqd": {
+            "type": "boolean"
+          },
+          "column_name": {
+            "type": "string"
+          },
+          "un": {
+            "type": "boolean"
+          },
+          "ct": {
+            "type": "string"
+          },
+          "ai": {
+            "type": "boolean"
+          },
+          "unique": {
+            "type": "boolean"
+          },
+          "cdf": {
+            "type": "string"
+          },
+          "cc": {
+            "type": "string"
+          },
+          "csn": {
+            "type": "string"
+          },
+          "dtx": {
+            "type": "string"
+          },
+          "dtxp": {
+            "type": "string"
+          },
+          "dtxs": {
+            "type": "string"
+          },
+          "au": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LinkToAnotherColumnReq": {
+        "properties": {
+          "uidt": {
+            "type": "string",
+            "enum": [
+              "LinkToAnotherRecord"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "virtual": {
+            "type": "boolean"
+          },
+          "parentId": {
+            "type": "string"
+          },
+          "childId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "hm",
+              "bt",
+              "mm"
+            ]
+          }
+        },
+        "required": [
+          "uidt",
+          "title",
+          "parentId",
+          "childId",
+          "type"
+        ]
+      },
+      "RollupColumnReq": {
+        "properties": {
+          "uidt": {
+            "type": "string",
+            "enum": [
+              "Rollup"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "fk_relation_column_id": {
+            "type": "string"
+          },
+          "fk_rollup_column_id": {
+            "type": "string"
+          },
+          "rollup_function": {
+            "type": "string"
+          }
+        }
+      },
+      "LookupColumnReq": {
+        "properties": {
+          "uidt": {
+            "type": "string",
+            "enum": [
+              "Lookup"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "fk_relation_column_id": {
+            "type": "string"
+          },
+          "fk_lookup_column_id": {
+            "type": "string"
+          }
+        }
+      },
+      "FormulaColumnReq": {
+        "properties": {
+          "uidt": {
+            "type": "string"
+          },
+          "formula_raw": {
+            "type": "string"
+          },
+          "formula": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "ColumnReq": {
+        "allOf": [
           {
-            "properties": {
-              "uidt": {
-                "type": "string",
-                "enum": [
-                  "LinkToAnotherRecord"
-                ]
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NormalColumnRequest"
               },
-              "title": {
-                "type": "string"
+              {
+                "$ref": "#/components/schemas/LinkToAnotherColumnReq"
               },
-              "parentId": {
-                "type": "string"
+              {
+                "$ref": "#/components/schemas/RollupColumnReq"
               },
-              "childId": {
-                "type": "string"
+              {
+                "$ref": "#/components/schemas/FormulaColumnReq"
               },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "hm",
-                  "bt",
-                  "mm"
-                ]
+              {
+                "$ref": "#/components/schemas/LookupColumnReq"
               }
-            },
-            "required": [
-              "uidt",
-              "title",
-              "parentId",
-              "childId",
-              "type"
             ]
           },
           {
+            "type": "object",
             "properties": {
-              "uidt": {
-                "type": "string",
-                "enum": [
-                  "Rollup"
-                ]
+              "column_name": {
+                "type": "string"
               },
               "title": {
                 "type": "string"
               },
-              "fk_relation_column_id": {
-                "type": "string"
-              },
-              "fk_rollup_column_id": {
-                "type": "string"
-              },
-              "rollup_function": {
-                "type": "string"
-              }
-            }
-          },
-          {
-            "properties": {
-              "uidt": {
-                "type": "string",
-                "enum": [
-                  "Lookup"
-                ]
-              },
-              "title": {
-                "type": "string"
-              },
-              "fk_relation_column_id": {
-                "type": "string"
-              },
-              "fk_lookup_column_id": {
-                "type": "string"
-              }
-            }
-          },
-          {
-            "properties": {
-              "uidt": {
-                "type": "string"
-              },
-              "formula_raw": {
-                "type": "string"
-              },
-              "formula": {
-                "type": "string"
-              },
-              "title": {
-                "type": "string"
+              "column_order": {
+                "type": "object",
+                "properties": {
+                  "view_id": {
+                    "type": "string"
+                  },
+                  "order": {
+                    "type": "integer"
+                  }
+                }
               }
             }
           }

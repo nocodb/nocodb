@@ -44,6 +44,7 @@ import { NcError } from '../../../../meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
+import QrCodeColumn from '../../../../models/QrCodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -1210,6 +1211,19 @@ class BaseModelSqlv2 {
     });
   }
 
+  private async getSelectQueryBuilderForFormula(column: Column<any>) {
+    const formula = await column.getColOptions<FormulaColumn>();
+    if (formula.error) throw new Error(`Formula error: ${formula.error}`);
+    const selectQb = await formulaQueryBuilderv2(
+      formula.formula,
+      null,
+      this.dbDriver,
+      this.model
+    );
+
+    return selectQb;
+  }
+
   async getProto() {
     if (this._proto) {
       return this._proto;
@@ -1424,24 +1438,54 @@ class BaseModelSqlv2 {
         case 'LinkToAnotherRecord':
         case 'Lookup':
           break;
+        case 'QrCode': {
+          const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
+          const qrValueColumn = await Column.get({
+            colId: qrCodeColumn.fk_qr_value_column_id,
+          });
+
+          // If the referenced value cannot be found: cancel current iteration
+          if (qrValueColumn == null) {
+            break;
+          }
+
+          switch (qrValueColumn.uidt) {
+            case UITypes.Formula:
+              try {
+                const selectQb = await this.getSelectQueryBuilderForFormula(
+                  qrValueColumn
+                );
+                qb.select({
+                  [column.column_name]: selectQb.builder,
+                });
+              } catch {
+                continue;
+              }
+              break;
+            default: {
+              qb.select({ [column.column_name]: qrValueColumn.column_name });
+              break;
+            }
+          }
+
+          break;
+        }
         case 'Formula':
           {
-            const formula = await column.getColOptions<FormulaColumn>();
-            if (formula.error) continue;
-            const selectQb = await formulaQueryBuilderv2(
-              formula.formula,
-              null,
-              this.dbDriver,
-              this.model
-              // this.aliasToColumn
-            );
-            // todo:  verify syntax of as ? / ??
-            qb.select(
-              this.dbDriver.raw(`?? as ??`, [
-                selectQb.builder,
-                sanitize(column.title),
-              ])
-            );
+            try {
+              const selectQb = await this.getSelectQueryBuilderForFormula(
+                column
+              );
+              // todo:  verify syntax of as ? / ??
+              qb.select(
+                this.dbDriver.raw(`?? as ??`, [
+                  selectQb.builder,
+                  sanitize(column.title),
+                ])
+              );
+            } catch {
+              continue;
+            }
           }
           break;
         case 'Rollup':
@@ -2172,6 +2216,7 @@ class BaseModelSqlv2 {
               f.uidt !== UITypes.Rollup &&
               f.uidt !== UITypes.Lookup &&
               f.uidt !== UITypes.Formula &&
+              f.uidt !== UITypes.QrCode &&
               f.uidt !== UITypes.SpecificDBType
           )
           .sort(

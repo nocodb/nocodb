@@ -33,6 +33,7 @@ const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('in
 <template>
   <a-modal
     v-model:visible="vModel"
+    :class="{ active: vModel }"
     :closable="false"
     width="28rem"
     centered

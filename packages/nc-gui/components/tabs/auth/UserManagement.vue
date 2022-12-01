@@ -183,6 +183,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
     <a-modal
       v-model:visible="showUserDeleteModal"
+      :class="{ active: showUserDeleteModal }"
       :closable="false"
       width="28rem"
       centered

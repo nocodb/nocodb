@@ -17,10 +17,19 @@ export class ColumnPageObject extends BasePage {
     return this.rootPage.locator('form[data-testid="add-or-edit-column"]');
   }
 
+  private getColumnHeader(title: string) {
+    return this.grid.get().locator(`th[data-title="${title}"]`);
+  }
+
+  async clickColumnHeader({ title }: { title: string }) {
+    await this.getColumnHeader(title).click();
+  }
+
   async create({
     title,
     type = 'SingleLineText',
     formula = '',
+    qrCodeValueColumnTitle = '',
     childTable = '',
     childColumn = '',
     relationType = '',
@@ -30,6 +39,7 @@ export class ColumnPageObject extends BasePage {
     title: string;
     type?: string;
     formula?: string;
+    qrCodeValueColumnTitle?: string;
     childTable?: string;
     childColumn?: string;
     relationType?: string;
@@ -69,6 +79,14 @@ export class ColumnPageObject extends BasePage {
         break;
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
+        break;
+      case 'QrCode':
+        await this.get().locator('.ant-select-single').nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: qrCodeValueColumnTitle,
+          })
+          .click();
         break;
       case 'Lookup':
         await this.get().locator('.ant-select-single').nth(1).click();
@@ -137,11 +155,22 @@ export class ColumnPageObject extends BasePage {
     await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
 
     // Select column type
-    await this.rootPage.locator(`text=${type}`).nth(1).click();
+    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
+  }
+
+  async changeReferencedColumnForQrCode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
+    await this.get().locator('.nc-qr-code-value-column-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: titleOfReferencedColumn,
+      })
+      .click();
+
+    await this.save();
   }
 
   async delete({ title }: { title: string }) {
-    await this.grid.get().locator(`th[data-title="${title}"] >> svg.ant-dropdown-trigger`).click();
+    await this.getColumnHeader(title).locator('svg.ant-dropdown-trigger').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').click();
 
@@ -162,7 +191,7 @@ export class ColumnPageObject extends BasePage {
     formula?: string;
     format?: string;
   }) {
-    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+    await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
 
     await this.get().waitFor({ state: 'visible' });
@@ -201,9 +230,9 @@ export class ColumnPageObject extends BasePage {
 
   async verify({ title, isVisible = true }: { title: string; isVisible?: boolean }) {
     if (!isVisible) {
-      return await expect(await this.rootPage.locator(`th[data-title="${title}"]`)).not.toBeVisible();
+      return await expect(this.getColumnHeader(title)).not.toBeVisible();
     }
-    await await expect(this.rootPage.locator(`th[data-title="${title}"]`)).toContainText(title);
+    await expect(this.getColumnHeader(title)).toContainText(title);
   }
 
   async verifyRoleAccess(param: { role: string }) {

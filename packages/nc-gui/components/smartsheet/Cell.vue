@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -128,7 +129,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     class="nc-cell w-full"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
-      { 'text-blue-600': isPrimary(column) && !virtual && !isForm },
+      { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
     ]"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
@@ -157,7 +158,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
       <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
       <LazyCellText v-else v-model="vModel" />
       <div
-        v-if="(isLocked || (isPublic && readOnly && !isForm)) && !isAttachment(column)"
+        v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
         class="nc-locked-overlay"
         @click.stop.prevent
       />

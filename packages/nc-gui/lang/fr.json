@@ -241,6 +241,8 @@
     "created": "Créé",
     "sqlOutput": "Sortie SQL",
     "addOption": "Ajouter une option",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "Fonction agrégée",
     "dbCreateIfNotExists": "Base de données : la créer si elle n'existe pas",
     "clientKey": "Clé client",
@@ -487,6 +489,12 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
@@ -666,7 +674,8 @@
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
       "fieldRequired": "{value} cannot be empty.",
-      "projectNotAccessible": "Project not accessible"
+      "projectNotAccessible": "Project not accessible",
+      "copyToClipboardError": "Failed to copy to clipboard"
     },
     "toast": {
       "exportMetadata": "Les métadonnées de projet sont exportées avec succès",
@@ -686,6 +695,7 @@
       "futureRelease": "Bientôt disponible !"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

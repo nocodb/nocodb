@@ -10,6 +10,7 @@ on:
             - "packages/nc-gui/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
+            - "tests/playwright/**"
     pull_request:
         types: [opened, reopened, synchronize, ready_for_review, labeled]
         branches: [develop]

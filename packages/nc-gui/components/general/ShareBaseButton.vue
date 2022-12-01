@@ -1,24 +1,41 @@
 <script setup lang="ts">
-import { useRoute, useUIPermission } from '#imports'
+import { isDrawerOrModalExist, isMac, useRoute, useUIPermission } from '#imports'
 
 const route = useRoute()
 
-const showUserModal = $ref(false)
+const showUserModal = ref(false)
 
 const { isUIAllowed } = useUIPermission()
+
+const isShareBaseAllowed = computed(
+  () =>
+    isUIAllowed('newUser') &&
+    route.name !== 'index' &&
+    route.name !== 'index-index' &&
+    route.name !== 'index-index-create' &&
+    route.name !== 'index-index-create-external' &&
+    route.name !== 'index-user-index',
+)
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
+    switch (e.keyCode) {
+      case 73: {
+        // ALT + I
+        if (isShareBaseAllowed.value && !isDrawerOrModalExist()) {
+          showUserModal.value = true
+        }
+        break
+      }
+    }
+  }
+})
 </script>
 
 <template>
   <div class="flex items-center w-full pl-3 hover:(text-primary bg-primary bg-opacity-5)" @click="showUserModal = true">
-    <div
-      v-if="
-        isUIAllowed('newUser') &&
-        route.name !== 'index' &&
-        route.name !== 'index-index-create' &&
-        route.name !== 'index-index-create-external' &&
-        route.name !== 'index-user-index'
-      "
-    >
+    <div v-if="isShareBaseAllowed">
       <div class="flex items-center space-x-1">
         <MdiAccountPlusOutline class="mr-1 nc-share-base" />
 

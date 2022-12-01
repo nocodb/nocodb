@@ -33,6 +33,8 @@ provide(IsGalleryInj, ref(false))
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
+const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
+
 const state = useGlobal()
 
 const formRef = ref()
@@ -227,7 +229,7 @@ async function addAllColumns() {
 }
 
 function shouldSkipColumn(col: Record<string, any>) {
-  return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf)
+  return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf) || col.uidt === UITypes.QrCode
 }
 
 async function removeAllColumns() {
@@ -256,7 +258,7 @@ async function checkSMTPStatus() {
 }
 
 function setFormData() {
-  const col = (formColumnData as Record<string, any>)?.value
+  const col = formColumnData?.value || []
 
   formViewData.value = {
     ...formViewData.value,
@@ -273,27 +275,14 @@ function setFormData() {
   emailMe.value = data[state.user.value?.email as string]
 
   localColumns.value = col
-    .filter(
-      (f: Record<string, any>) =>
-        f.show &&
-        f.uidt !== UITypes.Rollup &&
-        f.uidt !== UITypes.Lookup &&
-        f.uidt !== UITypes.Formula &&
-        f.uidt !== UITypes.SpecificDBType,
-    )
-    .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
-    .map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) }))
+    .filter((f) => f.show && !hiddenColTypes.includes(f.uidt))
+    .sort((a, b) => a.order - b.order)
+    .map((c) => ({ ...c, required: !!c.required }))
 
-  systemFieldsIds.value = getSystemColumns(col).map((c: Record<string, any>) => c.fk_column_id)
+  systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
-    (f: Record<string, any>) =>
-      !f.show &&
-      !systemFieldsIds.value.includes(f.fk_column_id) &&
-      f.uidt !== UITypes.Rollup &&
-      f.uidt !== UITypes.Lookup &&
-      f.uidt !== UITypes.Formula &&
-      f.uidt !== UITypes.SpecificDBType,
+    (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !hiddenColTypes.includes(f.uidt),
   )
 }
 

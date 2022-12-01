@@ -17,9 +17,9 @@ const emits = defineEmits<Emits>()
 
 const active = inject(ActiveCellInj, ref(false))
 
-let vModel = $computed({
+let vModel = $computed<boolean>({
   get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
-  set: (val) => emits('update:modelValue', val),
+  set: (val: boolean) => emits('update:modelValue', val),
 })
 
 const column = inject(ColumnInj)
@@ -39,7 +39,13 @@ const checkboxMeta = $computed(() => {
   }
 })
 
-function onClick(force?: boolean) {
+function onClick(force?: boolean, event?: MouseEvent) {
+  if (
+    (event?.target as HTMLElement)?.classList?.contains('nc-checkbox') ||
+    (event?.target as HTMLElement)?.closest('.nc-checkbox')
+  ) {
+    return
+  }
   if (!readOnly?.value && (force || active.value)) {
     vModel = !vModel
   }
@@ -64,16 +70,17 @@ useSelectedCellKeyupListener(active, (e) => {
       'nc-cell-hover-show': !vModel && !readOnly,
       'opacity-0': readOnly && !vModel,
     }"
-    @click="onClick(false)"
+    @click="onClick(false, $event)"
   >
     <div class="px-1 pt-1 rounded-full items-center" :class="{ 'bg-gray-100': !vModel, '!ml-[-8px]': readOnly }">
       <Transition name="layout" mode="out-in" :duration="100">
         <component
           :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
+          class="nc-checkbox"
           :style="{
             color: checkboxMeta.color,
           }"
-          @click.stop="onClick(true)"
+          @click="onClick(true)"
         />
       </Transition>
     </div>

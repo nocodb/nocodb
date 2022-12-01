@@ -108,7 +108,7 @@ useSelectedCellKeyupListener(active, (e) => {
       break
     default:
       // toggle only if char key pressed
-      if (e.key?.length === 1) {
+      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1) {
         e.stopPropagation()
         isOpen.value = true
       }
@@ -155,7 +155,7 @@ async function addIfMissingAndSave() {
       )
       vModel.value = newOptValue
       await getMeta(column.value.fk_model_id!, true)
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }

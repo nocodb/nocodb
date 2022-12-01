@@ -35,6 +35,7 @@ enum UITypes {
   JSON = 'JSON',
   SpecificDBType = 'SpecificDBType',
   Barcode = 'Barcode',
+  QrCode = 'QrCode',
   Button = 'Button',
 }
 
@@ -50,6 +51,7 @@ export function isVirtualCol(
     // UITypes.SpecificDBType,
     UITypes.LinkToAnotherRecord,
     UITypes.Formula,
+    UITypes.QrCode,
     UITypes.Rollup,
     UITypes.Lookup,
     // UITypes.Count,

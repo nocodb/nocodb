@@ -71,11 +71,13 @@ const isSakilaMysqlToBeReset = async (
     return true;
   }
 
-  if (!project) return false;
+  if (!project) return true;
 
   const audits = await Audit.projectAuditList(project.id, {});
 
-  return audits?.length > 0;
+  // todo: Will be fixed in the data resetting revamp
+  console.log(`audits:resetMysqlSakilaProject:${parallelId}`, audits?.length);
+  return true;
 };
 
 const resetSakilaMysql = async (

@@ -4,7 +4,7 @@ import knex from 'knex';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
-import lodash from 'lodash';
+import find from 'lodash/find';
 
 const log = new Debug('MssqlClient');
 
@@ -1964,7 +1964,7 @@ class MssqlClient extends KnexClient {
       let downQuery = '';
 
       for (let i = 0; i < args.columns.length; ++i) {
-        const oldColumn = lodash.find(originalColumns, {
+        const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
         });
 

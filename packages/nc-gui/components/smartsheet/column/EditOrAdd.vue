@@ -7,12 +7,10 @@ import {
   ReloadViewDataHookInj,
   computed,
   inject,
-  message,
   onMounted,
   ref,
   uiTypes,
   useColumnCreateStoreOrThrow,
-  useI18n,
   useMetas,
   useNuxtApp,
   watchEffect,
@@ -27,8 +25,6 @@ const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeCh
   useColumnCreateStoreOrThrow()
 
 const { getMeta } = useMetas()
-
-const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 

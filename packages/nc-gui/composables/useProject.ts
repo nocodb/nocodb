@@ -1,4 +1,4 @@
-import type { OracleUi, ProjectType, TableType, ViewType } from 'nocodb-sdk'
+import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import {

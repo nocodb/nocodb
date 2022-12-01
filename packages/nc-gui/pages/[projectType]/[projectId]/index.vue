@@ -38,7 +38,7 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
+const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
 const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
 

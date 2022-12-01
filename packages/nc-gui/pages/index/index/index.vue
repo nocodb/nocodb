@@ -19,8 +19,8 @@ import {
   useCopy,
   useGlobal,
   useNuxtApp,
-  useUIPermission,
   useSidebar,
+  useUIPermission,
 } from '#imports'
 
 definePageMeta({

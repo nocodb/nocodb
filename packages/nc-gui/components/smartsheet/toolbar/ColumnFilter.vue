@@ -84,7 +84,7 @@ const types = computed(() => {
 })
 
 const getColumn = (filter: Filter) => {
-  return columns.value?.find(col => col.id === filter.fk_column_id)
+  return columns.value?.find((col) => col.id === filter.fk_column_id)
 }
 
 watch(
@@ -200,7 +200,12 @@ defineExpose({
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
-              @change="filter.value = null; saveOrUpdate(filter, i)"
+              @change="
+                () => {
+                  filter.value = null
+                  saveOrUpdate(filter, i)
+                }
+              "
             />
 
             <a-select

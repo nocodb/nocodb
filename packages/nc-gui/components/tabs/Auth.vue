@@ -18,26 +18,25 @@ const tabsInfo: Tab[] = [
     title: 'Users Management',
     label: t('title.userMgmt'),
     isUIAllowed: computed(() => isUIAllowed('userMgmtTab')),
-    key: 'userMgmtTab'
+    key: 'userMgmtTab',
   },
   {
     title: 'API Token Management',
     label: t('title.apiTokenMgmt'),
     isUIAllowed: computed(() => isUIAllowed('apiTokenTab')),
-    key: 'apiTokenTab'
+    key: 'apiTokenTab',
   },
 ]
 
-const visibleTabs = $computed(() => tabsInfo.filter(tab => tab.isUIAllowed.value))
+const visibleTabs = $computed(() => tabsInfo.filter((tab) => tab.isUIAllowed.value))
 
 const selectedTabKey = $ref(visibleTabs?.[0].key)
-
 </script>
 
 <template v-if="visibleTabs.length > 0">
   <div>
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs !mx-6">
-      <a-tab-pane v-for="(tab) of visibleTabs" :key="tab.key" class="select-none">
+      <a-tab-pane v-for="tab of visibleTabs" :key="tab.key" class="select-none">
         <template #tab>
           <span>
             {{ tab.label }}

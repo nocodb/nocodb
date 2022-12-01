@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
@@ -35,6 +35,8 @@ export class ColumnPageObject extends BasePage {
     relationType = '',
     rollupType = '',
     format = '',
+    insertAfterColumnTitle,
+    insertBeforeColumnTitle,
   }: {
     title: string;
     type?: string;
@@ -45,8 +47,19 @@ export class ColumnPageObject extends BasePage {
     relationType?: string;
     rollupType?: string;
     format?: string;
+    insertBeforeColumnTitle?: string;
+    insertAfterColumnTitle?: string;
   }) {
-    await this.grid.get().locator('.nc-column-add').click();
+    if (insertBeforeColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before"):visible').click();
+    } else if (insertAfterColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert After"):visible').click();
+    } else {
+      await this.grid.get().locator('.nc-column-add').click();
+    }
+
     await this.rootPage.waitForTimeout(500);
     await this.fillTitle({ title });
     await this.rootPage.waitForTimeout(500);
@@ -54,8 +67,6 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(500);
 
     switch (type) {
-      case 'SingleTextLine':
-        break;
       case 'SingleSelect':
       case 'MultiSelect':
         await this.selectOption.addOption({
@@ -142,6 +153,30 @@ export class ColumnPageObject extends BasePage {
     }
 
     await this.save();
+
+    // verify column inserted after the target column
+    if (insertAfterColumnTitle) {
+      const headersText = await this.grid.get().locator(`th`).allTextContents();
+
+      await expect(
+        this.grid
+          .get()
+          .locator(`th`)
+          .nth(headersText.findIndex(title => title.startsWith(insertAfterColumnTitle)) + 1)
+      ).toHaveText(title);
+    }
+
+    // verify column inserted before the target column
+    if (insertBeforeColumnTitle) {
+      const headersText = await this.grid.get().locator(`th`).allTextContents();
+
+      await expect(
+        this.grid
+          .get()
+          .locator(`th`)
+          .nth(headersText.findIndex(title => title.startsWith(insertBeforeColumnTitle)) - 1)
+      ).toHaveText(title);
+    }
   }
 
   async fillTitle({ title }: { title: string }) {
@@ -213,6 +248,26 @@ export class ColumnPageObject extends BasePage {
     }
   }
 
+  async duplicateColumn({ title, expectedTitle = `${title}_copy` }: { title: string; expectedTitle?: string }) {
+    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Duplicate"):visible').click();
+
+    await this.verifyToast({ message: 'Column duplicated successfully' });
+    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).isVisible();
+  }
+
+  async hideColumn({ title }: { title: string }) {
+    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+
+    await this.waitForResponse({
+      uiAction: this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
+      requestUrlPathToMatch: 'api/v1/db/meta/views',
+      httpMethodsToMatch: ['PATCH'],
+    });
+
+    await expect(this.grid.get().locator(`th[data-title="${title}"]`)).toHaveCount(0);
+  }
+
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
       uiAction: this.get().locator('button:has-text("Save")').click(),
@@ -244,5 +299,35 @@ export class ColumnPageObject extends BasePage {
       await expect(this.rootPage.locator('.nc-dropdown-column-operations')).toHaveCount(1);
       await this.grid.get().locator('.nc-ui-dt-dropdown:visible').first().click();
     }
+  }
+
+  async sortColumn({ title, direction = 'asc' }: { title: string; direction: 'asc' | 'desc' }) {
+    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+    let menuOption;
+    if (direction === 'desc') {
+      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Descending"):visible').click();
+    } else {
+      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Ascending"):visible').click();
+    }
+
+    await this.waitForResponse({
+      uiAction: menuOption,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `/sorts`,
+    });
+
+    await this.grid.toolbar.parent.dashboard.waitForLoaderToDisappear();
+
+    await this.grid.toolbar.clickSort();
+
+    await this.rootPage.locator(`.ant-select-selection-item:has-text("${title}")`).first().isVisible();
+    await this.rootPage
+      .locator(
+        `.nc-sort-dir-select:has-text("${direction === 'asc' ? '1 → 9' : '9 → 1'}"),.nc-sort-dir-select:has-text("${
+          direction === 'asc' ? 'A → Z' : 'Z → A'
+        }")`
+      )
+      .first()
+      .isVisible();
   }
 }

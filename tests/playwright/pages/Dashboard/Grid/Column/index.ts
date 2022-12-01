@@ -256,6 +256,13 @@ export class ColumnPageObject extends BasePage {
     await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).isVisible();
   }
 
+  async hideColumn({ title }: { title: string }) {
+    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click();
+
+    await expect(this.grid.get().locator(`th[data-title="${title}"]`)).toHaveCount(0);
+  }
+
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
       uiAction: this.get().locator('button:has-text("Save")').click(),

@@ -101,4 +101,18 @@ test.describe('Column menu operations', () => {
 
     await dashboard.closeTab({ title: 'Film' });
   });
+
+  test('Hide column', async () => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    await dashboard.grid.column.hideColumn({
+      title: 'Title',
+    });
+
+    await dashboard.grid.column.hideColumn({
+      title: 'Store List',
+    });
+
+    await dashboard.closeTab({ title: 'Film' });
+  });
 });

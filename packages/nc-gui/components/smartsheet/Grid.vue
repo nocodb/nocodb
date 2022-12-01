@@ -226,7 +226,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
         switch (e.key) {
           case 'ArrowUp':
             e.preventDefault()
-            $e('a:shortcut', { key: 'CTRL + ArrowUp' })
+            $e('c:shortcut', { key: 'CTRL + ArrowUp' })
             selectedCell.row = 0
             selectedCell.col = selectedCell.col ?? 0
             scrollToCell?.()
@@ -234,7 +234,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowDown':
             e.preventDefault()
-            $e('a:shortcut', { key: 'CTRL + ArrowDown' })
+            $e('c:shortcut', { key: 'CTRL + ArrowDown' })
             selectedCell.row = data.value.length - 1
             selectedCell.col = selectedCell.col ?? 0
             scrollToCell?.()
@@ -242,7 +242,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowRight':
             e.preventDefault()
-            $e('a:shortcut', { key: 'CTRL + ArrowRight' })
+            $e('c:shortcut', { key: 'CTRL + ArrowRight' })
             selectedCell.row = selectedCell.row ?? 0
             selectedCell.col = fields.value?.length - 1
             scrollToCell?.()
@@ -250,7 +250,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowLeft':
             e.preventDefault()
-            $e('a:shortcut', { key: 'CTRL + ArrowLeft' })
+            $e('c:shortcut', { key: 'CTRL + ArrowLeft' })
             selectedCell.row = selectedCell.row ?? 0
             selectedCell.col = 0
             scrollToCell?.()
@@ -264,7 +264,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
           case 82: {
             // ALT + R
             if (isAddingEmptyRowAllowed) {
-              $e('a:shortcut', { key: 'ALT + R' })
+              $e('c:shortcut', { key: 'ALT + R' })
               addEmptyRow()
             }
             break
@@ -272,7 +272,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
           case 67: {
             // ALT + C
             if (isAddingColumnAllowed) {
-              $e('a:shortcut', { key: 'ALT + C' })
+              $e('c:shortcut', { key: 'ALT + C' })
               addColumnDropdown.value = true
             }
             break

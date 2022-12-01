@@ -22,7 +22,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       case 70: {
         // ALT + F
         if (!isDrawerOrModalExist()) {
-          $e('a:shortcut', { key: 'ALT + F' })
+          $e('c:shortcut', { key: 'ALT + F' })
           isSidebarsOpen.value = !isSidebarsOpen.value
         }
         break

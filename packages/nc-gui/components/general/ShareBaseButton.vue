@@ -26,7 +26,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       case 73: {
         // ALT + I
         if (isShareBaseAllowed.value && !isDrawerOrModalExist()) {
-          $e('a:shortcut', { key: 'ALT + I' })
+          $e('c:shortcut', { key: 'ALT + I' })
           showUserModal.value = true
         }
         break

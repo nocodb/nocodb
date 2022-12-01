@@ -5,7 +5,12 @@ import RollupColumn from './RollupColumn';
 import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
-import { ColumnReqType, AllowedColumnTypesForQrCode, ColumnType, UITypes } from 'nocodb-sdk';
+import {
+  ColumnReqType,
+  AllowedColumnTypesForQrCode,
+  ColumnType,
+  UITypes,
+} from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,

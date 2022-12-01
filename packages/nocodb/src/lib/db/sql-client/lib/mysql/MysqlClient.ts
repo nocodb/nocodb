@@ -622,9 +622,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           const column: any = {};
 
-          response[0][i] = mapKeys(response[0][i], (_v, k) =>
-            k.toLowerCase()
-          );
+          response[0][i] = mapKeys(response[0][i], (_v, k) => k.toLowerCase());
 
           if (this._version.key === '57' || this._version.key === '80') {
             column.dp = response[0][i].dp;

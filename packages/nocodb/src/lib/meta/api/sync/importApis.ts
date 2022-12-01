@@ -17,7 +17,11 @@ enum SyncStatus {
   FAILED = 'FAILED',
 }
 
-export default (router: Router, sv: Server, jobs: { [id: string]: { last_message: any } }) => {
+export default (
+  router: Router,
+  sv: Server,
+  jobs: { [id: string]: { last_message: any } }
+) => {
   // add importer job handler and progress notification job handler
   NocoJobs.jobsMgr.addJobWorker(AIRTABLE_IMPORT_JOB, job);
   NocoJobs.jobsMgr.addJobWorker(
@@ -112,8 +116,8 @@ export default (router: Router, sv: Server, jobs: { [id: string]: { last_message
       });
       jobs[req.params.syncId] = {
         last_message: {
-          msg: 'Sync started'
-        }
+          msg: 'Sync started',
+        },
       };
       res.json({});
     })

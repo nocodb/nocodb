@@ -141,11 +141,11 @@ export default function (router: Router, server) {
     });
     socket.on('subscribe', (room) => {
       if (room in jobs) {
-        socket.join(room)
-        socket.emit('job')
-        socket.emit('progress', jobs[room].last_message)
+        socket.join(room);
+        socket.emit('job');
+        socket.emit('progress', jobs[room].last_message);
       }
-    })
+    });
   });
 
   importApis(router, io, jobs);

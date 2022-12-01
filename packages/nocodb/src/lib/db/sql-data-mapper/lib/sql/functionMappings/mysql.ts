@@ -36,7 +36,11 @@ const mysql2 = {
   MID: 'SUBSTR',
   FLOAT: (args: MapFnArgs) => {
     return args.knex
-      .raw(`CAST(CAST(${args.fn(args.pt.arguments[0])} as CHAR) AS DOUBLE)${args.colAlias}`)
+      .raw(
+        `CAST(CAST(${args.fn(args.pt.arguments[0])} as CHAR) AS DOUBLE)${
+          args.colAlias
+        }`
+      )
       .wrap('(', ')');
   },
   DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {

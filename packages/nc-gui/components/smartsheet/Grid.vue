@@ -37,6 +37,7 @@ import {
   useI18n,
   useMetas,
   useMultiSelect,
+  useNuxtApp,
   useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
@@ -51,6 +52,8 @@ const { t } = useI18n()
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
+
+const { $e } = useNuxtApp()
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
@@ -223,6 +226,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
         switch (e.key) {
           case 'ArrowUp':
             e.preventDefault()
+            $e('c:shortcut', { key: 'CTRL + ArrowUp' })
             selectedCell.row = 0
             selectedCell.col = selectedCell.col ?? 0
             scrollToCell?.()
@@ -230,6 +234,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowDown':
             e.preventDefault()
+            $e('c:shortcut', { key: 'CTRL + ArrowDown' })
             selectedCell.row = data.value.length - 1
             selectedCell.col = selectedCell.col ?? 0
             scrollToCell?.()
@@ -237,6 +242,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowRight':
             e.preventDefault()
+            $e('c:shortcut', { key: 'CTRL + ArrowRight' })
             selectedCell.row = selectedCell.row ?? 0
             selectedCell.col = fields.value?.length - 1
             scrollToCell?.()
@@ -244,6 +250,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowLeft':
             e.preventDefault()
+            $e('c:shortcut', { key: 'CTRL + ArrowLeft' })
             selectedCell.row = selectedCell.row ?? 0
             selectedCell.col = 0
             scrollToCell?.()
@@ -257,6 +264,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
           case 82: {
             // ALT + R
             if (isAddingEmptyRowAllowed) {
+              $e('c:shortcut', { key: 'ALT + R' })
               addEmptyRow()
             }
             break
@@ -264,6 +272,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
           case 67: {
             // ALT + C
             if (isAddingColumnAllowed) {
+              $e('c:shortcut', { key: 'ALT + C' })
               addColumnDropdown.value = true
             }
             break

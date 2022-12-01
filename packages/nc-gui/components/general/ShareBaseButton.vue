@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useRoute, useUIPermission } from '#imports'
+import { isDrawerOrModalExist, isMac, useNuxtApp, useRoute, useUIPermission } from '#imports'
 
 const route = useRoute()
 
 const showUserModal = ref(false)
 
 const { isUIAllowed } = useUIPermission()
+
+const { $e } = useNuxtApp()
 
 const isShareBaseAllowed = computed(
   () =>
@@ -24,6 +26,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       case 73: {
         // ALT + I
         if (isShareBaseAllowed.value && !isDrawerOrModalExist()) {
+          $e('c:shortcut', { key: 'ALT + I' })
           showUserModal.value = true
         }
         break

@@ -34,8 +34,9 @@ export class CellPageObject extends BasePage {
     }
   }
 
-  async click({ index, columnHeader }: { index: number; columnHeader: string }) {
-    await this.get({ index, columnHeader }).click();
+  async click({ index, columnHeader }: { index: number; columnHeader: string },
+              ...options: Parameters<Locator['click']>) {
+    await this.get({ index, columnHeader }).click(...options);
     await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
   }
 
@@ -184,8 +185,11 @@ export class CellPageObject extends BasePage {
     );
   }
 
-  async copyToClipboard({ index, columnHeader }: { index: number; columnHeader: string }) {
-    await this.get({ index, columnHeader }).click();
+  async copyToClipboard(
+    { index, columnHeader }: { index: number; columnHeader: string },
+    ...clickOptions: Parameters<Locator['click']>
+  ) {
+    await this.get({ index, columnHeader }).click(...clickOptions);
 
     await this.get({ index, columnHeader }).press('Control+C');
   }

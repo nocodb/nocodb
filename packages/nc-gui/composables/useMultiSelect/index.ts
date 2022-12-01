@@ -4,13 +4,13 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
-import { isTypableInputColumn } from '~/utils'
 import type { Row } from '~/lib'
 import {
   copyTable,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   isMac,
+  isTypableInputColumn,
   message,
   reactive,
   ref,

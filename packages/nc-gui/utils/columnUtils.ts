@@ -191,7 +191,7 @@ const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {
 }
 
 const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
-  let uidt: UITypes;
+  let uidt: UITypes
   if (typeof colOrUidt === 'object') {
     uidt = colOrUidt.uidt as UITypes
   } else {

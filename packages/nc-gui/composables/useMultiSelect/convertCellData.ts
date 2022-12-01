@@ -17,6 +17,13 @@ export default function convertCellData(args: { from: UITypes; to: UITypes; valu
       }
       return parsedNumber
     }
+    case UITypes.Rating: {
+      const parsedNumber = Number(value ?? 0)
+      if (isNaN(parsedNumber)) {
+        throw new TypeError(`Cannot convert '${value}' to rating`)
+      }
+      return parsedNumber
+    }
     case UITypes.Checkbox:
       return Boolean(value)
     case UITypes.Date: {

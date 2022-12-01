@@ -7,7 +7,10 @@ const exec = util.promisify(require('child_process').exec);
 void (async () => {
   const { stdout: allFileNames } = await exec('git diff --name-only origin/develop');
   // return if no changed file ends with .js
-  const testFilesInChangedFiles = allFileNames.split('\n').filter(fileName => fileName.endsWith('.spec.ts'));
+  const testFilesInChangedFiles = allFileNames
+    .split('\n')
+    .filter(fileName => fileName.endsWith('.spec.ts'))
+    .filter(fileName => fileName.startsWith('+')); // Only get newly added files
   if (testFilesInChangedFiles.length === 0) {
     console.log('No test file changed, skipping stress test');
     return;

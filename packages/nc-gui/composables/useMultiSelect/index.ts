@@ -3,11 +3,13 @@ import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
-import convertCellData from '~/composables/useMultiSelect/convertCellData'
+import convertCellData from './convertCellData'
+import type { Row } from '~/lib'
 import {
   copyTable,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  isMac,
   message,
   reactive,
   ref,
@@ -18,7 +20,6 @@ import {
   useMetas,
   useProject,
 } from '#imports'
-import type { Row } from '~/lib'
 
 /**
  * Utility to help with multi-selecting rows/cells in the smartsheet
@@ -247,7 +248,21 @@ export function useMultiSelect(
 
           const columnObj = unref(fields)[selectedCell.col]
 
-          if ((!unref(editEnabled) && e.metaKey) || e.ctrlKey) {
+          if (
+            (!unref(editEnabled) ||
+              [
+                UITypes.DateTime,
+                UITypes.Date,
+                UITypes.Year,
+                UITypes.Time,
+                UITypes.Lookup,
+                UITypes.Rollup,
+                UITypes.Formula,
+                UITypes.Attachment,
+                UITypes.Checkbox,
+              ].includes(columnObj.uidt as UITypes)) &&
+            (isMac() ? e.metaKey : e.ctrlKey)
+          ) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
@@ -269,7 +284,7 @@ export function useMultiSelect(
                     columnObj.uidt === UITypes.LinkToAnotherRecord &&
                     (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
                   ) {
-                    if (!clipboardContext.value || typeof clipboardContext.value !== 'object') {
+                    if (!clipboardContext || typeof clipboardContext.value !== 'object') {
                       return message.info('Invalid data')
                     }
                     rowObj.row[columnObj.title!] = convertCellData(
@@ -282,11 +297,13 @@ export function useMultiSelect(
                     )
                     e.preventDefault()
 
-                    const foreignKeyColumn: ColumnType = meta.value?.columns.find(
+                    const foreignKeyColumn = meta.value?.columns?.find(
                       (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
                     )
 
                     const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
+                    if (!foreignKeyColumn) return
 
                     rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(
                       clipboardContext.value,
@@ -316,7 +333,7 @@ export function useMultiSelect(
                     clearCell(selectedCell as { row: number; col: number }, true)
                     makeEditable(rowObj, columnObj)
                   }
-                } catch (error) {
+                } catch (error: any) {
                   message.error(await extractSdkResponseErrorMsg(error))
                 }
             }

@@ -121,6 +121,10 @@ test.describe('Verify shortcuts', () => {
       type: 'Number',
     });
     await dashboard.grid.column.create({
+      title: 'PhoneNumber',
+      type: 'PhoneNumber',
+    });
+    await dashboard.grid.column.create({
       title: 'SingleSelect',
       type: 'SingleSelect',
     });
@@ -190,6 +194,15 @@ test.describe('Verify shortcuts', () => {
     });
     await dashboard.grid.cell.click({
       index: 0,
+      columnHeader: 'PhoneNumber',
+    });
+    await dashboard.grid.cell.fillText({
+      index: 0,
+      columnHeader: 'PhoneNumber',
+      text: '987654321',
+    });
+    await dashboard.grid.cell.click({
+      index: 0,
       columnHeader: 'Checkbox',
     });
 
@@ -253,6 +266,12 @@ test.describe('Verify shortcuts', () => {
       columnHeader: 'Number',
     });
     expect(await dashboard.grid.cell.getClipboardText()).toBe('123');
+
+    await dashboard.grid.cell.copyToClipboard({
+      index: 0,
+      columnHeader: 'PhoneNumber',
+    });
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('987654321');
 
     await dashboard.grid.cell.copyToClipboard(
       {

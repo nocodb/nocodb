@@ -213,6 +213,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         // ALT + ,
         if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
           e.preventDefault()
+          $e('a:shortcut', { key: 'ALT + ,' })
           toggleDialog(true, 'teamAndAuth')
         }
         break
@@ -223,6 +224,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.key) {
       case '/':
         if (!isDrawerOrModalExist()) {
+          $e('a:shortcut', { key: 'CTRL + /' })
           openKeyboardShortcutDialog()
         }
         break

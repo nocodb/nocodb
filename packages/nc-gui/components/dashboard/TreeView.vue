@@ -241,6 +241,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         if (isCreateTableAllowed.value && !isDrawerOrModalExist()) {
           // prevent the key `T` is inputted to table title input
           e.preventDefault()
+          $e('a:shortcut', { key: 'ALT + T' })
           openTableCreateDialog()
         }
         break

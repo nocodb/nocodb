@@ -1,5 +1,4 @@
-import { UITypes } from '../../../nocodb-sdk'
-import type { ColumnType } from '../../../nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 
 export const copyTable = async (rows: Row[], cols: ColumnType[]) => {

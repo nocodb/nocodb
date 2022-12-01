@@ -34,7 +34,7 @@ const columns = [
   },
   {
     title: 'Url',
-    type: 'Url',
+    type: 'URL',
   },
 ];
 

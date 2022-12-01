@@ -125,6 +125,22 @@ test.describe('Verify shortcuts', () => {
       type: 'PhoneNumber',
     });
     await dashboard.grid.column.create({
+      title: 'Email',
+      type: 'Email',
+    });
+    await dashboard.grid.column.create({
+      title: 'URL',
+      type: 'URL',
+    });
+    await dashboard.grid.column.create({
+      title: 'Decimal',
+      type: 'Decimal',
+    });
+    await dashboard.grid.column.create({
+      title: 'Percent',
+      type: 'Percent',
+    });
+    await dashboard.grid.column.create({
       title: 'SingleSelect',
       type: 'SingleSelect',
     });
@@ -201,6 +217,47 @@ test.describe('Verify shortcuts', () => {
       columnHeader: 'PhoneNumber',
       text: '987654321',
     });
+
+    await dashboard.grid.cell.click({
+      index: 0,
+      columnHeader: 'Email',
+    });
+    await dashboard.grid.cell.fillText({
+      index: 0,
+      columnHeader: 'Email',
+      text: 'test@example.com',
+    });
+
+    await dashboard.grid.cell.click({
+      index: 0,
+      columnHeader: 'URL',
+    });
+    await dashboard.grid.cell.fillText({
+      index: 0,
+      columnHeader: 'URL',
+      text: 'nocodb.com',
+    });
+
+    await dashboard.grid.cell.click({
+      index: 0,
+      columnHeader: 'Decimal',
+    });
+    await dashboard.grid.cell.fillText({
+      index: 0,
+      columnHeader: 'Decimal',
+      text: '1.1',
+    });
+
+    await dashboard.grid.cell.click({
+      index: 0,
+      columnHeader: 'Percent',
+    });
+    await dashboard.grid.cell.fillText({
+      index: 0,
+      columnHeader: 'Percent',
+      text: '80',
+    });
+
     await dashboard.grid.cell.click({
       index: 0,
       columnHeader: 'Checkbox',
@@ -222,7 +279,7 @@ test.describe('Verify shortcuts', () => {
       filePath: `${process.cwd()}/fixtures/sampleFiles/1.json`,
     });
 
-    // ########################################
+    // // ########################################
 
     await dashboard.grid.cell.copyToClipboard({
       index: 0,
@@ -272,6 +329,30 @@ test.describe('Verify shortcuts', () => {
       columnHeader: 'PhoneNumber',
     });
     expect(await dashboard.grid.cell.getClipboardText()).toBe('987654321');
+
+    await dashboard.grid.cell.copyToClipboard({
+      index: 0,
+      columnHeader: 'Email',
+    });
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('test@example.com');
+
+    await dashboard.grid.cell.copyToClipboard({
+      index: 0,
+      columnHeader: 'URL',
+    });
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('nocodb.com');
+
+    await dashboard.grid.cell.copyToClipboard({
+      index: 0,
+      columnHeader: 'Decimal',
+    });
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('1.1');
+
+    await dashboard.grid.cell.copyToClipboard({
+      index: 0,
+      columnHeader: 'Percent',
+    });
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('80');
 
     await dashboard.grid.cell.copyToClipboard(
       {

@@ -260,6 +260,7 @@ export function useMultiSelect(
                 UITypes.Formula,
                 UITypes.Attachment,
                 UITypes.Checkbox,
+                UITypes.Rating,
               ].includes(columnObj.uidt as UITypes)) &&
             (isMac() ? e.metaKey : e.ctrlKey)
           ) {

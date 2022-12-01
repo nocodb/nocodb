@@ -5,8 +5,9 @@ import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import queries from './sqlite.queries';
-import lodash from 'lodash';
-import _ from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import mapKeys from 'lodash/mapKeys';
+import find from 'lodash/find';
 import { customAlphabet } from 'nanoid';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 6);
@@ -681,7 +682,7 @@ class SqliteClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let fn = response[0][i];
-          fn = _.mapKeys(fn, function (_v, k) {
+          fn = mapKeys(fn, function (_v, k) {
             return k.toLowerCase();
           });
           fn.function_name = fn.name;
@@ -735,7 +736,7 @@ class SqliteClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
-          procedure = _.mapKeys(procedure, function (_v, k) {
+          procedure = mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
           procedure.procedure_name = procedure.name;
@@ -819,7 +820,7 @@ class SqliteClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let _function = response[0][i];
 
-          _function = _.mapKeys(_function, function (_v, k) {
+          _function = mapKeys(_function, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -871,7 +872,7 @@ class SqliteClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
 
-          procedure = _.mapKeys(procedure, function (_v, k) {
+          procedure = mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -1034,7 +1035,7 @@ class SqliteClient extends KnexClient {
    */
   async _getQuery(args) {
     try {
-      if (_.isEmpty(this._version)) {
+      if (isEmpty(this._version)) {
         const result = await this.version();
         this._version = result.data.object;
         log.debug(
@@ -1494,7 +1495,7 @@ class SqliteClient extends KnexClient {
       let downQuery = '';
 
       for (let i = 0; i < args.columns.length; ++i) {
-        const oldColumn = lodash.find(originalColumns, {
+        const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
         });
 

@@ -55,7 +55,7 @@ const columns = $computed(() => {
   }
 
   return metas[selectedTable.id].columns.filter((c: any) => {
-    return !(isSystemColumn(c) || c.uidt === UITypes.QrCode)
+    return !(isSystemColumn(c) || c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode)
   })
 })
 </script>

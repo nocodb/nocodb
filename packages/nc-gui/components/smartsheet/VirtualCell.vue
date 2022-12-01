@@ -14,6 +14,7 @@ import {
   isLookup,
   isMm,
   isQrCode,
+  isBarcode,
   isRollup,
   provide,
   toRef,
@@ -59,6 +60,7 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
     <LazyVirtualCellRollup v-else-if="isRollup(column)" />
     <LazyVirtualCellFormula v-else-if="isFormula(column)" />
     <LazyVirtualCellQrCode v-else-if="isQrCode(column)" />
+    <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />
     <LazyVirtualCellCount v-else-if="isCount(column)" />
     <LazyVirtualCellLookup v-else-if="isLookup(column)" />
   </div>

@@ -292,6 +292,7 @@ export function useViewData(
           if (
             col.uidt === UITypes.Formula ||
             col.uidt === UITypes.QrCode ||
+            col.uidt === UITypes.Barcode ||
             col.uidt === UITypes.Rollup ||
             col.au ||
             col.cdf?.includes(' on update ')

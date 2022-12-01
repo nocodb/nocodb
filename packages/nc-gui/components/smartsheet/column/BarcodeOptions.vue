@@ -59,7 +59,7 @@ setAdditionalValidations({
         <a-select
           v-model:value="vModel.fk_qr_value_column_id"
           :options="columnsAllowedAsQrValue"
-          placeholder="Select a column for the QR code value"
+          placeholder="Select a column for the Barcode value"
           @click.stop
         />
       </a-form-item>

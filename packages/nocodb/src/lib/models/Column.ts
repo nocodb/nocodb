@@ -7,7 +7,7 @@ import Model from './Model';
 import NocoCache from '../cache/NocoCache';
 import {
   ColumnReqType,
-  AllowedColumnTypesForQrCode,
+  AllowedColumnTypesForQrAndBarcodes,
   ColumnType,
   UITypes,
 } from 'nocodb-sdk';
@@ -954,7 +954,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // get qr code columns and delete if target type is not supported by QR code column type
-    if (!AllowedColumnTypesForQrCode.includes(updateObj.uidt)) {
+    if (!AllowedColumnTypesForQrAndBarcodes.includes(updateObj.uidt)) {
       const qrCodeCols = await ncMeta.metaList2(
         null,
         null,

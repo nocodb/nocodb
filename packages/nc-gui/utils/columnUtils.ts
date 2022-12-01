@@ -2,6 +2,7 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import LinkVariant from '~icons/mdi/link-variant'
 import QrCodeScan from '~icons/mdi/qrcode-scan'
+import BarcodeScan from '~icons/mdi/barcode-scan'
 import FormatColorText from '~icons/mdi/format-color-text'
 import TextSubject from '~icons/mdi/text-subject'
 import JSONIcon from '~icons/mdi/code-json'
@@ -129,6 +130,11 @@ const uiTypes = [
   {
     name: UITypes.QrCode,
     icon: QrCodeScan,
+    virtual: 1,
+  },
+  {
+    name: UITypes.Barcode,
+    icon: BarcodeScan,
     virtual: 1,
   },
   {

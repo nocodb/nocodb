@@ -32,6 +32,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
 <template>
   <a-modal
     v-model:visible="modalVisible"
+    :class="{ active: modalVisible }"
     wrap-class-name="nc-qr-code-large"
     :body-style="{ padding: '0px' }"
     @ok="handleModalOkClick"

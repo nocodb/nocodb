@@ -98,6 +98,14 @@ jobs:
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
 
+      # Stress test added/modified tests
+      - name: Fetch develop branch
+        working-directory: ./tests/playwright
+        run: git fetch origin develop
+      - name: Stress test
+        working-directory: ./tests/playwright
+        run: E2E_DB_TYPE=${{ inputs.db }} node ./scripts/stressTestNewlyAddedTest.js
+
       # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
       - name: Run quick server and tests (pg)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
@@ -132,12 +140,18 @@ jobs:
           name: playwright-report-quick-${{ inputs.shard }}
           path: ./tests/playwright/playwright-report-quick/
           retention-days: 2
-          
+
       - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
           path: ./tests/playwright/playwright-report/
+          retention-days: 2
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report-stress-${{ inputs.db }}-${{ inputs.shard }}
+          path: ./tests/playwright/playwright-report-stress/
           retention-days: 2
       - uses: actions/upload-artifact@v3
         if: always()

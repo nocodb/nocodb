@@ -13,7 +13,13 @@ import GalleryView from './GalleryView';
 import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
 import Filter from './Filter';
-import { isSystemColumn, UITypes, ViewType, ViewTypes } from 'nocodb-sdk';
+import {
+  ColumnReqType,
+  isSystemColumn,
+  UITypes,
+  ViewType,
+  ViewTypes,
+} from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import KanbanViewColumn from './KanbanViewColumn';
@@ -442,9 +448,9 @@ export default class View implements ViewType {
     param: {
       fk_column_id: any;
       fk_model_id: any;
-      order;
+      order?: number;
       show;
-    },
+    } & Pick<ColumnReqType, 'column_order'>,
     ncMeta = Noco.ncMeta
   ) {
     const insertObj = {
@@ -456,33 +462,21 @@ export default class View implements ViewType {
     const views = await this.list(param.fk_model_id, ncMeta);
 
     for (const view of views) {
+      const modifiedInsertObj = { ...insertObj, fk_view_id: view.id };
+
+      if (param.column_order?.view_id === view.id) {
+        modifiedInsertObj.order = param.column_order?.order;
+      }
+
       switch (view.type) {
         case ViewTypes.GRID:
-          await GridViewColumn.insert(
-            {
-              ...insertObj,
-              fk_view_id: view.id,
-            },
-            ncMeta
-          );
+          await GridViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
         case ViewTypes.GALLERY:
-          await GalleryViewColumn.insert(
-            {
-              ...insertObj,
-              fk_view_id: view.id,
-            },
-            ncMeta
-          );
+          await GalleryViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
         case ViewTypes.KANBAN:
-          await KanbanViewColumn.insert(
-            {
-              ...insertObj,
-              fk_view_id: view.id,
-            },
-            ncMeta
-          );
+          await KanbanViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
       }
     }

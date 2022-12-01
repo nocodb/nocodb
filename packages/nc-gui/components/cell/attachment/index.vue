@@ -150,7 +150,12 @@ watch(
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
   if (e.key === 'Enter' && !isReadonly.value) {
     e.stopPropagation()
-    modalVisible.value = true
+    if (!modalVisible.value) {
+      modalVisible.value = true
+    } else {
+      // click Attach File button
+      ;(document.querySelector('.nc-attachment-modal.active .nc-attach-file') as HTMLDivElement)?.click()
+    }
   }
 })
 </script>

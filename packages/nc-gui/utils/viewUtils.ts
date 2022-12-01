@@ -37,3 +37,7 @@ export function applyLanguageDirection(dir: typeof rtl | typeof ltr) {
   document.body.classList.add(dir)
   document.body.style.direction = dir
 }
+
+export function applyNonSelectable() {
+  document.body.classList.add('non-selectable')
+}

@@ -217,6 +217,7 @@ const isRtl = computed(() => isRtlLang(locale.value as any))
     <!-- This view is shared via a private link -->
     <a-modal
       v-model:visible="showShareModel"
+      :class="{ active: showShareModel }"
       size="small"
       :title="$t('msg.info.privateLink')"
       :footer="null"

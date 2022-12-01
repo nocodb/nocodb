@@ -149,6 +149,7 @@ const renameTable = async () => {
 <template>
   <a-modal
     v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
     :title="$t('activity.renameTable')"
     :mask-closable="false"
     wrap-class-name="nc-modal-table-rename"

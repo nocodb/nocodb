@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
 import {
+  TabType,
   computed,
   definePageMeta,
+  extractSdkResponseErrorMsg,
+  isDrawerOrModalExist,
+  isMac,
   message,
   navigateTo,
   onBeforeMount,
@@ -12,7 +16,9 @@ import {
   openLink,
   projectThemeColors,
   ref,
+  resolveComponent,
   useCopy,
+  useDialog,
   useGlobal,
   useI18n,
   useProject,
@@ -23,8 +29,6 @@ import {
   useTheme,
   useUIPermission,
 } from '#imports'
-import { TabType } from '~/lib'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
 definePageMeta({
   hideHeader: true,
@@ -33,6 +37,8 @@ definePageMeta({
 const { theme, defaultTheme } = useTheme()
 
 const { t } = useI18n()
+
+const { $e } = useNuxtApp()
 
 const route = useRoute()
 
@@ -182,6 +188,49 @@ onMounted(() => {
 })
 
 onBeforeUnmount(reset)
+
+function openKeyboardShortcutDialog() {
+  $e('a:actions:keyboard-shortcut')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgKeyboardShortcuts'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
+    switch (e.keyCode) {
+      case 188: {
+        // ALT + ,
+        if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
+          e.preventDefault()
+          $e('c:shortcut', { key: 'ALT + ,' })
+          toggleDialog(true, 'teamAndAuth')
+        }
+        break
+      }
+    }
+  }
+  if (cmdOrCtrl) {
+    switch (e.key) {
+      case '/':
+        if (!isDrawerOrModalExist()) {
+          $e('c:shortcut', { key: 'CTRL + /' })
+          openKeyboardShortcutDialog()
+        }
+        break
+    }
+  }
+})
 </script>
 
 <template>

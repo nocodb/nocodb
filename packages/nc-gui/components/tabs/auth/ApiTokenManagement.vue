@@ -90,6 +90,7 @@ onMounted(() => {
 <template>
   <a-modal
     v-model:visible="showNewTokenModal"
+    :class="{ active: showNewTokenModal }"
     :closable="false"
     width="28rem"
     centered
@@ -133,6 +134,7 @@ onMounted(() => {
 
   <a-modal
     v-model:visible="showDeleteTokenModal"
+    :class="{ active: showDeleteTokenModal }"
     :closable="false"
     width="28rem"
     centered

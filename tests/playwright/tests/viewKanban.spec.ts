@@ -19,6 +19,10 @@ test.describe('View', () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Film' });
+    
+    if (isSqlite(context)) {
+      await dashboard.treeView.deleteTable({ title: 'FilmList' });
+    }
 
     if (isPg(context)) {
       // Since these view depend on the Ratings column of the Film table

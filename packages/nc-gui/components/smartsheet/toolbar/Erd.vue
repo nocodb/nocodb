@@ -17,6 +17,7 @@ const selectedView = inject(ActiveViewInj)
 <template>
   <a-modal
     v-model:visible="vModel"
+    :class="{ active: vModel }"
     size="small"
     :footer="null"
     width="max(900px,60vw)"

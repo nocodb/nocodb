@@ -31,6 +31,15 @@ test.describe('Attachment column', () => {
         columnHeader: 'testAttach',
       });
     }
+    await dashboard.grid.cell.attachment.addFile({
+      index: 7,
+      columnHeader: 'testAttach',
+      filePath: `${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`,
+    });
+    await dashboard.grid.cell.attachment.verifyFile({
+      index: 7,
+      columnHeader: 'testAttach',
+    });
 
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',

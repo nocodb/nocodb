@@ -6,6 +6,7 @@ import { SelectOptionCellPageObject } from './SelectOptionCell';
 import { SharedFormPage } from '../../../SharedForm';
 import { CheckboxCellPageObject } from './CheckboxCell';
 import { RatingCellPageObject } from './RatingCell';
+import { DateCellPageObject } from './DateCell';
 
 export class CellPageObject extends BasePage {
   readonly parent: GridPage | SharedFormPage;
@@ -13,6 +14,8 @@ export class CellPageObject extends BasePage {
   readonly attachment: AttachmentCellPageObject;
   readonly checkbox: CheckboxCellPageObject;
   readonly rating: RatingCellPageObject;
+  readonly date: DateCellPageObject;
+
   constructor(parent: GridPage | SharedFormPage) {
     super(parent.rootPage);
     this.parent = parent;
@@ -20,6 +23,7 @@ export class CellPageObject extends BasePage {
     this.attachment = new AttachmentCellPageObject(this);
     this.checkbox = new CheckboxCellPageObject(this);
     this.rating = new RatingCellPageObject(this);
+    this.date = new DateCellPageObject(this);
   }
 
   get({ index, columnHeader }: { index?: number; columnHeader: string }): Locator {
@@ -30,8 +34,12 @@ export class CellPageObject extends BasePage {
     }
   }
 
-  async click({ index, columnHeader }: { index: number; columnHeader: string }) {
-    return await this.get({ index, columnHeader }).click();
+  async click(
+    { index, columnHeader }: { index: number; columnHeader: string },
+    ...options: Parameters<Locator['click']>
+  ) {
+    await this.get({ index, columnHeader }).click(...options);
+    await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
   }
 
   async dblclick({ index, columnHeader }: { index?: number; columnHeader: string }) {
@@ -60,6 +68,14 @@ export class CellPageObject extends BasePage {
     await this.get({ index, columnHeader }).locator('.nc-action-icon.nc-plus').click();
   }
 
+  async verifyCellActiveSelected({ index, columnHeader }: { index: number; columnHeader: string }) {
+    await expect(this.get({ index, columnHeader })).toHaveClass(/active/);
+  }
+
+  async verifyCellEditable({ index, columnHeader }: { index: number; columnHeader: string }) {
+    await this.get({ index, columnHeader }).isEditable();
+  }
+
   async verify({ index, columnHeader, value }: { index: number; columnHeader: string; value: string | string[] }) {
     const _verify = async text => {
       await expect
@@ -80,6 +96,32 @@ export class CellPageObject extends BasePage {
     } else {
       await _verify(value);
     }
+  }
+
+  async verifyQrCodeCell({
+    index,
+    columnHeader,
+    expectedSrcValue,
+  }: {
+    index: number;
+    columnHeader: string;
+    expectedSrcValue: string;
+  }) {
+    const _verify = async expectedQrCodeImgSrc => {
+      await expect
+        .poll(async () => {
+          const qrCell = await this.get({
+            index,
+            columnHeader,
+          });
+          const qrImg = await qrCell.getByRole('img');
+          const qrImgSrc = await qrImg.getAttribute('src');
+          return qrImgSrc;
+        })
+        .toEqual(expectedQrCodeImgSrc);
+    };
+
+    await _verify(expectedSrcValue);
   }
 
   // todo: Improve param names (i.e value => values)
@@ -143,5 +185,14 @@ export class CellPageObject extends BasePage {
     await expect(await vCell.locator('.nc-icon.unlink-icon:visible')).toHaveCount(
       param.role === 'creator' || param.role === 'editor' ? 1 : 0
     );
+  }
+
+  async copyToClipboard(
+    { index, columnHeader }: { index: number; columnHeader: string },
+    ...clickOptions: Parameters<Locator['click']>
+  ) {
+    await this.get({ index, columnHeader }).click(...clickOptions);
+
+    await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
   }
 }

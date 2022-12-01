@@ -115,4 +115,20 @@ test.describe('Column menu operations', () => {
 
     await dashboard.closeTab({ title: 'Film' });
   });
+
+  test('Sort column', async () => {
+    await dashboard.treeView.openTable({ title: 'Film' });
+
+    await dashboard.grid.column.sortColumn({
+      title: 'Title',
+      direction: 'asc',
+    });
+
+    await dashboard.grid.column.sortColumn({
+      title: 'ReleaseYear',
+      direction: 'desc',
+    });
+
+    await dashboard.closeTab({ title: 'Film' });
+  });
 });

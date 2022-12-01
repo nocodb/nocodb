@@ -295,4 +295,34 @@ export class ColumnPageObject extends BasePage {
       await this.grid.get().locator('.nc-ui-dt-dropdown:visible').first().click();
     }
   }
+
+  async sortColumn({ title, direction = 'asc' }: { title: string; direction: 'asc' | 'desc' }) {
+    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+    let menuOption;
+    if (direction === 'desc') {
+      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Descending"):visible').click();
+    } else {
+      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Ascending"):visible').click();
+    }
+
+    await this.waitForResponse({
+      uiAction: menuOption,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `/sorts`,
+    });
+
+    await this.grid.toolbar.parent.dashboard.waitForLoaderToDisappear();
+
+    await this.grid.toolbar.clickSort();
+
+    await this.rootPage.locator(`.ant-select-selection-item:has-text("${title}")`).first().isVisible();
+    await this.rootPage
+      .locator(
+        `.nc-sort-dir-select:has-text("${direction === 'asc' ? '1 → 9' : '9 → 1'}"),.nc-sort-dir-select:has-text("${
+          direction === 'asc' ? 'A → Z' : 'Z → A'
+        }")`
+      )
+      .first()
+      .isVisible();
+  }
 }

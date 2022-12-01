@@ -46,15 +46,17 @@ export default function convertCellData(args: { from: UITypes; to: UITypes; valu
       return parsedTime.format(dateFormat)
     }
     case UITypes.Year: {
+      if (/^\d+$/.test(value)) {
+        return +value
+      }
+
       const parsedDate = dayjs(value)
 
-      if (!parsedDate.isValid()) {
+      if (parsedDate.isValid()) {
         return parsedDate.format('YYYY')
       }
-      if (/^\d+$/.test(value)) {
-        throw new Error('Not a valid year value')
-      }
-      return value
+
+      throw new Error('Not a valid year value')
     }
     case UITypes.Attachment: {
       let parsedVal

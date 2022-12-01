@@ -695,6 +695,7 @@
       "futureRelease": "قريبا!"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "تم تحديث ACL واجهة المستخدم للجداول بنجاح",
       "pluginUninstalled": "تم إلغاء تثبيت الإضافة بنجاح",
       "pluginSettingsSaved": "تم حفظ إعدادات الإضافة بنجاح",

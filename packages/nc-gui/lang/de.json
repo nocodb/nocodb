@@ -695,6 +695,7 @@
       "futureRelease": "Kommt bald!"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin erfolgreich deinstalliert",
       "pluginSettingsSaved": "Plugin-Einstellungen erfolgreich gespeichert",

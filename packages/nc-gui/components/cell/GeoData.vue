@@ -198,12 +198,12 @@ const onGetCurrentLocation = () => {
           <a-input v-model:value="formState.longitude" type="number" step="0.0000001" required :min="-180" :max="180" />
         </a-form-item>
         <a-form-item>
-          <a-form-item class="button-location">
-            <a-button @click="onGetCurrentLocation">Your Location</a-button>
-            <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
-          </a-form-item>
-          <a-button type="text" @click="clear">Cancel</a-button>
-          <a-button type="primary" html-type="submit">Submit</a-button>
+          <a-button @click="onGetCurrentLocation">Your Location</a-button>
+          <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
+        </a-form-item>
+        <a-form-item class="buttons">
+          <a-button class="buttons" type="text" @click="clear">Cancel</a-button>
+          <a-button class="buttons" type="primary" html-type="submit">Submit</a-button>
         </a-form-item>
       </a-form>
     </template>
@@ -223,7 +223,7 @@ input[type='number']:focus {
 }
 .inputLat {
   width: 180px;
-  margin-top: 2rem;
+  margin-top: 1rem;
   margin-right: 0.5rem;
   margin-left: 0.5rem;
 }
@@ -235,5 +235,8 @@ input[type='number']:focus {
 .button-location {
   margin-left: auto;
   margin-right: auto;
+}
+.buttons {
+  margin-bottom: 0;
 }
 </style>

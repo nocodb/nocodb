@@ -1,14 +1,31 @@
 import type { MaybeRef } from '@vueuse/core'
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
-import { copyTable, message, reactive, ref, unref, useCopy, useEventListener, useI18n } from '#imports'
+import convertCellData from './convertCellData'
 import type { Row } from '~/lib'
+import {
+  copyTable,
+  extractPkFromRow,
+  extractSdkResponseErrorMsg,
+  isMac,
+  message,
+  reactive,
+  ref,
+  unref,
+  useCopy,
+  useEventListener,
+  useI18n,
+  useMetas,
+  useProject,
+} from '#imports'
 
 /**
  * Utility to help with multi-selecting rows/cells in the smartsheet
  */
 export function useMultiSelect(
+  _meta: MaybeRef<TableType>,
   fields: MaybeRef<ColumnType[]>,
   data: MaybeRef<Row[]>,
   _editEnabled: MaybeRef<boolean>,
@@ -17,10 +34,19 @@ export function useMultiSelect(
   makeEditable: Function,
   scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
   keyEventHandler?: Function,
+  syncCellData?: Function,
 ) {
+  const meta = ref(_meta)
+
   const { t } = useI18n()
 
   const { copy } = useCopy()
+
+  const { getMeta } = useMetas()
+
+  const { isMysql } = useProject()
+
+  let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
   const editEnabled = ref(_editEnabled)
 
@@ -49,6 +75,11 @@ export function useMultiSelect(
           const columnObj = unref(fields)[cpCol]
 
           let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+
+          if (columnObj.uidt === UITypes.Checkbox) {
+            textToCopy = !!textToCopy
+          }
+
           if (typeof textToCopy === 'object') {
             textToCopy = JSON.stringify(textToCopy)
           }
@@ -217,12 +248,95 @@ export function useMultiSelect(
 
           const columnObj = unref(fields)[selectedCell.col]
 
-          if ((!unref(editEnabled) && e.metaKey) || e.ctrlKey) {
+          if (
+            (!unref(editEnabled) ||
+              [
+                UITypes.DateTime,
+                UITypes.Date,
+                UITypes.Year,
+                UITypes.Time,
+                UITypes.Lookup,
+                UITypes.Rollup,
+                UITypes.Formula,
+                UITypes.Attachment,
+                UITypes.Checkbox,
+                UITypes.Rating,
+              ].includes(columnObj.uidt as UITypes)) &&
+            (isMac() ? e.metaKey : e.ctrlKey)
+          ) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
+                // set clipboard context only if single cell selected
+                if (rowObj.row[columnObj.title!]) {
+                  clipboardContext = {
+                    value: rowObj.row[columnObj.title!],
+                    uidt: columnObj.uidt as UITypes,
+                  }
+                } else {
+                  clipboardContext = null
+                }
                 await copyValue()
                 break
+              case 86:
+                try {
+                  // handle belongs to column
+                  if (
+                    columnObj.uidt === UITypes.LinkToAnotherRecord &&
+                    (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
+                  ) {
+                    if (!clipboardContext || typeof clipboardContext.value !== 'object') {
+                      return message.info('Invalid data')
+                    }
+                    rowObj.row[columnObj.title!] = convertCellData(
+                      {
+                        value: clipboardContext.value,
+                        from: clipboardContext.uidt,
+                        to: columnObj.uidt as UITypes,
+                      },
+                      isMysql.value,
+                    )
+                    e.preventDefault()
+
+                    const foreignKeyColumn = meta.value?.columns?.find(
+                      (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+                    )
+
+                    const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
+                    if (!foreignKeyColumn) return
+
+                    rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(
+                      clipboardContext.value,
+                      (relatedTableMeta as any)!.columns!,
+                    )
+
+                    return await syncCellData?.({ ...selectedCell, updatedColumnTitle: foreignKeyColumn.title })
+                  }
+
+                  // if it's a virtual column excluding belongs to cell type skip paste
+                  if (isVirtualCol(columnObj)) {
+                    return message.info(t('msg.info.pasteNotSupported'))
+                  }
+
+                  if (clipboardContext) {
+                    rowObj.row[columnObj.title!] = convertCellData(
+                      {
+                        value: clipboardContext.value,
+                        from: clipboardContext.uidt,
+                        to: columnObj.uidt as UITypes,
+                      },
+                      isMysql.value,
+                    )
+                    e.preventDefault()
+                    syncCellData?.(selectedCell)
+                  } else {
+                    clearCell(selectedCell as { row: number; col: number }, true)
+                    makeEditable(rowObj, columnObj)
+                  }
+                } catch (error: any) {
+                  message.error(await extractSdkResponseErrorMsg(error))
+                }
             }
           }
 

@@ -194,7 +194,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const addOrUpdate = async (onSuccess: () => void, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
       try {
         if (!(await validate())) return
-      } catch (e) {
+      } catch (e: any) {
         const errorMsgs = e.errorFields
           ?.map((e: any) => e.errors?.join(', '))
           .filter(Boolean)

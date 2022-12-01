@@ -169,99 +169,120 @@ const getContainerScrollForElement = (
 }
 
 const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyValue, isCellSelected, selectedCell } =
-  useMultiSelect(fields, data, $$(editEnabled), isPkAvail, clearCell, makeEditable, scrollToCell, (e: KeyboardEvent) => {
-    // ignore navigating if picker(Date, Time, DateTime, Year)
-    // or single/multi select options is open
-    const activePickerOrDropdownEl = document.querySelector(
-      '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
-    )
-    if (activePickerOrDropdownEl) {
-      e.preventDefault()
-      return true
-    }
-
-    // skip keyboard event handling if there is a drawer / modal
-    if (isDrawerOrModalExist()) {
-      return true
-    }
-
-    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-    const altOrOptionKey = e.altKey
-    if (e.key === ' ') {
-      if (selectedCell.row !== null && !editEnabled) {
+  useMultiSelect(
+    meta,
+    fields,
+    data,
+    $$(editEnabled),
+    isPkAvail,
+    clearCell,
+    makeEditable,
+    scrollToCell,
+    (e: KeyboardEvent) => {
+      // ignore navigating if picker(Date, Time, DateTime, Year)
+      // or single/multi select options is open
+      const activePickerOrDropdownEl = document.querySelector(
+        '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+      )
+      if (activePickerOrDropdownEl) {
         e.preventDefault()
-        const row = data.value[selectedCell.row]
-        expandForm(row)
         return true
       }
-    } else if (e.key === 'Escape') {
-      if (editEnabled) {
-        editEnabled = false
-        return true
-      }
-    } else if (e.key === 'Enter') {
-      if (e.shiftKey) {
-        // add a line break for types like LongText / JSON
-        return true
-      }
-      if (editEnabled) {
-        editEnabled = false
-        return true
-      }
-    }
 
-    if (cmdOrCtrl) {
-      switch (e.key) {
-        case 'ArrowUp':
-          e.preventDefault()
-          selectedCell.row = 0
-          selectedCell.col = selectedCell.col ?? 0
-          scrollToCell?.()
-          editEnabled = false
-          return true
-        case 'ArrowDown':
-          e.preventDefault()
-          selectedCell.row = data.value.length - 1
-          selectedCell.col = selectedCell.col ?? 0
-          scrollToCell?.()
-          editEnabled = false
-          return true
-        case 'ArrowRight':
-          e.preventDefault()
-          selectedCell.row = selectedCell.row ?? 0
-          selectedCell.col = fields.value?.length - 1
-          scrollToCell?.()
-          editEnabled = false
-          return true
-        case 'ArrowLeft':
-          e.preventDefault()
-          selectedCell.row = selectedCell.row ?? 0
-          selectedCell.col = 0
-          scrollToCell?.()
-          editEnabled = false
-          return true
+      // skip keyboard event handling if there is a drawer / modal
+      if (isDrawerOrModalExist()) {
+        return true
       }
-    }
 
-    if (altOrOptionKey) {
-      switch (e.keyCode) {
-        case 82: {
-          // ALT + R
-          if (isAddingEmptyRowAllowed) {
-            addEmptyRow()
-          }
-          break
+      const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+      const altOrOptionKey = e.altKey
+      if (e.key === ' ') {
+        if (selectedCell.row !== null && !editEnabled) {
+          e.preventDefault()
+          const row = data.value[selectedCell.row]
+          expandForm(row)
+          return true
         }
-        case 67: {
-          // ALT + C
-          if (isAddingColumnAllowed) {
-            addColumnDropdown.value = true
-          }
-          break
+      } else if (e.key === 'Escape') {
+        if (editEnabled) {
+          editEnabled = false
+          return true
+        }
+      } else if (e.key === 'Enter') {
+        if (e.shiftKey) {
+          // add a line break for types like LongText / JSON
+          return true
+        }
+        if (editEnabled) {
+          editEnabled = false
+          return true
         }
       }
-    }
-  })
+
+      if (cmdOrCtrl) {
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault()
+            selectedCell.row = 0
+            selectedCell.col = selectedCell.col ?? 0
+            scrollToCell?.()
+            editEnabled = false
+            return true
+          case 'ArrowDown':
+            e.preventDefault()
+            selectedCell.row = data.value.length - 1
+            selectedCell.col = selectedCell.col ?? 0
+            scrollToCell?.()
+            editEnabled = false
+            return true
+          case 'ArrowRight':
+            e.preventDefault()
+            selectedCell.row = selectedCell.row ?? 0
+            selectedCell.col = fields.value?.length - 1
+            scrollToCell?.()
+            editEnabled = false
+            return true
+          case 'ArrowLeft':
+            e.preventDefault()
+            selectedCell.row = selectedCell.row ?? 0
+            selectedCell.col = 0
+            scrollToCell?.()
+            editEnabled = false
+            return true
+        }
+      }
+
+      if (altOrOptionKey) {
+        switch (e.keyCode) {
+          case 82: {
+            // ALT + R
+            if (isAddingEmptyRowAllowed) {
+              addEmptyRow()
+            }
+            break
+          }
+          case 67: {
+            // ALT + C
+            if (isAddingColumnAllowed) {
+              addColumnDropdown.value = true
+            }
+            break
+          }
+        }
+      }
+    },
+    async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
+      const rowObj = data.value[ctx.row]
+      const columnObj = ctx.col !== null && ctx.col !== undefined ? fields.value[ctx.col] : null
+
+      if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+        return
+      }
+
+      // update/save cell value
+      await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
+    },
+  )
 
 function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? selectedCell.row
@@ -369,7 +390,7 @@ watch(contextMenu, () => {
 
 const rowRefs = $ref<any[]>()
 
-async function clearCell(ctx: { row: number; col: number } | null) {
+async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
   if (
     !ctx ||
     !hasEditPermission ||
@@ -386,8 +407,11 @@ async function clearCell(ctx: { row: number; col: number } | null) {
   }
 
   rowObj.row[columnObj.title] = null
-  // update/save cell value
-  await updateOrSaveRow(rowObj, columnObj.title)
+
+  if (!skipUpdate) {
+    // update/save cell value
+    await updateOrSaveRow(rowObj, columnObj.title)
+  }
 }
 
 function makeEditable(row: Row, col: ColumnType) {

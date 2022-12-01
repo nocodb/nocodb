@@ -497,6 +497,7 @@
       }
     },
     "info": {
+      "pasteNotSupported": "Paste operation is not supported on the active cell",
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."

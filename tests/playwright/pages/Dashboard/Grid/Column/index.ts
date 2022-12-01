@@ -34,7 +34,7 @@ export class ColumnPageObject extends BasePage {
     childColumn = '',
     relationType = '',
     rollupType = '',
-    format = '',
+    format,
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
   }: {
@@ -81,12 +81,14 @@ export class ColumnPageObject extends BasePage {
         });
         break;
       case 'Duration':
-        await this.get().locator('.ant-select-single').nth(1).click();
-        await this.rootPage
-          .locator(`.ant-select-item`, {
-            hasText: format,
-          })
-          .click();
+        if (format) {
+          await this.get().locator('.ant-select-single').nth(1).click();
+          await this.rootPage
+            .locator(`.ant-select-item`, {
+              hasText: format,
+            })
+            .click();
+        }
         break;
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);

@@ -141,6 +141,18 @@ test.describe('Verify shortcuts', () => {
       type: 'Percent',
     });
     await dashboard.grid.column.create({
+      title: 'Currency',
+      type: 'Currency',
+    });
+    await dashboard.grid.column.create({
+      title: 'Duration',
+      type: 'Duration',
+    });
+    await dashboard.grid.column.create({
+      title: 'Rating',
+      type: 'Rating',
+    });
+    await dashboard.grid.column.create({
       title: 'SingleSelect',
       type: 'SingleSelect',
     });
@@ -260,6 +272,31 @@ test.describe('Verify shortcuts', () => {
 
     await dashboard.grid.cell.click({
       index: 0,
+      columnHeader: 'Currency',
+    });
+    await dashboard.grid.cell.fillText({
+      index: 0,
+      columnHeader: 'Currency',
+      text: '20',
+    });
+
+    await dashboard.grid.cell.click({
+      index: 0,
+      columnHeader: 'Duration',
+    });
+    await dashboard.grid.cell.fillText({
+      index: 0,
+      columnHeader: 'Duration',
+      text: '0008',
+    });
+
+    await dashboard.grid.cell.rating.select({
+      index: 0,
+      columnHeader: 'Rating',
+      rating: 3,
+    });
+    await dashboard.grid.cell.click({
+      index: 0,
       columnHeader: 'Checkbox',
     });
 
@@ -279,7 +316,7 @@ test.describe('Verify shortcuts', () => {
       filePath: `${process.cwd()}/fixtures/sampleFiles/1.json`,
     });
 
-    // // ########################################
+    // ########################################
 
     await dashboard.grid.cell.copyToClipboard({
       index: 0,
@@ -353,6 +390,27 @@ test.describe('Verify shortcuts', () => {
       columnHeader: 'Percent',
     });
     expect(await dashboard.grid.cell.getClipboardText()).toBe('80');
+
+    await dashboard.grid.cell.copyToClipboard({
+      index: 0,
+      columnHeader: 'Currency',
+    });
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('20');
+
+    await dashboard.grid.cell.copyToClipboard({
+      index: 0,
+      columnHeader: 'Duration',
+    });
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('480');
+
+    await dashboard.grid.cell.copyToClipboard(
+      {
+        index: 0,
+        columnHeader: 'Rating',
+      },
+      { position: { x: 1, y: 1 } }
+    );
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('4');
 
     await dashboard.grid.cell.copyToClipboard(
       {

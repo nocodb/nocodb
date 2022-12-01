@@ -34,12 +34,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
       <div v-else>{{ result }}</div>
 
       <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        <!-- TODO: i18n -->
-        Warning: Formula fields should be configured in the field menu dropdown.
+        {{ $t('msg.info.computedFieldEditWarning') }}
       </div>
       <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        <!-- TODO: i18n -->
-        Warning: Computed field - unable to clear text.
+        {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
     </div>
   </div>

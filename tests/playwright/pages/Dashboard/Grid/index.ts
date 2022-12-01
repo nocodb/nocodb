@@ -114,7 +114,11 @@ export class GridPage extends BasePage {
       await this.waitForResponse({
         uiAction: clickOnColumnHeaderToSave,
         requestUrlPathToMatch: 'api/v1/db/data/noco',
-        httpMethodsToMatch: ['PATCH'],
+        httpMethodsToMatch: [
+          'PATCH',
+          // since edit row on an empty row will emit POST request
+          'POST',
+        ],
         responseJsonMatcher: resJson => resJson?.[columnHeader] === value,
       });
     } else {

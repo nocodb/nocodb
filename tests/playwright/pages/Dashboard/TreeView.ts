@@ -20,6 +20,18 @@ export class TreeViewPage extends BasePage {
     return this.dashboard.get().locator('.nc-treeview-container');
   }
 
+  async isVisible() {
+    return await this.get().isVisible();
+  }
+
+  async verifyVisibility({ isVisible }: { isVisible: boolean }) {
+    if (isVisible) {
+      await expect(this.get()).toBeVisible();
+    } else {
+      await expect(this.get()).not.toBeVisible();
+    }
+  }
+
   async focusTable({ title }: { title: string }) {
     await this.get().locator(`.nc-project-tree-tbl-${title}`).focus();
   }
@@ -43,8 +55,8 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.waitForTabRender({ title, mode });
   }
 
-  async createTable({ title }: { title: string }) {
-    await this.get().locator('.nc-add-new-table').click();
+  async createTable({ title, skipOpeningModal }: { title: string; skipOpeningModal?: boolean }) {
+    if (!skipOpeningModal) await this.get().locator('.nc-add-new-table').click();
 
     await this.dashboard.get().locator('.nc-modal-table-create').locator('.ant-modal-body').waitFor();
 
@@ -63,13 +75,13 @@ export class TreeViewPage extends BasePage {
 
   async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {
     if (exists) {
-      await expect(this.get().locator(`.nc-project-tree-tbl-${title}`)).toBeVisible();
+      await expect(this.get().getByTestId(`tree-view-table-${title}`)).toHaveCount(1);
 
       if (index) {
-        await expect(await this.get().locator('.nc-tbl-title').nth(index)).toHaveText(title);
+        await expect(this.get().locator('.nc-tbl-title').nth(index)).toHaveText(title);
       }
     } else {
-      await expect(this.get().locator(`.nc-project-tree-tbl-${title}`)).toHaveCount(0);
+      await expect(this.get().getByTestId(`tree-view-table-${title}`)).toHaveCount(0);
     }
   }
 

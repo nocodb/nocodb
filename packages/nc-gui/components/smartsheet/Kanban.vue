@@ -620,7 +620,12 @@ watch(view, async (nextView) => {
     />
   </Suspense>
 
-  <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-kanban-delete-stack">
+  <a-modal
+    v-model:visible="deleteStackVModel"
+    class="!top-[35%]"
+    :class="{ active: deleteStackVModel }"
+    wrap-class-name="nc-modal-kanban-delete-stack"
+  >
     <template #title>
       {{ $t('activity.deleteKanbanStack') }}
     </template>

@@ -31,7 +31,8 @@ export class CellPageObject extends BasePage {
   }
 
   async click({ index, columnHeader }: { index: number; columnHeader: string }) {
-    return await this.get({ index, columnHeader }).click();
+    await this.get({ index, columnHeader }).click();
+    await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
   }
 
   async dblclick({ index, columnHeader }: { index?: number; columnHeader: string }) {
@@ -58,6 +59,14 @@ export class CellPageObject extends BasePage {
   async inCellAdd({ index, columnHeader }: { index: number; columnHeader: string }) {
     await this.get({ index, columnHeader }).hover();
     await this.get({ index, columnHeader }).locator('.nc-action-icon.nc-plus').click();
+  }
+
+  async verifyCellActiveSelected({ index, columnHeader }: { index: number; columnHeader: string }) {
+    await expect(this.get({ index, columnHeader })).toHaveClass(/active/);
+  }
+
+  async verifyCellEditable({ index, columnHeader }: { index: number; columnHeader: string }) {
+    await this.get({ index, columnHeader }).isEditable();
   }
 
   async verify({ index, columnHeader, value }: { index: number; columnHeader: string; value: string | string[] }) {

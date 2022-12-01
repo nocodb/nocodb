@@ -24,6 +24,7 @@ import {
   extractPkFromRow,
   inject,
   isColumnRequiredAndNull,
+  isDrawerOrModalExist,
   isMac,
   message,
   onBeforeUnmount,
@@ -95,6 +96,10 @@ const expandedFormRowState = ref<Record<string, any>>()
 const tbodyEl = ref<HTMLElement>()
 const gridWrapper = ref<HTMLElement>()
 const tableHead = ref<HTMLElement>()
+
+const isAddingColumnAllowed = !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value
+
+const isAddingEmptyRowAllowed = !isView && !isLocked.value && hasEditPermission && !isSqlView.value
 
 const {
   isLoading,
@@ -175,12 +180,13 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
       return true
     }
 
-    // if expanded form is active skip keyboard event handling
-    if (document.querySelector('.nc-drawer-expanded-form.active')) {
+    // skip keyboard event handling if there is a drawer / modal
+    if (isDrawerOrModalExist()) {
       return true
     }
 
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+    const altOrOptionKey = e.altKey
     if (e.key === ' ') {
       if (selectedCell.row !== null && !editEnabled) {
         e.preventDefault()
@@ -194,37 +200,65 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
         return true
       }
     } else if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        // add a line break for types like LongText / JSON
+        return true
+      }
       if (editEnabled) {
         editEnabled = false
         return true
       }
     }
+
     if (cmdOrCtrl) {
       switch (e.key) {
         case 'ArrowUp':
+          e.preventDefault()
           selectedCell.row = 0
           selectedCell.col = selectedCell.col ?? 0
           scrollToCell?.()
           editEnabled = false
           return true
         case 'ArrowDown':
+          e.preventDefault()
           selectedCell.row = data.value.length - 1
           selectedCell.col = selectedCell.col ?? 0
           scrollToCell?.()
           editEnabled = false
           return true
         case 'ArrowRight':
+          e.preventDefault()
           selectedCell.row = selectedCell.row ?? 0
           selectedCell.col = fields.value?.length - 1
           scrollToCell?.()
           editEnabled = false
           return true
         case 'ArrowLeft':
+          e.preventDefault()
           selectedCell.row = selectedCell.row ?? 0
           selectedCell.col = 0
           scrollToCell?.()
           editEnabled = false
           return true
+      }
+    }
+
+    if (altOrOptionKey) {
+      switch (e.keyCode) {
+        case 82: {
+          // ALT + R
+          if (isAddingEmptyRowAllowed) {
+            addEmptyRow()
+          }
+          break
+        }
+        case 67: {
+          // ALT + C
+          if (isAddingColumnAllowed) {
+            addColumnDropdown.value = true
+          }
+          break
+        }
       }
     }
   })
@@ -336,7 +370,12 @@ watch(contextMenu, () => {
 const rowRefs = $ref<any[]>()
 
 async function clearCell(ctx: { row: number; col: number } | null) {
-  if (!ctx) return
+  if (
+    !ctx ||
+    !hasEditPermission ||
+    (fields.value[ctx.col].uidt !== UITypes.LinkToAnotherRecord && isVirtualCol(fields.value[ctx.col]))
+  )
+    return
 
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
@@ -408,8 +447,8 @@ onClickOutside(smartTable, (e) => {
   )
     return
 
-  // if expanded form is active skip resetting the active cell
-  if (document.querySelector('.nc-drawer-expanded-form.active')) {
+  // skip if drawer / modal is active
+  if (isDrawerOrModalExist()) {
     return
   }
 
@@ -617,7 +656,7 @@ const closeAddColumnDropdown = () => {
                 </div>
               </th>
               <th
-                v-if="!readOnly && !isLocked && isUIAllowed('add-column') && !isSqlView"
+                v-if="isAddingColumnAllowed"
                 v-e="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
@@ -645,8 +684,7 @@ const closeAddColumnDropdown = () => {
               </th>
             </tr>
           </thead>
-          <!-- this prevent select text from field if not in edit mode -->
-          <tbody ref="tbodyEl" @selectstart.prevent>
+          <tbody ref="tbodyEl">
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row" :data-testid="`grid-row-${rowIndex}`">
@@ -750,7 +788,7 @@ const closeAddColumnDropdown = () => {
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="!isView && !isLocked && hasEditPermission && !isSqlView">
+            <tr v-if="isAddingEmptyRowAllowed">
               <td
                 v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"

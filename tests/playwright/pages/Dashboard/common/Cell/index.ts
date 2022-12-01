@@ -193,6 +193,6 @@ export class CellPageObject extends BasePage {
   ) {
     await this.get({ index, columnHeader }).click(...clickOptions);
 
-    await this.get({ index, columnHeader }).press('Control+C');
+    await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
   }
 }

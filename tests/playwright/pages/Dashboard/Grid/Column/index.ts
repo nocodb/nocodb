@@ -190,7 +190,7 @@ export class ColumnPageObject extends BasePage {
     await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
 
     // Select column type
-    await this.rootPage.locator(`text=${type}:visible`).nth(1).click();
+    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
   }
 
   async changeReferencedColumnForQrCode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
@@ -258,7 +258,12 @@ export class ColumnPageObject extends BasePage {
 
   async hideColumn({ title }: { title: string }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click();
+
+    await this.waitForResponse({
+      uiAction: this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
+      requestUrlPathToMatch: 'api/v1/db/meta/views',
+      httpMethodsToMatch: ['PATCH'],
+    });
 
     await expect(this.grid.get().locator(`th[data-title="${title}"]`)).toHaveCount(0);
   }

@@ -179,7 +179,10 @@ watch(
 
 watch(
   vState,
-  (newState) => {
+  async (newState) => {
+    if (!sources.length) {
+      await loadBases()
+    }
     switch (newState) {
       case ClientType.MYSQL:
         clientType = ClientType.MYSQL

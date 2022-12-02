@@ -44,7 +44,7 @@ function onClick(item: Record<string, any>) {
   selectedImage.value = item
   modalVisible.value = false
 
-  const stopHandle = watch(selectedImage, (nextImage, _, onCleanup) => {
+  const stopHandle = watch(selectedImage, (nextImage) => {
     if (!nextImage) {
       setTimeout(() => {
         modalVisible.value = true

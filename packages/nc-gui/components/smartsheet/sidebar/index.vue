@@ -23,14 +23,6 @@ const { activeTab } = useTabs();
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { lastOpenedViewMap } = useProject()
-
-const setLastOpenedViewId = (viewId?: string) => {
-  if (viewId && activeTab.value?.id) {
-    lastOpenedViewMap.value[activeTab.value?.id] = viewId
-  }
-}
-
 const { views, loadViews, isLoading } = useViews(meta)
 
 const { lastOpenedViewMap } = useProject()

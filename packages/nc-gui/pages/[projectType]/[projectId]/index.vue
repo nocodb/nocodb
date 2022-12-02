@@ -29,7 +29,6 @@ import {
   useTheme,
   useUIPermission,
 } from '#imports'
-import { TabType } from '~/lib'
 import NocoHeaderLogo from '~/components/general/NocoHeaderLogo.vue'
 
 definePageMeta({

@@ -450,15 +450,6 @@ function makeEditable(row: Row, col: ColumnType) {
   return (editEnabled = true)
 }
 
-const copyValue = async (ctx: { row: number; col: number }) => {
-  const rowObj = data.value[ctx.row]
-  const columnObj = fields.value[ctx.col]
-
-  await copy(rowObj.row[columnObj.title] || '')
-
-  message.success(t('msg.info.copiedToClipboard'))
-}
-
 /** handle keypress events */
 useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   if (e.key === 'Alt') {

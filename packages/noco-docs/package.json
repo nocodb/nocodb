@@ -1,7 +1,20 @@
 {
   "name": "noco-docs",
   "version": "1.0.0",
-  "license": "MIT",
+  "private": true,
+  "author": {
+    "name": "NocoDB Inc",
+    "url": "https://nocodb.com/"
+  },
+  "homepage": "https://github.com/nocodb/nocodb",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nocodb/nocodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nocodb/nocodb/issues"
+  },
   "scripts": {
     "dev": "nuxt",
     "build": "nuxt build",

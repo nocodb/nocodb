@@ -35,7 +35,7 @@ interface AttachmentProps extends File {
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
-    const isReadonly = inject(ReadonlyInj, false)
+    const isReadonly = inject(ReadonlyInj, ref(false))
 
     const isPublic = inject(IsPublicInj, ref(false))
 
@@ -68,12 +68,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     function removeFile(i: number) {
       if (isPublic.value) {
         storedFiles.value.splice(i, 1)
+        attachments.value.splice(i, 1)
 
-        updateModelValue(storedFiles.value.map((stored) => stored.file))
+        updateModelValue(storedFiles.value)
       } else {
         attachments.value.splice(i, 1)
 
-        updateModelValue(attachments.value)
+        updateModelValue(JSON.stringify(attachments.value))
       }
     }
 

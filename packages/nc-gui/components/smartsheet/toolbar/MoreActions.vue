@@ -166,12 +166,13 @@ const exportFile = async (exportType: ExportTypes) => {
       </template>
     </a-dropdown>
 
-    <LazyDlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
+    <LazyDlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-data-only="true" />
 
     <LazyWebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
     <a-modal
       v-model:visible="sharedViewListDlg"
+      :class="{ active: sharedViewListDlg }"
       :title="$t('activity.listSharedView')"
       width="max(900px,60vw)"
       :footer="null"

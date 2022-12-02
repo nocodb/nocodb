@@ -1,3 +1,4 @@
+import { NcError } from '../meta/helpers/catchError';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -131,5 +132,13 @@ export default class SyncSource {
       MetaTable.SYNC_SOURCE,
       syncSourceId
     );
+  }
+
+  static async deleteByUserId(userId: string, ncMeta = Noco.ncMeta) {
+    if (!userId) NcError.badRequest('User Id is required');
+
+    return await ncMeta.metaDelete(null, null, MetaTable.SYNC_SOURCE, {
+      fk_user_id: userId,
+    });
   }
 }

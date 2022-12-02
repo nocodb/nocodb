@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import type { Input } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 import GithubButton from 'vue-github-button'
+import type { VNodeRef } from '#imports'
 import {
   Empty,
+  TabType,
   computed,
+  isDrawerOrModalExist,
+  isMac,
   reactive,
   ref,
   resolveComponent,
   useDialog,
   useNuxtApp,
   useProject,
+  useRoute,
   useTable,
   useTabs,
   useToggle,
   useUIPermission,
   watchEffect,
 } from '#imports'
-import { TabType } from '~/lib'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 
@@ -33,13 +38,15 @@ const { deleteTable } = useTable()
 
 const { isUIAllowed } = useUIPermission()
 
+const route = useRoute()
+
 const [searchActive, toggleSearchActive] = useToggle()
 
 let key = $ref(0)
 
 const menuRef = $ref<HTMLLIElement>()
 
-const filterQuery = $ref('')
+let filterQuery = $ref('')
 
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null))
 
@@ -207,6 +214,41 @@ function openTableCreateDialog() {
     close(1000)
   }
 }
+
+const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
+
+const onSearchCloseIconClick = () => {
+  filterQuery = ''
+  toggleSearchActive(false)
+}
+
+const isCreateTableAllowed = computed(
+  () =>
+    isUIAllowed('table-create') &&
+    route.name !== 'index' &&
+    route.name !== 'index-index' &&
+    route.name !== 'index-index-create' &&
+    route.name !== 'index-index-create-external' &&
+    route.name !== 'index-user-index',
+)
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
+    switch (e.keyCode) {
+      case 84: {
+        // ALT + T
+        if (isCreateTableAllowed.value && !isDrawerOrModalExist()) {
+          // prevent the key `T` is inputted to table title input
+          e.preventDefault()
+          $e('c:shortcut', { key: 'ALT + T' })
+          openTableCreateDialog()
+        }
+        break
+      }
+    }
+  }
+})
 </script>
 
 <template>
@@ -217,6 +259,7 @@ function openTableCreateDialog() {
           <Transition name="slide-left" mode="out-in">
             <a-input
               v-if="searchActive"
+              :ref="searchInputRef"
               v-model:value="filterQuery"
               class="flex-1 rounded"
               :placeholder="$t('placeholder.searchProjectTree')"
@@ -230,7 +273,7 @@ function openTableCreateDialog() {
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="toggleSearchActive(false)" />
+            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
             <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
@@ -321,12 +364,14 @@ function openTableCreateDialog() {
                 class="nc-tree-item text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
+                :data-testid="`tree-view-table-${table.title}`"
                 @click="addTableTab(table)"
               >
                 <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
                   <template #title>{{ table.table_name }}</template>
+
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
-                    <div class="flex w-auto">
+                    <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
                       <MdiDragVertical
                         v-if="isUIAllowed('treeview-drag-n-drop')"
                         :class="`nc-child-draggable-icon-${table.title}`"
@@ -355,12 +400,16 @@ function openTableCreateDialog() {
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
                           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
                               {{ $t('general.rename') }}
                             </div>
                           </a-menu-item>
 
-                          <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(table)">
+                          <a-menu-item
+                            v-if="isUIAllowed('table-delete')"
+                            :data-testid="`sidebar-table-delete-${table.title}`"
+                            @click="deleteTable(table)"
+                          >
                             <div class="nc-project-menu-item">
                               {{ $t('general.delete') }}
                             </div>
@@ -415,6 +464,8 @@ function openTableCreateDialog() {
       />
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+
+      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
       <GithubButton
         class="ml-2 py-1"

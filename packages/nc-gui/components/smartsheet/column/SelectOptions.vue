@@ -133,7 +133,12 @@ watch(inputs, () => {
       <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
         <template #item="{ element, index }">
           <div class="flex py-1 items-center nc-select-option">
-            <MdiDragVertical v-if="!isKanban" small class="nc-child-draggable-icon handle" />
+            <MdiDragVertical
+              v-if="!isKanban"
+              small
+              class="nc-child-draggable-icon handle"
+              :data-testid="`select-option-column-handle-icon-${element.title}`"
+            />
             <a-dropdown
               v-model:visible="colorMenus[index]"
               :trigger="['click']"
@@ -153,17 +158,27 @@ watch(inputs, () => {
               />
             </a-dropdown>
 
-            <a-input ref="inputs" v-model:value="element.title" class="caption" @change="optionChanged(element.id)" />
+            <a-input
+              ref="inputs"
+              v-model:value="element.title"
+              class="caption"
+              :data-testid="`select-column-option-input-${index}`"
+              @keydown.enter.prevent="element.title?.trim() && addNewOption()"
+              @change="optionChanged(element.id)"
+            />
 
-            <MdiClose class="ml-2 hover:!text-black" :style="{ color: 'red' }" @click="removeOption(index)" />
-          </div>
-        </template>
-        <template #footer>
-          <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-[10px] my-2">
-            {{ validateInfos['colOptions.options'].help[0][0] }}
+            <MdiClose
+              class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
+              :data-testid="`select-column-option-remove-${index}`"
+              @click="removeOption(index)"
+            />
           </div>
         </template>
       </Draggable>
+    </div>
+
+    <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-[10px] mb-1 mt-2">
+      {{ validateInfos['colOptions.options'].help[0][0] }}
     </div>
     <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
       <div class="flex items-center">

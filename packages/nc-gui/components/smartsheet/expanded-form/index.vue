@@ -9,6 +9,8 @@ import {
   MetaInj,
   ReloadRowDataHookInj,
   computedInject,
+  createEventHook,
+  inject,
   message,
   provide,
   ref,
@@ -119,6 +121,14 @@ if (isKanban.value) {
     }
   }
 }
+
+const cellWrapperEl = ref<HTMLElement>()
+
+onMounted(() => {
+  setTimeout(() => {
+    ;(cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus()
+  })
+})
 </script>
 
 <script lang="ts">
@@ -135,6 +145,7 @@ export default {
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"
+    :class="{ active: isExpanded }"
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
@@ -143,17 +154,21 @@ export default {
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">
             <div
-              v-for="col of fields"
+              v-for="(col, i) of fields"
               v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
               :key="col.title"
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"
+              :data-testid="`nc-expand-col-${col.title}`"
             >
               <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 
               <LazySmartsheetHeaderCell v-else :column="col" />
 
-              <div class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
+              <div
+                :ref="i ? null : (el) => (cellWrapperEl = el)"
+                class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
+              >
                 <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
                 <LazySmartsheetCell

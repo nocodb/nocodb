@@ -1,7 +1,8 @@
 export enum Role {
   Super = 'super',
   Admin = 'admin',
-  User = 'user',
+  OrgLevelCreator = 'org-level-creator',
+  OrgLevelViewer = 'org-level-viewer',
   Guest = 'guest',
 }
 
@@ -75,4 +76,12 @@ export enum TabType {
   TABLE = 'table',
   VIEW = 'view',
   AUTH = 'auth',
+}
+
+export enum SmartsheetStoreEvents {
+  SORT_RELOAD = 'sort-reload',
+  FILTER_RELOAD = 'filter-reload',
+  DATA_RELOAD = 'data-reload',
+  FIELD_RELOAD = 'field-reload',
+  FIELD_ADD = 'field-add',
 }

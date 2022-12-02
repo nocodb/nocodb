@@ -452,6 +452,10 @@ npm start
 
 </details>
 
+### FreeBSD / FreeNAS / TrueNAS Jail
+
+See [here](https://gist.github.com/Zamana/e9281d736f9e9ce5882c6f4b140a590e) provided by [C. R. Zamana](https://github.com/Zamana).
+
 ## Production Setup
 It is mandatory to configure `NC_DB` environment variables for production usecases.  
 
@@ -474,7 +478,7 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 | NC_JWT_EXPIRES_IN                  | No        | JWT token expiry time                                                                                                   | `10h`                                                                                          |   |
 | NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No        | Disable Project creation with external database                                                                         |                                                                                                |   |
 | NC_INVITE_ONLY_SIGNUP              | No        | Allow users to signup only via invite url, value should be any non-empty string.                                        |                                                                                                |   |
-| NC_BACKEND_URL                     | No        | Custom Backend URL                                                                                                      | ``http://localhost:8080`` will be used                                                         |   |
+| NUXT_PUBLIC_NC_BACKEND_URL         | No        | Custom Backend URL                                                                                                      | ``http://localhost:8080`` will be used                                                         |   |
 | NC_REQUEST_BODY_SIZE               | No        | Request body size [limit](https://expressjs.com/en/resources/middleware/body-parser.html#limit)                         | `1048576`                                                                                      |   |
 | NC_EXPORT_MAX_TIMEOUT              | No        | After NC_EXPORT_MAX_TIMEOUT csv gets downloaded in batches                                                              | Default value 5000(in millisecond) will be used                                                |   |
 | NC_DISABLE_TELE                    | No        | Disable telemetry                                                                                                       |                                                                                                |   |
@@ -505,6 +509,7 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 | NC_S3_ACCESS_KEY                   | No        | For S3 storage plugin - AWS access key credential for accessing resource                                                |                                                                                                |   |
 | NC_S3_ACCESS_SECRET                | No        | For S3 storage plugin - AWS access secret credential for accessing resource                                             |                                                                                                |   |
 | NC_ADMIN_EMAIL                     | No        | For updating/creating super admin with provided email and password                                                      |                                                                                                |   |
+| NC_ATTACHMENT_FIELD_SIZE                     | No        | For setting the attachment field size(in Bytes)                                                      | Defaults to 20MB                                                                                         |   |
 | NC_ADMIN_PASSWORD                  | No        | For updating/creating super admin with provided email and password. Your password should have at least 8 letters with one uppercase, one number and one special letter(Allowed special chars <code>$&+,:;=?@#&#124;'.^*()%!_-"</code> )                                                     |                                                                                                |   |
 | NODE_OPTIONS                  | No        | For passing Node.js [options](https://nodejs.org/api/cli.html#node_optionsoptions) to instance                                                     |                                                                                                |   |
 | NC_MINIMAL_DBS                  | No        | Create a new SQLite file for each project. All the db files are stored in `nc_minimal_dbs` folder in current working directory. (This option restricts project creation on external sources) |  |  |

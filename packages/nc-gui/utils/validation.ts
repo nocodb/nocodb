@@ -1,82 +1,56 @@
 import { getI18n } from '~/plugins/a.i18n'
 
-export const isEmail = (v: string) =>
+export const validateEmail = (v: string) =>
   /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
 
-export function validateTableName(v: string, isGQL = false) {
-  const { t } = getI18n().global
+export const validateTableName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
 
-  if (!v) {
-    // return 'Table name required'
-    return t('msg.error.tableNameRequired')
-  }
+      if (!value) {
+        // return 'Table name required'
+        return reject(new Error(t('msg.error.tableNameRequired')))
+      }
 
-  // GraphQL naming convention
-  // http://spec.graphql.org/June2018/#Name
-
-  if (isGQL) {
-    if (/^[_A-Za-z][_0-9A-Za-z]*$/.test(v)) {
-      return true
-    }
-
-    if (/^[^_A-Za-z]/.test(v)) {
-      // return 'Name should start with an alphabet or _'
-      return t('msg.error.nameShouldStartWithAnAlphabetOr_')
-    }
-    const m = v.match(/[^_A-Za-z\d]/g)
-    if (m) {
-      // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
-      return `${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`
-    }
-  } else {
-    // exclude . / \
-    // rest all characters allowed
-    // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
-    const m = v.match(/[./\\]/g)
-    if (m) {
-      // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
-      return `${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`
-    }
-
-    return true
-  }
+      // exclude . / \
+      // rest all characters allowed
+      // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
+      const m = value.match(/[./\\]/g)
+      if (m) {
+        // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
 }
 
-export function validateColumnName(v: string, isGQL = false) {
-  const { t } = getI18n().global
-  if (!v) {
-    // return 'Column name required'
-    return t('msg.error.columnNameRequired')
-  }
+export const validateColumnName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
 
-  // GraphQL naming convention
-  // http://spec.graphql.org/June2018/#Name
-  if (isGQL) {
-    if (/^[_A-Za-z][_0-9A-Za-z]*$/.test(v)) {
-      return true
-    }
+      if (!value) {
+        // return 'Column name required'
+        return reject(new Error(t('msg.error.columnNameRequired')))
+      }
 
-    if (/^[^_A-Za-z]/.test(v)) {
-      // return 'Name should start with an alphabet or _'
-      return t('msg.error.nameShouldStartWithAnAlphabetOr_')
-    }
-    const m = v.match(/[^_A-Za-z\d]/g)
-    if (m) {
-      // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
-      return `${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`
-    }
-  } else {
-    // exclude . / \
-    // rest all characters allowed
-    // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
-    const m = v.match(/[./\\]/g)
-    if (m) {
-      // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
-      return `${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`
-    }
-
-    return true
-  }
+      // exclude . / \
+      // rest all characters allowed
+      // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
+      const m = value.match(/[./\\]/g)
+      if (m) {
+        // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
 }
 
 export const projectTitleValidator = {

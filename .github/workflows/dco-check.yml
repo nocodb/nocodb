@@ -10,7 +10,6 @@ on:
       - "packages/nc-lib-gui/**"
       - "packages/nc-plugin/**"
       - "packages/nocodb/**"
-      - "scripts/cypress/**"
 
 jobs:
   commits_check_job:

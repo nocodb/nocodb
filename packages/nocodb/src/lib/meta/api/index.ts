@@ -1,3 +1,7 @@
+import { Tele } from 'nc-help';
+import orgLicenseApis from './orgLicenseApis';
+import orgTokenApis from './orgTokenApis';
+import orgUserApis from './orgUserApis';
 import projectApis from './projectApis';
 import tableApis from './tableApis';
 import columnApis from './columnApis';
@@ -28,6 +32,7 @@ import metaDiffApis from './metaDiffApis';
 import cacheApis from './cacheApis';
 import apiTokenApis from './apiTokenApis';
 import hookFilterApis from './hookFilterApis';
+import testApis from './testApis';
 import {
   bulkDataAliasApis,
   dataAliasApis,
@@ -41,7 +46,6 @@ import {
   publicDataExportApis,
   publicMetaApis,
 } from './publicApis';
-import { Tele } from 'nc-help';
 import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 
@@ -51,12 +55,16 @@ import importApis from './sync/importApis';
 import syncSourceApis from './sync/syncSourceApis';
 
 const clients: { [id: string]: Socket } = {};
+const jobs: { [id: string]: { last_message: any } } = {};
 
 export default function (router: Router, server) {
   initStrategies(router);
   projectApis(router);
   utilApis(router);
 
+  if (process.env['PLAYWRIGHT_TEST'] === 'true') {
+    router.use(testApis);
+  }
   router.use(columnApis);
   router.use(exportApis);
   router.use(dataApis);
@@ -83,6 +91,9 @@ export default function (router: Router, server) {
   router.use(hookApis);
   router.use(pluginApis);
   router.use(projectUserApis);
+  router.use(orgUserApis);
+  router.use(orgTokenApis);
+  router.use(orgLicenseApis);
   router.use(sharedBaseApis);
   router.use(modelVisibilityApis);
   router.use(metaDiffApis);
@@ -128,9 +139,16 @@ export default function (router: Router, server) {
     socket.on('event', (args) => {
       Tele.event({ ...args, id });
     });
+    socket.on('subscribe', (room) => {
+      if (room in jobs) {
+        socket.join(room);
+        socket.emit('job');
+        socket.emit('progress', jobs[room].last_message);
+      }
+    });
   });
 
-  importApis(router, clients);
+  importApis(router, io, jobs);
 }
 
 function getHash(str) {

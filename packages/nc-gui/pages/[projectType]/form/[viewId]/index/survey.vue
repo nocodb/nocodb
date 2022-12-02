@@ -44,7 +44,7 @@ const el = ref<HTMLDivElement>()
 
 provide(DropZoneRef, el)
 
-const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 250)
+const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 50)
 
 const steps = computed(() => {
   if (!formColumns.value) return []
@@ -159,6 +159,12 @@ function resetForm() {
   goTo(steps.value[0])
 }
 
+function submit() {
+  if (submitted.value) return
+
+  submitForm()
+}
+
 onReset(resetForm)
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
@@ -169,7 +175,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp'], () => {
 })
 onKeyStroke(['Enter', 'Space'], () => {
   if (isLast.value) {
-    submitForm()
+    submit()
   } else {
     goNext(AnimationTarget.OkButton)
   }
@@ -202,12 +208,14 @@ onMounted(() => {
       class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
-        <h1 class="prose-2xl font-bold self-center my-4" data-cy="nc-survey-form__heading">{{ sharedFormView.heading }}</h1>
+        <h1 class="prose-2xl font-bold self-center my-4" data-testid="nc-survey-form__heading">
+          {{ sharedFormView.heading }}
+        </h1>
 
         <h2
           v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
           class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
-          data-cy="nc-survey-form__sub-heading"
+          data-testid="nc-survey-form__sub-heading"
         >
           {{ sharedFormView?.subheading }}
         </h2>
@@ -218,11 +226,11 @@ onMounted(() => {
       <Transition :name="`slide-${transitionName}`" :duration="transitionDuration" mode="out-in">
         <div
           ref="el"
-          :key="field.title"
+          :key="field?.title"
           class="color-transition h-full flex flex-col mt-6 gap-4 w-full max-w-[max(33%,600px)] m-auto"
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
-            <div class="flex nc-form-column-label">
+            <div class="flex nc-form-column-label" data-testid="nc-form-column-label">
               <LazySmartsheetHeaderVirtualCell
                 v-if="isVirtualCol(field)"
                 :column="{ ...field, title: field.label || field.title }"
@@ -233,17 +241,19 @@ onMounted(() => {
               <LazySmartsheetHeaderCell
                 v-else
                 :class="field.uidt === UITypes.Checkbox ? 'nc-form-column-label__checkbox' : ''"
-                :column="{ ...field, title: field.label || field.title }"
+                :column="{ meta: {}, ...field, title: field.label || field.title }"
                 :required="isRequired(field, field.required)"
                 :hide-menu="true"
               />
             </div>
 
-            <div>
+            <div v-if="field.title">
               <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(field)"
+                v-model="formState[field.title]"
                 class="mt-0 nc-input"
-                :data-cy="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
+                :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+                :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
               />
 
@@ -251,7 +261,7 @@ onMounted(() => {
                 v-else
                 v-model="formState[field.title]"
                 class="nc-input"
-                :data-cy="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
+                :data-testid="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
                 :edit-enabled="true"
               />
@@ -264,7 +274,7 @@ onMounted(() => {
                 <div
                   class="block text-[14px]"
                   :class="field.uidt === UITypes.Checkbox ? 'text-center' : ''"
-                  data-cy="nc-survey-form__field-description"
+                  data-testid="nc-survey-form__field-description"
                 >
                   {{ field.description }}
                 </div>
@@ -288,14 +298,14 @@ onMounted(() => {
                   "
                   type="submit"
                   class="uppercase scaling-btn prose-sm"
-                  data-cy="nc-survey-form__btn-submit"
-                  @click="submitForm"
+                  data-testid="nc-survey-form__btn-submit"
+                  @click="submit"
                 >
                   {{ $t('general.submit') }}
                 </button>
               </div>
 
-              <div v-else-if="!submitted" class="flex items-center gap-3">
+              <div v-else-if="!submitted" class="flex items-center gap-3 flex-col">
                 <a-tooltip
                   :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
                   :mouse-enter-delay="0.25"
@@ -303,14 +313,14 @@ onMounted(() => {
                 >
                   <button
                     class="bg-opacity-100 scaling-btn flex items-center gap-1"
-                    data-cy="nc-survey-form__btn-next"
+                    data-testid="nc-survey-form__btn-next"
                     :class="[
                       v$.localState[field.title]?.$error ? 'after:!bg-gray-100 after:!ring-red-500' : '',
                       animationTarget === AnimationTarget.OkButton && isAnimating
                         ? 'transform translate-y-[2px] translate-x-[2px] after:(!ring !ring-accent !ring-opacity-100)'
                         : '',
                     ]"
-                    @click="goNext"
+                    @click="goNext()"
                   >
                     <Transition name="fade">
                       <span v-if="!v$.localState[field.title]?.$error" class="uppercase text-white">Ok</span>
@@ -333,7 +343,7 @@ onMounted(() => {
 
           <Transition name="slide-left">
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
-              <div class="text-lg px-6 py-3 bg-green-300 text-gray-700 rounded" data-cy="nc-survey-form__success-msg">
+              <div class="text-lg px-6 py-3 bg-green-300 text-gray-700 rounded" data-testid="nc-survey-form__success-msg">
                 <template v-if="sharedFormView?.success_msg">
                   {{ sharedFormView?.success_msg }}
                 </template>
@@ -356,7 +366,7 @@ onMounted(() => {
                   <button
                     type="button"
                     class="scaling-btn bg-opacity-100"
-                    data-cy="nc-survey-form__btn-submit-another-form"
+                    data-testid="nc-survey-form__btn-submit-another-form"
                     @click="resetForm"
                   >
                     Submit Another Form
@@ -370,7 +380,7 @@ onMounted(() => {
     </div>
 
     <template v-if="!submitted">
-      <div class="mb-24 md:my-4 select-none text-center text-gray-500 dark:text-slate-200" data-cy="nc-survey-form__footer">
+      <div class="mb-24 md:my-4 select-none text-center text-gray-500 dark:text-slate-200" data-testid="nc-survey-form__footer">
         {{ index + 1 }} / {{ formColumns?.length }}
       </div>
     </template>
@@ -389,8 +399,8 @@ onMounted(() => {
                   : ''
               "
               class="p-0.5 flex items-center group color-transition"
-              data-cy="nc-survey-form__icon-prev"
-              @click="goPrevious"
+              data-testid="nc-survey-form__icon-prev"
+              @click="goPrevious()"
             >
               <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
             </button>
@@ -408,8 +418,8 @@ onMounted(() => {
                   : ''
               "
               class="p-0.5 flex items-center group color-transition"
-              data-cy="nc-survey-form__icon-next"
-              @click="goNext"
+              data-testid="nc-survey-form__icon-next"
+              @click="goNext()"
             >
               <MdiChevronRight
                 :class="[isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent']"

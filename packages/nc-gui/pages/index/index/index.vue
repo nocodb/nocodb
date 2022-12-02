@@ -142,7 +142,10 @@ const copyProjectMeta = async () => {
 </script>
 
 <template>
-  <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)">
+  <div
+    class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
+    data-testid="projects-container"
+  >
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
       <span class="text-4xl nc-project-page-title" @dblclick="copyProjectMeta">{{ $t('title.myProject') }}</span>
     </h1>
@@ -163,6 +166,7 @@ const copyProjectMeta = async () => {
             v-e="['a:project:refresh']"
             class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
             :class="isLoading ? '!text-primary' : ''"
+            data-testid="projects-reload-button"
             @click="loadProjects"
           />
         </div>
@@ -208,88 +212,94 @@ const copyProjectMeta = async () => {
       </a-dropdown>
     </div>
 
-    <Transition name="layout" mode="out-in">
-      <div v-if="isLoading">
-        <a-skeleton />
-      </div>
+    <!--
+      TODO: bring back transition after fixing the bug with navigation
+      <Transition name="layout" mode="out-in"> -->
+    <div v-if="isLoading">
+      <a-skeleton />
+    </div>
 
-      <a-table
-        v-else
-        :custom-row="customRow"
-        :data-source="filteredProjects"
-        :pagination="{ position: ['bottomCenter'] }"
-        :table-layout="md ? 'auto' : 'fixed'"
-      >
-        <template #emptyText>
-          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-        </template>
+    <a-table
+      v-else
+      :custom-row="customRow"
+      :data-source="filteredProjects"
+      :pagination="{ position: ['bottomCenter'] }"
+      :table-layout="md ? 'auto' : 'fixed'"
+    >
+      <template #emptyText>
+        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+      </template>
 
-        <!-- Title -->
-        <a-table-column key="title" :title="$t('general.title')" data-index="title">
-          <template #default="{ text, record }">
-            <div class="flex items-center">
-              <div @click.stop>
-                <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
-                  <template v-if="isUIAllowed('projectTheme')">
-                    <a-sub-menu key="theme" popup-class-name="custom-color">
+      <!-- Title -->
+      <a-table-column key="title" :title="$t('general.title')" data-index="title">
+        <template #default="{ text, record }">
+          <div class="flex items-center">
+            <div @click.stop>
+              <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
+                <template v-if="isUIAllowed('projectTheme')">
+                  <a-sub-menu key="theme" popup-class-name="custom-color">
+                    <template #title>
+                      <div
+                        class="color-selector"
+                        :style="{
+                          'background-color': getProjectPrimary(record),
+                          'width': '8px',
+                          'height': '100%',
+                        }"
+                      />
+                    </template>
+
+                    <template #expandIcon></template>
+
+                    <LazyGeneralColorPicker
+                      :model-value="getProjectPrimary(record)"
+                      :colors="projectThemeColors"
+                      :row-size="9"
+                      :advanced="false"
+                      @input="handleProjectColor(record.id, $event)"
+                    />
+
+                    <a-sub-menu key="pick-primary">
                       <template #title>
-                        <div
-                          class="color-selector"
-                          :style="{
-                            'background-color': getProjectPrimary(record),
-                            'width': '8px',
-                            'height': '100%',
-                          }"
-                        />
+                        <div class="nc-project-menu-item group !py-0">
+                          <ClarityColorPickerSolid class="group-hover:text-accent" />
+                          Custom Color
+                        </div>
                       </template>
 
                       <template #expandIcon></template>
 
-                      <LazyGeneralColorPicker
-                        :model-value="getProjectPrimary(record)"
-                        :colors="projectThemeColors"
-                        :row-size="9"
-                        :advanced="false"
-                        @input="handleProjectColor(record.id, $event)"
-                      />
-
-                      <a-sub-menu key="pick-primary">
-                        <template #title>
-                          <div class="nc-project-menu-item group !py-0">
-                            <ClarityColorPickerSolid class="group-hover:text-accent" />
-                            Custom Color
-                          </div>
-                        </template>
-
-                        <template #expandIcon></template>
-
-                        <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
-                      </a-sub-menu>
+                      <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
                     </a-sub-menu>
-                  </template>
-                </a-menu>
-              </div>
-              <div
-                class="capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
-              >
-                {{ text }}
-              </div>
+                  </a-sub-menu>
+                </template>
+              </a-menu>
             </div>
-          </template>
-        </a-table-column>
-        <!-- Actions -->
-
-        <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
-          <template #default="{ text, record }">
-            <div class="flex items-center gap-2">
-              <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
-
-              <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
+            <div
+              class="capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
+            >
+              {{ text }}
             </div>
-          </template>
-        </a-table-column>
-      </a-table>
-    </Transition>
+          </div>
+        </template>
+      </a-table-column>
+      <!-- Actions -->
+
+      <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
+        <template #default="{ text, record }">
+          <div class="flex items-center gap-2">
+            <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
+
+            <MdiDeleteOutline
+              class="nc-action-btn"
+              :data-testid="`delete-project-${record.title}`"
+              @click.stop="deleteProject(record)"
+            />
+          </div>
+        </template>
+      </a-table-column>
+    </a-table>
+    <!--    </Transition> -->
   </div>
 </template>
 
@@ -308,11 +318,7 @@ const copyProjectMeta = async () => {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-accent;
-  }
-
-  &:active::after {
-    @apply ring ring-accent;
+    @apply transform scale-110;
   }
 }
 

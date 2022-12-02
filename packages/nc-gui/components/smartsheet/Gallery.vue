@@ -10,7 +10,6 @@ import {
   MetaInj,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
-  ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
@@ -22,7 +21,6 @@ import {
   onMounted,
   provide,
   ref,
-  useUIPermission,
   useViewData,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
@@ -51,14 +49,11 @@ const {
   addEmptyRow,
 } = useViewData(meta, view)
 
-const { isUIAllowed } = useUIPermission()
-
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
-provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
@@ -85,7 +80,12 @@ const isRowEmpty = (record: any, col: any) => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
+    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
+      return typeof record.row[coverImageColumn.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.title])
+        : record.row[coverImageColumn.title]
+    }
+    return []
   } catch (e) {
     return []
   }
@@ -168,13 +168,14 @@ watch(view, async (nextView) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full overflow-auto nc-gallery">
+  <div class="flex flex-col h-full w-full overflow-auto nc-gallery" data-testid="nc-gallery-wrapper">
     <div class="nc-gallery-container grid gap-2 my-4 px-3">
       <div v-for="record in data" :key="`record-${record.row.id}`">
         <LazySmartsheetRow :row="record">
           <a-card
             hoverable
             class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
+            :data-testid="`nc-gallery-card-${record.row.id}`"
             @click="expandFormClick($event, record)"
           >
             <template v-if="galleryData?.fk_cover_image_col_id" #cover>
@@ -208,23 +209,17 @@ watch(view, async (nextView) => {
               <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
             </template>
 
-            <div
-              v-for="col in fieldsWithoutCover"
-              :key="`record-${record.row.id}-${col.id}`"
-              class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
-            >
-              <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
-                <div class="w-full text-gray-600">
-                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+            <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
+              <div v-if="!isRowEmpty(record, col)" class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full">
+                <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
+                  <div class="w-full text-gray-600">
+                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
 
-                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                  </div>
                 </div>
-              </div>
 
-              <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-                <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
-
-                <template v-else>
+                <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
                   <LazySmartsheetVirtualCell
                     v-if="isVirtualCol(col)"
                     v-model="record.row[col.title]"
@@ -239,7 +234,7 @@ watch(view, async (nextView) => {
                     :edit-enabled="false"
                     :read-only="true"
                   />
-                </template>
+                </div>
               </div>
             </div>
           </a-card>

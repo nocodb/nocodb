@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
+import { OrgUserRoles, ProjectType } from 'nocodb-sdk';
 import Project from '../../models/Project';
 import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
+import { packageVersion } from '../../utils/packageVersion';
+import { Tele } from 'nc-help';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import syncMigration from '../helpers/syncMigration';
 import { IGNORE_TABLES } from '../../utils/common/BaseApiBuilder';
@@ -17,7 +20,6 @@ import ProjectUser from '../../models/ProjectUser';
 import { customAlphabet } from 'nanoid';
 import Noco from '../../Noco';
 import isDocker from 'is-docker';
-import { packageVersion, Tele } from 'nc-help';
 import { NcError } from '../helpers/catchError';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
@@ -70,16 +72,18 @@ export async function projectUpdate(
 }
 
 export async function projectList(
-  req: Request<any, any, any>,
+  req: Request<any> & { user: { id: string; roles: string } },
   res: Response<ProjectListType>,
   next
 ) {
   try {
-    const projects = await Project.list(req.query);
+    const projects = req.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
+      ? await Project.list(req.query)
+      : await ProjectUser.getProjectsList(req.user.id, req.query);
 
     res // todo: pagination
       .json(
-        new PagedResponseImpl(projects, {
+        new PagedResponseImpl(projects as ProjectType[], {
           count: projects.length,
           limit: projects.length,
         })
@@ -91,7 +95,7 @@ export async function projectList(
 }
 
 export async function projectDelete(
-  req: Request<any, any, any>,
+  req: Request<any>,
   res: Response<ProjectListType>
 ) {
   const result = await Project.softDelete(req.params.projectId);
@@ -113,20 +117,23 @@ async function projectCreate(req: Request<any, any>, res) {
       // each file will be named as nc_<random_id>.db
       const fs = require('fs');
       const toolDir = NcConfigFactory.getToolDir();
-      const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
+      const nanoidv2 = customAlphabet(
+        '1234567890abcdefghijklmnopqrstuvwxyz',
+        14
+      );
       if (!fs.existsSync(`${toolDir}/nc_minimal_dbs`)) {
-          fs.mkdirSync(`${toolDir}/nc_minimal_dbs`);
+        fs.mkdirSync(`${toolDir}/nc_minimal_dbs`);
       }
       const dbId = nanoidv2();
       const projectTitle = DOMPurify.sanitize(projectBody.title);
       projectBody.prefix = '';
       projectBody.bases = [
         {
-          type: "sqlite3",
+          type: 'sqlite3',
           config: {
-            client: "sqlite3",
+            client: 'sqlite3',
             connection: {
-              client: "sqlite3",
+              client: 'sqlite3',
               database: projectTitle,
               connection: {
                 filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.db`,
@@ -134,8 +141,8 @@ async function projectCreate(req: Request<any, any>, res) {
               useNullAsDefault: true,
             },
           },
-          inflection_column: "camelize",
-          inflection_table: "camelize",
+          inflection_column: 'camelize',
+          inflection_table: 'camelize',
         },
       ];
     } else {

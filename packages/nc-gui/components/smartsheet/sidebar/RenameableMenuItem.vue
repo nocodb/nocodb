@@ -3,6 +3,7 @@ import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import {
   IsLockedInj,
+  computed,
   inject,
   message,
   onKeyStroke,
@@ -46,6 +47,8 @@ let isStopped = $ref(false)
 
 /** Original view title when editing the view name */
 let originalTitle = $ref<string | undefined>()
+
+const viewType = computed(() => vModel.value.type as number)
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
@@ -164,20 +167,21 @@ function onStopEdit() {
 <template>
   <a-menu-item
     class="select-none group !flex !items-center !my-0 hover:(bg-primary !bg-opacity-5)"
+    :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.stop="onClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
-      <div class="flex w-auto">
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-testid="view-item">
+      <div class="flex w-auto" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <MdiDrag
           class="nc-drag-icon hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 !cursor-move"
           @click.stop.prevent
         />
 
         <component
-          :is="viewIcons[vModel.type].icon"
+          :is="viewIcons[viewType].icon"
           class="nc-view-icon group-hover:hidden"
-          :style="{ color: viewIcons[vModel.type].color }"
+          :style="{ color: viewIcons[viewType].color }"
         />
       </div>
 
@@ -190,7 +194,7 @@ function onStopEdit() {
       <div class="flex-1" />
 
       <template v-if="!isEditing && !isLocked && isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
           <a-tooltip placement="left">
             <template #title>
               {{ $t('activity.copyView') }}

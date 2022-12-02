@@ -10,7 +10,7 @@ const {
   open,
   isLoading,
   isPublic,
-  isReadonly,
+  isReadonly: readOnly,
   visibleItems,
   modalVisible,
   column,
@@ -29,7 +29,7 @@ const dropZoneRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
+const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, readOnly)
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
@@ -61,6 +61,7 @@ function onClick(item: Record<string, any>) {
   <a-modal
     v-model:visible="modalVisible"
     class="nc-attachment-modal"
+    :class="{ active: modalVisible }"
     width="80%"
     :footer="null"
     wrap-class-name="nc-modal-attachment-expand-cell"
@@ -68,7 +69,7 @@ function onClick(item: Record<string, any>) {
     <template #title>
       <div class="flex gap-4">
         <div
-          v-if="isSharedForm || (!isReadonly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+          v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
           class="nc-attach-file group"
           @click="open"
         >
@@ -77,15 +78,15 @@ function onClick(item: Record<string, any>) {
         </div>
 
         <div class="flex items-center gap-2">
-          <div v-if="isReadonly" class="text-gray-400">[Readonly]</div>
+          <div v-if="readOnly" class="text-gray-400">[Readonly]</div>
           Viewing Attachments of
-          <div class="font-semibold underline">{{ column.title }}</div>
+          <div class="font-semibold underline">{{ column?.title }}</div>
         </div>
       </div>
     </template>
 
     <div ref="dropZoneRef">
-      <template v-if="isSharedForm || (!isReadonly && !dragging)">
+      <template v-if="isSharedForm || (!readOnly && !dragging)">
         <general-overlay
           v-model="isOverDropZone"
           inline
@@ -99,10 +100,10 @@ function onClick(item: Record<string, any>) {
       <div ref="sortableRef" :class="{ dragging }" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
         <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col gap-1">
           <a-card class="nc-attachment-item group">
-            <a-tooltip v-if="!isReadonly">
+            <a-tooltip v-if="!readOnly">
               <template #title> Remove File </template>
               <MdiCloseCircle
-                v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublicGrid && !isLocked)"
+                v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
                 class="nc-attachment-remove"
                 @click.stop="removeFile(i)"
               />

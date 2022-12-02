@@ -18,6 +18,7 @@ import slash from 'slash';
 import { sanitizeUrlPath } from '../attachmentApis';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { getColumnByIdOrName } from '../dataApis/helpers';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../../constants';
 
 export async function dataList(req: Request, res: Response) {
   try {
@@ -157,7 +158,8 @@ async function getGroupedDataList(model, view: View, req) {
     data = data.map((item) => {
       // todo: use map to avoid loop
       const count =
-        countArr.find((countItem) => countItem.key === item.key)?.count ?? 0;
+        countArr.find((countItem: any) => countItem.key === item.key)?.count ??
+        0;
 
       item.value = new PagedResponseImpl(item.value, {
         ...req.query,
@@ -450,6 +452,9 @@ router.post(
   '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
   multer({
     storage: multer.diskStorage({}),
+    limits: {
+      fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+    },
   }).any(),
   catchError(dataInsert)
 );

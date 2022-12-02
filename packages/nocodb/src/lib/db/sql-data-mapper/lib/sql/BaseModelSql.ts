@@ -89,7 +89,7 @@ class BaseModelSql extends BaseModel {
       timeout: 25000,
     };
 
-    this.clientType = this.dbDriver.clientType();
+    this.clientType = this.dbDriver.client;
     this.dbModels = dbModels;
     this._tn = _tn;
     autoBind(this);
@@ -281,7 +281,7 @@ class BaseModelSql extends BaseModel {
 
       const query = driver(this.tnPath).insert(insertObj);
 
-      if (this.isPg() || this.dbDriver.clientType() === 'mssql') {
+      if (this.isPg() || this.dbDriver.client === 'mssql') {
         query.returning(
           Object.entries(this.aliasToColumn).map(
             ([val, key]) => `${key} as ${val}`
@@ -332,7 +332,7 @@ class BaseModelSql extends BaseModel {
   }
 
   private isPg() {
-    return this.dbDriver.clientType() === 'pg';
+    return this.dbDriver.client === 'pg';
   }
 
   /**
@@ -358,7 +358,7 @@ class BaseModelSql extends BaseModel {
         driver(this.tnPath).update(mappedData).where(this._wherePk(id))
       );
 
-      let response = await this.nestedRead(id, this.defaultNestedQueryParams);
+      const response = await this.nestedRead(id, this.defaultNestedQueryParams);
       await this.afterUpdate(response, trx, cookie);
       return response;
     } catch (e) {
@@ -417,10 +417,7 @@ class BaseModelSql extends BaseModel {
 
       const query = dbDriver(this.tnPath).insert(insertObj);
 
-      if (
-        this.dbDriver.clientType() === 'pg' ||
-        this.dbDriver.clientType() === 'mssql'
-      ) {
+      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
         query.returning(this.selectQuery(''));
         response = await this._run(query);
       }
@@ -608,9 +605,12 @@ class BaseModelSql extends BaseModel {
         await this.validate(d1);
       }
 
-      const response = await this.dbDriver
-        .batchInsert(this.tn, insertDatas, 50)
-        .returning(this.pks[0].cn);
+      const response =
+        this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql'
+          ? await this.dbDriver
+              .batchInsert(this.tn, insertDatas, 50)
+              .returning(this.pks[0].cn)
+          : await this.dbDriver.batchInsert(this.tn, insertDatas, 50);
 
       await this.afterInsertb(insertDatas, null);
 
@@ -1708,7 +1708,7 @@ class BaseModelSql extends BaseModel {
 
       const query = driver(this.tnPath).insert(insertObj);
 
-      if (this.isPg() || this.dbDriver.clientType() === 'mssql') {
+      if (this.isPg() || this.dbDriver.client === 'mssql') {
         query.returning(
           Object.entries(this.aliasToColumn).map(
             ([val, key]) => `${key} as ${val}`
@@ -2096,7 +2096,7 @@ class BaseModelSql extends BaseModel {
   }
 
   isMssql() {
-    return this.dbDriver.clientType() === 'mssql';
+    return this.dbDriver.client === 'mssql';
   }
 
   /**
@@ -2662,25 +2662,3 @@ class BaseModelSql extends BaseModel {
 }
 
 export { BaseModelSql };
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

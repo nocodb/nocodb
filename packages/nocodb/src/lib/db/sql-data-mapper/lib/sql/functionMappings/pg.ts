@@ -9,7 +9,6 @@ const pg = {
   MIN: 'least',
   MAX: 'greatest',
   CEILING: 'ceil',
-  ROUND: 'round',
   POWER: 'pow',
   SQRT: 'sqrt',
   SEARCH: (args: MapFnArgs) => {
@@ -34,6 +33,13 @@ const pg = {
     return knex
       .raw(`CAST(${fn(pt.arguments[0])} as DOUBLE PRECISION)${colAlias}`)
       .wrap('(', ')');
+  },
+  ROUND: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return knex.raw(
+      `ROUND((${fn(pt.arguments[0])})::numeric, ${
+        pt?.arguments[1] ? fn(pt.arguments[1]) : 0
+      }) ${colAlias}`
+    );
   },
   DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return knex.raw(

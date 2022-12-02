@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ColumnReqType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
@@ -12,6 +13,7 @@ import {
   ref,
   uiTypes,
   useColumnCreateStoreOrThrow,
+  useEventListener,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -20,6 +22,10 @@ import {
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
+
+const props = defineProps<{
+  columnPosition?: Pick<ColumnReqType, 'column_order'>
+}>()
 
 const emit = defineEmits(['submit', 'cancel'])
 
@@ -70,7 +76,7 @@ const reloadMetaAndData = async () => {
 }
 
 async function onSubmit() {
-  const saved = await addOrUpdate(reloadMetaAndData)
+  const saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
 
   if (!saved) return
 
@@ -116,6 +122,12 @@ onMounted(() => {
     formState.value.column_name = formState.value?.title
   }
 })
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    emit('cancel')
+  }
+})
 </script>
 
 <template>
@@ -124,7 +136,7 @@ onMounted(() => {
     :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
     @click.stop
   >
-    <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical">
+    <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
           <a-input
@@ -158,6 +170,7 @@ onMounted(() => {
         </a-form-item>
 
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
+        <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
         <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />

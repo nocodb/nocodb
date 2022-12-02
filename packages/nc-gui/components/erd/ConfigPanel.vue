@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Panel } from '@vue-flow/additional-components'
+import { Panel, PanelPosition } from '@vue-flow/additional-components'
 import type { ERDConfig } from './utils'
 import { ref, useGlobal, useVModel } from '#imports'
 
@@ -15,7 +15,10 @@ const showAdvancedOptions = ref(false)
 </script>
 
 <template>
-  <Panel class="flex flex-col bg-white border-1 rounded border-gray-200 z-50 px-3 py-1 nc-erd-context-menu" position="top-right">
+  <Panel
+    class="flex flex-col bg-white border-1 rounded border-gray-200 z-50 px-3 py-1 nc-erd-context-menu"
+    :position="PanelPosition.TopRight"
+  >
     <div class="flex items-center gap-2">
       <a-checkbox v-model:checked="config.showAllColumns" v-e="['c:erd:showAllColumns']" class="nc-erd-showColumns-checkbox" />
       <span class="select-none nc-erd-showColumns-label" style="font-size: 0.65rem" @dblclick="showAdvancedOptions = true">

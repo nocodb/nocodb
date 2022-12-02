@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
 import {
+  TabType,
   computed,
   definePageMeta,
+  extractSdkResponseErrorMsg,
+  isDrawerOrModalExist,
+  isMac,
   message,
   navigateTo,
   onBeforeMount,
@@ -12,7 +16,9 @@ import {
   openLink,
   projectThemeColors,
   ref,
+  resolveComponent,
   useCopy,
+  useDialog,
   useGlobal,
   useI18n,
   useProject,
@@ -23,7 +29,6 @@ import {
   useTheme,
   useUIPermission,
 } from '#imports'
-import { TabType } from '~/lib'
 
 definePageMeta({
   hideHeader: true,
@@ -32,6 +37,8 @@ definePageMeta({
 const { theme, defaultTheme } = useTheme()
 
 const { t } = useI18n()
+
+const { $e } = useNuxtApp()
 
 const route = useRoute()
 
@@ -152,7 +159,17 @@ onKeyStroke(
 clearTabs()
 
 onBeforeMount(async () => {
-  await loadProject()
+  try {
+    await loadProject()
+  } catch (e: any) {
+    if (e.response?.status === 403) {
+      // Project is not accessible
+      message.error(t('msg.error.projectNotAccessible'))
+      router.replace('/')
+      return
+    }
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 
   if (!route.params.type && isUIAllowed('teamAndAuth')) {
     addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
@@ -171,6 +188,49 @@ onMounted(() => {
 })
 
 onBeforeUnmount(reset)
+
+function openKeyboardShortcutDialog() {
+  $e('a:actions:keyboard-shortcut')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgKeyboardShortcuts'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
+    switch (e.keyCode) {
+      case 188: {
+        // ALT + ,
+        if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
+          e.preventDefault()
+          $e('c:shortcut', { key: 'ALT + ,' })
+          toggleDialog(true, 'teamAndAuth')
+        }
+        break
+      }
+    }
+  }
+  if (cmdOrCtrl) {
+    switch (e.key) {
+      case '/':
+        if (!isDrawerOrModalExist()) {
+          $e('c:shortcut', { key: 'CTRL + /' })
+          openKeyboardShortcutDialog()
+        }
+        break
+    }
+  }
+})
 </script>
 
 <template>
@@ -189,20 +249,20 @@ onBeforeUnmount(reset)
         <div
           style="height: var(--header-height)"
           :class="isOpen ? 'pl-4' : ''"
-          class="flex items-center !bg-primary text-white px-1 gap-2"
+          class="flex items-center !bg-primary text-white px-1 gap-1"
         >
           <div
             v-if="isOpen && !isSharedBase"
             v-e="['c:navbar:home']"
-            data-cy="nc-noco-brand-icon"
-            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
+            data-testid="nc-noco-brand-icon"
+            class="w-[29px] min-w-[29px] transition-all duration-200 py-1 pl-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
             <a-tooltip placement="bottom">
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
             </a-tooltip>
           </div>
 
@@ -216,7 +276,7 @@ onBeforeUnmount(reset)
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
             </a-tooltip>
           </a>
 
@@ -229,16 +289,17 @@ onBeforeUnmount(reset)
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
+              data-testid="nc-project-menu"
               class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
             >
               <template v-if="isOpen">
                 <a-tooltip v-if="project.title?.length > 12" placement="bottom">
-                  <div class="text-lg font-semibold truncate">{{ project.title }}</div>
+                  <div class="text-md font-semibold truncate">{{ project.title }}</div>
                   <template #title>
                     <div class="text-sm">{{ project.title }}</div>
                   </template>
                 </a-tooltip>
-                <div v-else class="text-lg font-semibold truncate">{{ project.title }}</div>
+                <div v-else class="text-md font-semibold truncate capitalize">{{ project.title }}</div>
 
                 <MdiChevronDown class="min-w-[17px] group-hover:text-accent text-md" />
               </template>
@@ -256,7 +317,7 @@ onBeforeUnmount(reset)
                       <MdiFolder class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
-                        <div class="text-lg group-hover:(!text-primary) font-semibold">
+                        <div class="text-lg group-hover:(!text-primary) font-semibold capitalize">
                           <GeneralTruncateText>{{ project.title }}</GeneralTruncateText>
                         </div>
 
@@ -457,10 +518,16 @@ onBeforeUnmount(reset)
                       <template #expandIcon></template>
 
                       <a-menu-item key="0" class="!rounded-t">
-                        <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                        <nuxt-link
+                          v-e="['c:navbar:user:email']"
+                          class="nc-project-menu-item group !no-underline"
+                          to="/account/users"
+                        >
                           <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
-
-                          <span class="prose-sm">{{ email }}</span>
+                          <div class="prose-sm group-hover:text-primary">
+                            <div>Account</div>
+                            <div class="text-xs text-gray-500">{{ email }}</div>
+                          </div>
                         </nuxt-link>
                       </a-menu-item>
 

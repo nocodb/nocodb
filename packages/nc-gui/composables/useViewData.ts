@@ -1,5 +1,5 @@
-import { ViewTypes } from 'nocodb-sdk'
-import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
+import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -54,7 +54,7 @@ export function useViewData(
 
   const galleryData = ref<GalleryType>()
 
-  const formColumnData = ref<FormType>()
+  const formColumnData = ref<Record<string, any>[]>()
 
   const formViewData = ref<FormType>()
 
@@ -189,20 +189,26 @@ export function useViewData(
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
+
+    // to cater the case like when querying with a non-zero offset
+    // the result page may point to the target page where the actual returned data don't display on
+    const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
+    if (expectedPage < paginationData.value.page!) {
+      await changePage(expectedPage)
+    }
+
     if (viewMeta.value?.type === ViewTypes.GRID) {
       await loadAggCommentsCount()
     }
   }
 
   async function loadGalleryData() {
-    if (!viewMeta?.value?.id) return
-
+    if (!viewMeta?.value?.id || isPublic.value) return
     galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
   async function insertRow(
     currentRow: Row,
-    _rowIndex = formattedData.value?.length,
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
@@ -241,14 +247,17 @@ export function useViewData(
     }
   }
 
+  // inside this method use metaValue and viewMetaValue to refer meta
+  // since sometimes we need to pass old metas
   async function updateRowProperty(
     toUpdate: Row,
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
+
     try {
-      const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
+      const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
@@ -257,7 +266,8 @@ export function useViewData(
         viewMetaValue?.id as string,
         id,
         {
-          [property]: toUpdate.row[property],
+          // if value is undefined treat it as null
+          [property]: toUpdate.row[property] ?? null,
         },
         // todo:
         // {
@@ -266,15 +276,30 @@ export function useViewData(
       )
       // audit
       $api.utils.auditRowUpdate(id, {
-        fk_model_id: meta.value?.id as string,
+        fk_model_id: metaValue?.id as string,
         column_name: property,
         row_id: id,
         value: getHTMLEncodedText(toUpdate.row[property]),
         prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
       })
 
-      /** update row data(to sync formula and other related columns) */
-      Object.assign(toUpdate.row, updatedRowData)
+      /** update row data(to sync formula and other related columns)
+       * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
+       */
+      Object.assign(
+        toUpdate.row,
+        metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+          if (
+            col.uidt === UITypes.Formula ||
+            col.uidt === UITypes.QrCode ||
+            col.uidt === UITypes.Rollup ||
+            col.au ||
+            col.cdf?.includes(' on update ')
+          )
+            acc[col.title!] = updatedRowData[col.title!]
+          return acc
+        }, {} as Record<string, any>),
+      )
       Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
@@ -289,13 +314,19 @@ export function useViewData(
     ltarState?: Record<string, any>,
     args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    // update changed status
+    if (row.rowMeta) row.rowMeta.changed = false
+
     // if new row and save is in progress then wait until the save is complete
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
 
     if (row.rowMeta.new) {
-      return await insertRow(row, formattedData.value.indexOf(row), ltarState, args)
+      return await insertRow(row, ltarState, args)
     } else {
-      await updateRowProperty(row, property!, args)
+      // if the field name is missing skip update
+      if (property) {
+        await updateRowProperty(row, property, args)
+      }
     }
   }
 
@@ -387,14 +418,14 @@ export function useViewData(
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
-      const { columns, ...view } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
+      const { columns, ...view } = await $api.dbView.formRead(viewMeta.value.id)
 
-      const fieldById = columns.reduce(
+      const fieldById = (columns || []).reduce(
         (o: Record<string, any>, f: Record<string, any>) => ({
           ...o,
           [f.fk_column_id]: f,
         }),
-        {},
+        {} as Record<string, FormColumnType>,
       )
 
       let order = 1

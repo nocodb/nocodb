@@ -1,11 +1,30 @@
 <script setup lang="ts">
-import { CellValueInj, inject } from '#imports'
+import { CellValueInj, inject, refAutoReset } from '#imports'
 
 const value = inject(CellValueInj)
+
+const timeout = 3000 // in ms
+
+const showEditWarning = refAutoReset(false, timeout)
+
+const showClearWarning = refAutoReset(false, timeout)
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), () => (showClearWarning.value = true))
 </script>
 
 <template>
-  <span class="text-center pl-3">
-    {{ value }}
-  </span>
+  <div>
+    <span class="text-center pl-3">
+      {{ value }}
+    </span>
+
+    <div>
+      <div v-if="showEditWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+        {{ $t('msg.info.computedFieldEditWarning') }}
+      </div>
+      <div v-if="showClearWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+        {{ $t('msg.info.computedFieldDeleteWarning') }}
+      </div>
+    </div>
+  </div>
 </template>

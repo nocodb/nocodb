@@ -1,24 +1,38 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj, inject, ref, useProject, watch } from '#imports'
+import {
+  ActiveCellInj,
+  ReadonlyInj,
+  inject,
+  isDrawerOrModalExist,
+  ref,
+  useProject,
+  useSelectedCellKeyupListener,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue?: string | null
+  isPk?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 let isDateInvalid = $ref(false)
 
 const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
-const localState = $computed({
+let localState = $computed({
   get() {
     if (!modelValue) {
       return undefined
@@ -55,6 +69,92 @@ watch(
   },
   { flush: 'post' },
 )
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      // skip if drawer / modal is active
+      if (isDrawerOrModalExist()) {
+        return
+      }
+      if (!open.value) {
+        // open date picker
+        open.value = true
+      } else {
+        // click Ok button to save the currently selected date
+        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-ok button') as HTMLButtonElement)?.click()
+      }
+      break
+    case 'Escape':
+      // skip if drawer / modal is active
+      if (isDrawerOrModalExist()) {
+        return
+      }
+      if (open.value) {
+        e.stopPropagation()
+        open.value = false
+      }
+      break
+    case 'ArrowLeft':
+      if (!localState) {
+        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
+      } else {
+        const prevEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
+          ?.previousElementSibling as HTMLButtonElement
+        if (prevEl) {
+          prevEl.click()
+        } else {
+          // get the last td from previous tr
+          const prevRowLastEl = document
+            .querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
+            ?.closest('tr')
+            ?.previousElementSibling?.querySelector('td:last-child') as HTMLButtonElement
+          if (prevRowLastEl) {
+            prevRowLastEl.click()
+          } else {
+            // go to the previous month
+            ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
+          }
+        }
+      }
+      break
+    case 'ArrowRight':
+      if (!localState) {
+        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-next-btn') as HTMLButtonElement)?.click()
+      } else {
+        const nextEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
+          ?.nextElementSibling as HTMLButtonElement
+        if (nextEl) {
+          nextEl.click()
+        } else {
+          // get the last td from previous tr
+          const nextRowFirstEl = document
+            .querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
+            ?.closest('tr')
+            ?.nextElementSibling?.querySelector('td:first-child') as HTMLButtonElement
+          if (nextRowFirstEl) {
+            nextRowFirstEl.click()
+          } else {
+            // go to the next month
+            ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-next-btn') as HTMLButtonElement)?.click()
+          }
+        }
+      }
+      break
+    case 'ArrowUp':
+      if (!localState)
+        (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-prev-btn') as HTMLButtonElement)?.click()
+      break
+    case 'ArrowDown':
+      if (!localState)
+        (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-next-btn') as HTMLButtonElement)?.click()
+      break
+    case ';':
+      localState = dayjs(new Date())
+      break
+  }
+})
 </script>
 
 <template>
@@ -65,12 +165,12 @@ watch(
     class="!w-full !px-0 !border-none"
     format="YYYY-MM-DD HH:mm"
     :placeholder="isDateInvalid ? 'Invalid date' : ''"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :dropdown-class-name="`${randomClass} nc-picker-datetime`"
-    :open="readOnly ? false : open"
-    :disabled="readOnly"
-    @click="open = !open"
+    :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
+    :open="readOnly || (localState && isPk) ? false : open && (active || editable)"
+    :disabled="readOnly || (localState && isPk)"
+    @click="open = (active || editable) && !open"
     @ok="open = !open"
   >
     <template #suffixIcon></template>

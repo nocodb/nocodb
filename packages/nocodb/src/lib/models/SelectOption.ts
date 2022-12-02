@@ -77,9 +77,9 @@ export default class SelectOption {
 
     return options?.length
       ? {
-          options: options.map(
-            ({ created_at, updated_at, ...c }) => new SelectOption(c)
-          ),
+          options: options
+            .map(({ created_at, updated_at, ...c }) => new SelectOption(c))
+            .sort((x, y) => x.order - y.order),
         }
       : null;
   }
@@ -89,10 +89,15 @@ export default class SelectOption {
     title: string,
     ncMeta = Noco.ncMeta
   ): Promise<SelectOption> {
-    let data = await ncMeta.metaGet2(null, null, MetaTable.COL_SELECT_OPTIONS, {
-      fk_column_id,
-      title,
-    });
+    const data = await ncMeta.metaGet2(
+      null,
+      null,
+      MetaTable.COL_SELECT_OPTIONS,
+      {
+        fk_column_id,
+        title,
+      }
+    );
 
     return data && new SelectOption(data);
   }

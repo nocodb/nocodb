@@ -163,6 +163,7 @@ watch(
 <template>
   <a-modal
     v-model:visible="vModel"
+    :class="{ active: vModel }"
     :footer="null"
     width="max(90vw, 600px)"
     :closable="false"
@@ -175,7 +176,12 @@ watch(
         {{ $t('activity.settings') }}
       </a-typography-title>
 
-      <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="vModel = false">
+      <a-button
+        type="text"
+        class="!rounded-md border-none -mt-1.5 -mr-1"
+        data-testid="settings-modal-close-button"
+        @click="vModel = false"
+      >
         <template #icon>
           <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
         </template>
@@ -215,7 +221,7 @@ watch(
           </a-menu-item>
         </a-menu>
 
-        <component :is="selectedSubTab?.body" class="px-2 py-6" />
+        <component :is="selectedSubTab?.body" class="px-2 py-6" :data-testid="`nc-settings-subtab-${selectedSubTab.title}`" />
       </a-layout-content>
     </a-layout>
   </a-modal>

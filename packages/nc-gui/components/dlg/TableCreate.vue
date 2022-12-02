@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, computed, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
 import { TabType } from '~/lib'
 
 const props = defineProps<{
@@ -32,13 +32,21 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTable(as
 
 const useForm = Form.useForm
 
-const validateDuplicateAlias = (v: string) => (tables.value || []).every((t) => t.title !== (v || '')) || 'Duplicate table alias'
-
 const validators = computed(() => {
   return {
     title: [
       validateTableName,
-      validateDuplicateAlias,
+      {
+        validator: (_: any, value: any) => {
+          // validate duplicate alias
+          return new Promise((resolve, reject) => {
+            if ((tables.value || []).some((t) => t.title === (value || ''))) {
+              return reject(new Error('Duplicate table alias'))
+            }
+            return resolve(true)
+          })
+        },
+      },
       {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
@@ -62,23 +70,36 @@ const validators = computed(() => {
     table_name: [validateTableName],
   }
 })
-const { validateInfos } = useForm(table, validators)
+const { validate, validateInfos } = useForm(table, validators)
 
 const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
   value: c,
   disabled: index === 0,
 }))
 
+const _createTable = async () => {
+  try {
+    await validate()
+  } catch (e: any) {
+    e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
+    if (e.errorFields.length) return
+  }
+  await createTable()
+}
+
 onMounted(() => {
   generateUniqueTitle()
-
-  inputEl.value?.focus()
+  nextTick(() => {
+    inputEl.value?.focus()
+    inputEl.value?.select()
+  })
 })
 </script>
 
 <template>
   <a-modal
     v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
     width="max(30vw, 600px)"
     centered
     wrap-class-name="nc-modal-table-create"
@@ -87,11 +108,11 @@ onMounted(() => {
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" type="primary" @click="createTable()">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" size="large" type="primary" @click="_createTable">{{ $t('general.submit') }}</a-button>
     </template>
 
     <div class="pl-10 pr-10 pt-5">
-      <a-form :model="table" name="create-new-table-form" @keydown.enter="createTable">
+      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
         <!-- Create A New Table -->
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
 
@@ -105,6 +126,7 @@ onMounted(() => {
             v-model:value="table.title"
             size="large"
             hide-details
+            data-testid="create-table-title-input"
             :placeholder="$t('msg.info.enterTableName')"
           />
         </a-form-item>

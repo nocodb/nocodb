@@ -1,3 +1,5 @@
+import { OrgUserRoles } from 'nocodb-sdk';
+
 export default {
   owner: {
     exclude: {
@@ -155,6 +157,7 @@ export default {
       dataCount: true,
       upload: true,
       uploadViaURL: true,
+      swaggerJson: true,
     },
   },
   commenter: {
@@ -187,7 +190,7 @@ export default {
       dataGroupBy: true,
       commentsCount: true,
 
-      alleryViewGet: true,
+      galleryViewGet: true,
       kanbanViewGet: true,
       groupedDataList: true,
 
@@ -214,6 +217,7 @@ export default {
       xcAuditModelCommentsCount: true,
       xcExportAsCsv: true,
       dataCount: true,
+      swaggerJson: true,
     },
   },
   viewer: {
@@ -269,25 +273,28 @@ export default {
       list: true,
       xcExportAsCsv: true,
       dataCount: true,
+      swaggerJson: true,
     },
   },
-  user_new: {
+  [OrgUserRoles.VIEWER]: {
     include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenDelete: true,
       passwordChange: true,
       projectList: true,
     },
   },
-  super: '*',
-  user: {
+  [OrgUserRoles.SUPER_ADMIN]: '*',
+  [OrgUserRoles.CREATOR]: {
     include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenDelete: true,
       upload: true,
       uploadViaURL: true,
       passwordChange: true,
-      pluginList: true,
-      pluginRead: true,
-      pluginTest: true,
       isPluginActive: true,
-      pluginUpdate: true,
       projectCreate: true,
       projectList: true,
       projectCost: true,
@@ -302,26 +309,3 @@ export default {
     },
   },
 };
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

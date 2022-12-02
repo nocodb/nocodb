@@ -58,7 +58,10 @@ export async function extractXlsxData(view: View, req: Request) {
   });
 
   const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
-  const data = XLSX.utils.json_to_sheet(dbRows);
+
+  const fields = req.query.fields as string[];
+
+  const data = XLSX.utils.json_to_sheet(dbRows, { header: fields });
 
   return { offset, dbRows, elapsed, data };
 }

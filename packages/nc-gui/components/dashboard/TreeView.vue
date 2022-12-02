@@ -340,17 +340,68 @@ watch(
 
             <span v-else class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
               BASES
-
               <template v-if="tables.filter((table) => table.base_id === bases[0].id)?.length">
                 ({{ bases.filter((el) => el.enabled).length }})
               </template>
             </span>
           </Transition>
 
-          <Transition name="layout" mode="out-in">
+          <Transition name="slide-right" mode="out-in">
             <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
             <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
+
+          <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
+            <Transition name="slide-right" mode="out-in">
+              <MdiDotsVertical v-if="!searchActive" class="hover:text-accent outline-0" />
+            </Transition>
+
+            <template #overlay>
+              <a-menu class="!py-0 rounded text-sm">
+                <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
+                  <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL)">
+                    <div class="color-transition nc-project-menu-item group">
+                      <LogosMysqlIcon class="group-hover:text-accent" />
+                      MySQL
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG)">
+                    <div class="color-transition nc-project-menu-item group">
+                      <LogosPostgresql class="group-hover:text-accent" />
+                      Postgres
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE)">
+                    <div class="color-transition nc-project-menu-item group">
+                      <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
+                      SQLite
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL)">
+                    <div class="color-transition nc-project-menu-item group">
+                      <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
+                      MSSQL
+                    </div>
+                  </a-menu-item>
+                </a-menu-item-group>
+
+                <a-menu-divider class="my-0" />
+
+                <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
+                  <a
+                    v-e="['e:datasource:import-request']"
+                    href="https://github.com/nocodb/nocodb/issues/2052"
+                    target="_blank"
+                    class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
+                  >
+                    <MdiOpenInNew class="group-hover:text-accent" />
+                    <!-- Request a data source you need? -->
+                    {{ $t('labels.requestDataSource') }}
+                  </a>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </div>
 
         <div v-if="bases[0] && bases[0].enabled && !bases.slice(1).filter((el) => el.enabled)?.length" class="flex-1">
@@ -639,35 +690,6 @@ watch(
                               <div class="color-transition nc-project-menu-item group">
                                 <MdiFileExcel class="group-hover:text-accent" />
                                 Microsoft Excel
-                              </div>
-                            </a-menu-item>
-                          </a-menu-item-group>
-
-                          <a-menu-divider class="my-0" />
-
-                          <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
-                            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL)">
-                              <div class="color-transition nc-project-menu-item group">
-                                <LogosMysqlIcon class="group-hover:text-accent" />
-                                MySQL
-                              </div>
-                            </a-menu-item>
-                            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG)">
-                              <div class="color-transition nc-project-menu-item group">
-                                <LogosPostgresql class="group-hover:text-accent" />
-                                Postgres
-                              </div>
-                            </a-menu-item>
-                            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE)">
-                              <div class="color-transition nc-project-menu-item group">
-                                <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
-                                SQLite
-                              </div>
-                            </a-menu-item>
-                            <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL)">
-                              <div class="color-transition nc-project-menu-item group">
-                                <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
-                                MSSQL
                               </div>
                             </a-menu-item>
                           </a-menu-item-group>

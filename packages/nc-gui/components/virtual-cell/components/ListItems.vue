@@ -8,6 +8,7 @@ import {
   IsPublicInj,
   computed,
   inject,
+  isDrawerExist,
   ref,
   useLTARStoreOrThrow,
   useSelectedCellKeyupListener,
@@ -145,7 +146,7 @@ useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
       break
     default: {
       const el = filterQueryRef.value?.$el
-      if (el) {
+      if (el && !isDrawerExist()) {
         filterQueryRef.value.$el.focus()
       }
     }

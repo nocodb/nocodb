@@ -128,8 +128,7 @@ const onClick = (row: Row) => {
           @click="emit('attachRecord')"
         >
           <div class="flex items-center gap-1">
-            <!-- todo: where is row supposed to come from? this is a bug! -->
-            <MdiLinkVariantRemove class="text-xs" type="primary" @click="unlinkRow(row)" />
+            <MdiLinkVariant class="text-xs" type="primary" />
             Link to '{{ relatedTableMeta.title }}'
           </div>
         </a-button>

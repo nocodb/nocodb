@@ -47,7 +47,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
 
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
-    const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
+    const sorts = ref<Required<SortType>[]>((unref(initialSorts) as Required<SortType>[]) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
     return {

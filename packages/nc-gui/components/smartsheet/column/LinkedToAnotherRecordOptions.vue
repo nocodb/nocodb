@@ -46,6 +46,8 @@ const refTables = $computed(() => {
 
   return tables.filter((t) => t.type === ModelTypes.TABLE)
 })
+
+const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 </script>
 
 <template>
@@ -66,11 +68,11 @@ const refTables = $computed(() => {
         <a-select
           v-model:value="vModel.childId"
           show-search
-          :filter-option="(value, option) => option.key.toLowerCase().includes(value.toLowerCase())"
+          :filter-option="filterOption"
           dropdown-class-name="nc-dropdown-ltar-child-table"
           @change="onDataTypeChange"
         >
-          <a-select-option v-for="table in refTables" :key="table.title" :value="table.id">
+          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
             {{ table.title }}
           </a-select-option>
         </a-select>
@@ -96,7 +98,7 @@ const refTables = $computed(() => {
             dropdown-class-name="nc-dropdown-on-update"
             @change="onDataTypeChange"
           >
-            <a-select-option v-for="(option, index) in onUpdateDeleteOptions" :key="index" :value="option">
+            <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
               {{ option }}
             </a-select-option>
           </a-select>
@@ -110,7 +112,7 @@ const refTables = $computed(() => {
             dropdown-class-name="nc-dropdown-on-delete"
             @change="onDataTypeChange"
           >
-            <a-select-option v-for="(option, index) in onUpdateDeleteOptions" :key="index" :value="option">
+            <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
               {{ option }}
             </a-select-option>
           </a-select>

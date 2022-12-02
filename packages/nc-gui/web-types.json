@@ -13,6 +13,10 @@
         {
           "name": "t",
           "description": "I18n directive"
+        },
+        {
+          "name": "xc-ver-resize",
+          "description": "Resize directive"
         }
       ]
     }

@@ -4,7 +4,7 @@ import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { MetaInj, inject, ref, toRef, useProvideColumnCreateStore } from '#imports'
 
 interface Props {
-  column?: ColumnType & { meta: any }
+  column?: ColumnType
   columnPosition?: Pick<ColumnReqType, 'column_order'>
 }
 

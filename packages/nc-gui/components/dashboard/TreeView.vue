@@ -463,7 +463,7 @@ watch(
             </a-dropdown>
           </div>
 
-          <div class="transition-height duration-200 overflow-hidden">
+          <div class="transition-height duration-200">
             <div class="border-none sortable-list">
               <div v-if="bases[0]" :key="`base-${bases[0].id}`">
                 <div
@@ -551,7 +551,7 @@ watch(
           </div>
         </div>
 
-        <div v-else class="transition-height duration-200 overflow-hidden">
+        <div v-else class="transition-height duration-200">
           <div class="border-none sortable-list">
             <div v-for="[index, base] of Object.entries(bases)" :key="`base-${base.id}`">
               <a-collapse

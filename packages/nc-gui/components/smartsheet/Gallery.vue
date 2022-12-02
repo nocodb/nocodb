@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import VueBarcode from '@chenfengyuan/vue-barcode'
 import {
   ActiveViewInj,
   ChangePageInj,

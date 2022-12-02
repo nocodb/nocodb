@@ -45,6 +45,7 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
 import QrCodeColumn from '../../../../models/QrCodeColumn';
+import BarcodeColumn from '../../../../models/BarcodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -1470,6 +1471,38 @@ class BaseModelSqlv2 {
 
           break;
         }
+        case 'Barcode': {
+          const barcodeColumn = await column.getColOptions<BarcodeColumn>();
+          const barcodeValueColumn = await Column.get({
+            colId: barcodeColumn.fk_barcode_value_column_id,
+          });
+
+          // If the referenced value cannot be found: cancel current iteration
+          if (barcodeValueColumn == null) {
+            break;
+          }
+
+          switch (barcodeValueColumn.uidt) {
+            case UITypes.Formula:
+              try {
+                const selectQb = await this.getSelectQueryBuilderForFormula(
+                  barcodeValueColumn
+                );
+                qb.select({
+                  [column.column_name]: selectQb.builder,
+                });
+              } catch {
+                continue;
+              }
+              break;
+            default: {
+              qb.select({ [column.column_name]: barcodeValueColumn.column_name });
+              break;
+            }
+          }
+
+          break;
+        }
         case 'Formula':
           {
             try {
@@ -2217,6 +2250,7 @@ class BaseModelSqlv2 {
               f.uidt !== UITypes.Lookup &&
               f.uidt !== UITypes.Formula &&
               f.uidt !== UITypes.QrCode &&
+              f.uidt !== UITypes.Barcode &&
               f.uidt !== UITypes.SpecificDBType
           )
           .sort(

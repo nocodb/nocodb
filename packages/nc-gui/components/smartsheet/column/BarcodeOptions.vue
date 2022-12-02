@@ -40,11 +40,11 @@ const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
 
 onMounted(() => {
   // set default value
-  vModel.value.fk_qr_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id || ''
+  vModel.value.fk_barcode_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || ''
 })
 
 setAdditionalValidations({
-  fk_qr_value_column_id: [{ required: true, message: 'Required' }],
+  fk_barcode_value_column_id: [{ required: true, message: 'Required' }],
 })
 </script>
 
@@ -53,11 +53,11 @@ setAdditionalValidations({
     <a-col :span="24">
       <a-form-item
         class="flex w-1/2 pb-2 nc-qr-code-value-column-select"
-        :label="$t('labels.qrCodeValueColumn')"
-        v-bind="validateInfos.fk_qr_value_column_id"
+        :label="$t('labels.barcodeValueColumn')"
+        v-bind="validateInfos.fk_barcode_value_column_id"
       >
         <a-select
-          v-model:value="vModel.fk_qr_value_column_id"
+          v-model:value="vModel.fk_barcode_value_column_id"
           :options="columnsAllowedAsQrValue"
           placeholder="Select a column for the Barcode value"
           @click.stop

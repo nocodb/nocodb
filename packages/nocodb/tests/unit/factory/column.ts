@@ -262,6 +262,7 @@ export {
   defaultColumns,
   createColumn,
   createQrCodeColumn,
+  createBarcodeColumn,
   createRollupColumn,
   createLookupColumn,
   createLtarColumn,

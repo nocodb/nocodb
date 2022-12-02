@@ -8,6 +8,7 @@ import {
   inject,
   ref,
   useGlobal,
+  useMenuCloseOnEsc,
   useNuxtApp,
   useSmartsheetStoreOrThrow,
   useViewFilters,
@@ -62,17 +63,23 @@ const filterAutoSaveLoc = computed({
     filterAutoSave.value = val
   },
 })
+
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
-    <div :class="{ 'nc-badge nc-active-btn': filtersLength }">
+  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
+    <div :class="{ 'nc-active-btn': filtersLength }">
       <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <MdiFilterOutline />
           <!-- Filter -->
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.filter') }}</span>
           <MdiMenuDown class="text-grey" />
+
+          <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>
         </div>
       </a-button>
     </div>
@@ -82,7 +89,7 @@ const filterAutoSaveLoc = computed({
         ref="filterComp"
         class="nc-table-toolbar-menu shadow-lg"
         :auto-save="filterAutoSave"
-        data-nc="nc-filter-menu"
+        data-testid="nc-filter-menu"
         @update:filters-length="filtersLength = $event"
       >
         <div v-if="!isPublic" class="flex items-end mt-2 min-h-[30px]" @click.stop>

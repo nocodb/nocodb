@@ -79,6 +79,13 @@ watch(
       v-model="vModel"
       class="outline-none text-sm w-full px-2"
       @blur="editEnabled = false"
+      @keydown.down.stop
+      @keydown.left.stop
+      @keydown.right.stop
+      @keydown.up.stop
+      @keydown.delete.stop
+      @selectstart.capture.stop
+      @mousedown.stop
     />
 
     <nuxt-link

@@ -26,6 +26,13 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
     @blur="editEnabled = false"
     @keydown.alt.enter.stop
     @keydown.shift.enter.stop
+    @keydown.down.stop
+    @keydown.left.stop
+    @keydown.right.stop
+    @keydown.up.stop
+    @keydown.delete.stop
+    @selectstart.capture.stop
+    @mousedown.stop
   />
 
   <span v-else>{{ vModel }}</span>

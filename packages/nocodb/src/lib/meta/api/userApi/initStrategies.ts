@@ -1,3 +1,4 @@
+import { OrgUserRoles } from 'nocodb-sdk';
 import User from '../../../models/User';
 import ProjectUser from '../../../models/ProjectUser';
 import { promisify } from 'util';
@@ -29,37 +30,41 @@ export function initStrategies(router): void {
     'authtoken',
     new AuthTokenStrategy(
       { headerFields: ['xc-token'], passReqToCallback: true },
-      ({ ncProjectId: projectId }, token, done) => {
+      (req, token, done) => {
         ApiToken.getByToken(token)
-          .then(async (apiToken) => {
-            if (apiToken) {
-              if (!apiToken?.user_id) return done(null, { roles: 'editor' });
-
-              const user = await User.get(apiToken.user_id);
-              if (!user) return done(new Error('User not found'));
-
-              if (!projectId) {
-                await NocoCache.set(`${CacheScope.USER}:${user.email}`, user);
-                return done(null, user);
-              }
-
-              const projectUser = await ProjectUser.get(projectId, user.id);
-              user.roles = projectUser?.roles || 'user';
-              user.roles =
-                user.roles === 'owner' ? 'owner,creator' : user.roles;
-
-              await NocoCache.set(
-                `${CacheScope.USER}:${user.email}__${projectId}`,
-                user
-              );
-              return done(null, user);
-            } else {
-              return done({ msg: 'Invalid tok' });
+          .then((apiToken) => {
+            if (!apiToken) {
+              return done({ msg: 'Invalid token' });
             }
+
+            if (!apiToken.fk_user_id) return done(null, { roles: 'editor' });
+            User.get(apiToken.fk_user_id)
+              .then((user) => {
+                user['is_api_token'] = true;
+                if (req.ncProjectId) {
+                  ProjectUser.get(req.ncProjectId, user.id)
+                    .then(async (projectUser) => {
+                      user.roles = projectUser?.roles || user.roles;
+                      user.roles =
+                        user.roles === 'owner' ? 'owner,creator' : user.roles;
+                      // + (user.roles ? `,${user.roles}` : '');
+                      // todo : cache
+                      // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
+                      done(null, user);
+                    })
+                    .catch((e) => done(e));
+                } else {
+                  return done(null, user);
+                }
+              })
+              .catch((e) => {
+                console.log(e);
+                done({ msg: 'User not found' });
+              });
           })
           .catch((e) => {
             console.log(e);
-            done({ msg: 'Invalid tok' });
+            done({ msg: 'Invalid token' });
           });
       }
     )
@@ -113,6 +118,19 @@ export function initStrategies(router): void {
         ...Noco.getConfig().auth.jwt.options,
       },
       async (req, jwtPayload, done) => {
+        // todo: improve this
+        if (
+          req.ncProjectId &&
+          jwtPayload.roles?.split(',').includes(OrgUserRoles.SUPER_ADMIN)
+        ) {
+          return User.getByEmail(jwtPayload?.email).then(async (user) => {
+            return done(null, {
+              ...user,
+              roles: `owner,creator,${OrgUserRoles.SUPER_ADMIN}`,
+            });
+          });
+        }
+
         const keyVals = [jwtPayload?.email];
         if (req.ncProjectId) {
           keyVals.push(req.ncProjectId);
@@ -151,7 +169,7 @@ export function initStrategies(router): void {
 
               ProjectUser.get(req.ncProjectId, user.id)
                 .then(async (projectUser) => {
-                  user.roles = projectUser?.roles || 'user';
+                  user.roles = projectUser?.roles || user.roles;
                   user.roles =
                     user.roles === 'owner' ? 'owner,creator' : user.roles;
                   // + (user.roles ? `,${user.roles}` : '');
@@ -269,7 +287,7 @@ export function initStrategies(router): void {
               if (req.ncProjectId) {
                 ProjectUser.get(req.ncProjectId, user.id)
                   .then(async (projectUser) => {
-                    user.roles = projectUser?.roles || 'user';
+                    user.roles = projectUser?.roles || user.roles;
                     user.roles =
                       user.roles === 'owner' ? 'owner,creator' : user.roles;
                     // + (user.roles ? `,${user.roles}` : '');

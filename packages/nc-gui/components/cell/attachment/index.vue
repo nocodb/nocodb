@@ -3,6 +3,7 @@ import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import {
+  ActiveCellInj,
   DropZoneRef,
   IsGalleryInj,
   IsKanbanInj,
@@ -12,6 +13,7 @@ import {
   openLink,
   ref,
   useDropZone,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
   watch,
@@ -113,9 +115,17 @@ watch(
           attachments.value = []
         }
       }
+    } else {
+      if (isPublic.value && isForm.value) {
+        storedFiles.value = []
+      } else {
+        attachments.value = []
+      }
     }
   },
-  { immediate: true },
+  {
+    immediate: true,
+  },
 )
 
 /** updates attachments array for autosave */
@@ -136,6 +146,18 @@ watch(
     rowState.value[column.value!.title!] = storedFiles.value
   },
 )
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+  if (e.key === 'Enter' && !isReadonly.value) {
+    e.stopPropagation()
+    if (!modalVisible.value) {
+      modalVisible.value = true
+    } else {
+      // click Attach File button
+      ;(document.querySelector('.nc-attachment-modal.active .nc-attach-file') as HTMLDivElement)?.click()
+    }
+  }
+})
 </script>
 
 <template>
@@ -161,7 +183,7 @@ watch(
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
       class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
-      data-nc="attachment-cell-file-picker-button"
+      data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />

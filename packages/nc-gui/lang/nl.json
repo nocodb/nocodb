@@ -104,7 +104,9 @@
       "creator": "Creator",
       "editor": "Bewerker",
       "commenter": "Reviewer",
-      "viewer": "Kijker"
+      "viewer": "Kijker",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL View"
   },
@@ -200,6 +202,7 @@
     "codeSnippet": "Code Snippet"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "Melding via",
     "projName": "Projectnaam",
     "tableName": "Tabelnaam",
@@ -238,6 +241,8 @@
     "created": "Gemaakt",
     "sqlOutput": "SQL Uitvoer",
     "addOption": "Optie toevoegen",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "Geaggregeerde functie",
     "dbCreateIfNotExists": "Database: creëer als het niet bestaat",
     "clientKey": "Client Key",
@@ -296,7 +301,8 @@
     "signUpWithGoogle": "Sign up with Google",
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
-    "welcomeToNc": "Welcome to NocoDB!"
+    "welcomeToNc": "Welcome to NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
     "createProject": "Maak project",
@@ -341,12 +347,14 @@
     "invite": "Uitnodigen",
     "inviteMore": "Nodig meer gebruikers uit",
     "inviteTeam": "Nodig team uit",
+    "inviteUser": "Invite User",
     "inviteToken": "Uitnodigingstoken",
     "newUser": "Nieuwe gebruiker",
     "editUser": "Bewerk gebruiker",
     "deleteUser": "Verwijder gebruiker van project",
     "resendInvite": "Verzend uitnodigingsemail opnieuw",
     "copyInviteURL": "Kopieer uitnodigingslink",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "Nieuwe rol",
     "reloadRoles": "Rollen verversen",
     "nextPage": "Volgende pagina",
@@ -362,6 +370,8 @@
     "setPrimary": "Instellen als primaire waarde",
     "addRow": "Nieuwe rij toevoegen",
     "saveRow": "Sla rij op",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Voeg nieuwe rij toe",
     "deleteRow": "Verwijder rij",
     "deleteSelectedRow": "Verwijder geselecteerde rijen",
@@ -479,7 +489,17 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "Rijen per pagina",
       "upload": "Selecteer bestand om te uploaden",
       "upload_sub": "of sleep het bestand naar hier",
@@ -653,7 +673,9 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty."
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible",
+      "copyToClipboardError": "Failed to copy to clipboard"
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",
@@ -673,6 +695,7 @@
       "futureRelease": "Binnenkort beschikbaar!"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",
@@ -683,13 +706,16 @@
       "tableDataExported": "Successfully exported all table data",
       "updated": "Successfully updated",
       "sharedViewDeleted": "Deleted shared view successfully",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "View renamed successfully",
       "tokenGenerated": "Token generated successfully",
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "Successfully added user to project",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
@@ -699,7 +725,9 @@
       "webhookTested": "Webhook tested successfully",
       "columnUpdated": "Column updated",
       "columnCreated": "Column created",
-      "passwordChanged": "Password changed successfully. Please login again."
+      "passwordChanged": "Password changed successfully. Please login again.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

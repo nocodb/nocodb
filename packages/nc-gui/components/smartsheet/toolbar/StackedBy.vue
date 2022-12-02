@@ -12,6 +12,7 @@ import {
   inject,
   ref,
   useKanbanViewStoreOrThrow,
+  useMenuCloseOnEsc,
   useViewColumns,
   watch,
 } from '#imports'
@@ -30,7 +31,9 @@ const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, m
 
 const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
-const stackedByDropdown = ref(false)
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
 
 watch(
   () => activeView.value?.id,
@@ -68,14 +71,14 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
 })
 
 const handleChange = () => {
-  stackedByDropdown.value = false
+  open.value = false
 }
 </script>
 
 <template>
   <a-dropdown
     v-if="!IsPublic"
-    v-model:visible="stackedByDropdown"
+    v-model:visible="open"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-kanban-stacked-by-menu"
   >
@@ -97,7 +100,7 @@ const handleChange = () => {
     </div>
     <template #overlay>
       <div
-        v-if="stackedByDropdown"
+        v-if="open"
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
         @click.stop
       >

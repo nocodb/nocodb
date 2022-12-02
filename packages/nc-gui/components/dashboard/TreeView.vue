@@ -6,7 +6,10 @@ import GithubButton from 'vue-github-button'
 import type { VNodeRef } from '#imports'
 import {
   Empty,
+  TabType,
   computed,
+  isDrawerOrModalExist,
+  isMac,
   reactive,
   ref,
   resolveComponent,
@@ -14,13 +17,13 @@ import {
   useGlobal,
   useNuxtApp,
   useProject,
+  useRoute,
   useTable,
   useTabs,
   useToggle,
   useUIPermission,
   watchEffect,
 } from '#imports'
-import { TabType } from '~/lib'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 
@@ -35,6 +38,8 @@ const { activeTab } = useTabs()
 const { deleteTable } = useTable()
 
 const { isUIAllowed } = useUIPermission()
+
+const route = useRoute()
 
 const [searchActive, toggleSearchActive] = useToggle()
 
@@ -219,6 +224,34 @@ const onSearchCloseIconClick = () => {
   filterQuery = ''
   toggleSearchActive(false)
 }
+
+const isCreateTableAllowed = computed(
+  () =>
+    isUIAllowed('table-create') &&
+    route.name !== 'index' &&
+    route.name !== 'index-index' &&
+    route.name !== 'index-index-create' &&
+    route.name !== 'index-index-create-external' &&
+    route.name !== 'index-user-index',
+)
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
+    switch (e.keyCode) {
+      case 84: {
+        // ALT + T
+        if (isCreateTableAllowed.value && !isDrawerOrModalExist()) {
+          // prevent the key `T` is inputted to table title input
+          e.preventDefault()
+          $e('c:shortcut', { key: 'ALT + T' })
+          openTableCreateDialog()
+        }
+        break
+      }
+    }
+  }
+})
 </script>
 
 <template>
@@ -334,13 +367,14 @@ const onSearchCloseIconClick = () => {
                 class="nc-tree-item text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
-                :data-nc="`tree-view-table-${table.title}`"
+                :data-testid="`tree-view-table-${table.title}`"
                 @click="addTableTab(table)"
               >
                 <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
                   <template #title>{{ table.table_name }}</template>
+
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
-                    <div class="flex w-auto" :data-nc="`tree-view-table-draggable-handle-${table.title}`">
+                    <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
                       <MdiDragVertical
                         v-if="isUIAllowed('treeview-drag-n-drop')"
                         :class="`nc-child-draggable-icon-${table.title}`"
@@ -369,14 +403,14 @@ const onSearchCloseIconClick = () => {
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
                           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table)">
-                            <div class="nc-project-menu-item" :data-nc="`sidebar-table-rename-${table.title}`">
+                            <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
                               {{ $t('general.rename') }}
                             </div>
                           </a-menu-item>
 
                           <a-menu-item
                             v-if="isUIAllowed('table-delete')"
-                            :data-nc="`sidebar-table-delete-${table.title}`"
+                            :data-testid="`sidebar-table-delete-${table.title}`"
                             @click="deleteTable(table)"
                           >
                             <div class="nc-project-menu-item">

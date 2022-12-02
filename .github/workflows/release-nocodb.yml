@@ -117,12 +117,7 @@ jobs:
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
-  # Change nocodb-sdk back to local path
-  update-sdk-path:
-    needs: publish-docs
-    uses: ./.github/workflows/update-sdk-path.yml
-
   # Sync changes to develop
   sync-to-develop:
-    needs: update-sdk-path
+    needs: close-issues
     uses: ./.github/workflows/sync-to-develop.yml

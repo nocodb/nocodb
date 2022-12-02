@@ -4,7 +4,7 @@ import knex from 'knex';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
-import lodash from 'lodash';
+import find from 'lodash/find';
 
 const log = new Debug('MssqlClient');
 
@@ -183,7 +183,7 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      await this.sqlClient.raw('SELECT 1+1 as data');
+      await this.sqlClient.raw('SELECT 1+1 AS data');
     } catch (e) {
       log.ppe(e);
       result.code = -1;
@@ -246,7 +246,7 @@ class MssqlClient extends KnexClient {
 
     try {
       const rows = await this.sqlClient.raw(
-        `SELECT SERVERPROPERTY('productversion') as version, SERVERPROPERTY ('productlevel') as level, SERVERPROPERTY ('edition') as edition, @@version as versionD`
+        `SELECT SERVERPROPERTY('productversion') AS version, SERVERPROPERTY ('productlevel') AS level, SERVERPROPERTY ('edition') AS edition, @@version AS versionD`
       );
       result.data.object = {};
 
@@ -284,7 +284,7 @@ class MssqlClient extends KnexClient {
       const tempSqlClient = knex(connectionParamsWithoutDb);
 
       const rows = await tempSqlClient.raw(
-        `select name from sys.databases where name = '${args.database}'`
+        `SELECT name from sys.databases WHERE name = '${args.database}'`
       );
 
       if (rows.length === 0) {
@@ -356,12 +356,14 @@ class MssqlClient extends KnexClient {
 
     try {
       /** ************** START : create _evolution table if not exists *************** */
-      const exists = await this.sqlClient.schema.withSchema(this.schema).hasTable(args.tn);
+      const exists = await this.sqlClient.schema
+        .withSchema(this.schema)
+        .hasTable(args.tn);
 
       if (!exists) {
-        await this.sqlClient.schema.withSchema(this.schema).createTable(
-          args.tn,
-          function (table) {
+        await this.sqlClient.schema
+          .withSchema(this.schema)
+          .createTable(args.tn, function (table) {
             table.increments();
             table.string('title').notNullable();
             table.string('titleDown').nullable();
@@ -371,8 +373,7 @@ class MssqlClient extends KnexClient {
             table.integer('status').nullable();
             table.dateTime('created');
             table.timestamps();
-          }
-        );
+          });
         log.debug('Table created:', `${this.getTnPath(args.tn)}`);
       } else {
         log.debug(`${this.getTnPath(args.tn)} tables exists`);
@@ -394,7 +395,9 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      result.data.value = await this.sqlClient.schema.withSchema(this.schema).hasTable(args.tn);
+      result.data.value = await this.sqlClient.schema
+        .withSchema(this.schema)
+        .hasTable(args.tn);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -412,7 +415,7 @@ class MssqlClient extends KnexClient {
 
     try {
       const rows = await this.sqlClient.raw(
-        `select name from sys.databases where name = '${args.databaseName}'`
+        `SELECT name FROM sys.databases WHERE name = '${args.databaseName}'`
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -438,7 +441,7 @@ class MssqlClient extends KnexClient {
 
     try {
       result.data.list = await this.sqlClient.raw(
-        `SELECT name as database_name, database_id, create_date from sys.databases order by name`
+        `SELECT name AS database_name, database_id, create_date FROM sys.databases ORDER BY name`
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -463,8 +466,8 @@ class MssqlClient extends KnexClient {
 
     try {
       result.data.list = await this.sqlClient.raw(
-        `select schema_name(t.schema_id) as schema_name,
-        t.name as tn, t.create_date, t.modify_date from sys.tables t WHERE schema_name(t.schema_id) = ? order by schema_name,tn `,
+        `SELECT schema_name(t.schema_id) AS schema_name,
+        t.name AS tn, t.create_date, t.modify_date FROM sys.tables t WHERE schema_name(t.schema_id) = ? ORDER BY schema_name,tn `,
         [this.schema || 'dbo']
       );
     } catch (e) {
@@ -484,7 +487,7 @@ class MssqlClient extends KnexClient {
 
     try {
       result.data.list = await this.sqlClient.raw(
-        `SELECT name as schema_name FROM master.${this.schema}.sysdatabases where name not in ('master', 'tempdb', 'model', 'msdb');`
+        `SELECT name AS schema_name FROM master.${this.schema}.sysdatabases WHERE name not in ('master', 'tempdb', 'model', 'msdb');`
       );
     } catch (e) {
       log.ppe(e, _func);
@@ -532,53 +535,53 @@ class MssqlClient extends KnexClient {
     try {
       args.databaseName = this.connectionConfig.connection.database;
 
-      const response = await this.sqlClient.raw(`select
-      c.table_name as tn,
-       case WHEN trg1.trigger_name IS NULL THEN CAST(0 as BIT) ELSE CAST(1 as BIT) END as au,
-       c.column_name as cn,
-       c.ordinal_position as cop,
-      pk.constraint_type as ck,
-      case WHEN COLUMNPROPERTY(object_id(CONCAT('${this.schema}.', c.TABLE_NAME)), c.COLUMN_NAME, 'IsIdentity') = 1
+      const response = await this.sqlClient.raw(`SELECT
+      c.table_name AS tn,
+       CASE WHEN trg1.trigger_name IS NULL THEN CAST(0 AS BIT) ELSE CAST(1 AS BIT) END AS au,
+       c.column_name AS cn,
+       c.ordinal_position AS cop,
+      pk.constraint_type AS ck,
+      CASE WHEN COLUMNPROPERTY(object_id(CONCAT('${this.schema}.', c.TABLE_NAME)), c.COLUMN_NAME, 'IsIdentity') = 1
       THEN
         1
       ELSE
         0
-      END as ai,
-      c.is_nullable as nrqd,
-      c.data_type as dt,
-      c.column_default as cdf,c.character_maximum_length as clen,
-      c.character_octet_length,c.numeric_precision as np,c.numeric_scale as ns,c.datetime_precision as dp,c.character_set_name as csn,
-      c.collation_name as clnn,
-      pk.constraint_type as cst, pk.ordinal_position as op, pk.constraint_name as pk_constraint_name,
-      fk.parent_table as rtn, fk.parent_column as rcn,
-      v.table_name as is_view,
+      END AS ai,
+      c.is_nullable AS nrqd,
+      c.data_type AS dt,
+      c.column_default AS cdf,c.character_maximum_length AS clen,
+      c.character_octet_length,c.numeric_precision AS np,c.numeric_scale AS ns,c.datetime_precision AS dp,c.character_set_name AS csn,
+      c.collation_name AS clnn,
+      pk.constraint_type AS cst, pk.ordinal_position AS op, pk.constraint_name AS pk_constraint_name,
+      fk.parent_table AS rtn, fk.parent_column AS rcn,
+      v.table_name AS is_view,
       df.default_constraint_name
-  from information_schema.columns c
+  FROM INFORMATION_SCHEMA.COLUMNS c
     left join
-      ( select kc.constraint_name, kc.table_name,kc.column_name, kc.ordinal_position,tc.constraint_type
-        from information_schema.key_column_usage kc
-          inner join information_schema.table_constraints as tc
-            on kc.constraint_name = tc.constraint_name and tc.constraint_type in ('primary key')
-        where kc.table_catalog='${args.databaseName}' and kc.table_schema='${this.schema}'
+      ( SELECT kc.constraint_name, kc.table_name,kc.column_name, kc.ordinal_position,tc.constraint_type
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kc
+          INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS tc
+            ON kc.constraint_name = tc.constraint_name AND tc.constraint_type in ('primary key')
+        WHERE kc.table_catalog='${args.databaseName}' AND kc.table_schema='${this.schema}'
         ) pk
-      on
-      pk.table_name = c.table_name and pk.column_name=c.column_name
+      ON 
+      pk.table_name = c.table_name AND pk.column_name=c.column_name
     left join
-          ( select
-                ccu.table_name as child_table
-                ,ccu.column_name as child_column
-                ,kcu.table_name as parent_table
-                ,kcu.column_name as parent_column
+          ( SELECT
+                ccu.table_name AS child_table
+                ,ccu.column_name AS child_column
+                ,kcu.table_name AS parent_table
+                ,kcu.column_name AS parent_column
                 ,ccu.constraint_name
-            from information_schema.constraint_column_usage ccu
-                inner join information_schema.referential_constraints rc
-                    on ccu.constraint_name = rc.constraint_name
-                inner join information_schema.key_column_usage kcu
-                    on kcu.constraint_name = rc.unique_constraint_name  ) fk
-      on
-      fk.child_table = c.table_name and fk.child_column=c.column_name
-    left join information_schema.views v
-      on v.table_name=c.table_name
+            FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu
+                INNER JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc
+                    ON ccu.constraint_name = rc.constraint_name
+                INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+                    ON kcu.constraint_name = rc.unique_constraint_name  ) fk
+      ON
+      fk.child_table = c.table_name AND fk.child_column=c.column_name
+    left join INFORMATION_SCHEMA.VIEWS v
+      ON v.table_name=c.table_name
     left join (
               SELECT
                   default_constraints.name default_constraint_name, all_columns.name name
@@ -595,17 +598,17 @@ class MssqlClient extends KnexClient {
                       ON all_columns.default_object_id = default_constraints.object_id
               WHERE
         schemas.name = '${this.schema}'
-    AND tables.name =  '${args.tn}') df on df.name = c.column_name
+    AND tables.name =  '${args.tn}') df ON df.name = c.column_name
 
-     left join (  select trg.name as trigger_name,
-               tab.name as [table1]
-          from sys.triggers trg
+     left join (  SELECT trg.name AS trigger_name,
+               tab.name AS [table1]
+          FROM sys.triggers trg
               left join sys.objects tab
-                  on trg.parent_id = tab.object_id
-          where tab.name =  '${args.tn}') trg1 on trg1.trigger_name = CONCAT('xc_trigger_${args.tn}_' , c.column_name)
+                  ON trg.parent_id = tab.object_id
+          WHERE tab.name =  '${args.tn}') trg1 ON trg1.trigger_name = CONCAT('xc_trigger_${args.tn}_' , c.column_name)
 
-    where c.table_catalog='${args.databaseName}' and c.table_schema='${this.schema}' and c.table_name = '${args.tn}'
-    order by c.table_name, c.ordinal_position`);
+    WHERE c.table_catalog='${args.databaseName}' AND c.table_schema='${this.schema}' AND c.table_name = '${args.tn}'
+    ORDER BY c.table_name, c.ordinal_position`);
 
       for (let i = 0; i < response.length; i++) {
         const el = response[i];
@@ -657,39 +660,39 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       const response = await this.sqlClient.raw(
-        `select  t.[name] as table_view,
-        case when t.[type] = 'U' then 'Table'
-            when t.[type] = 'V' then 'View'
-            end as [object_type],
+        `SELECT  t.[name] AS table_view,
+        CASE WHEN t.[type] = 'U' THEN 'Table'
+            WHEN t.[type] = 'V' THEN 'View'
+            END AS [object_type],
         i.index_id,
-        case when i.is_primary_key = 1 then 'Primary key'
-            when i.is_unique = 1 then 'Unique'
-            else 'Not Unique' end as [type],
-        i.[name] as index_name,
-        substring(column_names, 1, len(column_names)-1) as [columns],
-        case when i.[type] = 1 then 'Clustered index'
-            when i.[type] = 2 then 'Nonclustered unique index'
-            when i.[type] = 3 then 'XML index'
-            when i.[type] = 4 then 'Spatial index'
-            when i.[type] = 5 then 'Clustered columnstore index'
-            when i.[type] = 6 then 'Nonclustered columnstore index'
-            when i.[type] = 7 then 'Nonclustered hash index'
-            end as index_type
-    from sys.objects t
-        inner join sys.indexes i
-            on t.object_id = i.object_id
-        cross apply (select col.[name] + ',' + CAST(ic.key_ordinal as varchar)  + ','
-                        from sys.index_columns ic
-                            inner join sys.columns col
-                                on ic.object_id = col.object_id
-                                and ic.column_id = col.column_id
-                        where ic.object_id = t.object_id
-                            and ic.index_id = i.index_id
-                                order by col.column_id
+        CASE WHEN i.is_primary_key = 1 THEN 'Primary key'
+            WHEN i.is_unique = 1 THEN 'Unique'
+            else 'Not Unique' END AS [type],
+        i.[name] AS index_name,
+        substring(column_names, 1, len(column_names)-1) AS [columns],
+        CASE WHEN i.[type] = 1 THEN 'Clustered index'
+            WHEN i.[type] = 2 THEN 'Nonclustered unique index'
+            WHEN i.[type] = 3 THEN 'XML index'
+            WHEN i.[type] = 4 THEN 'Spatial index'
+            WHEN i.[type] = 5 THEN 'Clustered columnstore index'
+            WHEN i.[type] = 6 THEN 'Nonclustered columnstore index'
+            WHEN i.[type] = 7 THEN 'Nonclustered hash index'
+            END AS index_type
+    FROM sys.objects t
+        INNER JOIN sys.indexes i
+            ON t.object_id = i.object_id
+        cross apply (SELECT col.[name] + ',' + CAST(ic.key_ordinal AS varchar)  + ','
+                        FROM sys.index_columns ic
+                            INNER JOIN sys.columns col
+                                ON ic.object_id = col.object_id
+                                AND ic.column_id = col.column_id
+                        WHERE ic.object_id = t.object_id
+                            AND ic.index_id = i.index_id
+                                ORDER BY col.column_id
                                 for xml path ('') ) D (column_names)
-    where t.is_ms_shipped <> 1
-    and index_id > 0 and t.name = '${this.getTnPath(args.tn)}'
-    order by schema_name(t.schema_id) + '.' + t.[name], i.index_id`
+    WHERE t.is_ms_shipped <> 1
+    AND index_id > 0 AND t.name = '${this.getTnPath(args.tn)}'
+    ORDER BY schema_name(t.schema_id) + '.' + t.[name], i.index_id`
       );
       const rows = [];
       for (let i = 0, rowCount = 0; i < response.length; ++i, ++rowCount) {
@@ -748,39 +751,39 @@ class MssqlClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `select  t.[name] as table_view,
-        case when t.[type] = 'U' then 'Table'
-            when t.[type] = 'V' then 'View'
-            end as [object_type],
+        `SELECT  t.[name] AS table_view,
+        CASE WHEN t.[type] = 'U' THEN 'Table'
+            WHEN t.[type] = 'V' THEN 'View'
+            END AS [object_type],
         i.index_id,
-        case when i.is_primary_key = 1 then 'Primary key'
-            when i.is_unique = 1 then 'Unique'
-            else 'Not Unique' end as [type],
-        i.[name] as index_name,
-        substring(column_names, 1, len(column_names)-1) as [columns],
-        case when i.[type] = 1 then 'Clustered index'
-            when i.[type] = 2 then 'Nonclustered unique index'
-            when i.[type] = 3 then 'XML index'
-            when i.[type] = 4 then 'Spatial index'
-            when i.[type] = 5 then 'Clustered columnstore index'
-            when i.[type] = 6 then 'Nonclustered columnstore index'
-            when i.[type] = 7 then 'Nonclustered hash index'
-            end as index_type
-    from sys.objects t
-        inner join sys.indexes i
-            on t.object_id = i.object_id
-        cross apply (select col.[name] + ', ' + CAST(ic.key_ordinal as varchar)  + ', '
-                        from sys.index_columns ic
-                            inner join sys.columns col
-                                on ic.object_id = col.object_id
-                                and ic.column_id = col.column_id
-                        where ic.object_id = t.object_id
-                            and ic.index_id = i.index_id
-                                order by col.column_id
+        CASE WHEN i.is_primary_key = 1 THEN 'Primary key'
+            WHEN i.is_unique = 1 THEN 'Unique'
+            else 'Not Unique' END AS [type],
+        i.[name] AS index_name,
+        substring(column_names, 1, len(column_names)-1) AS [columns],
+        CASE WHEN i.[type] = 1 THEN 'Clustered index'
+            WHEN i.[type] = 2 THEN 'Nonclustered unique index'
+            WHEN i.[type] = 3 THEN 'XML index'
+            WHEN i.[type] = 4 THEN 'Spatial index'
+            WHEN i.[type] = 5 THEN 'Clustered columnstore index'
+            WHEN i.[type] = 6 THEN 'Nonclustered columnstore index'
+            WHEN i.[type] = 7 THEN 'Nonclustered hash index'
+            END AS index_type
+    FROM sys.objects t
+        INNER JOIN sys.indexes i
+            ON t.object_id = i.object_id
+        cross apply (SELECT col.[name] + ', ' + CAST(ic.key_ordinal AS varchar)  + ', '
+                        FROM sys.index_columns ic
+                            INNER JOIN sys.columns col
+                                ON ic.object_id = col.object_id
+                                AND ic.column_id = col.column_id
+                        WHERE ic.object_id = t.object_id
+                            AND ic.index_id = i.index_id
+                                ORDER BY col.column_id
                                 for xml path ('') ) D (column_names)
-    where t.is_ms_shipped <> 1
-    and index_id > 0 and t.name = '${this.getTnPath(args.tn)}'
-    order by schema_name(t.schema_id) + '.' + t.[name], i.index_id`
+    WHERE t.is_ms_shipped <> 1
+    AND index_id > 0 AND t.name = '${this.getTnPath(args.tn)}'
+    ORDER BY schema_name(t.schema_id) + '.' + t.[name], i.index_id`
       );
       const rows = [];
       for (let i = 0, rowCount = 0; i < response.length; ++i, ++rowCount) {
@@ -838,25 +841,25 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       const response = await this.sqlClient
-        .raw(`select  fk_tab.name as tn, '>-' as rel, pk_tab.name as rtn,
-        fk_cols.constraint_column_id as no, fk_col.name as cn, ' = ' as [join],
-        pk_col.name as rcn, fk.name as cstn,
-        fk.update_referential_action_desc as ur, fk.delete_referential_action_desc as dr
-        from sys.foreign_keys fk
-        inner join sys.tables fk_tab
-            on fk_tab.object_id = fk.parent_object_id
-        inner join sys.tables pk_tab
-            on pk_tab.object_id = fk.referenced_object_id
-        inner join sys.foreign_key_columns fk_cols
-            on fk_cols.constraint_object_id = fk.object_id
-        inner join sys.columns fk_col
-            on fk_col.column_id = fk_cols.parent_column_id
-            and fk_col.object_id = fk_tab.object_id
-        inner join sys.columns pk_col
-            on pk_col.column_id = fk_cols.referenced_column_id
-            and pk_col.object_id = pk_tab.object_id
-        where fk_tab.name = '${this.getTnPath(args.tn)}'
-        order by  fk_tab.name, pk_tab.name, fk_cols.constraint_column_id`);
+        .raw(`SELECT  fk_tab.name AS tn, '>-' AS rel, pk_tab.name AS rtn,
+        fk_cols.constraint_column_id AS no, fk_col.name AS cn, ' = ' AS [join],
+        pk_col.name AS rcn, fk.name AS cstn,
+        fk.update_referential_action_desc AS ur, fk.delete_referential_action_desc AS dr
+        FROM sys.foreign_keys fk
+        INNER JOIN sys.tables fk_tab
+            ON fk_tab.object_id = fk.parent_object_id
+        INNER JOIN sys.tables pk_tab
+            ON pk_tab.object_id = fk.referenced_object_id
+        INNER JOIN sys.foreign_key_columns fk_cols
+            ON fk_cols.constraint_object_id = fk.object_id
+        INNER JOIN sys.columns fk_col
+            ON fk_col.column_id = fk_cols.parent_column_id
+            AND fk_col.object_id = fk_tab.object_id
+        INNER JOIN sys.columns pk_col
+            ON pk_col.column_id = fk_cols.referenced_column_id
+            AND pk_col.object_id = pk_tab.object_id
+        WHERE fk_tab.name = '${this.getTnPath(args.tn)}'
+        ORDER BY  fk_tab.name, pk_tab.name, fk_cols.constraint_column_id`);
 
       const ruleMapping = {
         NO_ACTION: 'NO ACTION',
@@ -904,24 +907,24 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       const response = await this
-        .raw(`select  fk_tab.name as tn, '>-' as rel, pk_tab.name as rtn,
-        fk_cols.constraint_column_id as no, fk_col.name as cn, ' = ' as [join],
-        pk_col.name as rcn, fk.name as cstn,
-        fk.update_referential_action_desc as ur, fk.delete_referential_action_desc as dr
-        from sys.foreign_keys fk
-        inner join sys.tables fk_tab
-            on fk_tab.object_id = fk.parent_object_id
-        inner join sys.tables pk_tab
-            on pk_tab.object_id = fk.referenced_object_id
-        inner join sys.foreign_key_columns fk_cols
-            on fk_cols.constraint_object_id = fk.object_id
-        inner join sys.columns fk_col
-            on fk_col.column_id = fk_cols.parent_column_id
-            and fk_col.object_id = fk_tab.object_id
-        inner join sys.columns pk_col
-            on pk_col.column_id = fk_cols.referenced_column_id
-            and pk_col.object_id = pk_tab.object_id
-        order by  fk_tab.name, pk_tab.name, fk_cols.constraint_column_id`);
+        .raw(`SELECT  fk_tab.name AS tn, '>-' AS rel, pk_tab.name AS rtn,
+        fk_cols.constraint_column_id AS no, fk_col.name AS cn, ' = ' AS [join],
+        pk_col.name AS rcn, fk.name AS cstn,
+        fk.update_referential_action_desc AS ur, fk.delete_referential_action_desc AS dr
+        FROM sys.foreign_keys fk
+        INNER JOIN sys.tables fk_tab
+            ON fk_tab.object_id = fk.parent_object_id
+        INNER JOIN sys.tables pk_tab
+            ON pk_tab.object_id = fk.referenced_object_id
+        INNER JOIN sys.foreign_key_columns fk_cols
+            ON fk_cols.constraint_object_id = fk.object_id
+        INNER JOIN sys.columns fk_col
+            ON fk_col.column_id = fk_cols.parent_column_id
+            AND fk_col.object_id = fk_tab.object_id
+        INNER JOIN sys.columns pk_col
+            ON pk_col.column_id = fk_cols.referenced_column_id
+            AND pk_col.object_id = pk_tab.object_id
+        ORDER BY  fk_tab.name, pk_tab.name, fk_cols.constraint_column_id`);
 
       const ruleMapping = {
         NO_ACTION: 'NO ACTION',
@@ -969,31 +972,31 @@ class MssqlClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      const query = `select trg.name as trigger_name,
-               tab.name as [table],
-              case when is_instead_of_trigger = 1 then 'Instead of'
-                  else 'After' end as [activation],
-              (case when objectproperty(trg.object_id, 'ExecIsUpdateTrigger') = 1
-                          then 'Update' else '' end
-              + case when objectproperty(trg.object_id, 'ExecIsDeleteTrigger') = 1
-                          then 'Delete' else '' end
-              + case when objectproperty(trg.object_id, 'ExecIsInsertTrigger') = 1
-                          then 'Insert' else '' end
-              ) as [event],
-              case when trg.parent_class = 1 then 'Table trigger'
-                  when trg.parent_class = 0 then 'Database trigger'
-              end [class],
-              case when trg.[type] = 'TA' then 'Assembly (CLR) trigger'
-                  when trg.[type] = 'TR' then 'SQL trigger'
-                  else '' end as [type],
-              case when is_disabled = 1 then 'Disabled'
-                  else 'Active' end as [status],
-              object_definition(trg.object_id) as [definition]
-          from sys.triggers trg
+      const query = `SELECT trg.name AS trigger_name,
+               tab.name AS [table],
+              CASE WHEN is_instead_of_trigger = 1 THEN 'Instead of'
+                  else 'After' END AS [activation],
+              (CASE WHEN objectproperty(trg.object_id, 'ExecIsUpdateTrigger') = 1
+                          THEN 'Update' else '' end
+              + CASE WHEN objectproperty(trg.object_id, 'ExecIsDeleteTrigger') = 1
+                          THEN 'Delete' else '' end
+              + CASE WHEN objectproperty(trg.object_id, 'ExecIsInsertTrigger') = 1
+                          THEN 'Insert' else '' end
+              ) AS [event],
+              CASE WHEN trg.parent_class = 1 THEN 'Table trigger'
+                  WHEN trg.parent_class = 0 THEN 'Database trigger'
+              END [class],
+              CASE WHEN trg.[type] = 'TA' THEN 'Assembly (CLR) trigger'
+                  WHEN trg.[type] = 'TR' THEN 'SQL trigger'
+                  else '' END AS [type],
+              CASE WHEN is_disabled = 1 THEN 'Disabled'
+                  else 'Active' END AS [status],
+              object_definition(trg.object_id) AS [definition]
+          FROM sys.triggers trg
               left join sys.objects tab
-                  on trg.parent_id = tab.object_id
-          where tab.name =  '${this.getTnPath(args.tn)}'
-          order by trg.name;`;
+                  ON trg.parent_id = tab.object_id
+          WHERE tab.name =  '${this.getTnPath(args.tn)}'
+          ORDER BY trg.name;`;
 
       const response = await this.sqlClient.raw(query);
 
@@ -1038,7 +1041,7 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       const response = await this.sqlClient.raw(
-        `SELECT o.name as function_name,definition, o.create_date as created, o.modify_date as modified,o.*
+        `SELECT o.name AS function_name,definition, o.create_date AS created, o.modify_date AS modified,o.*
         FROM sys.sql_modules AS m
         JOIN sys.objects AS o ON m.object_id = o.object_id
         AND type IN ('FN', 'IF', 'TF')`
@@ -1083,8 +1086,8 @@ class MssqlClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `select SPECIFIC_NAME as procedure_name, ROUTINE_TYPE as [type],LAST_ALTERED as modified, CREATED as created,ROUTINE_DEFINITION as definition ,pc.*
-        from ${args.databaseName}.information_schema.routines as pc where routine_type = 'PROCEDURE'`
+        `SELECT SPECIFIC_NAME AS procedure_name, ROUTINE_TYPE AS [type],LAST_ALTERED AS modified, CREATED AS created,ROUTINE_DEFINITION AS definition ,pc.*
+        FROM ${args.databaseName}.INFORMATION_SCHEMA.ROUTINES AS pc WHERE routine_type = 'PROCEDURE'`
       );
 
       result.data.list = response;
@@ -1116,8 +1119,8 @@ class MssqlClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SELECT v.name as view_name,v.*,m.* FROM sys.views v inner join sys.schemas s on s.schema_id = v.schema_id
-        inner join sys.sql_modules as m on m.object_id = v.object_id`
+        `SELECT v.name AS view_name,v.*,m.* FROM sys.views v INNER JOIN sys.schemas s ON s.schema_id = v.schema_id
+        INNER JOIN sys.sql_modules AS m ON m.object_id = v.object_id`
       );
 
       result.data.list = response;
@@ -1150,10 +1153,10 @@ class MssqlClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SELECT o.name as function_name,definition as create_function, o.create_date as created, o.modify_date as modified,o.*
+        `SELECT o.name AS function_name,definition AS create_function, o.create_date AS created, o.modify_date AS modified,o.*
         FROM sys.sql_modules AS m
         JOIN sys.objects AS o ON m.object_id = o.object_id
-        AND type IN ('FN', 'IF', 'TF') and o.name = '${args.function_name}'`
+        AND type IN ('FN', 'IF', 'TF') AND o.name = '${args.function_name}'`
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -1191,8 +1194,8 @@ class MssqlClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `select SPECIFIC_NAME as procedure_name, ROUTINE_TYPE as [type],LAST_ALTERED as modified, CREATED as created,ROUTINE_DEFINITION as create_procedure ,pc.*
-        from ${args.databaseName}.information_schema.routines as pc where routine_type = 'PROCEDURE' and SPECIFIC_NAME='${args.procedure_name}'`
+        `SELECT SPECIFIC_NAME AS procedure_name, ROUTINE_TYPE AS [type],LAST_ALTERED AS modified, CREATED AS created,ROUTINE_DEFINITION AS create_procedure ,pc.*
+        FROM ${args.databaseName}.INFORMATION_SCHEMA.ROUTINES AS pc WHERE routine_type = 'PROCEDURE' AND SPECIFIC_NAME='${args.procedure_name}'`
       );
 
       result.data.list = response;
@@ -1221,8 +1224,8 @@ class MssqlClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
 
       const response = await this.sqlClient.raw(
-        `SELECT v.name as view_name,v.*,m.*, m.definition as view_definition FROM sys.views v inner join sys.schemas s on s.schema_id = v.schema_id
-        inner join sys.sql_modules as m on m.object_id = v.object_id where v.name = '${args.view_name}'`
+        `SELECT v.name AS view_name,v.*,m.*, m.definition AS view_definition FROM sys.views v INNER JOIN sys.schemas s ON s.schema_id = v.schema_id
+        INNER JOIN sys.sql_modules AS m ON m.object_id = v.object_id WHERE v.name = '${args.view_name}'`
       );
 
       result.data.list = response;
@@ -1256,9 +1259,9 @@ class MssqlClient extends KnexClient {
         FROM sysobjects AS [so]
         INNER JOIN sys.sql_modules AS df ON object_id = so.id
         INNER JOIN sysobjects AS so2 ON so.parent_obj = so2.Id
-        WHERE [so].[type] = 'TR' and so2.name = '${this.getTnPath(
+        WHERE [so].[type] = 'TR' AND so2.name = '${this.getTnPath(
           args.tn
-        )}' and [so].[name] = '${args.trigger_name}'`
+        )}' AND [so].[name] = '${args.trigger_name}'`
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -1288,7 +1291,7 @@ class MssqlClient extends KnexClient {
 
     try {
       const rows = await this.sqlClient.raw(
-        `select name from sys.databases where name = '${args.database_name}'`
+        `SELECT name FROM sys.databases WHERE name = '${args.database_name}'`
       );
 
       if (rows.length === 0) {
@@ -1596,7 +1599,7 @@ class MssqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     try {
       const query = this.genQuery(
-        `CREATE TRIGGER ?? on ?? \n${args.timing} ${args.event}\n as\n${args.statement}`,
+        `CREATE TRIGGER ?? ON ?? \n${args.timing} ${args.event}\n as\n${args.statement}`,
         [args.trigger_name, this.getTnPath(args.tn)]
       );
       await this.sqlClient.raw(query);
@@ -1814,7 +1817,10 @@ class MssqlClient extends KnexClient {
 
       const downStatement =
         this.querySeparator() +
-        this.sqlClient.schema.withSchema(this.schema).dropTable(args.table).toString();
+        this.sqlClient.schema
+          .withSchema(this.schema)
+          .dropTable(args.table)
+          .toString();
 
       this.emit(`Success : ${upQuery}`);
 
@@ -1855,8 +1861,16 @@ class MssqlClient extends KnexClient {
                   AS
                   BEGIN
                       SET NOCOUNT ON;
-                      UPDATE ?? Set ?? = GetDate() where ?? in (SELECT ?? FROM Inserted)
-                  END;`, [triggerName, this.getTnPath(args.table_name), this.getTnPath(args.table_name), column.column_name, pk.column_name, pk.column_name]
+                      UPDATE ?? Set ?? = GetDate() WHERE ?? in (SELECT ?? FROM Inserted)
+                  END;`,
+            [
+              triggerName,
+              this.getTnPath(args.table_name),
+              this.getTnPath(args.table_name),
+              column.column_name,
+              pk.column_name,
+              pk.column_name,
+            ]
           );
 
         upQuery += triggerCreateQuery;
@@ -1891,7 +1905,7 @@ class MssqlClient extends KnexClient {
                   AS
                   BEGIN
                       SET NOCOUNT ON;
-                      UPDATE [${this.schema}].[${args.table_name}] Set [${column.column_name}] = GetDate() where [${pk.column_name}] in (SELECT [${pk.column_name}] FROM Inserted)
+                      UPDATE [${this.schema}].[${args.table_name}] Set [${column.column_name}] = GetDate() WHERE [${pk.column_name}] in (SELECT [${pk.column_name}] FROM Inserted)
                   END;`;
 
         upQuery += triggerCreateQuery;
@@ -1950,7 +1964,7 @@ class MssqlClient extends KnexClient {
       let downQuery = '';
 
       for (let i = 0; i < args.columns.length; ++i) {
-        const oldColumn = lodash.find(originalColumns, {
+        const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
         });
 
@@ -2058,7 +2072,10 @@ class MssqlClient extends KnexClient {
       /** ************** create up & down statements *************** */
       const upStatement =
         this.querySeparator() +
-        this.sqlClient.schema.withSchema(this.schema).dropTable(args.tn).toString();
+        this.sqlClient.schema
+          .withSchema(this.schema)
+          .dropTable(args.tn)
+          .toString();
       let downQuery = this.querySeparator() + this.createTable(args.tn, args);
 
       this.emit(`Success : ${upStatement}`);
@@ -2072,8 +2089,9 @@ class MssqlClient extends KnexClient {
       for (const relation of relationsList) {
         downQuery +=
           this.querySeparator() +
-          (await this.sqlClient.withSchema(this.schema).schema
-            .table(relation.tn, (table) => {
+          (await this.sqlClient
+            .withSchema(this.schema)
+            .schema.table(relation.tn, (table) => {
               table = table
                 .foreign(relation.cn, null)
                 .references(relation.rcn)
@@ -2116,7 +2134,8 @@ class MssqlClient extends KnexClient {
       )) {
         downQuery +=
           this.querySeparator() +
-          this.sqlClient.schema.withSchema(this.schema)
+          this.sqlClient.schema
+            .withSchema(this.schema)
             .table(tn, function (table) {
               if (non_unique) {
                 table.index(columns, key_name);
@@ -2152,7 +2171,7 @@ class MssqlClient extends KnexClient {
    * @param {String} - args.childTable
    * @returns {Promise<{upStatement, downStatement}>}
    */
-   async relationCreate(args) {
+  async relationCreate(args) {
     const _func = this.relationCreate.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -2161,19 +2180,22 @@ class MssqlClient extends KnexClient {
 
     try {
       const self = this;
-      await this.sqlClient.schema.table(this.getTnPath(args.childTable), function (table) {
-        table = table
-          .foreign(args.childColumn, foreignKeyName)
-          .references(args.parentColumn)
-          .on(self.getTnPath(args.parentTable));
+      await this.sqlClient.schema.table(
+        this.getTnPath(args.childTable),
+        function (table) {
+          table = table
+            .foreign(args.childColumn, foreignKeyName)
+            .references(args.parentColumn)
+            .on(self.getTnPath(args.parentTable));
 
-        if (args.onUpdate) {
-          table = table.onUpdate(args.onUpdate);
+          if (args.onUpdate) {
+            table = table.onUpdate(args.onUpdate);
+          }
+          if (args.onDelete) {
+            table = table.onDelete(args.onDelete);
+          }
         }
-        if (args.onDelete) {
-          table = table.onDelete(args.onDelete);
-        }
-      });
+      );
 
       const upStatement =
         this.querySeparator() +
@@ -2234,9 +2256,12 @@ class MssqlClient extends KnexClient {
 
     try {
       const self = this;
-      await this.sqlClient.schema.table(this.getTnPath(args.childTable), function (table) {
-        table.dropForeign(args.childColumn, foreignKeyName);
-      });
+      await this.sqlClient.schema.table(
+        this.getTnPath(args.childTable),
+        function (table) {
+          table.dropForeign(args.childColumn, foreignKeyName);
+        }
+      );
 
       const upStatement =
         this.querySeparator() +
@@ -2379,7 +2404,7 @@ class MssqlClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      result.data = `DELETE FROM ${this.getTnPath(args.tn)} where ;`;
+      result.data = `DELETE FROM ${this.getTnPath(args.tn)} WHERE ;`;
     } catch (e) {
       log.ppe(e, _func);
       throw e;

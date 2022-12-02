@@ -72,6 +72,7 @@ onMounted(async () => {
 <template>
   <a-modal
     v-model:visible="showPluginInstallModal"
+    :class="{ active: showPluginInstallModal }"
     :closable="false"
     centered
     min-height="300"
@@ -89,6 +90,7 @@ onMounted(async () => {
 
   <a-modal
     v-model:visible="showPluginUninstallModal"
+    :class="{ active: showPluginUninstallModal }"
     :closable="false"
     width="24rem"
     centered

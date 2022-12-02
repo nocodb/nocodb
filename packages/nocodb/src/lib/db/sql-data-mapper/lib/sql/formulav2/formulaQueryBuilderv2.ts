@@ -646,6 +646,11 @@ export default async function formulaQueryBuilderv2(
           type: 'CallExpression',
           arguments: [pt.left],
         };
+        pt.right = {
+          callee: { name: 'FLOAT' },
+          type: 'CallExpression',
+          arguments: [pt.right],
+        };
       }
       pt.left.fnName = pt.left.fnName || 'ARITH';
       pt.right.fnName = pt.right.fnName || 'ARITH';

@@ -116,7 +116,12 @@ reloadViewDataHook?.on(async () => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
+    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
+      return typeof record.row[coverImageColumn.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.title])
+        : record.row[coverImageColumn.title]
+    }
+    return []
   } catch (e) {
     return []
   }
@@ -309,7 +314,7 @@ watch(view, async (nextView) => {
 </script>
 
 <template>
-  <div class="flex h-full bg-white px-2" data-nc="nc-kanban-wrapper">
+  <div class="flex h-full bg-white px-2" data-testid="nc-kanban-wrapper">
     <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-kanban-context-menu">
         <!-- Draggable Stack -->
@@ -615,7 +620,12 @@ watch(view, async (nextView) => {
     />
   </Suspense>
 
-  <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-kanban-delete-stack">
+  <a-modal
+    v-model:visible="deleteStackVModel"
+    class="!top-[35%]"
+    :class="{ active: deleteStackVModel }"
+    wrap-class-name="nc-modal-kanban-delete-stack"
+  >
     <template #title>
       {{ $t('activity.deleteKanbanStack') }}
     </template>

@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { Knex, knex } from 'knex';
+import { knex } from 'knex';
 
 import { promises as fs } from 'fs';
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
+// const util = require('util');
+// const exec = util.promisify(require('child_process').exec);
 
 import Audit from '../../../models/Audit';
 import Project from '../../../models/Project';
@@ -45,16 +45,31 @@ const extMysqlProject = (title, parallelId) => ({
   external: true,
 });
 
-const isSakilaPgToBeReset = async (knex: Knex, project?: Project) => {
+const isSakilaPgToBeReset = async (parallelId: string, project?: Project) => {
+  const sakilaKnex = knex(sakilaKnexConfig(parallelId));
+
   const tablesInDb: Array<string> = (
-    await knex.raw(
+    await sakilaKnex.raw(
       `SELECT * FROM information_schema.tables WHERE table_schema = 'public'`
     )
   ).rows.map((row) => row.table_name);
 
+  await sakilaKnex.destroy();
+
+  const nonMetaTablesInDb = tablesInDb.filter(
+    (table) => table !== 'nc_evolutions'
+  );
+  const pgSakilaTablesAndViews = [...pgSakilaTables, ...pgSakilaSqlViews];
+
   if (
     tablesInDb.length === 0 ||
-    (tablesInDb.length > 0 && !tablesInDb.includes(`actor`))
+    // If there are sakila tables
+    !tablesInDb.includes(`actor`) ||
+    // If there are no pg sakila tables in tables in db
+    !(
+      nonMetaTablesInDb.length === pgSakilaTablesAndViews.length &&
+      nonMetaTablesInDb.every((t) => pgSakilaTablesAndViews.includes(t))
+    )
   ) {
     return true;
   }
@@ -66,34 +81,33 @@ const isSakilaPgToBeReset = async (knex: Knex, project?: Project) => {
   return audits?.length > 0;
 };
 
-const resetSakilaPg = async (
-  pgknex: Knex,
-  parallelId: string,
-  isEmptyProject: boolean
-) => {
+const resetSakilaPg = async (parallelId: string, isEmptyProject: boolean) => {
   const testsDir = __dirname.replace(
     '/src/lib/services/test/TestResetService',
     '/tests'
   );
 
-  await pgknex.raw(`DROP DATABASE IF EXISTS sakila_${parallelId}`);
-  await pgknex.raw(`CREATE DATABASE sakila_${parallelId}`);
-
   if (isEmptyProject) return;
 
-  const sakilaKnex = knex(sakilaKnexConfig(parallelId));
+  try {
+    const sakilaKnex = knex(sakilaKnexConfig(parallelId));
+    const schemaFile = await fs.readFile(
+      `${testsDir}/pg-sakila-db/01-postgres-sakila-schema.sql`
+    );
+    await sakilaKnex.raw(schemaFile.toString());
 
-  const schemaFile = await fs.readFile(
-    `${testsDir}/pg-sakila-db/03-postgres-sakila-schema.sql`
-  );
-  await sakilaKnex.raw(schemaFile.toString());
+    const trx = await sakilaKnex.transaction();
+    const dataFile = await fs.readFile(
+      `${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`
+    );
+    await trx.raw(dataFile.toString());
+    await trx.commit();
 
-  const dataFilePath = `${testsDir}/pg-sakila-db/04-postgres-sakila-insert-data.sql`;
-  await exec(
-    `export PGPASSWORD='${config.connection.password}';psql sakila_${parallelId} -h localhost -U postgres -w -f ${dataFilePath}`
-  );
-
-  await sakilaKnex.destroy();
+    await sakilaKnex.destroy();
+  } catch (e) {
+    console.error(`Error resetting pg sakila db: Worker ${parallelId}`);
+    throw Error(`Error resetting pg sakila db: Worker ${parallelId}`);
+  }
 };
 
 const sakilaKnexConfig = (parallelId: string) => ({
@@ -123,13 +137,12 @@ const resetPgSakilaProject = async ({
     await pgknex.raw(`CREATE DATABASE sakila_${parallelId}`);
   } catch (e) {}
 
-  const sakilaKnex = knex(sakilaKnexConfig(parallelId));
+  if (isEmptyProject || (await isSakilaPgToBeReset(parallelId, oldProject))) {
+    await pgknex.raw(`DROP DATABASE IF EXISTS sakila_${parallelId}`);
+    await pgknex.raw(`CREATE DATABASE sakila_${parallelId}`);
+    await pgknex.destroy();
 
-  if (isEmptyProject || (await isSakilaPgToBeReset(sakilaKnex, oldProject))) {
-    await sakilaKnex.destroy();
-    await resetSakilaPg(pgknex, parallelId, isEmptyProject);
-  } else {
-    await sakilaKnex.destroy();
+    await resetSakilaPg(parallelId, isEmptyProject);
   }
 
   const response = await axios.post(
@@ -145,8 +158,40 @@ const resetPgSakilaProject = async ({
     console.error('Error creating project', response.data);
     throw new Error('Error creating project', response.data);
   }
-
-  await pgknex.destroy();
 };
+
+const pgSakilaTables = [
+  'country',
+  'city',
+  'actor',
+  'film_actor',
+  'category',
+  'film_category',
+  'language',
+  'film',
+  'payment_p2007_01',
+  'payment_p2007_02',
+  'payment_p2007_03',
+  'payment_p2007_04',
+  'payment_p2007_05',
+  'payment_p2007_06',
+  'payment',
+  'customer',
+  'inventory',
+  'rental',
+  'address',
+  'staff',
+  'store',
+];
+
+const pgSakilaSqlViews = [
+  'actor_info',
+  'customer_list',
+  'film_list',
+  'nicer_but_slower_film_list',
+  'sales_by_film_category',
+  'sales_by_store',
+  'staff_list',
+];
 
 export default resetPgSakilaProject;

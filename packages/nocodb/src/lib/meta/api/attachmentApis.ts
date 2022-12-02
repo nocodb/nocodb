@@ -2,10 +2,10 @@
 import { Request, Response, Router } from 'express';
 import multer from 'multer';
 import { nanoid } from 'nanoid';
-import { Tele } from 'nc-help';
 import path from 'path';
 import slash from 'slash';
 import mimetypes, { mimeIcons } from '../../utils/mimeTypes';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import catchError from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
@@ -13,6 +13,7 @@ import Model from '../../../lib/models/Model';
 import Project from '../../../lib/models/Project';
 import S3 from '../../plugins/s3/S3';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 // const storageAdapter = new Local();
 export async function upload(req: Request, res: Response) {
@@ -225,6 +226,9 @@ router.post(
   '/api/v1/db/storage/upload',
   multer({
     storage: multer.diskStorage({}),
+    limits: {
+      fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+    },
   }).any(),
   ncMetaAclMw(upload, 'upload')
 );

@@ -102,14 +102,19 @@ watch(
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <div class="flex-1" />
-        <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" data-cy="nc-child-list-reload" @click="loadChildrenList" />
+        <MdiReload
+          v-if="!isForm"
+          class="cursor-pointer text-gray-500"
+          data-testid="nc-child-list-reload"
+          @click="loadChildrenList"
+        />
 
         <a-button
           v-if="!readonly"
           type="primary"
           ghost
           class="!text-xs"
-          data-cy="nc-child-list-button-link-to"
+          data-testid="nc-child-list-button-link-to"
           size="small"
           @click="emit('attachRecord')"
         >
@@ -143,13 +148,13 @@ watch(
               <div v-if="!readonly" class="flex gap-2">
                 <MdiLinkVariantRemove
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
-                  data-cy="nc-child-list-icon-unlink"
+                  data-testid="nc-child-list-icon-unlink"
                   @click.stop="unlinkRow(row)"
                 />
                 <MdiDeleteOutline
                   v-if="!readonly && !isPublic"
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
-                  data-cy="nc-child-list-icon-delete"
+                  data-testid="nc-child-list-icon-delete"
                   @click.stop="deleteRelatedRow(row, unlinkIfNewRow)"
                 />
               </div>

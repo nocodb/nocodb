@@ -15,6 +15,7 @@ import {
   inject,
   ref,
   useProvideLTARStore,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
 } from '#imports'
@@ -70,6 +71,15 @@ const unlinkRef = async (rec: Record<string, any>) => {
     await unlink(rec)
   }
 }
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      listItemsDlg.value = true
+      e.stopPropagation()
+      break
+  }
+})
 </script>
 
 <template>

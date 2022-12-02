@@ -104,7 +104,9 @@
       "creator": "Twórca",
       "editor": "Redaktor",
       "commenter": "Komentator",
-      "viewer": "Widz"
+      "viewer": "Widz",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "Widok SQL"
   },
@@ -200,6 +202,7 @@
     "codeSnippet": "Snippet"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "Powiadomić VIA.",
     "projName": "Nazwa Projektu",
     "tableName": "Nazwa tabeli",
@@ -238,6 +241,8 @@
     "created": "Utworzony",
     "sqlOutput": "Wyjście SQL.",
     "addOption": "Dodaj opcję.",
+    "qrCodeValueColumn": "Column with QR code value",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
     "aggregateFunction": "Funkcja kruszywa",
     "dbCreateIfNotExists": "Baza danych: Utwórz, jeśli nie istnieje",
     "clientKey": "Klucz klienta",
@@ -296,7 +301,8 @@
     "signUpWithGoogle": "Zarejestruj się przez Google",
     "signInWithGoogle": "Zaloguj się przez Google",
     "agreeToTos": "Rejestrując się, akceptujesz warunki korzystania z usługi",
-    "welcomeToNc": "Witaj w NocoDB!"
+    "welcomeToNc": "Witaj w NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
     "createProject": "Utwórz projekt",
@@ -341,12 +347,14 @@
     "invite": "Zapraszać",
     "inviteMore": "Zaprosić więcej",
     "inviteTeam": "Invite Team.",
+    "inviteUser": "Invite User",
     "inviteToken": "Zaproś token.",
     "newUser": "Nowy użytkownik",
     "editUser": "Edytuj użytkownika",
     "deleteUser": "Usuń użytkownika z projektu",
     "resendInvite": "Ponownie zaprosić zaproszenie e-maila",
     "copyInviteURL": "Kopiuj Zaproś Url.",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "Nowa rola",
     "reloadRoles": "Role ponownie załaduj",
     "nextPage": "Następna strona",
@@ -362,6 +370,8 @@
     "setPrimary": "Ustaw jako wartość podstawowa",
     "addRow": "Dodaj nowy rząd",
     "saveRow": "Zapisz wiersz",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Wstaw nowy rząd",
     "deleteRow": "Usuń rząd",
     "deleteSelectedRow": "Usuń wybrane wiersze",
@@ -479,7 +489,17 @@
     "selectField": "Wybierz pole"
   },
   "msg": {
+    "warning": {
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "Wiersze na stronę",
       "upload": "Wybierz plik do przesłania",
       "upload_sub": "lub przeciągnij i upuść plik",
@@ -653,7 +673,9 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Akceptowane typy plików to: .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Klucz parametru nie może być pusty",
       "duplicateParameterKeysAreNotAllowed": "Zduplikowane klucze parametrów są niedozwolone",
-      "fieldRequired": "{value} nie może być puste."
+      "fieldRequired": "{value} nie może być puste.",
+      "projectNotAccessible": "Project not accessible",
+      "copyToClipboardError": "Failed to copy to clipboard"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",
@@ -673,6 +695,7 @@
       "futureRelease": "Wkrótce!"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "Pomyślnie zaktualizowano UI ACL dla tabel",
       "pluginUninstalled": "Wtyczka odinstalowana pomyślnie",
       "pluginSettingsSaved": "Ustawienia wtyczki zapisane pomyślnie",
@@ -683,13 +706,16 @@
       "tableDataExported": "Pomyślnie wyeksportowano wszystkie dane tabeli",
       "updated": "Zaktualizowano pomyślnie",
       "sharedViewDeleted": "Usunięto udostępniony widok",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "Zmieniono nazwę widoku",
       "tokenGenerated": "Token został wygenerowany pomyślnie",
       "tokenDeleted": "Token usunięty pomyślnie",
       "userAddedToProject": "Pomyślnie dodano użytkownika do projektu",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "Użytkownik usunięty z projektu",
       "inviteEmailSent": "E-mail z zaproszeniem wysłany pomyślnie",
       "inviteURLCopied": "Adres URL zaproszenia skopiowany do schowka",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Skopiowano adres URL do schowka!",
       "embeddableHTMLCodeCopied": "Skopiowany kod HTML do osadzenia!",
       "userDetailsUpdated": "Pomyślnie zaktualizowano dane użytkownika",
@@ -699,7 +725,9 @@
       "webhookTested": "Webhook przetestowany pomyślnie",
       "columnUpdated": "Kolumna zaktualizowana",
       "columnCreated": "Kolumna utworzona",
-      "passwordChanged": "Hasło zostało zmienione. Zaloguj się ponownie."
+      "passwordChanged": "Hasło zostało zmienione. Zaloguj się ponownie.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

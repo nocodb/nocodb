@@ -60,7 +60,7 @@ const [setup, use] = useInjectionState(() => {
 
         if (!tab) return
 
-        return navigateToTab(tab)
+        navigateToTab(tab)
       }
     },
   })

@@ -36,7 +36,11 @@ export function useSharedView() {
       (meta.value as TableType)?.columns
         ?.filter(
           (f: Record<string, any>) =>
-            f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
+            f.show &&
+            f.uidt !== UITypes.Rollup &&
+            f.uidt !== UITypes.Lookup &&
+            f.uidt !== UITypes.Formula &&
+            f.uidt !== UITypes.QrCode,
         )
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
         .map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) })) ?? [],

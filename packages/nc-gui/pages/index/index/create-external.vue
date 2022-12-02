@@ -551,6 +551,7 @@ onMounted(async () => {
 
     <a-modal
       v-model:visible="configEditDlg"
+      :class="{ active: configEditDlg }"
       :title="$t('activity.editConnJson')"
       width="600px"
       wrap-class-name="nc-modal-edit-connection-json"
@@ -562,6 +563,7 @@ onMounted(async () => {
     <!--    Use Connection URL -->
     <a-modal
       v-model:visible="importURLDlg"
+      :class="{ active: importURLDlg }"
       :title="$t('activity.useConnectionUrl')"
       width="600px"
       :ok-text="$t('general.ok')"

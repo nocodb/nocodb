@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NcConfig } from '../interface/config';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
 import NcConfigFactory from './utils/NcConfigFactory';
+import { Tele } from 'nc-help';
 
 import NcProjectBuilderCE from './v1-legacy/NcProjectBuilder';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilderEE';
@@ -38,7 +39,6 @@ import NocoCache from './cache/NocoCache';
 import registerMetaApis from './meta/api';
 import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
 import User from './models/User';
-import { Tele } from 'nc-help';
 import * as http from 'http';
 import getInstance from './utils/getInstance';
 import initAdminFromEnv from './meta/api/userApi/initAdminFromEnv';
@@ -100,7 +100,7 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    process.env.NC_VERSION = '0090000';
+    process.env.NC_VERSION = '0098005';
 
     // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
     if (process.env.NC_MINIMAL_DBS) {
@@ -212,7 +212,6 @@ export default class Noco {
     });
 
     // to get ip addresses
-
     this.router.use(requestIp.mw());
     this.router.use(cookieParser());
     this.router.use(

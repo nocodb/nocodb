@@ -27,7 +27,8 @@
     "coverage": "vitest -c test/vite.config.ts run --coverage",
     "build:copy": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
     "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/; npm publish ../nc-lib-gui",
-    "postinstall": "node scripts/updateNuxtRouting.js"
+    "postinstall": "node scripts/updateNuxtRouting.js",
+    "ci:run": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; npm install; NUXT_PAGE_TRANSITION_DISABLE=true npm run build; NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 npm run start &"
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.2.0",
@@ -50,11 +51,13 @@
     "monaco-editor": "^0.33.0",
     "nocodb-sdk": "file:../nocodb/nocodb-sdk-0.98.3.tgz",
     "papaparse": "^5.3.2",
+    "qrcode": "^1.5.1",
     "socket.io-client": "^4.5.1",
     "sortablejs": "^1.15.0",
     "tinycolor2": "^1.4.2",
     "unique-names-generator": "^4.7.1",
     "vue": "^3.2.41",
+    "validator": "^13.7.0",
     "vue-dompurify-html": "^3.0.0",
     "vue-github-button": "^3.0.3",
     "vue-i18n": "^9.2.2",
@@ -85,6 +88,7 @@
     "@types/papaparse": "^5.3.2",
     "@types/sortablejs": "^1.13.0",
     "@types/tinycolor2": "^1.4.3",
+    "@types/validator": "^13.7.10",
     "@vitest/ui": "^0.18.0",
     "@vue/compiler-sfc": "^3.2.37",
     "@vue/test-utils": "^2.0.2",

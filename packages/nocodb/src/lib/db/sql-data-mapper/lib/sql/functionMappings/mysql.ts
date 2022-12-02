@@ -28,15 +28,19 @@ const mysql2 = {
   },
   RIGHT: (args: MapFnArgs) => {
     return args.knex.raw(
-      `SUBSTR(${args.fn(args.pt.arguments[0])},-${args.fn(
+      `SUBSTR(${args.fn(args.pt.arguments[0])}, -(${args.fn(
         args.pt.arguments[1]
-      )})${args.colAlias}`
+      )}))${args.colAlias}`
     );
   },
   MID: 'SUBSTR',
   FLOAT: (args: MapFnArgs) => {
     return args.knex
-      .raw(`CAST(${args.fn(args.pt.arguments[0])} as DOUBLE)${args.colAlias}`)
+      .raw(
+        `CAST(CAST(${args.fn(args.pt.arguments[0])} as CHAR) AS DOUBLE)${
+          args.colAlias
+        }`
+      )
       .wrap('(', ')');
   },
   DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {

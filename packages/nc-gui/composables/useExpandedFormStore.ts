@@ -46,8 +46,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const activeView = inject(ActiveViewInj, ref())
 
-  const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
-
   const { sharedView } = useSharedView()
 
   // getters
@@ -197,6 +195,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       }
 
       if (activeView.value?.type === ViewTypes.KANBAN) {
+        const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
         addOrEditStackRow(row.value, isNewRow)
       }
 

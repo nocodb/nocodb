@@ -1,12 +1,12 @@
 // // Project CRUD
 import { Request, Response } from 'express';
 
-import { packageVersion } from 'nc-help';
 import { ViewTypes } from 'nocodb-sdk';
 import Project from '../../models/Project';
 import Noco from '../../Noco';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../../utils/globals';
+import { packageVersion } from '../../utils/packageVersion';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
 import NcConfigFactory, {

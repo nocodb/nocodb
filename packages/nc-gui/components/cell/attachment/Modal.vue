@@ -51,8 +51,6 @@ function onClick(item: Record<string, any>) {
       }, 50)
       stopHandle?.()
     }
-
-    onCleanup(() => stopHandle?.())
   })
 }
 </script>

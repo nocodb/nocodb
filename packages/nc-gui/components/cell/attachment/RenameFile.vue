@@ -73,18 +73,16 @@ onMounted(() => {
     <div class="flex flex-col items-center justify-center h-full">
       <a-form class="w-full h-full" no-style :model="form" @finish="renameFile(`${form.name}.${fileEnding}`)">
         <a-form-item class="w-full" name="name" :rules="rules.name">
-          <a-input ref="inputEl" v-model:value="form.name" class="w-full" :placeholder="$t('msg.info.rename')" />
+          <a-input ref="inputEl" v-model:value="form.name" class="w-full" :placeholder="$t('general.rename')" />
         </a-form-item>
 
         <div class="flex items-center justify-center gap-6 w-full mt-4">
           <button class="scaling-btn bg-opacity-100" type="submit">
-            <!-- Rename -->
-            <span>Rename</span>
+            <span>{{ $t('general.rename') }}</span>
           </button>
 
           <button class="scaling-btn bg-opacity-100" type="button" @click="useRandomName">
-            <!-- Rename -->
-            <span>Generate random name</span>
+            <span>{{ $t('title.generateRandomName') }}</span>
           </button>
         </div>
       </a-form>

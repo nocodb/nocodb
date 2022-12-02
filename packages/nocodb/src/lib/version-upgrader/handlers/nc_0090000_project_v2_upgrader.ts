@@ -1,9 +1,9 @@
-import { NcUpgraderCtx } from './NcUpgrader';
-import Noco from '../Noco';
-import User from '../models/User';
-import Project from '../models/Project';
-import ProjectUser from '../models/ProjectUser';
-import Model from '../models/Model';
+import { NcUpgraderCtx } from '../NcUpgrader';
+import Noco from '../../Noco';
+import User from '../../models/User';
+import Project from '../../models/Project';
+import ProjectUser from '../../models/ProjectUser';
+import Model from '../../models/Model';
 import {
   ModelTypes,
   substituteColumnAliasWithIdInFormula,
@@ -11,25 +11,25 @@ import {
   ViewType,
   ViewTypes,
 } from 'nocodb-sdk';
-import Column from '../models/Column';
-import LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
-import NcHelp from '../utils/NcHelp';
-import RollupColumn from '../models/RollupColumn';
-import View from '../models/View';
-import GridView from '../models/GridView';
-import KanbanView from '../models/KanbanView';
-import FormView from '../models/FormView';
-import GalleryView from '../models/GalleryView';
-import Sort from '../models/Sort';
-import Filter from '../models/Filter';
-import ModelRoleVisibility from '../models/ModelRoleVisibility';
-import { MetaTable } from '../utils/globals';
-import Hook from '../models/Hook';
-import FormViewColumn from '../models/FormViewColumn';
-import GridViewColumn from '../models/GridViewColumn';
-import { getUniqueColumnAliasName } from '../meta/helpers/getUniqueName';
-import NcProjectBuilderEE from '../v1-legacy/NcProjectBuilderEE';
-import Audit from '../models/Audit';
+import Column from '../../models/Column';
+import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
+import NcHelp from '../../utils/NcHelp';
+import RollupColumn from '../../models/RollupColumn';
+import View from '../../models/View';
+import GridView from '../../models/GridView';
+import KanbanView from '../../models/KanbanView';
+import FormView from '../../models/FormView';
+import GalleryView from '../../models/GalleryView';
+import Sort from '../../models/Sort';
+import Filter from '../../models/Filter';
+import ModelRoleVisibility from '../../models/ModelRoleVisibility';
+import { MetaTable, MetaTableV1 } from '../../utils/globals';
+import Hook from '../../models/Hook';
+import FormViewColumn from '../../models/FormViewColumn';
+import GridViewColumn from '../../models/GridViewColumn';
+import { getUniqueColumnAliasName } from '../../meta/helpers/getUniqueName';
+import NcProjectBuilderEE from '../../v1-legacy/NcProjectBuilderEE';
+import Audit from '../../models/Audit';
 
 export default async function (ctx: NcUpgraderCtx) {
   const ncMeta = ctx.ncMeta;
@@ -112,7 +112,11 @@ async function migrateProjectUsers(
   usersObj: { [p: string]: User },
   ncMeta = Noco.ncMeta
 ) {
-  const projectUsers = await ncMeta.metaList(null, null, 'nc_projects_users');
+  const projectUsers = await ncMeta.metaList(
+    null,
+    null,
+    MetaTableV1.PROJECTS_USERS
+  );
 
   for (const projectUser of projectUsers) {
     // skip if project is missing
@@ -355,12 +359,16 @@ async function migrateProjectModels(
 ): Promise<MigrateCtxV1> {
   // @ts-ignore
 
-  const metas: ModelMetav1[] = await ncMeta.metaList(null, null, 'nc_models');
+  const metas: ModelMetav1[] = await ncMeta.metaList(
+    null,
+    null,
+    MetaTableV1.MODELS
+  );
   // @ts-ignore
   const relations: Relationv1[] = await ncMeta.metaList(
     null,
     null,
-    'nc_relations'
+    MetaTableV1.RELATIONS
   );
   const models: Model[] = [];
 
@@ -1084,7 +1092,7 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
     project_id: string;
     created_at?;
     updated_at?;
-  }> = await ncMeta.metaList(null, null, 'nc_disabled_models_for_role');
+  }> = await ncMeta.metaList(null, null, MetaTableV1.DISABLED_MODELS_FOR_ROLE);
 
   for (const acl of uiAclList) {
     // if missing model name skip the view acl migration
@@ -1132,7 +1140,7 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
     password: string;
     view_name: string;
     project_id: string;
-  }> = await ncMeta.metaList(null, null, 'nc_shared_views');
+  }> = await ncMeta.metaList(null, null, MetaTableV1.SHARED_VIEWS);
 
   for (const sharedView of sharedViews) {
     let fk_view_id;
@@ -1181,7 +1189,7 @@ async function migrateSharedBase(ncMeta: any) {
     enabled: boolean;
     project_id: string;
     password: string;
-  }> = await ncMeta.metaList(null, null, 'nc_shared_bases');
+  }> = await ncMeta.metaList(null, null, MetaTableV1.SHARED_BASES);
 
   for (const sharedBase of sharedBases) {
     await Project.update(
@@ -1197,7 +1205,11 @@ async function migrateSharedBase(ncMeta: any) {
 }
 
 async function migratePlugins(ncMeta: any) {
-  const plugins: Array<any> = await ncMeta.metaList(null, null, 'nc_plugins');
+  const plugins: Array<any> = await ncMeta.metaList(
+    null,
+    null,
+    MetaTableV1.PLUGINS
+  );
 
   for (const plugin of plugins) {
     await ncMeta.metaInsert2(null, null, MetaTable.PLUGIN, {
@@ -1245,7 +1257,7 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
     active: boolean;
     created_at?;
     updated_at?;
-  }> = await ncMeta.metaList(null, null, 'nc_hooks');
+  }> = await ncMeta.metaList(null, null, MetaTableV1.HOOKS);
 
   for (const hookMeta of hooks) {
     if (
@@ -1327,7 +1339,7 @@ async function migrateAutitLog(
     details: string;
     created_at: any;
     updated_at: any;
-  }> = await ncMeta.metaList(null, null, 'nc_audit');
+  }> = await ncMeta.metaList(null, null, MetaTableV1.AUDIT);
 
   for (const audit of audits) {
     // skip deleted projects audit

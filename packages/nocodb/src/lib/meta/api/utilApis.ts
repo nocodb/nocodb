@@ -217,7 +217,7 @@ interface AllMeta {
 export async function aggregatedMetaInfo(_req: Request, res: Response) {
   const [projects, userCount] = await Promise.all([
     Project.list({}),
-    Noco.ncMeta.metaCount(null, null, MetaTable.USERS),
+    Noco.ncMeta.metaCount(null, null, MetaTable.USER),
   ]);
 
   const result: AllMeta = {
@@ -244,13 +244,13 @@ export async function aggregatedMetaInfo(_req: Request, res: Response) {
           ] = extractResultOrNull(
             await Promise.allSettled([
               // db tables  count
-              Noco.ncMeta.metaCount(project.id, null, MetaTable.MODELS, {
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.MODEL, {
                 condition: {
                   type: 'table',
                 },
               }),
               // db views count
-              Noco.ncMeta.metaCount(project.id, null, MetaTable.MODELS, {
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.MODEL, {
                 condition: {
                   type: 'view',
                 },
@@ -260,7 +260,7 @@ export async function aggregatedMetaInfo(_req: Request, res: Response) {
                 const views = await Noco.ncMeta.metaList2(
                   project.id,
                   null,
-                  MetaTable.VIEWS
+                  MetaTable.VIEW
                 );
                 // grid, form, gallery, kanban and shared count
                 return views.reduce<ViewCount>(
@@ -308,7 +308,7 @@ export async function aggregatedMetaInfo(_req: Request, res: Response) {
                 );
               })(),
               // webhooks count
-              Noco.ncMeta.metaCount(project.id, null, MetaTable.HOOKS),
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.HOOK),
               // filters count
               Noco.ncMeta.metaCount(project.id, null, MetaTable.FILTER_EXP),
               // sorts count
@@ -326,7 +326,7 @@ export async function aggregatedMetaInfo(_req: Request, res: Response) {
                 );
               }),
               // project users count
-              Noco.ncMeta.metaCount(null, null, MetaTable.PROJECT_USERS, {
+              Noco.ncMeta.metaCount(null, null, MetaTable.PROJECT_USER, {
                 condition: {
                   project_id: project.id,
                 },

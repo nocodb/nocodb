@@ -180,7 +180,7 @@ class DBStream extends Readable {
   }
 
   _read() {
-    let stream = this;
+    const stream = this;
     this.stmt.get(function (err, result) {
       if (err) {
         stream.emit('error', err);

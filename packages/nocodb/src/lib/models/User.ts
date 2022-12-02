@@ -57,7 +57,7 @@ export default class User implements UserType {
     const { id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.USERS,
+      MetaTable.USER,
       insertObj
     );
 
@@ -116,7 +116,7 @@ export default class User implements UserType {
     }
 
     // set meta
-    return await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
+    return await ncMeta.metaUpdate(null, null, MetaTable.USER, updateObj, id);
   }
 
   public static async getByEmail(_email: string, ncMeta = Noco.ncMeta) {
@@ -128,7 +128,7 @@ export default class User implements UserType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!user) {
-      user = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+      user = await ncMeta.metaGet2(null, null, MetaTable.USER, {
         email,
       });
       await NocoCache.set(`${CacheScope.USER}:${email}`, user);
@@ -139,7 +139,7 @@ export default class User implements UserType {
   static async isFirst(ncMeta = Noco.ncMeta) {
     const isFirst = !(await NocoCache.getAll(`${CacheScope.USER}:*`))?.length;
     if (isFirst)
-      return !(await ncMeta.metaGet2(null, null, MetaTable.USERS, {}));
+      return !(await ncMeta.metaGet2(null, null, MetaTable.USER, {}));
     return false;
   }
 
@@ -151,7 +151,7 @@ export default class User implements UserType {
     } = {},
     ncMeta = Noco.ncMeta
   ): Promise<number> {
-    const qb = ncMeta.knex(MetaTable.USERS);
+    const qb = ncMeta.knex(MetaTable.USER);
 
     if (query) {
       qb.where('email', 'like', `%${query.toLowerCase?.()}%`);
@@ -168,14 +168,14 @@ export default class User implements UserType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!user) {
-      user = await ncMeta.metaGet2(null, null, MetaTable.USERS, userId);
+      user = await ncMeta.metaGet2(null, null, MetaTable.USER, userId);
       await NocoCache.set(`${CacheScope.USER}:${userId}`, user);
     }
     return user;
   }
 
   static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {
-    const user = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+    const user = await ncMeta.metaGet2(null, null, MetaTable.USER, {
       refresh_token,
     });
     return user;
@@ -193,7 +193,7 @@ export default class User implements UserType {
     } = {},
     ncMeta = Noco.ncMeta
   ) {
-    let queryBuilder = ncMeta.knex(MetaTable.USERS);
+    let queryBuilder = ncMeta.knex(MetaTable.USER);
 
     if (offset) queryBuilder = queryBuilder.offset(offset);
 
@@ -201,23 +201,23 @@ export default class User implements UserType {
 
     queryBuilder = queryBuilder
       .select(
-        `${MetaTable.USERS}.id`,
-        `${MetaTable.USERS}.email`,
-        `${MetaTable.USERS}.firstname`,
-        `${MetaTable.USERS}.lastname`,
-        `${MetaTable.USERS}.username`,
-        `${MetaTable.USERS}.email_verified`,
-        `${MetaTable.USERS}.invite_token`,
-        `${MetaTable.USERS}.created_at`,
-        `${MetaTable.USERS}.updated_at`,
-        `${MetaTable.USERS}.roles`
+        `${MetaTable.USER}.id`,
+        `${MetaTable.USER}.email`,
+        `${MetaTable.USER}.firstname`,
+        `${MetaTable.USER}.lastname`,
+        `${MetaTable.USER}.username`,
+        `${MetaTable.USER}.email_verified`,
+        `${MetaTable.USER}.invite_token`,
+        `${MetaTable.USER}.created_at`,
+        `${MetaTable.USER}.updated_at`,
+        `${MetaTable.USER}.roles`
       )
       .select(
         ncMeta
-          .knex(MetaTable.PROJECT_USERS)
+          .knex(MetaTable.PROJECT_USER)
           .count()
           .whereRaw(
-            `${MetaTable.USERS}.id = ${MetaTable.PROJECT_USERS}.fk_user_id`
+            `${MetaTable.USER}.id = ${MetaTable.PROJECT_USER}.fk_user_id`
           )
           .as('projectsCount')
       );
@@ -241,6 +241,6 @@ export default class User implements UserType {
     await NocoCache.del(`${CacheScope.USER}:${userId}`);
     await NocoCache.del(`${CacheScope.USER}:${user.email}`);
 
-    await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
+    await ncMeta.metaDelete(null, null, MetaTable.USER, userId);
   }
 }

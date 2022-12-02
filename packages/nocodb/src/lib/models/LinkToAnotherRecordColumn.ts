@@ -89,7 +89,7 @@ export default class LinkToAnotherRecordColumn {
     data: Partial<LinkToAnotherRecordColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_RELATIONS, {
+    await ncMeta.metaInsert2(null, null, MetaTable.COL_RELATION, {
       fk_column_id: data.fk_column_id,
 
       // ref_db_alias
@@ -124,7 +124,7 @@ export default class LinkToAnotherRecordColumn {
       colData = await ncMeta.metaGet2(
         null, //,
         null, //model.db_alias
-        MetaTable.COL_RELATIONS,
+        MetaTable.COL_RELATION,
         { fk_column_id: columnId }
       );
       await NocoCache.set(`${CacheScope.COL_RELATION}:${columnId}`, colData);

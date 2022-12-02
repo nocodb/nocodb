@@ -2004,7 +2004,7 @@ class SqliteClient extends KnexClient {
     if (change === 2) {
       const suffix = nanoid();
 
-      let backupOldColumnQuery = this.genQuery(
+      const backupOldColumnQuery = this.genQuery(
         `ALTER TABLE ?? RENAME COLUMN ?? TO ??;`,
         [t, o.cn, `${o.cno}_nc_${suffix}`],
         shouldSanitize
@@ -2029,13 +2029,13 @@ class SqliteClient extends KnexClient {
         shouldSanitize
       );
 
-      let updateNewColumnQuery = this.genQuery(
+      const updateNewColumnQuery = this.genQuery(
         `UPDATE ?? SET ?? = ??;`,
         [t, n.cn, `${o.cno}_nc_${suffix}`],
         shouldSanitize
       );
 
-      let dropOldColumnQuery = this.genQuery(
+      const dropOldColumnQuery = this.genQuery(
         `ALTER TABLE ?? DROP COLUMN ??;`,
         [t, `${o.cno}_nc_${suffix}`],
         shouldSanitize

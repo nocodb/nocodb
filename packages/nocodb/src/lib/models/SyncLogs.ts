@@ -14,7 +14,7 @@ export default class SyncLogs {
   }
 
   static async list(projectId: string, ncMeta = Noco.ncMeta) {
-    const syncLogs = await ncMeta.metaList(null, null, MetaTable.SYNC_LOGS, {
+    const syncLogs = await ncMeta.metaList(null, null, MetaTable.SYNC_LOG, {
       condition: {
         project_id: projectId,
       },
@@ -45,13 +45,13 @@ export default class SyncLogs {
     const { id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.SYNC_LOGS,
+      MetaTable.SYNC_LOG,
       insertObj
     );
     return new SyncLogs({ ...insertObj, id });
   }
 
   static async delete(syncLogId: any, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaDelete(null, null, MetaTable.SYNC_LOGS, syncLogId);
+    return await ncMeta.metaDelete(null, null, MetaTable.SYNC_LOG, syncLogId);
   }
 }

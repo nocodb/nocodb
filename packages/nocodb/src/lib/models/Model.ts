@@ -104,14 +104,14 @@ export default class Model implements TableType {
     const { id } = await ncMeta.metaInsert2(
       projectId,
       baseId,
-      MetaTable.MODELS,
+      MetaTable.MODEL,
       {
         table_name: model.table_name,
         title: model.title,
         mm: !!model.mm,
         order:
           model.order ||
-          (await ncMeta.metaGetNextOrder(MetaTable.FORM_VIEW_COLUMNS, {
+          (await ncMeta.metaGetNextOrder(MetaTable.FORM_VIEW_COLUMN, {
             project_id: projectId,
             base_id: baseId,
           })),
@@ -167,7 +167,7 @@ export default class Model implements TableType {
       modelList = await ncMeta.metaList2(
         project_id,
         base_id,
-        MetaTable.MODELS,
+        MetaTable.MODEL,
         {
           orderBy: {
             order: 'asc',
@@ -207,7 +207,7 @@ export default class Model implements TableType {
       modelList = await ncMeta.metaList2(
         project_id,
         db_alias,
-        MetaTable.MODELS
+        MetaTable.MODEL
       );
 
       await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
@@ -229,7 +229,7 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!modelData) {
-      modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, id);
+      modelData = await ncMeta.metaGet2(null, null, MetaTable.MODEL, id);
       if (modelData)
         await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
     }
@@ -256,7 +256,7 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!modelData) {
-      modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, k);
+      modelData = await ncMeta.metaGet2(null, null, MetaTable.MODEL, k);
       // if (
       //   this.baseModels?.[modelData.base_id]?.[modelData.db_alias]?.[
       //     modelData.title
@@ -303,7 +303,7 @@ export default class Model implements TableType {
       modelData = await ncMeta.metaGet2(
         null,
         null,
-        MetaTable.MODELS,
+        MetaTable.MODEL,
         id || {
           table_name,
         }
@@ -363,12 +363,12 @@ export default class Model implements TableType {
           break;
         case UITypes.ForeignKey:
         case UITypes.LinkToAnotherRecord:
-          colOptionTableName = MetaTable.COL_RELATIONS;
+          colOptionTableName = MetaTable.COL_RELATION;
           cacheScopeName = CacheScope.COL_RELATION;
           break;
         case UITypes.MultiSelect:
         case UITypes.SingleSelect:
-          colOptionTableName = MetaTable.COL_SELECT_OPTIONS;
+          colOptionTableName = MetaTable.COL_SELECT_OPTION;
           cacheScopeName = CacheScope.COL_SELECT_OPTION;
           break;
         case UITypes.Formula:
@@ -393,7 +393,7 @@ export default class Model implements TableType {
       `${CacheScope.COLUMN}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT
     );
-    await ncMeta.metaDelete(null, null, MetaTable.COLUMNS, {
+    await ncMeta.metaDelete(null, null, MetaTable.COLUMN, {
       fk_model_id: this.id,
     });
 
@@ -402,7 +402,7 @@ export default class Model implements TableType {
       `${CacheScope.MODEL}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT
     );
-    await ncMeta.metaDelete(null, null, MetaTable.MODELS, this.id);
+    await ncMeta.metaDelete(null, null, MetaTable.MODEL, this.id);
 
     await NocoCache.del(`${CacheScope.MODEL}:${this.project_id}:${this.id}`);
     await NocoCache.del(`${CacheScope.MODEL}:${this.project_id}:${this.title}`);
@@ -450,7 +450,7 @@ export default class Model implements TableType {
     return await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.MODELS,
+      MetaTable.MODEL,
       {
         title,
         table_name,
@@ -473,7 +473,7 @@ export default class Model implements TableType {
     return await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.MODELS,
+      MetaTable.MODEL,
       {
         mm: isMm,
       },
@@ -516,7 +516,7 @@ export default class Model implements TableType {
     return await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.MODELS,
+      MetaTable.MODEL,
       {
         order,
       },
@@ -548,7 +548,7 @@ export default class Model implements TableType {
       await ncMeta.metaUpdate(
         null,
         null,
-        MetaTable.COLUMNS,
+        MetaTable.COLUMN,
         {
           pv: false,
         },
@@ -568,7 +568,7 @@ export default class Model implements TableType {
     await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.COLUMNS,
+      MetaTable.COLUMN,
       {
         pv: true,
       },
@@ -591,7 +591,7 @@ export default class Model implements TableType {
     await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.MODELS,
+      MetaTable.MODEL,
       {
         mm: true,
       },
@@ -623,7 +623,7 @@ export default class Model implements TableType {
         ? await ncMeta.metaGet2(
             null,
             null,
-            MetaTable.MODELS,
+            MetaTable.MODEL,
             { project_id, base_id },
             null,
             {
@@ -644,7 +644,7 @@ export default class Model implements TableType {
         : await ncMeta.metaGet2(
             null,
             null,
-            MetaTable.MODELS,
+            MetaTable.MODEL,
             { project_id },
             null,
             {
@@ -686,7 +686,7 @@ export default class Model implements TableType {
     return !(await ncMeta.metaGet2(
       project_id,
       base_id,
-      MetaTable.MODELS,
+      MetaTable.MODEL,
       {
         table_name,
       },
@@ -707,7 +707,7 @@ export default class Model implements TableType {
     return !(await ncMeta.metaGet2(
       project_id,
       base_id,
-      MetaTable.MODELS,
+      MetaTable.MODEL,
       {
         title,
       },

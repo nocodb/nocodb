@@ -1,10 +1,11 @@
+import { MetaTableV1 } from '../../globals';
 import { NcBuilderUpgraderCtx } from '../BaseApiBuilder';
 
 export default async function (ctx: NcBuilderUpgraderCtx) {
   const models = await ctx.xcMeta.metaList(
     ctx.projectId,
     ctx.dbAlias,
-    'nc_models',
+    MetaTableV1.MODELS,
     {
       xcCondition: {
         _or: [{ type: { eq: 'table' } }, { type: { eq: 'view' } }],
@@ -16,7 +17,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
     await ctx.xcMeta.metaUpdate(
       ctx.projectId,
       ctx.dbAlias,
-      'nc_models',
+      MetaTableV1.MODELS,
       {
         order: ++order,
         view_order: 1,
@@ -27,7 +28,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
     const views = await ctx.xcMeta.metaList(
       ctx.projectId,
       ctx.dbAlias,
-      'nc_models',
+      MetaTableV1.MODELS,
       {
         condition: { parent_model_title: model.title },
       }
@@ -37,7 +38,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
       await ctx.xcMeta.metaUpdate(
         ctx.projectId,
         ctx.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           view_order: ++view_order,
         },

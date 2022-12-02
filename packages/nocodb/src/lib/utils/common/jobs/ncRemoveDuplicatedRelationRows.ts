@@ -1,3 +1,4 @@
+import { MetaTableV1 } from '../../globals';
 import { NcBuilderUpgraderCtx } from '../BaseApiBuilder';
 
 export default async function (ctx: NcBuilderUpgraderCtx) {
@@ -5,7 +6,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
     const relations = await ctx.xcMeta.metaList(
       ctx.projectId,
       ctx.dbAlias,
-      'nc_relations'
+      MetaTableV1.RELATIONS
     );
 
     const duplicates = [];
@@ -30,7 +31,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
       await ctx.xcMeta.metaDelete(
         ctx.projectId,
         ctx.dbAlias,
-        'nc_relations',
+        MetaTableV1.RELATIONS,
         dupRelation.id
       );
       {
@@ -62,7 +63,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
         await ctx.xcMeta.metaUpdate(
           ctx.projectId,
           ctx.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           { meta: JSON.stringify(meta) },
           {
             type: 'table',
@@ -74,7 +75,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
         const rtnModel = await ctx.xcMeta.metaGet(
           ctx.projectId,
           ctx.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           {
             type: 'table',
             title: dupRelation.rtn,
@@ -98,7 +99,7 @@ export default async function (ctx: NcBuilderUpgraderCtx) {
         await ctx.xcMeta.metaUpdate(
           ctx.projectId,
           ctx.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           { meta: JSON.stringify(meta) },
           {
             type: 'table',

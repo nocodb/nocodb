@@ -3,6 +3,7 @@ import { Strategy } from 'passport-jwt';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import { Tele } from 'nc-help';
+import { MetaTableV1 } from '../../utils/globals';
 
 import XcCache from '../plugins/adapters/cache/XcCache';
 
@@ -59,7 +60,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
             'editor'
           );
         }
-        this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
+        this.xcMeta.audit(req.body.project_id, null, MetaTableV1.AUDIT, {
           op_type: 'AUTHENTICATION',
           op_sub_type: 'INVITE',
           user: req.user.email,
@@ -87,7 +88,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
 
           Tele.emit('evt', { evt_type: 'project:invite', count: count?.count });
 
-          this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
+          this.xcMeta.audit(req.body.project_id, null, MetaTableV1.AUDIT, {
             op_type: 'AUTHENTICATION',
             op_sub_type: 'INVITE',
             user: req.user.email,
@@ -165,7 +166,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
       await this.xcMeta.metaUpdate(
         req?.body?.project_id,
         null,
-        'nc_projects_users',
+        MetaTableV1.PROJECTS_USERS,
         {
           roles: req.body.roles,
         },
@@ -177,7 +178,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
 
       XcCache.del(`${req.body.email}___${req?.body?.project_id}`);
 
-      this.xcMeta.audit(null, null, 'nc_audit', {
+      this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
         op_type: 'AUTHENTICATION',
         op_sub_type: 'ROLES_MANAGEMENT',
         user: req.user.email,
@@ -219,7 +220,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
             .then((user) => {
               if (req.ncProjectId) {
                 this.xcMeta
-                  .metaGet(req.ncProjectId, null, 'nc_projects_users', {
+                  .metaGet(req.ncProjectId, null, MetaTableV1.PROJECTS_USERS, {
                     user_id: user?.id,
                   })
                   .then((projectUser) => {

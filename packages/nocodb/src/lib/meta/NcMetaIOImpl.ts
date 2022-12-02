@@ -8,7 +8,7 @@ import XcMigrationSource from '../migrations/XcMigrationSource';
 
 import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import NcConnectionMgr from '../utils/common/NcConnectionMgr';
-import { MetaTable } from '../utils/globals';
+import { MetaTable, MetaTableV1 } from '../utils/globals';
 import XcMigrationSourcev2 from '../migrations/XcMigrationSourcev2';
 
 // import { nanoid } from 'nanoid';
@@ -527,7 +527,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
         ).toString(),
       };
       // todo: check project name used or not
-      await this.knexConnection('nc_projects').insert({
+      await this.knexConnection(MetaTableV1.PROJECTS).insert({
         ...project,
         created_at: this.knexConnection?.fn?.now(),
         updated_at: this.knexConnection?.fn?.now(),
@@ -555,7 +555,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
         ).toString(),
       };
       // todo: check project name used or not
-      await this.knexConnection('nc_projects').update(project).where({
+      await this.knexConnection(MetaTableV1.PROJECTS).update(project).where({
         id: projectId,
       });
     } catch (e) {
@@ -564,38 +564,42 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public async projectList(): Promise<any[]> {
-    return (await this.knexConnection('nc_projects').select()).map((p) => {
-      p.config = CryptoJS.AES.decrypt(
-        p.config,
-        this.config?.auth?.jwt?.secret
-      ).toString(CryptoJS.enc.Utf8);
-      return p;
-    });
+    return (await this.knexConnection(MetaTableV1.PROJECTS).select()).map(
+      (p) => {
+        p.config = CryptoJS.AES.decrypt(
+          p.config,
+          this.config?.auth?.jwt?.secret
+        ).toString(CryptoJS.enc.Utf8);
+        return p;
+      }
+    );
   }
 
   public async userProjectList(userId: any): Promise<any[]> {
     return (
-      await this.knexConnection('nc_projects')
+      await this.knexConnection(MetaTableV1.PROJECTS)
         .leftJoin(
-          this.knexConnection('nc_projects_users')
-            .where(`nc_projects_users.user_id`, userId)
+          this.knexConnection(MetaTableV1.PROJECTS_USERS)
+            .where(`${MetaTableV1.PROJECTS_USERS}.user_id`, userId)
             .as('user'),
           'user.project_id',
-          'nc_projects.id'
+          `${MetaTableV1.PROJECTS}.id`
         )
-        .select('nc_projects.*')
+        .select(`${MetaTableV1.PROJECTS}.*`)
         .select('user.user_id')
         .select(
           this.knexConnection('xc_users')
             .select('xc_users.email')
             .innerJoin(
-              'nc_projects_users',
-              'nc_projects_users.user_id',
+              MetaTableV1.PROJECTS_USERS,
+              `${MetaTableV1.PROJECTS_USERS}.user_id`,
               '=',
               'xc_users.id'
             )
-            .whereRaw('nc_projects.id = nc_projects_users.project_id')
-            .where('nc_projects_users.roles', 'like', '%owner%')
+            .whereRaw(
+              `${MetaTableV1.PROJECTS}.id = ${MetaTableV1.PROJECTS_USERS}.project_id`
+            )
+            .where(`${MetaTableV1.PROJECTS_USERS}.roles`, 'like', '%owner%')
             .first()
             .as('owner')
         )
@@ -603,19 +607,25 @@ export default class NcMetaIOImpl extends NcMetaIO {
           this.knexConnection('xc_users')
             .count('xc_users.id')
             .innerJoin(
-              'nc_projects_users',
-              'nc_projects_users.user_id',
+              MetaTableV1.PROJECTS_USERS,
+              `${MetaTableV1.PROJECTS_USERS}.user_id`,
               '=',
               'xc_users.id'
             )
             .where((qb) => {
-              qb.where('nc_projects_users.roles', 'like', '%creator%').orWhere(
-                'nc_projects_users.roles',
+              qb.where(
+                `${MetaTableV1.PROJECTS_USERS}.roles`,
+                'like',
+                '%creator%'
+              ).orWhere(
+                `${MetaTableV1.PROJECTS_USERS}.roles`,
                 'like',
                 '%owner%'
               );
             })
-            .whereRaw('nc_projects.id = nc_projects_users.project_id')
+            .whereRaw(
+              `nc_projects.id = ${MetaTableV1.PROJECTS_USERS}.project_id`
+            )
             .andWhere('xc_users.id', userId)
             .first()
             .as('is_creator')
@@ -634,7 +644,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     projectId: string,
     userId: any
   ): Promise<boolean> {
-    return !!(await this.knexConnection('nc_projects_users')
+    return !!(await this.knexConnection(MetaTableV1.PROJECTS_USERS)
       .where({
         project_id: projectId,
         user_id: userId,
@@ -643,7 +653,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public async projectGet(projectName: string, encrypt?): Promise<any> {
-    const project = await this.knexConnection('nc_projects')
+    const project = await this.knexConnection(MetaTableV1.PROJECTS)
       .where({
         title: projectName,
       })
@@ -659,7 +669,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public async projectGetById(projectId: string, encrypt?): Promise<any> {
-    const project = await this.knexConnection('nc_projects')
+    const project = await this.knexConnection(MetaTableV1.PROJECTS)
       .where({
         id: projectId,
       })
@@ -674,7 +684,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public projectDelete(title: string): Promise<any> {
-    return this.knexConnection('nc_projects')
+    return this.knexConnection(MetaTableV1.PROJECTS)
       .where({
         title,
       })
@@ -682,7 +692,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public projectDeleteById(id: string): Promise<any> {
-    return this.knexConnection('nc_projects')
+    return this.knexConnection(MetaTableV1.PROJECTS)
       .where({
         id,
       })
@@ -693,7 +703,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     projectId: string,
     status: string
   ): Promise<any> {
-    return this.knexConnection('nc_projects')
+    return this.knexConnection(MetaTableV1.PROJECTS)
       .update({
         status,
       })
@@ -708,7 +718,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     roles: string
   ): Promise<any> {
     if (
-      await this.knexConnection('nc_projects_users')
+      await this.knexConnection(MetaTableV1.PROJECTS_USERS)
         .where({
           user_id: userId,
           project_id: projectId,
@@ -717,7 +727,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     ) {
       return {};
     }
-    return this.knexConnection('nc_projects_users').insert({
+    return this.knexConnection(MetaTableV1.PROJECTS_USERS).insert({
       user_id: userId,
       project_id: projectId,
       roles,
@@ -725,7 +735,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   }
 
   public projectRemoveUser(projectId: string, userId: any): Promise<any> {
-    return this.knexConnection('nc_projects_users')
+    return this.knexConnection(MetaTableV1.PROJECTS_USERS)
       .where({
         user_id: userId,
         project_id: projectId,
@@ -785,19 +795,19 @@ export default class NcMetaIOImpl extends NcMetaIO {
       case MetaTable.PROJECT:
         prefix = 'p_';
         break;
-      case MetaTable.BASES:
+      case MetaTable.BASE:
         prefix = 'ds_';
         break;
-      case MetaTable.MODELS:
+      case MetaTable.MODEL:
         prefix = 'md_';
         break;
-      case MetaTable.COLUMNS:
+      case MetaTable.COLUMN:
         prefix = 'cl_';
         break;
-      case MetaTable.COL_RELATIONS:
+      case MetaTable.COL_RELATION:
         prefix = 'ln_';
         break;
-      case MetaTable.COL_SELECT_OPTIONS:
+      case MetaTable.COL_SELECT_OPTION:
         prefix = 'sl_';
         break;
       case MetaTable.COL_LOOKUP:
@@ -818,46 +828,38 @@ export default class NcMetaIOImpl extends NcMetaIO {
       case MetaTable.SHARED_VIEWS:
         prefix = 'sv_';
         break;
-      case MetaTable.ACL:
-        prefix = 'ac_';
-        break;
       case MetaTable.FORM_VIEW:
         prefix = 'fv_';
         break;
-      case MetaTable.FORM_VIEW_COLUMNS:
+      case MetaTable.FORM_VIEW_COLUMN:
         prefix = 'fvc_';
         break;
       case MetaTable.GALLERY_VIEW:
         prefix = 'gv_';
         break;
-      case MetaTable.GALLERY_VIEW_COLUMNS:
+      case MetaTable.GALLERY_VIEW_COLUMN:
         prefix = 'gvc_';
         break;
       case MetaTable.KANBAN_VIEW:
         prefix = 'kv_';
         break;
-      case MetaTable.KANBAN_VIEW_COLUMNS:
+      case MetaTable.KANBAN_VIEW_COLUMN:
         prefix = 'kvc_';
         break;
-      case MetaTable.USERS:
+      case MetaTable.USER:
         prefix = 'us_';
         break;
-      case MetaTable.ORGS:
-        prefix = 'org_';
-        break;
-      case MetaTable.TEAMS:
-        prefix = 'tm_';
-        break;
-      case MetaTable.VIEWS:
+
+      case MetaTable.VIEW:
         prefix = 'vw_';
         break;
-      case MetaTable.HOOKS:
+      case MetaTable.HOOK:
         prefix = 'hk_';
         break;
       case MetaTable.AUDIT:
         prefix = 'adt_';
         break;
-      case MetaTable.API_TOKENS:
+      case MetaTable.API_TOKEN:
         prefix = 'tkn_';
         break;
       default:

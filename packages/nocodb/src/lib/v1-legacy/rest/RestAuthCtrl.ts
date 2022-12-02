@@ -30,6 +30,7 @@ import axios from 'axios';
 
 import IEmailAdapter from '../../../interface/IEmailAdapter';
 import { Tele } from 'nc-help';
+import { MetaTable, MetaTableV1 } from '../../utils/globals'
 import XcCache from '../plugins/adapters/cache/XcCache';
 
 passport.serializeUser(function (
@@ -72,7 +73,7 @@ passport.deserializeUser(function (user, done) {
 });
 
 const NC_ROLES = 'nc_roles';
-const NC_ACL = 'nc_acl';
+const NC_ACL = MetaTableV1.ACL;
 export default class RestAuthCtrl {
   protected app: Noco;
 
@@ -350,9 +351,14 @@ export default class RestAuthCtrl {
       )
     );
 
-    const googlePlugin = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
-      title: 'Google',
-    });
+    const googlePlugin = await this.xcMeta.metaGet(
+      null,
+      null,
+      MetaTableV1.PLUGINS,
+      {
+        title: 'Google',
+      }
+    );
 
     if (googlePlugin && googlePlugin.input) {
       const settings = JSON.parse(googlePlugin.input);
@@ -456,9 +462,14 @@ export default class RestAuthCtrl {
       passport.use(googleStrategy);
     }
 
-    const githubPlugin = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
-      title: 'Github',
-    });
+    const githubPlugin = await this.xcMeta.metaGet(
+      null,
+      null,
+      MetaTableV1.PLUGINS,
+      {
+        title: 'Github',
+      }
+    );
     if (githubPlugin && githubPlugin.input) {
       const settings = JSON.parse(githubPlugin.input);
       process.env.NC_GITHUB_CLIENT_ID = settings.client_id;
@@ -611,7 +622,7 @@ export default class RestAuthCtrl {
 
           if (!sharedBase) {
             sharedBase = await this.xcMeta
-              .knex('nc_shared_bases')
+              .knex(MetaTableV1.SHARED_BASES)
               .where({
                 enabled: true,
                 shared_base_id: req.headers['xc-shared-base-id'],
@@ -660,7 +671,7 @@ export default class RestAuthCtrl {
 
           this.setTokenCookie(res, refreshToken);
 
-          this.xcMeta.audit(null, null, 'nc_audit', {
+          this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
             op_type: 'AUTHENTICATION',
             op_sub_type: 'SIGNIN',
             user: user.email,
@@ -719,7 +730,7 @@ export default class RestAuthCtrl {
 
           this.setTokenCookie(res, refreshToken);
 
-          this.xcMeta.audit(null, null, 'nc_audit', {
+          this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
             op_type: 'AUTHENTICATION',
             op_sub_type: 'SIGNIN',
             user: user.email,
@@ -975,7 +986,7 @@ export default class RestAuthCtrl {
 
       user = (req as any).user;
 
-      this.xcMeta.audit(null, null, 'nc_audit', {
+      this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
         op_type: 'AUTHENTICATION',
         op_sub_type: 'SIGNUP',
         user: user.email,
@@ -1059,7 +1070,7 @@ export default class RestAuthCtrl {
       }
       console.log(`Password reset token : ${token}`);
 
-      this.xcMeta.audit(null, null, 'nc_audit', {
+      this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
         op_type: 'AUTHENTICATION',
         op_sub_type: 'PASSWORD_FORGOT',
         user: user.email,
@@ -1113,7 +1124,7 @@ export default class RestAuthCtrl {
         id: user.id,
       });
 
-    this.xcMeta.audit(null, null, 'nc_audit', {
+    this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
       op_type: 'AUTHENTICATION',
       op_sub_type: 'PASSWORD_RESET',
       user: user.email,
@@ -1149,7 +1160,7 @@ export default class RestAuthCtrl {
         })
         .where({ id: user.id });
 
-      this.xcMeta.audit(null, null, 'nc_audit', {
+      this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
         op_type: 'AUTHENTICATION',
         op_sub_type: 'PASSWORD_CHANGE',
         user: user.email,
@@ -1177,7 +1188,7 @@ export default class RestAuthCtrl {
       })
       .where({ id: user.id });
 
-    this.xcMeta.audit(null, null, 'nc_audit', {
+    this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
       op_type: 'AUTHENTICATION',
       op_sub_type: 'EMAIL_VERIFICATION',
       user: user.email,
@@ -1281,7 +1292,7 @@ export default class RestAuthCtrl {
     }
 
     Tele.emit('evt', { evt_type: 'project:invite', count: count?.count });
-    this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
+    this.xcMeta.audit(req.body.project_id, null, MetaTableV1.AUDIT, {
       op_type: 'AUTHENTICATION',
       op_sub_type: 'INVITE',
       user: req.user.email,
@@ -1334,7 +1345,7 @@ export default class RestAuthCtrl {
       await this.xcMeta.metaUpdate(
         req?.body?.project_id,
         null,
-        'nc_projects_users',
+        MetaTableV1.PROJECTS_USERS,
         {
           roles: 'creator',
         },
@@ -1343,7 +1354,7 @@ export default class RestAuthCtrl {
         }
       );
 
-      this.xcMeta.audit(null, null, 'nc_audit', {
+      this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
         op_type: 'AUTHENTICATION',
         op_sub_type: 'ROLES_MANAGEMENT',
         user: req.user.email,
@@ -1404,8 +1415,8 @@ export default class RestAuthCtrl {
       const queryBuilder = this.users
         .select(
           'xc_users.*',
-          'nc_projects_users.project_id',
-          'nc_projects_users.roles as roles'
+          `${MetaTableV1.PROJECTS_USERS}.project_id`,
+          `${MetaTableV1.PROJECTS_USERS}.roles as roles`
         )
         .offset(offset)
         .limit(limit);
@@ -1414,16 +1425,24 @@ export default class RestAuthCtrl {
         queryBuilder.where('email', 'like', `%${query}%`);
       }
       const self = this;
-      queryBuilder.leftJoin('nc_projects_users', function () {
-        this.on('nc_projects_users.user_id', '=', 'xc_users.id').andOn(
-          'nc_projects_users.project_id',
+      queryBuilder.leftJoin(MetaTableV1.PROJECTS_USERS, function () {
+        this.on(
+          `${MetaTableV1.PROJECTS_USERS}.user_id`,
+          '=',
+          'xc_users.id'
+        ).andOn(
+          `${MetaTableV1.PROJECTS_USERS}.project_id`,
           '=',
           self.xcMeta.knex.raw('?', [project_id])
         );
       });
 
       if (!req.session?.passport?.user?.roles?.owner) {
-        queryBuilder.whereNot('nc_projects_users.roles', 'like', '%owner%');
+        queryBuilder.whereNot(
+          `${MetaTableV1.PROJECTS_USERS}.roles`,
+          'like',
+          '%owner%'
+        );
         count = (
           await this.users
             .count('id as count')
@@ -1474,7 +1493,7 @@ export default class RestAuthCtrl {
         });
       await this.sendInviteEmail(user.email, invite_token, req);
 
-      this.xcMeta.audit(null, null, 'nc_audit', {
+      this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
         op_type: 'AUTHENTICATION',
         op_sub_type: 'RESEND_INVITE',
         user: user.email,
@@ -1624,7 +1643,7 @@ export default class RestAuthCtrl {
         }
       }
 
-      this.xcMeta.audit(null, null, 'nc_audit', {
+      this.xcMeta.audit(null, null, MetaTableV1.AUDIT, {
         op_type: 'AUTHENTICATION',
         op_sub_type: 'ROLES_MANAGEMENT',
         user: req.user.email,
@@ -1750,6 +1769,10 @@ export default class RestAuthCtrl {
   }
 
   public async loadLatestApiTokens(): Promise<any> {
-    this.apiTokens = await this.xcMeta.metaList(null, null, 'nc_api_tokens');
+    this.apiTokens = await this.xcMeta.metaList(
+      null,
+      null,
+      MetaTable.API_TOKEN
+    );
   }
 }

@@ -1,4 +1,7 @@
-import { MetaTable, orderedMetaTables } from '../../utils/globals';
+import {
+  MetaTableOld as MetaTable,
+  orderedMetaTables,
+} from '../../utils/globals';
 // import googleAuth from '../plugins/googleAuth';
 // import ses from '../plugins/ses';
 // import cache from '../plugins/cache';

@@ -24,6 +24,7 @@ import ProjectMgr from '../db/sql-mgr/ProjectMgr';
 import ExpressXcTsRoutes from '../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutes';
 import ExpressXcTsRoutesBt from '../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutesBt';
 import ExpressXcTsRoutesHm from '../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutesHm';
+import { MetaTable } from '../utils/globals';
 import NcHelp from '../utils/NcHelp';
 import mimetypes, { mimeIcons } from '../utils/mimeTypes';
 import { packageVersion } from '../utils/packageVersion';
@@ -2016,7 +2017,7 @@ export default class NcMetaMgr {
     return this.xcMeta.metaUpdate(
       args.project_id,
       '',
-      'nc_store',
+      MetaTable.STORE,
       {
         value: JSON.stringify(args.args),
       },
@@ -2027,7 +2028,7 @@ export default class NcMetaMgr {
   }
 
   protected async xcDebugGet(_args) {
-    return this.xcMeta.metaGet('', '', 'nc_store', {
+    return this.xcMeta.metaGet('', '', MetaTable.STORE, {
       key: 'NC_DEBUG',
     });
   }
@@ -5156,7 +5157,7 @@ export default class NcMetaMgr {
   }
 
   protected async xcApiTokenList(_args): Promise<any> {
-    return this.xcMeta.metaList(null, null, 'nc_api_tokens');
+    return this.xcMeta.metaList(null, null, MetaTable.API_TOKEN);
   }
 
   protected async xcPluginDemoDefaults(_args): Promise<any> {
@@ -5259,7 +5260,7 @@ export default class NcMetaMgr {
 
   protected async xcApiTokenCreate(args): Promise<any> {
     const token = nanoid(40);
-    await this.xcMeta.metaInsert(null, null, 'nc_api_tokens', {
+    await this.xcMeta.metaInsert(null, null, MetaTable.API_TOKEN, {
       description: args.args.description,
       token,
     });
@@ -5281,7 +5282,7 @@ export default class NcMetaMgr {
     const res = await this.xcMeta.metaDelete(
       null,
       null,
-      'nc_api_tokens',
+      MetaTable.API_TOKEN,
       args.args.id
     );
     await RestAuthCtrl.instance.loadLatestApiTokens();

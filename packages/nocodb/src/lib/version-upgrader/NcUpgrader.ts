@@ -3,11 +3,12 @@ import { NcConfig } from '../../interface/config';
 import debug from 'debug';
 import NcMetaIO from '../meta/NcMetaIO';
 import { Tele } from 'nc-help';
-import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
-import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
-import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
-import ncDataTypesUpgrader from './ncDataTypesUpgrader';
-import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
+import { MetaTable } from '../utils/globals'
+import ncProjectEnvUpgrader from './handlers/nc_0011043_project_env_upgrader';
+import ncProjectEnvUpgrader2 from './handlers/nc_0011045_project_env_upgrader';
+import ncProjectV2Upgrader from './handlers/nc_0090000_project_v2_upgrader';
+import ncDataTypesUpgrader from './handlers/nc_0098004_data_types_upgrader';
+import ncProjectRolesUpgrader from './handlers/nc_0098005_project_roles_upgrader';
 
 const log = debug('nc:version-upgrader');
 import boxen from 'boxen';
@@ -31,17 +32,17 @@ export default class NcUpgrader {
         { name: '0009000', handler: null },
         { name: '0009044', handler: null },
         { name: '0011043', handler: ncProjectEnvUpgrader },
-        { name: '0011045', handler: ncProjectEnvUpgrader0011045 },
-        { name: '0090000', handler: ncProjectUpgraderV2_0090000 },
+        { name: '0011045', handler: ncProjectEnvUpgrader2 },
+        { name: '0090000', handler: ncProjectV2Upgrader },
         { name: '0098004', handler: ncDataTypesUpgrader },
         { name: '0098005', handler: ncProjectRolesUpgrader },
       ];
-      if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
+      if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.(MetaTable.STORE))) {
         return;
       }
       this.log(`upgrade : Getting configuration from meta database`);
 
-      const config = await ctx.ncMeta.metaGet('', '', 'nc_store', {
+      const config = await ctx.ncMeta.metaGet('', '', MetaTable.STORE, {
         key: this.STORE_KEY,
       });
 
@@ -64,7 +65,7 @@ export default class NcUpgrader {
               await ctx.ncMeta.metaUpdate(
                 '',
                 '',
-                'nc_store',
+                MetaTable.STORE,
                 {
                   value: JSON.stringify(config),
                 },
@@ -86,7 +87,7 @@ export default class NcUpgrader {
         const configObj: any = {};
         const isOld = (await ctx.ncMeta.projectList())?.length;
         configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
-        await ctx.ncMeta.metaInsert('', '', 'nc_store', {
+        await ctx.ncMeta.metaInsert('', '', MetaTable.STORE, {
           key: NcUpgrader.STORE_KEY,
           value: JSON.stringify(configObj),
         });

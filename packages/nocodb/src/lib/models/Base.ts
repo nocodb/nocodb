@@ -58,7 +58,7 @@ export default class Base implements BaseType {
     const { id } = await ncMeta.metaInsert2(
       base.projectId,
       null,
-      MetaTable.BASES,
+      MetaTable.BASE,
       insertObj
     );
 
@@ -108,7 +108,7 @@ export default class Base implements BaseType {
       'order',
       'enabled',
     ]);
-    
+
     if (updateObj.config) {
       updateObj.config = CryptoJS.AES.encrypt(
         JSON.stringify(base.config),
@@ -154,7 +154,7 @@ export default class Base implements BaseType {
       baseDataList = await ncMeta.metaList2(
         args.projectId,
         null,
-        MetaTable.BASES,
+        MetaTable.BASE,
         {
           orderBy: {
             order: 'asc',
@@ -181,7 +181,7 @@ export default class Base implements BaseType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!baseData) {
-      baseData = await ncMeta.metaGet2(null, null, MetaTable.BASES, id);
+      baseData = await ncMeta.metaGet2(null, null, MetaTable.BASE, id);
       await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
     }
     return baseData && new Base(baseData);
@@ -218,13 +218,13 @@ export default class Base implements BaseType {
       await ncMeta.metaUpdate(
         b.project_id,
         null,
-        MetaTable.BASES,
+        MetaTable.BASE,
         {
           order: b.order
         },
         b.id
       );
-  
+
       await NocoCache.appendToList(
         CacheScope.BASE,
         [b.project_id],
@@ -294,7 +294,7 @@ export default class Base implements BaseType {
       await SyncSource.delete(syncSource.id, ncMeta);
     }
 
-    return await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
+    return await ncMeta.metaDelete(null, null, MetaTable.BASE, this.id);
   }
 
   async getModels(ncMeta = Noco.ncMeta) {

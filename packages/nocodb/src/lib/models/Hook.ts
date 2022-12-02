@@ -46,7 +46,7 @@ export default class Hook implements HookType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!hook) {
-      hook = await ncMeta.metaGet2(null, null, MetaTable.HOOKS, hookId);
+      hook = await ncMeta.metaGet2(null, null, MetaTable.HOOK, hookId);
       await NocoCache.set(`${CacheScope.HOOK}:${hookId}`, hook);
     }
     return hook && new Hook(hook);
@@ -84,7 +84,7 @@ export default class Hook implements HookType {
   ) {
     let hooks = await NocoCache.getList(CacheScope.HOOK, [param.fk_model_id]);
     if (!hooks.length) {
-      hooks = await ncMeta.metaList(null, null, MetaTable.HOOKS, {
+      hooks = await ncMeta.metaList(null, null, MetaTable.HOOK, {
         condition: {
           fk_model_id: param.fk_model_id,
           // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
@@ -157,7 +157,7 @@ export default class Hook implements HookType {
     const { id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.HOOKS,
+      MetaTable.HOOK,
       insertObj
     );
 
@@ -208,7 +208,7 @@ export default class Hook implements HookType {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.HOOKS, updateObj, hookId);
+    await ncMeta.metaUpdate(null, null, MetaTable.HOOK, updateObj, hookId);
 
     return this.get(hookId, ncMeta);
   }
@@ -237,6 +237,6 @@ export default class Hook implements HookType {
       `${CacheScope.HOOK}:${hookId}`,
       CacheDelDirection.CHILD_TO_PARENT
     );
-    return await ncMeta.metaDelete(null, null, MetaTable.HOOKS, hookId);
+    return await ncMeta.metaDelete(null, null, MetaTable.HOOK, hookId);
   }
 }

@@ -92,7 +92,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           salt
         );
         const email_verification_token = uuidv4();
-        const superUser = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+        const superUser = await ncMeta.metaGet2(null, null, MetaTable.USER, {
           roles: 'user,super',
         });
 
@@ -157,7 +157,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             const existingUserProjects = await ncMeta.metaList2(
               null,
               null,
-              MetaTable.PROJECT_USERS,
+              MetaTable.PROJECT_USER,
               {
                 condition: { fk_user_id: existingUserWithNewEmail.id },
               }
@@ -206,7 +206,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             await ncMeta.metaDelete(
               null,
               null,
-              MetaTable.USERS,
+              MetaTable.USER,
               existingUserWithNewEmail.id
             );
 

@@ -6,8 +6,8 @@ import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
 import {
-  ColumnReqType,
   AllowedColumnTypesForQrCode,
+  ColumnReqType,
   ColumnType,
   UITypes,
 } from 'nocodb-sdk';
@@ -138,7 +138,7 @@ export default class Column<T = any> implements ColumnType {
     const row = await ncMeta.metaInsert2(
       null, //column.project_id || column.base_id,
       null, //column.db_alias,
-      MetaTable.COLUMNS,
+      MetaTable.COLUMN,
       insertObj
     );
 
@@ -455,7 +455,7 @@ export default class Column<T = any> implements ColumnType {
   ): Promise<Column[]> {
     let columnsList = await NocoCache.getList(CacheScope.COLUMN, [fk_model_id]);
     if (!columnsList.length) {
-      columnsList = await ncMeta.metaList2(null, null, MetaTable.COLUMNS, {
+      columnsList = await ncMeta.metaList2(null, null, MetaTable.COLUMN, {
         condition: {
           fk_model_id,
         },
@@ -548,7 +548,7 @@ export default class Column<T = any> implements ColumnType {
       colData = await ncMeta.metaGet2(
         base_id,
         db_alias,
-        MetaTable.COLUMNS,
+        MetaTable.COLUMN,
         colId
       );
       if (colData) {
@@ -621,7 +621,7 @@ export default class Column<T = any> implements ColumnType {
         col.fk_model_id,
       ]);
       if (!formulaColumns.length) {
-        formulaColumns = await ncMeta.metaList2(null, null, MetaTable.COLUMNS, {
+        formulaColumns = await ncMeta.metaList2(null, null, MetaTable.COLUMN, {
           condition: {
             fk_model_id: col.fk_model_id,
             uidt: UITypes.Formula,
@@ -712,12 +712,12 @@ export default class Column<T = any> implements ColumnType {
         cacheScopeName = CacheScope.COL_LOOKUP;
         break;
       case UITypes.LinkToAnotherRecord:
-        colOptionTableName = MetaTable.COL_RELATIONS;
+        colOptionTableName = MetaTable.COL_RELATION;
         cacheScopeName = CacheScope.COL_RELATION;
         break;
       case UITypes.MultiSelect:
       case UITypes.SingleSelect:
-        colOptionTableName = MetaTable.COL_SELECT_OPTIONS;
+        colOptionTableName = MetaTable.COL_SELECT_OPTION;
         cacheScopeName = CacheScope.COL_SELECT_OPTION;
         break;
       case UITypes.Formula:
@@ -742,7 +742,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // Grid View Columns
-    await ncMeta.metaDelete(null, null, MetaTable.GRID_VIEW_COLUMNS, {
+    await ncMeta.metaDelete(null, null, MetaTable.GRID_VIEW_COLUMN, {
       fk_column_id: col.id,
     });
     const gridViewColumnId = await NocoCache.get(
@@ -759,7 +759,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // Form View Columns
-    await ncMeta.metaDelete(null, null, MetaTable.FORM_VIEW_COLUMNS, {
+    await ncMeta.metaDelete(null, null, MetaTable.FORM_VIEW_COLUMN, {
       fk_column_id: col.id,
     });
     const formViewColumnId = await NocoCache.get(
@@ -776,7 +776,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // Kanban View Columns
-    await ncMeta.metaDelete(null, null, MetaTable.KANBAN_VIEW_COLUMNS, {
+    await ncMeta.metaDelete(null, null, MetaTable.KANBAN_VIEW_COLUMN, {
       fk_column_id: col.id,
     });
     const kanbanViewColumnId = await NocoCache.get(
@@ -793,7 +793,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // Gallery View Column
-    await ncMeta.metaDelete(null, null, MetaTable.GALLERY_VIEW_COLUMNS, {
+    await ncMeta.metaDelete(null, null, MetaTable.GALLERY_VIEW_COLUMN, {
       fk_column_id: col.id,
     });
     const galleryViewColumnId = await NocoCache.get(
@@ -813,7 +813,7 @@ export default class Column<T = any> implements ColumnType {
     const ltarColumns = await ncMeta.metaList2(
       null,
       null,
-      MetaTable.COL_RELATIONS,
+      MetaTable.COL_RELATION,
       {
         xcCondition: {
           _or: [
@@ -832,7 +832,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // Columns
-    await ncMeta.metaDelete(null, null, MetaTable.COLUMNS, col.id);
+    await ncMeta.metaDelete(null, null, MetaTable.COLUMN, col.id);
     await NocoCache.deepDel(
       CacheScope.COLUMN,
       `${CacheScope.COLUMN}:${col.id}`,
@@ -870,7 +870,7 @@ export default class Column<T = any> implements ColumnType {
       }
 
       case UITypes.LinkToAnotherRecord: {
-        await ncMeta.metaDelete(null, null, MetaTable.COL_RELATIONS, {
+        await ncMeta.metaDelete(null, null, MetaTable.COL_RELATION, {
           fk_column_id: colId,
         });
         await NocoCache.deepDel(
@@ -907,7 +907,7 @@ export default class Column<T = any> implements ColumnType {
 
       case UITypes.MultiSelect:
       case UITypes.SingleSelect: {
-        await ncMeta.metaDelete(null, null, MetaTable.COL_SELECT_OPTIONS, {
+        await ncMeta.metaDelete(null, null, MetaTable.COL_SELECT_OPTION, {
           fk_column_id: colId,
         });
 
@@ -980,7 +980,7 @@ export default class Column<T = any> implements ColumnType {
     await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.COLUMNS,
+      MetaTable.COLUMN,
       {
         ...updateObj,
         meta:
@@ -1011,7 +1011,7 @@ export default class Column<T = any> implements ColumnType {
     await ncMeta.metaUpdate(
       null, //column.project_id || column.base_id,
       null, //column.db_alias,
-      MetaTable.COLUMNS,
+      MetaTable.COLUMN,
       {
         title,
       },
@@ -1042,7 +1042,7 @@ export default class Column<T = any> implements ColumnType {
     return !(await ncMeta.metaGet2(
       null,
       null,
-      MetaTable.COLUMNS,
+      MetaTable.COLUMN,
       {
         column_name,
         fk_model_id,
@@ -1059,7 +1059,7 @@ export default class Column<T = any> implements ColumnType {
     return !(await ncMeta.metaGet2(
       null,
       null,
-      MetaTable.COLUMNS,
+      MetaTable.COLUMN,
       {
         title,
         fk_model_id,
@@ -1087,7 +1087,7 @@ export default class Column<T = any> implements ColumnType {
     await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.COLUMNS,
+      MetaTable.COLUMN,
       {
         system,
       },

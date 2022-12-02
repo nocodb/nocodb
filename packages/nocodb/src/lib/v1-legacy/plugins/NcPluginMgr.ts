@@ -29,6 +29,7 @@ import VultrPluginConfig from '../../plugins/vultr';
 import SESPluginConfig from '../../plugins/ses';
 import Noco from '../../Noco';
 import NcMetaIO from '../../meta/NcMetaIO';
+import { MetaTableV1 } from '../../utils/globals';
 
 import Local from './adapters/storage/Local';
 
@@ -70,12 +71,17 @@ class NcPluginMgr {
   public async init(): Promise<void> {
     /* Populate rows into nc_plugins table if not present */
     for (const plugin of defaultPlugins) {
-      const pluginConfig = await this.ncMeta.metaGet(null, null, 'nc_plugins', {
-        title: plugin.title,
-      });
+      const pluginConfig = await this.ncMeta.metaGet(
+        null,
+        null,
+        MetaTableV1.PLUGINS,
+        {
+          title: plugin.title,
+        }
+      );
 
       if (!pluginConfig) {
-        await this.ncMeta.metaInsert(null, null, 'nc_plugins', {
+        await this.ncMeta.metaInsert(null, null, MetaTableV1.PLUGINS, {
           title: plugin.title,
           version: plugin.version,
           logo: plugin.logo,

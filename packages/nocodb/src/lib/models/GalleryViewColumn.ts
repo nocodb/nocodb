@@ -29,7 +29,7 @@ export default class GalleryViewColumn {
       view = await ncMeta.metaGet2(
         null,
         null,
-        MetaTable.GALLERY_VIEW_COLUMNS,
+        MetaTable.GALLERY_VIEW_COLUMN,
         galleryViewColumnId
       );
       await NocoCache.set(
@@ -46,7 +46,7 @@ export default class GalleryViewColumn {
     const insertObj = {
       fk_view_id: column.fk_view_id,
       fk_column_id: column.fk_column_id,
-      order: await ncMeta.metaGetNextOrder(MetaTable.GALLERY_VIEW_COLUMNS, {
+      order: await ncMeta.metaGetNextOrder(MetaTable.GALLERY_VIEW_COLUMN, {
         fk_view_id: column.fk_view_id,
       }),
       show: column.show,
@@ -63,7 +63,7 @@ export default class GalleryViewColumn {
     const { id, fk_column_id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.GALLERY_VIEW_COLUMNS,
+      MetaTable.GALLERY_VIEW_COLUMN,
       insertObj
     );
 
@@ -100,7 +100,7 @@ export default class GalleryViewColumn {
       views = await ncMeta.metaList2(
         null,
         null,
-        MetaTable.GALLERY_VIEW_COLUMNS,
+        MetaTable.GALLERY_VIEW_COLUMN,
         {
           condition: {
             fk_view_id: viewId,

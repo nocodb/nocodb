@@ -27,7 +27,7 @@ export default class ApiToken {
     ncMeta = Noco.ncMeta
   ) {
     const token = nanoid(40);
-    await ncMeta.metaInsert(null, null, MetaTable.API_TOKENS, {
+    await ncMeta.metaInsert(null, null, MetaTable.API_TOKEN, {
       description: apiToken.description,
       token,
       fk_user_id: apiToken.fk_user_id,
@@ -43,7 +43,7 @@ export default class ApiToken {
   static async list(userId: string, ncMeta = Noco.ncMeta) {
     // let tokens = await NocoCache.getList(CacheScope.API_TOKEN, []);
     // if (!tokens.length) {
-    const tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS, {
+    const tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKEN, {
       condition: { fk_user_id: userId },
     });
     // await NocoCache.setList(CacheScope.API_TOKEN, [], tokens);
@@ -57,7 +57,7 @@ export default class ApiToken {
       `${CacheScope.API_TOKEN}:${token}`,
       CacheDelDirection.CHILD_TO_PARENT
     );
-    return await ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, { token });
+    return await ncMeta.metaDelete(null, null, MetaTable.API_TOKEN, { token });
   }
 
   static async getByToken(token, ncMeta = Noco.ncMeta) {
@@ -68,7 +68,7 @@ export default class ApiToken {
         CacheGetType.TYPE_OBJECT
       ));
     if (!data) {
-      data = await ncMeta.metaGet(null, null, MetaTable.API_TOKENS, { token });
+      data = await ncMeta.metaGet(null, null, MetaTable.API_TOKEN, { token });
       await NocoCache.set(`${CacheScope.API_TOKEN}:${token}`, data);
     }
     return data && new ApiToken(data);
@@ -81,14 +81,14 @@ export default class ApiToken {
     }: { fk_user_id?: string; includeUnmappedToken?: boolean } = {},
     ncMeta = Noco.ncMeta
   ): Promise<number> {
-    const qb = ncMeta.knex(MetaTable.API_TOKENS);
+    const qb = ncMeta.knex(MetaTable.API_TOKEN);
 
     if (fk_user_id) {
-      qb.where(`${MetaTable.API_TOKENS}.fk_user_id`, fk_user_id);
+      qb.where(`${MetaTable.API_TOKEN}.fk_user_id`, fk_user_id);
     }
 
     if (includeUnmappedToken) {
-      qb.orWhereNull(`${MetaTable.API_TOKENS}.fk_user_id`);
+      qb.orWhereNull(`${MetaTable.API_TOKEN}.fk_user_id`);
     }
 
     return (await qb.count('id', { as: 'count' }).first())?.count ?? 0;
@@ -109,34 +109,32 @@ export default class ApiToken {
     ncMeta = Noco.ncMeta
   ) {
     const queryBuilder = ncMeta
-      .knex(MetaTable.API_TOKENS)
+      .knex(MetaTable.API_TOKEN)
       .offset(offset)
       .limit(limit)
       .select(
-        `${MetaTable.API_TOKENS}.id`,
-        `${MetaTable.API_TOKENS}.token`,
-        `${MetaTable.API_TOKENS}.description`,
-        `${MetaTable.API_TOKENS}.fk_user_id`,
-        `${MetaTable.API_TOKENS}.project_id`,
-        `${MetaTable.API_TOKENS}.created_at`,
-        `${MetaTable.API_TOKENS}.updated_at`
+        `${MetaTable.API_TOKEN}.id`,
+        `${MetaTable.API_TOKEN}.token`,
+        `${MetaTable.API_TOKEN}.description`,
+        `${MetaTable.API_TOKEN}.fk_user_id`,
+        `${MetaTable.API_TOKEN}.project_id`,
+        `${MetaTable.API_TOKEN}.created_at`,
+        `${MetaTable.API_TOKEN}.updated_at`
       )
       .select(
         ncMeta
-          .knex(MetaTable.USERS)
+          .knex(MetaTable.USER)
           .select('email')
-          .whereRaw(
-            `${MetaTable.USERS}.id = ${MetaTable.API_TOKENS}.fk_user_id`
-          )
+          .whereRaw(`${MetaTable.USER}.id = ${MetaTable.API_TOKEN}.fk_user_id`)
           .as('created_by')
       );
 
     if (fk_user_id) {
-      queryBuilder.where(`${MetaTable.API_TOKENS}.fk_user_id`, fk_user_id);
+      queryBuilder.where(`${MetaTable.API_TOKEN}.fk_user_id`, fk_user_id);
     }
 
     if (includeUnmappedToken) {
-      queryBuilder.orWhereNull(`${MetaTable.API_TOKENS}.fk_user_id`);
+      queryBuilder.orWhereNull(`${MetaTable.API_TOKEN}.fk_user_id`);
     }
 
     return queryBuilder;

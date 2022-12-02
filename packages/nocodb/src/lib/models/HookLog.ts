@@ -39,7 +39,7 @@ export default class HookLog implements HookLogType {
     // todo: redis cache ??
     // let hooks = await NocoCache.getList(CacheScope.HOOK, [param.fk_model_id]);
     // if (!hooks.length) {
-    const hookLogs = await ncMeta.metaList(null, null, MetaTable.HOOK_LOGS, {
+    const hookLogs = await ncMeta.metaList(null, null, MetaTable.HOOK_LOG, {
       condition: {
         fk_hook_id: param.fk_hook_id,
         // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
@@ -104,6 +104,6 @@ export default class HookLog implements HookLogType {
 
     insertObj.execution_time = parseInt(insertObj.execution_time) || 0;
 
-    return await ncMeta.metaInsert2(null, null, MetaTable.HOOK_LOGS, insertObj);
+    return await ncMeta.metaInsert2(null, null, MetaTable.HOOK_LOG, insertObj);
   }
 }

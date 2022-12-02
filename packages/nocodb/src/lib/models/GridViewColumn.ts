@@ -26,7 +26,7 @@ export default class GridViewColumn implements GridColumnType {
   ): Promise<GridViewColumn[]> {
     let views = await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [viewId]);
     if (!views.length) {
-      views = await ncMeta.metaList2(null, null, MetaTable.GRID_VIEW_COLUMNS, {
+      views = await ncMeta.metaList2(null, null, MetaTable.GRID_VIEW_COLUMN, {
         condition: {
           fk_view_id: viewId,
         },
@@ -55,7 +55,7 @@ export default class GridViewColumn implements GridColumnType {
       view = await ncMeta.metaGet2(
         null,
         null,
-        MetaTable.GRID_VIEW_COLUMNS,
+        MetaTable.GRID_VIEW_COLUMN,
         gridViewColumnId
       );
       await NocoCache.set(
@@ -72,7 +72,7 @@ export default class GridViewColumn implements GridColumnType {
       fk_column_id: column.fk_column_id,
       order:
         column?.order ??
-        (await ncMeta.metaGetNextOrder(MetaTable.GRID_VIEW_COLUMNS, {
+        (await ncMeta.metaGetNextOrder(MetaTable.GRID_VIEW_COLUMN, {
           fk_view_id: column.fk_view_id,
         })),
       show: column.show,
@@ -89,7 +89,7 @@ export default class GridViewColumn implements GridColumnType {
     const { id, fk_column_id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.GRID_VIEW_COLUMNS,
+      MetaTable.GRID_VIEW_COLUMN,
       insertObj
     );
 
@@ -131,7 +131,7 @@ export default class GridViewColumn implements GridColumnType {
     await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.GRID_VIEW_COLUMNS,
+      MetaTable.GRID_VIEW_COLUMN,
       updateObj,
       columnId
     );

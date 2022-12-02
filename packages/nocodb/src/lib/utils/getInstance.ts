@@ -24,12 +24,12 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
         .where('is_meta', false)
         .then((c) => c.count);
       const impacted = await ncMeta
-        .knex(MetaTable.USERS)
+        .knex(MetaTable.USER)
         .count('id as count')
         .first()
         .then((c) => c.count);
       const created = await ncMeta
-        .knex('nc_store')
+        .knex(MetaTable.STORE)
         .select('created_at')
         .where('key', 'nc_server_id')
         .first()

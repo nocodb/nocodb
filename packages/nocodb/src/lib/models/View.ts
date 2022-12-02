@@ -117,7 +117,7 @@ export default class View implements ViewType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, viewId);
+      view = await ncMeta.metaGet2(null, null, MetaTable.VIEW, viewId);
       await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
     }
 
@@ -138,7 +138,7 @@ export default class View implements ViewType {
       const view = await ncMeta.metaGet2(
         null,
         null,
-        MetaTable.VIEWS,
+        MetaTable.VIEW,
         { fk_model_id },
         null,
         {
@@ -181,7 +181,7 @@ export default class View implements ViewType {
       view = await ncMeta.metaGet2(
         null,
         null,
-        MetaTable.VIEWS,
+        MetaTable.VIEW,
         {
           fk_model_id,
           is_default: 1,
@@ -196,7 +196,7 @@ export default class View implements ViewType {
   public static async list(modelId: string, ncMeta = Noco.ncMeta) {
     let viewsList = await NocoCache.getList(CacheScope.VIEW, [modelId]);
     if (!viewsList.length) {
-      viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
+      viewsList = await ncMeta.metaList2(null, null, MetaTable.VIEW, {
         condition: {
           fk_model_id: modelId,
         },
@@ -238,7 +238,7 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta
   ) {
     // get order value
-    const order = await ncMeta.metaGetNextOrder(MetaTable.VIEWS, {
+    const order = await ncMeta.metaGetNextOrder(MetaTable.VIEW, {
       fk_model_id: view.fk_model_id,
     });
 
@@ -270,7 +270,7 @@ export default class View implements ViewType {
     const { id: view_id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.VIEWS,
+      MetaTable.VIEW,
       insertObj
     );
 
@@ -602,19 +602,19 @@ export default class View implements ViewType {
     let cacheScope;
     switch (view.type) {
       case ViewTypes.GRID:
-        table = MetaTable.GRID_VIEW_COLUMNS;
+        table = MetaTable.GRID_VIEW_COLUMN;
         cacheScope = CacheScope.GRID_VIEW_COLUMN;
         break;
       case ViewTypes.GALLERY:
-        table = MetaTable.GALLERY_VIEW_COLUMNS;
+        table = MetaTable.GALLERY_VIEW_COLUMN;
         cacheScope = CacheScope.GALLERY_VIEW_COLUMN;
         break;
       case ViewTypes.KANBAN:
-        table = MetaTable.KANBAN_VIEW_COLUMNS;
+        table = MetaTable.KANBAN_VIEW_COLUMN;
         cacheScope = CacheScope.KANBAN_VIEW_COLUMN;
         break;
       case ViewTypes.FORM:
-        table = MetaTable.FORM_VIEW_COLUMNS;
+        table = MetaTable.FORM_VIEW_COLUMN;
         cacheScope = CacheScope.FORM_VIEW_COLUMN;
         break;
     }
@@ -708,7 +708,7 @@ export default class View implements ViewType {
   }
 
   static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
-    const view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, {
+    const view = await ncMeta.metaGet2(null, null, MetaTable.VIEW, {
       uuid,
     });
 
@@ -733,7 +733,7 @@ export default class View implements ViewType {
       await ncMeta.metaUpdate(
         null,
         null,
-        MetaTable.VIEWS,
+        MetaTable.VIEW,
         {
           uuid: view.uuid,
         },
@@ -757,7 +757,7 @@ export default class View implements ViewType {
       await ncMeta.metaUpdate(
         null,
         null,
-        MetaTable.VIEWS,
+        MetaTable.VIEW,
         {
           meta: JSON.stringify(defaultMeta),
         },
@@ -786,7 +786,7 @@ export default class View implements ViewType {
     await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.VIEWS,
+      MetaTable.VIEW,
       {
         password,
       },
@@ -808,7 +808,7 @@ export default class View implements ViewType {
     await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.VIEWS,
+      MetaTable.VIEW,
       {
         uuid: null,
       },
@@ -855,7 +855,7 @@ export default class View implements ViewType {
       await NocoCache.set(key, o);
     }
     // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.VIEWS, updateObj, viewId);
+    await ncMeta.metaUpdate(null, null, MetaTable.VIEW, updateObj, viewId);
     return this.get(viewId);
   }
 
@@ -884,7 +884,7 @@ export default class View implements ViewType {
       `${columnTableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT
     );
-    await ncMeta.metaDelete(null, null, MetaTable.VIEWS, viewId);
+    await ncMeta.metaDelete(null, null, MetaTable.VIEW, viewId);
     await NocoCache.deepDel(
       CacheScope.VIEW,
       `${CacheScope.VIEW}:${viewId}`,
@@ -898,16 +898,16 @@ export default class View implements ViewType {
     let table;
     switch (view.type) {
       case ViewTypes.GRID:
-        table = MetaTable.GRID_VIEW_COLUMNS;
+        table = MetaTable.GRID_VIEW_COLUMN;
         break;
       case ViewTypes.GALLERY:
-        table = MetaTable.GALLERY_VIEW_COLUMNS;
+        table = MetaTable.GALLERY_VIEW_COLUMN;
         break;
       case ViewTypes.KANBAN:
-        table = MetaTable.KANBAN_VIEW_COLUMNS;
+        table = MetaTable.KANBAN_VIEW_COLUMN;
         break;
       case ViewTypes.FORM:
-        table = MetaTable.FORM_VIEW_COLUMNS;
+        table = MetaTable.FORM_VIEW_COLUMN;
         break;
     }
     return table;
@@ -1095,7 +1095,7 @@ export default class View implements ViewType {
   static async shareViewList(tableId, ncMeta = Noco.ncMeta) {
     let sharedViews = await NocoCache.getList(CacheScope.VIEW, [tableId]);
     if (!sharedViews.length) {
-      sharedViews = await ncMeta.metaList2(null, null, MetaTable.VIEWS, {
+      sharedViews = await ncMeta.metaList2(null, null, MetaTable.VIEW, {
         xcCondition: {
           fk_model_id: {
             eq: tableId,

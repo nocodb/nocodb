@@ -16,6 +16,7 @@ import { Acls, DbConfig, NcConfig } from '../../../interface/config';
 import { BaseModelSql, XKnex } from '../../db/sql-data-mapper';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import ExpressXcPolicy from '../../db/sql-mgr/code/policies/xc/ExpressXcPolicy';
+import { MetaTable, MetaTableV1 } from '../globals'
 import NcHelp from '../NcHelp';
 import NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
 import Noco from '../../Noco';
@@ -1322,7 +1323,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       { name: '0083008', handler: ncRemoveDuplicatedRelationRows },
       { name: '0084002', handler: this.ncUpAddNestedResolverArgs.bind(this) },
     ];
-    if (!(await this.xcMeta?.knex?.schema?.hasTable?.('nc_store'))) {
+    if (!(await this.xcMeta?.knex?.schema?.hasTable?.(MetaTable.STORE))) {
       return;
     }
     this.baseLog(`xcUpgrade : Getting configuration from meta database`);
@@ -1330,7 +1331,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const config = await this.xcMeta.metaGet(
       this.projectId,
       this.dbAlias,
-      'nc_store',
+      MetaTable.STORE,
       { key: 'NC_CONFIG' }
     );
 
@@ -1357,7 +1358,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
             await this.xcMeta.metaUpdate(
               this.projectId,
               this.dbAlias,
-              'nc_store',
+              MetaTable.STORE,
               {
                 value: JSON.stringify(configObj),
               },
@@ -1376,7 +1377,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         await this.xcMeta.metaUpdate(
           this.projectId,
           this.dbAlias,
-          'nc_store',
+          MetaTable.STORE,
           {
             value: JSON.stringify(configObj),
           },
@@ -1393,7 +1394,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models')
       )?.length;
       configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
-      await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_store', {
+      await this.xcMeta.metaInsert(this.projectId, this.dbAlias, MetaTable.STORE, {
         key: 'NC_CONFIG',
         value: JSON.stringify(configObj),
       });
@@ -1818,6 +1819,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     );
   }
 
+  // required
   protected generateContextForTable(
     tn: string,
     columns: any[],
@@ -2480,7 +2482,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const models = await this.xcMeta.metaList(
       this.projectId,
       this.dbAlias,
-      'nc_models',
+      MetaTableV1.MODELS,
       {
         fields: ['meta'],
         condition: {
@@ -2520,7 +2522,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       await this.xcMeta.metaUpdate(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           meta: JSON.stringify(meta),
         },
@@ -2533,6 +2535,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return metas;
   }
 
+  // required
   private getColumnNameAlias(col, tableName?: string) {
     return (
       this.metas?.[tableName]?.columns?.find((c) => c.cn === col.cn)?._cn ||

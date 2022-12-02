@@ -38,7 +38,7 @@ export default class FormViewColumn implements FormColumnType {
       viewColumn = await ncMeta.metaGet2(
         null,
         null,
-        MetaTable.FORM_VIEW_COLUMNS,
+        MetaTable.FORM_VIEW_COLUMN,
         formViewColumnId
       );
       viewColumn.meta =
@@ -58,7 +58,7 @@ export default class FormViewColumn implements FormColumnType {
     const insertObj: Partial<FormViewColumn> = {
       fk_view_id: column.fk_view_id,
       fk_column_id: column.fk_column_id,
-      order: await ncMeta.metaGetNextOrder(MetaTable.FORM_VIEW_COLUMNS, {
+      order: await ncMeta.metaGetNextOrder(MetaTable.FORM_VIEW_COLUMN, {
         fk_view_id: column.fk_view_id,
       }),
       show: column.show,
@@ -83,7 +83,7 @@ export default class FormViewColumn implements FormColumnType {
     const { id, fk_column_id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.FORM_VIEW_COLUMNS,
+      MetaTable.FORM_VIEW_COLUMN,
       insertObj
     );
 
@@ -116,7 +116,7 @@ export default class FormViewColumn implements FormColumnType {
       viewColumns = await ncMeta.metaList2(
         null,
         null,
-        MetaTable.FORM_VIEW_COLUMNS,
+        MetaTable.FORM_VIEW_COLUMN,
         {
           condition: {
             fk_view_id: viewId,
@@ -177,7 +177,7 @@ export default class FormViewColumn implements FormColumnType {
     await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.FORM_VIEW_COLUMNS,
+      MetaTable.FORM_VIEW_COLUMN,
       insertObj,
       columnId
     );

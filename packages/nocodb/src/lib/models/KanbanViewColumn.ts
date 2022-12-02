@@ -29,7 +29,7 @@ export default class KanbanViewColumn {
       view = await ncMeta.metaGet2(
         null,
         null,
-        MetaTable.KANBAN_VIEW_COLUMNS,
+        MetaTable.KANBAN_VIEW_COLUMN,
         kanbanViewColumnId
       );
       await NocoCache.set(
@@ -43,7 +43,7 @@ export default class KanbanViewColumn {
     const insertObj = {
       fk_view_id: column.fk_view_id,
       fk_column_id: column.fk_column_id,
-      order: await ncMeta.metaGetNextOrder(MetaTable.KANBAN_VIEW_COLUMNS, {
+      order: await ncMeta.metaGetNextOrder(MetaTable.KANBAN_VIEW_COLUMN, {
         fk_view_id: column.fk_view_id,
       }),
       show: column.show,
@@ -60,7 +60,7 @@ export default class KanbanViewColumn {
     const { id, fk_column_id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.KANBAN_VIEW_COLUMNS,
+      MetaTable.KANBAN_VIEW_COLUMN,
       insertObj
     );
 
@@ -83,19 +83,14 @@ export default class KanbanViewColumn {
       viewId,
     ]);
     if (!views.length) {
-      views = await ncMeta.metaList2(
-        null,
-        null,
-        MetaTable.KANBAN_VIEW_COLUMNS,
-        {
-          condition: {
-            fk_view_id: viewId,
-          },
-          orderBy: {
-            order: 'asc',
-          },
-        }
-      );
+      views = await ncMeta.metaList2(null, null, MetaTable.KANBAN_VIEW_COLUMN, {
+        condition: {
+          fk_view_id: viewId,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      });
       await NocoCache.setList(CacheScope.KANBAN_VIEW_COLUMN, [viewId], views);
     }
     views.sort(

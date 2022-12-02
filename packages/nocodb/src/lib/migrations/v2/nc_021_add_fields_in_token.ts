@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { MetaTable } from '../../utils/globals';
+import { MetaTableOld as MetaTable } from '../../utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.API_TOKENS, (table) => {

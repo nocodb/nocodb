@@ -10,6 +10,7 @@ import Migrator from '../db/sql-migrator/lib/KnexMigrator';
 
 import Noco from '../Noco';
 import { Tele } from 'nc-help';
+import { MetaTableV1 } from '../utils/globals';
 import { GqlApiBuilder } from './gql/GqlApiBuilder';
 import { XCEeError } from '../meta/NcMetaMgr';
 import { RestApiBuilder } from './rest/RestApiBuilder';
@@ -93,7 +94,7 @@ export default class NcProjectBuilder {
         this.authHook = await this.app.ncMeta.metaGet(
           this.id,
           'db',
-          'nc_hooks',
+          MetaTableV1.HOOKS,
           {
             type: 'AUTH_MIDDLEWARE',
           }
@@ -114,13 +115,18 @@ export default class NcProjectBuilder {
           data.req.args
         );
 
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'RELATION',
-          op_sub_type: 'CREATED',
-          user: data.user.email,
-          description: `created relation between tables ${data.req.args.childTable} and ${data.req.args.parentTable} `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'RELATION',
+            op_sub_type: 'CREATED',
+            user: data.user.email,
+            description: `created relation between tables ${data.req.args.childTable} and ${data.req.args.parentTable} `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         console.log(
           `Added new relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`
         );
@@ -132,13 +138,18 @@ export default class NcProjectBuilder {
           data.req.args.childTable,
           data.req.args
         );
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'RELATION',
-          op_sub_type: 'DELETED',
-          user: data.user.email,
-          description: `deleted relation between tables ${data.req.args.childTable} and ${data.req.args.parentTable} `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'RELATION',
+            op_sub_type: 'DELETED',
+            user: data.user.email,
+            description: `deleted relation between tables ${data.req.args.childTable} and ${data.req.args.parentTable} `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         console.log(
           `Deleted relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`
         );
@@ -198,62 +209,87 @@ export default class NcProjectBuilder {
       case 'tableCreate':
         await curBuilder.onTableCreate(data.req.args.tn, data.req.args);
 
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'TABLE',
-          op_sub_type: 'CREATED',
-          user: data.user.email,
-          description: `created table ${data.req.args.tn} with alias ${data.req.args._tn}  `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'TABLE',
+            op_sub_type: 'CREATED',
+            user: data.user.email,
+            description: `created table ${data.req.args.tn} with alias ${data.req.args._tn}  `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         console.log(`Added new routes for table : ${data.req.args.tn}`);
         break;
 
       case 'viewCreate':
         await curBuilder.onViewCreate(data.req.args.view_name, data.req.args);
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'VIEW',
-          op_sub_type: 'CREATED',
-          user: data.user.email,
-          description: `created view ${data.req.args.view_name} `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'VIEW',
+            op_sub_type: 'CREATED',
+            user: data.user.email,
+            description: `created view ${data.req.args.view_name} `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         console.log(`Added new routes for table : ${data.req.args.tn}`);
         break;
 
       case 'viewUpdate':
         await curBuilder.onViewUpdate(data.req.args.view_name);
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'VIEW',
-          op_sub_type: 'UPDATED',
-          user: data.user.email,
-          description: `updated view ${data.req.args.view_name} `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'VIEW',
+            op_sub_type: 'UPDATED',
+            user: data.user.email,
+            description: `updated view ${data.req.args.view_name} `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         console.log(`Added new routes for table : ${data.req.args.tn}`);
         break;
 
       case 'tableDelete':
         await curBuilder.onTableDelete(data.req.args.tn);
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'TABLE',
-          op_sub_type: 'DELETED',
-          user: data.user.email,
-          description: `deleted table ${data.req.args.tn} `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'TABLE',
+            op_sub_type: 'DELETED',
+            user: data.user.email,
+            description: `deleted table ${data.req.args.tn} `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         console.log(`Deleted routes for table : ${data.req.args.tn}`);
         break;
 
       case 'tableRename':
         await curBuilder.onTableRename(data.req.args.tn_old, data.req.args.tn);
 
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'TABLE',
-          op_sub_type: 'RENAMED',
-          user: data.user.email,
-          description: `renamed table ${data.req.args.tn_old} to  ${data.req.args.tn}  `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'TABLE',
+            op_sub_type: 'RENAMED',
+            user: data.user.email,
+            description: `renamed table ${data.req.args.tn_old} to  ${data.req.args.tn}  `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         console.log(`Updated routes for table : ${data.req.args.tn}`);
         break;
 
@@ -263,13 +299,18 @@ export default class NcProjectBuilder {
           data.req.args.tn
         );
 
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'TABLE',
-          op_sub_type: 'RENAMED',
-          user: data.user.email,
-          description: `renamed table alias  ${data.req.args.tn_old} to  ${data.req.args.tn}  `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'TABLE',
+            op_sub_type: 'RENAMED',
+            user: data.user.email,
+            description: `renamed table alias  ${data.req.args.tn_old} to  ${data.req.args.tn}  `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         console.log(`Updated routes for table : ${data.req.args.tn}`);
         break;
 
@@ -320,13 +361,18 @@ export default class NcProjectBuilder {
 
       case 'tableUpdate':
         await curBuilder.onTableUpdate(data.req.args);
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'TABLE',
-          op_sub_type: 'UPDATED',
-          user: data.user.email,
-          description: `updated table ${data.req.args.tn} with alias ${data.req.args._tn} `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'TABLE',
+            op_sub_type: 'UPDATED',
+            user: data.user.email,
+            description: `updated table ${data.req.args.tn} with alias ${data.req.args._tn} `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         console.log(`Updated validations for table : ${data.req.args.tn}`);
         break;
 
@@ -420,13 +466,18 @@ export default class NcProjectBuilder {
         break;
       case 'viewDelete':
         await curBuilder.onViewDelete(data.req.args.view_name);
-        this.app.ncMeta.audit(this.id, curBuilder.getDbAlias(), 'nc_audit', {
-          op_type: 'VIEW',
-          op_sub_type: 'DELETED',
-          user: data.user.email,
-          description: `deleted view ${data.req.args.view_name} `,
-          ip: data.ctx.req.clientIp,
-        });
+        this.app.ncMeta.audit(
+          this.id,
+          curBuilder.getDbAlias(),
+          MetaTableV1.AUDIT,
+          {
+            op_type: 'VIEW',
+            op_sub_type: 'DELETED',
+            user: data.user.email,
+            description: `deleted view ${data.req.args.view_name} `,
+            ip: data.ctx.req.clientIp,
+          }
+        );
         break;
 
       case 'tableMetaRecreate':
@@ -482,7 +533,7 @@ export default class NcProjectBuilder {
         this.apiBuilders.splice(0, this.apiBuilders.length);
         await this.app.ncMeta.projectStatusUpdate(this.id, 'stopped');
         NcProjectBuilder.triggerGarbageCollect();
-        this.app.ncMeta.audit(this.id, null, 'nc_audit', {
+        this.app.ncMeta.audit(this.id, null, MetaTableV1.AUDIT, {
           op_type: 'PROJECT',
           op_sub_type: 'STOPPED',
           user: data.user.email,
@@ -493,7 +544,7 @@ export default class NcProjectBuilder {
 
       case 'projectStart':
         await this.init();
-        this.app.ncMeta.audit(this.id, null, 'nc_audit', {
+        this.app.ncMeta.audit(this.id, null, MetaTableV1.AUDIT, {
           op_type: 'PROJECT',
           op_sub_type: 'STARTED',
           user: data.user.email,
@@ -507,7 +558,7 @@ export default class NcProjectBuilder {
         this.apiBuilders.splice(0, this.apiBuilders.length);
         await this.app.ncMeta.projectDeleteById(this.id);
         await this.app.ncMeta
-          .knex('nc_projects_users')
+          .knex(MetaTableV1.PROJECTS_USERS)
           .where({ project_id: this.id })
           .del();
         for (const db of this.config?.envs?.[this.appConfig?.workingEnv]?.db ||
@@ -517,7 +568,7 @@ export default class NcProjectBuilder {
           await this.app.ncMeta.metaReset(this.id, dbAlias, apiType);
         }
         NcProjectBuilder.triggerGarbageCollect();
-        this.app.ncMeta.audit(this.id, null, 'nc_audit', {
+        this.app.ncMeta.audit(this.id, null, MetaTableV1.AUDIT, {
           op_type: 'PROJECT',
           op_sub_type: 'DELETED',
           user: data.user.email,
@@ -530,7 +581,7 @@ export default class NcProjectBuilder {
       case 'xcMetaTablesImportZipToLocalFsAndDb':
       case 'projectRestart':
         await this.reInit();
-        this.app.ncMeta.audit(this.id, null, 'nc_audit', {
+        this.app.ncMeta.audit(this.id, null, MetaTableV1.AUDIT, {
           op_type: 'PROJECT',
           op_sub_type: 'RESTARTED',
           user: data.user.email,
@@ -844,9 +895,14 @@ export default class NcProjectBuilder {
   }
 
   protected async addAuthHookToMiddleware(): Promise<any> {
-    this.authHook = await this.app.ncMeta.metaGet(this.id, 'db', 'nc_hooks', {
-      type: 'AUTH_MIDDLEWARE',
-    });
+    this.authHook = await this.app.ncMeta.metaGet(
+      this.id,
+      'db',
+      MetaTableV1.HOOKS,
+      {
+        type: 'AUTH_MIDDLEWARE',
+      }
+    );
 
     this.router.use(async (req: any, _res, next) => {
       if (this.authHook && this.authHook.url) {

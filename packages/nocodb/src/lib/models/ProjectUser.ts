@@ -25,7 +25,7 @@ export default class ProjectUser {
     const { project_id, fk_user_id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.PROJECT_USERS,
+      MetaTable.PROJECT_USER,
       {
         fk_user_id: projectUser.fk_user_id,
         project_id: projectUser.project_id,
@@ -57,7 +57,7 @@ export default class ProjectUser {
         CacheGetType.TYPE_OBJECT
       ));
     if (!projectUser) {
-      projectUser = await ncMeta.metaGet2(null, null, MetaTable.PROJECT_USERS, {
+      projectUser = await ncMeta.metaGet2(null, null, MetaTable.PROJECT_USER, {
         fk_user_id: userId,
         project_id: projectId,
       });
@@ -84,14 +84,14 @@ export default class ProjectUser {
     ncMeta = Noco.ncMeta
   ) {
     const queryBuilder = ncMeta
-      .knex(MetaTable.USERS)
+      .knex(MetaTable.USER)
       .select(
-        `${MetaTable.USERS}.id`,
-        `${MetaTable.USERS}.email`,
-        `${MetaTable.USERS}.invite_token`,
-        `${MetaTable.USERS}.roles as main_roles`,
-        `${MetaTable.PROJECT_USERS}.project_id`,
-        `${MetaTable.PROJECT_USERS}.roles as roles`
+        `${MetaTable.USER}.id`,
+        `${MetaTable.USER}.email`,
+        `${MetaTable.USER}.invite_token`,
+        `${MetaTable.USER}.roles as main_roles`,
+        `${MetaTable.PROJECT_USER}.project_id`,
+        `${MetaTable.PROJECT_USER}.roles as roles`
       )
       .offset(offset)
       .limit(limit);
@@ -100,13 +100,13 @@ export default class ProjectUser {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }
 
-    queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+    queryBuilder.leftJoin(MetaTable.PROJECT_USER, function () {
       this.on(
-        `${MetaTable.PROJECT_USERS}.fk_user_id`,
+        `${MetaTable.PROJECT_USER}.fk_user_id`,
         '=',
-        `${MetaTable.USERS}.id`
+        `${MetaTable.USER}.id`
       ).andOn(
-        `${MetaTable.PROJECT_USERS}.project_id`,
+        `${MetaTable.PROJECT_USER}.project_id`,
         '=',
         ncMeta.knex.raw('?', [project_id])
       );
@@ -123,7 +123,7 @@ export default class ProjectUser {
     },
     ncMeta = Noco.ncMeta
   ): Promise<number> {
-    const qb = ncMeta.knex(MetaTable.USERS);
+    const qb = ncMeta.knex(MetaTable.USER);
 
     if (query) {
       qb.where('email', 'like', `%${query.toLowerCase?.()}%`);
@@ -161,7 +161,7 @@ export default class ProjectUser {
     return await ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.PROJECT_USERS,
+      MetaTable.PROJECT_USER,
       {
         roles,
       },
@@ -178,7 +178,7 @@ export default class ProjectUser {
     //   `${CacheScope.PROJECT_USER}:${projectId}:${userId}`,
     //   CacheDelDirection.CHILD_TO_PARENT
     // );
-    const { email } = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+    const { email } = await ncMeta.metaGet2(null, null, MetaTable.USER, {
       id: userId,
     });
     if (email) {
@@ -199,7 +199,7 @@ export default class ProjectUser {
     }
 
     await NocoCache.del(`${CacheScope.PROJECT_USER}:${projectId}:${userId}`);
-    return await ncMeta.metaDelete(null, null, MetaTable.PROJECT_USERS, {
+    return await ncMeta.metaDelete(null, null, MetaTable.PROJECT_USER, {
       fk_user_id: userId,
       project_id: projectId,
     });
@@ -209,7 +209,7 @@ export default class ProjectUser {
     userId: string,
     ncMeta = Noco.ncMeta
   ): Promise<ProjectUser[]> {
-    return await ncMeta.metaList2(null, null, MetaTable.PROJECT_USERS, {
+    return await ncMeta.metaList2(null, null, MetaTable.PROJECT_USER, {
       condition: { fk_user_id: userId },
     });
   }
@@ -231,13 +231,13 @@ export default class ProjectUser {
     projectList = await ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
-      .innerJoin(MetaTable.PROJECT_USERS, function () {
+      .innerJoin(MetaTable.PROJECT_USER, function () {
         this.on(
-          `${MetaTable.PROJECT_USERS}.project_id`,
+          `${MetaTable.PROJECT_USER}.project_id`,
           `${MetaTable.PROJECT}.id`
         );
         this.andOn(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          `${MetaTable.PROJECT_USER}.fk_user_id`,
           ncMeta.knex.raw('?', [userId])
         );
       })

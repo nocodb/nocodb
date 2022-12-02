@@ -37,7 +37,7 @@ import Column from '../../models/Column';
 // import NocoResolverGenerator from '../v1-legacy-resolver/NocoResolverGenerator';
 // import { RestCtrlv2 } from './RestCtrlv2';
 // import registerRestCtrl from './registerRestCtrl';
-import { MetaTable } from '../../utils/globals';
+import { MetaTable, MetaTableV1 } from '../../utils/globals';
 // import { BaseModelSqlv2 } from '../../sql-data-mapper/lib/sql/BaseModelSqlv2';
 
 const log = debug('nc:api:rest');
@@ -554,7 +554,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           !(await this.xcMeta.metaGet(
             this.projectId,
             this.dbAlias,
-            'nc_models',
+            MetaTableV1.MODELS,
             { title: table.tn }
           ))
         ) {
@@ -566,7 +566,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           await this.xcMeta.metaInsert(
             this.projectId,
             this.dbAlias,
-            'nc_models',
+            MetaTableV1.MODELS,
             {
               order: table.order || ++order,
               view_order: 1,
@@ -580,7 +580,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           const { id: modelId } = await this.xcMeta.metaInsert2(
             this.projectId,
             this.dbAlias,
-            MetaTable.MODELS,
+            MetaTable.MODEL,
             {
               tn: table.tn,
               _tn: meta._tn,
@@ -686,7 +686,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           await this.xcMeta.metaUpdate(
             this.projectId,
             this.dbAlias,
-            'nc_models',
+            MetaTableV1.MODELS,
             {
               title: table.tn,
               alias: meta._tn,
@@ -1387,7 +1387,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const existingModel = await this.xcMeta.metaGet(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         { title: oldTablename }
       );
 
@@ -1405,7 +1405,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         await this.xcMeta.metaUpdate(
           this.projectId,
           this.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           {
             title: newTablename,
             meta: JSON.stringify(meta),
@@ -1428,7 +1428,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     await this.xcMeta.metaUpdate(
       this.projectId,
       this.dbAlias,
-      'nc_acl',
+      MetaTableV1.MODELS,
       {
         tn: newTablename,
       },
@@ -1652,7 +1652,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         const rExistingModel = await this.xcMeta.metaGet(
           this.projectId,
           this.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           { title: relationTable }
         );
 
@@ -1677,7 +1677,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           await this.xcMeta.metaUpdate(
             this.projectId,
             this.dbAlias,
-            'nc_models',
+            MetaTableV1.MODELS,
             {
               meta: JSON.stringify(oldMeta),
             },
@@ -1856,7 +1856,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const existingModel = await this.xcMeta.metaGet(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         { title: tnp }
       );
       let queryParams;
@@ -1904,7 +1904,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         await this.xcMeta.metaUpdate(
           this.projectId,
           this.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           {
             meta: JSON.stringify(oldMeta),
             ...(queryParams
@@ -1999,7 +1999,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const existingModel = await this.xcMeta.metaGet(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         { title: tnc }
       );
 
@@ -2047,7 +2047,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         await this.xcMeta.metaUpdate(
           this.projectId,
           this.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           {
             meta: JSON.stringify(oldMeta),
             ...(queryParams
@@ -2144,7 +2144,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const existingModel = await this.xcMeta.metaGet(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         { title: tnp }
       );
       const tagName = `${tnp}HasMany${tnc}`;
@@ -2171,7 +2171,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         await this.xcMeta.metaUpdate(
           this.projectId,
           this.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           {
             title: tnp,
             meta: JSON.stringify(oldMeta),
@@ -2210,7 +2210,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const existingModel = await this.xcMeta.metaGet(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         { title: tnc }
       );
       const tagName = `${tnc}BelongsTo${tnp}`;
@@ -2236,7 +2236,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         await this.xcMeta.metaUpdate(
           this.projectId,
           this.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           {
             title: tnc,
             meta: JSON.stringify(oldMeta),
@@ -2356,11 +2356,16 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         functionName
       );
       await this.generateAndSaveAcl(functionObj.function_name, 'function');
-      await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
-        title: functionObj.function_name,
-        meta: JSON.stringify({ ...functionObj, type: 'function' }),
-        type: 'function',
-      });
+      await this.xcMeta.metaInsert(
+        this.projectId,
+        this.dbAlias,
+        MetaTableV1.MODELS,
+        {
+          title: functionObj.function_name,
+          meta: JSON.stringify({ ...functionObj, type: 'function' }),
+          type: 'function',
+        }
+      );
     }
     this.generateAndSaveAcl(functionName, 'function');
 
@@ -2376,10 +2381,15 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   public async onFunctionDelete(functionName: string): Promise<void> {
     this.log(`onFunctionDelete : '%s'`, functionName);
     this.log(`onFunctionDelete : Delete meta of '%s' function`, functionName);
-    await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
-      title: functionName,
-      type: 'function',
-    });
+    await this.xcMeta.metaDelete(
+      this.projectId,
+      this.dbAlias,
+      MetaTableV1.MODELS,
+      {
+        title: functionName,
+        type: 'function',
+      }
+    );
     this.log(`onFunctionDelete : Update function and procedure routes`);
     this.procedureCtrl.functionDelete(functionName);
     this.routers.___procedure.stack.splice(
@@ -2411,11 +2421,16 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         procedureName
       );
       await this.generateAndSaveAcl(procedureObj.procedure_name, 'procedure');
-      await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
-        title: procedureObj.procedure_name,
-        meta: JSON.stringify({ ...procedureObj, type: 'procedure' }),
-        type: 'procedure',
-      });
+      await this.xcMeta.metaInsert(
+        this.projectId,
+        this.dbAlias,
+        MetaTableV1.MODELS,
+        {
+          title: procedureObj.procedure_name,
+          meta: JSON.stringify({ ...procedureObj, type: 'procedure' }),
+          type: 'procedure',
+        }
+      );
     }
 
     this.generateAndSaveAcl(procedureName, 'procedure');
@@ -2431,10 +2446,15 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   public async onProcedureDelete(procedureName: string): Promise<void> {
     this.log(`onProcedureDelete : '%s'`, procedureName);
     this.log(`onProcedureDelete : Delete meta of '%s' function`, procedureName);
-    await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
-      title: procedureName,
-      type: 'procedure',
-    });
+    await this.xcMeta.metaDelete(
+      this.projectId,
+      this.dbAlias,
+      MetaTableV1.MODELS,
+      {
+        title: procedureName,
+        type: 'procedure',
+      }
+    );
     this.log(`onProcedureDelete : Update function and procedure routes`);
     this.procedureCtrl.procedureDelete(procedureName);
     this.routers.___procedure.stack.splice(
@@ -2451,7 +2471,11 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   public async onSwaggerDocUpdate(tn: any): Promise<void> {
     this.log(`onSwaggerDocUpdate : '%s'`, tn);
     const swaggerDocs = (
-      await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_models')
+      await this.xcMeta.metaList(
+        this.projectId,
+        this.dbAlias,
+        MetaTableV1.MODELS
+      )
     )
       .filter((m) => m.schema)
       .map((m) => JSON.parse(m.schema));
@@ -2485,7 +2509,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const meta = await this.xcMeta.metaGet(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           title: changeObj.tn,
           type: 'table',
@@ -2503,7 +2527,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       await this.xcMeta.metaUpdate(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           schema: JSON.stringify(oldSwaggerDoc),
           // schema_previous: JSON.stringify(previousSchemas)
@@ -2562,7 +2586,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         await this.xcMeta.metaInsert(
           this.projectId,
           this.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           {
             title: functionObj.function_name,
             meta: JSON.stringify({ ...functionObj, type: 'function' }),
@@ -2581,7 +2605,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         await this.xcMeta.metaInsert(
           this.projectId,
           this.dbAlias,
-          'nc_models',
+          MetaTableV1.MODELS,
           {
             title: procedureObj.procedure_name,
             meta: JSON.stringify({ ...procedureObj, type: 'procedure' }),
@@ -2830,7 +2854,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.xcMeta.metaUpdate(
       this.projectId,
       this.dbAlias,
-      'nc_models',
+      MetaTableV1.MODELS,
       {
         schema: JSON.stringify(swaggerDoc),
       },
@@ -2942,7 +2966,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     const meta = await this.xcMeta.metaGet(
       this.projectId,
       this.dbAlias,
-      'nc_models',
+      MetaTableV1.MODELS,
       {
         title: tn,
         type: 'table',
@@ -2960,7 +2984,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     await this.xcMeta.metaUpdate(
       this.projectId,
       this.dbAlias,
-      'nc_models',
+      MetaTableV1.MODELS,
       {
         schema: JSON.stringify(oldSwaggerDoc),
         // schema_previous: JSON.stringify(previousSchemas)
@@ -2998,7 +3022,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       const meta = await this.xcMeta.metaGet(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           title: metaObj.tn,
           type: 'table',
@@ -3016,7 +3040,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       await this.xcMeta.metaUpdate(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           schema: JSON.stringify(oldSwaggerDoc),
           // schema_previous: JSON.stringify(previousSchemas)

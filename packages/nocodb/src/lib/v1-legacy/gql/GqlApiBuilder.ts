@@ -1,8 +1,8 @@
 import DataLoader from 'dataloader';
 import debug from 'debug';
 import { Router } from 'express';
-import { execute } from 'graphql';
-import { GraphQLJSON } from 'graphql-type-json';
+// import { execute } from 'graphql';
+// import { GraphQLJSON } from 'graphql-type-json';
 import _ from 'lodash';
 import { BaseType } from 'xc-core-ts';
 
@@ -11,6 +11,7 @@ import { DbConfig, NcConfig } from '../../../interface/config';
 import ExpressXcTsPolicyGql from '../../db/sql-mgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql';
 import GqlXcSchemaFactory from '../../db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
+import { MetaTableV1 } from '../../utils/globals';
 import NcHelp from '../../utils/NcHelp';
 import NcProjectBuilder from '../NcProjectBuilder';
 import Noco from '../../Noco';
@@ -19,11 +20,11 @@ import BaseApiBuilder, {
 } from '../../utils/common/BaseApiBuilder';
 import NcMetaIO from '../../meta/NcMetaIO';
 
-import { m2mNotChildren, m2mNotChildrenCount } from './GqlCommonResolvers';
+// import { m2mNotChildren, m2mNotChildrenCount } from './GqlCommonResolvers';
 import GqlMiddleware from './GqlMiddleware';
 import { GqlProcedureResolver } from './GqlProcedureResolver';
 import GqlResolver from './GqlResolver';
-import commonSchema from './common.schema';
+// import commonSchema from './common.schema';
 
 const log = debug('nc:api:gql');
 
@@ -2573,11 +2574,16 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       );
 
       await this.generateAndSaveAcl(functionObj.function_name, 'function');
-      await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
-        title: functionObj.function_name,
-        meta: JSON.stringify({ ...functionObj, type: 'function' }),
-        type: 'function',
-      });
+      await this.xcMeta.metaInsert(
+        this.projectId,
+        this.dbAlias,
+        MetaTableV1.MODELS,
+        {
+          title: functionObj.function_name,
+          meta: JSON.stringify({ ...functionObj, type: 'function' }),
+          type: 'function',
+        }
+      );
     }
     this.generateAndSaveAcl(functionName, 'function');
 
@@ -2591,10 +2597,15 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     this.log(`onFunctionCreate : Deleting '%s' function meta`, functionName);
 
-    await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
-      title: functionName,
-      type: 'function',
-    });
+    await this.xcMeta.metaDelete(
+      this.projectId,
+      this.dbAlias,
+      MetaTableV1.MODELS,
+      {
+        title: functionName,
+        type: 'function',
+      }
+    );
 
     this.resolvers.___procedure.functionDelete(functionName);
     this.schemas.___procedure = this.resolvers.___procedure.getSchema();
@@ -2617,11 +2628,16 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       );
 
       await this.generateAndSaveAcl(procedureObj.procedure_name, 'procedure');
-      await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
-        title: procedureObj.procedure_name,
-        meta: JSON.stringify({ ...procedureObj, type: 'procedure' }),
-        type: 'procedure',
-      });
+      await this.xcMeta.metaInsert(
+        this.projectId,
+        this.dbAlias,
+        MetaTableV1.MODELS,
+        {
+          title: procedureObj.procedure_name,
+          meta: JSON.stringify({ ...procedureObj, type: 'procedure' }),
+          type: 'procedure',
+        }
+      );
     }
     this.generateAndSaveAcl(procedureName, 'procedure');
 
@@ -2634,10 +2650,15 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     this.log(`onProcedureDelete : '%s'`, procedureName);
 
     this.log(`onProcedureDelete : Deleting '%s' function meta`, procedureName);
-    await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
-      title: procedureName,
-      type: 'procedure',
-    });
+    await this.xcMeta.metaDelete(
+      this.projectId,
+      this.dbAlias,
+      MetaTableV1.MODELS,
+      {
+        title: procedureName,
+        type: 'procedure',
+      }
+    );
 
     this.resolvers.___procedure.procedureDelete(procedureName);
     this.schemas.___procedure = this.resolvers.___procedure.getSchema();
@@ -2659,7 +2680,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
   }
 
   private async initGraphqlRoute(): Promise<void> {
-    this.log(`initGraphqlRoute : Initializing graphql router endpoint`);
+    /*    this.log(`initGraphqlRoute : Initializing graphql router endpoint`);
     try {
       const { mergeResolvers, mergeTypeDefs } = await import(
         '@graphql-tools/merge'
@@ -2727,7 +2748,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       this.resolversCount = Object.keys(rootValue).length;
     } catch (e) {
       console.log(e);
-    }
+    }*/
   }
 
   private generateLoaderFromStringBody(fnBody: string[]): any {
@@ -2784,7 +2805,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       await this.xcMeta.metaUpdate(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           schema: this.schemas[tn],
         },
@@ -2873,7 +2894,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       await this.xcMeta.metaUpdate(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           schema: this.schemas[tn],
         },
@@ -2890,7 +2911,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     const models = await this.xcMeta.metaList(
       this.projectId,
       this.dbAlias,
-      'nc_models',
+      MetaTableV1.MODELS,
       {
         fields: ['meta'],
         condition: {
@@ -2928,7 +2949,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       await this.xcMeta.metaUpdate(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           schema,
         },
@@ -2971,7 +2992,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       await this.xcMeta.metaUpdate(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           schema,
         },
@@ -2988,7 +3009,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           await this.xcMeta.metaInsert(
             this.projectId,
             this.dbAlias,
-            'nc_loaders',
+            MetaTableV1.MODELS,
             {
               title: `${mm.tn}Mm${mm.rtn}List`,
               parent: mm.tn,
@@ -3058,7 +3079,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       await this.xcMeta.metaUpdate(
         this.projectId,
         this.dbAlias,
-        'nc_models',
+        MetaTableV1.MODELS,
         {
           schema: this.schemas[tn],
           // schema_previous: JSON.stringify(previousSchemas)

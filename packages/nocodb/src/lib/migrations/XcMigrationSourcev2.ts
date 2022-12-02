@@ -11,6 +11,8 @@ import * as nc_020_kanban_view from './v2/nc_020_kanban_view';
 import * as nc_021_add_fields_in_token from './v2/nc_021_add_fields_in_token';
 import * as nc_022_qr_code_column_type from './v2/nc_022_qr_code_column_type';
 import * as nc_023_multiple_source from './v2/nc_023_multiple_source';
+import * as nc_023_rename_table from './v2/nc_023_rename_table';
+import * as nc_024_delete_table from './v2/nc_024_delete_table';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -32,7 +34,9 @@ export default class XcMigrationSourcev2 {
       'nc_020_kanban_view',
       'nc_021_add_fields_in_token',
       'nc_022_qr_code_column_type',
-      'nc_023_multiple_source'
+      'nc_023_multiple_source',
+      'nc_023_rename_table',
+      'nc_024_delete_table',
     ]);
   }
 
@@ -68,6 +72,10 @@ export default class XcMigrationSourcev2 {
         return nc_022_qr_code_column_type;
       case 'nc_023_multiple_source':
         return nc_023_multiple_source;
+      case 'nc_023_rename_table':
+        return nc_023_rename_table;
+      case 'nc_024_delete_table':
+        return nc_024_delete_table;
     }
   }
 }

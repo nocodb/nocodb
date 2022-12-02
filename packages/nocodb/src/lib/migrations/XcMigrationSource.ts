@@ -9,6 +9,8 @@ import * as nc_008_add_nc_shared_bases from './v1/nc_008_add_nc_shared_bases';
 import * as nc_009_add_model_order from './v1/nc_009_add_model_order';
 import * as nc_010_add_parent_title_column from './v1/nc_010_add_parent_title_column';
 import * as nc_011_remove_old_ses_plugin from './v1/nc_011_remove_old_ses_plugin';
+import * as nc_012_rename_table from './v1/nc_012_rename_table';
+import * as nc_013_delete_tables from './v1/nc_013_delete_tables';
 
 // Create a custom migration source class
 export default class XcMigrationSource {
@@ -29,6 +31,8 @@ export default class XcMigrationSource {
       'nc_009_add_model_order',
       'nc_010_add_parent_title_column',
       'nc_011_remove_old_ses_plugin',
+      'nc_012_rename_table',
+      'nc_013_delete_tables',
     ]);
   }
 
@@ -60,6 +64,11 @@ export default class XcMigrationSource {
         return nc_010_add_parent_title_column;
       case 'nc_011_remove_old_ses_plugin':
         return nc_011_remove_old_ses_plugin;
+
+      case 'nc_012_rename_table':
+        return nc_012_rename_table;
+      case 'nc_013_delete_tables':
+        return nc_013_delete_tables;
     }
   }
 }

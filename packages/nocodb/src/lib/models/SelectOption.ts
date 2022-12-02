@@ -19,7 +19,7 @@ export default class SelectOption {
     const { id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.COL_SELECT_OPTIONS,
+      MetaTable.COL_SELECT_OPTION,
       data
     );
 
@@ -46,7 +46,7 @@ export default class SelectOption {
       data = await ncMeta.metaGet2(
         null,
         null,
-        MetaTable.COL_SELECT_OPTIONS,
+        MetaTable.COL_SELECT_OPTION,
         selectOptionId
       );
       await NocoCache.set(
@@ -65,7 +65,7 @@ export default class SelectOption {
       options = await ncMeta.metaList2(
         null, //,
         null, //model.db_alias,
-        MetaTable.COL_SELECT_OPTIONS,
+        MetaTable.COL_SELECT_OPTION,
         { condition: { fk_column_id } }
       );
       await NocoCache.setList(
@@ -92,7 +92,7 @@ export default class SelectOption {
     const data = await ncMeta.metaGet2(
       null,
       null,
-      MetaTable.COL_SELECT_OPTIONS,
+      MetaTable.COL_SELECT_OPTION,
       {
         fk_column_id,
         title,

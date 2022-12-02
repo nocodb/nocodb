@@ -28,7 +28,6 @@ import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import getColumnUiType from '../helpers/getColumnUiType';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import DOMPurify from 'isomorphic-dompurify';
 
 export async function tableGet(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({

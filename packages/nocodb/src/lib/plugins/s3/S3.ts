@@ -4,9 +4,10 @@ import slash from 'slash';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
 import {
-  waitForStreamClose,
   generateTempFilePath,
+  waitForStreamClose,
 } from '../../utils/pluginUtils';
+import path from 'path';
 
 export default class S3 implements IStorageAdapterV2 {
   private s3Client: AWS.S3;

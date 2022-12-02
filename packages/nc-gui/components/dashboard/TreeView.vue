@@ -240,9 +240,18 @@ function openTableCreateDialog(baseId?: string) {
 
 const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 
+const beforeSearch = ref<string[]>([])
+
 const onSearchCloseIconClick = () => {
   filterQuery = ''
   toggleSearchActive(false)
+  activeKey.value = beforeSearch.value
+}
+
+const onSearchIconClick = () => {
+  beforeSearch.value = activeKey.value
+  toggleSearchActive(true)
+  activeKey.value = bases.value.filter((el) => el.enabled).map((el) => `collapse-${el.id}`)
 }
 
 const isCreateTableAllowed = computed(
@@ -348,7 +357,7 @@ watch(
 
           <Transition name="slide-right" mode="out-in">
             <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="onSearchIconClick" />
           </Transition>
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
@@ -611,7 +620,7 @@ watch(
                 :class="[{ hidden: searchActive && !!filterQuery && !filteredTables?.find((el) => el.base_id === base.id) }]"
                 expand-icon-position="right"
                 :bordered="false"
-                accordion
+                :accordion="!searchActive"
                 ghost
               >
                 <a-collapse-panel :key="`collapse-${base.id}`">

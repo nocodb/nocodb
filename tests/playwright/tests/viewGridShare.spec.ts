@@ -139,7 +139,7 @@ test.describe('Shared view', () => {
     // verify download
     await sharedPage.grid.toolbar.clickDownload(
       'Download as CSV',
-      isSqlite(context) || isPg(context) ? 'expectedDataSqlite.csv' : 'expectedData.csv'
+      isSqlite(context) || isPg(context) ? 'expectedDataSqlite.txt' : 'expectedData.txt'
     );
   });
 

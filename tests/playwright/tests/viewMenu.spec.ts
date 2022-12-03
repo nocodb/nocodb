@@ -52,7 +52,7 @@ test.describe('Grid view locked', () => {
       menu: 'Download',
       subMenu: 'Download as CSV',
       verificationInfo: {
-        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.csv' : null,
+        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
       },
     });
   });
@@ -72,7 +72,7 @@ test.describe('Grid view locked', () => {
       menu: 'Download',
       subMenu: 'Download as XLSX',
       verificationInfo: {
-        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.csv' : null,
+        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
       },
     });
   });

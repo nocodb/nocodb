@@ -84,8 +84,10 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     set: (val) => (storage.value.token = val),
   })
 
+  const config = useRuntimeConfig()
+
   const appInfo = ref<AppInfo>({
-    ncSiteUrl: BASE_FALLBACK_URL,
+    ncSiteUrl: config.public.ncBackendUrl || BASE_FALLBACK_URL,
     authType: 'jwt',
     connectToExternalDB: false,
     defaultLimit: 0,

@@ -16,7 +16,7 @@ export const dateFormats = [
   'YYYY MM DD',
 ]
 
-export const timeFormats = ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS']
+export const timeFormats = ['HH:mm', 'HH:mm:ss']
 
 export const handleTZ = (val: any) => {
   if (!val) {

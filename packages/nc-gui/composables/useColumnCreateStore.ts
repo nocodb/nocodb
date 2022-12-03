@@ -2,6 +2,7 @@ import clone from 'just-clone'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   Form,
   computed,
@@ -20,6 +21,10 @@ const useForm = Form.useForm
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
+interface ValidationsObj {
+  [key: string]: RuleObject[]
+}
+
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
   (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
     const { sqlUi } = useProject()
@@ -36,10 +41,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const idType = null
 
-    const additionalValidations = ref<Record<string, any>>({})
+    const additionalValidations = ref<ValidationsObj>({})
 
-    const setAdditionalValidations = (validations: Record<string, any>) => {
-      additionalValidations.value = validations
+    const setAdditionalValidations = (validations: ValidationsObj) => {
+      additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
 
     const formState = ref<Record<string, any>>({

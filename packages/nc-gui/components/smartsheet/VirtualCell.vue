@@ -24,7 +24,7 @@ import { NavigateDir } from '~/lib'
 const props = defineProps<{
   column: ColumnType
   modelValue: any
-  row: Row
+  row?: Row
   active?: boolean
 }>()
 

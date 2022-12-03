@@ -1,3 +1,7 @@
+import dayjs, { extend } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+extend(customParseFormat);
+
 export function getWeekdayByText(v: string) {
   return {
     monday: 0,
@@ -20,4 +24,29 @@ export function getWeekdayByIndex(idx: number): string {
     5: 'saturday',
     6: 'sunday',
   }[idx || 0];
+}
+
+export function validateDateWithUnknownFormat(v: string) {
+  const dateFormats = [
+    'DD-MM-YYYY',
+    'MM-DD-YYYY',
+    'YYYY-MM-DD',
+    'DD/MM/YYYY',
+    'MM/DD/YYYY',
+    'YYYY/MM/DD',
+    'DD MM YYYY',
+    'MM DD YYYY',
+    'YYYY MM DD',
+  ];
+  for (const format of dateFormats) {
+    if (dayjs(v, format, true).isValid() as any) {
+      return true;
+    }
+    for (const timeFormat of ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS']) {
+      if (dayjs(v, `${format} ${timeFormat}`, true).isValid() as any) {
+        return true;
+      }
+    }
+  }
+  return false;
 }

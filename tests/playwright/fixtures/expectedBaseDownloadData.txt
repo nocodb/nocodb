@@ -1,4 +1,4 @@
-﻿Country,City List
+Country,City List
 Afghanistan,Kabul
 Algeria,"Batna, Bchar, Skikda"
 American Samoa,Tafuna

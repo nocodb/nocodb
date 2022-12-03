@@ -4,6 +4,7 @@ import { GridPage } from '../../Grid';
 import { ToolbarPage } from './index';
 // @ts-ignore
 import fs from 'fs';
+import XLSX from 'xlsx';
 
 export class ToolbarViewMenuPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -46,6 +47,33 @@ export class ToolbarViewMenuPage extends BasePage {
     await expect(file).toEqual(expectedData);
   }
 
+  async verifyDownloadAsXLSX({
+    downloadLocator,
+    expectedDataFile,
+  }: {
+    downloadLocator: Locator;
+    expectedDataFile: string;
+  }) {
+    const [download] = await Promise.all([
+      // Start waiting for the download
+      this.rootPage.waitForEvent('download'),
+      // Perform the action that initiates download
+      downloadLocator.click(),
+    ]);
+
+    // Save downloaded file somewhere
+    await download.saveAs('./output/at.xlsx');
+
+    // convert xlsx to csv
+    const wb = XLSX.readFile('./output/at.xlsx');
+    XLSX.writeFile(wb, './output/at.txt', { bookType: 'csv' });
+
+    // verify downloaded content against expected content
+    const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
+    const file = fs.readFileSync('./output/at.txt', 'utf8');
+    await expect(file).toEqual(expectedData);
+  }
+
   // menu items
   //    Collaborative View
   //    Download
@@ -68,12 +96,24 @@ export class ToolbarViewMenuPage extends BasePage {
             .last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
+      } else if (subMenu === 'Download as XLSX') {
+        await this.verifyDownloadAsXLSX({
+          downloadLocator: await this.rootPage
+            .locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`)
+            .last(),
+          expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
+        });
       } else {
         await this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last().click();
       }
 
       switch (subMenu) {
         case 'Download as CSV':
+          await this.verifyToast({
+            message: 'Successfully exported all table data',
+          });
+          break;
+        case 'Download as XLSX':
           await this.verifyToast({
             message: 'Successfully exported all table data',
           });

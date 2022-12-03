@@ -39,11 +39,11 @@ export class ToolbarViewMenuPage extends BasePage {
     ]);
 
     // Save downloaded file somewhere
-    await download.saveAs('./output/at.txt');
+    await download.saveAs('./output/test.txt');
 
     // verify downloaded content against expected content
-    const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
-    const file = fs.readFileSync('./output/at.txt', 'utf8');
+    const expectedData = fs.readFileSync(expectedDataFile, 'utf8').replace(/\r/g, '').split('\n');
+    const file = fs.readFileSync('./output/test.txt', 'utf8').replace(/\r/g, '').split('\n');
     await expect(file).toEqual(expectedData);
   }
 
@@ -71,7 +71,8 @@ export class ToolbarViewMenuPage extends BasePage {
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
     const file = fs.readFileSync('./output/test.txt', 'utf8');
-    await expect(file).toEqual(expectedData);
+    // XLSX writes file with UTF-8 BOM, adds '\ufeff' to cater it
+    await expect(file).toEqual('\ufeff' + expectedData);
   }
 
   // menu items

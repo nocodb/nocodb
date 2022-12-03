@@ -24,9 +24,9 @@ const openProject = async (project: ProjectType) => {
   $e('a:project:open', { count: projects.length })
 }
 
-const formatTitle = (title: '') =>
+const formatTitle = (title?: string) =>
   title
-    .split(' ')
+    ?.split(' ')
     .map((w) => w[0])
     .slice(0, 2)
     .join('')

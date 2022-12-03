@@ -40,7 +40,7 @@ const columnByID = computed(() =>
   }, {} as Record<string, ColumnType>),
 )
 
-const getColumnByID = (key?: string) => {
+const getColumnUidtByID = (key?: string) => {
   if (!key) return ''
   return columnByID.value[key]?.uidt || ''
 }
@@ -100,7 +100,7 @@ useMenuCloseOnEsc(open)
               @select="saveOrUpdate(sort, i)"
             >
               <a-select-option
-                v-for="(option, j) of getSortDirectionOptions(getColumnByID(sort.fk_column_id))"
+                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
                 :key="j"
                 :value="option.value"
               >

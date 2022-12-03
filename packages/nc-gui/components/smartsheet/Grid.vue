@@ -298,7 +298,7 @@ function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? selectedCell.row
   col = col ?? selectedCell.col
 
-  if (row && col) {
+  if (row !== undefined && col !== undefined && row !== null && col !== null) {
     // get active cell
     const rows = tbodyEl.value?.querySelectorAll('tr')
     const cols = rows?.[row].querySelectorAll('td')

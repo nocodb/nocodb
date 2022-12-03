@@ -48,7 +48,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { isSharedBase } = useProject()
 
-const Icon = $computed(() => {
+const Icon = computed(() => {
   switch (selectedView.value?.lock_type) {
     case LockType.Personal:
       return MdiAccountIcon

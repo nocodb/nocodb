@@ -11,14 +11,50 @@ const dateTimeData = [
     date: '2022-12-12',
     hour: '10',
     minute: '20',
+    output: '2022-12-12 10:20',
   },
   {
     dateFormat: 'YYYY-MM-DD',
     timeFormat: 'HH:mm:ss',
     date: '2022-12-12',
+    hour: '20',
+    minute: '30',
+    second: '40',
+    output: '2022-12-12 20:30:40',
+  },
+  {
+    dateFormat: 'YYYY/MM/DD',
+    timeFormat: 'HH:mm',
+    date: '2022/12/12',
     hour: '10',
     minute: '20',
-    second: '30',
+    output: '2022/12/12 10:20',
+  },
+  {
+    dateFormat: 'YYYY/MM/DD',
+    timeFormat: 'HH:mm:ss',
+    date: '2022/12/12',
+    hour: '5',
+    minute: '30',
+    second: '40',
+    output: '2022/12/12 05:30:40',
+  },
+  {
+    dateFormat: 'DD-MM-YYYY',
+    timeFormat: 'HH:mm',
+    date: '25-11-2022',
+    hour: '3',
+    minute: '20',
+    output: '12-12-2022 03:20',
+  },
+  {
+    dateFormat: 'DD-MM-YYYY',
+    timeFormat: 'HH:mm:ss',
+    date: '25-11-2022',
+    hour: '2',
+    minute: '30',
+    second: '40',
+    output: '25-11-2022 02:30:40',
   },
 ];
 
@@ -41,20 +77,6 @@ test.describe('DateTime Column', () => {
       timeFormat: dateTimeData[0].timeFormat,
     });
 
-    await dashboard.grid.cell.dateTime.open({
-      index: 0,
-      columnHeader: 'NC_DATETIME_0',
-    });
-
-    await dashboard.grid.cell.dateTime.selectDate({
-      date: dateTimeData[0],
-    });
-    await dashboard.grid.cell.dateTime.selectTime({
-      hour: dateTimeData[0].hour,
-      minute: dateTimeData[0].minute,
-    });
-    await dashboard.grid.cell.dateTime.close();
-
     for (let i = 0; i < dateTimeData.length; i++) {
       // Edit DateTime column
       await dashboard.grid.column.openEdit({
@@ -63,7 +85,26 @@ test.describe('DateTime Column', () => {
         dateFormat: dateTimeData[i].dateFormat,
         timeFormat: dateTimeData[i].timeFormat,
       });
-      // TODO: ...
+
+      await dashboard.grid.cell.dateTime.open({
+        index: 0,
+        columnHeader: 'NC_DATETIME_0',
+      });
+
+      await dashboard.grid.cell.dateTime.selectDate({
+        date: dateTimeData[i].date,
+      });
+      await dashboard.grid.cell.dateTime.selectTime({
+        hour: dateTimeData[i].hour,
+        minute: dateTimeData[i].minute,
+      });
+      await dashboard.grid.cell.dateTime.close();
+
+      await dashboard.grid.cell.verify({
+        index: 0,
+        columnHeader: 'NC_DATETIME_0',
+        value: dateTimeData[i].output,
+      });
     }
   });
 });

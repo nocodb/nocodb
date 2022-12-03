@@ -7,7 +7,7 @@ import YugabyteClient from './pg/YugabyteClient';
 import TidbClient from './mysql/TidbClient';
 import VitessClient from './mysql/VitessClient';
 import SfClient from './snowflake/SnowflakeClient';
-import { SnowflakeClient } from 'knex-snowflake';
+import { SnowflakeClient } from 'nc-help';
 
 class SqlClientFactory {
   static create(connectionConfig) {

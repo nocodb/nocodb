@@ -1,5 +1,5 @@
 import { Knex, knex } from 'knex';
-import { SnowflakeClient } from 'knex-snowflake';
+import { SnowflakeClient } from 'nc-help';
 
 const types = require('pg').types;
 // override parsing date column to Date()

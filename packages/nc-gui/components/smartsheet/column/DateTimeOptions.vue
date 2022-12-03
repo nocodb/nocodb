@@ -22,24 +22,16 @@ if (!vModel.value.meta?.time_format) {
 
 <template>
   <a-form-item label="Date Format">
-    <a-select v-model:value="vModel.meta.date_format" dropdown-class-name="nc-dropdown-date-format">
+    <a-select v-model:value="vModel.meta.date_format" class="nc-date-select" dropdown-class-name="nc-dropdown-date-format">
       <a-select-option v-for="(format, i) of dateFormats" :key="i" :value="format">
-        <div class="flex flex-row items-center">
-          <div class="text-xs">
-            {{ format }}
-          </div>
-        </div>
+        {{ format }}
       </a-select-option>
     </a-select>
   </a-form-item>
   <a-form-item label="Time Format">
-    <a-select v-model:value="vModel.meta.time_format" dropdown-class-name="nc-dropdown-time-format">
+    <a-select v-model:value="vModel.meta.time_format" class="nc-time-select" dropdown-class-name="nc-dropdown-time-format">
       <a-select-option v-for="(format, i) of timeFormats" :key="i" :value="format">
-        <div class="flex flex-row items-center">
-          <div class="text-xs">
-            {{ format }}
-          </div>
-        </div>
+        {{ format }}
       </a-select-option>
     </a-select>
   </a-form-item>

@@ -52,12 +52,12 @@ test.describe('Grid view locked', () => {
       menu: 'Download',
       subMenu: 'Download as CSV',
       verificationInfo: {
-        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
+        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.csv' : null,
       },
     });
   });
 
-  test.only('Download XLSX', async () => {
+  test('Download XLSX', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
@@ -72,7 +72,7 @@ test.describe('Grid view locked', () => {
       menu: 'Download',
       subMenu: 'Download as XLSX',
       verificationInfo: {
-        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
+        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.csv' : null,
       },
     });
   });

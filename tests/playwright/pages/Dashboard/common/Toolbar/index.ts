@@ -111,7 +111,7 @@ export class ToolbarPage extends BasePage {
     await this.get().locator(`.nc-toolbar-btn.nc-add-new-row-btn`).click();
   }
 
-  async clickDownload(type: string, verificationFile = 'expectedData.txt') {
+  async clickDownload(type: string, verificationFile = 'expectedData.csv') {
     await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).click();
 
     const [download] = await Promise.all([

@@ -62,15 +62,15 @@ export class ToolbarViewMenuPage extends BasePage {
     ]);
 
     // Save downloaded file somewhere
-    await download.saveAs('./output/at.xlsx');
+    await download.saveAs('./output/test.xlsx');
 
     // convert xlsx to csv
-    const wb = XLSX.readFile('./output/at.xlsx');
-    XLSX.writeFile(wb, './output/at.txt', { bookType: 'csv' });
+    const wb = XLSX.readFile('./output/test.xlsx');
+    XLSX.writeFile(wb, './output/test.csv', { bookType: 'csv' });
 
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
-    const file = fs.readFileSync('./output/at.txt', 'utf8');
+    const file = fs.readFileSync('./output/test.csv', 'utf8');
     await expect(file).toEqual(expectedData);
   }
 
@@ -94,14 +94,14 @@ export class ToolbarViewMenuPage extends BasePage {
           downloadLocator: await this.rootPage
             .locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`)
             .last(),
-          expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
+          expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.csv',
         });
       } else if (subMenu === 'Download as XLSX') {
         await this.verifyDownloadAsXLSX({
           downloadLocator: await this.rootPage
             .locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`)
             .last(),
-          expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
+          expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.csv',
         });
       } else {
         await this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last().click();

@@ -7,6 +7,7 @@ import { SharedFormPage } from '../../../SharedForm';
 import { CheckboxCellPageObject } from './CheckboxCell';
 import { RatingCellPageObject } from './RatingCell';
 import { DateCellPageObject } from './DateCell';
+import { DateTimeCellPageObject } from './DateTimeCell';
 
 export class CellPageObject extends BasePage {
   readonly parent: GridPage | SharedFormPage;
@@ -15,6 +16,7 @@ export class CellPageObject extends BasePage {
   readonly checkbox: CheckboxCellPageObject;
   readonly rating: RatingCellPageObject;
   readonly date: DateCellPageObject;
+  readonly dateTime: DateTimeCellPageObject;
 
   constructor(parent: GridPage | SharedFormPage) {
     super(parent.rootPage);
@@ -24,6 +26,7 @@ export class CellPageObject extends BasePage {
     this.checkbox = new CheckboxCellPageObject(this);
     this.rating = new RatingCellPageObject(this);
     this.date = new DateCellPageObject(this);
+    this.dateTime = new DateTimeCellPageObject(this);
   }
 
   get({ index, columnHeader }: { index?: number; columnHeader: string }): Locator {

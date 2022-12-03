@@ -1,11 +1,12 @@
 <script lang="ts" setup>
+import { Form, Modal, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
-import type { DefaultConnection, ProjectCreateForm } from '#imports'
+import type { ProjectCreateForm } from '#imports'
 import {
   CertTypes,
   ClientType,
-  Form,
-  Modal,
+  DefaultConnection,
+  SQLiteConnection,
   SSLUsage,
   clientTypes,
   computed,
@@ -14,8 +15,6 @@ import {
   generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
-  message,
-  navigateTo,
   nextTick,
   onMounted,
   projectTitleValidator,
@@ -24,9 +23,14 @@ import {
   useApi,
   useI18n,
   useNuxtApp,
-  useSidebar,
   watch,
 } from '#imports'
+
+const { connectionType } = defineProps<{ connectionType: ClientType }>()
+
+const emit = defineEmits(['baseCreated'])
+
+const { project, loadProject } = useProject()
 
 const useForm = Form.useForm
 
@@ -34,20 +38,20 @@ const testSuccess = ref(false)
 
 const form = ref<typeof Form>()
 
-const { api, isLoading } = useApi({ useGlobalInstance: true })
+const { api } = useApi()
 
 const { $e } = useNuxtApp()
 
-useSidebar('nc-left-sidebar', { hasSidebar: false })
-
 const { t } = useI18n()
+
+const toggleDialog = inject(ToggleDialogInj, () => {})
 
 let formState = $ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'none',
-    inflectionTable: 'none',
+    inflectionColumn: 'camelize',
+    inflectionTable: 'camelize',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
@@ -57,8 +61,8 @@ const customFormState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'none',
-    inflectionTable: 'none',
+    inflectionColumn: 'camelize',
+    inflectionTable: 'camelize',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
@@ -69,7 +73,7 @@ const validators = computed(() => {
     'title': [
       {
         required: true,
-        message: 'Project name is required',
+        message: 'Base name is required',
       },
       projectTitleValidator,
     ],
@@ -113,9 +117,6 @@ const onSSLModeChange = ((mode: SSLUsage) => {
         delete connection.ssl
         break
       case SSLUsage.Allowed:
-        connection.ssl = 'no-verify'
-        break
-      case SSLUsage.Preferred:
         connection.ssl = 'true'
         break
       default:
@@ -197,7 +198,7 @@ const focusInvalidInput = () => {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
-const createProject = async () => {
+const createBase = async () => {
   try {
     await validate()
   } catch (e) {
@@ -206,26 +207,26 @@ const createProject = async () => {
   }
 
   try {
+    if (!project.value?.id) return
+
     const connection = getConnectionConfig()
 
     const config = { ...formState.dataSource, connection }
 
-    const result = await api.project.create({
-      title: formState.title,
-      bases: [
-        {
-          type: formState.dataSource.client,
-          config,
-          inflection_column: formState.inflection.inflectionColumn,
-          inflection_table: formState.inflection.inflectionTable,
-        },
-      ],
-      external: true,
+    await api.base.create(project.value?.id, {
+      alias: formState.title,
+      type: formState.dataSource.client,
+      config,
+      inflection_column: formState.inflection.inflectionColumn,
+      inflection_table: formState.inflection.inflectionTable,
     })
 
-    $e('a:project:create:extdb')
+    $e('a:base:create:extdb')
 
-    await navigateTo(`/nc/${result.id}`)
+    await loadProject()
+    emit('baseCreated')
+    message.success('Base created!')
+    toggleDialog(true, 'dataSources', '')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -239,7 +240,7 @@ const testConnection = async () => {
     return
   }
 
-  $e('a:project:create:extdb:test-connection', [])
+  $e('a:base:create:extdb:test-connection', [])
 
   try {
     if (formState.dataSource.client === ClientType.SQLITE) {
@@ -263,11 +264,11 @@ const testConnection = async () => {
           title: t('msg.info.dbConnected'),
           icon: null,
           type: 'success',
-
-          okText: t('activity.OkSaveProject'),
+          okText: 'Ok & Add Base',
           okType: 'primary',
           cancelText: t('general.cancel'),
-          onOk: createProject,
+          onOk: createBase,
+          style: 'top: 30%!important',
         })
       } else {
         testSuccess.value = false
@@ -324,8 +325,7 @@ watch(
 // select and focus title field on load
 onMounted(async () => {
   formState.title = await generateUniqueName()
-
-  await nextTick(() => {
+  nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
@@ -334,22 +334,20 @@ onMounted(async () => {
     }, 500)
   })
 })
+
+watch(
+  () => connectionType,
+  (v) => {
+    formState.dataSource.client = v
+    onClientChange()
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
-  <div
-    class="create-external relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
-  >
-    <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
-
-    <div
-      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
-      @click="navigateTo('/')"
-    >
-      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
-    </div>
-
-    <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
+  <div class="create-base max-w-800px mx-auto bg-white relative flex flex-col justify-center gap-2 w-full p-8">
+    <h1 class="prose-2xl font-bold self-center my-4">New Base</h1>
 
     <a-form
       ref="form"
@@ -359,7 +357,7 @@ onMounted(async () => {
       no-style
       :label-col="{ span: 8 }"
     >
-      <a-form-item :label="$t('placeholder.projName')" v-bind="validateInfos.title">
+      <a-form-item label="Base Name" v-bind="validateInfos.title">
         <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
       </a-form-item>
 
@@ -370,8 +368,8 @@ onMounted(async () => {
           dropdown-class-name="nc-dropdown-ext-db-type"
           @change="onClientChange"
         >
-          <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value">
-            {{ client.text }}
+          <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
+            >{{ client.text }}
           </a-select-option>
         </a-select>
       </a-form-item>
@@ -382,28 +380,34 @@ onMounted(async () => {
         :label="$t('labels.sqliteFile')"
         v-bind="validateInfos['dataSource.connection.connection.filename']"
       >
-        <a-input v-model:value="formState.dataSource.connection.connection.filename" />
+        <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
       </a-form-item>
 
       <template v-else>
         <!-- Host Address -->
         <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="formState.dataSource.connection.host" class="nc-extdb-host-address" />
+          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host" class="nc-extdb-host-address" />
         </a-form-item>
 
         <!-- Port Number -->
         <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-          <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full nc-extdb-host-port" />
+          <a-input-number
+            v-model:value="(formState.dataSource.connection as DefaultConnection).port"
+            class="!w-full nc-extdb-host-port"
+          />
         </a-form-item>
 
         <!-- Username -->
         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="formState.dataSource.connection.user" class="nc-extdb-host-user" />
+          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user" class="nc-extdb-host-user" />
         </a-form-item>
 
         <!-- Password -->
         <a-form-item :label="$t('labels.password')">
-          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
+          <a-input-password
+            v-model:value="(formState.dataSource.connection as DefaultConnection).password"
+            class="nc-extdb-host-password"
+          />
         </a-form-item>
 
         <!-- Database -->
@@ -542,7 +546,7 @@ onMounted(async () => {
             {{ $t('activity.testDbConn') }}
           </a-button>
 
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="createProject">
+          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="createBase">
             {{ $t('general.submit') }}
           </a-button>
         </div>
@@ -551,19 +555,17 @@ onMounted(async () => {
 
     <a-modal
       v-model:visible="configEditDlg"
-      :class="{ active: configEditDlg }"
       :title="$t('activity.editConnJson')"
       width="600px"
       wrap-class-name="nc-modal-edit-connection-json"
       @ok="handleOk"
     >
-      <LazyMonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
+      <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
     </a-modal>
 
     <!--    Use Connection URL -->
     <a-modal
       v-model:visible="importURLDlg"
-      :class="{ active: importURLDlg }"
       :title="$t('activity.useConnectionUrl')"
       width="600px"
       :ok-text="$t('general.ok')"
@@ -597,7 +599,7 @@ onMounted(async () => {
   @apply !min-h-0;
 }
 
-.create-external {
+.create-base {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {

@@ -14,9 +14,9 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = $(inject(MetaInj, ref()))
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi } = useColumnCreateStoreOrThrow()
 
-const { tables, sqlUi } = $(useProject())
+const { tables } = $(useProject())
 
 setAdditionalValidations({
   childId: [{ required: true, message: 'Required' }],
@@ -44,7 +44,7 @@ const refTables = $computed(() => {
     return []
   }
 
-  return tables.filter((t) => t.type === ModelTypes.TABLE)
+  return tables.filter((t) => t.type === ModelTypes.TABLE && t.base_id === meta?.base_id)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())

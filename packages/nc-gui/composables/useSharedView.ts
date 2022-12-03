@@ -17,6 +17,8 @@ export function useSharedView() {
 
   const { appInfo } = $(useGlobal())
 
+  const { loadProject } = useProject()
+
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
   const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
@@ -70,6 +72,8 @@ export function useSharedView() {
       .sort((a, b) => a.order - b.order)
 
     await setMeta(viewMeta.model)
+
+    await loadProject(true, viewMeta.project_id)
 
     const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))

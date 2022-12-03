@@ -1266,6 +1266,172 @@
         }
       }
     },
+    "/api/v1/db/meta/projects/{projectId}/bases/{baseId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Base read",
+        "operationId": "base-read",
+        "description": "Read project base details",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "xc-auth",
+            "description": "Auth token"
+          }
+        ],
+        "tags": [
+          "Base"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Base delete",
+        "operationId": "base-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      },
+      "patch": {
+        "summary": "Base update",
+        "operationId": "base-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/bases/": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Base list",
+        "operationId": "base-list",
+        "description": "Get project base list",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "xc-auth",
+            "description": "Auth token"
+          }
+        ],
+        "tags": [
+          "Base"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Base create",
+        "operationId": "base-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Base"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "boolean",
+                        "default": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/shared": {
       "parameters": [
         {
@@ -1555,6 +1721,103 @@
         ],
         "tags": [
           "DB table"
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "table-list",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/TableList"
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "xc-auth"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "page"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "pageSize"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "includeM2M"
+          }
+        ],
+        "tags": [
+          "Base"
+        ]
+      },
+      "post": {
+        "summary": "",
+        "operationId": "table-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
         ]
       }
     },
@@ -3039,6 +3302,61 @@
         "parameters": [],
         "tags": [
           "Project"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "base-meta-diff-sync",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      },
+      "get": {
+        "summary": "",
+        "operationId": "base-meta-diff-get",
+        "parameters": [],
+        "tags": [
+          "Base"
         ],
         "responses": {
           "200": {
@@ -6944,6 +7262,12 @@
           },
           "inflection_table": {
             "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "enabled": {
+            "type": "boolean"
           }
         }
       },
@@ -7040,8 +7364,8 @@
         "examples": [
           {
             "id": "string",
-            "fk_project_id": "string",
-            "fk_base_id": "string",
+            "project_id": "string",
+            "base_id": "string",
             "title": "string",
             "alias": "string",
             "type": "string",
@@ -7107,10 +7431,10 @@
           "id": {
             "type": "string"
           },
-          "fk_project_id": {
+          "project_id": {
             "type": "string"
           },
-          "fk_base_id": {
+          "base_id": {
             "type": "string"
           },
           "table_name": {
@@ -7153,9 +7477,6 @@
             "type": "object"
           },
           "slug": {
-            "type": "string"
-          },
-          "project_id": {
             "type": "string"
           },
           "mm": {

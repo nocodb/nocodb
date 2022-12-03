@@ -13,8 +13,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialFilters?: Ref<FilterType[]>,
   ) => {
     const { $api } = useNuxtApp()
+    const { sqlUis } = useProject()
 
-    const { sqlUi } = useProject()
+    const sqlUi = ref(meta.value?.base_id ? sqlUis.value[meta.value?.base_id] : Object.values(sqlUis.value)[0])
 
     const cellRefs = ref<HTMLTableDataCellElement[]>([])
 

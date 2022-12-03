@@ -19,6 +19,7 @@ import {
   isJSON,
   isPercent,
   isPhoneNumber,
+  isPrimaryKey,
   isRating,
   isSet,
   isSingleSelect,
@@ -118,7 +119,9 @@ export default defineComponent({
 
     const column = inject(ColumnInj, columnMeta)
 
-    const { sqlUi } = useProject()
+    const { sqlUis } = useProject()
+
+    const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 
     const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 

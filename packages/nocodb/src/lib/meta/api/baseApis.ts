@@ -1,12 +1,8 @@
 import { Request, Response } from 'express';
-import { OrgUserRoles, ProjectType } from 'nocodb-sdk';
 import Project from '../../models/Project';
-import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
-import DOMPurify from 'isomorphic-dompurify';
-import { packageVersion } from '../../utils/packageVersion';
-import { Tele } from 'nc-help';
+import { BaseListType, ModelTypes, UITypes } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import syncMigration from '../helpers/syncMigration';
+import { syncBaseMigration } from '../helpers/syncMigration';
 import { IGNORE_TABLES } from '../../utils/common/BaseApiBuilder';
 import Column from '../../models/Column';
 import Model from '../../models/Model';
@@ -16,77 +12,62 @@ import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import ProjectUser from '../../models/ProjectUser';
-import { customAlphabet } from 'nanoid';
-import Noco from '../../Noco';
-import isDocker from 'is-docker';
-import { NcError } from '../helpers/catchError';
+import { Tele } from 'nc-help';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { extractAndGenerateManyToManyRelations } from './metaDiffApis';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { extractPropsAndSanitize } from '../helpers/extractProps';
-import NcConfigFactory from '../../utils/NcConfigFactory';
 
-const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
-
-// // Project CRUD
-
-export async function projectGet(
+export async function baseGet(
   req: Request<any, any, any>,
-  res: Response<Project>
+  res: Response<Base>
 ) {
-  const project = await Project.getWithInfo(req.params.projectId);
+  const base = await Base.get(req.params.baseId);
 
-  // delete datasource connection details
-  project.bases?.forEach((b) => {
-    ['config'].forEach((k) => delete b[k]);
+  base.config = base.getConnectionConfig();
+
+  res.json(base);
+}
+
+export async function baseUpdate(
+  req: Request<any, any, any>,
+  res: Response<any>
+) {
+  const baseBody = req.body;
+  const project = await Project.getWithInfo(req.params.projectId);
+  const base = await Base.updateBase(req.params.baseId,
+    {
+      ...baseBody,
+      type: baseBody.config?.client,
+      projectId: project.id,
+      id: req.params.baseId,
+    }
+  );
+
+  delete base.config;
+
+  Tele.emit('evt', {
+    evt_type: 'base:updated'
   });
 
-  res.json(project);
+  res.json(base);
 }
 
-export async function projectUpdate(
+export async function baseList(
   req: Request<any, any, any>,
-  res: Response<ProjectListType>
-) {
-  const project = await Project.getWithInfo(req.params.projectId);
-
-  const data: Partial<Project> = extractPropsAndSanitize(req?.body, [
-    'title',
-    'meta',
-    'color',
-  ]);
-
-  if (
-    data?.title &&
-    project.title !== data.title &&
-    (await Project.getByTitle(data.title))
-  ) {
-    NcError.badRequest('Project title already in use');
-  }
-
-  const result = await Project.update(req.params.projectId, data);
-  Tele.emit('evt', { evt_type: 'project:update' });
-  res.json(result);
-}
-
-export async function projectList(
-  req: Request<any> & { user: { id: string; roles: string } },
-  res: Response<ProjectListType>,
+  res: Response<BaseListType>,
   next
 ) {
   try {
-    const projects = req.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
-      ? await Project.list(req.query)
-      : await ProjectUser.getProjectsList(req.user.id, req.query);
+    const bases = await Base.list({ projectId: req.params.projectId });
 
     res // todo: pagination
-      .json(
-        new PagedResponseImpl(projects as ProjectType[], {
-          count: projects.length,
-          limit: projects.length,
-        })
+      .json({
+          bases: new PagedResponseImpl(bases, {
+            count: bases.length,
+            limit: bases.length,
+          })
+        }
       );
   } catch (e) {
     console.log(e);
@@ -94,112 +75,39 @@ export async function projectList(
   }
 }
 
-export async function projectDelete(
-  req: Request<any>,
-  res: Response<ProjectListType>
+export async function baseDelete(
+  req: Request<any, any, any>,
+  res: Response<any>
 ) {
-  const result = await Project.softDelete(req.params.projectId);
-  Tele.emit('evt', { evt_type: 'project:deleted' });
+  const base = await Base.get(req.params.baseId);
+  const result = await base.delete();
+  Tele.emit('evt', { evt_type: 'base:deleted' });
   res.json(result);
 }
 
-//
-//
-
-async function projectCreate(req: Request<any, any>, res) {
-  const projectBody = req.body;
-  if (!projectBody.external) {
-    const ranId = nanoid();
-    projectBody.prefix = `nc_${ranId}__`;
-    projectBody.is_meta = true;
-    if (process.env.NC_MINIMAL_DBS) {
-      // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each project
-      // each file will be named as nc_<random_id>.db
-      const fs = require('fs');
-      const toolDir = NcConfigFactory.getToolDir();
-      const nanoidv2 = customAlphabet(
-        '1234567890abcdefghijklmnopqrstuvwxyz',
-        14
-      );
-      if (!fs.existsSync(`${toolDir}/nc_minimal_dbs`)) {
-        fs.mkdirSync(`${toolDir}/nc_minimal_dbs`);
-      }
-      const dbId = nanoidv2();
-      const projectTitle = DOMPurify.sanitize(projectBody.title);
-      projectBody.prefix = '';
-      projectBody.bases = [
-        {
-          type: 'sqlite3',
-          config: {
-            client: 'sqlite3',
-            connection: {
-              client: 'sqlite3',
-              database: projectTitle,
-              connection: {
-                filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.db`,
-              },
-              useNullAsDefault: true,
-            },
-          },
-          inflection_column: 'camelize',
-          inflection_table: 'camelize',
-        },
-      ];
-    } else {
-      const db = Noco.getConfig().meta?.db;
-      projectBody.bases = [
-        {
-          type: db?.client,
-          config: null,
-          is_meta: true,
-          inflection_column: 'camelize',
-          inflection_table: 'camelize',
-        },
-      ];
-    }
-  } else {
-    if (process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED) {
-      NcError.badRequest('Connecting to external db is disabled');
-    }
-    projectBody.is_meta = false;
-  }
-
-  if (projectBody?.title.length > 50) {
-    NcError.badRequest('Project title exceeds 50 characters');
-  }
-
-  if (await Project.getByTitle(projectBody?.title)) {
-    NcError.badRequest('Project title already in use');
-  }
-
-  projectBody.title = DOMPurify.sanitize(projectBody.title);
-  projectBody.slug = projectBody.title;
-
-  const project = await Project.createProject(projectBody);
-  await ProjectUser.insert({
-    fk_user_id: (req as any).user.id,
-    project_id: project.id,
-    roles: 'owner',
+async function baseCreate(req: Request<any, any>, res) {
+  // type | base | projectId
+  const baseBody = req.body;
+  const project = await Project.getWithInfo(req.params.projectId);
+  const base = await Base.createBase({
+    ...baseBody,
+    type: baseBody.config?.client,
+    projectId: project.id,
   });
 
-  await syncMigration(project);
+  await syncBaseMigration(project, base);
 
-  // populate metadata if existing table
-  for (const base of await project.getBases()) {
-    const info = await populateMeta(base, project);
+  const info = await populateMeta(base, project);
+  
+  Tele.emit('evt_api_created', info);
 
-    Tele.emit('evt_api_created', info);
-    delete base.config;
-  }
+  delete base.config;
 
   Tele.emit('evt', {
-    evt_type: 'project:created',
-    xcdb: !projectBody.external,
+    evt_type: 'base:created'
   });
 
-  Tele.emit('evt', { evt_type: 'project:rest' });
-
-  res.json(project);
+  res.json(base);
 }
 
 async function populateMeta(base: Base, project: Project): Promise<any> {
@@ -234,12 +142,14 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
       return t;
     });
 
+
   /* filter based on prefix */
-  if (project?.prefix) {
+  if (base.is_meta && project?.prefix) {
     tables = tables.filter((t) => {
       return t?.tn?.startsWith(project?.prefix);
     });
   }
+  
 
   info.tablesCount = tables.length;
 
@@ -403,7 +313,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
     });
 
   /* filter based on prefix */
-  if (project?.prefix) {
+  if (base.is_meta && project?.prefix) {
     views = tables.filter((t) => {
       return t?.tn?.startsWith(project?.prefix);
     });
@@ -452,85 +362,30 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
   return info;
 }
 
-export async function projectInfoGet(_req, res) {
-  res.json({
-    Node: process.version,
-    Arch: process.arch,
-    Platform: process.platform,
-    Docker: isDocker(),
-    RootDB: Noco.getConfig()?.meta?.db?.client,
-    PackageVersion: packageVersion,
-  });
-}
-
-export async function projectCost(req, res) {
-  let cost = 0;
-  const project = await Project.getWithInfo(req.params.projectId);
-  
-  for (const base of project.bases) {
-    const sqlClient = NcConnectionMgrv2.getSqlClient(base);
-    const userCount = await ProjectUser.getUsersCount(req.query);
-    const recordCount = (await sqlClient.totalRecords())?.data.TotalRecords;
-
-    if (recordCount > 100000) {
-      // 36,000 or $79/user/month
-      cost = Math.max(36000, 948 * userCount);
-    } else if (recordCount > 50000) {
-      // $36,000 or $50/user/month
-      cost = Math.max(36000, 600 * userCount);
-    } else if (recordCount > 10000) {
-      // $240/user/yr
-      cost = Math.min(240 * userCount, 36000);
-    } else if (recordCount > 1000) {
-      // $120/user/yr
-      cost = Math.min(120 * userCount, 36000);
-    }
-  }
-
-  Tele.event({
-    event: 'a:project:cost',
-    data: {
-      cost,
-    },
-  });
-
-  res.json({ cost });
-}
-
 export default (router) => {
   router.get(
-    '/api/v1/db/meta/projects/:projectId/info',
+    '/api/v1/db/meta/projects/:projectId/bases/:baseId',
     metaApiMetrics,
-    ncMetaAclMw(projectInfoGet, 'projectInfoGet')
-  );
-  router.get(
-    '/api/v1/db/meta/projects/:projectId',
-    metaApiMetrics,
-    ncMetaAclMw(projectGet, 'projectGet')
+    ncMetaAclMw(baseGet, 'baseGet')
   );
   router.patch(
-    '/api/v1/db/meta/projects/:projectId',
+    '/api/v1/db/meta/projects/:projectId/bases/:baseId',
     metaApiMetrics,
-    ncMetaAclMw(projectUpdate, 'projectUpdate')
-  );
-  router.get(
-    '/api/v1/db/meta/projects/:projectId/cost',
-    metaApiMetrics,
-    ncMetaAclMw(projectCost, 'projectCost')
+    ncMetaAclMw(baseUpdate, 'baseUpdate')
   );
   router.delete(
-    '/api/v1/db/meta/projects/:projectId',
+    '/api/v1/db/meta/projects/:projectId/bases/:baseId',
     metaApiMetrics,
-    ncMetaAclMw(projectDelete, 'projectDelete')
+    ncMetaAclMw(baseDelete, 'baseDelete')
   );
   router.post(
-    '/api/v1/db/meta/projects',
+    '/api/v1/db/meta/projects/:projectId/bases',
     metaApiMetrics,
-    ncMetaAclMw(projectCreate, 'projectCreate')
+    ncMetaAclMw(baseCreate, 'baseCreate')
   );
   router.get(
-    '/api/v1/db/meta/projects',
+    '/api/v1/db/meta/projects/:projectId/bases',
     metaApiMetrics,
-    ncMetaAclMw(projectList, 'projectList')
+    ncMetaAclMw(baseList, 'baseList')
   );
 };

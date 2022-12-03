@@ -8,6 +8,7 @@ import { XKnex } from '../../../index';
 import LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../../../models/LookupColumn';
 import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
+import { validateDateWithUnknownFormat } from '../helpers/formulaFnHelper';
 
 // todo: switch function based on database
 
@@ -666,12 +667,20 @@ export default async function formulaQueryBuilderv2(
       // `ERROR: zero-length delimited identifier` in Postgres
       if (
         knex.clientType() === 'pg' &&
-        columnIdToUidt[pt.left.name] === UITypes.Date &&
-        pt.right.value === ''
+        columnIdToUidt[pt.left.name] === UITypes.Date
       ) {
-        if (pt.operator === '=') {
-          sql = `${left} IS NULL ${colAlias}`;
-        } else if (pt.operator === '!=') {
+        // The correct way to compare with Date should be using
+        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+        // This is to prevent empty data returned to UI due to incorrect SQL
+        if (pt.right.value === '') {
+          if (pt.operator === '=') {
+            sql = `${left} IS NULL ${colAlias}`;
+          } else {
+            sql = `${left} IS NOT NULL ${colAlias}`;
+          }
+        } else if (!validateDateWithUnknownFormat(pt.right.value)) {
+          // left tree value is date but right tree value is not date
+          // return true if left tree value is not null, else false
           sql = `${left} IS NOT NULL ${colAlias}`;
         }
       }

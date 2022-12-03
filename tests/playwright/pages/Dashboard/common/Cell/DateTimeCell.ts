@@ -20,14 +20,38 @@ export class DateTimeCellPageObject extends BasePage {
     });
   }
 
-  async selectDateTime({
+  async selectDate({
     // date in format `YYYY-MM-DD`
-    // time in format 'HH:mm'
-    dateTime,
+    date,
   }: {
-    dateTime: string;
+    date: string;
   }) {
-    await this.rootPage.locator(`td[title="${dateTime}"]`).click();
+    await this.rootPage.locator(`td[title="${date}"]`).click();
+  }
+
+  async selectTime({
+    // hour: 0 - 23
+    // minute: 0 - 59
+    // second: 0 - 59
+    hour,
+    minute,
+    second,
+  }: {
+    hour: string;
+    minute: string;
+    second?: string;
+  }) {
+    await this.rootPage
+      .locator(`.ant-picker-time-panel-column:nth-child(1) > ant-picker-time-panel-cell:nth-child(${hour})`)
+      .click();
+    await this.rootPage
+      .locator(`.ant-picker-time-panel-column:nth-child(2) > ant-picker-time-panel-cell:nth-child(${minute})`)
+      .click();
+    if (second != null) {
+      await this.rootPage
+        .locator(`.ant-picker-time-panel-column:nth-child(3) > ant-picker-time-panel-cell:nth-child(${second})`)
+        .click();
+    }
   }
 
   async close() {

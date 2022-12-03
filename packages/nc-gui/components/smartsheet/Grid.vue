@@ -92,6 +92,7 @@ const contextMenu = computed({
   },
 })
 
+const routeQuery = $computed(() => route.query as Record<string, string>)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
@@ -365,7 +366,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
   if (rowId) {
     router.push({
       query: {
-        ...route.query,
+        ...routeQuery,
         rowId,
       },
     })
@@ -569,13 +570,13 @@ onBeforeUnmount(() => {
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!route.query.rowId
+    return !!routeQuery.rowId
   },
   set(val) {
     if (!val)
       router.push({
         query: {
-          ...route.query,
+          ...routeQuery,
           rowId: undefined,
         },
       })
@@ -903,11 +904,11 @@ const closeAddColumnDropdown = () => {
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormOnRowIdDlg"
-        :key="route.query.rowId"
+        :key="routeQuery.rowId"
         v-model="expandedFormOnRowIdDlg"
         :row="{ row: {}, oldRow: {}, rowMeta: {} }"
         :meta="meta"
-        :row-id="route.query.rowId"
+        :row-id="routeQuery.rowId"
         :view="view"
       />
     </Suspense>

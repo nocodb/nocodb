@@ -47,7 +47,7 @@ onClickOutside(carouselRef, () => {
 </script>
 
 <template>
-  <general-overlay v-model="selectedImage" :z-index="1001">
+  <GeneralOverlay v-model="selectedImage" :z-index="1001">
     <template v-if="selectedImage">
       <div class="overflow-hidden p-12 text-center relative">
         <div class="text-white group absolute top-5 right-5">
@@ -101,7 +101,7 @@ onClickOutside(carouselRef, () => {
         </a-carousel>
       </div>
     </template>
-  </general-overlay>
+  </GeneralOverlay>
 </template>
 
 <style scoped>

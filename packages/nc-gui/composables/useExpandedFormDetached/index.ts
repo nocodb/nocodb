@@ -4,7 +4,7 @@ import type { Row } from '~/lib'
 
 interface UseExpandedFormDetachedProps {
   'isOpen'?: boolean
-  'row': Row | null
+  'row': Row
   'state'?: Record<string, any> | null
   'meta': TableType
   'loadRow'?: boolean

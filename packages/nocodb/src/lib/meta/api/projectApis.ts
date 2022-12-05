@@ -138,7 +138,6 @@ async function projectCreate(req: Request<any, any>, res) {
               connection: {
                 filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.db`,
               },
-              useNullAsDefault: true,
             },
           },
           inflection_column: 'camelize',

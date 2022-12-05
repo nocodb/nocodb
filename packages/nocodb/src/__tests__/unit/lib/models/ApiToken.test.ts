@@ -102,22 +102,10 @@ describe('ApiToken', () => {
   });
 
   describe('list', () => {
-    describe('when user is creator or owner', () => {
-      it('should return all tokens', async () => {
-        const userId = 'owner1';
-        const userRoles = { creator: true, owner: true };
-        const tokens = await ApiToken.list(userId, userRoles, mockNcMeta);
-        expect(tokens).to.eql(testTokens);
-      });
-    });
-
-    describe('when user is not creator or owner', () => {
-      it('should return user tokens', async () => {
-        const userId = 'user1';
-        const userRoles = { creator: false, owner: false };
-        const tokens = await ApiToken.list(userId, userRoles, mockNcMeta);
-        expect(tokens).to.eql([userToken]);
-      });
+    it('should return only user tokens', async () => {
+      const userId = 'user1';
+      const tokens = await ApiToken.list(userId, mockNcMeta);
+      expect(tokens).to.eql([userToken]);
     });
   });
 
@@ -126,7 +114,7 @@ describe('ApiToken', () => {
       const token = await ApiToken.insert(
         {
           description: 'insert_test_token_3',
-          user_id: 'user2',
+          fk_user_id: 'user2',
         },
         mockNcMeta
       );
@@ -135,52 +123,12 @@ describe('ApiToken', () => {
   });
 
   describe('delete', () => {
-    describe('when user is creator or owner', () => {
-      const userId = 'owner1';
-      const userRoles = { creator: true, owner: true };
-      it('can delete own token', async () => {
-        const deleted = await ApiToken.delete(
-          ownerToken.token,
-          userId,
-          userRoles,
-          mockNcMeta
-        );
-        expect(deleted).to.equal(1);
-      });
-
-      it('can delete other user token', async () => {
-        const deleted = await ApiToken.delete(
-          userToken.token,
-          userId,
-          userRoles,
-          mockNcMeta
-        );
-        expect(deleted).to.equal(1);
-      });
-    });
-
-    describe('when user is not creator or owner', () => {
-      const userId = 'user1';
-      const userRoles = { creator: false, owner: false };
-      it('can delete own token', async () => {
-        const deleted = await ApiToken.delete(
-          userToken.token,
-          userId,
-          userRoles,
-          mockNcMeta
-        );
-        expect(deleted).to.equal(1);
-      });
-
-      it('can not delete other user token', async () => {
-        const deleted = await ApiToken.delete(
-          ownerToken.token,
-          userId,
-          userRoles,
-          mockNcMeta
-        );
-        expect(deleted).to.equal(0);
-      });
+    it('can delete own token', async () => {
+      const deleted = await ApiToken.delete(
+        ownerToken.token,
+        mockNcMeta
+      );
+      expect(deleted).to.equal(1);
     });
   });
 

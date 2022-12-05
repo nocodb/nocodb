@@ -12,7 +12,6 @@ export default class ApiToken {
   token?: string;
   expiry?: string;
   enabled?: boolean;
-  user_id?: string;
 
   constructor(audit: Partial<ApiToken>) {
     Object.assign(this, audit);

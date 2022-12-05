@@ -17,7 +17,8 @@ test.describe('Import', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test('Airtable', async () => {
+  // FIXME:
+  test.skip('Airtable', async () => {
     await dashboard.treeView.quickImport({ title: 'Airtable' });
     await dashboard.importAirtable.import({
       key: airtableApiKey,

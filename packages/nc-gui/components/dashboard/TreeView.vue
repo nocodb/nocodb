@@ -470,16 +470,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
       <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <GithubButton
-        v-if="!appInfo.useFinnTheme"
-        class="ml-2 py-1"
-        href="https://github.com/nocodb/nocodb"
-        data-icon="octicon-star"
-        data-show-count="true"
-        data-size="large"
-      >
-        Star
-      </GithubButton>
+      <!--  Not needed for Finn, while hiding with v-if causes strange bugs in GithubButton unmount -->
+      <!--      <GithubButton -->
+      <!--        class="ml-2 py-1" -->
+      <!--        href="https://github.com/nocodb/nocodb" -->
+      <!--        data-icon="octicon-star" -->
+      <!--        data-show-count="true" -->
+      <!--        data-size="large" -->
+      <!--      > -->
+      <!--        Star -->
+      <!--      </GithubButton> -->
     </div>
   </div>
 </template>

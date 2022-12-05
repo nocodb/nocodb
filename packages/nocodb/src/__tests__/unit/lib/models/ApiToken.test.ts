@@ -75,11 +75,11 @@ describe('ApiToken', () => {
     project_id: '',
     token: 'test_token_1',
     updated_at: '',
-    user_id: 'owner1',
+    fk_user_id: 'owner1',
   };
   const userToken = {
     description: 'test_token_2',
-    user_id: 'user1',
+    fk_user_id: 'user1',
     token: 'test_token_2',
     created_at: '',
     db_alias: '',

@@ -16,7 +16,7 @@
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "lint": "eslint src --ext .ts",
     "test": "cross-env TS_NODE_PROJECT=tsconfig.json mocha -r ts-node/register   src/__tests__/**/*.test.ts --recursive",
-    "unit-test": "cross-env TS_NODE_PROJECT=tsconfig.json mocha --require ts-node/register 'src/__tests__/unit/**/*.test.ts' --recursive --check-leaks --exit",
+    "unit-test": "cross-env NC_DISABLE_CACHE=true TS_NODE_PROJECT=tsconfig.json mocha --require ts-node/register 'src/__tests__/unit/**/*.test.ts' --recursive --check-leaks --exit",
     "local:test:unit": "cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
     "test:unit": "cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
     "test:lint": "tslint --project . && prettier \"src/**/*.ts\" --list-different",

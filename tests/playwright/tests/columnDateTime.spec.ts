@@ -65,7 +65,7 @@ test.describe('DateTime Column', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test.only('Create DateTime Column', async () => {
+  test('Create DateTime Column', async () => {
     await dashboard.treeView.createTable({ title: 'test_datetime' });
     // Create DateTime column
     await dashboard.grid.column.create({

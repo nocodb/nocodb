@@ -6,6 +6,7 @@ import columnTypeSpecificTests from './tests/columnTypeSpecific.test';
 import tableTests from './tests/table.test';
 import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
+import nocoDocsTests from './tests/docs.test';
 
 function restTests() {
   authTests();
@@ -15,6 +16,7 @@ function restTests() {
   tableRowTests();
   viewRowTests();
   columnTypeSpecificTests();
+  nocoDocsTests();
 }
 
 export default function () {

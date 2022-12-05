@@ -66,7 +66,11 @@ const createSakilaProject = async (context) => {
   return (await Project.getByTitleOrId(response.body.id)) as Project;
 };
 
-const createProject = async (context, projectArgs = defaultProjectValue) => {
+const createProject = async (context, args = {}) => {
+  const projectArgs = {
+    ...defaultProjectValue,
+    ...args,
+  }
   const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)

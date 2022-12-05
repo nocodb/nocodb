@@ -22,7 +22,7 @@ import {
   useTabs,
   useToggle,
   useUIPermission,
-  watchEffect
+  watchEffect,
 } from '#imports'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'

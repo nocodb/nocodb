@@ -1,5 +1,6 @@
  <script setup lang="ts">
-import VueBarcode from '@chenfengyuan/vue-barcode'
+// import VueBarcode from '@chenfengyuan/vue-barcode'
+import JsBarcodeWrapper from './JsBarcodeWrapper'
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 
@@ -9,13 +10,6 @@ const barcodeValue = computed(() => String(cellValue?.value))
 
 const tooManyCharsForQrCode = computed(() => barcodeValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
-// const barcode = VueBarcode(barcodeValue, {
-//   width: 150,
-// })
-
-// const barcodeLarge = VueBarcode(barcodeValue, {
-//   width: 600,
-// })
 
 const modalVisible = ref(false)
 
@@ -30,7 +24,6 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
 </script>
 
 <template>
-  <vue-barcode value="barcodeValue"></vue-barcode>
   <a-modal
     v-model:visible="modalVisible"
     :class="{ active: modalVisible }"
@@ -39,23 +32,21 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     @ok="handleModalOkClick"
   >
     <template #footer>
-      <div class="mr-4" data-testid="nc-qr-code-large-value-label">heja</div>
+      <div class="mr-4" data-testid="nc-qr-code-large-value-label">{{ barcodeValue }}</div>
     </template>
-    <!-- <img v-if="barcodeValue && !tooManyCharsForQrCode" :src="qrCodeLarge" alt="QR Code" /> -->
+    <JsBarcodeWrapper v-if="barcodeValue && !tooManyCharsForQrCode" tag="svg" :value="barcodeValue" width="3" />
   </a-modal>
   <div @click="showQrModal">
-    <VueBarcode value="barcodeValue"></VueBarcode>
+    <JsBarcodeWrapper v-if="barcodeValue && !tooManyCharsForQrCode" :value="barcodeValue" width="1"></JsBarcodeWrapper>
   </div>
 
-  <!-- <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-    {{ $t('labels.qrCodeValueTooLong') }}
+  <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+    {{ $t('labels.barcodeValueTooLong') }}
   </div>
- <img v-if="qrValue && !tooManyCharsForQrCode" :src="qrCode" alt="QR Code" @click="showQrModal" /> -->
-  <!-- <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+  <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}
   </div>
   <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.qrFieldsCannotBeDirectlyChanged') }}
   </div>
-  -->
 </template>

@@ -251,6 +251,7 @@
     "qrCodeValueColumn": "Column with QR code value",
     "barcodeValueColumn": "Column with Barcode value",
     "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "Aggregate function",
     "dbCreateIfNotExists": "Database : create if not exists",
     "clientKey": "Client Key",

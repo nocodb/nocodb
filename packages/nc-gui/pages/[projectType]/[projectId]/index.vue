@@ -255,7 +255,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <div
             v-if="isOpen && !isSharedBase"
             v-e="['c:navbar:home']"
-            data-cy="nc-noco-brand-icon"
+            data-testid="nc-noco-brand-icon"
             class="transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             :class="appInfo.useFinnTheme ? 'w-[90px] min-w-[90px]' : 'w-[40px] min-w-[40px]'"
             @click="navigateTo('/')"

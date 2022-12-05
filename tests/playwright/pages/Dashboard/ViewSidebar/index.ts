@@ -141,7 +141,9 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async validateRoleAccess(param: { role: string }) {
-    const count = param.role === 'creator' ? 1 : 0;
+    // FINNoco: viewers and editors can create views
+    const hasAccess = ['creator', 'owner', 'editor', 'viewer'].includes(param.role);
+    const count = hasAccess ? 1 : 0;
     await expect(this.createGridButton).toHaveCount(count);
     await expect(this.createGalleryButton).toHaveCount(count);
     await expect(this.createFormButton).toHaveCount(count);

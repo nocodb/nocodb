@@ -1,7 +1,7 @@
 import { Router } from 'express';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { v4 as uuidv4 } from 'uuid';
-import { Tele } from 'nc-help';
 import Project from '../../models/Project';
 import { NcError } from '../helpers/catchError';
 // todo: load from config

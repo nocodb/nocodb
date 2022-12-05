@@ -23,6 +23,8 @@ const { activeTab } = useTabs()
 
 const activeView = inject(ActiveViewInj, ref())
 
+const { views, loadViews, isLoading } = useViews(meta)
+
 const { lastOpenedViewMap } = useProject()
 
 const setLastOpenedViewId = (viewId?: string) => {
@@ -30,8 +32,6 @@ const setLastOpenedViewId = (viewId?: string) => {
     lastOpenedViewMap.value[activeTab.value?.id] = viewId
   }
 }
-
-const { views, loadViews, isLoading } = useViews(meta)
 
 const { isUIAllowed } = useUIPermission()
 

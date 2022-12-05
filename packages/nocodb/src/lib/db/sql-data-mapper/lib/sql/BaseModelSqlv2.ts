@@ -45,6 +45,7 @@ import { customAlphabet } from 'nanoid';
 import { generateS3SignedUrls } from './decorators/GenerateS3SignedUrls';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
+import QrCodeColumn from '../../../../models/QrCodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -98,11 +99,12 @@ class BaseModelSqlv2 {
 
     await this.selectObject({ qb });
 
-    qb.where(await this._wherePk(id));
+    qb.where(_wherePk(this.model.primaryKeys, id));
 
-    const data = (await this.extractRawQueryAndExec(qb))?.[0];
+    let data = (await this.extractRawQueryAndExec(qb))?.[0];
 
     if (data) {
+      data = this.convertAttachmentType(data);
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
@@ -157,9 +159,11 @@ class BaseModelSqlv2 {
     } else if (this.model.primaryKey) {
       qb.orderBy(this.model.primaryKey.column_name);
     }
-    const data = await this.extractRawQueryAndExec(qb.first());
+
+    let data = await this.extractRawQueryAndExec(qb.first());
 
     if (data) {
+      data = this.convertAttachmentType(data);
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
@@ -175,7 +179,7 @@ class BaseModelSqlv2 {
       sortArr?: Sort[];
       sort?: string | string[];
     } = {},
-    ignoreFilterSort = false
+    ignoreViewFilterAndSort = false
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
 
@@ -189,7 +193,7 @@ class BaseModelSqlv2 {
     let sorts = extractSortsObject(rest?.sort, aliasColObjMap);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     // todo: replace with view id
-    if (!ignoreFilterSort && this.viewId) {
+    if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         [
           new Filter({
@@ -249,9 +253,10 @@ class BaseModelSqlv2 {
       qb.orderBy('created_at');
     }
 
-    if (!ignoreFilterSort) applyPaginate(qb, rest);
+    if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    const data = await this.extractRawQueryAndExec(qb);
+    let data = await this.extractRawQueryAndExec(qb);
+    data = this.convertAttachmentType(data);
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -261,7 +266,7 @@ class BaseModelSqlv2 {
 
   public async count(
     args: { where?: string; limit?; filterArr?: Filter[] } = {},
-    ignoreFilterSort = false
+    ignoreViewFilterAndSort = false
   ): Promise<any> {
     await this.model.getColumns();
     const { where } = this._getListArgs(args);
@@ -272,7 +277,7 @@ class BaseModelSqlv2 {
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-    if (!ignoreFilterSort && this.viewId) {
+    if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         [
           new Filter({
@@ -363,8 +368,7 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-
-    return await this.extractRawQueryAndExec(qb);
+    return this.convertAttachmentType(await this.extractRawQueryAndExec(qb));
   }
 
   async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
@@ -390,7 +394,7 @@ class BaseModelSqlv2 {
         dbDriver: this.dbDriver,
       });
       await parentTable.getColumns();
-      
+
       const childTn = this.getTnPath(childTable);
       const parentTn = this.getTnPath(parentTable);
 
@@ -423,7 +427,8 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
-      const children = await this.extractRawQueryAndExec(childQb);
+      let children = await this.extractRawQueryAndExec(childQb);
+      children = this.convertAttachmentType(children);
       const proto = await (
         await Model.getBaseModelSQL({
           id: childTable.id,
@@ -550,7 +555,8 @@ class BaseModelSqlv2 {
 
       await childModel.selectObject({ qb });
 
-      const children = await this.extractRawQueryAndExec(qb);
+      let children = await this.extractRawQueryAndExec(qb);
+      children = this.convertAttachmentType(children);
 
       const proto = await (
         await Model.getBaseModelSQL({
@@ -671,6 +677,7 @@ class BaseModelSqlv2 {
     if (this.isMySQL) {
       children = children[0];
     }
+    children = this.convertAttachmentType(children);
     const proto = await (
       await Model.getBaseModelSQL({
         id: rtnId,
@@ -735,7 +742,8 @@ class BaseModelSqlv2 {
     qb.limit(+rest?.limit || 25);
     qb.offset(+rest?.offset || 0);
 
-    const children = await this.extractRawQueryAndExec(qb);
+    let children = await this.extractRawQueryAndExec(qb);
+    children = this.convertAttachmentType(children);
     const proto = await (
       await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
@@ -961,8 +969,9 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-
-    return (await this.extractRawQueryAndExec(qb)).map((c) => {
+    let data = await this.extractRawQueryAndExec(qb);
+    data = this.convertAttachmentType(data);
+    return data.map((c) => {
       c.__proto__ = proto;
       return c;
     });
@@ -1075,7 +1084,8 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    const data = await this.extractRawQueryAndExec(qb);
+    let data = await this.extractRawQueryAndExec(qb);
+    data = this.convertAttachmentType(data);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1193,12 +1203,26 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    const data = await this.extractRawQueryAndExec(qb);
+    let data = await this.extractRawQueryAndExec(qb);
+    data = this.convertAttachmentType(data);
 
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
     });
+  }
+
+  private async getSelectQueryBuilderForFormula(column: Column<any>) {
+    const formula = await column.getColOptions<FormulaColumn>();
+    if (formula.error) throw new Error(`Formula error: ${formula.error}`);
+    const selectQb = await formulaQueryBuilderv2(
+      formula.formula,
+      null,
+      this.dbDriver,
+      this.model
+    );
+
+    return selectQb;
   }
 
   async getProto() {
@@ -1415,24 +1439,54 @@ class BaseModelSqlv2 {
         case 'LinkToAnotherRecord':
         case 'Lookup':
           break;
+        case 'QrCode': {
+          const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
+          const qrValueColumn = await Column.get({
+            colId: qrCodeColumn.fk_qr_value_column_id,
+          });
+
+          // If the referenced value cannot be found: cancel current iteration
+          if (qrValueColumn == null) {
+            break;
+          }
+
+          switch (qrValueColumn.uidt) {
+            case UITypes.Formula:
+              try {
+                const selectQb = await this.getSelectQueryBuilderForFormula(
+                  qrValueColumn
+                );
+                qb.select({
+                  [column.column_name]: selectQb.builder,
+                });
+              } catch {
+                continue;
+              }
+              break;
+            default: {
+              qb.select({ [column.column_name]: qrValueColumn.column_name });
+              break;
+            }
+          }
+
+          break;
+        }
         case 'Formula':
           {
-            const formula = await column.getColOptions<FormulaColumn>();
-            if (formula.error) continue;
-            const selectQb = await formulaQueryBuilderv2(
-              formula.formula,
-              null,
-              this.dbDriver,
-              this.model
-              // this.aliasToColumn
-            );
-            // todo:  verify syntax of as ? / ??
-            qb.select(
-              this.dbDriver.raw(`?? as ??`, [
-                selectQb.builder,
-                sanitize(column.title),
-              ])
-            );
+            try {
+              const selectQb = await this.getSelectQueryBuilderForFormula(
+                column
+              );
+              // todo:  verify syntax of as ? / ??
+              qb.select(
+                this.dbDriver.raw(`?? as ??`, [
+                  selectQb.builder,
+                  sanitize(column.title),
+                ])
+              );
+            } catch {
+              continue;
+            }
           }
           break;
         case 'Rollup':
@@ -1636,9 +1690,9 @@ class BaseModelSqlv2 {
   private getTnPath(tb: Model) {
     const schema = (this.dbDriver as any).searchPath?.();
     const table =
-    this.isMssql && schema
-      ? this.dbDriver.raw('??.??', [schema, tb.table_name])
-      : tb.table_name;
+      this.isMssql && schema
+        ? this.dbDriver.raw('??.??', [schema, tb.table_name])
+        : tb.table_name;
     return table;
   }
 
@@ -1834,12 +1888,16 @@ class BaseModelSqlv2 {
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = this.isSqlite ? 10 : _chunkSize;
 
-      const response = (this.isPg || this.isMssql) ?
-        await this.dbDriver
-          .batchInsert(this.model.table_name, insertDatas, chunkSize)
-          .returning(this.model.primaryKey?.column_name) :
-        await this.dbDriver
-          .batchInsert(this.model.table_name, insertDatas, chunkSize);
+      const response =
+        this.isPg || this.isMssql
+          ? await this.dbDriver
+              .batchInsert(this.model.table_name, insertDatas, chunkSize)
+              .returning(this.model.primaryKey?.column_name)
+          : await this.dbDriver.batchInsert(
+              this.model.table_name,
+              insertDatas,
+              chunkSize
+            );
 
       await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
 
@@ -2226,6 +2284,7 @@ class BaseModelSqlv2 {
               f.uidt !== UITypes.Rollup &&
               f.uidt !== UITypes.Lookup &&
               f.uidt !== UITypes.Formula &&
+              f.uidt !== UITypes.QrCode &&
               f.uidt !== UITypes.SpecificDBType
           )
           .sort(
@@ -2312,10 +2371,11 @@ class BaseModelSqlv2 {
         );
       }
       // skip validation if `validate` is undefined or false
-      if (!column?.meta?.validate && !column?.validate) continue;
+      if (!column?.meta?.validate || !column?.validate) continue;
 
       const validate = column.getValidators();
       if (!validate) continue;
+
       const { func, msg } = validate;
       for (let j = 0; j < func.length; ++j) {
         const fn =
@@ -2328,10 +2388,8 @@ class BaseModelSqlv2 {
         const arg =
           typeof func[j] === 'string' ? columnValue + '' : columnValue;
         if (
-          !(fn.constructor.name === 'AsyncFunction'
-            ? await fn(arg)
-            : fn(arg)) &&
-          columnValue
+          ![null, undefined, ''].includes(columnValue) &&
+          !(fn.constructor.name === 'AsyncFunction' ? await fn(arg) : fn(arg))
         ) {
           NcError.badRequest(
             msg[j]
@@ -2545,7 +2603,7 @@ class BaseModelSqlv2 {
   public async groupedList(
     args: {
       groupColumnId: string;
-      ignoreFilterSort?: boolean;
+      ignoreViewFilterAndSort?: boolean;
       options?: (string | number | null | boolean)[];
     } & Partial<XcFilter>
   ): Promise<
@@ -2598,7 +2656,7 @@ class BaseModelSqlv2 {
       let sorts = extractSortsObject(args?.sort, aliasColObjMap);
       const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
       // todo: replace with view id
-      if (!args.ignoreFilterSort && this.viewId) {
+      if (!args.ignoreViewFilterAndSort && this.viewId) {
         await conditionV2(
           [
             new Filter({
@@ -2681,7 +2739,9 @@ class BaseModelSqlv2 {
       const proto = await this.getProto();
 
       //missing s3 url rewrite
-      const result = (await groupedQb)?.map((d) => {
+      let data = await groupedQb;
+      data = this.convertAttachmentType(data);
+      const result = data?.map((d) => {
         d.__proto__ = proto;
         return d;
       });
@@ -2712,7 +2772,10 @@ class BaseModelSqlv2 {
   }
 
   public async groupedListCount(
-    args: { groupColumnId: string; ignoreFilterSort?: boolean } & XcFilter
+    args: {
+      groupColumnId: string;
+      ignoreViewFilterAndSort?: boolean;
+    } & XcFilter
   ) {
     const column = await this.model
       .getColumns()
@@ -2731,7 +2794,7 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
     // todo: replace with view id
 
-    if (!args.ignoreFilterSort && this.viewId) {
+    if (!args.ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         [
           new Filter({
@@ -2795,6 +2858,35 @@ class BaseModelSqlv2 {
           this.dbDriver.raw(query).wrap('(', ') __nc_alias')
         )
       : await this.dbDriver.raw(query);
+  }
+
+  private _convertAttachmentType(attachmentColumns, d) {
+    attachmentColumns.forEach((col) => {
+      if (d[col.title] && typeof d[col.title] === 'string') {
+        d[col.title] = JSON.parse(d[col.title]);
+      }
+    });
+    return d;
+  }
+
+  private convertAttachmentType(data) {
+    // attachment is stored in text and parse in UI
+    // convertAttachmentType is used to convert the response in string to array of object in API response
+    if (data) {
+      const attachmentColumns = this.model.columns.filter(
+        (c) => c.uidt === UITypes.Attachment
+      );
+      if (attachmentColumns.length) {
+        if (Array.isArray(data)) {
+          data = data.map((d) =>
+            this._convertAttachmentType(attachmentColumns, d)
+          );
+        } else {
+          this._convertAttachmentType(attachmentColumns, data);
+        }
+      }
+    }
+    return data;
   }
 }
 

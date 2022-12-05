@@ -80,7 +80,12 @@ const isRowEmpty = (record: any, col: any) => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
+    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
+      return typeof record.row[coverImageColumn.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.title])
+        : record.row[coverImageColumn.title]
+    }
+    return []
   } catch (e) {
     return []
   }
@@ -163,14 +168,14 @@ watch(view, async (nextView) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full overflow-auto nc-gallery" data-nc="nc-gallery-wrapper">
+  <div class="flex flex-col h-full w-full overflow-auto nc-gallery" data-testid="nc-gallery-wrapper">
     <div class="nc-gallery-container grid gap-2 my-4 px-3">
       <div v-for="record in data" :key="`record-${record.row.id}`">
         <LazySmartsheetRow :row="record">
           <a-card
             hoverable
             class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-            :data-nc="`nc-gallery-card-${record.row.id}`"
+            :data-testid="`nc-gallery-card-${record.row.id}`"
             @click="expandFormClick($event, record)"
           >
             <template v-if="galleryData?.fk_cover_image_col_id" #cover>

@@ -1,7 +1,6 @@
 import User from '../../../models/User';
 import { v4 as uuidv4 } from 'uuid';
 import { promisify } from 'util';
-import { Tele } from 'nc-help';
 
 import bcrypt from 'bcryptjs';
 import Noco from '../../../Noco';
@@ -10,6 +9,7 @@ import ProjectUser from '../../../models/ProjectUser';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
 import NocoCache from '../../../cache/NocoCache';
+import { Tele } from 'nc-help';
 
 const { isEmail } = require('validator');
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };

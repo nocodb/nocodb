@@ -1,12 +1,13 @@
 import { nanoid } from 'nanoid';
 
 import knex from 'knex';
-import _ from 'lodash';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import queries from './pg.queries';
-import lodash from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import mapKeys from 'lodash/mapKeys';
+import find from 'lodash/find';
 const log = new Debug('PGClient');
 
 class PGClient extends KnexClient {
@@ -468,7 +469,9 @@ class PGClient extends KnexClient {
       }
       if (rows.length === 0) {
         log.debug('creating database:', args);
-        await tempSqlClient.raw(`CREATE DATABASE ?? ENCODING 'UTF8'`, [args.database]);
+        await tempSqlClient.raw(`CREATE DATABASE ?? ENCODING 'UTF8'`, [
+          args.database,
+        ]);
       }
 
       // if (this.connectionConfig.searchPath && this.connectionConfig.searchPath[0]) {
@@ -1427,7 +1430,7 @@ class PGClient extends KnexClient {
       if (response.length === 2) {
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
-          procedure = _.mapKeys(procedure, (_v, k) => k.toLowerCase());
+          procedure = mapKeys(procedure, (_v, k) => k.toLowerCase());
           procedure.create_procedure = procedure['create procedure'];
           rows.push(procedure);
         }
@@ -1640,7 +1643,7 @@ class PGClient extends KnexClient {
    */
   async _getQuery(args) {
     try {
-      if (_.isEmpty(this._version)) {
+      if (isEmpty(this._version)) {
         const result = await this.version();
         this._version = result.data.object;
         log.debug(
@@ -2202,7 +2205,7 @@ class PGClient extends KnexClient {
       let downQuery = '';
 
       for (let i = 0; i < args.columns.length; ++i) {
-        const oldColumn = lodash.find(originalColumns, {
+        const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
         });
 

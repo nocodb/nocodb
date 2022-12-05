@@ -447,18 +447,3 @@ services:
           cp /home/app/tests/sqlite-dump/sakila.db /home/sakila.db
           echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
           cd /home/app/  && npm i && npm run test:graphql
-
-
-    xc-cypress-test:
-      image: node:12.22.1-slim
-      ports:
-        - 8080:8080
-      volumes:
-        - ./:/home/app
-      command:
-        - /bin/bash
-        - -c
-        - |
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-          cd /home/app/ && npm i && npm run run
-

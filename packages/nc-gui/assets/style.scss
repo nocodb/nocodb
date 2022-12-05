@@ -86,6 +86,11 @@ a {
   @apply relative after:(absolute top-[-2px] right-[-2px] w-[8px] h-[8px] rounded-full bg-primary content-[''] !z-20);
 }
 
+// badge with count
+.nc-count-badge {
+  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-primary bg-opacity-100 text-white !text-[9px] !z-21;
+}
+
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn {
   @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
@@ -214,17 +219,13 @@ a {
   @apply z-1 relative color-transition rounded-md px-4 py-2 text-white;
 
   &::after {
-    @apply ring-opacity-100 ring-[2px] ring-slate-300 rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
+    @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
     content: '';
     z-index: -1;
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-accent;
-  }
-
-  &:active::after {
-    @apply ring ring-accent;
+    @apply transform scale-110;
   }
 }
 
@@ -261,7 +262,7 @@ a {
 }
 
 .ant-dropdown-menu-item, .ant-menu-item {
-  @apply !py-0 active:(ring ring-accent ring-opacity-100);
+  @apply py-0;
 }
 
 .ant-dropdown-menu-title-content,
@@ -284,4 +285,12 @@ a {
 
 .ant-modal {
   @apply !top-[50px];
+}
+
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  @apply bg-primary bg-opacity-20;
+}
+
+.ant-select-selection-search-input:focus {
+  @apply !ring-0;
 }

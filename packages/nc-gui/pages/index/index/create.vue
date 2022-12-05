@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import type { Form } from 'ant-design-vue'
+import type { VNodeRef } from '@vue/runtime-core'
 import {
   extractSdkResponseErrorMsg,
   message,
   navigateTo,
-  nextTick,
-  onMounted,
   projectTitleValidator,
   reactive,
   ref,
@@ -47,19 +46,7 @@ const createProject = async () => {
   }
 }
 
-// select and focus title field on load
-onMounted(async () => {
-  await nextTick(() => {
-    // todo: replace setTimeout and follow better approach
-    setTimeout(() => {
-      const input = form.value?.$el?.querySelector('input[type=text]')
-
-      input.setSelectionRange(0, formState.title.length)
-
-      input.focus()
-    }, 500)
-  })
-})
+const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -88,7 +75,7 @@ onMounted(async () => {
       @finish="createProject"
     >
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-        <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+        <a-input :ref="focus" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>
 
       <div class="text-center">

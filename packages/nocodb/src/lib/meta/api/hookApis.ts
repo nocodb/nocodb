@@ -1,3 +1,4 @@
+import { Tele } from 'nc-help';
 import catchError from '../helpers/catchError';
 import { Request, Response, Router } from 'express';
 import Hook from '../../models/Hook';
@@ -7,7 +8,6 @@ import { invokeWebhook } from '../helpers/webhookHelpers';
 import Model from '../../models/Model';
 import populateSamplePayload from '../helpers/populateSamplePayload';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export async function hookList(

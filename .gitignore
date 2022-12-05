@@ -84,10 +84,6 @@ mongod
 /packages/nocodb/docker/main.js.LICENSE.txt
 /packages/nocodb/noco_log.db
 
-# Cypress
-#=========
-shared.json
-
 # IDE
 *.vscode/*
 /scripts/Cypress/screenshots

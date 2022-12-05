@@ -1,10 +1,12 @@
 ---
-title: 'Audit'
+title: 'Team & Settings > Audit'
 description: 'NocoDB provides all the user operation logs under Audit log'
-position: 590
+position: 610
 category: 'Product'
-menuTitle: 'Audit'
+menuTitle: 'Team & Settings > Audit'
 ---
+
+## Overview
 
 We are keeping all the user operation logs under Audit. To access it, click the down arrow button next to Project Name on the top left side, then select `Team & Settings`.
 

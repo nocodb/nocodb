@@ -3,13 +3,13 @@ import path from 'path';
 
 import axios from 'axios';
 import { Router } from 'express';
-import { Tele } from 'nc-help';
 
 import { NcConfig } from '../../interface/config';
 import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 import Migrator from '../db/sql-migrator/lib/KnexMigrator';
 
 import Noco from '../Noco';
+import { Tele } from 'nc-help';
 import { GqlApiBuilder } from './gql/GqlApiBuilder';
 import { XCEeError } from '../meta/NcMetaMgr';
 import { RestApiBuilder } from './rest/RestApiBuilder';

@@ -14,7 +14,9 @@ import {
   inject,
   ref,
   resolveComponent,
+  useMenuCloseOnEsc,
   useNuxtApp,
+  useSmartsheetStoreOrThrow,
   useViewColumns,
   watch,
 } from '#imports'
@@ -45,7 +47,16 @@ const {
   hideAll,
   saveOrUpdate,
   metaColumnById,
+  loadViewColumns,
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+
+const { eventBus } = useSmartsheetStoreOrThrow()
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+    loadViewColumns()
+  }
+})
 
 watch(
   sortedAndFilteredFields,
@@ -55,7 +66,7 @@ watch(
   { immediate: true },
 )
 
-const isAnyFieldHidden = computed(() => filteredFieldList.value?.some((field) => !field.show))
+const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
 
 const onMove = (_event: { moved: { newIndex: number } }) => {
   // todo : sync with server
@@ -119,11 +130,15 @@ const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
+
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
-    <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
+  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
+    <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <MdiEyeOffOutline />
@@ -132,6 +147,8 @@ const getIcon = (c: ColumnType) =>
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
+
+          <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>
         </div>
       </a-button>
     </div>
@@ -139,7 +156,7 @@ const getIcon = (c: ColumnType) =>
     <template #overlay>
       <div
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
-        data-nc="nc-fields-menu"
+        data-testid="nc-fields-menu"
         @click.stop
       >
         <a-card
@@ -167,7 +184,7 @@ const getIcon = (c: ColumnType) =>
                 v-show="filteredFieldList.includes(field)"
                 :key="field.id"
                 class="px-2 py-1 flex items-center"
-                :data-nc="`nc-fields-menu-${field.title}`"
+                :data-testid="`nc-fields-menu-${field.title}`"
                 @click.stop
               >
                 <a-checkbox

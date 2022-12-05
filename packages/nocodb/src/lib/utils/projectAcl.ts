@@ -1,3 +1,5 @@
+import { OrgUserRoles } from 'nocodb-sdk';
+
 export default {
   owner: {
     exclude: {
@@ -160,7 +162,8 @@ export default {
       apiTokenList: true,
       apiTokenDelete: true,
 
-      gridViewCreate: true
+      gridViewCreate: true,
+      swaggerJson: true,
     },
   },
   commenter: {
@@ -224,6 +227,7 @@ export default {
       dataCount: true,
       apiTokenCreate: true,
       apiTokenList: true,
+      swaggerJson: true,
     },
   },
   viewer: {
@@ -297,26 +301,29 @@ export default {
       filterGet: true,
       filterChildrenRead: true,
 
-      gridViewCreate: true
+      gridViewCreate: true,
+      swaggerJson: true,
     },
   },
-  user_new: {
+  [OrgUserRoles.VIEWER]: {
     include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenDelete: true,
       passwordChange: true,
       projectList: true,
     },
   },
-  super: '*',
-  user: {
+  [OrgUserRoles.SUPER_ADMIN]: '*',
+  [OrgUserRoles.CREATOR]: {
     include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenDelete: true,
       upload: true,
       uploadViaURL: true,
       passwordChange: true,
-      pluginList: true,
-      pluginRead: true,
-      pluginTest: true,
       isPluginActive: true,
-      pluginUpdate: true,
       projectCreate: true,
       projectList: true,
       projectCost: true,

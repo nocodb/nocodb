@@ -298,7 +298,7 @@ const parseConditionV2 = async (
               [field, val] = [val, field];
               val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
             } else {
-              val = `%${val}%`;
+              val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
             }
             qb = qb.whereNot(
               field,

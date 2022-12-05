@@ -11,7 +11,6 @@ import extract from 'extract-zip';
 import isDocker from 'is-docker';
 import multer from 'multer';
 import { customAlphabet, nanoid } from 'nanoid';
-import { Tele } from 'nc-help';
 import slash from 'slash';
 import { v4 as uuidv4 } from 'uuid';
 import { ncp } from 'ncp';
@@ -27,6 +26,7 @@ import ExpressXcTsRoutesBt from '../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRout
 import ExpressXcTsRoutesHm from '../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutesHm';
 import NcHelp from '../utils/NcHelp';
 import mimetypes, { mimeIcons } from '../utils/mimeTypes';
+import { packageVersion } from '../utils/packageVersion';
 import projectAcl from '../utils/projectAcl';
 import Noco from '../Noco';
 import { GqlApiBuilder } from '../v1-legacy/gql/GqlApiBuilder';
@@ -34,7 +34,6 @@ import NcPluginMgr from '../v1-legacy/plugins/NcPluginMgr';
 import XcCache from '../v1-legacy/plugins/adapters/cache/XcCache';
 import { RestApiBuilder } from '../v1-legacy/rest/RestApiBuilder';
 import RestAuthCtrl from '../v1-legacy/rest/RestAuthCtrlEE';
-import { packageVersion } from 'nc-help';
 import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import { promisify } from 'util';
 import NcTemplateParser from '../v1-legacy/templates/NcTemplateParser';
@@ -42,6 +41,8 @@ import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
 import S3 from '../../lib/plugins/s3/S3';
 import { UITypes } from 'nocodb-sdk';
+import { Tele } from 'nc-help';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -134,6 +135,9 @@ export default class NcMetaMgr {
         storage: multer.diskStorage({
           // dest: path.join(this.config.toolDir, 'uploads')
         }),
+        limits: {
+          fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+        },
       });
       // router.post(this.config.dashboardPath, upload.single('file'));
       router.post(this.config.dashboardPath, upload.any());

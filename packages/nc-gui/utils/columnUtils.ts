@@ -1,7 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import LinkVariant from '~icons/mdi/link-variant'
-import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
+import QrCodeScan from '~icons/mdi/qrcode-scan'
 import FormatColorText from '~icons/mdi/format-color-text'
 import TextSubject from '~icons/mdi/text-subject'
 import JSONIcon from '~icons/mdi/code-json'
@@ -24,10 +24,10 @@ import TimerOutline from '~icons/mdi/timer-outline'
 import Star from '~icons/mdi/star'
 import MathIntegral from '~icons/mdi/math-integral'
 import MovieRoll from '~icons/mdi/movie-roll'
-import Counter from '~icons/mdi/counter'
 import CalendarClock from '~icons/mdi/calendar-clock'
 import ID from '~icons/mdi/identifier'
 import RulerSquareCompass from '~icons/mdi/ruler-square-compass'
+import MdiTextSearchVariant from '~icons/mdi/text-search-variant'
 
 const uiTypes = [
   {
@@ -37,7 +37,7 @@ const uiTypes = [
   },
   {
     name: UITypes.Lookup,
-    icon: TableColumnPlusBefore,
+    icon: MdiTextSearchVariant,
     virtual: 1,
   },
   {
@@ -123,16 +123,13 @@ const uiTypes = [
     virtual: 1,
   },
   {
-    name: UITypes.Count,
-    icon: Counter,
-  },
-  {
     name: UITypes.DateTime,
     icon: CalendarClock,
   },
   {
-    name: UITypes.AutoNumber,
-    icon: Numeric,
+    name: UITypes.QrCode,
+    icon: QrCodeScan,
+    virtual: 1,
   },
   {
     name: UITypes.Geometry,
@@ -183,4 +180,43 @@ const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
   return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)
 }
 
-export { uiTypes, getUIDTIcon, isColumnRequiredAndNull, isColumnRequired, isVirtualColRequired }
+const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {
+  let name = initName
+  let i = 1
+  while (columns.find((c) => c.title === name)) {
+    name = `${initName}_${i}`
+    i++
+  }
+  return name
+}
+
+const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
+  let uidt: UITypes
+  if (typeof colOrUidt === 'object') {
+    uidt = colOrUidt.uidt as UITypes
+  } else {
+    uidt = colOrUidt
+  }
+  return [
+    UITypes.LongText,
+    UITypes.SingleLineText,
+    UITypes.Number,
+    UITypes.PhoneNumber,
+    UITypes.Email,
+    UITypes.Decimal,
+    UITypes.Currency,
+    UITypes.Percent,
+    UITypes.Duration,
+    UITypes.JSON,
+  ].includes(uidt)
+}
+
+export {
+  uiTypes,
+  isTypableInputColumn,
+  getUIDTIcon,
+  getUniqueColumnName,
+  isColumnRequiredAndNull,
+  isColumnRequired,
+  isVirtualColRequired,
+}

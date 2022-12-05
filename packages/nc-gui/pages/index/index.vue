@@ -14,7 +14,7 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
       class="min-h-[calc(100vh_-_var(--header-height))] bg-primary bg-opacity-5 flex flex-wrap justify-between xl:flex-nowrap gap-6 py-6 px-4 md:(px-12 pt-65px)"
     >
       <div v-if="!appInfo.useFinnTheme" class="hidden xl:(flex)">
-        <div>
+        <div v-if="route.name === 'index-index'">
           <LazyGeneralSponsors />
         </div>
       </div>
@@ -25,7 +25,8 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 
       <div
         v-if="!appInfo.useFinnTheme"
-        class="flex-1 flex gap-6 flex-col justify-center items-center md:(flex-row justify-between items-start)"
+        :class="{ 'flex-1': route.name === 'index-index' }"
+        class="flex gap-6 flex-col justify-center items-center md:(flex-row justify-between items-start)"
       >
         <template v-if="route.name === 'index-index'">
           <TransitionGroup name="page" mode="out-in">

@@ -1,12 +1,12 @@
 const axios = require('axios').default;
 
-var info: any = {
+const info: any = {
   initialized: false,
 };
 
 async function initialize(shareId) {
   info.cookie = '';
-  let url = `https://airtable.com/${shareId}`;
+  const url = `https://airtable.com/${shareId}`;
 
   try {
     const hreq = await axios

@@ -45,22 +45,39 @@ const isSakilaMysqlToBeReset = async (
   parallelId: string,
   project?: Project
 ) => {
-  const tablesInDb: Array<string> = await knex.raw(
+  const tablesInDbInfo: Array<any> = await knex.raw(
     `SELECT table_name FROM information_schema.tables WHERE table_schema = 'test_sakila_${parallelId}'`
   );
 
+  const nonMetaTablesInDb = tablesInDbInfo[0]
+    .map((t) => t['TABLE_NAME'])
+    .filter((table) => table !== 'nc_evolutions');
+
+  const mysqlSakilaTablesAndViews = [
+    ...mysqlSakilaTables,
+    ...mysqlSakilaSqlViews,
+  ];
+
   if (
-    tablesInDb.length === 0 ||
-    (tablesInDb.length > 0 && !tablesInDb.includes(`actor`))
+    nonMetaTablesInDb.length === 0 ||
+    // If there are sakila tables
+    !nonMetaTablesInDb.includes(`actor`) ||
+    // If there are no pg sakila tables in tables in db
+    !(
+      nonMetaTablesInDb.length === mysqlSakilaTablesAndViews.length &&
+      nonMetaTablesInDb.every((t) => mysqlSakilaTablesAndViews.includes(t))
+    )
   ) {
     return true;
   }
 
-  if (!project) return false;
+  if (!project) return true;
 
   const audits = await Audit.projectAuditList(project.id, {});
 
-  return audits?.length > 0;
+  // todo: Will be fixed in the data resetting revamp
+  console.log(`audits:resetMysqlSakilaProject:${parallelId}`, audits?.length);
+  return true;
 };
 
 const resetSakilaMysql = async (
@@ -150,5 +167,34 @@ const resetMysqlSakilaProject = async ({
 
   await nc_knex.destroy();
 };
+
+const mysqlSakilaTables = [
+  'actor',
+  'address',
+  'category',
+  'city',
+  'country',
+  'customer',
+  'film',
+  'film_text',
+  'film_actor',
+  'film_category',
+  'inventory',
+  'language',
+  'payment',
+  'rental',
+  'staff',
+  'store',
+];
+
+const mysqlSakilaSqlViews = [
+  'actor_info',
+  'customer_list',
+  'film_list',
+  'nicer_but_slower_film_list',
+  'sales_by_film_category',
+  'sales_by_store',
+  'staff_list',
+];
 
 export default resetMysqlSakilaProject;

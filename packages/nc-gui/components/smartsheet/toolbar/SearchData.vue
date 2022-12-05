@@ -1,9 +1,22 @@
 <script lang="ts" setup>
-import { ReloadViewDataHookInj, computed, inject, onClickOutside, ref, useSmartsheetStoreOrThrow } from '#imports'
+import {
+  ActiveViewInj,
+  ReloadViewDataHookInj,
+  computed,
+  inject,
+  onClickOutside,
+  ref,
+  useFieldQuery,
+  useSmartsheetStoreOrThrow,
+} from '#imports'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
-const { search, meta } = useSmartsheetStoreOrThrow()
+const { meta } = useSmartsheetStoreOrThrow()
+
+const activeView = inject(ActiveViewInj, ref())
+
+const { search, loadFieldQuery } = useFieldQuery(activeView)
 
 const isDropdownOpen = ref(false)
 
@@ -16,6 +29,16 @@ const columns = computed(() =>
     value: c.id,
     label: c.title,
   })),
+)
+
+watch(
+  () => activeView.value?.id,
+  (n, o) => {
+    if (n !== o) {
+      loadFieldQuery(activeView)
+    }
+  },
+  { immediate: true },
 )
 
 function onPressEnter() {

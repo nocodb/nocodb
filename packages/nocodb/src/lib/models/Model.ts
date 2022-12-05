@@ -248,7 +248,6 @@ export default class Model implements TableType {
       ));
     if (!modelData) {
       modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, k);
-      await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
       // if (
       //   this.baseModels?.[modelData.base_id]?.[modelData.db_alias]?.[
       //     modelData.title
@@ -269,6 +268,7 @@ export default class Model implements TableType {
       // }
     }
     if (modelData) {
+      await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
       return new Model(modelData);
     }
     return null;

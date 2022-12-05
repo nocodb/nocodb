@@ -1,5 +1,6 @@
 // // Project CRUD
 
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import Model from '../../models/Model';
 import Project from '../../models/Project';
@@ -14,7 +15,6 @@ import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import NcHelp from '../../utils/NcHelp';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
-import { Tele } from 'nc-help';
 import getColumnUiType from '../helpers/getColumnUiType';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 

@@ -33,6 +33,8 @@ provide(IsGalleryInj, ref(false))
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
+const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
+
 const state = useGlobal()
 
 const formRef = ref()
@@ -227,7 +229,7 @@ async function addAllColumns() {
 }
 
 function shouldSkipColumn(col: Record<string, any>) {
-  return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf)
+  return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf) || col.uidt === UITypes.QrCode
 }
 
 async function removeAllColumns() {
@@ -256,7 +258,7 @@ async function checkSMTPStatus() {
 }
 
 function setFormData() {
-  const col = (formColumnData as Record<string, any>)?.value
+  const col = formColumnData?.value || []
 
   formViewData.value = {
     ...formViewData.value,
@@ -273,27 +275,14 @@ function setFormData() {
   emailMe.value = data[state.user.value?.email as string]
 
   localColumns.value = col
-    .filter(
-      (f: Record<string, any>) =>
-        f.show &&
-        f.uidt !== UITypes.Rollup &&
-        f.uidt !== UITypes.Lookup &&
-        f.uidt !== UITypes.Formula &&
-        f.uidt !== UITypes.SpecificDBType,
-    )
-    .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
-    .map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) }))
+    .filter((f) => f.show && !hiddenColTypes.includes(f.uidt))
+    .sort((a, b) => a.order - b.order)
+    .map((c) => ({ ...c, required: !!c.required }))
 
-  systemFieldsIds.value = getSystemColumns(col).map((c: Record<string, any>) => c.fk_column_id)
+  systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
-    (f: Record<string, any>) =>
-      !f.show &&
-      !systemFieldsIds.value.includes(f.fk_column_id) &&
-      f.uidt !== UITypes.Rollup &&
-      f.uidt !== UITypes.Lookup &&
-      f.uidt !== UITypes.Formula &&
-      f.uidt !== UITypes.SpecificDBType,
+    (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !hiddenColTypes.includes(f.uidt),
   )
 }
 
@@ -387,7 +376,7 @@ watch(view, (nextView) => {
 </script>
 
 <template>
-  <a-row v-if="submitted" class="h-full" data-nc="nc-form-wrapper-submit">
+  <a-row v-if="submitted" class="h-full" data-testid="nc-form-wrapper-submit">
     <a-col :span="24">
       <div v-if="formViewData" class="items-center justify-center text-center mt-2">
         <a-alert type="success">
@@ -407,7 +396,7 @@ watch(view, (nextView) => {
     </a-col>
   </a-row>
 
-  <a-row v-else class="h-full flex" data-nc="nc-form-wrapper">
+  <a-row v-else class="h-full flex" data-testid="nc-form-wrapper">
     <a-col v-if="isEditable" :span="8" class="shadow p-2 md:p-4 h-full overflow-auto scrollbar-thin-dull nc-form-left-drawer">
       <div class="flex flex-wrap gap-2">
         <div class="flex-1 text-lg">
@@ -419,7 +408,7 @@ watch(view, (nextView) => {
             v-if="hiddenColumns.length"
             type="button"
             class="nc-form-add-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
-            data-nc="nc-form-add-all"
+            data-testid="nc-form-add-all"
             @click="addAllColumns"
           >
             <!-- Add all -->
@@ -430,7 +419,7 @@ watch(view, (nextView) => {
             v-if="localColumns.length"
             type="button"
             class="nc-form-remove-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
-            data-nc="nc-form-remove-all"
+            data-testid="nc-form-remove-all"
             @click="removeAllColumns"
           >
             <!-- Remove all -->
@@ -452,7 +441,7 @@ watch(view, (nextView) => {
           <a-card
             size="small"
             class="!border-0 color-transition cursor-pointer item hover:(bg-primary ring-1 ring-accent ring-opacity-100) bg-opacity-10 !rounded !shadow-lg"
-            :data-nc="`nc-form-hidden-column-${element.label || element.title}`"
+            :data-testid="`nc-form-hidden-column-${element.label || element.title}`"
             @mousedown="moved = false"
             @mousemove="moved = false"
             @mouseup="handleMouseUp(element, index)"
@@ -480,7 +469,7 @@ watch(view, (nextView) => {
         <template #footer>
           <div
             class="my-4 select-none border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide"
-            data-nc="nc-drag-n-drop-to-hide"
+            data-testid="nc-drag-n-drop-to-hide"
           >
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
@@ -538,7 +527,7 @@ watch(view, (nextView) => {
                   hide-details
                   placeholder="Form Title"
                   :bordered="false"
-                  data-nc="nc-form-heading"
+                  data-testid="nc-form-heading"
                   @blur="updateView"
                   @keydown.enter="updateView"
                 />
@@ -558,7 +547,7 @@ watch(view, (nextView) => {
                   :placeholder="$t('msg.info.formDesc')"
                   :bordered="false"
                   :disabled="!isEditable"
-                  data-nc="nc-form-sub-heading"
+                  data-testid="nc-form-sub-heading"
                   @blur="updateView"
                   @click="updateView"
                 />
@@ -588,7 +577,7 @@ watch(view, (nextView) => {
                       'bg-primary bg-opacity-5 ring-0.5 ring-accent ring-opacity-100': activeRow === element.title,
                     },
                   ]"
-                  data-nc="nc-form-fields"
+                  data-testid="nc-form-fields"
                   @click="activeRow = element.title"
                 >
                   <div
@@ -597,7 +586,7 @@ watch(view, (nextView) => {
                   >
                     <MdiEyeOffOutline
                       class="opacity-0 nc-field-remove-icon"
-                      data-nc="nc-field-remove-icon"
+                      data-testid="nc-field-remove-icon"
                       @click.stop="hideColumn(index)"
                     />
                   </div>
@@ -606,7 +595,7 @@ watch(view, (nextView) => {
                     <div class="flex gap-2 items-center">
                       <span
                         class="text-gray-500 mr-2 nc-form-input-required"
-                        data-nc="nc-form-input-required"
+                        data-testid="nc-form-input-required"
                         @click="
                           () => {
                             element.required = !element.required
@@ -630,7 +619,7 @@ watch(view, (nextView) => {
                         v-model:value="element.label"
                         type="text"
                         class="form-meta-input nc-form-input-label"
-                        data-nc="nc-form-input-label"
+                        data-testid="nc-form-input-label"
                         :placeholder="$t('msg.info.formInput')"
                         @change="updateColMeta(element)"
                       >
@@ -642,7 +631,7 @@ watch(view, (nextView) => {
                         v-model:value="element.description"
                         type="text"
                         class="form-meta-input text-sm nc-form-input-help-text"
-                        data-nc="nc-form-input-help-text"
+                        data-testid="nc-form-input-help-text"
                         :placeholder="$t('msg.info.formHelpText')"
                         @change="updateColMeta(element)"
                       />
@@ -655,7 +644,7 @@ watch(view, (nextView) => {
                       :column="{ ...element, title: element.label || element.title }"
                       :required="isRequired(element, element.required)"
                       :hide-menu="true"
-                      data-nc="nc-form-input-label"
+                      data-testid="nc-form-input-label"
                     />
 
                     <LazySmartsheetHeaderCell
@@ -663,7 +652,7 @@ watch(view, (nextView) => {
                       :column="{ ...element, title: element.label || element.title }"
                       :required="isRequired(element, element.required)"
                       :hide-menu="true"
-                      data-nc="nc-form-input-label"
+                      data-testid="nc-form-input-label"
                     />
                   </div>
 
@@ -678,7 +667,7 @@ watch(view, (nextView) => {
                       :row="row"
                       class="nc-input"
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                      :data-nc="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
                       @click.stop.prevent
                     />
@@ -694,14 +683,14 @@ watch(view, (nextView) => {
                       v-model="formState[element.title]"
                       class="nc-input"
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                      :data-nc="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
                       :edit-enabled="true"
                       @click.stop.prevent
                     />
                   </a-form-item>
 
-                  <div class="text-gray-500 text-xs" data-nc="nc-form-input-help-text-label">{{ element.description }}</div>
+                  <div class="text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
                 </div>
               </template>
 
@@ -716,7 +705,7 @@ watch(view, (nextView) => {
             </Draggable>
 
             <div class="justify-center flex mt-6">
-              <button type="submit" class="uppercase scaling-btn nc-form-submit" data-nc="nc-form-submit" @click="submitForm">
+              <button type="submit" class="uppercase scaling-btn nc-form-submit" data-testid="nc-form-submit" @click="submitForm">
                 {{ $t('general.submit') }}
               </button>
             </div>
@@ -738,7 +727,7 @@ watch(view, (nextView) => {
             :rows="3"
             hide-details
             class="nc-form-after-submit-msg"
-            data-nc="nc-form-after-submit-msg"
+            data-testid="nc-form-after-submit-msg"
             @change="updateView"
           />
 
@@ -751,7 +740,7 @@ watch(view, (nextView) => {
                 v-e="[`a:form-view:submit-another-form`]"
                 size="small"
                 class="nc-form-checkbox-submit-another-form"
-                data-nc="nc-form-checkbox-submit-another-form"
+                data-testid="nc-form-checkbox-submit-another-form"
                 @change="updateView"
               />
               <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
@@ -764,7 +753,7 @@ watch(view, (nextView) => {
                 v-e="[`a:form-view:show-blank-form`]"
                 size="small"
                 class="nc-form-checkbox-show-blank-form"
-                data-nc="nc-form-checkbox-show-blank-form"
+                data-testid="nc-form-checkbox-show-blank-form"
                 @change="updateView"
               />
 
@@ -777,7 +766,7 @@ watch(view, (nextView) => {
                 v-e="[`a:form-view:email-me`]"
                 size="small"
                 class="nc-form-checkbox-send-email"
-                data-nc="nc-form-checkbox-send-email"
+                data-testid="nc-form-checkbox-send-email"
                 @change="onEmailChange"
               />
 

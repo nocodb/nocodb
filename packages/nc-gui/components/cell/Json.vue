@@ -1,5 +1,17 @@
 <script setup lang="ts">
-import { Modal as AModal, EditModeInj, IsFormInj, ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
+import {
+  Modal as AModal,
+  ActiveCellInj,
+  EditModeInj,
+  IsFormInj,
+  ReadonlyInj,
+  computed,
+  inject,
+  ref,
+  useSelectedCellKeyupListener,
+  useVModel,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any> | undefined
@@ -14,6 +26,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const editEnabled = inject(EditModeInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -88,6 +102,22 @@ watch(editEnabled, () => {
   isExpanded = false
 
   localValue.value = vModel.value
+})
+
+useSelectedCellKeyupListener(active, (e) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      if (e.shiftKey) {
+        return true
+      }
+      if (editEnabled.value) {
+        onSave()
+      } else {
+        editEnabled.value = true
+      }
+      break
+  }
 })
 </script>
 

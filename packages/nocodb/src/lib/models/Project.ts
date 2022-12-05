@@ -199,6 +199,8 @@ export default class Project implements ProjectType {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
     }
 
+    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
+
     await NocoCache.del(CacheScope.INSTANCE_META);
 
     // remove item in cache list
@@ -296,6 +298,8 @@ export default class Project implements ProjectType {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${project.title}`);
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${project.id}`);
     }
+
+    await NocoCache.delAll(CacheScope.USER_PROJECT, '*');
 
     await NocoCache.deepDel(
       CacheScope.PROJECT,

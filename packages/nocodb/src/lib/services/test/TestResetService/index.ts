@@ -1,17 +1,15 @@
-import Noco from '../../../Noco';
-
-import { Knex } from 'knex';
 import axios from 'axios';
 import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
-import Model from '../../../models/Model';
 import resetPgSakilaProject from './resetPgSakilaProject';
 import User from '../../../models/User';
 import NocoCache from '../../../cache/NocoCache';
 import { CacheScope } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
+
+const workerStatus = {};
 
 const loginRootUser = async () => {
   const response = await axios.post(
@@ -29,8 +27,9 @@ const projectTitleByType = {
 };
 
 export class TestResetService {
-  private knex: Knex | null = null;
   private readonly parallelId;
+  // todo: Hack to resolve issue with pg resetting
+  private readonly workerId;
   private readonly dbType;
   private readonly isEmptyProject: boolean;
 
@@ -38,47 +37,71 @@ export class TestResetService {
     parallelId,
     dbType,
     isEmptyProject,
+    workerId,
   }: {
     parallelId: string;
     dbType: string;
     isEmptyProject: boolean;
+    workerId: string;
   }) {
-    this.knex = Noco.ncMeta.knex;
     this.parallelId = parallelId;
     this.dbType = dbType;
     this.isEmptyProject = isEmptyProject;
+    this.workerId = workerId;
   }
 
   async process() {
     try {
+      // console.log(
+      //   `earlier workerStatus: parrelledId: ${this.parallelId}:`,
+      //   workerStatus[this.parallelId]
+      // );
+
+      // wait till previous worker is done
+      while (workerStatus[this.parallelId] === 'processing') {
+        console.log(
+          `waiting for previous worker to finish parrelelId:${this.parallelId}`
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      workerStatus[this.parallelId] = 'processing';
+
       const token = await loginRootUser();
 
       const { project } = await this.resetProject({
-        metaKnex: this.knex,
         token,
         dbType: this.dbType,
         parallelId: this.parallelId,
+        workerId: this.workerId,
       });
 
-      await removeAllPrefixedUsersExceptSuper(this.parallelId);
+      try {
+        await removeAllProjectCreatedByTheTest(this.parallelId);
+        await removeAllPrefixedUsersExceptSuper(this.parallelId);
+      } catch (e) {
+        console.log(`Error in cleaning up project: ${this.parallelId}`, e);
+      }
 
+      workerStatus[this.parallelId] = 'completed';
       return { token, project };
     } catch (e) {
       console.error('TestResetService:process', e);
+      workerStatus[this.parallelId] = 'errored';
       return { error: e };
     }
   }
 
   async resetProject({
-    metaKnex,
     token,
     dbType,
     parallelId,
+    workerId,
   }: {
-    metaKnex: Knex;
     token: string;
     dbType: string;
     parallelId: string;
+    workerId: string;
   }) {
     const title = `${projectTitleByType[dbType]}${parallelId}`;
     const project: Project | undefined = await Project.getByTitle(title);
@@ -87,18 +110,19 @@ export class TestResetService {
       await removeProjectUsersFromCache(project);
 
       const bases = await project.getBases();
-      if (dbType == 'sqlite') await dropTablesOfProject(metaKnex, project);
-      await Project.delete(project.id);
 
-      if (bases.length > 0) await NcConnectionMgrv2.deleteAwait(bases[0]);
+      if (bases.length > 0) {
+        await NcConnectionMgrv2.deleteAwait(bases[0]);
+      }
+
+      await Project.delete(project.id);
     }
 
     if (dbType == 'sqlite') {
       await resetMetaSakilaSqliteProject({
         token,
-        metaKnex,
         title,
-        oldProject: project,
+        parallelId,
         isEmptyProject: this.isEmptyProject,
       });
     } else if (dbType == 'mysql') {
@@ -113,7 +137,7 @@ export class TestResetService {
       await resetPgSakilaProject({
         token,
         title,
-        parallelId,
+        parallelId: workerId,
         oldProject: project,
         isEmptyProject: this.isEmptyProject,
       });
@@ -125,17 +149,12 @@ export class TestResetService {
   }
 }
 
-const dropTablesOfProject = async (knex: Knex, project: Project) => {
-  const tables = await Model.list({
-    project_id: project.id,
-    base_id: (await project.getBases())[0].id,
-  });
+const removeAllProjectCreatedByTheTest = async (parallelId: string) => {
+  const projects = await Project.list({});
 
-  for (const table of tables) {
-    if (table.type == 'table') {
-      await knex.raw(`DROP TABLE IF EXISTS ${table.table_name}`);
-    } else {
-      await knex.raw(`DROP VIEW IF EXISTS ${table.table_name}`);
+  for (const project of projects) {
+    if (project.title.startsWith(`nc_test_${parallelId}_`)) {
+      await Project.delete(project.id);
     }
   }
 };
@@ -146,7 +165,7 @@ const removeAllPrefixedUsersExceptSuper = async (parallelId: string) => {
   );
 
   for (const user of users) {
-    if(user.email.startsWith(`nc_test_${parallelId}_`)) {
+    if (user.email.startsWith(`nc_test_${parallelId}_`)) {
       await NocoCache.del(`${CacheScope.USER}:${user.email}`);
       await User.delete(user.id);
     }

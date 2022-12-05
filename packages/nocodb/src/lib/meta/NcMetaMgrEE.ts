@@ -1,5 +1,5 @@
-import { Tele } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
+import { Tele } from 'nc-help';
 
 import NcMetaMgr from './NcMetaMgr';
 

@@ -7,4 +7,6 @@ export const AllowedColumnTypesForQrCode = [
   UITypes.PhoneNumber,
   UITypes.URL,
   UITypes.Email,
+  UITypes.Decimal,
+  UITypes.Number,
 ];

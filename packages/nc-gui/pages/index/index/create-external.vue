@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
+import type { DefaultConnection, ProjectCreateForm } from '#imports'
 import {
   CertTypes,
+  ClientType,
   Form,
   Modal,
   SSLUsage,
@@ -25,8 +27,6 @@ import {
   useSidebar,
   watch,
 } from '#imports'
-import { ClientType } from '~/lib'
-import type { DefaultConnection, ProjectCreateForm } from '~/utils'
 
 const useForm = Form.useForm
 

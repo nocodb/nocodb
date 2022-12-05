@@ -18,8 +18,9 @@ import {
   watch,
 } from '#imports'
 
-const { modelValue } = defineProps<{
+const { modelValue, baseId } = defineProps<{
   modelValue: boolean
+  baseId: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -100,7 +101,7 @@ async function createOrUpdate() {
         body: payload,
       })
     } else {
-      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
         baseURL,
         method: 'POST',
         headers: { 'xc-auth': $state.token.value as string },
@@ -113,7 +114,7 @@ async function createOrUpdate() {
 }
 
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+  const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
     baseURL,
     method: 'GET',
     headers: { 'xc-auth': $state.token.value as string },

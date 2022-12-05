@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
-import { computed, useColumnCreateStoreOrThrow, useProject, useVModel } from '#imports'
+import { computed, useColumnCreateStoreOrThrow, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -10,9 +10,7 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { sqlUi } = useProject()
-
-const { onAlter, onDataTypeChange, validateInfos } = useColumnCreateStoreOrThrow()
+const { onAlter, onDataTypeChange, validateInfos, sqlUi } = useColumnCreateStoreOrThrow()
 
 // todo: 2nd argument of `getDataTypeListForUiType` is missing!
 const dataTypes = computed(() => sqlUi.value.getDataTypeListForUiType(vModel.value as { uidt: UITypes }, '' as any))

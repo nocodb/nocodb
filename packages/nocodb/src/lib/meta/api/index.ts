@@ -3,6 +3,7 @@ import orgLicenseApis from './orgLicenseApis';
 import orgTokenApis from './orgTokenApis';
 import orgUserApis from './orgUserApis';
 import projectApis from './projectApis';
+import baseApis from './baseApis';
 import tableApis from './tableApis';
 import columnApis from './columnApis';
 import { Router } from 'express';
@@ -60,6 +61,7 @@ const jobs: { [id: string]: { last_message: any } } = {};
 export default function (router: Router, server) {
   initStrategies(router);
   projectApis(router);
+  baseApis(router);
   utilApis(router);
 
   if (process.env['PLAYWRIGHT_TEST'] === 'true') {

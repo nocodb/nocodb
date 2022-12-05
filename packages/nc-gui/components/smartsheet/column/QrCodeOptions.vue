@@ -25,10 +25,7 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
   return fields.value
     ?.filter(
-      (el) =>
-        el.fk_column_id &&
-        // AllowedColumnTypesForQrCode.map((el) => el.toString()).includes(metaColumnById.value[el.fk_column_id].uidt),
-        AllowedColumnTypesForQrCode.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
+      (el) => el.fk_column_id && AllowedColumnTypesForQrCode.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
     )
     .map((field) => {
       return {

@@ -49,13 +49,11 @@ const validators = {
   ],
 }
 
-const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, isPg } = useColumnCreateStoreOrThrow()
 
 setAdditionalValidations({
   ...validators,
 })
-
-const { isPg } = useProject()
 
 const currencyList = currencyCodes || []
 
@@ -64,7 +62,7 @@ const currencyLocaleList = currencyLocales() || []
 const isMoney = computed(() => vModel.value.dt === 'money')
 
 const message = computed(() => {
-  if (isMoney.value && isPg) return "PostgreSQL 'money' type has own currency settings"
+  if (isMoney.value && isPg.value) return "PostgreSQL 'money' type has own currency settings"
   return ''
 })
 

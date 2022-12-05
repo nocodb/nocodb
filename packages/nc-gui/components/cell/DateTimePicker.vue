@@ -31,14 +31,14 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
-const columnMeta = inject(ColumnInj, null)!
+const column = inject(ColumnInj)!
 
 let isDateInvalid = $ref(false)
 
 const dateTimeFormat = $computed(() => {
-  const dateFormat = columnMeta?.value?.meta?.date_format ?? dateFormats[0]
-  const timeFormat = columnMeta?.value?.meta?.time_format ?? timeFormats[0]
-  return `${dateFormat} ${timeFormat}${!isMysql ? 'Z' : ''}`
+  const dateFormat = column?.value?.meta?.date_format ?? dateFormats[0]
+  const timeFormat = column?.value?.meta?.time_format ?? timeFormats[0]
+  return `${dateFormat} ${timeFormat}`
 })
 
 let localState = $computed({
@@ -61,7 +61,7 @@ let localState = $computed({
     }
 
     if (val.isValid()) {
-      emit('update:modelValue', val?.format('YYYY-MM-DD HH:mm:ss'))
+      emit('update:modelValue', val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
     }
   },
 })

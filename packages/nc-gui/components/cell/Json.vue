@@ -135,13 +135,13 @@ useSelectedCellKeyupListener(active, (e) => {
           <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
 
           <a-button type="primary" size="small" :disabled="!!error || localValue === vModel">
-            <div class="text-xs" :onclick="onSave">Save</div>
+            <div class="text-xs" @click="onSave">Save</div>
           </a-button>
         </div>
       </div>
 
       <LazyMonacoEditor
-        :model-value="localValue"
+        :model-value="localValue || ''"
         class="min-w-full w-80"
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
         :hide-minimap="true"

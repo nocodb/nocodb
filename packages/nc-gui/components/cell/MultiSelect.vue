@@ -105,7 +105,7 @@ const vModel = computed({
 const selectedTitles = computed(() =>
   modelValue
     ? typeof modelValue === 'string'
-      ? isMysql
+      ? isMysql(column.value.base_id)
         ? modelValue.split(',').sort((a, b) => {
             const opa = options.value.find((el) => el.title === a)
             const opb = options.value.find((el) => el.title === b)

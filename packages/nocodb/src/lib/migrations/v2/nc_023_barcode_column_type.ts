@@ -13,6 +13,7 @@ const up = async (knex: Knex) => {
       .foreign('fk_barcode_value_column_id')
       .references(`${MetaTable.COLUMNS}.id`);
 
+    table.string('barcode_format', 15);
     table.boolean('deleted');
     table.float('order');
     table.timestamps(true, true);

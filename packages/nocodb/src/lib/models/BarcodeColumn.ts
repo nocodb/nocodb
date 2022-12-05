@@ -6,6 +6,7 @@ import { extractProps } from '../meta/helpers/extractProps';
 export default class BarcodeColumn {
   fk_column_id: string;
   fk_barcode_value_column_id: string;
+  barcode_format: string;
 
   constructor(data: Partial<BarcodeColumn>) {
     Object.assign(this, data);
@@ -18,6 +19,7 @@ export default class BarcodeColumn {
     await ncMeta.metaInsert2(null, null, MetaTable.COL_BARCODE, {
       fk_column_id: data.fk_column_id,
       fk_barcode_value_column_id: data.fk_barcode_value_column_id,
+      barcode_format: data.barcode_format,
     });
 
     return this.read(data.fk_column_id, ncMeta);
@@ -52,6 +54,7 @@ export default class BarcodeColumn {
     const updateObj = extractProps(barcode, [
       'fk_column_id',
       'fk_barcode_value_column_id',
+      'barcode_format',
     ]);
     // get existing cache
     const key = `${CacheScope.COL_BARCODE}:${id}`;

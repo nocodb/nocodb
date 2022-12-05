@@ -240,6 +240,7 @@ export default class Column<T = any> implements ColumnType {
           {
             fk_column_id: colId,
             fk_barcode_value_column_id: column.fk_barcode_value_column_id,
+            barcode_format: column.barcode_format,
           },
           ncMeta
         );

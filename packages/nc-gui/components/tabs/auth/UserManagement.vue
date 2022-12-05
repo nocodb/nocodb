@@ -30,8 +30,6 @@ const { copy } = useCopy()
 
 const { isUIAllowed } = useUIPermission()
 
-const { appInfo } = useGlobal()
-
 const { dashboardUrl } = $(useDashboard())
 
 let users = $ref<null | User[]>(null)

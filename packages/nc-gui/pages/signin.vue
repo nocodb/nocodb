@@ -65,7 +65,6 @@ function resetError() {
 const isSignupAllowed = () => {
   return !appInfo?.value?.noSignUp || appInfo?.value?.firstUser
 }
-
 </script>
 
 <template>

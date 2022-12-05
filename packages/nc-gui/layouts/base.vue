@@ -2,7 +2,7 @@
 import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar, useUIPermission } from '#imports'
 import NocoHeaderLogo from '~/components/general/NocoHeaderLogo'
 
-const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
+const { signOut, signedIn, isLoading, user } = useGlobal()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 

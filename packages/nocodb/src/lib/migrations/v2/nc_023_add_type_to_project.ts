@@ -1,0 +1,17 @@
+import { MetaTable } from '../../utils/globals';
+import { Knex } from 'knex';
+
+const up = async (knex: Knex) => {
+  await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
+    // todo: add enum and sync existing projects
+    table.string('type', 20).nullable();
+  });
+};
+
+const down = async (knex: Knex) => {
+  await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
+    table.dropColumn('type');
+  });
+};
+
+export { up, down };

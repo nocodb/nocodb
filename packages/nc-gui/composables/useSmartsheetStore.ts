@@ -52,10 +52,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const tableName = computed(() => (meta.value as TableType)?.table_name)
 
-    watch(() => tableName.value, () => {
-      search.field = ''
-      search.query = ''
-    })
+    watch(
+      () => tableName.value,
+      () => {
+        search.field = ''
+        search.query = ''
+      },
+    )
 
     return {
       view,

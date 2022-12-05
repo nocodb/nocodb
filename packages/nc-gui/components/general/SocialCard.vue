@@ -3,7 +3,7 @@ import { enumColor as colors, useDialog, useGlobal, useNuxtApp } from '#imports'
 
 const { $e } = useNuxtApp()
 
-const { lang: currentLang, appInfo } = useGlobal()
+const { lang: currentLang } = useGlobal()
 
 const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
 
@@ -83,21 +83,21 @@ function openKeyboardShortcutDialog() {
           </div>
         </nuxt-link>
       </a-list-item>
-      
+
       <a-list-item>
-          <nuxt-link
-            v-e="['e:community:book-demo']"
-            class="!no-underline !text-current"
-            to="https://calendly.com/nocodb-meeting"
-            target="_blank"
-          >
-            <div class="flex items-center text-sm">
-              <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
-              <!-- Book a Free DEMO -->
-              <div>
-                {{ $t('labels.community.bookDemo') }}
-              </div>
+        <nuxt-link
+          v-e="['e:community:book-demo']"
+          class="!no-underline !text-current"
+          to="https://calendly.com/nocodb-meeting"
+          target="_blank"
+        >
+          <div class="flex items-center text-sm">
+            <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
+            <!-- Book a Free DEMO -->
+            <div>
+              {{ $t('labels.community.bookDemo') }}
             </div>
+          </div>
         </nuxt-link>
       </a-list-item>
 

@@ -12,14 +12,14 @@ import {
   useRoute,
   useRouter,
   useSidebar,
+  useTabs,
   useUIPermission,
   useViews,
   watch,
-  useTabs
-} from "#imports";
+} from '#imports'
 
 const meta = inject(MetaInj, ref())
-const { activeTab } = useTabs();
+const { activeTab } = useTabs()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -75,12 +75,16 @@ watch(
     } else if (lastOpenedView) {
       /** if active view is not found, set it to last opened view */
       router.replace({
-          params: {
-            viewTitle: lastOpenedView.title,
-          },
-        })
+        params: {
+          viewTitle: lastOpenedView.title,
+        },
+      })
     } else {
-      if (nextViews?.length && activeView.value !== nextViews[0] || (!activeView.value || !nextViews.includes(activeView.value))) {
+      if (
+        (nextViews?.length && activeView.value !== nextViews[0]) ||
+        !activeView.value ||
+        !nextViews.includes(activeView.value)
+      ) {
         activeView.value = nextViews[0]
       }
     }

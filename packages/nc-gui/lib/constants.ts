@@ -65,7 +65,7 @@ export const rolePermissions = {
       virtualViewsCreateOrEdit: true,
       settings: true,
       apiTokenTab: true,
-      teamAndAuth: true
+      teamAndAuth: true,
     },
   },
   [ProjectRole.Commenter]: {
@@ -88,7 +88,7 @@ export const rolePermissions = {
       fieldsSync: true,
       settings: true,
       apiTokenTab: true,
-      teamAndAuth: true
+      teamAndAuth: true,
     },
   },
 } as const

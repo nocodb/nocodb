@@ -40,104 +40,114 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-
-const tabsInfo = $computed<TabGroup>(() =>
-  ({
-    ...(isUIAllowed('teamAndAuth') ? { teamAndAuth: {
-    title: t('title.teamAndAuth'),
-    icon: TeamFillIcon,
-    subTabs: {
-      ...(isUIAllowed('userMgmtTab')
-        ? {
-            usersManagement: {
-              // Users Management
-              title: t('title.userMgmt'),
-              body: resolveComponent('TabsAuthUserManagement'),
-            },
-          }
-        : {}),
-      ...(isUIAllowed('apiTokenTab')
-        ? {
-            apiTokenManagement: {
-              // API Tokens Management
-              title: t('title.apiTokenMgmt'),
-              body: resolveComponent('TabsAuthApiTokenManagement'),
-            },
-          }
-        : {}),
-    },
-    onClick: () => {
-      $e('c:settings:team-auth')
-    },
-  },
-  ...(isUIAllowed('appStore')
+const tabsInfo = $computed<TabGroup>(() => ({
+  ...(isUIAllowed('teamAndAuth')
     ? {
-        appStore: {
-          // App Store
-          title: t('title.appStore'),
-          icon: StoreFrontOutline,
+        teamAndAuth: {
+          title: t('title.teamAndAuth'),
+          icon: TeamFillIcon,
           subTabs: {
-            new: {
-              title: 'Apps',
-              body: resolveComponent('DashboardSettingsAppStore'),
+            ...(isUIAllowed('userMgmtTab')
+              ? {
+                  usersManagement: {
+                    // Users Management
+                    title: t('title.userMgmt'),
+                    body: resolveComponent('TabsAuthUserManagement'),
+                  },
+                }
+              : {}),
+            ...(isUIAllowed('apiTokenTab')
+              ? {
+                  apiTokenManagement: {
+                    // API Tokens Management
+                    title: t('title.apiTokenMgmt'),
+                    body: resolveComponent('TabsAuthApiTokenManagement'),
+                  },
+                }
+              : {}),
+          },
+          onClick: () => {
+            $e('c:settings:team-auth')
+          },
+        },
+        ...(isUIAllowed('appStore')
+          ? {
+              appStore: {
+                // App Store
+                title: t('title.appStore'),
+                icon: StoreFrontOutline,
+                subTabs: {
+                  new: {
+                    title: 'Apps',
+                    body: resolveComponent('DashboardSettingsAppStore'),
+                  },
+                },
+                onClick: () => {
+                  $e('c:settings:appstore')
+                },
+              },
+            }
+          : {}),
+      }
+    : {}),
+  ...(isUIAllowed('projMetaData')
+    ? {
+        projMetaData: {
+          // Project Metadata
+          title: t('title.projMeta'),
+          icon: MultipleTableIcon,
+          subTabs: {
+            metaData: {
+              // Metadata
+              title: t('title.metadata'),
+              body: resolveComponent('DashboardSettingsMetadata'),
+            },
+            acl: {
+              // UI Access Control
+              title: t('title.uiACL'),
+              body: resolveComponent('DashboardSettingsUIAcl'),
+              onClick: () => {
+                $e('c:table:ui-acl')
+              },
+            },
+            erd: {
+              title: t('title.erdView'),
+              body: resolveComponent('DashboardSettingsErd'),
+              onClick: () => {
+                $e('c:settings:erd')
+              },
+            },
+            misc: {
+              title: t('general.misc'),
+              body: resolveComponent('DashboardSettingsMisc'),
             },
           },
           onClick: () => {
-            $e('c:settings:appstore')
+            $e('c:settings:proj-metadata')
           },
         },
       }
-    : {}) } : {}),
-  ...(isUIAllowed('projMetaData') ? { projMetaData: {
-    // Project Metadata
-    title: t('title.projMeta'),
-    icon: MultipleTableIcon,
-    subTabs: {
-      metaData: {
-        // Metadata
-        title: t('title.metadata'),
-        body: resolveComponent('DashboardSettingsMetadata'),
-      },
-      acl: {
-        // UI Access Control
-        title: t('title.uiACL'),
-        body: resolveComponent('DashboardSettingsUIAcl'),
-        onClick: () => {
-          $e('c:table:ui-acl')
+    : {}),
+  ...(isUIAllowed('audit')
+    ? {
+        audit: {
+          // Audit
+          title: t('title.audit'),
+          icon: NotebookOutline,
+          subTabs: {
+            audit: {
+              // Audit
+              title: t('title.audit'),
+              body: resolveComponent('DashboardSettingsAuditTab'),
+            },
+          },
+          onClick: () => {
+            $e('c:settings:audit')
+          },
         },
-      },
-      erd: {
-        title: t('title.erdView'),
-        body: resolveComponent('DashboardSettingsErd'),
-        onClick: () => {
-          $e('c:settings:erd')
-        },
-      },
-      misc: {
-        title: t('general.misc'),
-        body: resolveComponent('DashboardSettingsMisc'),
-      },
-    },
-    onClick: () => {
-      $e('c:settings:proj-metadata')
-    },
-  }} : {}),
-    ...(isUIAllowed('audit') ? { audit: {
-    // Audit
-    title: t('title.audit'),
-    icon: NotebookOutline,
-    subTabs: {
-      audit: {
-        // Audit
-        title: t('title.audit'),
-        body: resolveComponent('DashboardSettingsAuditTab'),
-      },
-    },
-    onClick: () => {
-      $e('c:settings:audit')
-    },
-  }} : {}),
-}));
+      }
+    : {}),
+}))
 
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
@@ -148,26 +158,19 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKeys?.[0]])
 let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab?.subTabs ?? {})])
 const selectedSubTab = $computed(() => selectedTab?.subTabs[selectedSubTabKeys?.[0]])
 
-watch(
-  [() => tabsInfo, () => selectedTabKeys?.[0]],
-  ([tabsInfo, newTabKey]) => {
-    if (!newTabKey || !tabsInfo?.[newTabKey]) {
-      return
-    }
-    selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey]?.subTabs ?? {})]
-  },
-)
+watch([() => tabsInfo, () => selectedTabKeys?.[0]], ([tabsInfo, newTabKey]) => {
+  if (!newTabKey || !tabsInfo?.[newTabKey]) {
+    return
+  }
+  selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey]?.subTabs ?? {})]
+})
 
-watch(
-    [() => tabsInfo, () => props.openKey],
-  ([tabsInfo, nextOpenKey]) => {
-      if (!tabsInfo) {
-        return
-      }
-    selectedTabKeys = [Object.keys(tabsInfo).find((key) => key === nextOpenKey) || firstKeyOfObject(tabsInfo)]
-  },
-)
-
+watch([() => tabsInfo, () => props.openKey], ([tabsInfo, nextOpenKey]) => {
+  if (!tabsInfo) {
+    return
+  }
+  selectedTabKeys = [Object.keys(tabsInfo).find((key) => key === nextOpenKey) || firstKeyOfObject(tabsInfo)]
+})
 </script>
 
 <template>

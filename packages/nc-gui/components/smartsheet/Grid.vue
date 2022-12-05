@@ -32,6 +32,7 @@ import {
   onMounted,
   provide,
   ref,
+  useCopy,
   useEventListener,
   useGridViewColumnWidth,
   useI18n,
@@ -43,8 +44,8 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useViewData,
-  watch, useCopy
-} from "#imports";
+  watch,
+} from '#imports'
 import type { Row } from '~/lib'
 
 const { t } = useI18n()
@@ -567,8 +568,6 @@ onBeforeUnmount(() => {
   reloadViewDataHook?.off(reloadViewDataHandler)
   openNewRecordFormHook?.off(openNewRecordHandler)
 })
-
-const columns = computed(() => meta.value?.columns)
 
 const expandedFormOnRowIdDlg = computed({
   get() {

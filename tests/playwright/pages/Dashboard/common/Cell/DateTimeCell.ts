@@ -14,18 +14,25 @@ export class DateTimeCellPageObject extends BasePage {
   }
 
   async open({ index, columnHeader }: { index: number; columnHeader: string }) {
+    await this.rootPage.locator('.nc-grid-add-new-cell').click();
+
     await this.cell.dblclick({
       index,
       columnHeader,
     });
   }
 
+  async save() {
+    await this.rootPage.locator('button:has-text("Ok")').click();
+  }
+
   async selectDate({
-    // date in format `YYYY-MM-DD`
+    // date formats in `YYYY-MM-DD`
     date,
   }: {
     date: string;
   }) {
+    // title date format needs to be YYYY-MM-DD
     await this.rootPage.locator(`td[title="${date}"]`).click();
   }
 
@@ -37,19 +44,19 @@ export class DateTimeCellPageObject extends BasePage {
     minute,
     second,
   }: {
-    hour: string;
-    minute: string;
-    second?: string;
+    hour: number;
+    minute: number;
+    second?: number | null;
   }) {
     await this.rootPage
-      .locator(`.ant-picker-time-panel-column:nth-child(1) > ant-picker-time-panel-cell:nth-child(${hour})`)
+      .locator(`.ant-picker-time-panel-column:nth-child(1) > .ant-picker-time-panel-cell:nth-child(${hour + 1})`)
       .click();
     await this.rootPage
-      .locator(`.ant-picker-time-panel-column:nth-child(2) > ant-picker-time-panel-cell:nth-child(${minute})`)
+      .locator(`.ant-picker-time-panel-column:nth-child(2) > .ant-picker-time-panel-cell:nth-child(${minute + 1})`)
       .click();
     if (second != null) {
       await this.rootPage
-        .locator(`.ant-picker-time-panel-column:nth-child(3) > ant-picker-time-panel-cell:nth-child(${second})`)
+        .locator(`.ant-picker-time-panel-column:nth-child(3) > .ant-picker-time-panel-cell:nth-child(${second + 1})`)
         .click();
     }
   }

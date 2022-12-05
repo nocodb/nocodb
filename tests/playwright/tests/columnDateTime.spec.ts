@@ -2,59 +2,57 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
 
-// Storing one additional dummy value "10" at end of every input array
-// this will trigger update to previously committed data
 const dateTimeData = [
   {
     dateFormat: 'YYYY-MM-DD',
     timeFormat: 'HH:mm',
     date: '2022-12-12',
-    hour: '10',
-    minute: '20',
+    hour: 10,
+    minute: 20,
     output: '2022-12-12 10:20',
   },
   {
     dateFormat: 'YYYY-MM-DD',
     timeFormat: 'HH:mm:ss',
-    date: '2022-12-12',
-    hour: '20',
-    minute: '30',
-    second: '40',
-    output: '2022-12-12 20:30:40',
+    date: '2022-12-11',
+    hour: 20,
+    minute: 30,
+    second: 40,
+    output: '2022-12-11 20:30:40',
   },
   {
     dateFormat: 'YYYY/MM/DD',
     timeFormat: 'HH:mm',
-    date: '2022/12/12',
-    hour: '10',
-    minute: '20',
-    output: '2022/12/12 10:20',
+    date: '2022-12-13',
+    hour: 10,
+    minute: 20,
+    output: '2022/12/13 10:20',
   },
   {
     dateFormat: 'YYYY/MM/DD',
     timeFormat: 'HH:mm:ss',
-    date: '2022/12/12',
-    hour: '5',
-    minute: '30',
-    second: '40',
-    output: '2022/12/12 05:30:40',
+    date: '2022-12-14',
+    hour: 5,
+    minute: 30,
+    second: 40,
+    output: '2022/12/14 05:30:40',
   },
   {
     dateFormat: 'DD-MM-YYYY',
     timeFormat: 'HH:mm',
-    date: '25-11-2022',
-    hour: '3',
-    minute: '20',
-    output: '12-12-2022 03:20',
+    date: '2022-12-10',
+    hour: 4,
+    minute: 30,
+    output: '10-12-2022 04:30',
   },
   {
     dateFormat: 'DD-MM-YYYY',
     timeFormat: 'HH:mm:ss',
-    date: '25-11-2022',
-    hour: '2',
-    minute: '30',
-    second: '40',
-    output: '25-11-2022 02:30:40',
+    date: '2022-12-26',
+    hour: 2,
+    minute: 30,
+    second: 40,
+    output: '26-12-2022 02:30:40',
   },
 ];
 
@@ -86,6 +84,8 @@ test.describe('DateTime Column', () => {
         timeFormat: dateTimeData[i].timeFormat,
       });
 
+      await dashboard.grid.column.save({ isUpdated: true });
+
       await dashboard.grid.cell.dateTime.open({
         index: 0,
         columnHeader: 'NC_DATETIME_0',
@@ -94,13 +94,16 @@ test.describe('DateTime Column', () => {
       await dashboard.grid.cell.dateTime.selectDate({
         date: dateTimeData[i].date,
       });
+
       await dashboard.grid.cell.dateTime.selectTime({
         hour: dateTimeData[i].hour,
         minute: dateTimeData[i].minute,
+        second: dateTimeData[i].second,
       });
-      await dashboard.grid.cell.dateTime.close();
 
-      await dashboard.grid.cell.verify({
+      await dashboard.grid.cell.dateTime.save();
+
+      await dashboard.grid.cell.verifyDateCell({
         index: 0,
         columnHeader: 'NC_DATETIME_0',
         value: dateTimeData[i].output,

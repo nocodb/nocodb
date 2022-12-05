@@ -250,6 +250,7 @@
     "addOption": "Add option",
     "qrCodeValueColumn": "Column with QR code value",
     "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "Aggregate function",

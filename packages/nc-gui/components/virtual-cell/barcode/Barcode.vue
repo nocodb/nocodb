@@ -1,5 +1,4 @@
- <script setup lang="ts">
-// import VueBarcode from '@chenfengyuan/vue-barcode'
+<script setup lang="ts">
 import JsBarcodeWrapper from './JsBarcodeWrapper'
 
 const maxNumberOfAllowedCharsForQrValue = 2000
@@ -9,7 +8,6 @@ const cellValue = inject(CellValueInj)
 const barcodeValue = computed(() => String(cellValue?.value))
 
 const tooManyCharsForQrCode = computed(() => barcodeValue?.value.length > maxNumberOfAllowedCharsForQrValue)
-
 
 const modalVisible = ref(false)
 
@@ -31,9 +29,6 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     :body-style="{ padding: '0px' }"
     @ok="handleModalOkClick"
   >
-    <template #footer>
-      <div class="mr-4" data-testid="nc-qr-code-large-value-label">{{ barcodeValue }}</div>
-    </template>
     <JsBarcodeWrapper v-if="barcodeValue && !tooManyCharsForQrCode" tag="svg" :value="barcodeValue" width="3" />
   </a-modal>
   <div @click="showQrModal">

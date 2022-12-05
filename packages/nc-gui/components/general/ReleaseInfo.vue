@@ -7,6 +7,9 @@ const { currentVersion, latestRelease, hiddenRelease } = useGlobal()
 
 const releaseAlert = computed({
   get() {
+    if (currentVersion.value?.includes('-beta.') || latestRelease.value?.includes('-beta.')) {
+      return false
+    }
     return (
       currentVersion.value &&
       latestRelease.value &&

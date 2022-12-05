@@ -22,6 +22,7 @@ export default class Project implements ProjectType {
   public order: number;
   public is_meta = false;
   public bases?: Base[];
+  public type: string;
 
   created_at: any;
   updated_at: any;
@@ -107,7 +108,9 @@ export default class Project implements ProjectType {
     projectList = projectList.filter(
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null
     );
-    return projectList.map((m) => new Project(m));
+    return projectList
+      .map((m) => new Project(m))
+      .filter((p) => !param?.type || p.type === param.type);
   }
 
   // @ts-ignore

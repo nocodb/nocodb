@@ -251,6 +251,6 @@ export default class ProjectUser {
       await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);
     }
 
-    return projectList;
+    return projectList.filter((p) => !_params?.type || p.type === _params.type);
   }
 }

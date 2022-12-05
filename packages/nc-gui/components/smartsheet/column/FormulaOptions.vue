@@ -604,11 +604,16 @@ function scrollToSelectedOption() {
 }
 
 // set default value
-vModel.value.formula_raw = substituteColumnIdWithAliasInFormula(
-  (column.value?.colOptions as FormulaType)?.formula,
-  meta?.value?.columns as ColumnType[],
-  (column.value?.colOptions as any)?.formula_raw,
-)
+if ((column.value?.colOptions as any)?.formula_raw) {
+  vModel.value.formula_raw =
+    substituteColumnIdWithAliasInFormula(
+      (column.value?.colOptions as FormulaType)?.formula,
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as any)?.formula_raw,
+    ) || ''
+} else {
+  vModel.value.formula_raw = ''
+}
 
 // set additional validations
 setAdditionalValidations({

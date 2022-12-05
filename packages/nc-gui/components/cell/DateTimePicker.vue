@@ -61,7 +61,7 @@ let localState = $computed({
     }
 
     if (val.isValid()) {
-      emit('update:modelValue', val?.format(dateTimeFormat))
+      emit('update:modelValue', val?.format('YYYY-MM-DD HH:mm:ss'))
     }
   },
 })

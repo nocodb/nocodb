@@ -95,7 +95,7 @@ export class ColumnPageObject extends BasePage {
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage
           .locator(`.ant-select-item`, {
-            hasText: qrCodeValueColumnTitle,
+            hasText: new RegExp(`^${qrCodeValueColumnTitle}$`),
           })
           .click();
         break;

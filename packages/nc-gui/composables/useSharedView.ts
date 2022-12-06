@@ -17,6 +17,8 @@ export function useSharedView() {
 
   const { appInfo } = $(useGlobal())
 
+  const { loadProject } = useProject()
+
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
   const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
@@ -72,6 +74,8 @@ export function useSharedView() {
 
     await setMeta(viewMeta.model)
 
+    await loadProject(true, viewMeta.project_id)
+
     const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
   }
@@ -104,7 +108,7 @@ export function useSharedView() {
     const page = paginationData.value.page || 1
     const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
 
-    const data = await $api.public.groupedDataList(
+    return await $api.public.groupedDataList(
       sharedView.value.uuid!,
       columnId,
       {
@@ -119,7 +123,6 @@ export function useSharedView() {
         },
       },
     )
-    return data
   }
 
   const exportFile = async (
@@ -127,7 +130,7 @@ export function useSharedView() {
     offset: number,
     type: ExportTypes.EXCEL | ExportTypes.CSV,
     responseType: 'base64' | 'blob',
-    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
+    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] } = { sortsArr: [], filtersArr: [] },
   ) => {
     return await $api.public.csvExport(sharedView.value!.uuid!, type, {
       format: responseType,

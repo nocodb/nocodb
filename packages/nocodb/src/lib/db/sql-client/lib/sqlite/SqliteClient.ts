@@ -19,6 +19,8 @@ class SqliteClient extends KnexClient {
   private _version: any;
 
   constructor(connectionConfig) {
+    // sqlite does not support inserting default values and knex fires a warning without this flag
+    connectionConfig.connection.useNullAsDefault = true;
     super(connectionConfig);
     this.sqlClient = knex(connectionConfig.connection);
     this.queries = queries;

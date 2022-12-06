@@ -2,8 +2,8 @@
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
-import type { ColumnType } from 'nocodb-sdk'
-import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
+import type { ColumnType, FormulaType } from 'nocodb-sdk'
+import { UITypes, jsepCurlyHook, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import {
   MetaInj,
   NcAutocompleteTree,
@@ -604,7 +604,16 @@ function scrollToSelectedOption() {
 }
 
 // set default value
-vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
+if ((column.value?.colOptions as any)?.formula_raw) {
+  vModel.value.formula_raw =
+    substituteColumnIdWithAliasInFormula(
+      (column.value?.colOptions as FormulaType)?.formula,
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as any)?.formula_raw,
+    ) || ''
+} else {
+  vModel.value.formula_raw = ''
+}
 
 // set additional validations
 setAdditionalValidations({

@@ -26,7 +26,7 @@ try {
 </script>
 
 <template>
-  <NuxtLayout id="content" class="flex" name="shared-view">
+  <NuxtLayout class="flex" name="shared-view">
     <div v-if="showPassword">
       <LazySharedViewAskPassword v-model="showPassword" />
     </div>

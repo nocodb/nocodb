@@ -69,7 +69,12 @@
     "betaNote": "此功能仍在测试中。",
     "moreInfo": "点击此处了解更多信息。",
     "logs": "日志",
-    "groupingField": "分组字段"
+    "groupingField": "分组字段",
+    "insertAfter": "Insert After",
+    "insertBefore": "Insert Before",
+    "hideField": "Hide Field",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending"
   },
   "objects": {
     "project": "项目",
@@ -199,7 +204,8 @@
     "quickImportFrom": "快速导入从",
     "quickImport": "快速导入",
     "advancedSettings": "高级设置",
-    "codeSnippet": "代码片段"
+    "codeSnippet": "代码片段",
+    "keyboardShortcut": "Keyboard Shortcuts"
   },
   "labels": {
     "createdBy": "Created By",
@@ -496,6 +502,7 @@
       }
     },
     "info": {
+      "pasteNotSupported": "Paste operation is not supported on the active cell",
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
@@ -613,7 +620,9 @@
       "deleteViewConfirmation": "您确定要删除此视图？",
       "deleteTableConfirmation": "您想要删除该表吗？",
       "showM2mTables": "Show M2M Tables",
-      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
+      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
     },
     "error": {
       "searchProject": "搜索： {search} 没有发现匹配的结果",

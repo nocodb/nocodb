@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { IsLockedInj, IsPublicInj, useKanbanViewStoreOrThrow, useMenuCloseOnEsc } from '#imports'
+import {
+  IsKanbanInj,
+  IsLockedInj,
+  IsPublicInj,
+  inject,
+  provide,
+  ref,
+  useKanbanViewStoreOrThrow,
+  useMenuCloseOnEsc,
+  useUIPermission,
+} from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 

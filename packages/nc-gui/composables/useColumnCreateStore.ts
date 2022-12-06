@@ -2,6 +2,7 @@ import clone from 'just-clone'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   Form,
   computed,
@@ -20,10 +21,13 @@ const useForm = Form.useForm
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
+interface ValidationsObj {
+  [key: string]: RuleObject[]
+}
+
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
   (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
-    const { sqlUi } = useProject()
-
+    const { sqlUis, isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc } = useProject()
     const { $api } = useNuxtApp()
 
     const { getMeta } = useMetas()
@@ -32,14 +36,22 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { $e } = useNuxtApp()
 
-    const isEdit = computed(() => !!column.value?.id)
+    const sqlUi = ref(meta.value?.base_id ? sqlUis.value[meta.value?.base_id] : Object.values(sqlUis.value)[0])
+
+    const isEdit = computed(() => !!column?.value?.id)
+
+    const isMysql = computed(() => isMysqlFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+
+    const isPg = computed(() => isPgFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+
+    const isMssql = computed(() => isMssqlFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
 
     const idType = null
 
-    const additionalValidations = ref<Record<string, any>>({})
+    const additionalValidations = ref<ValidationsObj>({})
 
-    const setAdditionalValidations = (validations: Record<string, any>) => {
-      additionalValidations.value = validations
+    const setAdditionalValidations = (validations: ValidationsObj) => {
+      additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
 
     const formState = ref<Record<string, any>>({
@@ -267,6 +279,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isEdit,
       column,
       sqlUi,
+      isMssql,
+      isPg,
+      isMysql,
     }
   },
 )

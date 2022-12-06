@@ -7,4 +7,6 @@ export const AllowedColumnTypesForQrAndBarcodes = [
   UITypes.PhoneNumber,
   UITypes.URL,
   UITypes.Email,
+  UITypes.Decimal,
+  UITypes.Number,
 ];

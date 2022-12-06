@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TableType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ReloadViewDataHookInj,
@@ -25,9 +26,9 @@ const searchDropdown = ref(null)
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
-  meta.value?.columns?.map((c) => ({
-    value: c.id,
-    label: c.title,
+  (meta.value as TableType)?.columns?.map((column) => ({
+    value: column.id,
+    label: column.title,
   })),
 )
 

@@ -69,7 +69,12 @@
     "betaNote": "Ta funkcja jest nadal w fazie beta.",
     "moreInfo": "Więcej informacji można znaleźć tutaj",
     "logs": "Logi",
-    "groupingField": "Grupowanie pola"
+    "groupingField": "Grupowanie pola",
+    "insertAfter": "Insert After",
+    "insertBefore": "Insert Before",
+    "hideField": "Hide Field",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending"
   },
   "objects": {
     "project": "Projekt",
@@ -199,7 +204,8 @@
     "quickImportFrom": "Szybki import z",
     "quickImport": "Szybki import",
     "advancedSettings": "Ustawienia zaawansowane",
-    "codeSnippet": "Snippet"
+    "codeSnippet": "Snippet",
+    "keyboardShortcut": "Keyboard Shortcuts"
   },
   "labels": {
     "createdBy": "Created By",
@@ -496,6 +502,7 @@
       }
     },
     "info": {
+      "pasteNotSupported": "Paste operation is not supported on the active cell",
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
@@ -613,7 +620,9 @@
       "deleteViewConfirmation": "Czy na pewno chcesz usunąć ten widok?",
       "deleteTableConfirmation": "Czy chcesz usunąć tabelę",
       "showM2mTables": "Pokaż tabele M2M",
-      "deleteKanbanStackConfirmation": "Usunięcie tego stosu spowoduje również usunięcie wybranej opcji `{stackToBeDeleted}` z `{groupingField}`. Rekordy przeniosą się do nieskategoryzowanego stosu."
+      "deleteKanbanStackConfirmation": "Usunięcie tego stosu spowoduje również usunięcie wybranej opcji `{stackToBeDeleted}` z `{groupingField}`. Rekordy przeniosą się do nieskategoryzowanego stosu.",
+      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
     },
     "error": {
       "searchProject": "Twoje wyszukiwanie dla {search}, nie znaleziono żadnych wyników",

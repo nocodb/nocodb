@@ -32,7 +32,9 @@ async function exportExcel(req: Request, res: Response) {
 
   const { offset, dbRows, elapsed } = await getDbRows(model, view, req);
 
-  const data = XLSX.utils.json_to_sheet(dbRows);
+  const fields = req.query.fields as string[];
+
+  const data = XLSX.utils.json_to_sheet(dbRows, { header: fields });
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, data, view.title);
   const buf = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });

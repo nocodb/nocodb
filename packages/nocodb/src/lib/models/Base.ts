@@ -124,7 +124,7 @@ export default class Base implements BaseType {
     await ncMeta.metaUpdate(
       base.projectId,
       null,
-      MetaTable.BASES,
+      MetaTable.BASE,
       updateObj,
       oldBase.id
     );

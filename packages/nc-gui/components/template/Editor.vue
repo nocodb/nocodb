@@ -431,7 +431,9 @@ async function importTemplate() {
                         input = null
                       }
                     } else if (v.uidt === UITypes.Date) {
-                      input = parseStringDate(input, v.meta.date_format)
+                      if (input) {
+                        input = parseStringDate(input, v.meta.date_format)
+                      }
                     }
                     res[col.destCn] = input
                   }

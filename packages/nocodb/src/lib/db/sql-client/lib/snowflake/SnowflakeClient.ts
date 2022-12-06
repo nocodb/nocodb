@@ -361,10 +361,9 @@ class SnowflakeClient extends KnexClient {
       if (rows.length === 0) {
         log.debug('creating database:', args);
         await this.sqlClient.raw(`CREATE DATABASE ??`, [args.database]);
-        await this.sqlClient.raw(`USE "${this.database}";`);
       }
 
-      await this.sqlClient.raw(`CREATE SCHEMA IF NOT EXISTS ??`,[this.schema]);
+      await this.sqlClient.raw(`CREATE SCHEMA IF NOT EXISTS ??.??`,[args.database, this.schema]);
 
     } catch (e) {
       log.ppe(e, _func);
@@ -596,17 +595,15 @@ class SnowflakeClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       args.databaseName = this.database;
-      await this.sqlClient.raw(`USE "${this.database}";`);
-
       await this.sqlClient.raw(`SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
       await this.sqlClient.raw(`SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
       
   
       const lastQueries = await this.sqlClient.raw(`
-        select * from table(information_schema.query_history())
+        select * from table("${this.database}".information_schema.query_history())
         WHERE query_text like 'SHOW%'
         ORDER BY start_time DESC
-        LIMIT 200;`
+        LIMIT 30;`
       );
 
       let pk_query_id, uq_query_id;
@@ -769,15 +766,14 @@ class SnowflakeClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      await this.sqlClient.raw(`USE "${this.database}";`);
       await this.sqlClient.raw(`SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
       await this.sqlClient.raw(`SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
 
       const lastQueries = await this.sqlClient.raw(`
-        select * from table(INFORMATION_SCHEMA.query_history())
+        select * from table("${this.database}".INFORMATION_SCHEMA.query_history())
         WHERE query_text like 'SHOW%'
         ORDER BY start_time DESC
-        LIMIT 200;`
+        LIMIT 30;`
       );
 
       let pk_query_id, uq_query_id;
@@ -830,12 +826,46 @@ class SnowflakeClient extends KnexClient {
    * @property {String} - relations[].dr -
    * @property {String} - relations[].mo -
    */
-  async relationList(args: any = {}) {
+   async relationList(args: any = {}) {
     const _func = this.relationList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      result.data.list = [];
+      await this.sqlClient.raw(`SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
+
+      const lastQueries = await this.sqlClient.raw(`
+        select * from table("${this.database}".information_schema.query_history())
+        WHERE query_text like 'SHOW%'
+        ORDER BY start_time DESC
+        LIMIT 30;`
+      );
+
+      let ik_query_id;
+      for (const r of lastQueries.rows) {
+        if (r.QUERY_TEXT === `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`) {
+          ik_query_id = r.QUERY_ID;
+          break;
+        }
+      }
+
+      const { rows } = await this.sqlClient.raw(
+        `SELECT
+            constraint_name as "cstn",
+            "PK"."fk_table_name" as "tn",
+            "PK"."fk_column_name" as "cn",
+            "PK"."pk_schema_name" as "foreign_table_schema",
+            "PK"."pk_table_name" as "rtn",
+            "PK"."pk_column_name" as "rcn",
+            "PK"."update_rule" as "ur",
+            "PK"."delete_rule" as "dr"
+        FROM "${this.database}".information_schema.table_constraints tc
+        LEFT JOIN (select * from table(result_scan('${ik_query_id}'))) pk
+        ON "PK"."fk_name" = tc.constraint_name
+        WHERE tc.constraint_type = 'FOREIGN KEY' and tc.table_catalog = ? and tc.table_schema = ? and tc.table_name = ?;`,
+        [this.database, this.schema, args.tn]
+      );
+
+      result.data.list = rows;
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -863,11 +893,45 @@ class SnowflakeClient extends KnexClient {
    * @property {String} - relations[].mo -
    */
   async relationListAll(args: any = {}) {
-    const _func = this.relationList.name;
+    const _func = this.relationListAll.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      result.data.list = [];
+      await this.sqlClient.raw(`SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
+
+      const lastQueries = await this.sqlClient.raw(`
+        select * from table("${this.database}".information_schema.query_history())
+        WHERE query_text like 'SHOW%'
+        ORDER BY start_time DESC
+        LIMIT 30;`
+      );
+
+      let ik_query_id;
+      for (const r of lastQueries.rows) {
+        if (r.QUERY_TEXT === `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`) {
+          ik_query_id = r.QUERY_ID;
+          break;
+        }
+      }
+
+      const { rows } = await this.sqlClient.raw(
+        `SELECT
+            constraint_name as "cstn",
+            "PK"."fk_table_name" as "tn",
+            "PK"."fk_column_name" as "cn",
+            "PK"."pk_schema_name" as "foreign_table_schema",
+            "PK"."pk_table_name" as "rtn",
+            "PK"."pk_column_name" as "rcn",
+            "PK"."update_rule" as "ur",
+            "PK"."delete_rule" as "dr"
+        FROM "${this.database}".information_schema.table_constraints tc
+        LEFT JOIN (select * from table(result_scan('${ik_query_id}'))) pk
+        ON "PK"."fk_name" = tc.constraint_name
+        WHERE tc.constraint_type = 'FOREIGN KEY' and tc.table_catalog = ? and tc.table_schema = ?;`,
+        [this.database, this.schema]
+      );
+
+      result.data.list = rows;
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -1648,7 +1712,7 @@ class SnowflakeClient extends KnexClient {
 
       const downStatement =
         this.querySeparator() +
-        this.sqlClient.raw(`DROP TABLE ${this.getTnPath(args.table)};`).toString();
+        this.sqlClient.raw(`DROP TABLE ??`, [this.getTnPath(args.table)]).toString();
 
       this.emit(`Success : ${upQuery}`);
 
@@ -1838,7 +1902,7 @@ class SnowflakeClient extends KnexClient {
       /** ************** create up & down statements *************** */
       const upStatement =
         this.querySeparator() +
-        this.sqlClient.raw(`DROP TABLE ${this.getTnPath(args.tn)};`).toString();
+        this.sqlClient.raw(`DROP TABLE ??`, [this.getTnPath(args.tn)]).toString();
       let downQuery = this.createTable(args.tn, args);
 
       /**
@@ -1919,12 +1983,166 @@ class SnowflakeClient extends KnexClient {
       this.emit(`Success : ${upStatement}`);
 
       /** ************** drop tn *************** */
-      await this.sqlClient.raw(`DROP TABLE ${this.getTnPath(args.tn)};`);
+      await this.sqlClient.raw(`DROP TABLE ??`, [this.getTnPath(args.tn)]);
 
       /** ************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upStatement }],
         downStatement: [{ sql: this.querySeparator() + downQuery }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.parentTable
+   * @param {String} - args.parentColumn
+   * @param {String} - args.childColumn
+   * @param {String} - args.childTable
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+   async relationCreate(args) {
+    const _func = this.relationCreate.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const foreignKeyName = args.foreignKeyName || null;
+
+    try {
+      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
+
+      await this.sqlClient.schema.table(args.childTable, (table) => {
+        table = table
+          .foreign(args.childColumn, foreignKeyName)
+          .references(args.parentColumn)
+          .on(this.getTnPath(args.parentTable));
+
+        if (args.onUpdate) {
+          table = table.onUpdate(args.onUpdate);
+        }
+        if (args.onDelete) {
+          table = table.onDelete(args.onDelete);
+        }
+      });
+
+      const upStatement =
+        this.querySeparator() +
+        (await this.sqlClient.schema
+          .table(args.childTable, (table) => {
+            table = table
+              .foreign(args.childColumn, foreignKeyName)
+              .references(args.parentColumn)
+              .on(this.getTnPath(args.parentTable));
+
+            if (args.onUpdate) {
+              table = table.onUpdate(args.onUpdate);
+            }
+            if (args.onDelete) {
+              table = table.onDelete(args.onDelete);
+            }
+          })
+          .toQuery());
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.childTable, (table) => {
+            table = table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery();
+
+      // let files = this.evolutionFilesCreate(args, upStatement, downStatement);
+      //
+      // // create a migration file
+      // //let files = this.evolutionForCreateRel(args);
+      //
+      // await this.sqlClient('xc_evolutions').insert({
+      //   title: files.up,
+      //   titleDown: files.down,
+      //   description: '',
+      //   status: 0
+      //   //created: Date.now()
+      // })
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.parentTable
+   * @param {String} - args.parentColumn
+   * @param {String} - args.childColumn
+   * @param {String} - args.childTable
+   * @param {String} - args.foreignKeyName
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async relationDelete(args) {
+    const _func = this.relationDelete.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const foreignKeyName = args.foreignKeyName || null;
+
+    try {
+      // const self = this;
+
+      await this.sqlClient.schema.table(args.childTable, function (table) {
+        table.dropForeign(args.childColumn, foreignKeyName);
+      });
+
+      const upStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.childTable, function (table) {
+            table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery();
+
+      const downStatement =
+        this.querySeparator() +
+        (await this.sqlClient.schema
+          .table(args.childTable, (table) => {
+            table
+              .foreign(args.childColumn, foreignKeyName)
+              .references(args.parentColumn)
+              .on(this.getTnPath(args.parentTable));
+          })
+          .toQuery());
+
+      // let files = this.evolutionFilesCreate(args, upStatement, downStatement);
+      //
+      // // create a migration file
+      // //let files = this.evolutionForCreateRel(args);
+      //
+      // await this.sqlClient('xc_evolutions').insert({
+      //   title: files.up,
+      //   titleDown: files.down,
+      //   description: '',
+      //   status: 0
+      //   //created: Date.now()
+      // })
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1968,11 +2186,11 @@ class SnowflakeClient extends KnexClient {
    * @returns {String} result.data
    */
   async tableInsertStatement(args) {
-    const _func = this.tableCreateStatement.name;
+    const _func = this.tableInsertStatement.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      result.data = `INSERT INTO ${this.getTnPath(args.tn)} (`;
+      result.data = `INSERT INTO ?? (`;
       let values = ' VALUES (';
       const response = await this.columnList(args);
       if (response.data && response.data.list) {
@@ -1990,6 +2208,7 @@ class SnowflakeClient extends KnexClient {
       result.data += `)`;
       values += `);`;
       result.data += values;
+      result.data = this.genQuery(result.data, [this.getTnPath(args.tn)]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -2011,7 +2230,7 @@ class SnowflakeClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      result.data = `UPDATE ${this.getTnPath(args.tn)} \nSET\n`;
+      result.data = `UPDATE ?? \nSET\n`;
       const response = await this.columnList(args);
       if (response.data && response.data.list) {
         for (let i = 0; i < response.data.list.length; ++i) {
@@ -2024,6 +2243,7 @@ class SnowflakeClient extends KnexClient {
       }
 
       result.data += ';';
+      result.data = this.genQuery(result.data, [this.getTnPath(args.tn)]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -2044,7 +2264,8 @@ class SnowflakeClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      result.data = `DELETE FROM ${this.getTnPath(args.tn)} where ;`;
+      result.data = `DELETE FROM ?? where ;`;
+      result.data = this.genQuery(result.data, [this.getTnPath(args.tn)]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -2065,7 +2286,8 @@ class SnowflakeClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      result.data = `TRUNCATE TABLE ${this.getTnPath(args.tn)};`;
+      result.data = `TRUNCATE TABLE ??`;
+      result.data = this.genQuery(result.data, [this.getTnPath(args.tn)]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -2099,7 +2321,8 @@ class SnowflakeClient extends KnexClient {
         }
       }
 
-      result.data += ` FROM ${this.getTnPath(args.tn)};`;
+      result.data += ` FROM ??;`;
+      result.data = this.genQuery(result.data, [this.getTnPath(args.tn)]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -2141,13 +2364,13 @@ class SnowflakeClient extends KnexClient {
       // do nothing
     } else if (pksChanged) {
       query += numOfPksInOriginal.length
-        ? this.genQuery(`alter TABLE ${this.getTnPath(t)} drop constraint IF EXISTS ??;`, [`${t}_pkey`])
+        ? this.genQuery(`alter TABLE ?? drop constraint IF EXISTS ??;`, [this.getTnPath(t), `${t}_pkey`])
         : '';
       if (numOfPksInNew.length) {
         if (!createTable) {
           query += this.genQuery(
-            `alter TABLE ${this.getTnPath(t)} add constraint ?? PRIMARY KEY(??);`,
-            [`${t}_pkey`, numOfPksInNew]
+            `alter TABLE ?? add constraint ?? PRIMARY KEY(??);`,
+            [this.getTnPath(t), `${t}_pkey`, numOfPksInNew]
           );
         }
       }
@@ -2160,8 +2383,8 @@ class SnowflakeClient extends KnexClient {
     const shouldSanitize = true;
     let query = existingQuery ? ',' : '';
     query += this.genQuery(
-      `ALTER TABLE ${this.getTnPath(t)} DROP COLUMN ??`,
-      [n.cn],
+      `ALTER TABLE ?? DROP COLUMN ??`,
+      [this.getTnPath(t), n.cn],
       shouldSanitize
     );
     return query;
@@ -2183,12 +2406,12 @@ class SnowflakeClient extends KnexClient {
     let query = '';
 
     for (let i = 0; i < args.columns.length; ++i) {
-      query += this.createTableColumn(this.getTnPath(table), args.columns[i], null, query);
+      query += this.createTableColumn(table, args.columns[i], null, query);
     }
 
-    query += this.alterTablePK(this.getTnPath(table), args.columns, [], query, true);
+    query += this.alterTablePK(table, args.columns, [], query, true);
 
-    query = this.genQuery(`CREATE TABLE ${this.getTnPath(args.tn)} (${query});`);
+    query = this.genQuery(`CREATE TABLE ?? (${query});`, [this.getTnPath(args.tn)]);
 
     return query;
   }
@@ -2212,28 +2435,28 @@ class SnowflakeClient extends KnexClient {
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
-      query = this.genQuery(`ALTER TABLE ${this.getTnPath(t)} ${query};`, [], shouldSanitize);
+      query = this.genQuery(`ALTER TABLE ?? ${query};`, [this.getTnPath(t)], shouldSanitize);
     } else {
       if (n.cn !== o.cn) {
         query += this.genQuery(
-          `\nALTER TABLE ${this.getTnPath(t)} RENAME COLUMN ?? TO ?? ;\n`,
-          [o.cn, n.cn],
+          `\nALTER TABLE ?? RENAME COLUMN ?? TO ?? ;\n`,
+          [this.getTnPath(t), o.cn, n.cn],
           shouldSanitize
         );
       }
 
       if (n.dt !== o.dt) {
         query += this.genQuery(
-          `\nALTER TABLE ${this.getTnPath(t)} ALTER COLUMN ?? SET DATA TYPE ${n.dt};\n`,
-          [n.cn],
+          `\nALTER TABLE ?? ALTER COLUMN ?? SET DATA TYPE ${n.dt};\n`,
+          [this.getTnPath(t), n.cn],
           shouldSanitize
         );
       }
 
       if (n.rqd !== o.rqd) {
         query += this.genQuery(
-          `\nALTER TABLE ${this.getTnPath(t)} ALTER COLUMN ?? `,
-          [n.cn],
+          `\nALTER TABLE ?? ALTER COLUMN ?? `,
+          [this.getTnPath(t), n.cn],
           shouldSanitize
         );
         query += n.rqd ? ` SET NOT NULL;\n` : ` DROP NOT NULL;\n`;
@@ -2241,8 +2464,8 @@ class SnowflakeClient extends KnexClient {
 
       if (n.cdf !== o.cdf) {
         query += this.genQuery(
-          `\nALTER TABLE ${this.getTnPath(t)} ALTER COLUMN ?? `,
-          [n.cn],
+          `\nALTER TABLE ?? ALTER COLUMN ?? `,
+          [this.getTnPath(t), n.cn],
           shouldSanitize
         );
         query += n.cdf ? ` SET DEFAULT ${n.cdf};\n` : ` DROP DEFAULT;\n`;
@@ -2266,7 +2489,7 @@ class SnowflakeClient extends KnexClient {
   }
 
   getTnPath(t) {
-    return `"${this.database}"."${this.schema}"."${t}"`;
+    return `${this.database}.${this.schema}.${t}`;
   }
 
   /**
@@ -2304,20 +2527,20 @@ class SnowflakeClient extends KnexClient {
   // Todo: error handling
   async insert(args) {
     const { tn, data } = args;
-    const res = await this.sqlClient(this.getTnPath(tn)).insert(data);
+    const res = await this.sqlClient(tn).insert(data);
     log.debug(res);
     return res;
   }
 
   async update(args) {
     const { tn, data, whereConditions } = args;
-    const res = await this.sqlClient(this.getTnPath(tn)).where(whereConditions).update(data);
+    const res = await this.sqlClient(tn).where(whereConditions).update(data);
     return res;
   }
 
   async delete(args) {
     const { tn, whereConditions } = args;
-    const res = await this.sqlClient(this.getTnPath(tn)).where(whereConditions).del();
+    const res = await this.sqlClient(tn).where(whereConditions).del();
     log.debug(res);
     return res;
   }

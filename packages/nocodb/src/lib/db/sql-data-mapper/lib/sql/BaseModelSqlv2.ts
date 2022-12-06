@@ -1561,7 +1561,7 @@ class BaseModelSqlv2 {
             id = ((
               await this.dbDriver(this.tnPath)
                 .max(ai.column_name, { as: 'id' })
-            ) as any).rows[0].id;
+            ) as any)[0].id;
           }
           response = await this.readByPk(id);
         } else {
@@ -1678,7 +1678,7 @@ class BaseModelSqlv2 {
     this.isMssql && schema
       ? this.dbDriver.raw('??.??', [schema, tb.table_name])
       : this.isSnowflake
-      ? this.dbDriver.raw(`"${this.dbDriver.client.config.connection.database}"."${this.dbDriver.client.config.connection.schema}"."${tb.table_name}"`)
+      ? [this.dbDriver.client.config.connection.database, this.dbDriver.client.config.connection.schema, tb.table_name].join('.')
       : tb.table_name;
     return table;
   }
@@ -2381,16 +2381,34 @@ class BaseModelSqlv2 {
 
           const vTn = this.getTnPath(vTable);
 
-          await this.dbDriver(vTn).insert({
-            [vParentCol.column_name]: this.dbDriver(parentTn)
-              .select(parentColumn.column_name)
-              .where(_wherePk(parentTable.primaryKeys, childId))
-              .first(),
-            [vChildCol.column_name]: this.dbDriver(childTn)
-              .select(childColumn.column_name)
-              .where(_wherePk(childTable.primaryKeys, rowId))
-              .first(),
-          });
+          if (this.isSnowflake) {
+            const parentPK = this.dbDriver(parentTn)
+            .select(parentColumn.column_name)
+            .where(_wherePk(parentTable.primaryKeys, childId))
+            .first();
+
+            const childPK = this.dbDriver(childTn)
+            .select(childColumn.column_name)
+            .where(_wherePk(childTable.primaryKeys, rowId))
+            .first();
+
+            await this.dbDriver.raw(`INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`, [
+              vTn,
+              vParentCol.column_name,
+              vChildCol.column_name,
+            ])
+          } else {
+            await this.dbDriver(vTn).insert({
+              [vParentCol.column_name]: this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .where(_wherePk(parentTable.primaryKeys, childId))
+                .first(),
+              [vChildCol.column_name]: this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId))
+                .first(),
+            });
+          }
         }
         break;
       case RelationTypes.HAS_MANY:

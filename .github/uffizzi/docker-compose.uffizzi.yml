@@ -6,13 +6,27 @@ x-uffizzi:
     port: 8080
 
 services:
-  root_db:
+  postgres:
     image: postgres
     restart: always
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_USER: postgres
       POSTGRES_DB: root_db
+  mssql:
+    image: "mcr.microsoft.com/mssql/server:2017-latest"
+    restart: always
+    environment: 
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: Password123.
+  mysql: 
+    environment: 
+      MYSQL_DATABASE: root_db
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: noco
+    image: "mysql:5.7"
+    restart: always
   nocodb:
     image: "${NOCODB_IMAGE}"
     ports:

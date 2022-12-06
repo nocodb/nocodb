@@ -62,7 +62,7 @@ onMounted(() => {
 
 setAdditionalValidations({
   fk_barcode_value_column_id: [{ required: true, message: 'Required' }],
-  barcode_format: [{ required: true, message: 'Required' }],
+  // barcode_format: [{ required: true, message: 'Required' }],
 })
 </script>
 
@@ -81,7 +81,7 @@ setAdditionalValidations({
           @click.stop
         />
       </a-form-item>
-      <a-form-item
+      <!-- <a-form-item
         class="flex w-1/2 pb-2 nc-qr-code-value-column-select"
         :label="$t('labels.barcodeFormat')"
         v-bind="validateInfos.barcode_format"
@@ -92,7 +92,7 @@ setAdditionalValidations({
           placeholder="Select a Barcode format"
           @click.stop
         />
-      </a-form-item>
+      </a-form-item> -->
     </a-col>
   </a-row>
 </template>

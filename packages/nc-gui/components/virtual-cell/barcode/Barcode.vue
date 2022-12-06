@@ -25,14 +25,21 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   <a-modal
     v-model:visible="modalVisible"
     :class="{ active: modalVisible }"
-    wrap-class-name="nc-qr-code-large"
+    wrap-class-name="nc-qr-code-large amodal-wrapper"
     :body-style="{ padding: '0px' }"
+    :footer="null"
     @ok="handleModalOkClick"
   >
     <JsBarcodeWrapper v-if="barcodeValue && !tooManyCharsForQrCode" tag="svg" :value="barcodeValue" width="3" />
   </a-modal>
   <div @click="showQrModal">
-    <JsBarcodeWrapper v-if="barcodeValue && !tooManyCharsForQrCode" :value="barcodeValue" width="1"></JsBarcodeWrapper>
+    <JsBarcodeWrapper
+      v-if="barcodeValue && !tooManyCharsForQrCode"
+      tag="svg"
+      class="w-full"
+      :value="barcodeValue"
+      width="3"
+    ></JsBarcodeWrapper>
   </div>
 
   <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
@@ -45,3 +52,9 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     {{ $t('msg.warning.nonEditableFields.qrFieldsCannotBeDirectlyChanged') }}
   </div>
 </template>
+
+<style lang="scss">
+.amodal-wrapper {
+  width: 100px;
+}
+</style>

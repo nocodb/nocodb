@@ -57,6 +57,7 @@ export default defineComponent({
      * Generate bar code.
      */
     generate() {
+      // debugger
       JsBarcode(this.$el, String(this.value), this.options)
     },
   },

@@ -5,6 +5,8 @@ const maxNumberOfAllowedCharsForQrValue = 2000
 
 const cellValue = inject(CellValueInj)
 
+const column = inject(ColumnInj)
+
 const barcodeValue = computed(() => String(cellValue?.value))
 
 const tooManyCharsForQrCode = computed(() => barcodeValue?.value.length > maxNumberOfAllowedCharsForQrValue)
@@ -15,6 +17,18 @@ const showQrModal = (ev: MouseEvent) => {
   ev.stopPropagation()
   modalVisible.value = true
 }
+
+const barcodeMeta = $computed(() => {
+  return {
+    barcodeFormat: 'CODE128',
+    ...(column?.value?.meta || {}),
+  }
+})
+
+const jsBarcodeOptions = $computed(() => ({
+  format: barcodeMeta.barcodeFormat,
+  // format: 'CODE128',
+}))
 
 const handleModalOkClick = () => (modalVisible.value = false)
 
@@ -30,11 +44,19 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     :footer="null"
     @ok="handleModalOkClick"
   >
-    <JsBarcodeWrapper v-if="barcodeValue && !tooManyCharsForQrCode" tag="svg" :value="barcodeValue" width="3" />
-  </a-modal>
-  <div @click="showQrModal">
     <JsBarcodeWrapper
       v-if="barcodeValue && !tooManyCharsForQrCode"
+      :options="jsBarcodeOptions"
+      tag="svg"
+      :value="barcodeValue"
+      width="3"
+    />
+  </a-modal>
+  <div @click="showQrModal">
+    FOO: {{ JSON.stringify(jsBarcodeOptions) }}
+    <JsBarcodeWrapper
+      v-if="barcodeValue && !tooManyCharsForQrCode"
+      :options="jsBarcodeOptions"
       tag="svg"
       class="w-full"
       :value="barcodeValue"
@@ -55,6 +77,6 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
 
 <style lang="scss">
 .amodal-wrapper {
-  width: 100px;
+  // width: 100px;
 }
 </style>

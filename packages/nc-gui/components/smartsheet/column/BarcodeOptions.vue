@@ -3,8 +3,6 @@ import type { UITypes } from 'nocodb-sdk'
 import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 import { useVModel } from '#imports'
-import * as Ewa from '@chenfengyuan/vue-barcode'
-import * as Daniel from 'JsBarcode'
 
 const props = defineProps<{
   modelValue: any
@@ -57,13 +55,19 @@ const supportedBarcodeFormats = [
 onMounted(() => {
   // set default value
   vModel.value.fk_barcode_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || ''
-  vModel.value.barcode_format = (column?.value?.colOptions as Record<string, any>)?.barcode_format || ''
+  // vModel.value.meta.barcode_format = (column?.value?.colOptions as Record<string, any>)?.barcode_format || ''
 })
 
 setAdditionalValidations({
   fk_barcode_value_column_id: [{ required: true, message: 'Required' }],
-  // barcode_format: [{ required: true, message: 'Required' }],
+  barcode_format: [{ required: true, message: 'Required' }],
 })
+
+// set default meta value
+vModel.value.meta = {
+  barcodeFormat: supportedBarcodeFormats[0].value,
+  ...vModel.value.meta,
+}
 </script>
 
 <template>
@@ -81,18 +85,18 @@ setAdditionalValidations({
           @click.stop
         />
       </a-form-item>
-      <!-- <a-form-item
+      <a-form-item
         class="flex w-1/2 pb-2 nc-qr-code-value-column-select"
         :label="$t('labels.barcodeFormat')"
         v-bind="validateInfos.barcode_format"
       >
         <a-select
-          v-model:value="vModel.barcode_format"
+          v-model:value="vModel.meta.barcodeFormat"
           :options="supportedBarcodeFormats"
           placeholder="Select a Barcode format"
           @click.stop
         />
-      </a-form-item> -->
+      </a-form-item>
     </a-col>
   </a-row>
 </template>

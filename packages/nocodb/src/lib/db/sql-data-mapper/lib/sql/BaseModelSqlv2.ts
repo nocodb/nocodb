@@ -103,7 +103,6 @@ class BaseModelSqlv2 {
     let data = (await this.extractRawQueryAndExec(qb))?.[0];
 
     if (data) {
-      data = this.convertAttachmentType(data);
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
@@ -162,7 +161,6 @@ class BaseModelSqlv2 {
     let data = await qb.first();
 
     if (data) {
-      data = this.convertAttachmentType(data);
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
@@ -255,7 +253,6 @@ class BaseModelSqlv2 {
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
     let data = await this.extractRawQueryAndExec(qb);
-    data = this.convertAttachmentType(data);
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -367,7 +364,7 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-    return this.convertAttachmentType(await qb);
+    return await qb;
   }
 
   async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
@@ -427,7 +424,6 @@ class BaseModelSqlv2 {
       );
 
       let children = await this.extractRawQueryAndExec(childQb);
-      children = this.convertAttachmentType(children);
       const proto = await (
         await Model.getBaseModelSQL({
           id: childTable.id,
@@ -555,7 +551,6 @@ class BaseModelSqlv2 {
       await childModel.selectObject({ qb });
 
       let children = await this.extractRawQueryAndExec(qb);
-      children = this.convertAttachmentType(children);
 
       const proto = await (
         await Model.getBaseModelSQL({
@@ -676,7 +671,6 @@ class BaseModelSqlv2 {
     if (this.isMySQL) {
       children = children[0];
     }
-    children = this.convertAttachmentType(children);
     const proto = await (
       await Model.getBaseModelSQL({
         id: rtnId,
@@ -742,7 +736,6 @@ class BaseModelSqlv2 {
     qb.offset(+rest?.offset || 0);
 
     let children = await this.extractRawQueryAndExec(qb);
-    children = this.convertAttachmentType(children);
     const proto = await (
       await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
@@ -969,7 +962,6 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
     let data = await qb;
-    data = this.convertAttachmentType(data);
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -1084,7 +1076,6 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
     let data = await this.extractRawQueryAndExec(qb);
-    data = this.convertAttachmentType(data);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1203,7 +1194,6 @@ class BaseModelSqlv2 {
 
     const proto = await parentModel.getProto();
     let data = await this.extractRawQueryAndExec(qb);
-    data = this.convertAttachmentType(data);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -2663,7 +2653,6 @@ class BaseModelSqlv2 {
       const proto = await this.getProto();
 
       let data = await groupedQb;
-      data = this.convertAttachmentType(data);
       const result = data?.map((d) => {
         d.__proto__ = proto;
         return d;
@@ -2773,21 +2762,25 @@ class BaseModelSqlv2 {
     } else {
       query = sanitize(query);
     }
-    return this.isPg
-      ? (await this.dbDriver.raw(query))?.rows
-      : query.slice(0, 6) === 'select' && !this.isMssql
-      ? await this.dbDriver.from(
-          this.dbDriver.raw(query).wrap('(', ') __nc_alias')
-        )
-      : await this.dbDriver.raw(query);
+    return this.convertAttachmentType(
+      this.isPg
+        ? (await this.dbDriver.raw(query))?.rows
+        : query.slice(0, 6) === 'select' && !this.isMssql
+        ? await this.dbDriver.from(
+            this.dbDriver.raw(query).wrap('(', ') __nc_alias')
+          )
+        : await this.dbDriver.raw(query)
+    );
   }
 
   private _convertAttachmentType(attachmentColumns, d) {
-    attachmentColumns.forEach((col) => {
-      if (d[col.title] && typeof d[col.title] === 'string') {
-        d[col.title] = JSON.parse(d[col.title]);
-      }
-    });
+    if (d) {
+      attachmentColumns.forEach((col) => {
+        if (d[col.title] && typeof d[col.title] === 'string') {
+          d[col.title] = JSON.parse(d[col.title]);
+        }
+      });
+    }
     return d;
   }
 

@@ -2860,12 +2860,12 @@ class BaseModelSqlv2 {
       : await this.dbDriver.raw(query);
   }
 
-  private _convertAttachmentType(attachmentColumns, d) {
-    attachmentColumns.forEach((col) => {
-      if (d[col.title] && typeof d[col.title] === 'string') {
-        d[col.title] = JSON.parse(d[col.title]);
-      }
-    });
+  private _convertAttachmentType(_attachmentColumns, d) {
+    // attachmentColumns.forEach((col) => {
+    //   if (d[col.title] && typeof d[col.title] === 'string') {
+    //     d[col.title] = JSON.parse(d[col.title]);
+    //   }
+    // });
     return d;
   }
 

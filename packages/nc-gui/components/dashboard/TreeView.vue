@@ -300,18 +300,30 @@ watch(
   { immediate: true },
 )
 
-
 const setIcon = (icon: string, table: TableType) => {
   table.meta = {
-    // ...table.meta || {},
+    ...(table.meta || {}),
     icon,
   }
+  tables.value.splice(tables.value.indexOf(table), 1, { ...table })
+
   $api.dbTable.update(table.id as string, {
-    meta: {
-      icon,
-    },
+    meta: table.meta,
   })
 }
+
+// const getTableIcon = (table: TableType) => {
+//   if (table.meta?.icon) {
+//     return h(
+//       'span',
+//       {
+//         'key': table.meta?.icon,
+//         'class': 'iconify !cursor-pointer !text-2xl',
+//         'data-icon': table.meta?.icon,
+//       },)
+//   }
+//   return icon(table)
+// }
 </script>
 
 <template>
@@ -546,14 +558,14 @@ const setIcon = (icon: string, table: TableType) => {
                   :nc-base="bases[0].id"
                 >
                   <div
-                    v-for="table of tables.filter((table) => table.base_id === bases[0].id)"
+                    v-for="(table, i) of tables.filter((table) => table.base_id === bases[0].id)"
                     :key="table.id"
                     v-e="['a:table:open']"
                     :class="[
                       { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
                       `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
                     ]"
-                    class="nc-tree-item text-sm cursor-pointer group"
+                    class="nc-tree-item text-sm cursor-pointer group1"
                     :data-order="table.order"
                     :data-id="table.id"
                     :data-testid="`tree-view-table-${table.title}`"
@@ -563,8 +575,7 @@ const setIcon = (icon: string, table: TableType) => {
                       <template #title>{{ table.table_name }}</template>
                       <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-
-                          <a-popover trigger="hover" @click.stop>
+                          <a-popover trigger="click" @click.stop>
                             <div @click.stop>
                               <MdiDrag
                                 v-if="isUIAllowed('treeview-drag-n-drop')"
@@ -573,32 +584,38 @@ const setIcon = (icon: string, table: TableType) => {
                                 @click.stop.prevent
                               />
 
-                              <span v-if="table.meta?.icon" class="iconify cursor-pointer" :data-icon="table.meta?.icon"></span>
+                              <a-tooltip>
+                                <span v-if="table.meta?.icon" :key="table.meta?.icon">
+                                  <GeneralIconifyIcon class="text-2xl" :key="table.meta?.icon" :icon="table.meta?.icon"></GeneralIconifyIcon>
+                                </span>
+                                <component
+                                  :is="icon(table)"
+                                  v-else
+                                  class="nc-view-icon text-xs"
+                                  :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                                />
 
-                              <component
-                                v-else
-                                :is="icon(table)"
-                                class="nc-view-icon text-xs"
-                                :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
-                              />
+                                <template #title>Change icon</template>
+                              </a-tooltip>
                             </div>
                             <template #content>
                               <LazyGeneralEmojiIcons @selectIcon="setIcon($event, table)" />
                             </template>
                           </a-popover>
 
-                          <MdiDragVertical
-                            v-if="isUIAllowed('treeview-drag-n-drop')"
-                            :class="`nc-child-draggable-icon-${table.title}`"
-                            class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
-                            @click.stop.prevent
-                          />
+                          <!--
+                                                    <MdiDragVertical
+                                                      v-if="isUIAllowed('treeview-drag-n-drop')"
+                                                      :class="`nc-child-draggable-icon-${table.title}`"
+                                                      class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
+                                                      @click.stop.prevent
+                                                    />
 
-                          <component
-                            :is="icon(table)"
-                            class="nc-view-icon text-xs"
-                            :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
-                          />
+                                                    <component
+                                                      :is="icon(table)"
+                                                      class="nc-view-icon text-xs"
+                                                      :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                                                    /> -->
                         </div>
 
                         <div class="nc-tbl-title flex-1">

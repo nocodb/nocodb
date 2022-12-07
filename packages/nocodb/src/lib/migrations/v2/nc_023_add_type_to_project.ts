@@ -4,7 +4,7 @@ import { Knex } from 'knex';
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
     // todo: add enum and sync existing projects
-    table.string('type', 20).nullable();
+    table.string('type', 200).nullable();
   });
 };
 

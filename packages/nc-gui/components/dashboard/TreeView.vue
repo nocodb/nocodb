@@ -299,6 +299,19 @@ watch(
   },
   { immediate: true },
 )
+
+
+const setIcon = (icon: string, table: TableType) => {
+  table.meta = {
+    // ...table.meta || {},
+    icon,
+  }
+  $api.dbTable.update(table.id as string, {
+    meta: {
+      icon,
+    },
+  })
+}
 </script>
 
 <template>
@@ -550,6 +563,30 @@ watch(
                       <template #title>{{ table.table_name }}</template>
                       <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
+
+                          <a-popover trigger="hover" @click.stop>
+                            <div @click.stop>
+                              <MdiDrag
+                                v-if="isUIAllowed('treeview-drag-n-drop')"
+                                :class="`nc-child-draggable-icon-${table.title}`"
+                                class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
+                                @click.stop.prevent
+                              />
+
+                              <span v-if="table.meta?.icon" class="iconify cursor-pointer" :data-icon="table.meta?.icon"></span>
+
+                              <component
+                                v-else
+                                :is="icon(table)"
+                                class="nc-view-icon text-xs"
+                                :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                              />
+                            </div>
+                            <template #content>
+                              <LazyGeneralEmojiIcons @selectIcon="setIcon($event, table)" />
+                            </template>
+                          </a-popover>
+
                           <MdiDragVertical
                             v-if="isUIAllowed('treeview-drag-n-drop')"
                             :class="`nc-child-draggable-icon-${table.title}`"

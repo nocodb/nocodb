@@ -50,6 +50,7 @@ declare module '@vue/runtime-core' {
     AntDesignMenuFoldOutlined: typeof import('~icons/ant-design/menu-fold-outlined')['default']
     AntDesignMenuUnfoldOutlined: typeof import('~icons/ant-design/menu-unfold-outlined')['default']
     APagination: typeof import('ant-design-vue/es')['Pagination']
+    APopover: typeof import('ant-design-vue/es')['Popover']
     ARadio: typeof import('ant-design-vue/es')['Radio']
     ARadioGroup: typeof import('ant-design-vue/es')['RadioGroup']
     ARate: typeof import('ant-design-vue/es')['Rate']

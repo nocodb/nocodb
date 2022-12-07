@@ -26,7 +26,8 @@ async function list(
 ) {
   try {
     const pages = await DocsPage.listPages({
-      projectId: req.params?.projectId,
+      projectId: req.query?.projectId,
+      parentPageId: req.query?.parentPageId,
     });
 
     res // todo: pagination

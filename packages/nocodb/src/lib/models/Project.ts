@@ -55,6 +55,7 @@ export default class Project implements ProjectType {
         is_meta: projectBody.is_meta,
         created_at: projectBody.created_at,
         updated_at: projectBody.updated_at,
+        type: projectBody.type,
       }
     );
 

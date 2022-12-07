@@ -112,6 +112,8 @@ async function projectCreate(req: Request<any, any>, res) {
     const ranId = nanoid();
     projectBody.prefix = `nc_${ranId}__`;
     projectBody.is_meta = true;
+    projectBody.type = req.body.type;
+
     if (process.env.NC_MINIMAL_DBS) {
       // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each project
       // each file will be named as nc_<random_id>.db

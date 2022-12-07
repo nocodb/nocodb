@@ -1,18 +1,20 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
+import slug from 'slug';
 
 export default class DocsPage {
   public id: string;
   public title: string;
   public content: string;
+  public slug: string;
 
   constructor(project: Partial<DocsPage>) {
     Object.assign(this, project);
   }
 
   public static async createPage(
-    { id, title, content, projectId },
+    { id, title, content, projectId, parentPageId },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPage> {
     const { id: createdPageId } = await ncMeta.metaInsert2(
@@ -23,8 +25,23 @@ export default class DocsPage {
         id: id,
         title: title,
         content: content,
+        // todo: Handle the case when there is a slug duplicate
+        slug: slug(title),
+        parent_page_id: parentPageId,
       }
     );
+
+    if (parentPageId) {
+      await ncMeta.metaUpdate(
+        projectId,
+        null,
+        MetaTable.DOCS_PAGE,
+        {
+          is_parent: true,
+        },
+        parentPageId
+      );
+    }
 
     return this.get(createdPageId, ncMeta);
   }
@@ -47,10 +64,14 @@ export default class DocsPage {
   }
 
   public static listPages(
-    { projectId },
+    { projectId, parentPageId },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPage[]> {
-    return ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE);
+    return ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE, {
+      condition: {
+        parent_page_id: parentPageId ?? null,
+      },
+    });
   }
 
   public static deletePage({ id }, ncMeta = Noco.ncMeta): Promise<void> {

@@ -10,6 +10,85 @@
     }
   ],
   "paths": {
+    "/api/v1/docs/pages": {
+      "get": {
+        "summary": "List pages",
+        "operationId": "list-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters":[
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parentPageId",
+            "in": "query",
+            "description": "Parent page id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "List pages"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/page": {
+      "post": {
+        "summary": "Create page",
+        "operationId": "create-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocsPage"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocsPage"
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create page"
+      },
+      "parameters": []
+    },
     "/api/v1/auth/user/signup": {
       "post": {
         "summary": "Signup",
@@ -7041,6 +7120,41 @@
           "email_verified"
         ]
       },
+      "DocsPage": {
+        "title": "DocsPage",
+        "type": "object",
+        "description": "Page of noco docs",
+        "examples": [
+          {
+            "id": "142",
+            "title": "Alice",
+            "content": "Smith"
+          }
+        ],
+        "x-internal": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the given user."
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "parentPageId": {
+            "type": "string"
+          },
+          "is_parent": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "title",
+          "content"
+        ]
+      },
       "PageReqQueryParams": {
         "title": "PageReqQueryParams",
         "type": "object",
@@ -7181,6 +7295,9 @@
           },
           "is_meta": {
             "type": "boolean"
+          },
+          "type": {
+            "type": "string"
           },
           "prefix": {
             "type": "string"

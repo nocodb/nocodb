@@ -39,9 +39,10 @@ const createProject = async () => {
   try {
     const result = await api.project.create({
       title: formState.title,
+      type: 'docs',
     })
 
-    await navigateTo(`/nc/${result.id}`)
+    await navigateTo(`/nc/doc/${result.id}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

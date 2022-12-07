@@ -31,6 +31,18 @@ export interface UserType {
   createDate?: string;
 }
 
+/**
+ * Page of noco docs
+ */
+export interface DocsPageType {
+  /** Unique identifier for the given user. */
+  id?: string;
+  title: string;
+  content: string;
+  parentPageId?: string;
+  is_parent?: boolean;
+}
+
 export interface PageReqQueryParamsType {
   offset?: number;
   limit?: number;
@@ -62,6 +74,7 @@ export interface ProjectType {
   order?: number;
   bases?: BaseType[];
   is_meta?: boolean;
+  type?: string;
   prefix?: string;
   created_at?: any;
   updated_at?: any;
@@ -854,6 +867,52 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<
   SecurityDataType extends unknown
 > extends HttpClient<SecurityDataType> {
+  nocoDocs = {
+    /**
+     * @description List pages
+     *
+     * @tags Noco docs
+     * @name ListPages
+     * @summary List pages
+     * @request GET:/api/v1/docs/pages
+     * @response `200` `(DocsPageType)[]` OK
+     */
+    listPages: (
+      query?: {
+        /** Page number */
+        projectId?: string;
+        /** Parent page id */
+        parentPageId?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType[], any>({
+        path: `/api/v1/docs/pages`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create page
+     *
+     * @tags Noco docs
+     * @name CreatePage
+     * @summary Create page
+     * @request POST:/api/v1/docs/page
+     * @response `200` `DocsPageType` OK
+     */
+    createPage: (data: DocsPageType, params: RequestParams = {}) =>
+      this.request<DocsPageType, any>({
+        path: `/api/v1/docs/page`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
   auth = {
     /**
  * @description Create a new user with provided email and password and first user is marked as super admin. 

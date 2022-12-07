@@ -1971,6 +1971,8 @@
                   },
                   "project_id": {
                     "type": "string"
+                  },
+                  "meta": {
                   }
                 }
               }
@@ -7484,6 +7486,8 @@
               "boolean",
               "number"
             ]
+          },
+          "meta": {
           }
         },
         "required": [
@@ -7823,6 +7827,8 @@
             "items": {
               "$ref": "#/components/schemas/Column"
             }
+          },
+          "meta": {
           }
         },
         "required": [

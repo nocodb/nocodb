@@ -124,6 +124,7 @@ export interface TableType {
   columnsById?: object;
   slug?: string;
   mm?: boolean | number;
+  meta?: any;
 }
 
 export interface ViewType {
@@ -175,6 +176,7 @@ export interface TableReqType {
   order?: number;
   mm?: boolean;
   columns: ColumnType[];
+  meta?: any;
 }
 
 export interface TableListType {
@@ -2159,6 +2161,7 @@ export class Api<
         table_name?: string;
         title?: string;
         project_id?: string;
+        meta?: any;
       },
       params: RequestParams = {}
     ) =>

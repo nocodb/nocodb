@@ -34,8 +34,6 @@ Draait elke MySQL, PostgreSQL, SQL Server, SQLITE & MARIADB in een Smart-Spreads
 
 # Snel proberen
 
-### 1-Click Deploy
-
 ### Docker gebruiken
 
 ```bash

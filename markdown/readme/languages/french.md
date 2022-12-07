@@ -34,7 +34,6 @@ Transformez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb en un
 
 
 # Essayez rapidement
-### Déploiement en 1 Clic
 
 ### Utilisez Docker
 ```bash

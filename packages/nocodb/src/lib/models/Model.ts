@@ -22,6 +22,20 @@ import { NcError } from '../meta/helpers/catchError';
 import Audit from './Audit';
 import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
 
+function parseMetaProp(modelorModelList: Model[] | Model) {
+  // parse meta property
+  for (const model of Array.isArray(modelorModelList)
+    ? modelorModelList
+    : [modelorModelList]) {
+    try {
+      model.meta =
+        typeof model.meta === 'string' ? JSON.parse(model.meta) : model.meta;
+    } catch {
+      model.meta = {};
+    }
+  }
+}
+
 export default class Model implements TableType {
   copy_enabled: boolean;
   created_at: Date | number | string;
@@ -51,6 +65,7 @@ export default class Model implements TableType {
   columns?: Column[];
   columnsById?: { [id: string]: Column };
   views?: View[];
+  meta?: Record<string, any> | string
 
   constructor(data: Partial<TableType | Model>) {
     Object.assign(this, data);
@@ -175,8 +190,14 @@ export default class Model implements TableType {
         }
       );
 
+      parseMetaProp(modelList);
+
       if (base_id) {
-        await NocoCache.setList(CacheScope.MODEL, [project_id, base_id], modelList);
+        await NocoCache.setList(
+          CacheScope.MODEL,
+          [project_id, base_id],
+          modelList
+        );
       } else {
         await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
       }
@@ -210,6 +231,8 @@ export default class Model implements TableType {
         MetaTable.MODELS
       );
 
+      parseMetaProp(modelList);
+
       await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
     }
 
@@ -230,8 +253,11 @@ export default class Model implements TableType {
       ));
     if (!modelData) {
       modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, id);
-      if (modelData)
+
+      if (modelData) {
+        parseMetaProp(modelData);
         await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
+      }
     }
     return modelData && new Model(modelData);
   }
@@ -256,6 +282,7 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!modelData) {
+      parseMetaProp(modelData);
       modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, k);
       // if (
       //   this.baseModels?.[modelData.base_id]?.[modelData.db_alias]?.[
@@ -300,6 +327,7 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!modelData) {
+      parseMetaProp(modelData);
       modelData = await ncMeta.metaGet2(
         null,
         null,
@@ -720,6 +748,34 @@ export default class Model implements TableType {
     return (await this.getColumns()).reduce(
       (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
       {}
+    );
+  }
+
+  // For updating table meta
+  static async updateMeta(
+    tableId: string,
+    meta: string | Record<string, any>,
+    ncMeta = Noco.ncMeta
+  ) {
+    // get existing cache
+    const key = `${CacheScope.MODEL}:${tableId}`;
+    const existingCache = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (existingCache) {
+      try {
+        existingCache.meta = typeof meta === 'string' ? JSON.parse(meta) : meta;
+        // set cache
+        await NocoCache.set(key, existingCache);
+      } catch {}
+    }
+    // set meta
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.MODELS,
+      {
+        meta: typeof meta === 'object' ? JSON.stringify(meta) : meta,
+      },
+      tableId
     );
   }
 }

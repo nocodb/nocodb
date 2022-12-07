@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue';
+import { Icon } from '@iconify/vue'
 
 const emit = defineEmits(['selectIcon'])
 const search = $ref('')
@@ -1845,24 +1845,23 @@ const icons = [
 const filteredIcons = computed(() => {
   return icons.filter((icon) => !search || icon.toLowerCase().includes(search.toLowerCase()))
 })
-
 </script>
 
 <template>
-  <div class="p-1 w-85 h-80 flex flex-col gap-1 justify-start">
+  <div class="p-1 w-70 h-75 flex flex-col gap-1 justify-start">
     <div>
       <input v-model="search" class="p-1 border-1 w-full overflow-y-auto" placeholder="Search" />
     </div>
-    <div class="flex gap-4 flex-wrap w-full flex-shrink overflow-y-auto scrollbar-thin-dull">
+    <div class="flex gap-1 flex-wrap w-full flex-shrink overflow-y-auto scrollbar-thin-dull">
       <div v-for="icon of filteredIcons" :key="icon" @click="emit('selectIcon', `emojione:${icon}`)">
         <span class="cursor-pointer nc-emoji-item">
-          <Icon class="text-2xl iconify"
-                :icon="`emojione:${icon}`"></Icon>
+          <Icon class="text-xl iconify" :icon="`emojione:${icon}`"></Icon>
         </span>
       </div>
     </div>
   </div>
 </template>
+
 <style scoped>
 .nc-emoji-item {
   @apply hover:(bg-primary bg-opacity-10) active:(bg-primary !bg-opacity-20) rounded-md w-[38px] h-[38px] block flex items-center justify-center;

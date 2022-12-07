@@ -3,7 +3,6 @@ import {
   computed,
   currencyCodes,
   currencyLocales,
-  useProject,
   useVModel,
   validateCurrencyCode,
   validateCurrencyLocale,

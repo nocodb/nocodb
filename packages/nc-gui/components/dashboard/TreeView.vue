@@ -558,7 +558,7 @@ const setIcon = (icon: string, table: TableType) => {
                   :nc-base="bases[0].id"
                 >
                   <div
-                    v-for="(table, i) of tables.filter((table) => table.base_id === bases[0].id)"
+                    v-for="table of tables.filter((table) => table.base_id === bases[0].id)"
                     :key="table.id"
                     v-e="['a:table:open']"
                     :class="[
@@ -575,7 +575,7 @@ const setIcon = (icon: string, table: TableType) => {
                       <template #title>{{ table.table_name }}</template>
                       <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-                          <a-popover trigger="click" @click.stop>
+                          <a-dropdown trigger="click" @click.stop>
                             <div @click.stop>
                               <MdiDrag
                                 v-if="isUIAllowed('treeview-drag-n-drop')"
@@ -586,22 +586,26 @@ const setIcon = (icon: string, table: TableType) => {
 
                               <a-tooltip>
                                 <span v-if="table.meta?.icon" :key="table.meta?.icon">
-                                  <GeneralIconifyIcon class="text-2xl" :key="table.meta?.icon" :icon="table.meta?.icon"></GeneralIconifyIcon>
+                                  <GeneralIconifyIcon
+                                    :key="table.meta?.icon"
+                                    class="text-xl"
+                                    :icon="table.meta?.icon"
+                                  ></GeneralIconifyIcon>
                                 </span>
                                 <component
                                   :is="icon(table)"
                                   v-else
-                                  class="nc-view-icon text-xs"
+                                  class="nc-view-icon"
                                   :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
                                 />
 
                                 <template #title>Change icon</template>
                               </a-tooltip>
                             </div>
-                            <template #content>
-                              <LazyGeneralEmojiIcons @selectIcon="setIcon($event, table)" />
+                            <template #overlay>
+                              <LazyGeneralEmojiIcons class="shadow bg-white p-2" @selectIcon="setIcon($event, table)" />
                             </template>
-                          </a-popover>
+                          </a-dropdown>
 
                           <!--
                                                     <MdiDragVertical

@@ -145,7 +145,6 @@ let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateA
 async function handlePreImport() {
   preImportLoading.value = true
   isParsingData.value = true
-
   if (activeKey.value === 'uploadTab') {
     if (isImportTypeCsv.value) {
       await parseAndExtractData(importState.fileList as streamImportFileList)

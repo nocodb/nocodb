@@ -1992,10 +1992,11 @@ class BaseModelSqlv2 {
 
       const res = [];
       for (const d of ids) {
-        if (Object.keys(d).length) {
+        const data = await this.model.mapAliasToColumn(d);
+        if (Object.keys(data).length) {
           const response = await transaction(this.model.table_name)
             .del()
-            .where(await this.model.mapAliasToColumn(d));
+            .where(data);
           res.push(response);
         }
       }

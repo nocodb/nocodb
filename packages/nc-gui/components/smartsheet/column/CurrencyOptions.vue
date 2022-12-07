@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  computed,
-  currencyCodes,
-  currencyLocales,
-  useVModel,
-  validateCurrencyCode,
-  validateCurrencyLocale,
-} from '#imports'
+import { computed, currencyCodes, currencyLocales, useVModel, validateCurrencyCode, validateCurrencyLocale } from '#imports'
 
 interface Option {
   label: string

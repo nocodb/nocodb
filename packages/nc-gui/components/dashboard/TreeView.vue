@@ -77,7 +77,7 @@ const initSortable = (el: Element) => {
   if (!base_id) return
   if (sortables[base_id]) sortables[base_id].destroy()
   Sortable.create(el as HTMLLIElement, {
-    handle: '.nc-drag-icon',
+    // handle: '.nc-drag-icon',
     onEnd: async (evt) => {
       const offset = tables.value.findIndex((table) => table.base_id === base_id)
 
@@ -565,7 +565,7 @@ const setIcon = (icon: string, table: TableType) => {
                       { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
                       `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
                     ]"
-                    class="nc-tree-item text-sm cursor-pointer group1"
+                    class="nc-tree-item text-sm cursor-pointer group"
                     :data-order="table.order"
                     :data-id="table.id"
                     :data-testid="`tree-view-table-${table.title}`"
@@ -577,12 +577,12 @@ const setIcon = (icon: string, table: TableType) => {
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
                           <a-dropdown trigger="click" @click.stop>
                             <div @click.stop>
-                              <MdiDrag
+<!--                              <MdiDrag
                                 v-if="isUIAllowed('treeview-drag-n-drop')"
                                 :class="`nc-child-draggable-icon-${table.title}`"
                                 class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
                                 @click.stop.prevent
-                              />
+                              />-->
 
                               <a-tooltip>
                                 <span v-if="table.meta?.icon" :key="table.meta?.icon">
@@ -596,7 +596,7 @@ const setIcon = (icon: string, table: TableType) => {
                                   :is="icon(table)"
                                   v-else
                                   class="nc-view-icon"
-                                  :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                                  :class="{ ' group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
                                 />
 
                                 <template #title>Change icon</template>

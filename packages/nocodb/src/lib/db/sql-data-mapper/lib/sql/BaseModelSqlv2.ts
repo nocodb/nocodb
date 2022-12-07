@@ -1995,7 +1995,7 @@ class BaseModelSqlv2 {
         if (Object.keys(d).length) {
           const response = await transaction(this.model.table_name)
             .del()
-            .where(d);
+            .where(await this.model.mapAliasToColumn(d));
           res.push(response);
         }
       }

@@ -91,7 +91,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const project = await Project.getWithInfo(req.params.projectId);
   let base = project.bases[0];
 
-  if (req.params.baseId) {
+  if (req.params.baseId && req.params.baseId !== 'undefined') {
     base = project.bases.find((b) => b.id === req.params.baseId);
   }
 
@@ -230,7 +230,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
 
   const project = await Project.getWithInfo(req.body.project_id);
   const base = project.bases.find((b) => b.id === model.base_id);
-  
+
   if (!req.body.table_name) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'

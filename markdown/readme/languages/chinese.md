@@ -33,21 +33,6 @@
 
 # 快速尝试
 
-### 一键部署
-
-在部署之前，请确保你有一个 Heroku 账户。默认情况下，将使用一个附加的 Heroku Postgres 作为数据库。你可以通过访问 Heroku 应用程序设置并选择 Config Vars 来查看 DATABASE_URL 中定义的连接方式。
-
-#### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="一键部署 NocoDB 到 Heroku" 
-    />
-</a>
-<br>
-
 ## NPX
 
 如果你需要一个交互式的配置，你可以运行下面的命令。

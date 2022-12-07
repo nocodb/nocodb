@@ -35,17 +35,6 @@ Trasforma qualsiasi MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in un foglio
 
 ### 1-Click Deploy
 
-#### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a>
-<br>
-
 ### Con Docker
 
 ```bash

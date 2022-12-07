@@ -34,19 +34,6 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트�
 
 # 바로 써보기
 
-### 원클릭 배포
-
-#### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="NocoDB를 Heroku에 원클릭 배포하기" 
-    />
-</a>
-<br>
-
 ### Docker 사용
 
 ```bash

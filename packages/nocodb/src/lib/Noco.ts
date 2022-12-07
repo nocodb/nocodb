@@ -16,7 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { NcConfig } from '../interface/config';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
-import { MetaTable } from './utils/globals'
+import { MetaTable } from './utils/globals';
 import NcConfigFactory from './utils/NcConfigFactory';
 import { Tele } from 'nc-help';
 
@@ -29,8 +29,6 @@ import NcMetaImplEE from './meta/NcMetaIOImplEE';
 import NcMetaMgrCE from './meta/NcMetaMgr';
 import NcMetaMgrEE from './meta/NcMetaMgrEE';
 import { RestApiBuilder } from './v1-legacy/rest/RestApiBuilder';
-import RestAuthCtrlCE from './v1-legacy/rest/RestAuthCtrl';
-import RestAuthCtrlEE from './v1-legacy/rest/RestAuthCtrlEE';
 import mkdirp from 'mkdirp';
 import MetaAPILogger from './meta/MetaAPILogger';
 import NcUpgrader from './version-upgrader/NcUpgrader';
@@ -46,10 +44,6 @@ import initAdminFromEnv from './meta/api/userApi/initAdminFromEnv';
 
 const log = debug('nc:app');
 require('dotenv').config();
-
-const NcProjectBuilder = process.env.EE
-  ? NcProjectBuilderEE
-  : NcProjectBuilderCE;
 
 export default class Noco {
   private static _this: Noco;
@@ -237,7 +231,6 @@ export default class Noco {
 
     await NcPluginMgrv2.init(Noco.ncMeta);
     registerMetaApis(this.router, server);
-
 
     this.router.use(NcToolGui.expressMiddleware(this.config.dashboardPath));
     this.router.get('/', (_req, res) =>

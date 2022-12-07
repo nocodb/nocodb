@@ -51,6 +51,29 @@ const formulas: Record<string, any> = {
       'DATEADD({column1}, -2, "year")',
     ],
   },
+  DATETIME_DIFF: {
+    type: formulaTypes.DATE,
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+      },
+    },
+    description: 'Calculate the difference of two given date / datetime in specified units.',
+    syntax:
+      'DATETIME_DIFF(date | datetime, date | datetime, ["milliseconds" | "ms" | "seconds" | "s" | "minutes" | "m" | "hours" | "h" | "days" | "d" | "weeks" | "w" | "months" | "M" | "quarters" | "Q" | "years" | "y"])',
+    examples: [
+      'DATEDIFF({column1}, {column2})',
+      'DATEDIFF({column1}, {column2}, "seconds")',
+      'DATEDIFF({column1}, {column2}, "s")',
+      'DATEDIFF({column1}, {column2}, "years")',
+      'DATEDIFF({column1}, {column2}, "y")',
+      'DATEDIFF({column1}, {column2}, "minutes")',
+      'DATEDIFF({column1}, {column2}, "m")',
+      'DATEDIFF({column1}, {column2}, "days")',
+      'DATEDIFF({column1}, {column2}, "d")',
+    ],
+  },
   AND: {
     type: formulaTypes.COND_EXP,
     validation: {

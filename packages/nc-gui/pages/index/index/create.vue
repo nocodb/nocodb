@@ -20,6 +20,7 @@ const { api, isLoading } = useApi({ useGlobalInstance: true })
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
+const inflectionTypes = ['camelize', 'none']
 const nameValidationRules = [
   {
     required: true,
@@ -32,6 +33,10 @@ const form = ref<typeof Form>()
 
 const formState = reactive({
   title: '',
+  inflection: {
+    inflectionColumn: 'camelize',
+    inflectionTable: 'camelize',
+  },
 })
 
 const createProject = async () => {
@@ -39,6 +44,12 @@ const createProject = async () => {
   try {
     const result = await api.project.create({
       title: formState.title,
+      bases: [
+        {
+          inflection_column: formState.inflection.inflectionColumn,
+          inflection_table: formState.inflection.inflectionTable,
+        },
+      ],
     })
 
     await navigateTo(`/nc/${result.id}`)
@@ -77,6 +88,18 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     >
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
         <a-input :ref="focus" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+      </a-form-item>
+
+      <a-form-item :label="$t('labels.inflection.tableName')">
+        <a-select v-model:value="formState.inflection.inflectionTable" dropdown-class-name="nc-dropdown-inflection-table-name">
+          <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+        </a-select>
+      </a-form-item>
+
+      <a-form-item :label="$t('labels.inflection.columnName')">
+        <a-select v-model:value="formState.inflection.inflectionColumn" dropdown-class-name="nc-dropdown-inflection-column-name">
+          <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
+        </a-select>
       </a-form-item>
 
       <div class="text-center">

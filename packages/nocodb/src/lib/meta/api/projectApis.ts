@@ -146,6 +146,10 @@ async function projectCreate(req: Request<any, any>, res) {
       ];
     } else {
       const db = Noco.getConfig().meta?.db;
+      let base = {};
+      if (projectBody.bases && projectBody.bases.length > 0) {
+        base = projectBody.bases[0];
+      }
       projectBody.bases = [
         {
           type: db?.client,
@@ -153,6 +157,7 @@ async function projectCreate(req: Request<any, any>, res) {
           is_meta: true,
           inflection_column: 'camelize',
           inflection_table: 'camelize',
+          ...base,
         },
       ];
     }

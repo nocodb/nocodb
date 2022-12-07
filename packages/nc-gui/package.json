@@ -31,7 +31,6 @@
     "ci:run": "export NODE_OPTIONS=\"--max_old_space_size=16384\"; npm install; NUXT_PAGE_TRANSITION_DISABLE=true npm run build; NUXT_PUBLIC_NC_BACKEND_URL=http://localhost:8080 npm run start &"
   },
   "dependencies": {
-    "@chenfengyuan/vue-barcode": "^2.0.1",
     "@ckpack/vue-color": "^1.2.0",
     "@vue-flow/additional-components": "^1.2.0",
     "@vue-flow/core": "^1.3.0",

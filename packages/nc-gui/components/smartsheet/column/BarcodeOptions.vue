@@ -40,16 +40,16 @@ const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
 
 const supportedBarcodeFormats = [
   { value: 'CODE128', label: 'CODE128' },
-  { value: 'UPC', label: 'UPC' },
-  { value: 'EAN13', label: 'EAN13' },
-  { value: 'EAN8', label: 'EAN8' },
-  { value: 'EAN5', label: 'EAN5' },
-  { value: 'EAN2', label: 'EAN2' },
+  { value: 'upc', label: 'UPC' },
+  { value: 'EAN13', label: 'EAN-13' },
+  { value: 'EAN8', label: 'EAN-8' },
+  { value: 'EAN5', label: 'EAN-5' },
+  { value: 'EAN2', label: 'EAN-2' },
   { value: 'CODE39', label: 'CODE39' },
-  { value: 'ITF14', label: 'ITF14' },
+  { value: 'ITF14', label: 'ITF-14' },
   { value: 'MSI', label: 'MSI' },
   { value: 'PHARMACODE', label: 'pharmacode' },
-  { value: 'CODEBAR', label: 'codabar' },
+  { value: 'CODABAR', label: 'codabar' },
 ]
 
 onMounted(() => {

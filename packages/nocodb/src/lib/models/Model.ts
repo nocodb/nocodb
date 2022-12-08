@@ -22,11 +22,13 @@ import { NcError } from '../meta/helpers/catchError';
 import Audit from './Audit';
 import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
 
-function parseMetaProp(modelorModelList: Model[] | Model) {
+function parseMetaProp(modelOrModelList: Model[] | Model) {
+  if (!modelOrModelList) return;
+
   // parse meta property
-  for (const model of Array.isArray(modelorModelList)
-    ? modelorModelList
-    : [modelorModelList]) {
+  for (const model of Array.isArray(modelOrModelList)
+    ? modelOrModelList
+    : [modelOrModelList]) {
     try {
       model.meta =
         typeof model.meta === 'string' ? JSON.parse(model.meta) : model.meta;
@@ -65,7 +67,7 @@ export default class Model implements TableType {
   columns?: Column[];
   columnsById?: { [id: string]: Column };
   views?: View[];
-  meta?: Record<string, any> | string
+  meta?: Record<string, any> | string;
 
   constructor(data: Partial<TableType | Model>) {
     Object.assign(this, data);
@@ -282,8 +284,8 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!modelData) {
-      parseMetaProp(modelData);
       modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, k);
+      parseMetaProp(modelData);
       // if (
       //   this.baseModels?.[modelData.base_id]?.[modelData.db_alias]?.[
       //     modelData.title
@@ -327,7 +329,6 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!modelData) {
-      parseMetaProp(modelData);
       modelData = await ncMeta.metaGet2(
         null,
         null,
@@ -336,6 +337,7 @@ export default class Model implements TableType {
           table_name,
         }
       );
+      parseMetaProp(modelData);
       await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
       // modelData.filters = await Filter.getFilterObject({
       //   viewId: modelData.id

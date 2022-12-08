@@ -27,7 +27,7 @@ import {
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 
-const { addTab } = useTabs()
+const { addTab , updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
@@ -307,23 +307,14 @@ const setIcon = (icon: string, table: TableType) => {
   }
   tables.value.splice(tables.value.indexOf(table), 1, { ...table })
 
+
+  updateTab({ id: table.id }, { meta: table.meta })
+
   $api.dbTable.update(table.id as string, {
     meta: table.meta,
   })
 }
 
-// const getTableIcon = (table: TableType) => {
-//   if (table.meta?.icon) {
-//     return h(
-//       'span',
-//       {
-//         'key': table.meta?.icon,
-//         'class': 'iconify !cursor-pointer !text-2xl',
-//         'data-icon': table.meta?.icon,
-//       },)
-//   }
-//   return icon(table)
-// }
 </script>
 
 <template>
@@ -603,7 +594,7 @@ const setIcon = (icon: string, table: TableType) => {
                               </a-tooltip>
                             </div>
                             <template #overlay>
-                              <LazyGeneralEmojiIcons class="shadow bg-white p-2" @selectIcon="setIcon($event, table)" />
+                              <LazyGeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
                             </template>
                           </a-dropdown>
 

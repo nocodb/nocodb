@@ -6,6 +6,9 @@ import { emojiIcons } from '#imports'
 const emit = defineEmits(['selectIcon'])
 let search = $ref('')
 
+// keep a variable to load icons with infinite scroll
+// set initial value to 60 to load first 60 icons (index - `0 - 59`)
+// and next value will be 120 and shows first 120 icons ( index - `0 - 129`)
 let toIndex = $ref(60)
 
 const filteredIcons = computed(() => {
@@ -13,6 +16,7 @@ const filteredIcons = computed(() => {
 })
 
 const load = () => {
+  // increment `toIndex` to include next set of icons
   toIndex += Math.min(filteredIcons.value.length, toIndex + 60)
   if (toIndex > filteredIcons.value.length) {
     toIndex = filteredIcons.value.length
@@ -28,7 +32,13 @@ const selectIcon = (icon: string) => {
 <template>
   <div class="p-1 w-[280px] h-[280px] flex flex-col gap-1 justify-start nc-emoji" data-testid="nc-emoji-container">
     <div @click.stop>
-      <input v-model="search" data-testid="nc-emoji-filter" class="p-1 text-xs border-1 w-full overflow-y-auto" placeholder="Search" @input="toIndex = 60" />
+      <input
+        v-model="search"
+        data-testid="nc-emoji-filter"
+        class="p-1 text-xs border-1 w-full overflow-y-auto"
+        placeholder="Search"
+        @input="toIndex = 60"
+      />
     </div>
     <div class="flex gap-1 flex-wrap w-full flex-shrink overflow-y-auto scrollbar-thin-dull">
       <div v-for="icon of filteredIcons" :key="icon" @click="selectIcon(icon)">

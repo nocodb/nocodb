@@ -49,7 +49,12 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
             <template #tab>
               <div class="flex items-center gap-2 max-w-[110px]" data-testid="nc-tab-title">
                 <div class="flex items-center">
-                  <Icon v-if="tab.meta?.icon" :icon="tab.meta?.icon" class="text-xl" :data-testid="`nc-tab-icon-${tab.meta?.icon}`"/>
+                  <Icon
+                    v-if="tab.meta?.icon"
+                    :icon="tab.meta?.icon"
+                    class="text-xl"
+                    :data-testid="`nc-tab-icon-${tab.meta?.icon}`"
+                  />
                   <component :is="icon(tab)" v-else class="text-sm" />
                 </div>
 

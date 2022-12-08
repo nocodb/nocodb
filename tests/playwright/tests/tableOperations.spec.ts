@@ -13,7 +13,7 @@ test.describe('Table Operations', () => {
     settings = dashboard.settings;
   });
 
-  test.only('Create, and delete table, verify in audit tab, rename City table, update icon and reorder tables', async () => {
+  test('Create, and delete table, verify in audit tab, rename City table, update icon and reorder tables', async () => {
     await dashboard.treeView.createTable({ title: 'tablex' });
     await dashboard.treeView.verifyTable({ title: 'tablex' });
 

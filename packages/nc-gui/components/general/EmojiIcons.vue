@@ -1849,7 +1849,7 @@ const filteredIcons = computed(() => {
 
 <template>
   <div class="p-1 w-70 h-75 flex flex-col gap-1 justify-start">
-    <div>
+    <div @click.stop>
       <input v-model="search" class="p-1 border-1 w-full overflow-y-auto" placeholder="Search" />
     </div>
     <div class="flex gap-1 flex-wrap w-full flex-shrink overflow-y-auto scrollbar-thin-dull">

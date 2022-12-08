@@ -67,6 +67,9 @@ const pg = {
         sql = `EXTRACT(EPOCH from (${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP))::INTEGER / 60`;
         break;
       case 'milliseconds':
+        sql = `EXTRACT(EPOCH from (${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP))::INTEGER * 1000`;
+        break;
+      case 'hour':
         sql = `EXTRACT(EPOCH from (${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP))::INTEGER / 3600`;
         break;
       case 'week':
@@ -83,9 +86,9 @@ const pg = {
         break;
       case 'quarter':
         sql = `((EXTRACT(QUARTER FROM ${datetime_expr1}::TIMESTAMP) + 
-                    DATE_PART('year', AGE(${datetime_expr1},'1900/01/01')) * 4) - 1) - 
+                    DATE_PART('year', AGE(${datetime_expr1}, '1900/01/01')) * 4) - 1) - 
                 ((EXTRACT(QUARTER FROM ${datetime_expr2}::TIMESTAMP) + 
-                    DATE_PART('year', AGE(${datetime_expr2},'1900/01/01')) * 4) - 1)`;
+                    DATE_PART('year', AGE(${datetime_expr2}, '1900/01/01')) * 4) - 1)`;
         break;
       case 'year':
         sql = `DATE_PART('year', ${datetime_expr1}::TIMESTAMP) - DATE_PART('year', ${datetime_expr2}::TIMESTAMP)`;

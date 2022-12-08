@@ -48,7 +48,7 @@
       "es2017"
     ],
     "types": [
-      "mocha", "node"
+      "mocha", "node", "chai-subset"
     ],
     "typeRoots": [
       "node_modules/@types",

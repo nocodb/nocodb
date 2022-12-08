@@ -6,6 +6,8 @@ import columnTypeSpecificTests from './tests/columnTypeSpecific.test';
 import tableTests from './tests/table.test';
 import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
+import chai from 'chai';
+chai.use(require('chai-subset'));
 
 function restTests() {
   authTests();

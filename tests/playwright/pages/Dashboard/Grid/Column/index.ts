@@ -30,6 +30,8 @@ export class ColumnPageObject extends BasePage {
     type = 'SingleLineText',
     formula = '',
     qrCodeValueColumnTitle = '',
+    barcodeValueColumnTitle = '',
+    barcodeFormat = '',
     childTable = '',
     childColumn = '',
     relationType = '',
@@ -42,6 +44,8 @@ export class ColumnPageObject extends BasePage {
     type?: string;
     formula?: string;
     qrCodeValueColumnTitle?: string;
+    barcodeValueColumnTitle?: string;
+    barcodeFormat?: string;
     childTable?: string;
     childColumn?: string;
     relationType?: string;
@@ -98,6 +102,14 @@ export class ColumnPageObject extends BasePage {
         await this.rootPage
           .locator(`.ant-select-item`, {
             hasText: new RegExp(`^${qrCodeValueColumnTitle}$`),
+          })
+          .click();
+        break;
+      case 'Barcode':
+        await this.get().locator('.ant-select-single').nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: new RegExp(`^${barcodeValueColumnTitle}$`),
           })
           .click();
         break;

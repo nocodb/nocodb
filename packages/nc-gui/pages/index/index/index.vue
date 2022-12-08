@@ -143,7 +143,7 @@ const copyProjectMeta = async () => {
 
 <template>
   <div
-    class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
+    class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow) max-w-[650px] mx-auto"
     data-testid="projects-container"
   >
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">

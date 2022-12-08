@@ -3,6 +3,7 @@ import type { TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 import GithubButton from 'vue-github-button'
+import { Icon } from '@iconify/vue'
 import type { VNodeRef } from '#imports'
 import {
   ClientType,
@@ -27,7 +28,7 @@ import {
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 
-const { addTab , updateTab } = useTabs()
+const { addTab, updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
@@ -307,14 +308,12 @@ const setIcon = (icon: string, table: TableType) => {
   }
   tables.value.splice(tables.value.indexOf(table), 1, { ...table })
 
-
   updateTab({ id: table.id }, { meta: table.meta })
 
   $api.dbTable.update(table.id as string, {
     meta: table.meta,
   })
 }
-
 </script>
 
 <template>
@@ -568,20 +567,16 @@ const setIcon = (icon: string, table: TableType) => {
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
                           <a-dropdown trigger="click" @click.stop>
                             <div @click.stop>
-<!--                              <MdiDrag
+                              <!--                              <MdiDrag
                                 v-if="isUIAllowed('treeview-drag-n-drop')"
                                 :class="`nc-child-draggable-icon-${table.title}`"
                                 class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
                                 @click.stop.prevent
-                              />-->
+                              /> -->
 
                               <a-tooltip>
                                 <span v-if="table.meta?.icon" :key="table.meta?.icon">
-                                  <GeneralIconifyIcon
-                                    :key="table.meta?.icon"
-                                    class="text-xl"
-                                    :icon="table.meta?.icon"
-                                  ></GeneralIconifyIcon>
+                                  <Icon :key="table.meta?.icon" class="text-xl" :icon="table.meta?.icon"></Icon>
                                 </span>
                                 <component
                                   :is="icon(table)"
@@ -594,7 +589,7 @@ const setIcon = (icon: string, table: TableType) => {
                               </a-tooltip>
                             </div>
                             <template #overlay>
-                              <LazyGeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+                              <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
                             </template>
                           </a-dropdown>
 

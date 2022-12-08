@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Icon } from '@iconify/vue'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 import { TabMetaInj, iconMap, provide, useGlobal, useSidebar, useTabs } from '#imports'
@@ -48,7 +49,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
             <template #tab>
               <div class="flex items-center gap-2 max-w-[110px]">
                 <div class="flex items-center">
-                  <GeneralIconifyIcon v-if="tab.meta?.icon" :icon="tab.meta?.icon" class="text-xl" />
+                  <Icon v-if="tab.meta?.icon" :icon="tab.meta?.icon" class="text-xl" />
                   <component :is="icon(tab)" v-else class="text-sm" />
                 </div>
 

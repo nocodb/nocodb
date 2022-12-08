@@ -58,6 +58,7 @@
     "sortablejs": "^1.15.0",
     "tinycolor2": "^1.4.2",
     "unique-names-generator": "^4.7.1",
+    "v3-infinite-loading": "^1.2.2",
     "validator": "^13.7.0",
     "vue-dompurify-html": "^3.0.0",
     "vue-github-button": "^3.0.3",

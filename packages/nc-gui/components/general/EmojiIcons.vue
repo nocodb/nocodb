@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue'
+import InfiniteLoading from 'v3-infinite-loading'
 
 const emit = defineEmits(['selectIcon'])
 const search = $ref('')
@@ -1842,15 +1843,23 @@ const icons = [
   'zzz',
 ]
 
+let toIndex = $ref(60)
 const filteredIcons = computed(() => {
-  return icons.filter((icon) => !search || icon.toLowerCase().includes(search.toLowerCase()))
+  return icons.filter((icon) => !search || icon.toLowerCase().includes(search.toLowerCase())).slice(0, toIndex)
 })
+
+const load = () => {
+  toIndex += Math.min(filteredIcons.value.length, toIndex + 60)
+  if (toIndex > filteredIcons.value.length) {
+    toIndex = filteredIcons.value.length
+  }
+}
 </script>
 
 <template>
   <div class="p-1 w-70 h-75 flex flex-col gap-1 justify-start">
     <div @click.stop>
-      <input v-model="search" class="p-1 border-1 w-full overflow-y-auto" placeholder="Search" />
+      <input v-model="search" class="p-1 border-1 w-full overflow-y-auto" placeholder="Search" @input="toIndex = 60" />
     </div>
     <div class="flex gap-1 flex-wrap w-full flex-shrink overflow-y-auto scrollbar-thin-dull">
       <div v-for="icon of filteredIcons" :key="icon" @click="emit('selectIcon', `emojione:${icon}`)">
@@ -1858,6 +1867,7 @@ const filteredIcons = computed(() => {
           <Icon class="text-xl iconify" :icon="`emojione:${icon}`"></Icon>
         </span>
       </div>
+      <InfiniteLoading @infinite="load"><span /></InfiniteLoading>
     </div>
   </div>
 </template>

@@ -528,7 +528,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                           class="nc-project-menu-item group !no-underline"
                           to="/account/users"
                         >
-                          <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
+                          <GeneralAvatar size="16" :name="email" />
+                          &nbsp;
                           <div class="prose-sm group-hover:text-primary">
                             <div>Account</div>
                             <div class="text-xs text-gray-500">{{ email }}</div>

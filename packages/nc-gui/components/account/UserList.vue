@@ -172,7 +172,9 @@ const copyPasswordResetUrl = async (user: User) => {
         <!-- Email -->
         <a-table-column key="email" :title="$t('labels.email')" data-index="email">
           <template #default="{ text }">
-            <div>
+            <div class="flex items-center">
+              <GeneralAvatar size="20" :name="text" class="mr-2" />
+
               {{ text }}
             </div>
           </template>

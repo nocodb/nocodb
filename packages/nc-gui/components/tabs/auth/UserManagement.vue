@@ -253,7 +253,9 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
       </div>
 
       <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
-        <div class="flex w-4/6 flex-wrap nc-user-email">
+        <div class="flex w-4/6 flex-wrap nc-user-email items-center">
+          <GeneralAvatar size="20" :name="user.email" class="mr-2" />
+
           {{ user.email }}
         </div>
 

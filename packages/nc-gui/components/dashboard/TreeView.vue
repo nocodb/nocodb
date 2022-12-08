@@ -435,7 +435,7 @@ const setIcon = (icon: string, table: TableType) => {
             class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog(bases[0].id)"
           >
-            <MdiPlus />
+            <MdiPlus class="w-5" />
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
@@ -586,8 +586,8 @@ const setIcon = (icon: string, table: TableType) => {
                                 <component
                                   :is="icon(table)"
                                   v-else
-                                  class="nc-view-icon"
-                                  :class="{ ' group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                                  class="nc-view-icon w-5"
+                                  :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
                                 />
 
                                 <template #title>Change icon</template>

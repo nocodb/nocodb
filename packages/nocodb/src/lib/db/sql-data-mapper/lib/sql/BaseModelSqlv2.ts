@@ -423,7 +423,7 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
-      let children = await this.extractRawQueryAndExec(childQb);
+      let children = await this.extractRawQueryAndExec(childQb, childTable);
       const proto = await (
         await Model.getBaseModelSQL({
           id: childTable.id,
@@ -550,7 +550,7 @@ class BaseModelSqlv2 {
 
       await childModel.selectObject({ qb });
 
-      let children = await this.extractRawQueryAndExec(qb);
+      let children = await this.extractRawQueryAndExec(qb, childTable);
 
       const proto = await (
         await Model.getBaseModelSQL({
@@ -667,7 +667,7 @@ class BaseModelSqlv2 {
       !this.isSqlite
     );
 
-    let children = await this.extractRawQueryAndExec(finalQb);
+    let children = await this.extractRawQueryAndExec(finalQb, childTable);
     if (this.isMySQL) {
       children = children[0];
     }
@@ -735,7 +735,7 @@ class BaseModelSqlv2 {
     qb.limit(+rest?.limit || 25);
     qb.offset(+rest?.offset || 0);
 
-    let children = await this.extractRawQueryAndExec(qb);
+    let children = await this.extractRawQueryAndExec(qb, childTable);
     const proto = await (
       await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
@@ -1075,7 +1075,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    let data = await this.extractRawQueryAndExec(qb, childTable);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1193,7 +1193,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    let data = await this.extractRawQueryAndExec(qb, childTable);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -2755,7 +2755,10 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  private async extractRawQueryAndExec(qb: Knex.QueryBuilder) {
+  private async extractRawQueryAndExec(
+    qb: Knex.QueryBuilder,
+    childTable?: Model
+  ) {
     let query = qb.toQuery();
     if (!this.isPg && !this.isMssql) {
       query = unsanitize(qb.toQuery());
@@ -2769,28 +2772,34 @@ class BaseModelSqlv2 {
         ? await this.dbDriver.from(
             this.dbDriver.raw(query).wrap('(', ') __nc_alias')
           )
-        : await this.dbDriver.raw(query)
+        : await this.dbDriver.raw(query),
+      childTable
     );
   }
 
-  private _convertAttachmentType(attachmentColumns, d) {
-    if (d) {
-      attachmentColumns.forEach((col) => {
-        if (d[col.title] && typeof d[col.title] === 'string') {
-          d[col.title] = JSON.parse(d[col.title]);
-        }
-      });
-    }
+  private _convertAttachmentType(
+    attachmentColumns: Record<string, any>[],
+    d: Record<string, any>
+  ) {
+    try {
+      if (d) {
+        attachmentColumns.forEach((col) => {
+          if (d[col.title] && typeof d[col.title] === 'string') {
+            d[col.title] = JSON.parse(d[col.title]);
+          }
+        });
+      }
+    } catch {}
     return d;
   }
 
-  private convertAttachmentType(data) {
+  private convertAttachmentType(data: Record<string, any>, childTable?: Model) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
-      const attachmentColumns = this.model.columns.filter(
-        (c) => c.uidt === UITypes.Attachment
-      );
+      const attachmentColumns = (
+        childTable ? childTable.columns : this.model.columns
+      ).filter((c) => c.uidt === UITypes.Attachment);
       if (attachmentColumns.length) {
         if (Array.isArray(data)) {
           data = data.map((d) =>

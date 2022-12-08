@@ -2364,13 +2364,18 @@ class SnowflakeClient extends KnexClient {
       // do nothing
     } else if (pksChanged) {
       query += numOfPksInOriginal.length
-        ? this.genQuery(`alter TABLE ?? drop constraint IF EXISTS ??;`, [this.getTnPath(t), `${t}_pkey`])
+        ? this.genQuery(`alter TABLE ?? drop constraint IF EXISTS ??;`, [
+            t,
+            `${t}_pkey`,
+          ])
         : '';
       if (numOfPksInNew.length) {
-        if (!createTable) {
+        if (createTable) {
+          query += this.genQuery(`, constraint ?? PRIMARY KEY (??)`, [`${t}_pkey`, numOfPksInNew]);
+        } else {
           query += this.genQuery(
             `alter TABLE ?? add constraint ?? PRIMARY KEY(??);`,
-            [this.getTnPath(t), `${t}_pkey`, numOfPksInNew]
+            [t, `${t}_pkey`, numOfPksInNew]
           );
         }
       }
@@ -2425,7 +2430,7 @@ class SnowflakeClient extends KnexClient {
     if (change === 0) {
       query = existingQuery ? ',' : '';
       if (n.ai) {
-        query += this.genQuery(` ?? NUMBER(38,0) NOT NULL autoincrement PRIMARY KEY UNIQUE`, [n.cn], shouldSanitize);
+        query += this.genQuery(` ?? NUMBER(38,0) NOT NULL autoincrement UNIQUE`, [n.cn], shouldSanitize);
       } else {
         query += this.genQuery(` ?? ${n.dt}`, [n.cn], shouldSanitize);
         query += n.rqd ? ' NOT NULL' : ' NULL';

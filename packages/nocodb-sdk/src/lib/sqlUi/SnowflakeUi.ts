@@ -812,7 +812,7 @@ export class SnowflakeUi {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {
-          return ['char', 'character', 'VARCHAR'];
+          return ['VARCHAR'];
         } else if (idType === 'AI') {
           return [
             'NUMBER'

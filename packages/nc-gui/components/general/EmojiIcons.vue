@@ -3,7 +3,7 @@ import { Icon } from '@iconify/vue'
 import InfiniteLoading from 'v3-infinite-loading'
 
 const emit = defineEmits(['selectIcon'])
-const search = $ref('')
+let search = $ref('')
 
 // todo: move to utils
 const icons = [
@@ -1854,6 +1854,11 @@ const load = () => {
     toIndex = filteredIcons.value.length
   }
 }
+
+const selectIcon = (icon: string) => {
+  search = ''
+  emit('selectIcon', `emojione:${icon}`)
+}
 </script>
 
 <template>
@@ -1862,7 +1867,7 @@ const load = () => {
       <input v-model="search" class="p-1 border-1 w-full overflow-y-auto" placeholder="Search" @input="toIndex = 60" />
     </div>
     <div class="flex gap-1 flex-wrap w-full flex-shrink overflow-y-auto scrollbar-thin-dull">
-      <div v-for="icon of filteredIcons" :key="icon" @click="emit('selectIcon', `emojione:${icon}`)">
+      <div v-for="icon of filteredIcons" :key="icon" @click="selectIcon(icon)">
         <span class="cursor-pointer nc-emoji-item">
           <Icon class="text-xl iconify" :icon="`emojione:${icon}`"></Icon>
         </span>

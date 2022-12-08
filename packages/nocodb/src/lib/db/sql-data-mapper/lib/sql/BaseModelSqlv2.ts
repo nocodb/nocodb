@@ -1987,16 +1987,19 @@ class BaseModelSqlv2 {
   async bulkDelete(ids: any[], { cookie }: { cookie?: any } = {}) {
     let transaction;
     try {
+      const deleteIds = await Promise.all(
+        ids.map((d) => this.model.mapAliasToColumn(d))
+      );
+
       transaction = await this.dbDriver.transaction();
       // await this.beforeDeleteb(ids, transaction);
 
       const res = [];
-      for (const d of ids) {
-        const data = await this.model.mapAliasToColumn(d);
-        if (Object.keys(data).length) {
+      for (const d of deleteIds) {
+        if (Object.keys(d).length) {
           const response = await transaction(this.model.table_name)
             .del()
-            .where(data);
+            .where(d);
           res.push(response);
         }
       }

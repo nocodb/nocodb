@@ -26,9 +26,9 @@ const selectIcon = (icon: string) => {
 </script>
 
 <template>
-  <div class="p-1 w-[280px] h-[280px] flex flex-col gap-1 justify-start">
+  <div class="p-1 w-[280px] h-[280px] flex flex-col gap-1 justify-start nc-emoji" data-testid="nc-emoji-container">
     <div @click.stop>
-      <input v-model="search" class="p-1 text-xs border-1 w-full overflow-y-auto" placeholder="Search" @input="toIndex = 60" />
+      <input v-model="search" data-testid="nc-emoji-filter" class="p-1 text-xs border-1 w-full overflow-y-auto" placeholder="Search" @input="toIndex = 60" />
     </div>
     <div class="flex gap-1 flex-wrap w-full flex-shrink overflow-y-auto scrollbar-thin-dull">
       <div v-for="icon of filteredIcons" :key="icon" @click="selectIcon(icon)">

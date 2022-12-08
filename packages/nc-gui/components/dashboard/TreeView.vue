@@ -78,7 +78,6 @@ const initSortable = (el: Element) => {
   if (!base_id) return
   if (sortables[base_id]) sortables[base_id].destroy()
   Sortable.create(el as HTMLLIElement, {
-    // handle: '.nc-drag-icon',
     onEnd: async (evt) => {
       const offset = tables.value.findIndex((table) => table.base_id === base_id)
 
@@ -565,16 +564,21 @@ const setIcon = (icon: string, table: TableType) => {
                       <template #title>{{ table.table_name }}</template>
                       <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-                          <a-dropdown trigger="click" @click.stop destroy-popup-on-hide>
+                          <a-dropdown trigger="click" destroy-popup-on-hide @click.stop>
                             <div @click.stop>
                               <a-tooltip>
-                                <span v-if="table.meta?.icon" :key="table.meta?.icon">
-                                  <Icon :key="table.meta?.icon" class="text-xl" :icon="table.meta?.icon"></Icon>
+                                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon">
+                                  <Icon
+                                    :key="table.meta?.icon"
+                                    :data-testid="`nc-icon-${table.meta?.icon}`"
+                                    class="text-xl"
+                                    :icon="table.meta?.icon"
+                                  ></Icon>
                                 </span>
                                 <component
                                   :is="icon(table)"
                                   v-else
-                                  class="nc-view-icon w-5"
+                                  class="nc-table-icon nc-view-icon w-5"
                                   :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
                                 />
 
@@ -585,20 +589,6 @@ const setIcon = (icon: string, table: TableType) => {
                               <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
                             </template>
                           </a-dropdown>
-
-                          <!--
-                                                    <MdiDragVertical
-                                                      v-if="isUIAllowed('treeview-drag-n-drop')"
-                                                      :class="`nc-child-draggable-icon-${table.title}`"
-                                                      class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
-                                                      @click.stop.prevent
-                                                    />
-
-                                                    <component
-                                                      :is="icon(table)"
-                                                      class="nc-view-icon text-xs"
-                                                      :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
-                                                    /> -->
                         </div>
 
                         <div class="nc-tbl-title flex-1">

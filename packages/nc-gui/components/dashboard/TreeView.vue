@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
+import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 import GithubButton from 'vue-github-button'
 import { Icon } from '@iconify/vue'
@@ -10,6 +11,7 @@ import {
   Empty,
   TabType,
   computed,
+  extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
   isMac,
   reactive,
@@ -300,18 +302,24 @@ watch(
   { immediate: true },
 )
 
-const setIcon = (icon: string, table: TableType) => {
-  table.meta = {
-    ...(table.meta || {}),
-    icon,
+const setIcon = async (icon: string, table: TableType) => {
+  try {
+    table.meta = {
+      ...(table.meta || {}),
+      icon,
+    }
+    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
+
+    updateTab({ id: table.id }, { meta: table.meta })
+
+    $api.dbTable.update(table.id as string, {
+      meta: table.meta,
+    })
+
+    $e('a:table:icon:navdraw', { icon })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
-  tables.value.splice(tables.value.indexOf(table), 1, { ...table })
-
-  updateTab({ id: table.id }, { meta: table.meta })
-
-  $api.dbTable.update(table.id as string, {
-    meta: table.meta,
-  })
 }
 </script>
 
@@ -564,9 +572,14 @@ const setIcon = (icon: string, table: TableType) => {
                       <template #title>{{ table.table_name }}</template>
                       <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-                          <a-dropdown trigger="click" destroy-popup-on-hide @click.stop>
+                          <component
+                            :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
+                            trigger="click"
+                            destroy-popup-on-hide
+                            @click.stop
+                          >
                             <div @click.stop>
-                              <a-tooltip>
+                              <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
                                 <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon">
                                   <Icon
                                     :key="table.meta?.icon"
@@ -582,13 +595,13 @@ const setIcon = (icon: string, table: TableType) => {
                                   :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
                                 />
 
-                                <template #title>Change icon</template>
-                              </a-tooltip>
+                                <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
+                              </component>
                             </div>
-                            <template #overlay>
+                            <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
                               <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
                             </template>
-                          </a-dropdown>
+                          </component>
                         </div>
 
                         <div class="nc-tbl-title flex-1">

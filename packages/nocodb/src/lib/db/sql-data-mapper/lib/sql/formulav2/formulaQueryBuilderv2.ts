@@ -684,6 +684,25 @@ export default async function formulaQueryBuilderv2(
           sql = `${left} IS NOT NULL ${colAlias}`;
         }
       }
+      if (
+        knex.clientType() === 'pg' &&
+        columnIdToUidt[pt.right.name] === UITypes.Date
+      ) {
+        // The correct way to compare with Date should be using
+        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+        // This is to prevent empty data returned to UI due to incorrect SQL
+        if (pt.left.value === '') {
+          if (pt.operator === '=') {
+            sql = `${right} IS NULL ${colAlias}`;
+          } else {
+            sql = `${right} IS NOT NULL ${colAlias}`;
+          }
+        } else if (!validateDateWithUnknownFormat(pt.left.value)) {
+          // right tree value is date but left tree value is not date
+          // return true if right tree value is not null, else false
+          sql = `${right} IS NOT NULL ${colAlias}`;
+        }
+      }
 
       // handle NULL values when calling CONCAT for sqlite3
       if (pt.left.fnName === 'CONCAT' && knex.clientType() === 'sqlite3') {

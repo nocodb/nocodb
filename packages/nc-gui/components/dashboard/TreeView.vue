@@ -565,15 +565,8 @@ const setIcon = (icon: string, table: TableType) => {
                       <template #title>{{ table.table_name }}</template>
                       <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-                          <a-dropdown trigger="click" @click.stop>
+                          <a-dropdown trigger="click" @click.stop destroy-popup-on-hide>
                             <div @click.stop>
-                              <!--                              <MdiDrag
-                                v-if="isUIAllowed('treeview-drag-n-drop')"
-                                :class="`nc-child-draggable-icon-${table.title}`"
-                                class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
-                                @click.stop.prevent
-                              /> -->
-
                               <a-tooltip>
                                 <span v-if="table.meta?.icon" :key="table.meta?.icon">
                                   <Icon :key="table.meta?.icon" class="text-xl" :icon="table.meta?.icon"></Icon>

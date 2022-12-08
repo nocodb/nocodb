@@ -128,8 +128,8 @@ export class ToolbarPage extends BasePage {
     await download.saveAs('./output/at.txt');
 
     // verify downloaded content against expected content
-    const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8');
-    const file = fs.readFileSync('./output/at.txt', 'utf8');
+    const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8').replace(/\r/g, '').split('\n');
+    const file = fs.readFileSync('./output/at.txt', 'utf8').replace(/\r/g, '').split('\n');
     await expect(file).toEqual(expectedData);
   }
 

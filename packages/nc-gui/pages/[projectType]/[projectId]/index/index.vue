@@ -75,6 +75,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           </div>
         </div>
 
+        <LazyGeneralShareBaseButton />
         <LazyGeneralFullScreen class="nc-fullscreen-icon" />
       </div>
 

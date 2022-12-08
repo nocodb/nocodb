@@ -157,7 +157,12 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta
   ): Promise<Model[]> {
-    let modelList = await NocoCache.getList(CacheScope.MODEL, [project_id]);
+    let modelList = [];
+    if (base_id) {
+      await NocoCache.getList(CacheScope.MODEL, [project_id, base_id]);
+    } else {
+      await NocoCache.getList(CacheScope.MODEL, [project_id]);
+    }
     if (!modelList.length) {
       modelList = await ncMeta.metaList2(
         project_id,
@@ -170,7 +175,11 @@ export default class Model implements TableType {
         }
       );
 
-      await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
+      if (base_id) {
+        await NocoCache.setList(CacheScope.MODEL, [project_id, base_id], modelList);
+      } else {
+        await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
+      }
     }
     modelList.sort(
       (a, b) =>
@@ -597,7 +606,7 @@ export default class Model implements TableType {
       aliasOrId,
     }: {
       project_id: string;
-      base_id: string | undefined;
+      base_id?: string;
       aliasOrId: string;
     },
     ncMeta = Noco.ncMeta
@@ -610,27 +619,49 @@ export default class Model implements TableType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!modelId) {
-      const model = await ncMeta.metaGet2(
-        null,
-        null,
-        MetaTable.MODELS,
-        { project_id, base_id },
-        null,
-        {
-          _or: [
+      const model = base_id
+        ? await ncMeta.metaGet2(
+            null,
+            null,
+            MetaTable.MODELS,
+            { project_id, base_id },
+            null,
             {
-              id: {
-                eq: aliasOrId,
-              },
-            },
+              _or: [
+                {
+                  id: {
+                    eq: aliasOrId,
+                  },
+                },
+                {
+                  title: {
+                    eq: aliasOrId,
+                  },
+                },
+              ],
+            }
+          )
+        : await ncMeta.metaGet2(
+            null,
+            null,
+            MetaTable.MODELS,
+            { project_id },
+            null,
             {
-              title: {
-                eq: aliasOrId,
-              },
-            },
-          ],
-        }
-      );
+              _or: [
+                {
+                  id: {
+                    eq: aliasOrId,
+                  },
+                },
+                {
+                  title: {
+                    eq: aliasOrId,
+                  },
+                },
+              ],
+            }
+          );
       if (model) {
         await NocoCache.set(
           `${CacheScope.MODEL}:${project_id}:${aliasOrId}`,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { getRelationName } from './utils'
 import { MetaInj, inject, ref, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
 
 const props = defineProps<{
@@ -27,36 +28,28 @@ setAdditionalValidations({
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
 if (!vModel.value.fk_lookup_column_id) vModel.value.fk_lookup_column_id = null
 
-const relationNames = {
-  mm: 'Many To Many',
-  hm: 'Has Many',
-  bt: 'Belongs To',
-}
-
 const refTables = $computed(() => {
-  if (!tables || !tables.length) {
+  if (!tables || !tables.length || !meta || !meta.columns) {
     return []
   }
 
-  return meta?.columns
-    ?.filter((c: any) => c.uidt === UITypes.LinkToAnotherRecord && !c.system)
-    .map((c: ColumnType) => ({
-      col: c.colOptions,
-      column: c,
-      ...tables.find((t) => t.id === (c.colOptions as LinkToAnotherRecordType).fk_related_model_id),
+  const _refTables = meta.columns
+    .filter((column) => column.uidt === UITypes.LinkToAnotherRecord && !column.system && column.base_id === meta?.base_id)
+    .map((column) => ({
+      col: column.colOptions,
+      column,
+      ...tables.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id),
     }))
-    .filter((table: any) => table.col.fk_related_model_id === table.id && !table.mm)
+    .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
+  return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })
 
-const columns = $computed(() => {
-  const selectedTable = refTables?.find((t) => t.column.id === vModel.value.fk_relation_column_id)
+const columns = $computed<ColumnType[]>(() => {
+  const selectedTable = refTables.find((t) => t.column.id === vModel.value.fk_relation_column_id)
   if (!selectedTable?.id) {
     return []
   }
-
-  return metas[selectedTable.id].columns.filter((c: any) => {
-    return !(isSystemColumn(c) || c.uidt === UITypes.QrCode)
-  })
+  return metas[selectedTable.id].columns.filter((c: ColumnType) => !isSystemColumn(c))
 })
 </script>
 
@@ -69,11 +62,11 @@ const columns = $computed(() => {
           dropdown-class-name="!w-64 nc-dropdown-relation-table"
           @change="onDataTypeChange"
         >
-          <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.col.fk_column_id">
+          <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
               <div class="font-semibold text-xs">{{ table.column.title }}</div>
               <div class="text-[0.65rem] text-gray-600">
-                {{ relationNames[table.col.type] }} {{ table.title || table.table_name }}
+                {{ getRelationName(table.col.type) }} {{ table.title || table.table_name }}
               </div>
             </div>
           </a-select-option>

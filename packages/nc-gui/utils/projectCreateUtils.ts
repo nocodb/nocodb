@@ -1,6 +1,6 @@
 import { ClientType } from '~/lib'
 
-export interface ProjectCreateForm {
+interface ProjectCreateForm {
   title: string
   dataSource: {
     client: ClientType
@@ -15,7 +15,7 @@ export interface ProjectCreateForm {
   extraParameters: { key: string; value: string }[]
 }
 
-export interface DefaultConnection {
+interface DefaultConnection {
   host: string
   database: string
   user: string
@@ -24,7 +24,7 @@ export interface DefaultConnection {
   ssl?: Record<CertTypes, string> | 'no-verify' | 'true'
 }
 
-export interface SQLiteConnection {
+interface SQLiteConnection {
   client: ClientType.SQLITE
   database: string
   connection: {
@@ -187,4 +187,4 @@ enum CertTypes {
   key = 'key',
 }
 
-export { SSLUsage, CertTypes }
+export { SSLUsage, CertTypes, ProjectCreateForm, DefaultConnection, SQLiteConnection }

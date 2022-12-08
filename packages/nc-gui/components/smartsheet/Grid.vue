@@ -92,6 +92,7 @@ const contextMenu = computed({
   },
 })
 
+const routeQuery = $computed(() => route.query as Record<string, string>)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
@@ -226,7 +227,6 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
         switch (e.key) {
           case 'ArrowUp':
             e.preventDefault()
-            $e('c:shortcut', { key: 'CTRL + ArrowUp' })
             selectedCell.row = 0
             selectedCell.col = selectedCell.col ?? 0
             scrollToCell?.()
@@ -234,7 +234,6 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowDown':
             e.preventDefault()
-            $e('c:shortcut', { key: 'CTRL + ArrowDown' })
             selectedCell.row = data.value.length - 1
             selectedCell.col = selectedCell.col ?? 0
             scrollToCell?.()
@@ -242,7 +241,6 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowRight':
             e.preventDefault()
-            $e('c:shortcut', { key: 'CTRL + ArrowRight' })
             selectedCell.row = selectedCell.row ?? 0
             selectedCell.col = fields.value?.length - 1
             scrollToCell?.()
@@ -250,7 +248,6 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowLeft':
             e.preventDefault()
-            $e('c:shortcut', { key: 'CTRL + ArrowLeft' })
             selectedCell.row = selectedCell.row ?? 0
             selectedCell.col = 0
             scrollToCell?.()
@@ -365,7 +362,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
   if (rowId) {
     router.push({
       query: {
-        ...route.query,
+        ...routeQuery,
         rowId,
       },
     })
@@ -569,13 +566,13 @@ onBeforeUnmount(() => {
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!route.query.rowId
+    return !!routeQuery.rowId
   },
   set(val) {
     if (!val)
       router.push({
         query: {
-          ...route.query,
+          ...routeQuery,
           rowId: undefined,
         },
       })
@@ -903,11 +900,11 @@ const closeAddColumnDropdown = () => {
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormOnRowIdDlg"
-        :key="route.query.rowId"
+        :key="routeQuery.rowId"
         v-model="expandedFormOnRowIdDlg"
         :row="{ row: {}, oldRow: {}, rowMeta: {} }"
         :meta="meta"
-        :row-id="route.query.rowId"
+        :row-id="routeQuery.rowId"
         :view="view"
       />
     </Suspense>

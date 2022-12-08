@@ -115,9 +115,11 @@ export class DashboardPage extends BasePage {
     await this.get().getByTestId('grid-load-spinner').waitFor({ state: 'hidden' });
 
     if (mode === 'standard') {
-      await expect(this.rootPage).toHaveURL(
-        `/#/nc/${this.project.id}/${title === 'Team & Auth' ? 'auth' : `table/${title}`}`
-      );
+      if (title === 'Team & Auth') {
+        await expect(this.rootPage).toHaveURL(`/#/nc/${this.project.id}/auth`);
+      } else {
+        await expect(this.rootPage).toHaveURL(new RegExp(`#/nc/${this.project.id}/table/md_.{14}`));
+      }
     }
   }
 

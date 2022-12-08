@@ -51,7 +51,20 @@ export class CellPageObject extends BasePage {
       index,
       columnHeader,
     });
-    await this.get({ index, columnHeader }).locator('input').fill(text);
+    const isInputBox = async () => (await this.get({ index, columnHeader }).locator('input').count()) > 0;
+
+    for (let i = 0; i < 10; i++) {
+      if (await isInputBox()) {
+        break;
+      }
+      await this.rootPage.waitForTimeout(200);
+    }
+
+    if (await isInputBox()) {
+      await this.get({ index, columnHeader }).locator('input').fill(text);
+    } else {
+      await this.get({ index, columnHeader }).locator('textarea').fill(text);
+    }
   }
 
   async inCellExpand({ index, columnHeader }: { index: number; columnHeader: string }) {
@@ -192,7 +205,9 @@ export class CellPageObject extends BasePage {
     ...clickOptions: Parameters<Locator['click']>
   ) {
     await this.get({ index, columnHeader }).click(...clickOptions);
+    await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
 
     await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
+    await this.verifyToast({ message: 'Copied to clipboard' });
   }
 }

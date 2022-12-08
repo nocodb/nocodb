@@ -111,6 +111,7 @@ export default (
         id: req.params.syncId,
         ...(syncSource?.details || {}),
         projectId: syncSource.project_id,
+        baseId: syncSource.base_id,
         authToken: token,
         baseURL,
       });

@@ -2433,11 +2433,13 @@ class SnowflakeClient extends KnexClient {
         query += this.genQuery(` ?? NUMBER(38,0) NOT NULL autoincrement UNIQUE`, [n.cn], shouldSanitize);
       } else {
         query += this.genQuery(` ?? ${n.dt}`, [n.cn], shouldSanitize);
+        query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
         query += n.rqd ? ' NOT NULL' : ' NULL';
         query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       }
     } else if (change === 1) {
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+      query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [this.getTnPath(t)], shouldSanitize);
@@ -2452,10 +2454,11 @@ class SnowflakeClient extends KnexClient {
 
       if (n.dt !== o.dt) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? SET DATA TYPE ${n.dt};\n`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? SET DATA TYPE ${n.dt}`,
           [this.getTnPath(t), n.cn],
           shouldSanitize
         );
+        query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp});\n` : ';\n';
       }
 
       if (n.rqd !== o.rqd) {

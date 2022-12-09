@@ -164,6 +164,11 @@ export class SnowflakeUi {
 
   static getDefaultLengthForDatatype(type): any {
     switch (type) {
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
+        return 255;
       case 'NUMBER':
       case 'DECIMAL':
       case 'NUMERIC':
@@ -179,31 +184,16 @@ export class SnowflakeUi {
       case 'DOUBLE':
       case 'DOUBLE PRECISION':
       case 'REAL':
-      case 'VARCHAR':
-      case 'CHAR':
-      case 'CHARACTER':
-      case 'STRING':
-      case 'TEXT':
-      case 'BINARY':
-      case 'VARBINARY':
-      case 'BOOLEAN':
-      case 'DATE':
-      case 'DATETIME':
-      case 'TIME':
-      case 'TIMESTAMP':
-      case 'TIMESTAMP_LTZ':
-      case 'TIMESTAMP_NTZ':
-      case 'TIMESTAMP_TZ':
-      case 'VARIANT':
-      case 'OBJECT':
-      case 'ARRAY':
-      case 'GEOGRAPHY':
-        return '';
+        return 38;
     }
   }
 
   static getDefaultLengthIsDisabled(type): any {
     switch (type) {
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
       case 'NUMBER':
       case 'DECIMAL':
       case 'NUMERIC':
@@ -219,10 +209,7 @@ export class SnowflakeUi {
       case 'DOUBLE':
       case 'DOUBLE PRECISION':
       case 'REAL':
-      case 'VARCHAR':
-      case 'CHAR':
-      case 'CHARACTER':
-      case 'STRING':
+        return false;
       case 'TEXT':
       case 'BINARY':
       case 'VARBINARY':

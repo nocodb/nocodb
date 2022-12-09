@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import type { Table } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
+import Sortable from 'sortablejs'
 import tinycolor from 'tinycolor2'
 import { breakpointsTailwind } from '@vueuse/core'
 import {
@@ -43,6 +45,7 @@ const { appInfo } = useGlobal()
 const loadProjects = async () => {
   const response = await api.project.list({})
   projects.value = response.list
+  await initSortable()
 }
 
 const filteredProjects = computed(
@@ -139,6 +142,113 @@ const copyProjectMeta = async () => {
   copy(JSON.stringify(aggregatedMetaInfo))
   message.info('Copied aggregated project meta to clipboard')
 }
+
+const table = ref<typeof Table>()
+
+let sortableInstance: Sortable
+
+const extractTableRowId = (el?: HTMLElement | null) => {
+  return el?.querySelector('[data-project-id]')?.getAttribute('data-project-id')
+}
+
+// todo: replace with vuedraggable
+function initSortable() {
+  // const base_id = el.getAttribute('nc-base')
+  sortableInstance?.destroy()
+
+  sortableInstance = Sortable.create(table.value?.$el?.querySelector('.ant-table-tbody') as HTMLLIElement, {
+    // handle: '.nc-drag-icon',
+    onEnd: async (evt) => {
+      console.log(evt)
+      const projectId = extractTableRowId(evt.item)
+      console.log(projectId)
+
+      const prevElement = evt.item?.previousElementSibling
+      const nextElement = evt.item?.nextElementSibling
+
+      let prevElementIndex = -1
+      let nextElementIndex = -1
+
+      // find the adjacent siblings index
+      if (!prevElement && !nextElement) {
+        return
+      } else if (!prevElement) {
+        nextElementIndex = projects.value?.findIndex((p) => p.id === extractTableRowId(nextElement))
+        if (nextElementIndex > 0) prevElementIndex = nextElementIndex - 1
+      } else {
+        prevElementIndex = projects.value?.findIndex((p) => p.id === extractTableRowId(prevElement))
+        if (prevElementIndex < projects.value!.length - 1) nextElementIndex = prevElementIndex + 1
+      }
+
+      if (prevElementIndex === -1 && nextElementIndex === -1) return
+
+      let newOrder
+
+      if (prevElementIndex === -1) {
+        newOrder = projects.value![nextElementIndex].order / 2
+      } else if (nextElementIndex === -1) {
+        newOrder = projects.value![prevElementIndex].order + 1
+      } else {
+        newOrder = ((projects.value![prevElementIndex].order ?? 1) + (projects.value![nextElementIndex].order ?? 1)) / 2
+      }
+
+      console.log({ newOrder, prevElementIndex, nextElementIndex, nextElement, prevElement })
+      // Update local project
+      const localProject = projects.value?.find((p) => p.id === projectId)
+
+      if (localProject) {
+        localProject.order = newOrder
+      }
+
+      // sync project order with server
+      await $api.project.update(projectId, { order: newOrder })
+
+      /*   let updatedElementOrder: number
+
+         // if moved to the beginning
+         if (!prevElement) {
+           const nextElementIndex = projects.value?.findIndex(
+             (p) => p.id === nextElement?.querySelector('[data-project-id]').getAttribute('data-project-id'),
+           )
+           updatedElementOrder = projects.value?.[nextElementIndex!].order! / 2
+         }
+         // if moved to the ending
+         else if (!nextElement) {
+           const prevElementIndex = projects.value?.findIndex(
+             (p) => p.id === prevElement?.querySelector('[data-project-id]')?.getAttribute('data-project-id'),
+           )
+           updatedElementOrder = (projects.value?.[prevElementIndex!].order ?? 1) + 1
+         }
+         // if moved in between
+         else {
+
+
+           const nextElementIndex = projects.value?.findIndex(
+             (p) => p.id === nextElement?.querySelector('[data-project-id]')?.getAttribute('data-project-id'),
+           )
+           const prevElementIndex = projects.value?.findIndex(
+             (p) => p.id === prevElement?.querySelector('[data-project-id]')?.getAttribute('data-project-id'),
+           )
+
+           console.log({
+             prevElement,
+             nextElement,
+             nextElementIndex,
+             prevElementIndex,
+             prevElementOrder: projects.value?.[prevElementIndex!].order,
+             nextElementOrder: projects.value?.[nextElementIndex!].order,
+           })
+
+           updatedElementOrder = ((projects.value?.[nextElementIndex!].order ?? 1) + (projects.value?.[prevElementIndex!].order ?? 1)) / 2
+         }
+
+         console.log({ updatedElementOrder })
+
+   */
+    },
+    animation: 150,
+  })
+}
 </script>
 
 <template>
@@ -221,6 +331,7 @@ const copyProjectMeta = async () => {
 
     <a-table
       v-else
+      ref="table"
       :custom-row="customRow"
       :data-source="filteredProjects"
       :pagination="{ position: ['bottomCenter'] }"
@@ -233,7 +344,7 @@ const copyProjectMeta = async () => {
       <!-- Title -->
       <a-table-column key="title" :title="$t('general.title')" data-index="title">
         <template #default="{ text, record }">
-          <div class="flex items-center">
+          <div class="flex items-center nc-project-title" :data-project-id="record.id">
             <div @click.stop>
               <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
                 <template v-if="isUIAllowed('projectTheme')">

@@ -56,7 +56,17 @@ export async function projectUpdate(
     'title',
     'meta',
     'color',
+    'order',
   ]);
+
+  // todo: maintain project order in user_project table for non super admin users
+  // block project order update for non super admin users
+  if (
+    'order' in data &&
+    !req['user']?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
+  ) {
+    NcError.forbidden('Only super admin can update order');
+  }
 
   if (
     data?.title &&
@@ -465,7 +475,7 @@ export async function projectInfoGet(_req, res) {
 export async function projectCost(req, res) {
   let cost = 0;
   const project = await Project.getWithInfo(req.params.projectId);
-  
+
   for (const base of project.bases) {
     const sqlClient = NcConnectionMgrv2.getSqlClient(base);
     const userCount = await ProjectUser.getUsersCount(req.query);

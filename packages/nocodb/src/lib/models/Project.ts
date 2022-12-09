@@ -54,6 +54,9 @@ export default class Project implements ProjectType {
         is_meta: projectBody.is_meta,
         created_at: projectBody.created_at,
         updated_at: projectBody.updated_at,
+        order:
+          projectBody.order ??
+          (await ncMeta.metaGetNextOrder(MetaTable.PROJECT, {})),
       }
     );
 
@@ -100,6 +103,9 @@ export default class Project implements ProjectType {
               },
             },
           ],
+        },
+        orderBy: {
+          order: 'asc',
         },
       });
       await NocoCache.setList(CacheScope.PROJECT, [], projectList);
@@ -260,6 +266,11 @@ export default class Project implements ProjectType {
         );
       }
       o = { ...o, ...updateObj };
+
+      // if order is changed, delete existing project list to get new ordered list
+      if ('order' in updateObj) {
+        await NocoCache.delAll(CacheScope.PROJECT, '*');
+      }
 
       await NocoCache.del(CacheScope.INSTANCE_META);
 

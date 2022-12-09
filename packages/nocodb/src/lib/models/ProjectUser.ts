@@ -245,7 +245,7 @@ export default class ProjectUser {
         this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
           `${MetaTable.PROJECT}.deleted`
         );
-      });
+      }).orderBy('order', 'asc');
 
     if (projectList?.length) {
       await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);

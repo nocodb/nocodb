@@ -20,7 +20,9 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
           <NuxtPage />
         </div>
 
-        <div class="self-end flex gap-6 flex-col justify-center items-center h-full md:(flex-row justify-between items-start)">
+        <div
+          class="self-end flex gap-6 flex-col justify-around w-full xl:w-auto items-center h-full md:(flex-row justify-between items-start)"
+        >
           <template v-if="route.name === 'index-index'">
             <TransitionGroup name="page" mode="out-in">
               <div key="social-card">

@@ -81,7 +81,13 @@ hooks.hook('page:finish', () => {
 
         <template v-if="signedIn">
           <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
-            <GeneralAvatar data-testid="nc-menu-accounts" class="cursor-pointer nc-menu-accounts" :name="email" @click.prevent />
+            <GeneralAvatar
+              :size="26"
+              data-testid="nc-menu-accounts"
+              class="cursor-pointer nc-menu-accounts"
+              :name="email"
+              @click.prevent
+            />
 
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded">
@@ -97,20 +103,6 @@ hooks.hook('page:finish', () => {
                 </a-menu-item>
 
                 <a-menu-divider class="!m-0" />
-                <!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
-                  <nuxt-link
-                    v-e="['c:settings:appstore', { page: true }]"
-                    class="nc-project-menu-item group !no-underline"
-                    to="/admin/users"
-                  >
-                    <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
-
-                    &lt;!&ndash; todo: i18n &ndash;&gt;
-                    <span class="prose group-hover:text-primary">Account management</span>
-                  </nuxt-link>
-                </a-menu-item>
-
-                <a-menu-divider class="!m-0" /> -->
 
                 <a-menu-item key="1" class="!rounded-b group">
                   <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">

@@ -218,6 +218,17 @@ export class ColumnPageObject extends BasePage {
     await this.save();
   }
 
+  async changeReferencedColumnForBarcode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
+    await this.get().locator('.nc-barcode-value-column-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: titleOfReferencedColumn,
+      })
+      .click();
+
+    await this.save();
+  }
+
   async delete({ title }: { title: string }) {
     await this.getColumnHeader(title).locator('svg.ant-dropdown-trigger').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();

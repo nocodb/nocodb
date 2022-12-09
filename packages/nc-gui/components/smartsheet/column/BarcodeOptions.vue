@@ -74,7 +74,7 @@ vModel.value.meta = {
   <a-row>
     <a-col :span="24">
       <a-form-item
-        class="flex w-1/2 pb-2 nc-qr-code-value-column-select"
+        class="flex w-1/2 pb-2 nc-barcode-value-column-select"
         :label="$t('labels.barcodeValueColumn')"
         v-bind="validateInfos.fk_barcode_value_column_id"
       >
@@ -86,7 +86,7 @@ vModel.value.meta = {
         />
       </a-form-item>
       <a-form-item
-        class="flex w-1/2 pb-2 nc-qr-code-value-column-select"
+        class="flex w-1/2 pb-2 nc-code-value-column-select"
         :label="$t('labels.barcodeFormat')"
         v-bind="validateInfos.barcode_format"
       >

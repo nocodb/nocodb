@@ -74,23 +74,54 @@ test.describe('Virtual Columns', () => {
 
       await grid.cell.fillText({ columnHeader: 'City', index: 0, text: 'Berlin' });
 
-      const changedFirstBarcodeCellValue = {
+      const barcodeCellValuesForBerlin = {
         referencedValue: 'Berlin',
         barcodeSvg:
           '<rect x="0" y="0" width="222" height="142" style="fill:#ffffff;"></rect><g transform="translate(10, 10)" style="fill:#000000;"><rect x="0" y="0" width="4" height="100"></rect><rect x="6" y="0" width="2" height="100"></rect><rect x="12" y="0" width="2" height="100"></rect><rect x="22" y="0" width="2" height="100"></rect><rect x="30" y="0" width="2" height="100"></rect><rect x="34" y="0" width="4" height="100"></rect><rect x="44" y="0" width="2" height="100"></rect><rect x="48" y="0" width="4" height="100"></rect><rect x="56" y="0" width="2" height="100"></rect><rect x="66" y="0" width="2" height="100"></rect><rect x="72" y="0" width="2" height="100"></rect><rect x="78" y="0" width="8" height="100"></rect><rect x="88" y="0" width="4" height="100"></rect><rect x="96" y="0" width="2" height="100"></rect><rect x="100" y="0" width="2" height="100"></rect><rect x="110" y="0" width="2" height="100"></rect><rect x="120" y="0" width="4" height="100"></rect><rect x="126" y="0" width="2" height="100"></rect><rect x="132" y="0" width="4" height="100"></rect><rect x="144" y="0" width="2" height="100"></rect><rect x="148" y="0" width="2" height="100"></rect><rect x="154" y="0" width="4" height="100"></rect><rect x="164" y="0" width="2" height="100"></rect><rect x="170" y="0" width="2" height="100"></rect><rect x="176" y="0" width="4" height="100"></rect><rect x="186" y="0" width="6" height="100"></rect><rect x="194" y="0" width="2" height="100"></rect><rect x="198" y="0" width="4" height="100"></rect><text style="font: 20px monospace" text-anchor="middle" x="101" y="122">Berlin</text></g>',
-        barcodeSvgForOverlay:
-          '<rect x="0" y="0" width="222" height="142" style="fill:#ffffff;"></rect><g transform="translate(10, 10)" style="fill:#000000;"><rect x="0" y="0" width="4" height="100"></rect><rect x="6" y="0" width="2" height="100"></rect><rect x="12" y="0" width="2" height="100"></rect><rect x="22" y="0" width="2" height="100"></rect><rect x="30" y="0" width="2" height="100"></rect><rect x="34" y="0" width="4" height="100"></rect><rect x="44" y="0" width="2" height="100"></rect><rect x="48" y="0" width="4" height="100"></rect><rect x="56" y="0" width="2" height="100"></rect><rect x="66" y="0" width="2" height="100"></rect><rect x="72" y="0" width="2" height="100"></rect><rect x="78" y="0" width="8" height="100"></rect><rect x="88" y="0" width="4" height="100"></rect><rect x="96" y="0" width="2" height="100"></rect><rect x="100" y="0" width="2" height="100"></rect><rect x="110" y="0" width="2" height="100"></rect><rect x="120" y="0" width="4" height="100"></rect><rect x="126" y="0" width="2" height="100"></rect><rect x="132" y="0" width="4" height="100"></rect><rect x="144" y="0" width="2" height="100"></rect><rect x="148" y="0" width="2" height="100"></rect><rect x="154" y="0" width="4" height="100"></rect><rect x="164" y="0" width="2" height="100"></rect><rect x="170" y="0" width="2" height="100"></rect><rect x="176" y="0" width="4" height="100"></rect><rect x="186" y="0" width="6" height="100"></rect><rect x="194" y="0" width="2" height="100"></rect><rect x="198" y="0" width="4" height="100"></rect><text style="font: 20px monospace" text-anchor="middle" x="101" y="122">Berlin</text></g>',
+        // barcodeSvgForOverlay:
+        //   '<rect x="0" y="0" width="222" height="142" style="fill:#ffffff;"></rect><g transform="translate(10, 10)" style="fill:#000000;"><rect x="0" y="0" width="4" height="100"></rect><rect x="6" y="0" width="2" height="100"></rect><rect x="12" y="0" width="2" height="100"></rect><rect x="22" y="0" width="2" height="100"></rect><rect x="30" y="0" width="2" height="100"></rect><rect x="34" y="0" width="4" height="100"></rect><rect x="44" y="0" width="2" height="100"></rect><rect x="48" y="0" width="4" height="100"></rect><rect x="56" y="0" width="2" height="100"></rect><rect x="66" y="0" width="2" height="100"></rect><rect x="72" y="0" width="2" height="100"></rect><rect x="78" y="0" width="8" height="100"></rect><rect x="88" y="0" width="4" height="100"></rect><rect x="96" y="0" width="2" height="100"></rect><rect x="100" y="0" width="2" height="100"></rect><rect x="110" y="0" width="2" height="100"></rect><rect x="120" y="0" width="4" height="100"></rect><rect x="126" y="0" width="2" height="100"></rect><rect x="132" y="0" width="4" height="100"></rect><rect x="144" y="0" width="2" height="100"></rect><rect x="148" y="0" width="2" height="100"></rect><rect x="154" y="0" width="4" height="100"></rect><rect x="164" y="0" width="2" height="100"></rect><rect x="170" y="0" width="2" height="100"></rect><rect x="176" y="0" width="4" height="100"></rect><rect x="186" y="0" width="6" height="100"></rect><rect x="194" y="0" width="2" height="100"></rect><rect x="198" y="0" width="4" height="100"></rect><text style="font: 20px monospace" text-anchor="middle" x="101" y="122">Berlin</text></g>',
       };
+
+      const barcodeCellValuesForIstanbul = {
+        referencedValue: 'Istanbul',
+        barcodeSvg:
+          '<rect x="0" y="0" width="266" height="142" style="fill:#ffffff;"></rect><g transform="translate(10, 10)" style="fill:#000000;"><rect x="0" y="0" width="4" height="100"></rect><rect x="6" y="0" width="2" height="100"></rect><rect x="12" y="0" width="2" height="100"></rect><rect x="22" y="0" width="4" height="100"></rect><rect x="32" y="0" width="2" height="100"></rect><rect x="40" y="0" width="2" height="100"></rect><rect x="44" y="0" width="2" height="100"></rect><rect x="48" y="0" width="8" height="100"></rect><rect x="60" y="0" width="2" height="100"></rect><rect x="66" y="0" width="2" height="100"></rect><rect x="72" y="0" width="8" height="100"></rect><rect x="82" y="0" width="2" height="100"></rect><rect x="88" y="0" width="2" height="100"></rect><rect x="94" y="0" width="2" height="100"></rect><rect x="98" y="0" width="4" height="100"></rect><rect x="110" y="0" width="4" height="100"></rect><rect x="122" y="0" width="2" height="100"></rect><rect x="126" y="0" width="2" height="100"></rect><rect x="132" y="0" width="2" height="100"></rect><rect x="138" y="0" width="2" height="100"></rect><rect x="148" y="0" width="4" height="100"></rect><rect x="154" y="0" width="2" height="100"></rect><rect x="160" y="0" width="8" height="100"></rect><rect x="172" y="0" width="2" height="100"></rect><rect x="176" y="0" width="4" height="100"></rect><rect x="184" y="0" width="2" height="100"></rect><rect x="188" y="0" width="2" height="100"></rect><rect x="198" y="0" width="4" height="100"></rect><rect x="204" y="0" width="4" height="100"></rect><rect x="214" y="0" width="4" height="100"></rect><rect x="220" y="0" width="4" height="100"></rect><rect x="230" y="0" width="6" height="100"></rect><rect x="238" y="0" width="2" height="100"></rect><rect x="242" y="0" width="4" height="100"></rect><text style="font: 20px monospace" text-anchor="middle" x="123" y="122">Istanbul</text></g>',
+        // barcodeSvgForOverlay:
+        //   '<rect x="0" y="0" width="222" height="142" style="fill:#ffffff;"></rect><g transform="translate(10, 10)" style="fill:#000000;"><rect x="0" y="0" width="4" height="100"></rect><rect x="6" y="0" width="2" height="100"></rect><rect x="12" y="0" width="2" height="100"></rect><rect x="22" y="0" width="2" height="100"></rect><rect x="30" y="0" width="2" height="100"></rect><rect x="34" y="0" width="4" height="100"></rect><rect x="44" y="0" width="2" height="100"></rect><rect x="48" y="0" width="4" height="100"></rect><rect x="56" y="0" width="2" height="100"></rect><rect x="66" y="0" width="2" height="100"></rect><rect x="72" y="0" width="2" height="100"></rect><rect x="78" y="0" width="8" height="100"></rect><rect x="88" y="0" width="4" height="100"></rect><rect x="96" y="0" width="2" height="100"></rect><rect x="100" y="0" width="2" height="100"></rect><rect x="110" y="0" width="2" height="100"></rect><rect x="120" y="0" width="4" height="100"></rect><rect x="126" y="0" width="2" height="100"></rect><rect x="132" y="0" width="4" height="100"></rect><rect x="144" y="0" width="2" height="100"></rect><rect x="148" y="0" width="2" height="100"></rect><rect x="154" y="0" width="4" height="100"></rect><rect x="164" y="0" width="2" height="100"></rect><rect x="170" y="0" width="2" height="100"></rect><rect x="176" y="0" width="4" height="100"></rect><rect x="186" y="0" width="6" height="100"></rect><rect x="194" y="0" width="2" height="100"></rect><rect x="198" y="0" width="4" height="100"></rect><text style="font: 20px monospace" text-anchor="middle" x="101" y="122">Berlin</text></g>',
+      };
+
       const expectedBarcodeCellValuesAfterCityNameChange = [
-        changedFirstBarcodeCellValue,
+        barcodeCellValuesForBerlin,
         ...expectedBarcodeCellValues.slice(1),
       ];
       await barcodeColumnVerify('Barcode1', expectedBarcodeCellValuesAfterCityNameChange);
 
       await grid.cell.get({ columnHeader: 'Barcode1', index: 0 }).click();
       const barcodeGridOverlay = grid.barcodeOverlay;
-      await barcodeGridOverlay.verifyBarcodeSvgValue(changedFirstBarcodeCellValue.barcodeSvgForOverlay);
+      await barcodeGridOverlay.verifyBarcodeSvgValue(barcodeCellValuesForBerlin.barcodeSvg);
       await barcodeGridOverlay.clickCloseButton();
+
+      // Change the QR Code column title
+      await grid.column.openEdit({ title: 'Barcode1' });
+      await grid.column.fillTitle({ title: 'Barcode1 Renamed' });
+      await grid.column.save({ isUpdated: true });
+      await barcodeColumnVerify('Barcode1 Renamed', expectedBarcodeCellValuesAfterCityNameChange);
+
+      // Change the referenced column title
+      await grid.column.openEdit({ title: 'City' });
+      await grid.column.fillTitle({ title: 'City Renamed' });
+      await grid.column.save({ isUpdated: true });
+      await barcodeColumnVerify('Barcode1 Renamed', expectedBarcodeCellValuesAfterCityNameChange);
+
+      // Change the referenced column
+      await grid.column.create({ title: 'New City Column' });
+      await grid.cell.fillText({ columnHeader: 'New City Column', index: 0, text: 'Istanbul' });
+      await grid.column.openEdit({ title: 'Barcode1 Renamed' });
+      await grid.column.changeReferencedColumnForBarcode({ titleOfReferencedColumn: 'New City Column' });
+
+      await barcodeColumnVerify('Barcode1 Renamed', [barcodeCellValuesForIstanbul]);
+
+      await dashboard.closeTab({ title: 'City' });
     });
   });
 });

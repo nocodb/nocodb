@@ -34,6 +34,7 @@ onMounted(async () => {
 const openPageTabKeys = computed({
   get: () => [openedPageId.value],
   set: (openedKeys) => {
+    if (openedKeys?.length === 0) return
     openedPageId.value = openedKeys[0]
   },
 })
@@ -54,14 +55,14 @@ const openCreatePageModal = (parentId?: string | undefined) => {
     :collapsed="false"
     width="250"
     collapsed-width="50"
-    class="relative shadow-md h-full z-1 nc-left-sidebar"
+    class="relative shadow-md h-full z-1 nc-docs-left-sidebar"
     :trigger="null"
     collapsible
     theme="light"
   >
-    <div class="py-2 flex flex-row justify-between items-center px-3">
+    <div class="py-2 flex flex-row justify-between items-center px-3 border-b-warm-gray-200 border-b-1 mb-4">
       <div>Pages</div>
-      <div class="hover:(text-primary/100) cursor-pointer select-none" @click="() => openCreatePageModal()">
+      <div class="flex hover:(text-primary/100) cursor-pointer select-none" @click="() => openCreatePageModal()">
         <MdiPlus />
       </div>
     </div>
@@ -96,9 +97,15 @@ const openCreatePageModal = (parentId?: string | undefined) => {
       <a-form-item label="Title">
         <a-input v-model:value="createPageFormData.title" />
       </a-form-item>
-      <a-form-item label="Content">
-        <a-input v-model:value="createPageFormData.content" />
-      </a-form-item>
     </a-form>
   </a-modal>
 </template>
+
+<style lang="scss">
+.nc-docs-left-sidebar .ant-tree-treenode {
+  @apply w-full !important;
+}
+.nc-docs-left-sidebar .ant-tree-node-content-wrapper {
+  @apply w-full mr-2 pl-2 !important;
+}
+</style>

@@ -10,16 +10,19 @@ export interface DocsPage extends DocsPageType {
 
 export function useDocs() {
   const { $api } = useNuxtApp()
-  const { project } = useProject()
+  const route = useRoute()
 
   const pages = useState<DocsPage[]>('docsPages', () => [])
   const openedPageId = useState<string>('openedPageId', () => '')
   const openedPage = computed(() => findPage(openedPageId.value))
 
+  // todo: Integrate useProject here
+  const projectId = () => route.params.projectId as string
+
   const fetchPages = async (parentPageId?: string | undefined) => {
     try {
       const docs = await $api.nocoDocs.listPages({
-        projectId: project.value.id,
+        projectId: projectId(),
         parentPageId,
       })
 
@@ -40,7 +43,7 @@ export function useDocs() {
 
   const createPage = async (page: DocsPage) => {
     try {
-      const createdPageData = await $api.nocoDocs.createPage(page)
+      const createdPageData = await $api.nocoDocs.createPage({ ...page, projectId: projectId() })
 
       if (page.parentPageId) {
         const parentPage = findPage(page.parentPageId)
@@ -79,5 +82,9 @@ export function useDocs() {
     return findPageInTree(pages.value, pageId)
   }
 
-  return { fetchPages, pages, createPage, openedPageId, openedPage }
+  const updatePage = async (pageId: string, page: DocsPage) => {
+    await $api.nocoDocs.updatePage(pageId, page)
+  }
+
+  return { fetchPages, pages, createPage, openedPageId, openedPage, updatePage }
 }

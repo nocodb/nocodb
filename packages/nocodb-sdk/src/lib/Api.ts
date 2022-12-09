@@ -895,6 +895,25 @@ export class Api<
       }),
 
     /**
+     * @description Update page
+     *
+     * @tags Noco docs
+     * @name UpdatePage
+     * @summary Update page
+     * @request PUT:/api/v1/docs/page/{id}
+     * @response `200` `DocsPageType` OK
+     */
+    updatePage: (id: string, data: DocsPageType, params: RequestParams = {}) =>
+      this.request<DocsPageType, any>({
+        path: `/api/v1/docs/page/${id}`,
+        method: 'PUT',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Create page
      *
      * @tags Noco docs

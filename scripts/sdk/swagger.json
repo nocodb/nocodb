@@ -56,6 +56,38 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/page/{id}": {
+      "put": {
+        "summary": "Update page",
+        "operationId": "update-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocsPage"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocsPage"
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Update page"
+      }
+    },
     "/api/v1/docs/page": {
       "post": {
         "summary": "Create page",

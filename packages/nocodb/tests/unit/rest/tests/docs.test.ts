@@ -70,7 +70,7 @@ function docTests() {
     expect(response.body.id).to.equal(id)
   });
 
-  it.only('Verify nested pages', async () => {
+  it('Verify nested pages', async () => {
     let response = await request(context.app)
       .post(`/api/v1/docs/page`)
       .set('xc-auth', context.token)
@@ -117,6 +117,31 @@ function docTests() {
     expect(response.body.length).to.equal(1)
     expect(response.body[0].title).to.equal('test')
     expect(response.body[0].is_parent).to.equal(1)
+  })
+
+  it('Update page', async () => {
+    let response = await request(context.app)
+    .post(`/api/v1/docs/page`)
+    .set('xc-auth', context.token)
+    .send({
+      projectId: project.id,
+      title: 'test',
+      content: 'test',
+    })
+    .expect(200)
+    expect(response.body).to.have.property('id');
+
+    const id = response.body.id
+    response = await request(context.app)
+      .put(`/api/v1/docs/page/${id}`)
+      .set('xc-auth', context.token)
+      .send({
+        title: 'test2',
+        content: 'test2',
+      })
+    
+    console.log(response.body)
+    expect(response.body.title).to.equal('test2')
   })
 }
 

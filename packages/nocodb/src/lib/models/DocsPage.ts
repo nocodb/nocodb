@@ -28,6 +28,7 @@ export default class DocsPage {
         // todo: Handle the case when there is a slug duplicate
         slug: slug(title),
         parent_page_id: parentPageId,
+        project_id: projectId,
       }
     );
 
@@ -61,6 +62,29 @@ export default class DocsPage {
     }
 
     return page;
+  }
+
+  public static async updatePage(
+    {
+      projectId,
+      pageId,
+      pageAttr,
+    }: {
+      projectId: string;
+      pageId: string;
+      pageAttr: Partial<DocsPage>;
+    },
+    ncMeta = Noco.ncMeta
+  ): Promise<DocsPage> {
+    await ncMeta.metaUpdate(
+      projectId,
+      null,
+      MetaTable.DOCS_PAGE,
+      pageAttr,
+      pageId
+    );
+
+    return await this.get(pageId, ncMeta);
   }
 
   public static listPages(

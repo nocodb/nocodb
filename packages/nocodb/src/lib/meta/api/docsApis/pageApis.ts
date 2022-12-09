@@ -53,6 +53,25 @@ async function create(
   }
 }
 
+async function update(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const page = await DocsPage.updatePage({
+      pageId: req.params.id,
+      pageAttr: req.body,
+      projectId: req.body.projectId,
+    });
+
+    res.json(page);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 async function deletePage(
   req: Request<any> & { user: { id: string; roles: string } },
   res: Response,
@@ -76,6 +95,11 @@ const router = Router({ mergeParams: true });
 router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
 router.get('/api/v1/docs/pages', apiMetrics, ncMetaAclMw(list, 'pageList'));
 router.post('/api/v1/docs/page', apiMetrics, ncMetaAclMw(create, 'pageCreate'));
+router.put(
+  '/api/v1/docs/page/:id',
+  apiMetrics,
+  ncMetaAclMw(update, 'pageUpdate')
+);
 router.delete(
   '/api/v1/docs/page/:id',
   apiMetrics,

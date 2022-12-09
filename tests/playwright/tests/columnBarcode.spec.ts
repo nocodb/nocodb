@@ -156,12 +156,10 @@ test.describe('Virtual Columns', () => {
       await dashboard.closeTab({ title: 'City' });
     });
 
-    test('changing the format of the Barcode is reflected in the change of the actual rendered barcode', async () => {
+    test('a) showing an error message for non-compatible barcode input and b) changing the format of the Barcode is reflected in the change of the actual rendered barcode', async () => {
       await dashboard.closeTab({ title: 'Team & Auth' });
 
       await dashboard.treeView.openTable({ title: 'City' });
-
-      await grid.cell.fillText({ columnHeader: 'City', index: 0, text: 'Berlin' });
 
       await grid.column.create({
         title: 'Barcode1',
@@ -169,17 +167,19 @@ test.describe('Virtual Columns', () => {
         barcodeValueColumnTitle: 'City',
       });
 
-      await barcodeColumnVerify('Barcode1', [barcodeCellValuesForBerlin]);
-
       await grid.column.openEdit({
         title: 'Barcode1',
       });
       await grid.column.changeBarcodeFormat({ barcodeFormatName: 'CODE39' });
-      await barcodeColumnVerify('Barcode1 Renamed', [
-        { referencedValue: 'Berlin', barcodeSvg: barcodeCode39SvgForBerlin },
-      ]);
-    });
 
-    test('barcode cells with invalid input for the choosen barcode format are showing a replacement message', async () => {});
+      await grid.cell.verifyBarcodeCellShowsInvalidInputMessage({
+        index: 0,
+        columnHeader: 'Barcode1',
+      });
+
+      await grid.cell.fillText({ columnHeader: 'City', index: 0, text: 'Berlin' });
+
+      await barcodeColumnVerify('Barcode1', [{ referencedValue: 'Berlin', barcodeSvg: barcodeCode39SvgForBerlin }]);
+    });
   });
 });

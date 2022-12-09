@@ -43,11 +43,6 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
       :barcode-value="barcodeValue"
       :barcode-format="barcodeMeta.barcodeFormat"
     >
-      <template #barcodeRenderError>
-        <div class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-          {{ $t('msg.warning.barcode.renderError') }}
-        </div>
-      </template>
     </JsBarcodeWrapper>
   </a-modal>
   <JsBarcodeWrapper
@@ -58,7 +53,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     @on-click-barcode="showBarcodeModal"
   >
     <template #barcodeRenderError>
-      <div class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div class="text-left text-wrap mt-2 text-[#e65100] text-xs" data-testid="barcode-invalid-input-message">
         {{ $t('msg.warning.barcode.renderError') }}
       </div>
     </template>

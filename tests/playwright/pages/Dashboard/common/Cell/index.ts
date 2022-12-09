@@ -137,6 +137,23 @@ export class CellPageObject extends BasePage {
     await _verify(expectedSrcValue);
   }
 
+  async verifyBarcodeCellShowsInvalidInputMessage({ index, columnHeader }: { index: number; columnHeader: string }) {
+    const _verify = async expectedInvalidInputMessage => {
+      await expect
+        .poll(async () => {
+          const barcodeCell = await this.get({
+            index,
+            columnHeader,
+          });
+          const barcodeInvalidInputMessage = await barcodeCell.getByTestId('barcode-invalid-input-message');
+          return await barcodeInvalidInputMessage.textContent();
+        })
+        .toEqual(expectedInvalidInputMessage);
+    };
+
+    await _verify('Barcode error - please check compatibility between input and barcode type');
+  }
+
   async verifyBarcodeCell({
     index,
     columnHeader,

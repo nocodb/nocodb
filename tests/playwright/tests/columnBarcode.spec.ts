@@ -123,5 +123,11 @@ test.describe('Virtual Columns', () => {
 
       await dashboard.closeTab({ title: 'City' });
     });
+
+    test('deletion of the barcode column: directly and indirectly when the reference value column is deleted', async () => {});
+
+    test('changing the format of the Barcode is reflected in the change of the actual rendered barcode', async () => {});
+
+    test('barcode cells with invalid input for the choosen barcode format are showing a replacement message', async () => {});
   });
 });

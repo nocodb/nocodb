@@ -31,7 +31,7 @@ onMounted(generate)
 </script>
 
 <template>
-  <svg v-show="!errorForCurrentInput" ref="barcodeSvgRef" @click="onBarcodeClick"></svg>
+  <svg data-testid="barcode" v-show="!errorForCurrentInput" ref="barcodeSvgRef" @click="onBarcodeClick"></svg>
   <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
 </template>
 

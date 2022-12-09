@@ -137,6 +137,35 @@ export class CellPageObject extends BasePage {
     await _verify(expectedSrcValue);
   }
 
+  async verifyBarcodeCell({
+    index,
+    columnHeader,
+    expectedSvgValue,
+  }: {
+    index: number;
+    columnHeader: string;
+    expectedSvgValue: string;
+  }) {
+    const _verify = async expectedBarcodeSvg => {
+      await expect
+        .poll(async () => {
+          const barcodeCell = await this.get({
+            index,
+            columnHeader,
+          });
+          const barcodeSvg = await barcodeCell.getByTestId('barcode');
+          return await barcodeSvg.innerHTML();
+        })
+        .toEqual(expectedBarcodeSvg);
+
+        // const SVG = await FOO.locator('svg');
+        // expect(SVG).toEqual(ONE_SVG_BARCODE_HTML);
+  
+    };
+
+    await _verify(expectedSvgValue);
+  }
+
   // todo: Improve param names (i.e value => values)
   // verifyVirtualCell
   //  : virtual relational cell- HM, BT, MM

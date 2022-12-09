@@ -54,6 +54,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     v-if="barcodeValue && !tooManyCharsForBarcode"
     :barcode-value="barcodeValue"
     :barcode-format="barcodeMeta.barcodeFormat"
+    class="nc-barcode-svg"
     @on-click-barcode="showBarcodeModal"
   >
     <template #barcodeRenderError>

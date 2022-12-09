@@ -33,7 +33,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   <a-modal
     v-model:visible="modalVisible"
     :class="{ active: modalVisible }"
-    wrap-class-name="nc-barcode-large amodal-wrapper"
+    wrap-class-name="nc-barcode-large"
     :body-style="{ padding: '0px' }"
     :footer="null"
     @ok="handleModalOkClick"
@@ -74,9 +74,3 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     {{ $t('msg.warning.nonEditableFields.barcodeFieldsCannotBeDirectlyChanged') }}
   </div>
 </template>
-
-<style lang="scss">
-.amodal-wrapper {
-  // width: 100px;
-}
-</style>

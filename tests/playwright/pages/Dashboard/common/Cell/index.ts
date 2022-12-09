@@ -157,10 +157,6 @@ export class CellPageObject extends BasePage {
           return await barcodeSvg.innerHTML();
         })
         .toEqual(expectedBarcodeSvg);
-
-        // const SVG = await FOO.locator('svg');
-        // expect(SVG).toEqual(ONE_SVG_BARCODE_HTML);
-  
     };
 
     await _verify(expectedSvgValue);

@@ -1022,7 +1022,9 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
       value: () => {
         return typeof arg === 'string'
           ? arg.match(/^(\w+):/) ?? [1]
-          : (arg.client?.name === 'SnowflakeClient') ? 'snowflake' : arg.client;
+          : (typeof arg.client === 'string')
+            ? arg.client
+            : arg.client?.prototype?.dialect || arg.client?.prototype?.driverName;
       },
     },
     searchPath: {

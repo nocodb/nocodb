@@ -664,6 +664,20 @@ export default async function formulaQueryBuilderv2(
         sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')${colAlias}`;
       }
 
+      if (knex.clientType() === 'mysql2') {
+        sql = `IFNULL(${left} ${pt.operator} ${right}, ${
+          pt.operator === '='
+            ? pt.left.type === 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : pt.operator === '!='
+            ? pt.left.type !== 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : 0
+        }) ${colAlias}`;
+      }
+
       const query = knex.raw(sql);
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');

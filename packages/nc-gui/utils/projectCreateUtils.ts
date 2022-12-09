@@ -38,8 +38,8 @@ export interface SnowflakeConnection {
   username: string
   password: string
   warehouse: string
-  database?: string
-  schema?: string
+  database: string
+  schema: string
 }
 
 const defaultHost = 'localhost'

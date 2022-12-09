@@ -43,8 +43,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <template #title>
           <span class="text-xs">{{ $t('activity.inviteTeam') }}</span>
         </template>
-        <div class="flex items-center space-x-1 cursor-pointer">
-          <MdiAccountPlusOutline class="mr-1 nc-share-base text-gray-300 hover:text-accent" />
+        <div class="flex items-center !text-sm space-x-1 cursor-pointer">
+          <a-button size="small" class="nc-share-base mr-2">
+            <div class="flex items-center text-xs gap-1 text-primary hover:text-accent">
+              <MdiAccountPlusOutline />
+              Share
+            </div>
+          </a-button>
         </div>
       </a-tooltip>
     </div>

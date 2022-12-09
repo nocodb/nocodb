@@ -227,7 +227,6 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
         switch (e.key) {
           case 'ArrowUp':
             e.preventDefault()
-            $e('c:shortcut', { key: 'CTRL + ArrowUp' })
             selectedCell.row = 0
             selectedCell.col = selectedCell.col ?? 0
             scrollToCell?.()
@@ -235,7 +234,6 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowDown':
             e.preventDefault()
-            $e('c:shortcut', { key: 'CTRL + ArrowDown' })
             selectedCell.row = data.value.length - 1
             selectedCell.col = selectedCell.col ?? 0
             scrollToCell?.()
@@ -243,7 +241,6 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowRight':
             e.preventDefault()
-            $e('c:shortcut', { key: 'CTRL + ArrowRight' })
             selectedCell.row = selectedCell.row ?? 0
             selectedCell.col = fields.value?.length - 1
             scrollToCell?.()
@@ -251,7 +248,6 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
             return true
           case 'ArrowLeft':
             e.preventDefault()
-            $e('c:shortcut', { key: 'CTRL + ArrowLeft' })
             selectedCell.row = selectedCell.row ?? 0
             selectedCell.col = 0
             scrollToCell?.()

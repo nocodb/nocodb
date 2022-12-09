@@ -1,0 +1,24 @@
+version: '3'
+
+x-uffizzi:
+  ingress:
+    service: nocodb
+    port: 8080
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: root_db
+  nocodb:
+    image: "${NOCODB_IMAGE}"
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      NC_DB: "pg://localhost:5432?u=postgres&p=password&d=root_db"
+      NC_ADMIN_EMAIL: admin@nocodb.com
+      NC_ADMIN_PASSWORD: password

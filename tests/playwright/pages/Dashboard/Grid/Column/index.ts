@@ -85,12 +85,14 @@ export class ColumnPageObject extends BasePage {
         });
         break;
       case 'Duration':
-        await this.get().locator('.ant-select-single').nth(1).click();
-        await this.rootPage
-          .locator(`.ant-select-item`, {
-            hasText: format,
-          })
-          .click();
+        if (format) {
+          await this.get().locator('.ant-select-single').nth(1).click();
+          await this.rootPage
+            .locator(`.ant-select-item`, {
+              hasText: format,
+            })
+            .click();
+        }
         break;
       case 'DateTime':
         // Date Format

@@ -1,4 +1,5 @@
 import { Knex, knex } from 'knex';
+import { SnowflakeClient } from 'knex-snowflake';
 
 const types = require('pg').types;
 // override parsing date column to Date()
@@ -993,6 +994,8 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
     arg.useNullAsDefault = true;
   }
 
+  if (arg?.client === 'snowflake') arg.client = SnowflakeClient;
+
   const kn: any = knex(arg);
 
   const knexRaw = kn.raw;
@@ -1019,7 +1022,7 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
       value: () => {
         return typeof arg === 'string'
           ? arg.match(/^(\w+):/) ?? [1]
-          : arg.client;
+          : (arg.client?.name === 'SnowflakeClient') ? 'snowflake' : arg.client;
       },
     },
     searchPath: {

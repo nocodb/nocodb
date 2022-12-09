@@ -6,6 +6,8 @@ import PgClient from './pg/PgClient';
 import YugabyteClient from './pg/YugabyteClient';
 import TidbClient from './mysql/TidbClient';
 import VitessClient from './mysql/VitessClient';
+import SfClient from './snowflake/SnowflakeClient';
+import { SnowflakeClient } from 'knex-snowflake';
 
 class SqlClientFactory {
   static create(connectionConfig) {
@@ -31,6 +33,9 @@ class SqlClientFactory {
       if (connectionConfig.meta.dbtype === 'yugabyte')
         return new YugabyteClient(connectionConfig);
       return new PgClient(connectionConfig);
+    } else if (connectionConfig.client === 'snowflake') {
+      connectionConfig.client = SnowflakeClient;
+      return new SfClient(connectionConfig);
     }
 
     throw new Error('Database not supported');

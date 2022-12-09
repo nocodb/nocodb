@@ -320,7 +320,7 @@ class BaseModelSqlv2 {
       as: 'count',
     }).first();
     const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
-    return (this.isPg ? res.rows[0] : res[0][0] ?? res[0]).count;
+    return ((this.isPg || this.isSnowflake) ? res.rows[0] : res[0][0] ?? res[0]).count;
   }
 
   // todo: add support for sortArrJson and filterArrJson
@@ -1696,6 +1696,10 @@ class BaseModelSqlv2 {
     return this.clientType === 'mysql2' || this.clientType === 'mysql';
   }
 
+  get isSnowflake() {
+    return this.clientType === 'snowflake';
+  }
+
   get clientType() {
     return this.dbDriver.clientType();
   }
@@ -2764,13 +2768,13 @@ class BaseModelSqlv2 {
     childTable?: Model
   ) {
     let query = qb.toQuery();
-    if (!this.isPg && !this.isMssql) {
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
       query = unsanitize(qb.toQuery());
     } else {
       query = sanitize(query);
     }
     return this.convertAttachmentType(
-      this.isPg
+      this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows
         : query.slice(0, 6) === 'select' && !this.isMssql
         ? await this.dbDriver.from(

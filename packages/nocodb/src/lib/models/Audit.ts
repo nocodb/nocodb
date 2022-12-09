@@ -44,6 +44,19 @@ export default class Audit implements AuditType {
       forceAwait: process.env['TEST'] === 'true',
     }
   ) {
+    // skip audit based on environment variables
+    if (process.env['NC_AUDIT_META_ENABLE'] === 'false') {
+      return;
+    }
+
+    // skip data audit if it is not enabled
+    if (
+      process.env['NC_AUDIT_DATA_ENABLE'] === 'true' &&
+      audit.op_type === AuditOperationTypes.DATA
+    ) {
+      return;
+    }
+
     const insertAudit = async () => {
       if (!audit.project_id && audit.fk_model_id) {
         audit.project_id = (
@@ -90,6 +103,7 @@ export default class Audit implements AuditType {
 
     return audits?.map((a) => new Audit(a));
   }
+
   public static async commentsList(args) {
     const query = Noco.ncMeta
       .knex(MetaTable.AUDIT)
@@ -115,6 +129,7 @@ export default class Audit implements AuditType {
       offset,
     });
   }
+
   static async projectAuditCount(projectId: string): Promise<number> {
     return (
       await Noco.ncMeta

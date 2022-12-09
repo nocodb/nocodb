@@ -86,7 +86,7 @@ vModel.value.meta = {
         />
       </a-form-item>
       <a-form-item
-        class="flex w-1/2 pb-2 nc-code-value-column-select"
+        class="flex w-1/2 pb-2 nc-barcode-format-select"
         :label="$t('labels.barcodeFormat')"
         v-bind="validateInfos.barcode_format"
       >

@@ -124,9 +124,54 @@ test.describe('Virtual Columns', () => {
       await dashboard.closeTab({ title: 'City' });
     });
 
-    test('deletion of the barcode column: directly and indirectly when the reference value column is deleted', async () => {});
+    test('deletion of the barcode column: directly and indirectly when the reference value column is deleted', async () => {
+      await dashboard.closeTab({ title: 'Team & Auth' });
 
-    test('changing the format of the Barcode is reflected in the change of the actual rendered barcode', async () => {});
+      await dashboard.treeView.openTable({ title: 'City' });
+
+      await grid.column.create({ title: 'column_name_a' });
+      await grid.column.verify({ title: 'column_name_a' });
+      await grid.column.create({
+        title: 'Barcode2',
+        type: 'Barcode',
+        barcodeValueColumnTitle: 'column_name_a',
+      });
+      await grid.column.verify({ title: 'Barcode2', isVisible: true });
+      await grid.column.delete({ title: 'Barcode2' });
+      await grid.column.verify({ title: 'Barcode2', isVisible: false });
+
+      await grid.column.create({
+        title: 'Barcode2',
+        type: 'Barcode',
+        barcodeValueColumnTitle: 'column_name_a',
+      });
+      await grid.column.verify({ title: 'Barcode2', isVisible: true });
+      await grid.column.delete({ title: 'column_name_a' });
+      await grid.column.verify({ title: 'Barcode2', isVisible: false });
+
+      await dashboard.closeTab({ title: 'City' });
+    });
+
+    test('changing the format of the Barcode is reflected in the change of the actual rendered barcode', async () => {
+      await dashboard.closeTab({ title: 'Team & Auth' });
+
+      await dashboard.treeView.openTable({ title: 'City' });
+
+      await grid.column.create({ title: 'column_name_b' });
+      await grid.column.verify({ title: 'column_name_b' });
+      await grid.column.create({
+        title: 'Barcode3',
+        type: 'Barcode',
+        barcodeValueColumnTitle: 'column_name_b',
+        barcodeFormat: 'CODE128',
+      });
+      await grid.column.openEdit({
+        title: 'Barcode3',
+        type: 'Barcode',
+      });
+      await grid.column.changeBarcodeFormat({ barcodeFormatName: 'CODE39' });
+      
+    });
 
     test('barcode cells with invalid input for the choosen barcode format are showing a replacement message', async () => {});
   });

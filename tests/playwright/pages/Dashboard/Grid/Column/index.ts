@@ -112,6 +112,12 @@ export class ColumnPageObject extends BasePage {
             hasText: new RegExp(`^${barcodeValueColumnTitle}$`),
           })
           .click();
+        // await this.get().locator('.ant-select-single').nth(2).click();
+        // await this.rootPage
+        //   .locator(`.ant-select-item`, {
+        //     hasText: new RegExp(`^${barcodeFormat}$`),
+        //   })
+        //   .click();
         break;
       case 'Lookup':
         await this.get().locator('.ant-select-single').nth(1).click();
@@ -229,6 +235,17 @@ export class ColumnPageObject extends BasePage {
     await this.save();
   }
 
+  async changeBarcodeFormat({ barcodeFormatName }: { barcodeFormatName: string }) {
+    await this.get().locator('.nc-barcode-format-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: barcodeFormatName,
+      })
+      .click();
+
+    await this.save();
+  }
+
   async delete({ title }: { title: string }) {
     await this.getColumnHeader(title).locator('svg.ant-dropdown-trigger').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
@@ -268,6 +285,14 @@ export class ColumnPageObject extends BasePage {
           })
           .click();
         break;
+      // case 'Barcode':
+      //   await this.get().locator('.ant-select-single').nth(1).click();
+      //   await this.rootPage
+      //     .locator(`.ant-select-item`, {
+      //       hasText: format,
+      //     })
+      //     .click();
+      //   break;
       default:
         break;
     }

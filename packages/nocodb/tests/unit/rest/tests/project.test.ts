@@ -7,8 +7,6 @@ import { beforeEach } from 'mocha'
 import { Exception } from 'handlebars'
 import Project from '../../../../src/lib/models/Project'
 import { packageVersion } from '../../../../src/lib/utils/packageVersion';
-import chai from 'chai';
-chai.use(require('chai-subset'));
 import { expect } from 'chai'
 
 function projectTest() {

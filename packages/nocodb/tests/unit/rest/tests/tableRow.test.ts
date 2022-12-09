@@ -1384,7 +1384,20 @@ function tableTest() {
       .expect(200);
 
     const rows = await listRow({ project, table });
-    console.log(rows.length);
+
+    expect(response.body).to.deep.equal([
+      10,
+      20,
+      30,
+      40,
+      50,
+      60,
+      70,
+      80,
+      90,
+      99,
+    ]);
+
     // Mysql will not return the batched inserted rows
     if (!isMysql(context)) {
       if (
@@ -1421,6 +1434,9 @@ function tableTest() {
       .expect(200);
 
     const rows = await listRow({ project, table });
+
+    expect(response.body).to.deep.equal(Array.from({length: 40}, (_, i) => (i+1) * 10));
+
     // Mysql will not return the batched inserted rows
     if (!isMysql(context)) {
       if (
@@ -1462,13 +1478,15 @@ function tableTest() {
     });
 
     const rows = await listRow({ project, table });
-    await request(context.app)
+    const response = await request(context.app)
       .patch(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
       .set('xc-auth', context.token)
       .send(
         rows.map((row) => ({ title: `new-${row['Title']}`, id: row['Id'] }))
       )
       .expect(200);
+
+    expect(response.body).to.deep.equal(Array(400).fill(1));
     const updatedRows: Array<any> = await listRow({ project, table });
     if (!updatedRows.every((row) => row['Title'].startsWith('new-'))) {
       throw new Error('Wrong number of rows updated');
@@ -1491,12 +1509,13 @@ function tableTest() {
 
     const rows = await listRow({ project, table });
 
-    await request(context.app)
+    const response = await request(context.app)
       .delete(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
       .set('xc-auth', context.token)
       .send(rows.map((row) => ({ id: row['Id'] })))
       .expect(200);
 
+    expect(response.body).to.deep.equal(Array(400).fill(1))
     const updatedRows: Array<any> = await listRow({ project, table });
     if (updatedRows.length !== 0) {
       throw new Error('Wrong number of rows delete');
@@ -1504,40 +1523,64 @@ function tableTest() {
   });
 
   // todo: Integrate filterArrJson with bulk delete all and update all
-  // it.only('Bulk delete all with condition', async function () {
-  //   const table = await createTable(context, project);
-  //   const columns = await table.getColumns();
-  //   const idColumn = columns.find((column) => column.title === 'Id')!;
+  it.only('Bulk delete all with condition', async function () {
+    const table = await createTable(context, project);
 
-  //   const arr = Array(120)
-  //     .fill(0)
-  //     .map((_, index) => index);
-  //   for (const index of arr) {
-  //     await createRow(context, { project, table, index });
-  //   }
+    const totalRows = 120;
+    const arr = Array(totalRows)
+      .fill(0)
+      .map((_, index) => index);
+    for (const index of arr) {
+      await createRow(context, { project, table, index });
+    }
 
-  //   const rows = await listRow({ project, table });
+    const deletedRows = 19;
+    const response = await request(context.app)
+      .delete(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}/all`)
+      .set('xc-auth', context.token)
+      .query({ where: "(Id,lt,20)"})
+      .expect(200);
 
-  //   await request(context.app)
-  //     .delete(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}/all`)
-  //     .set('xc-auth', context.token)
-  //     .query({ filterArr: [
-  //       {
-  //         logical_op: 'and',
-  //         fk_column_id: idColumn.id,
-  //         comparison_op: 'lt',
-  //         value: 20,
-  //       }
-  //     ]})
-  //     .send(rows.map((row) => ({ id: row['Id'] })))
-  //     .expect(200);
+    expect(response.body).to.equal(deletedRows);
+    
+    const updatedRows: Array<any> = await listRow({ project, table });
+    if (updatedRows.length !== totalRows - deletedRows) {
+      throw new Error('Wrong number of rows delete');
+    }
+  });
 
-  //   const updatedRows: Array<any> = await listRow({ project, table });
-  //   if (updatedRows.length !== 0) {
-  //     console.log(updatedRows.length)
-  //     throw new Error('Wrong number of rows delete');
-  //   }
-  // });
+  it.only('Bulk update all with condition', async function () {
+    const table = await createTable(context, project);
+    const columns = await table.getColumns();
+    const idColumn = columns.find((column) => column.title === 'Id')!;
+
+    const arr = Array(120)
+      .fill(0)
+      .map((_, index) => index);
+    for (const index of arr) {
+      await createRow(context, { project, table, index });
+    }
+
+    const newTitle = 'New Title';
+    const where = '(Id,lt,20)';
+    const response = await request(context.app)
+      .patch(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}/all`)
+      .set('xc-auth', context.token)
+      .query({ where: where })
+      .send({ Title: newTitle })
+      .expect(200);
+
+    expect(response.body).to.equal(19);
+    
+    const updatedRows: Array<any> = await listRow({ 
+      project, 
+      table, 
+      options: { where } 
+    });
+    if(updatedRows.some(value => value.Title !== newTitle)){
+      throw new Error('Data was not updated');
+    }
+  });
 
   // todo: add test for bulk delete with ltar but need filterArrJson. filterArrJson not now supported with this api.
   // it.only('Bulk update nested filtered table data list with a lookup column', async function () {

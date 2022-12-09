@@ -51,23 +51,23 @@ const formulaDataByDbType = (context: NcContext) => [
     result: ['-24', '-24', '-24', '-24', '-24'],
   },
   {
-    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "weeks")`,
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "w")`,
     result: ['-52', '-52', '-52', '-52', '-52'],
   },
   {
-    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "months")`,
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "M")`,
     result: ['-12', '-12', '-12', '-12', '-12'],
   },
   {
-    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "Q")`,
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "Q")`,
     result: ['-4', '-4', '-4', '-4', '-4'],
   },
   {
-    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "y")`,
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "y")`,
     result: ['-1', '-1', '-1', '-1', '-1'],
   },
   {
-    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "d")`,
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "d")`,
     result: ['-365', '-365', '-365', '-365', '-365'],
   },
   {

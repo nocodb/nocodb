@@ -40,6 +40,7 @@ export enum MetaTable {
   SYNC_LOGS = 'nc_sync_logs_v2',
   STORE = 'nc_store',
   DOCS_PAGE = 'nc_docs_pages',
+  WORKSPACE = 'workspace',
 }
 
 export const orderedMetaTables = [

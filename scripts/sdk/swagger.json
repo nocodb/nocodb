@@ -9241,6 +9241,34 @@
           }
         }
       },
+      "Workspace": {
+        "title": "Workspace",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "meta": {},
+          "fk_user_id": {
+            "type": "string"
+          },
+          "deleted":{
+            "type": "boolean"
+          },
+          "order":{
+            "type": "number"
+          },
+          "deleted_at":{},
+          "created_at":{},
+          "updated_at":{}
+        }
+      },
       "Webhook": {
         "title": "Webhook",
         "type": "object",

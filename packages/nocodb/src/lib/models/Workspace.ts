@@ -106,4 +106,9 @@ export class Workspace implements WorkspaceType {
       id
     );
   }
+
+  static async list(ncMeta = Noco.ncMeta) {
+    const workspaces = await ncMeta.metaList(null, null, MetaTable.WORKSPACE);
+    return workspaces.map((workspace) => new Workspace(workspace));
+  }
 }

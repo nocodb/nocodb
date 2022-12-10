@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { MetaTable } from '../../utils/globals'
+import { MetaTable } from '../../utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.createTable('workspace', (table) => {
@@ -23,11 +23,15 @@ const up = async (knex: Knex) => {
     table.string('fk_workspace_id', 20);
     table.string('fk_user_id', 20);
 
-
     table.string('roles', 255);
 
 
+    // todo: move to a separate table if required
+    table.string('invite_token', 255);
+    table.boolean('invite_accepted').defaultTo(false);
+
     table.boolean('deleted').defaultTo(false);
+
     table.timestamp('deleted_at');
     table.float('order');
     table.timestamps(true, true);
@@ -39,28 +43,8 @@ const up = async (knex: Knex) => {
   });
 };
 
-const down = async (knex) => {};
+const down = async (_knex) => {
+  // todo:
+};
 
 export { up, down };
-
-/**
- * @copyright Copyright (c) 2022, Xgene Cloud Ltd
- *
- * @author Mert Ersoy <mert@nocodb.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

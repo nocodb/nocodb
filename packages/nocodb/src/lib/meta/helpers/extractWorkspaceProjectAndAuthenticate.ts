@@ -83,6 +83,14 @@ export default async (req, res, next) => {
       req.ncProjectId = sort?.project_id;
     }
 
+    // extract workspace id based on request path params or projectId
+    if(req.ncProjectId){
+      req.ncWorkspaceId = req.params.workspaceId;
+    }else if (req.params.workspaceId) {
+      req.ncWorkspaceId = req.params.workspaceId;
+    }
+
+
     const user = await new Promise((resolve, _reject) => {
       passport.authenticate('jwt', { session: false }, (_err, user, _info) => {
         if (user && !req.headers['xc-shared-base-id']) {

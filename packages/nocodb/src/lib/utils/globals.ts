@@ -41,6 +41,7 @@ export enum MetaTable {
   STORE = 'nc_store',
   DOCS_PAGE = 'nc_docs_pages',
   WORKSPACE = 'workspace',
+  WORKSPACE_USERS='workspace_users',
 }
 
 export const orderedMetaTables = [

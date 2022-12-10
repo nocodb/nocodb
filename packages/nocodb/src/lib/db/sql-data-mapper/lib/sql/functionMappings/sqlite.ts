@@ -83,8 +83,8 @@ const sqlite3 = {
     );
   },
   DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    let datetime_expr1 = fn(pt.arguments[0]);
-    let datetime_expr2 = fn(pt.arguments[1]);
+    let datetime_expr1 = fn(pt.arguments[0]).bindings[0];
+    let datetime_expr2 = fn(pt.arguments[1]).bindings[0];
     // JULIANDAY takes YYYY-MM-DD
     datetime_expr1 = convertToTargetFormat(
       datetime_expr1,

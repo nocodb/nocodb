@@ -14,6 +14,7 @@ import * as nc_023_multiple_source from './v2/nc_023_multiple_source';
 import * as nc_024_barcode_column_type from './v2/nc_024_barcode_column_type';
 import * as nc_024_add_type_to_project from './v2/nc_024_add_type_to_project';
 import * as nc_025_create_nocodoc_page from './v2/nc_025_create_nocodoc_page';
+import * as nc_025_workspace from './v2/nc_025_workspace';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -39,6 +40,7 @@ export default class XcMigrationSourcev2 {
       'nc_024_barcode_column_type',
       'nc_024_add_type_to_project',
       'nc_025_create_nocodoc_page',
+      'nc_025_workspace',
     ]);
   }
 
@@ -80,6 +82,8 @@ export default class XcMigrationSourcev2 {
         return nc_024_add_type_to_project;
       case 'nc_025_create_nocodoc_page':
         return nc_025_create_nocodoc_page;
+      case 'nc_025_workspace':
+        return nc_025_workspace;
     }
   }
 }

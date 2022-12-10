@@ -32,7 +32,7 @@
         "tags": [
           "Noco docs"
         ],
-        "parameters":[
+        "parameters": [
           {
             "name": "projectId",
             "in": "query",
@@ -7141,6 +7141,247 @@
         ],
         "description": "Resend Invitation to a specific user"
       }
+    },
+    "/api/v1/workspaces": {
+      "get": {
+        "summary": "List workspaces",
+        "operationId": "workspace-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "List workspaces"
+      },
+      "parameters": []
+    },
+    "/api/v1/workspaces/{workspaceId}": {
+      "get": {
+        "summary": "Read workspace",
+        "operationId": "workspace-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Read workspace"
+      },
+      "patch": {
+        "summary": "Update workspace",
+        "operationId": "workspace-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Workspace"
+              }
+            }
+          }
+        },
+        "description": "Update workspace"
+      },
+      "delete": {
+        "summary": "Delete workspace",
+        "operationId": "workspace-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Delete workspace"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users": {
+      "get": {
+        "summary": "Workspace users list",
+        "operationId": "workspace-user-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUserList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace users list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/invitations": {
+      "post": {
+        "summary": "Workspace user invite",
+        "operationId": "workspace-user-invite",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUserInvite"
+                }
+              }
+            }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user invite"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users/{userId}": {
+      "get": {
+        "summary": "Workspace user read",
+        "operationId": "workspace-user-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUser"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user read"
+      },
+      "patch": {
+        "summary": "Update workspace user",
+        "operationId": "workspace-user-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update workspace user"
+      },
+      "delete": {
+        "summary": "Delete workspace user",
+        "operationId": "workspace-user-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Delete workspace user"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {
@@ -7201,6 +7442,45 @@
           "email",
           "email_verified"
         ]
+      },
+      "WorkspaceUser": {
+        "title": "Workspace User",
+        "type": "object",
+        "description": "",
+        "x-internal": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "roles": {
+            "type": "string"
+          },
+          "fk_user_id": {
+            "type": "string"
+          },
+          "invite_token": {
+            "type": "string"
+          },
+          "invite_accepted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WorkspaceUserInvite": {
+        "title": "Workspace User Invite",
+        "type": "object",
+        "description": "",
+        "x-internal": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
       },
       "DocsPage": {
         "title": "DocsPage",
@@ -9230,6 +9510,36 @@
         ],
         "title": ""
       },
+      "WorkspaceList": {
+        "description": "",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Workspace"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        }
+      },
+      "WorkspaceUserList": {
+        "description": "",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceUser"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        }
+      },
       "Attachment": {
         "title": "Attachment",
         "type": "object",
@@ -9268,15 +9578,15 @@
           "fk_user_id": {
             "type": "string"
           },
-          "deleted":{
+          "deleted": {
             "type": "boolean"
           },
-          "order":{
+          "order": {
             "type": "number"
           },
-          "deleted_at":{},
-          "created_at":{},
-          "updated_at":{}
+          "deleted_at": {},
+          "created_at": {},
+          "updated_at": {}
         }
       },
       "Webhook": {

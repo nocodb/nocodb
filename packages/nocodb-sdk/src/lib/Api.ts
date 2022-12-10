@@ -31,6 +31,21 @@ export interface UserType {
   createDate?: string;
 }
 
+export interface WorkspaceUserType {
+  /** @format email */
+  email?: string;
+  roles?: string;
+  fk_user_id?: string;
+  invite_token?: string;
+  invite_accepted?: boolean;
+}
+
+export interface WorkspaceUserInviteType {
+  /** @format email */
+  email?: string;
+  role?: string;
+}
+
 /**
  * Page of noco docs
  */
@@ -492,6 +507,16 @@ export interface SharedViewListType {
 
 export interface ViewListType {
   list?: ViewType[];
+  pageInfo?: PaginatedType;
+}
+
+export interface WorkspaceListType {
+  list?: WorkspaceType[];
+  pageInfo?: PaginatedType;
+}
+
+export interface WorkspaceUserListType {
+  list?: WorkspaceUserType[];
   pageInfo?: PaginatedType;
 }
 
@@ -4863,6 +4888,182 @@ export class Api<
         path: `/api/v1/db/storage/upload-by-url`,
         method: 'POST',
         query: query,
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  workspace = {
+    /**
+     * @description List workspaces
+     *
+     * @tags Workspace
+     * @name List
+     * @summary List workspaces
+     * @request GET:/api/v1/workspaces
+     * @response `200` `WorkspaceListType` OK
+     */
+    list: (params: RequestParams = {}) =>
+      this.request<WorkspaceListType, any>({
+        path: `/api/v1/workspaces`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Read workspace
+     *
+     * @tags Workspace
+     * @name Read
+     * @summary Read workspace
+     * @request GET:/api/v1/workspaces/{workspaceId}
+     * @response `200` `WorkspaceType` OK
+     */
+    read: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<WorkspaceType, any>({
+        path: `/api/v1/workspaces/${workspaceId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update workspace
+     *
+     * @tags Workspace
+     * @name Update
+     * @summary Update workspace
+     * @request PATCH:/api/v1/workspaces/{workspaceId}
+     * @response `200` `void` OK
+     */
+    update: (
+      workspaceId: string,
+      data: WorkspaceType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete workspace
+     *
+     * @tags Workspace
+     * @name Delete
+     * @summary Delete workspace
+     * @request DELETE:/api/v1/workspaces/{workspaceId}
+     * @response `200` `void` OK
+     */
+    delete: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Delete workspace user
+     *
+     * @tags Workspace
+     * @name UserDelete
+     * @summary Delete workspace user
+     * @request DELETE:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `void` OK
+     */
+    userDelete: (
+      workspaceId: string,
+      userId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+  };
+  workspaceUser = {
+    /**
+     * @description Workspace users list
+     *
+     * @tags Workspace user
+     * @name List
+     * @summary Workspace users list
+     * @request GET:/api/v1/workspaces/{workspaceId}/users
+     * @response `200` `WorkspaceUserListType` OK
+     */
+    list: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<WorkspaceUserListType, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Workspace user invite
+     *
+     * @tags Workspace user
+     * @name Invite
+     * @summary Workspace user invite
+     * @request POST:/api/v1/workspaces/{workspaceId}/invitations
+     * @response `200` `any` OK
+     */
+    invite: (
+      workspaceId: string,
+      data: WorkspaceUserInviteType,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/workspaces/${workspaceId}/invitations`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Workspace user read
+     *
+     * @tags Workspace user
+     * @name Read
+     * @summary Workspace user read
+     * @request GET:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `WorkspaceUserType` OK
+     */
+    read: (workspaceId: string, userId: string, params: RequestParams = {}) =>
+      this.request<WorkspaceUserType, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update workspace user
+     *
+     * @tags Workspace user
+     * @name Update
+     * @summary Update workspace user
+     * @request PATCH:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `void` OK
+     */
+    update: (
+      workspaceId: string,
+      userId: string,
+      data: {
+        role?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
         ...params,

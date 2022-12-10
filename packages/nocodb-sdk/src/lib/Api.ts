@@ -503,6 +503,19 @@ export interface AttachmentType {
   icon?: string;
 }
 
+export interface WorkspaceType {
+  id?: string;
+  title?: string;
+  description?: string;
+  meta?: any;
+  fk_user_id?: string;
+  deleted?: boolean;
+  order?: number;
+  deleted_at?: any;
+  created_at?: any;
+  updated_at?: any;
+}
+
 export interface WebhookType {
   id?: string;
   title?: string;

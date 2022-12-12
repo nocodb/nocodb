@@ -19,10 +19,10 @@ export class WorkspaceUser {
     >,
     ncMeta = Noco.ncMeta
   ) {
-    const { project_id, fk_user_id } = await ncMeta.metaInsert2(
+    const { fk_workspace_id, fk_user_id } = await ncMeta.metaInsert2(
       null,
       null,
-      MetaTable.PROJECT_USERS,
+      MetaTable.WORKSPACE_USER,
       {
         fk_user_id: projectUser.fk_user_id,
         fk_workspace_id: projectUser.fk_workspace_id,
@@ -39,7 +39,7 @@ export class WorkspaceUser {
     //   `${projectUser.fk_user_id}:*`
     // );
 
-    return this.get(project_id, fk_user_id, ncMeta);
+    return this.get( fk_workspace_id, fk_user_id, ncMeta);
   }
 
   // public static async update(id, user: Partial<WorkspaceUser>, ncMeta = Noco.ncMeta) {
@@ -57,10 +57,10 @@ export class WorkspaceUser {
     const workspaceUser = await ncMeta.metaGet2(
       null,
       null,
-      MetaTable.WORKSPACE_USERS,
+      MetaTable.WORKSPACE_USER,
       {
         fk_user_id: userId,
-        project_id: workspaceId,
+        fk_workspace_id: workspaceId,
       }
     );
     //   await NocoCache.set(
@@ -88,9 +88,9 @@ export class WorkspaceUser {
         `${MetaTable.WORKSPACE}.deleted`,
         `${MetaTable.WORKSPACE}.deleted_at`,
         `${MetaTable.WORKSPACE}.order`,
-        `${MetaTable.WORKSPACE_USERS}.invite_token`,
-        `${MetaTable.WORKSPACE_USERS}.invite_accepted`,
-        `${MetaTable.WORKSPACE_USERS}.roles as roles`
+        `${MetaTable.WORKSPACE_USER}.invite_token`,
+        `${MetaTable.WORKSPACE_USER}.invite_accepted`,
+        `${MetaTable.WORKSPACE_USER}.roles as roles`
       );
     // todo : pagination
     // .offset(offset)
@@ -101,13 +101,13 @@ export class WorkspaceUser {
     //   queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     // }
 
-    queryBuilder.leftJoin(MetaTable.WORKSPACE_USERS, function () {
+    queryBuilder.leftJoin(MetaTable.WORKSPACE_USER, function () {
       this.on(
-        `${MetaTable.WORKSPACE_USERS}.fk_workspace_id`,
+        `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
         '=',
         `${MetaTable.WORKSPACE}.id`
       ).andOn(
-        `${MetaTable.WORKSPACE_USERS}.fk_user_id`,
+        `${MetaTable.WORKSPACE_USER}.fk_user_id`,
         '=',
         ncMeta.knex.raw('?', [fk_user_id])
       );
@@ -141,10 +141,10 @@ export class WorkspaceUser {
       `${MetaTable.USERS}.email`,
       // `${MetaTable.USERS}.invite_token`,
       `${MetaTable.USERS}.roles as main_roles`,
-      `${MetaTable.WORKSPACE_USERS}.fk_workspace_id`,
-      `${MetaTable.WORKSPACE_USERS}.invite_token`,
-      `${MetaTable.WORKSPACE_USERS}.invite_accepted`,
-      `${MetaTable.WORKSPACE_USERS}.roles as roles`
+      `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+      `${MetaTable.WORKSPACE_USER}.invite_token`,
+      `${MetaTable.WORKSPACE_USER}.invite_accepted`,
+      `${MetaTable.WORKSPACE_USER}.roles as roles`
     );
     // todo : pagination
     // .offset(offset)
@@ -155,13 +155,13 @@ export class WorkspaceUser {
     //   queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     // }
 
-    queryBuilder.innerJoin(MetaTable.WORKSPACE_USERS, function () {
+    queryBuilder.innerJoin(MetaTable.WORKSPACE_USER, function () {
       this.on(
-        `${MetaTable.WORKSPACE_USERS}.fk_user_id`,
+        `${MetaTable.WORKSPACE_USER}.fk_user_id`,
         '=',
         `${MetaTable.USERS}.id`
       ).andOn(
-        `${MetaTable.WORKSPACE_USERS}.fk_workspace_id`,
+        `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
         '=',
         ncMeta.knex.raw('?', [fk_workspace_id])
       );
@@ -188,7 +188,7 @@ export class WorkspaceUser {
     return await Noco.ncMeta.metaUpdate(
       null,
       null,
-      MetaTable.WORKSPACE_USERS,
+      MetaTable.WORKSPACE_USER,
       updateData,
       {
         fk_user_id: userId,
@@ -198,7 +198,7 @@ export class WorkspaceUser {
   }
 
   static async delete(workspaceId: any, userId: any) {
-    return await Noco.ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USERS, {
+    return await Noco.ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
       fk_user_id: userId,
       fk_workspace_id: workspaceId,
     });
@@ -208,7 +208,7 @@ export class WorkspaceUser {
     const workspaceUser = await Noco.ncMeta.metaGet2(
       null,
       null,
-      MetaTable.WORKSPACE_USERS,
+      MetaTable.WORKSPACE_USER,
       {
         invite_token: invitationToken,
         fk_user_id: userId,

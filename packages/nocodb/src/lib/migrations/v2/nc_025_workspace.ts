@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import { MetaTable } from '../../utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTable('workspace', (table) => {
+  await knex.schema.createTable(MetaTable.WORKSPACE, (table) => {
     table.string('id', 20).primary();
     table.string('title', 255);
     table.text('description');
@@ -18,7 +18,7 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable('workspace_user', (table) => {
+  await knex.schema.createTable(MetaTable.WORKSPACE_USER, (table) => {
     // todo: set fk
     table.string('fk_workspace_id', 20);
     table.string('fk_user_id', 20);

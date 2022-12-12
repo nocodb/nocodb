@@ -23,6 +23,7 @@ export default class Project implements ProjectType {
   public is_meta = false;
   public bases?: Base[];
   public type: string;
+  public fk_workspace_id?: string;
 
   created_at: any;
   updated_at: any;
@@ -56,6 +57,7 @@ export default class Project implements ProjectType {
         created_at: projectBody.created_at,
         updated_at: projectBody.updated_at,
         type: projectBody.type,
+        fk_workspace_id: projectBody.fk_workspace_id,
       }
     );
 

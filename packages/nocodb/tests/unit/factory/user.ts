@@ -11,8 +11,16 @@ const createUser = async (context, userArgs = {}) => {
   const response = await request(context.app)
     .post('/api/v1/auth/user/signup')
     .send(args);
-  const user = User.getByEmail(args.email);
+  const user = await User.getByEmail(args.email);
   return { token: response.body.token, user };
 };
 
-export { createUser, defaultUserArgs };
+const AddResetPasswordToken = async (user, token: string, expiry: Date) => {
+  return await User.update(user.id, {
+    email: user.email,
+    reset_password_token: token,
+    reset_password_expires: expiry
+  });
+}
+
+export { createUser, defaultUserArgs, AddResetPasswordToken };

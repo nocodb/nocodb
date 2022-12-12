@@ -36,7 +36,7 @@ export default async function () {
   await cleanUpSakila();
   await cleanupMeta();
 
-  const { token } = await createUser({ app: server }, { roles: 'editor' });
+  const { token, user } = await createUser({ app: server }, { roles: 'editor' });
 
-  return { app: server, token, dbConfig: TestDbMngr.dbConfig, sakilaDbConfig: TestDbMngr.getSakilaDbConfig() };
+  return { app: server, token, dbConfig: TestDbMngr.dbConfig, sakilaDbConfig: TestDbMngr.getSakilaDbConfig(), user };
 }

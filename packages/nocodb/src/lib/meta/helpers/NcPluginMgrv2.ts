@@ -33,6 +33,7 @@ import { MetaTable } from '../../utils/globals';
 import { PluginCategory } from 'nocodb-sdk';
 import Plugin from '../../models/Plugin';
 import { NcError } from './catchError';
+import DummyMailer from '../../plugins/mailerSend/DummyMailer';
 
 const defaultPlugins = [
   SlackPluginConfig,
@@ -180,7 +181,11 @@ class NcPluginMgrv2 {
       active: true,
     });
 
-    if (!pluginData) return null;
+    if (!pluginData) {
+      if (process.env.NODE_ENV === 'test') return DummyMailer;
+
+      return null;
+    }
 
     const pluginConfig = defaultPlugins.find(
       (c) => c.title === pluginData.title && c.category === PluginCategory.EMAIL

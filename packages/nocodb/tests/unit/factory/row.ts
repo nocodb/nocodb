@@ -45,6 +45,7 @@ const listRow = async ({
   project: Project;
   table: Model;
   options?: {
+    where?: string;
     limit?: any;
     offset?: any;
     filterArr?: Filter[];

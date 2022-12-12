@@ -172,7 +172,7 @@ const createQrCodeColumn = async (
       (cols) =>
         cols.find(
           (column) => column.title == referencedQrValueTableColumnTitle
-        )['id']
+        )?.['id']
     );
 
   const qrCodeColumn = await createColumn(context, table, {

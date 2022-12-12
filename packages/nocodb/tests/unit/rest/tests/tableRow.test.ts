@@ -1523,7 +1523,7 @@ function tableTest() {
   });
 
   // todo: Integrate filterArrJson with bulk delete all and update all
-  it.only('Bulk delete all with condition', async function () {
+  it('Bulk delete all with condition', async function () {
     const table = await createTable(context, project);
 
     const totalRows = 120;
@@ -1544,12 +1544,10 @@ function tableTest() {
     expect(response.body).to.equal(deletedRows);
     
     const updatedRows: Array<any> = await listRow({ project, table });
-    if (updatedRows.length !== totalRows - deletedRows) {
-      throw new Error('Wrong number of rows delete');
-    }
+    expect(updatedRows.length).to.equal(totalRows - deletedRows);
   });
 
-  it.only('Bulk update all with condition', async function () {
+  it('Bulk update all with condition', async function () {
     const table = await createTable(context, project);
     const columns = await table.getColumns();
     const idColumn = columns.find((column) => column.title === 'Id')!;

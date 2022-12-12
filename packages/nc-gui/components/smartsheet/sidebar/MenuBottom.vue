@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
+import { IsGeodataActiveInj, ref, useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
+
+const isGeodataActive = inject(IsGeodataActiveInj, ref(false))
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void
@@ -115,6 +117,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       </a-menu-item>
 
       <a-menu-item
+        v-if="isGeodataActive"
         key="map"
         class="group !flex !items-center !my-0 !h-2.5rem nc-create-map-view"
         @click="onOpenModal(ViewTypes.MAP)"

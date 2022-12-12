@@ -94,6 +94,7 @@ export interface ProjectReqType {
   title?: string;
   description?: string;
   color?: string;
+  fk_workspace_id?: string;
   bases?: BaseReqType[];
 }
 
@@ -113,6 +114,7 @@ export interface ProjectType {
   created_at?: any;
   updated_at?: any;
   slug?: string;
+  fk_workspace_id?: string;
 }
 
 export interface ProjectListType {

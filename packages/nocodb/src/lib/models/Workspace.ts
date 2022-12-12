@@ -85,8 +85,8 @@ export class Workspace implements WorkspaceType {
       null,
       null,
       MetaTable.WORKSPACE,
+      updateObject,
       id,
-      updateObject
     );
   }
 

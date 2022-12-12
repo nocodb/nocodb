@@ -42,7 +42,7 @@ export enum MetaTable {
   STORE = 'nc_store',
   DOCS_PAGE = 'nc_docs_pages',
   WORKSPACE = 'workspace',
-  WORKSPACE_USERS='workspace_users',
+  WORKSPACE_USER = 'workspace_user',
 }
 
 export const orderedMetaTables = [
@@ -147,6 +147,7 @@ export enum CacheScope {
   USER_PROJECT = 'userProject',
   DOCS_PAGE = 'page',
 }
+
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',
   TYPE_OBJECT = 'TYPE_OBJECT',

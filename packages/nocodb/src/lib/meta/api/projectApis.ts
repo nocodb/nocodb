@@ -113,6 +113,7 @@ async function projectCreate(req: Request<any, any>, res) {
     projectBody.prefix = `nc_${ranId}__`;
     projectBody.is_meta = true;
     projectBody.type = req.body.type;
+    projectBody.fk_workspace_id = req.body.fk_workspace_id;
 
     if (process.env.NC_MINIMAL_DBS) {
       // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each project

@@ -22,6 +22,7 @@ import hookApis from './hookApis';
 import pluginApis from './pluginApis';
 import gridViewColumnApis from './gridViewColumnApis';
 import kanbanViewApis from './kanbanViewApis';
+import workspaceApis from './workspaceApis';
 import { userApis } from './userApi';
 // import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
 import utilApis from './utilApis';
@@ -107,6 +108,7 @@ export default function (router: Router, server) {
   router.use(syncSourceApis);
   router.use(kanbanViewApis);
   router.use(docsProjectApis);
+  router.use(workspaceApis);
 
   userApis(router);
 

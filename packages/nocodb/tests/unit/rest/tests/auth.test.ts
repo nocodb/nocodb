@@ -28,7 +28,7 @@ function authTests() {
       .expect(400);
   });
 
-  it('Signup with invalid passsword', async () => {
+  it('Signup with invalid password', async () => {
     await request(context.app)
       .post('/api/v1/auth/user/signup')
       .send({ email: defaultUserArgs.email, password: 'weakpass' })

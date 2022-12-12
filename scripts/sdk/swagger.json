@@ -7658,6 +7658,9 @@
           "color": {
             "type": "string"
           },
+          "fk_workspace_id": {
+            "type": "string"
+          },
           "bases": {
             "type": "array",
             "items": {
@@ -7718,6 +7721,9 @@
           "created_at": {},
           "updated_at": {},
           "slug": {
+            "type": "string"
+          },
+          "fk_workspace_id": {
             "type": "string"
           }
         }

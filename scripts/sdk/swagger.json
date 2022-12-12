@@ -43,7 +43,7 @@
             }
           },
           {
-            "name": "parentPageId",
+            "name": "parent_page_id",
             "in": "query",
             "description": "Parent page id",
             "required": false,
@@ -79,7 +79,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DocsPage"
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
               }
             }
           },
@@ -111,7 +121,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DocsPage"
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
               }
             }
           },
@@ -7171,11 +7191,54 @@
           "content": {
             "type": "string"
           },
-          "parentPageId": {
+          "published_content": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "parent_page_id": {
             "type": "string"
           },
           "is_parent": {
             "type": "boolean"
+          }, 
+          "project_id": {
+            "type": "string"
+          },
+          "is_published": {
+            "type": "boolean"
+          },
+          "last_published_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "last_published_by_id": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "last_updated_by_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "created_by_id": {
+            "type": "string"
+          },
+          "archived_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "archived_by_id": {
+            "type": "string"
+          },
+          "metaJson": {
+            "type": ["string", "object"]
           }
         },
         "required": [

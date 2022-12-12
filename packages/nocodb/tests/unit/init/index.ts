@@ -5,8 +5,17 @@ import { Noco } from '../../../src/lib';
 import cleanupMeta from './cleanupMeta';
 import {cleanUpSakila, resetAndSeedSakila} from './cleanupSakila';
 import { createUser } from '../factory/user';
+import { DbConfig } from '../../../src/interface/config';
 
 let server;
+
+export interface NcUnitContext {
+  app: express.Application;
+  token: string;
+  dbConfig: DbConfig;
+  sakilaDbConfig: DbConfig;
+  user: any;
+}
 
 const serverInit = async () => {
   const serverInstance = express();
@@ -36,7 +45,7 @@ export default async function () {
   await cleanUpSakila();
   await cleanupMeta();
 
-  const { token } = await createUser({ app: server }, { roles: 'editor' });
+  const { token, user } = await createUser({ app: server }, { roles: 'editor' });
 
-  return { app: server, token, dbConfig: TestDbMngr.dbConfig, sakilaDbConfig: TestDbMngr.getSakilaDbConfig() };
+  return { app: server, token, dbConfig: TestDbMngr.dbConfig, sakilaDbConfig: TestDbMngr.getSakilaDbConfig(), user } as NcUnitContext;
 }

@@ -39,8 +39,25 @@ export interface DocsPageType {
   id?: string;
   title: string;
   content: string;
-  parentPageId?: string;
+  published_content?: string;
+  slug?: string;
+  parent_page_id?: string;
   is_parent?: boolean;
+  project_id?: string;
+  is_published?: boolean;
+  /** @format date */
+  last_published_date?: string;
+  last_published_by_id?: string;
+  /** @format date */
+  updated_at?: string;
+  last_updated_by_id?: string;
+  /** @format date */
+  created_at?: string;
+  created_by_id?: string;
+  /** @format date */
+  archived_date?: string;
+  archived_by_id?: string;
+  metaJson?: string | object;
 }
 
 export interface PageReqQueryParamsType {
@@ -882,7 +899,7 @@ export class Api<
         /** Page number */
         projectId?: string;
         /** Parent page id */
-        parentPageId?: string;
+        parent_page_id?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -903,7 +920,16 @@ export class Api<
      * @request PUT:/api/v1/docs/page/{id}
      * @response `200` `DocsPageType` OK
      */
-    updatePage: (id: string, data: DocsPageType, params: RequestParams = {}) =>
+    updatePage: (
+      id: string,
+      data: {
+        /** Page of noco docs */
+        attributes?: DocsPageType;
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<DocsPageType, any>({
         path: `/api/v1/docs/page/${id}`,
         method: 'PUT',
@@ -922,7 +948,15 @@ export class Api<
      * @request POST:/api/v1/docs/page
      * @response `200` `DocsPageType` OK
      */
-    createPage: (data: DocsPageType, params: RequestParams = {}) =>
+    createPage: (
+      data: {
+        /** Page of noco docs */
+        attributes?: DocsPageType;
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<DocsPageType, any>({
         path: `/api/v1/docs/page`,
         method: 'POST',

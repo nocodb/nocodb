@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 
 // todo: Move the ant tree data converstion from the composables to here
-const { fetchPages, pages, createPage, openedPageId } = useDocs()
+const { fetchPages, pages, createPage, openedPageId, openedTabs } = useDocs()
 
 const createPageModalOpen = ref(false)
 const createPageFormData = ref({
@@ -11,8 +11,6 @@ const createPageFormData = ref({
   content: '',
 })
 const parentPageId = ref()
-
-const expandedKeys = ref<string[]>([])
 
 const onLoadData: TreeProps['loadData'] = async (treeNode) => {
   return new Promise((resolve) => {
@@ -40,7 +38,7 @@ const openPageTabKeys = computed({
 })
 
 const onOk = async () => {
-  await createPage({ ...createPageFormData.value, parentPageId: parentPageId.value } as any)
+  await createPage({ ...createPageFormData.value, parent_page_id: parentPageId.value })
   createPageModalOpen.value = false
 }
 
@@ -67,7 +65,7 @@ const openCreatePageModal = (parentId?: string | undefined) => {
       </div>
     </div>
     <a-tree
-      v-model:expandedKeys="expandedKeys"
+      v-model:expandedKeys="openedTabs"
       v-model:selectedKeys="openPageTabKeys"
       :load-data="onLoadData"
       :tree-data="pages"

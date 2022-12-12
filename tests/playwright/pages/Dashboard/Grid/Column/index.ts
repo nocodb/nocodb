@@ -112,12 +112,6 @@ export class ColumnPageObject extends BasePage {
             hasText: new RegExp(`^${barcodeValueColumnTitle}$`),
           })
           .click();
-        // await this.get().locator('.ant-select-single').nth(2).click();
-        // await this.rootPage
-        //   .locator(`.ant-select-item`, {
-        //     hasText: new RegExp(`^${barcodeFormat}$`),
-        //   })
-        //   .click();
         break;
       case 'Lookup':
         await this.get().locator('.ant-select-single').nth(1).click();
@@ -285,14 +279,6 @@ export class ColumnPageObject extends BasePage {
           })
           .click();
         break;
-      // case 'Barcode':
-      //   await this.get().locator('.ant-select-single').nth(1).click();
-      //   await this.rootPage
-      //     .locator(`.ant-select-item`, {
-      //       hasText: format,
-      //     })
-      //     .click();
-      //   break;
       default:
         break;
     }

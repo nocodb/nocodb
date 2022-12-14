@@ -8,6 +8,11 @@ import { CheckboxCellPageObject } from './CheckboxCell';
 import { RatingCellPageObject } from './RatingCell';
 import { DateCellPageObject } from './DateCell';
 
+export interface CellProps {
+  index?: number;
+  columnHeader: string;
+}
+
 export class CellPageObject extends BasePage {
   readonly parent: GridPage | SharedFormPage;
   readonly selectOption: SelectOptionCellPageObject;
@@ -26,7 +31,7 @@ export class CellPageObject extends BasePage {
     this.date = new DateCellPageObject(this);
   }
 
-  get({ index, columnHeader }: { index?: number; columnHeader: string }): Locator {
+  get({ index, columnHeader }: CellProps): Locator {
     if (this.parent instanceof SharedFormPage) {
       return this.parent.get().locator(`[data-testid="nc-form-input-cell-${columnHeader}"]`);
     } else {
@@ -34,19 +39,16 @@ export class CellPageObject extends BasePage {
     }
   }
 
-  async click(
-    { index, columnHeader }: { index: number; columnHeader: string },
-    ...options: Parameters<Locator['click']>
-  ) {
+  async click({ index, columnHeader }: CellProps, ...options: Parameters<Locator['click']>) {
     await this.get({ index, columnHeader }).click(...options);
     await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
   }
 
-  async dblclick({ index, columnHeader }: { index?: number; columnHeader: string }) {
+  async dblclick({ index, columnHeader }: CellProps) {
     return await this.get({ index, columnHeader }).dblclick();
   }
 
-  async fillText({ index, columnHeader, text }: { index?: number; columnHeader: string; text: string }) {
+  async fillText({ index, columnHeader, text }: CellProps & { text: string }) {
     await this.dblclick({
       index,
       columnHeader,
@@ -54,7 +56,7 @@ export class CellPageObject extends BasePage {
     await this.get({ index, columnHeader }).locator('input').fill(text);
   }
 
-  async inCellExpand({ index, columnHeader }: { index: number; columnHeader: string }) {
+  async inCellExpand({ index, columnHeader }: CellProps) {
     await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
       uiAction: this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
@@ -63,20 +65,20 @@ export class CellPageObject extends BasePage {
     });
   }
 
-  async inCellAdd({ index, columnHeader }: { index: number; columnHeader: string }) {
+  async inCellAdd({ index, columnHeader }: CellProps) {
     await this.get({ index, columnHeader }).hover();
     await this.get({ index, columnHeader }).locator('.nc-action-icon.nc-plus').click();
   }
 
-  async verifyCellActiveSelected({ index, columnHeader }: { index: number; columnHeader: string }) {
+  async verifyCellActiveSelected({ index, columnHeader }: CellProps) {
     await expect(this.get({ index, columnHeader })).toHaveClass(/active/);
   }
 
-  async verifyCellEditable({ index, columnHeader }: { index: number; columnHeader: string }) {
+  async verifyCellEditable({ index, columnHeader }: CellProps) {
     await this.get({ index, columnHeader }).isEditable();
   }
 
-  async verify({ index, columnHeader, value }: { index: number; columnHeader: string; value: string | string[] }) {
+  async verify({ index, columnHeader, value }: CellProps & { value: string | string[] }) {
     const _verify = async text => {
       await expect
         .poll(async () => {
@@ -102,9 +104,7 @@ export class CellPageObject extends BasePage {
     index,
     columnHeader,
     expectedSrcValue,
-  }: {
-    index: number;
-    columnHeader: string;
+  }: CellProps & {
     expectedSrcValue: string;
   }) {
     const _verify = async expectedQrCodeImgSrc => {
@@ -134,9 +134,7 @@ export class CellPageObject extends BasePage {
     columnHeader,
     count,
     value,
-  }: {
-    index: number;
-    columnHeader: string;
+  }: CellProps & {
     count?: number;
     value: string[];
   }) {
@@ -153,7 +151,7 @@ export class CellPageObject extends BasePage {
     }
   }
 
-  async unlinkVirtualCell({ index, columnHeader }: { index: number; columnHeader: string }) {
+  async unlinkVirtualCell({ index, columnHeader }: CellProps) {
     const cell = this.get({ index, columnHeader });
     await cell.click();
     await cell.locator('.nc-icon.unlink-icon').click();
@@ -187,12 +185,18 @@ export class CellPageObject extends BasePage {
     );
   }
 
-  async copyToClipboard(
-    { index, columnHeader }: { index: number; columnHeader: string },
-    ...clickOptions: Parameters<Locator['click']>
-  ) {
+  async copyToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
     await this.get({ index, columnHeader }).click(...clickOptions);
 
     await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
+  }
+
+  async selectRange({ start, end }: { start: CellProps; end: CellProps }) {
+    const startCell = await this.get({ index: start.index, columnHeader: start.columnHeader });
+    const endCell = await this.get({ index: end.index, columnHeader: end.columnHeader });
+    const page = await startCell.page();
+    await page.mouse.down();
+    await endCell.hover();
+    await page.mouse.up();
   }
 }

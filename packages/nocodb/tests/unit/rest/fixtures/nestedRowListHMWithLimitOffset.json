@@ -1,0 +1,209 @@
+{
+  "list": [
+    {
+      "RentalId": 4611,
+      "RentalDate": "2005-07-08 07:33:56",
+      "InventoryId": 3486,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-12 13:25:56",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 5244,
+      "RentalDate": "2005-07-09 13:24:07",
+      "InventoryId": 3726,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-14 14:01:07",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 5326,
+      "RentalDate": "2005-07-09 16:38:01",
+      "InventoryId": 797,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-13 18:02:01",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 6163,
+      "RentalDate": "2005-07-11 10:13:46",
+      "InventoryId": 1330,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-19 13:15:46",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 7273,
+      "RentalDate": "2005-07-27 11:31:22",
+      "InventoryId": 2465,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-31 06:50:22",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 7841,
+      "RentalDate": "2005-07-28 09:04:45",
+      "InventoryId": 1092,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-30 12:37:45",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 8033,
+      "RentalDate": "2005-07-28 16:18:23",
+      "InventoryId": 4268,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-30 17:56:23",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 8074,
+      "RentalDate": "2005-07-28 17:33:39",
+      "InventoryId": 1558,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-29 20:17:39",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 8116,
+      "RentalDate": "2005-07-28 19:20:07",
+      "InventoryId": 4497,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-29 22:54:07",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 8326,
+      "RentalDate": "2005-07-29 03:58:49",
+      "InventoryId": 108,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-01 05:16:49",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 9571,
+      "RentalDate": "2005-07-31 02:42:18",
+      "InventoryId": 2219,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-02 23:26:18",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 10437,
+      "RentalDate": "2005-08-01 08:51:04",
+      "InventoryId": 14,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-10 12:12:04",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 11299,
+      "RentalDate": "2005-08-02 15:36:52",
+      "InventoryId": 3232,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-10 16:40:52",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 11367,
+      "RentalDate": "2005-08-02 18:01:38",
+      "InventoryId": 1440,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-04 13:19:38",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 11824,
+      "RentalDate": "2005-08-17 12:37:54",
+      "InventoryId": 2639,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-19 10:11:54",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 12250,
+      "RentalDate": "2005-08-18 03:57:29",
+      "InventoryId": 921,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-22 23:05:29",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 13068,
+      "RentalDate": "2005-08-19 09:55:16",
+      "InventoryId": 3019,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-20 14:44:16",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 13176,
+      "RentalDate": "2005-08-19 13:56:54",
+      "InventoryId": 2269,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-23 08:50:54",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 14762,
+      "RentalDate": "2005-08-21 23:33:57",
+      "InventoryId": 4249,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-23 01:30:57",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 14825,
+      "RentalDate": "2005-08-22 01:27:57",
+      "InventoryId": 1449,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-27 07:01:57",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 15298,
+      "RentalDate": "2005-08-22 19:41:37",
+      "InventoryId": 1446,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-28 22:49:37",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 15315,
+      "RentalDate": "2005-08-22 20:03:46",
+      "InventoryId": 312,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-30 01:51:46",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    }
+  ],
+  "pageInfo": {
+    "totalRows": 32,
+    "page": 1.3333333333333333,
+    "pageSize": 30,
+    "isFirstPage": false,
+    "isLastPage": false
+  }
+}

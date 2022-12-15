@@ -255,7 +255,7 @@ async function appSettingsSet(req, res) {
 }
 
 async function userProfileGet(req, res) {
-  const user = await User.get(req.params.userId);
+  const user = await User.getUserProfile(req.params.userId);
 
   if (!user) {
     NcError.badRequest(`User with id '${req.params.userId}' not found`);

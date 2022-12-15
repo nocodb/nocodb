@@ -50,7 +50,7 @@ function workspaceTests() {
 
   });
 
-  it('Delete workspace', async () => {
+  it.only('Delete workspace', async () => {
     let response = await request(context.app)
       .post('/api/v1/workspaces')
       .set('xc-auth', context.token)
@@ -98,6 +98,65 @@ function workspaceTests() {
       .expect(200)
 
     expect(workspaceList.body.list).has.length(1)
+
+  });
+
+  it('Accept workspace user invite', async () => {
+   //  let response = await request(context.app)
+   //    .post('/api/v1/workspaces')
+   //    .set('xc-auth', context.token)
+   //    .send({title: 'Workspace', description: 'Workspace description'})
+   //    .expect(200)
+   //
+   //  expect(response.body.title).to.be.eq('Workspace');
+   //
+   //  // signin a with new email id
+   //  const signinResponse = await request(context.app)
+   //    .post('/api/v1/auth/user/signup')
+   //    .send({email: 'new@example.com', password: defaultUserArgs.password})
+   //    .expect(200)
+   //
+   //  // invite newly added user to workspace
+   // const workspaceList =  await request(context.app)
+   //    .get(`/api/v1/workspaces`)
+   //    .send({
+   //      email: 'new@example.com',
+   //      role: WorkspaceUserRoles.CREATOR
+   //    })
+   //    .set('xc-auth', signinResponse.body.token)
+   //    .expect(200)
+   //
+   //  expect(workspaceList.body.list).has.length(1)
+
+  });
+
+
+  it('Reject workspace user invite', async () => {
+   //  let response = await request(context.app)
+   //    .post('/api/v1/workspaces')
+   //    .set('xc-auth', context.token)
+   //    .send({title: 'Workspace', description: 'Workspace description'})
+   //    .expect(200)
+   //
+   //  expect(response.body.title).to.be.eq('Workspace');
+   //
+   //  // signin a with new email id
+   //  const signinResponse = await request(context.app)
+   //    .post('/api/v1/auth/user/signup')
+   //    .send({email: 'new@example.com', password: defaultUserArgs.password})
+   //    .expect(200)
+   //
+   //  // invite newly added user to workspace
+   // const workspaceList =  await request(context.app)
+   //    .get(`/api/v1/workspaces`)
+   //    .send({
+   //      email: 'new@example.com',
+   //      role: WorkspaceUserRoles.CREATOR
+   //    })
+   //    .set('xc-auth', signinResponse.body.token)
+   //    .expect(200)
+   //
+   //  expect(workspaceList.body.list).has.length(1)
 
   });
 

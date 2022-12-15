@@ -75,8 +75,8 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
 
         await User.insert(
           {
-            firstname: '',
-            lastname: '',
+            user_name: '',
+            display_name: '',
             email,
             salt,
             password,
@@ -133,8 +133,8 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
 
             await User.insert(
               {
-                firstname: '',
-                lastname: '',
+                user_name: '',
+                display_name: '',
                 email,
                 salt,
                 password,

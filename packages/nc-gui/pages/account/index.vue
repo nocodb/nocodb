@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { navigateTo, useUIPermission } from '#imports'
+import { navigateTo, useUIPermission, } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 const $route = useRoute()

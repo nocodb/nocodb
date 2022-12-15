@@ -207,7 +207,6 @@ async function successfulSignIn({
 
     await User.update(user.id, {
       refresh_token: refreshToken,
-      email: user.email,
       token_version: user.token_version,
     });
     setTokenCookie(res, refreshToken);

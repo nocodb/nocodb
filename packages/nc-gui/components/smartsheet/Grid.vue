@@ -172,7 +172,7 @@ const getContainerScrollForElement = (
   return scroll
 }
 
-const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyValue, isCellSelected, selectedCell } =
+const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCellClick, clearSelectedRange, copyValue } =
   useMultiSelect(
     meta,
     fields,
@@ -201,9 +201,10 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
       const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
       const altOrOptionKey = e.altKey
       if (e.key === ' ') {
-        if (selectedCell.row !== null && !editEnabled) {
+        if (activeCell.row != null && !editEnabled) {
           e.preventDefault()
-          const row = data.value[selectedCell.row]
+          clearSelectedRange()
+          const row = data.value[activeCell.row]
           expandForm(row)
           return true
         }
@@ -227,29 +228,34 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
         switch (e.key) {
           case 'ArrowUp':
             e.preventDefault()
-            selectedCell.row = 0
-            selectedCell.col = selectedCell.col ?? 0
+            clearSelectedRange()
+            $e('c:shortcut', { key: 'CTRL + ArrowUp' })
+            activeCell.row = 0
+            activeCell.col = activeCell.col ?? 0
             scrollToCell?.()
             editEnabled = false
             return true
           case 'ArrowDown':
             e.preventDefault()
-            selectedCell.row = data.value.length - 1
-            selectedCell.col = selectedCell.col ?? 0
+            clearSelectedRange()
+            activeCell.row = data.value.length - 1
+            activeCell.col = activeCell.col ?? 0
             scrollToCell?.()
             editEnabled = false
             return true
           case 'ArrowRight':
             e.preventDefault()
-            selectedCell.row = selectedCell.row ?? 0
-            selectedCell.col = fields.value?.length - 1
+            clearSelectedRange()
+            activeCell.row = activeCell.row ?? 0
+            activeCell.col = fields.value?.length - 1
             scrollToCell?.()
             editEnabled = false
             return true
           case 'ArrowLeft':
             e.preventDefault()
-            selectedCell.row = selectedCell.row ?? 0
-            selectedCell.col = 0
+            clearSelectedRange()
+            activeCell.row = activeCell.row ?? 0
+            activeCell.col = 0
             scrollToCell?.()
             editEnabled = false
             return true
@@ -279,7 +285,7 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
     },
     async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
       const rowObj = data.value[ctx.row]
-      const columnObj = ctx.col !== null && ctx.col !== undefined ? fields.value[ctx.col] : null
+      const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
 
       if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
         return
@@ -291,10 +297,10 @@ const { selectCell, startSelectRange, endSelectRange, clearSelectedRange, copyVa
   )
 
 function scrollToCell(row?: number | null, col?: number | null) {
-  row = row ?? selectedCell.row
-  col = col ?? selectedCell.col
+  row = row ?? activeCell.row
+  col = col ?? activeCell.col
 
-  if (row !== undefined && col !== undefined && row !== null && col !== null) {
+  if (row !== null && col !== null) {
     // get active cell
     const rows = tbodyEl.value?.querySelectorAll('tr')
     const cols = rows?.[row].querySelectorAll('td')
@@ -455,13 +461,14 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
+
 onClickOutside(smartTable, (e) => {
   // do nothing if context menu was open
   if (contextMenu.value) return
-  clearSelectedRange()
-  if (selectedCell.col === null) return
 
-  const activeCol = fields.value[selectedCell.col]
+  if (activeCell.row === null || activeCell.col === null) return
+
+  const activeCol = fields.value[activeCell.col]
 
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
 
@@ -482,25 +489,29 @@ onClickOutside(smartTable, (e) => {
     return
   }
 
-  selectedCell.row = null
-  selectedCell.col = null
+  clearSelectedRange()
+  activeCell.row = null
+  activeCell.col = null
 })
 
 const onNavigate = (dir: NavigateDir) => {
-  if (selectedCell.row === null || selectedCell.col === null) return
+  if (activeCell.row === null || activeCell.col === null) return
+
   editEnabled = false
+  clearSelectedRange()
+
   switch (dir) {
     case NavigateDir.NEXT:
-      if (selectedCell.row < data.value.length - 1) {
-        selectedCell.row++
+      if (activeCell.row < data.value.length - 1) {
+        activeCell.row++
       } else {
         addEmptyRow()
-        selectedCell.row++
+        activeCell.row++
       }
       break
     case NavigateDir.PREV:
-      if (selectedCell.row > 0) {
-        selectedCell.row--
+      if (activeCell.row > 0) {
+        activeCell.row--
       }
       break
   }
@@ -782,10 +793,10 @@ const closeAddColumnDropdown = () => {
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
-                    @click="selectCell(rowIndex, colIndex)"
+                    @mousedown="handleMouseDown($event, rowIndex, colIndex)"
+                    @mouseover="handleMouseOver(rowIndex, colIndex)"
+                    @click="handleCellClick($event, rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
-                    @mousedown="startSelectRange($event, rowIndex, colIndex)"
-                    @mouseover="endSelectRange(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
                     <div v-if="!switchingTab" class="w-full h-full">
@@ -793,7 +804,7 @@ const closeAddColumnDropdown = () => {
                         v-if="isVirtualCol(columnObj)"
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
-                        :active="selectedCell.col === colIndex && selectedCell.row === rowIndex"
+                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                         :row="row"
                         @navigate="onNavigate"
                       />
@@ -803,10 +814,10 @@ const closeAddColumnDropdown = () => {
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
                         :edit-enabled="
-                          !!hasEditPermission && !!editEnabled && selectedCell.col === colIndex && selectedCell.row === rowIndex
+                          !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
                         "
                         :row-index="rowIndex"
-                        :active="selectedCell.col === colIndex && selectedCell.row === rowIndex"
+                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                         @update:edit-enabled="editEnabled = $event"
                         @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"
@@ -872,7 +883,7 @@ const closeAddColumnDropdown = () => {
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="contextMenuTarget" @click="copyValue(contextMenuTarget)">
+            <a-menu-item v-if="contextMenuTarget" data-testid="context-menu-item-copy" @click="copyValue(contextMenuTarget)">
               <div v-e="['a:row:copy']" class="nc-project-menu-item">
                 <!-- Copy -->
                 {{ $t('general.copy') }}

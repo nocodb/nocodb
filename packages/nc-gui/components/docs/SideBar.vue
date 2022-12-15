@@ -7,6 +7,7 @@ const {
   fetchPages,
   pages,
   createPage,
+  createMagic,
   openedPageSlug,
   openedTabs,
   fetchNestedChildPagesFromRoute,
@@ -21,6 +22,14 @@ const createPageFormData = ref({
   content: '',
 })
 const parentPageId = ref()
+
+const magicModalOpen = ref(false)
+const magicFormData = ref({
+  title: '',
+  content: '',
+})
+const magicParentPageId = ref()
+const loadMagic = ref(false)
 
 const onLoadData: TreeProps['loadData'] = async (treeNode) => {
   return new Promise((resolve) => {
@@ -45,9 +54,22 @@ const onOk = async () => {
   createPageModalOpen.value = false
 }
 
+const onMagic = async () => {
+  loadMagic.value = true
+  await createMagic(magicFormData.value.title)
+  await fetchPages()
+  magicModalOpen.value = false
+  loadMagic.value = false
+}
+
 const openCreatePageModal = (parentId?: string | undefined) => {
   parentPageId.value = parentId
   createPageModalOpen.value = true
+}
+
+const openMagicModal = (parentId?: string | undefined) => {
+  magicParentPageId.value = parentId
+  magicModalOpen.value = true
 }
 
 onMounted(async () => {
@@ -76,6 +98,12 @@ const onTabClick = ({ slug }: { slug: string }) => {
     <div class="py-2.5 flex flex-row justify-between items-center ml-2 px-2 border-b-warm-gray-100 border-b-1">
       <div class="text-base text-[13px] !font-400">Pages</div>
       <div class="flex flex-row justify-between items-center">
+        <div
+          class="flex hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none p-1 border-gray-100 border-1 rounded-md mr-1"
+          @click="() => openMagicModal()"
+        >
+          <PhSparkleFill class="text-orange-400" />
+        </div>
         <div
           class="flex hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none p-1 border-gray-100 border-1 rounded-md mr-1"
           @click="() => openCreatePageModal()"
@@ -125,6 +153,19 @@ const onTabClick = ({ slug }: { slug: string }) => {
     <a-form :model="createPageFormData">
       <a-form-item label="Title">
         <a-input v-model:value="createPageFormData.title" />
+      </a-form-item>
+    </a-form>
+  </a-modal>
+  <a-modal :visible="magicModalOpen" :closable="false" :mask-closable="false" @cancel="magicModalOpen = false" @ok="onMagic">
+    <template #title>
+      <div class="flex items-center">
+        Create
+        <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
+      </div>
+    </template>
+    <a-form :model="magicFormData">
+      <a-form-item label="Title">
+        <a-input v-model:value="magicFormData.title" />
       </a-form-item>
     </a-form>
   </a-modal>

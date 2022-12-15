@@ -250,6 +250,7 @@ declare module '@vue/runtime-core' {
     MiCircleWarning: typeof import('~icons/mi/circle-warning')['default']
     PhCloudLightningDuotone: typeof import('~icons/ph/cloud-lightning-duotone')['default']
     PhFileCsv: typeof import('~icons/ph/file-csv')['default']
+    PhSparkleFill: typeof import('~icons/ph/sparkle-fill')['default']
     RiTeamFill: typeof import('~icons/ri/team-fill')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

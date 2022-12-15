@@ -52,6 +52,7 @@ export const orderedMetaTables = [
   MetaTable.TEAMS,
   MetaTable.ORGS,
   MetaTable.PROJECT_USERS,
+  MetaTable.WORKSPACE_USER,
   MetaTable.USERS,
   MetaTable.KANBAN_VIEW_COLUMNS,
   MetaTable.KANBAN_VIEW,
@@ -78,6 +79,7 @@ export const orderedMetaTables = [
   MetaTable.BASES,
   MetaTable.PROJECT,
   MetaTable.DOCS_PAGE,
+  MetaTable.WORKSPACE,
 ];
 
 export const sakilaTableNames = [

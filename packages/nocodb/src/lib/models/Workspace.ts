@@ -1,8 +1,8 @@
-import { extractProps } from '../meta/helpers/extractProps';
+import {extractProps} from '../meta/helpers/extractProps';
 import Noco from '../Noco';
-import { MetaTable } from '../utils/globals';
+import {MetaTable} from '../utils/globals';
 
-import { WorkspaceType } from 'nocodb-sdk';
+import {WorkspaceType} from 'nocodb-sdk';
 
 export class Workspace implements WorkspaceType {
   id?: string;
@@ -52,7 +52,7 @@ export class Workspace implements WorkspaceType {
       insertObject.meta = JSON.stringify(insertObject.meta);
     }
 
-    const { id } = await ncMeta.metaInsert2(
+    const {id} = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.WORKSPACE,
@@ -91,6 +91,18 @@ export class Workspace implements WorkspaceType {
   }
 
   public static async delete(id: string, ncMeta = Noco.ncMeta) {
+    // todo: delete from workspace user
+    await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE_USER, {
+      fk_workspace_id: id
+    })
+
+    // todo: reset project workspace mapping
+    await ncMeta.metaUpdate(null, null, MetaTable.PROJECT, {
+      fk_workspace_id: null
+    }, {
+      fk_workspace_id: id
+    })
+
     return await ncMeta.metaDelete(null, null, MetaTable.WORKSPACE, id);
   }
 

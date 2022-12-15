@@ -36,6 +36,8 @@ const workspaceGet = async (
 ) => {
   const workspace = await Workspace.get(req.params.workspaceId);
 
+  if(!workspace) NcError.notFound('Workspace not found')
+
   res.json(workspace);
 };
 
@@ -66,7 +68,7 @@ const workspaceDelete = async (req: Request<{ workspaceId: string }>, res: Respo
   // block unauthorized user form deleting
 
   // todo: unlink any project linked
-  res.json(await Workspace.delete(req.params.workspaceId, req.body));
+  res.json(await Workspace.delete(req.params.workspaceId));
 };
 
 const workspaceUserList = async (req, res) => {
@@ -310,11 +312,6 @@ router.get(
 router.patch(
   '/api/v1/workspaces/:workspaceId',
   ncMetaAclMw(workspaceUpdate, 'workspaceUpdate')
-);
-
-router.delete(
-  '/api/v1/workspaces/:workspaceId',
-  ncMetaAclMw(workspaceCreate, 'workspaceCreate')
 );
 
 //

@@ -28,8 +28,11 @@ import { randomTokenString } from '../../helpers/stringHelpers';
 export async function signup(req: Request, res: Response<TableType>) {
   const {
     email: _email,
-    firstname,
-    lastname,
+    display_name,
+    user_name,
+    bio,
+    location,
+    website,
     token,
     ignore_subscribe,
   } = req.body;
@@ -75,8 +78,11 @@ export async function signup(req: Request, res: Response<TableType>) {
   if (user) {
     if (token) {
       await User.update(user.id, {
-        firstname,
-        lastname,
+        display_name,
+        user_name,
+        bio,
+        location,
+        website,
         salt,
         password,
         email_verification_token,
@@ -114,8 +120,11 @@ export async function signup(req: Request, res: Response<TableType>) {
     const token_version = randomTokenString();
 
     await User.insert({
-      firstname,
-      lastname,
+      display_name,
+      user_name,
+      bio,
+      location,
+      website,
       email,
       salt,
       password,

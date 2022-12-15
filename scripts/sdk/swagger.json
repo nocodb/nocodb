@@ -32,7 +32,7 @@
         "tags": [
           "Noco docs"
         ],
-        "parameters":[
+        "parameters": [
           {
             "name": "projectId",
             "in": "query",
@@ -79,7 +79,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/DocsPage"
@@ -87,7 +87,7 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -121,7 +121,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/DocsPage"
@@ -129,7 +129,7 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -7313,12 +7313,15 @@
         "examples": [
           {
             "id": "142",
-            "firstName": "Alice",
-            "lastName": "Smith",
-            "email": "alice.smith@gmail.com",
-            "dateOfBirth": "1997-10-31",
+            "user_name": "jaysmith",
+            "display_name": "Jay Smith",
+            "email": "jay.smith@gmail.com",
             "emailVerified": true,
-            "signUpDate": "2019-08-24"
+            "roles": "org-level-creator,super",
+            "bio": "foo",
+            "location": "Istanbul",
+            "created_at": "2019-08-24",
+            "avatar": "https://dummyimage.com/300.png"
           }
         ],
         "x-internal": false,
@@ -7361,6 +7364,9 @@
             "type": "string"
           },
           "website": {
+            "type": "string"
+          },
+          "avatar": {
             "type": "string"
           }
         },
@@ -7440,7 +7446,10 @@
             "type": "string"
           },
           "metaJson": {
-            "type": ["string", "object"]
+            "type": [
+              "string",
+              "object"
+            ]
           }
         },
         "required": [
@@ -9972,10 +9981,10 @@
           "email_verified": {
             "type": "string"
           },
-          "firstname": {
+          "user_name": {
             "type": "string"
           },
-          "lastname": {
+          "display_name": {
             "type": "string"
           },
           "roles": {}

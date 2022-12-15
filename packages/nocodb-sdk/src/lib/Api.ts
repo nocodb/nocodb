@@ -32,6 +32,7 @@ export interface UserType {
   bio?: string;
   location?: string;
   website?: string;
+  avatar?: string;
 }
 
 /**
@@ -713,8 +714,8 @@ export interface UserInfoType {
   id?: string;
   email?: string;
   email_verified?: string;
-  firstname?: string;
-  lastname?: string;
+  user_name?: string;
+  display_name?: string;
   roles?: any;
 }
 

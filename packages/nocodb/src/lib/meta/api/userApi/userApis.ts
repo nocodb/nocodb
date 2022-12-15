@@ -160,7 +160,6 @@ export async function signup(req: Request, res: Response<TableType>) {
   const refreshToken = randomTokenString();
   await User.update(user.id, {
     refresh_token: refreshToken,
-    email: user.email,
   });
 
   setTokenCookie(res, refreshToken);

@@ -1,19 +1,19 @@
 export interface Cell {
-  row: number | null
-  col: number | null
+  row: number
+  col: number
 }
 
 export class CellRange {
-  _start: Cell
-  _end: Cell
+  _start: Cell | null
+  _end: Cell | null
 
   constructor(start = null, end = null) {
-    this._start = start ?? { row: null, col: null }
+    this._start = start
     this._end = end ?? this._start
   }
 
   isEmpty() {
-    return this._start.col == null || this._start.row == null || this._end.col == null || this._end.row == null
+    return this._start == null || this._end == null
   }
 
   isSingleCell() {
@@ -21,22 +21,16 @@ export class CellRange {
   }
 
   get start(): Cell {
-    if (this.isEmpty()) {
-      return { row: null, col: null }
-    }
     return {
-      row: Math.min(this._start.row!, this._end.row!),
-      col: Math.min(this._start.col!, this._end.col!),
+      row: Math.min(this._start?.row ?? NaN, this._end?.row ?? NaN),
+      col: Math.min(this._start?.col ?? NaN, this._end?.col ?? NaN),
     }
   }
 
   get end(): Cell {
-    if (this.isEmpty()) {
-      return { row: null, col: null }
-    }
     return {
-      row: Math.max(this._start.row!, this._end.row!),
-      col: Math.max(this._start.col!, this._end.col!),
+      row: Math.max(this._start?.row ?? NaN, this._end?.row ?? NaN),
+      col: Math.max(this._start?.col ?? NaN, this._end?.col ?? NaN),
     }
   }
 
@@ -50,7 +44,7 @@ export class CellRange {
   }
 
   clear() {
-    this._start = { row: null, col: null }
-    this._end = { row: null, col: null }
+    this._start = null
+    this._end = null
   }
 }

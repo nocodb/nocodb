@@ -200,8 +200,9 @@ const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCell
       const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
       const altOrOptionKey = e.altKey
       if (e.key === ' ') {
-        if (activeCell.row != null && !editEnabled) {
+        if (activeCell.row !== null && !editEnabled) {
           e.preventDefault()
+          clearSelectedRange()
           const row = data.value[activeCell.row]
           expandForm(row)
           return true
@@ -226,6 +227,7 @@ const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCell
         switch (e.key) {
           case 'ArrowUp':
             e.preventDefault()
+            clearSelectedRange()
             $e('c:shortcut', { key: 'CTRL + ArrowUp' })
             activeCell.row = 0
             activeCell.col = activeCell.col ?? 0
@@ -234,6 +236,7 @@ const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCell
             return true
           case 'ArrowDown':
             e.preventDefault()
+            clearSelectedRange()
             $e('c:shortcut', { key: 'CTRL + ArrowDown' })
             activeCell.row = data.value.length - 1
             activeCell.col = activeCell.col ?? 0
@@ -242,6 +245,7 @@ const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCell
             return true
           case 'ArrowRight':
             e.preventDefault()
+            clearSelectedRange()
             $e('c:shortcut', { key: 'CTRL + ArrowRight' })
             activeCell.row = activeCell.row ?? 0
             activeCell.col = fields.value?.length - 1
@@ -250,6 +254,7 @@ const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCell
             return true
           case 'ArrowLeft':
             e.preventDefault()
+            clearSelectedRange()
             $e('c:shortcut', { key: 'CTRL + ArrowLeft' })
             activeCell.row = activeCell.row ?? 0
             activeCell.col = 0
@@ -282,7 +287,7 @@ const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCell
     },
     async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
       const rowObj = data.value[ctx.row]
-      const columnObj = ctx.col != null ? fields.value[ctx.col] : null
+      const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
 
       if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
         return
@@ -297,7 +302,7 @@ function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
 
-  if (row != null && col != null) {
+  if (row !== null && col !== null) {
     // get active cell
     const rows = tbodyEl.value?.querySelectorAll('tr')
     const cols = rows?.[row].querySelectorAll('td')
@@ -462,7 +467,7 @@ const smartTable = ref(null)
 onClickOutside(smartTable, (e) => {
   if (contextMenu.value) return
 
-  if (activeCell.row == null || activeCell.col == null) return
+  if (activeCell.row === null || activeCell.col === null) return
 
   const activeCol = fields.value[activeCell.col]
 
@@ -491,7 +496,7 @@ onClickOutside(smartTable, (e) => {
 })
 
 const onNavigate = (dir: NavigateDir) => {
-  if (activeCell.row == null || activeCell.col == null) return
+  if (activeCell.row === null || activeCell.col === null) return
 
   editEnabled = false
   clearSelectedRange()

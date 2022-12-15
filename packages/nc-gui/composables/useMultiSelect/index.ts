@@ -4,7 +4,7 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
-import type { Row } from '~/lib'
+import type { Nullable, Row } from '~/lib'
 import {
   copyTable,
   extractPkFromRow,
@@ -57,11 +57,11 @@ export function useMultiSelect(
 
   const selectedRange = reactive(new CellRange())
 
-  const activeCell = reactive<Cell>({ row: null, col: null })
+  const activeCell = reactive<Nullable<Cell>>({ row: null, col: null })
 
   const columnLength = $computed(() => unref(fields)?.length)
 
-  function makeActive(row: number | null, col: number | null) {
+  function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
       return
     }
@@ -72,9 +72,9 @@ export function useMultiSelect(
 
   async function copyValue(ctx?: Cell) {
     try {
-      if (!selectedRange.isEmpty() && !selectedRange.isSingleCell()) {
-        const cprows = unref(data).slice(selectedRange.start.row!, selectedRange.end.row! + 1) // slice the selected rows for copy
-        const cpcols = unref(fields).slice(selectedRange.start.col!, selectedRange.end.col! + 1) // slice the selected cols for copy
+      if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
+        const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+        const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
         await copyTable(cprows, cpcols)
         message.success(t('msg.info.copiedToClipboard'))
@@ -118,15 +118,15 @@ export function useMultiSelect(
       return true
     }
 
-    if (selectedRange.isEmpty()) {
+    if (selectedRange.start === null || selectedRange.end === null) {
       return false
     }
 
     return (
-      col >= selectedRange.start.col! &&
-      col <= selectedRange.end.col! &&
-      row >= selectedRange.start.row! &&
-      row <= selectedRange.end.row!
+      col >= selectedRange.start.col &&
+      col <= selectedRange.end.col &&
+      row >= selectedRange.start.row &&
+      row <= selectedRange.end.row
     )
   }
 
@@ -168,13 +168,10 @@ export function useMultiSelect(
   const handleKeyDown = async (e: KeyboardEvent) => {
     // invoke the keyEventHandler if provided and return if it returns true
     if (await keyEventHandler?.(e)) {
-      console.log('in first if')
-      selectedRange.clear()
-
       return true
     }
 
-    if (activeCell.row == null || activeCell.col == null) {
+    if (activeCell.row === null || activeCell.col === null) {
       return
     }
 
@@ -207,23 +204,23 @@ export function useMultiSelect(
         break
       /** on enter key press make cell editable */
       case 'Enter':
+        e.preventDefault()
         selectedRange.clear()
 
-        e.preventDefault()
         makeEditable(unref(data)[activeCell.row], unref(fields)[activeCell.col])
         break
       /** on delete key press clear cell */
       case 'Delete':
+        e.preventDefault()
         selectedRange.clear()
 
-        e.preventDefault()
         await clearCell(activeCell as { row: number; col: number })
         break
       /** on arrow key press navigate through cells */
       case 'ArrowRight':
+        e.preventDefault()
         selectedRange.clear()
 
-        e.preventDefault()
         if (activeCell.col < unref(columnLength) - 1) {
           activeCell.col++
           scrollToActiveCell?.()
@@ -231,9 +228,9 @@ export function useMultiSelect(
         }
         break
       case 'ArrowLeft':
+        e.preventDefault()
         selectedRange.clear()
 
-        e.preventDefault()
         if (activeCell.col > 0) {
           activeCell.col--
           scrollToActiveCell?.()
@@ -241,9 +238,9 @@ export function useMultiSelect(
         }
         break
       case 'ArrowUp':
+        e.preventDefault()
         selectedRange.clear()
 
-        e.preventDefault()
         if (activeCell.row > 0) {
           activeCell.row--
           scrollToActiveCell?.()
@@ -251,9 +248,9 @@ export function useMultiSelect(
         }
         break
       case 'ArrowDown':
+        e.preventDefault()
         selectedRange.clear()
 
-        e.preventDefault()
         if (activeCell.row < unref(data).length - 1) {
           activeCell.row++
           scrollToActiveCell?.()

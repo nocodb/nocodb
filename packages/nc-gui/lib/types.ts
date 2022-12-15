@@ -100,3 +100,5 @@ export interface SharedView {
 export type importFileList = (UploadFile & { data: string | ArrayBuffer })[]
 
 export type streamImportFileList = UploadFile[]
+
+export type Nullable<T> = { [K in keyof T]: T[K] | null }

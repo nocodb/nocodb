@@ -10,7 +10,7 @@ export interface DocsPage extends DocsPageType {
 }
 
 export function useDocs() {
-  const { $api } = useNuxtApp()
+  const { $api, $state } = useNuxtApp()
   const route = useRoute()
 
   const pages = useState<DocsPage[]>('docsPages', () => [])
@@ -107,6 +107,21 @@ export function useDocs() {
     return `/nc/doc/${projectId()}/${slugs.join('/')}`
   }
 
+  const createMagic = async (title: string) => {
+    try {
+      await $fetch(`http://localhost:8080/api/v1/docs/magic`, {
+        method: 'POST',
+        headers: { 'xc-auth': $state.token.value as string },
+        body: {
+          title,
+          projectId: projectId(),
+        },
+      })
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
   function findPage(pageIdOrSlug: string) {
     // traverse the tree and find the parent page
     const findPageInTree = (_pages: DocsPage[], _pageIdOrSlug: string): DocsPage | undefined => {
@@ -137,6 +152,7 @@ export function useDocs() {
     fetchPages,
     pages,
     createPage,
+    createMagic,
     openedPageSlug,
     openedPage,
     updatePage,

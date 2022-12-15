@@ -400,10 +400,16 @@ export default class User implements UserType {
   ) {
     if (!fk_user_id) NcError.badRequest('fk_user_id is required');
     if (!fk_follower_id) NcError.badRequest('fk_follower_id is required');
-    await ncMeta.metaInsert2(null, null, MetaTable.FOLLOWER, {
-      fk_user_id,
-      fk_follower_id,
-    });
+    await ncMeta.metaInsert2(
+      null,
+      null,
+      MetaTable.FOLLOWER,
+      {
+        fk_user_id,
+        fk_follower_id,
+      },
+      true
+    );
     return this.getFollower({ fk_user_id, fk_follower_id }, ncMeta);
   }
 

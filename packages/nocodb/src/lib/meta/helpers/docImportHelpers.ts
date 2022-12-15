@@ -1,0 +1,99 @@
+import axios from 'axios';
+import listContent from 'list-github-dir-content'
+import { marked } from 'marked';
+
+
+async function listDirectory(user: string, repository: string, ref: string, dir: string, token: string = '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' ) {
+  const files = await listContent.viaTreesApi({
+		user,
+		repository,
+		ref,
+		directory: decodeURIComponent(dir),
+		token: token,
+		getFullData: true,
+	});
+  
+  return files
+}
+
+async function getMarkdownFiles(files: Array<{ path: string, mode: string, type: string, sha: string, size: number, url: string }>) {
+  const markdownFiles = files.filter(file => file.path.endsWith('.md'))
+  return markdownFiles
+}
+
+async function fetchMarkdownContent(user: string, repository: string, ref: string, path: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    axios(`https://raw.githubusercontent.com/${user}/${repository}/${ref}/${escapeFilepath(path)}`)
+    .then((response) => {
+      resolve(response.data);
+    })
+    .catch((error) => {
+      reject(error);
+    });
+  });
+}
+
+export async function fetchGHDocs(user: string, repository: string, ref: string, dir: string, type: string = 'md') {
+  const files = await listDirectory(user, repository, ref, dir)
+  const markdownFiles = await getMarkdownFiles(files)
+  
+  const docs = []
+
+  for (const file of markdownFiles) {
+    const relPath = file.path.replace(dir, '').replace(/^\//, '')
+    const pathParts = relPath.split('/').filter(part => part !== '')
+    pathParts.pop()
+    let activePath = docs
+
+    for (const pathPart of pathParts) {
+      let fnd = activePath.find(page => page.title === pathPart)
+      if (!fnd) {
+        activePath.push({
+          title: pathPart,
+          content: '',
+          pages: []
+        })
+        activePath = activePath.find(page => page.title === pathPart).pages
+      } else {
+        activePath = fnd.pages
+      }
+    }
+
+    activePath.push({
+      title: file.path.split('/').pop().replace('.md', ''),
+      ...processContent(await fetchMarkdownContent(user, repository, ref, file.path), type),
+      pages: []
+    })
+  }
+  
+  return docs
+}
+
+function processContent(content: string, type: string) {
+  switch (type) {
+    case 'nuxt':
+      const metaObj = {}
+      if (content.startsWith('---')) {
+        const meta = content.split('---')[1]
+        meta.split('\n').forEach(line => {
+          if (!line.includes(':')) return
+          const [key, value] = line.split(':')
+          metaObj[key.trim()] = value.trim()
+        })
+        content = content.split('---')[2]
+      }
+      return {
+        content: marked(content),
+        description: metaObj['description'],
+      }
+    case 'md':
+    default:
+      return {
+        content: marked(content)
+      }
+  }
+}
+
+function escapeFilepath(path) {
+	return path.replaceAll('#', '%23');
+}

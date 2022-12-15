@@ -1,5 +1,6 @@
 import { message } from 'ant-design-vue'
 import type { DocsPageType } from 'nocodb-sdk'
+import gh from 'parse-github-url'
 import { extractSdkResponseErrorMsg, useNuxtApp, useState } from '#imports'
 
 export interface DocsPage extends DocsPageType {
@@ -122,6 +123,27 @@ export function useDocs() {
     }
   }
 
+  const createImport = async (url: string, type: 'md' | 'nuxt' | 'docusaurus' = 'md', from: 'github' | 'file' = 'github') => {
+    try {
+      const rs = gh(url)
+      await $fetch(`http://localhost:8080/api/v1/docs/import`, {
+        method: 'POST',
+        headers: { 'xc-auth': $state.token.value as string },
+        body: {
+          user: rs?.owner,
+          repo: rs?.name,
+          branch: rs?.branch,
+          path: rs?.path?.replace(`${rs?.repo}/tree/${rs?.branch}/`, ''),
+          projectId: projectId(),
+          type,
+          from,
+        },
+      })
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
   function findPage(pageIdOrSlug: string) {
     // traverse the tree and find the parent page
     const findPageInTree = (_pages: DocsPage[], _pageIdOrSlug: string): DocsPage | undefined => {
@@ -153,6 +175,7 @@ export function useDocs() {
     pages,
     createPage,
     createMagic,
+    createImport,
     openedPageSlug,
     openedPage,
     updatePage,

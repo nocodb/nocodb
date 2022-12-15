@@ -238,6 +238,42 @@ function openTableCreateDialog(baseId?: string) {
   }
 }
 
+function openTableCreateMagicDialog(baseId?: string) {
+  $e('c:table:create:navdraw')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableMagic'), {
+    'modelValue': isOpen,
+    'baseId': baseId || bases.value[0].id,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openSchemaMagicDialog(baseId?: string) {
+  $e('c:table:create:navdraw')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgSchemaMagic'), {
+    'modelValue': isOpen,
+    'baseId': baseId || bases.value[0].id,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
 const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 
 const beforeSearch = ref<string[]>([])
@@ -428,6 +464,26 @@ watch(
 
               <template #overlay>
                 <a-menu class="!py-0 rounded text-sm">
+                  <a-menu-item-group class="!px-0 !mx-0">
+                    <template #title>
+                      <div class="flex items-center">Noco<PhSparkleFill class="ml-1 text-orange-400" /></div>
+                    </template>
+                    <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiMagicStaff class="group-hover:text-accent" />
+                        Create table
+                      </div>
+                    </a-menu-item>
+                    <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(bases[0].id)">
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiMagicStaff class="group-hover:text-accent" />
+                        Create schema
+                      </div>
+                    </a-menu-item>
+                  </a-menu-item-group>
+
+                  <a-menu-divider class="my-0" />
+
                   <!--                  Quick Import From -->
                   <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
                     <a-menu-item
@@ -656,6 +712,26 @@ watch(
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
+                          <a-menu-item-group class="!px-0 !mx-0">
+                            <template #title>
+                              <div class="flex items-center">Noco<PhSparkleFill class="ml-1 text-orange-400" /></div>
+                            </template>
+                            <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
+                              <div class="color-transition nc-project-menu-item group">
+                                <MdiMagicStaff class="group-hover:text-accent" />
+                                Create table
+                              </div>
+                            </a-menu-item>
+                            <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(bases[0].id)">
+                              <div class="color-transition nc-project-menu-item group">
+                                <MdiMagicStaff class="group-hover:text-accent" />
+                                Create schema
+                              </div>
+                            </a-menu-item>
+                          </a-menu-item-group>
+
+                          <a-menu-divider class="my-0" />
+
                           <!--                  Quick Import From -->
                           <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
                             <a-menu-item
@@ -742,6 +818,26 @@ watch(
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
+                          <a-menu-item-group class="!px-0 !mx-0">
+                            <template #title>
+                              <div class="flex items-center">Noco<PhSparkleFill class="ml-1 text-orange-400" /></div>
+                            </template>
+                            <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
+                              <div class="color-transition nc-project-menu-item group">
+                                <MdiMagicStaff class="group-hover:text-accent" />
+                                Create table
+                              </div>
+                            </a-menu-item>
+                            <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(base.id)">
+                              <div class="color-transition nc-project-menu-item group">
+                                <MdiMagicStaff class="group-hover:text-accent" />
+                                Create schema
+                              </div>
+                            </a-menu-item>
+                          </a-menu-item-group>
+
+                          <a-menu-divider class="my-0" />
+
                           <!--                  Quick Import From -->
                           <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
                             <a-menu-item

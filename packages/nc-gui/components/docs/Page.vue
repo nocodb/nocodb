@@ -8,6 +8,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Strike from '@tiptap/extension-strike'
 import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
+import Image from '@tiptap/extension-image'
 import Commands from './commands'
 import suggestion from './suggestion'
 
@@ -38,6 +39,9 @@ const editor = useEditor({
       HTMLAttributes: {
         class: 'nc-docs-horizontal-rule',
       },
+    }),
+    Image.configure({
+      inline: true,
     }),
   ],
   onUpdate: ({ editor }) => {

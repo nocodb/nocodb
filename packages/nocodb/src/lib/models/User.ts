@@ -13,9 +13,8 @@ export default class User implements UserType {
 
   password?: string;
   salt?: string;
-  firstname: string;
-  lastname: string;
-  username?: string;
+  user_name?: string;
+  display_name?: string;
   refresh_token?: string;
   invite_token?: string;
   invite_token_expires?: number | Date;
@@ -25,6 +24,9 @@ export default class User implements UserType {
   email_verified: boolean;
   roles?: string;
   token_version?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
 
   constructor(data: User) {
     Object.assign(this, data);
@@ -36,9 +38,8 @@ export default class User implements UserType {
       'email',
       'password',
       'salt',
-      'firstname',
-      'lastname',
-      'username',
+      'user_name',
+      'display_name',
       'refresh_token',
       'invite_token',
       'invite_token_expires',
@@ -48,6 +49,9 @@ export default class User implements UserType {
       'email_verified',
       'roles',
       'token_version',
+      'bio',
+      'location',
+      'website',
     ]);
 
     if (insertObj.email) {
@@ -71,9 +75,8 @@ export default class User implements UserType {
       'email',
       'password',
       'salt',
-      'firstname',
-      'lastname',
-      'username',
+      'display_name',
+      'user_name',
       'refresh_token',
       'invite_token',
       'invite_token_expires',
@@ -83,6 +86,9 @@ export default class User implements UserType {
       'email_verified',
       'roles',
       'token_version',
+      'bio',
+      'location',
+      'website',
     ]);
 
     if (updateObj.email) {
@@ -203,14 +209,16 @@ export default class User implements UserType {
       .select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
-        `${MetaTable.USERS}.firstname`,
-        `${MetaTable.USERS}.lastname`,
-        `${MetaTable.USERS}.username`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.user_name`,
         `${MetaTable.USERS}.email_verified`,
         `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.created_at`,
         `${MetaTable.USERS}.updated_at`,
-        `${MetaTable.USERS}.roles`
+        `${MetaTable.USERS}.roles`,
+        `${MetaTable.USERS}.bio`,
+        `${MetaTable.USERS}.location`,
+        `${MetaTable.USERS}.website`
       )
       .select(
         ncMeta
@@ -242,5 +250,138 @@ export default class User implements UserType {
     await NocoCache.del(`${CacheScope.USER}:${user.email}`);
 
     await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
+  }
+
+  static async getFollower(
+    {
+      fk_user_id,
+      fk_follower_id,
+    }: {
+      fk_user_id: string;
+      fk_follower_id: string;
+    },
+    ncMeta = Noco.ncMeta
+  ): Promise<UserType> {
+    return await ncMeta.metaGet2(null, null, MetaTable.FOLLOWER, {
+      fk_user_id,
+      fk_follower_id,
+    });
+  }
+
+  // TODO: cache
+  static async getFollowerList(
+    userId: string,
+    {
+      limit,
+      offset,
+    }: {
+      limit?: number | undefined;
+      offset?: number | undefined;
+    } = {},
+    ncMeta = Noco.ncMeta
+  ) {
+    if (!userId) NcError.badRequest('userId is required');
+
+    let qb = ncMeta.knex(MetaTable.USERS).where('id', userId);
+
+    if (offset) qb = qb.offset(offset);
+
+    if (limit) qb = qb.limit(limit);
+
+    qb = qb
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.user_name`
+      )
+      .select(
+        ncMeta
+          .knex(MetaTable.FOLLOWER)
+          .count()
+          .whereRaw(
+            `${MetaTable.USERS}.id = ${MetaTable.FOLLOWER}.fk_follower_id`
+          )
+          .as('followerCount')
+      );
+
+    return qb;
+  }
+
+  // TODO: cache
+  static async getFollowingList(
+    user_id: string,
+    {
+      limit,
+      offset,
+    }: {
+      limit?: number | undefined;
+      offset?: number | undefined;
+    } = {},
+    ncMeta = Noco.ncMeta
+  ) {
+    if (!user_id) NcError.badRequest('userId is required');
+
+    let qb = ncMeta.knex(MetaTable.USERS).where('id', user_id);
+
+    if (offset) qb = qb.offset(offset);
+
+    if (limit) qb = qb.limit(limit);
+
+    qb = qb
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.user_name`
+      )
+      .select(
+        ncMeta
+          .knex(MetaTable.FOLLOWER)
+          .count()
+          .whereRaw(`${MetaTable.USERS}.id = ${MetaTable.FOLLOWER}.fk_user_id`)
+          .as('followingCount')
+      );
+
+    return qb;
+  }
+
+  static async createFollower(
+    {
+      fk_user_id,
+      fk_follower_id,
+    }: {
+      fk_user_id: string;
+      fk_follower_id: string;
+    },
+    ncMeta = Noco.ncMeta
+  ) {
+    if (!fk_user_id) NcError.badRequest('fk_user_id is required');
+    if (!fk_follower_id) NcError.badRequest('fk_follower_id is required');
+    await ncMeta.metaInsert2(null, null, MetaTable.FOLLOWER, {
+      fk_user_id,
+      fk_follower_id,
+    });
+    return this.getFollower({ fk_user_id, fk_follower_id }, ncMeta);
+  }
+
+  // TODO: cache
+  static async deleteFollower(
+    {
+      fk_user_id,
+      fk_follower_id,
+    }: {
+      fk_user_id: string;
+      fk_follower_id: string;
+    },
+    ncMeta = Noco.ncMeta
+  ) {
+    if (!fk_user_id) NcError.badRequest('fk_user_id is required');
+    if (!fk_follower_id) NcError.badRequest('fk_follower_id is required');
+
+    await ncMeta.metaDelete(null, null, MetaTable.FOLLOWER, {
+      fk_user_id,
+      fk_follower_id,
+    });
   }
 }

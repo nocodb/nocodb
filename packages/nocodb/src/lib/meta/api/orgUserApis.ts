@@ -254,6 +254,76 @@ async function appSettingsSet(req, res) {
   res.json({ msg: 'Settings saved' });
 }
 
+async function userProfileGet(req, res) {
+  const user = await User.get(req.params.userId);
+
+  if (!user) {
+    NcError.badRequest(`User with id '${req.params.userId}' not found`);
+  }
+
+  res.json(user);
+}
+
+async function userProfileUpdate(req, res) {
+  const updateBody = extractProps(req.body, [
+    'email',
+    'display_name',
+    'user_name',
+    'bio',
+    'location',
+    'website',
+  ]);
+  res.json(
+    await User.update(req.params.userId, {
+      ...updateBody,
+    })
+  );
+}
+
+async function userFollowingList(req, res) {
+  const { followingCount, ...rest } = await User.getFollowingList(
+    req.params.user_id,
+    req.query
+  );
+  res.json(
+    new PagedResponseImpl(rest, {
+      ...req.query,
+      count: followingCount,
+    })
+  );
+}
+
+async function userFollowerList(req, res) {
+  const { followerCount, ...rest } = await User.getFollowerList(
+    req.params.user_id,
+    req.query
+  );
+  res.json(
+    new PagedResponseImpl(rest, {
+      ...req.query,
+      count: followerCount,
+    })
+  );
+}
+
+async function userFollowerCreate(req, res) {
+  res.json(
+    await User.createFollower({
+      fk_user_id: req.params.userId,
+      fk_follower_id: req.body.fk_follower_id,
+    })
+  );
+}
+
+async function userFollowerDelete(req, res) {
+  res.json(
+    await User.deleteFollower({
+      fk_user_id: req.params.userId,
+      fk_follower_id: req.body.fk_follower_id,
+    })
+  );
+}
+
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/users',
@@ -331,4 +401,39 @@ router.post(
   })
 );
 
+router.get(
+  '/api/v1/users/:userId/profile',
+  metaApiMetrics,
+  ncMetaAclMw(userProfileGet, 'userProfileGet')
+);
+
+router.patch(
+  '/api/v1/users/:userId/profile',
+  metaApiMetrics,
+  ncMetaAclMw(userProfileUpdate, 'userProfileUpdate')
+);
+
+router.get(
+  '/api/v1/users/:userId/following',
+  metaApiMetrics,
+  ncMetaAclMw(userFollowingList, 'userFollowingList')
+);
+
+router.get(
+  '/api/v1/users/:userId/follower',
+  metaApiMetrics,
+  ncMetaAclMw(userFollowerList, 'userProfileGet')
+);
+
+router.post(
+  '/api/v1/users/:userId/follower',
+  metaApiMetrics,
+  ncMetaAclMw(userFollowerCreate, 'userFollowerCreate')
+);
+
+router.delete(
+  '/api/v1/users/:userId/follower',
+  metaApiMetrics,
+  ncMetaAclMw(userFollowerDelete, 'userFollowerDelete')
+);
 export default router;

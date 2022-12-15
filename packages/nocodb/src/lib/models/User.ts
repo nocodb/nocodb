@@ -320,7 +320,7 @@ export default class User implements UserType {
   ) {
     if (!userId) NcError.badRequest('userId is required');
 
-    let qb = ncMeta.knex(MetaTable.USERS).where('id', userId);
+    let qb = ncMeta.knex(MetaTable.USERS);
 
     if (offset) qb = qb.offset(offset);
 
@@ -333,14 +333,12 @@ export default class User implements UserType {
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.user_name`
       )
-      .select(
+      .whereIn(
+        `${MetaTable.USERS}.id`,
         ncMeta
           .knex(MetaTable.FOLLOWER)
-          .count()
-          .whereRaw(
-            `${MetaTable.USERS}.id = ${MetaTable.FOLLOWER}.fk_follower_id`
-          )
-          .as('followerCount')
+          .select('fk_user_id')
+          .where('fk_follower_id', userId)
       );
 
     return qb;
@@ -348,7 +346,7 @@ export default class User implements UserType {
 
   // TODO: cache
   static async getFollowingList(
-    user_id: string,
+    userId: string,
     {
       limit,
       offset,
@@ -358,9 +356,9 @@ export default class User implements UserType {
     } = {},
     ncMeta = Noco.ncMeta
   ) {
-    if (!user_id) NcError.badRequest('userId is required');
+    if (!userId) NcError.badRequest('userId is required');
 
-    let qb = ncMeta.knex(MetaTable.USERS).where('id', user_id);
+    let qb = ncMeta.knex(MetaTable.USERS);
 
     if (offset) qb = qb.offset(offset);
 
@@ -373,12 +371,12 @@ export default class User implements UserType {
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.user_name`
       )
-      .select(
+      .whereIn(
+        `${MetaTable.USERS}.id`,
         ncMeta
           .knex(MetaTable.FOLLOWER)
-          .count()
-          .whereRaw(`${MetaTable.USERS}.id = ${MetaTable.FOLLOWER}.fk_user_id`)
-          .as('followingCount')
+          .select('fk_follower_id')
+          .where('fk_user_id', userId)
       );
 
     return qb;

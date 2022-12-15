@@ -25,7 +25,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { t } = useI18n()
 
-  const { $e, $api } = useNuxtApp()
+  const { $e, $api, $state } = useNuxtApp()
 
   const { getMeta, removeMeta } = useMetas()
 
@@ -55,6 +55,52 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       })
       $e('a:table:create')
       onTableCreate?.(tableMeta)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const createTableMagic = async () => {
+    if (!sqlUi?.value) return
+
+    try {
+      const tableMeta = await $fetch(
+        `http://localhost:8080/api/v1/db/meta/projects/${project?.value?.id}/${baseId}/tables/magic`,
+        {
+          method: 'POST',
+          headers: { 'xc-auth': $state.token.value as string },
+          body: {
+            table_name: table.table_name,
+            title: table.title,
+          },
+        },
+      )
+
+      $e('a:table:create')
+      onTableCreate?.(tableMeta as TableType)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const createSchemaMagic = async () => {
+    if (!sqlUi?.value) return
+
+    try {
+      const tableMeta = await $fetch(
+        `http://localhost:8080/api/v1/db/meta/projects/${project?.value?.id}/${baseId}/schema/magic`,
+        {
+          method: 'POST',
+          headers: { 'xc-auth': $state.token.value as string },
+          body: {
+            table_name: table.table_name,
+            title: table.title,
+          },
+        },
+      )
+
+      $e('a:table:create')
+      onTableCreate?.(tableMeta as TableType)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -126,5 +172,5 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     })
   }
 
-  return { table, createTable, generateUniqueTitle, tables, project, deleteTable }
+  return { table, createTable, createTableMagic, createSchemaMagic, generateUniqueTitle, tables, project, deleteTable }
 }

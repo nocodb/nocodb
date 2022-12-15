@@ -17,6 +17,13 @@ import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
 import { feedbackForm } from 'nc-help';
+const { Configuration, OpenAIApi } = require("openai");
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const openai = new OpenAIApi(configuration);
 
 const versionCache = {
   releaseVersion: null,
@@ -370,11 +377,37 @@ const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
   });
 };
 
+export async function selectOptionsMagic(req: Request, res: Response) {
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: `return options for '${req.body.title}' column in '${req.body.table}' table as json string array:`,
+    temperature: 0.7,
+    max_tokens: 4000,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    res.status(500).json({ error: "No options found" });
+    return;
+  }
+
+  const options = JSON.parse(response.data.choices[0].text);
+
+  res.json(options);
+}
+
 export default (router) => {
   router.post(
     '/api/v1/db/meta/connection/test',
     ncMetaAclMw(testConnection, 'testConnection')
   );
+  router.post(
+    '/api/v1/db/meta/select/magic',
+    ncMetaAclMw(selectOptionsMagic, 'selectOptionsMagic')
+  );
+
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
   router.get('/api/v1/version', catchError(versionInfo));

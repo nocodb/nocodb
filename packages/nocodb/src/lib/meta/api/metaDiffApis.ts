@@ -772,8 +772,16 @@ export async function metaDiffSync(req, res) {
 }
 
 export async function baseMetaDiffSync(req, res) {
-  const project = await Project.getWithInfo(req.params.projectId);
-  const base = await Base.get(req.params.baseId);
+  await baseMetaDiffFN(req.params.projectId, req.params.baseId);
+
+  Tele.emit('evt', { evt_type: 'baseMetaDiff:synced' });
+
+  res.json({ msg: 'success' });
+}
+
+export async function baseMetaDiffFN(projectId: string, baseId: string) {
+  const project = await Project.getWithInfo(projectId);
+  const base = await Base.get(baseId);
 
   const virtualColumnInsert: Array<() => Promise<void>> = [];
 
@@ -954,10 +962,6 @@ export async function baseMetaDiffSync(req, res) {
 
   // populate m2m relations
   await extractAndGenerateManyToManyRelations(await base.getModels());
-
-  Tele.emit('evt', { evt_type: 'baseMetaDiff:synced' });
-
-  res.json({ msg: 'success' });
 }
 
 async function isMMRelationExist(

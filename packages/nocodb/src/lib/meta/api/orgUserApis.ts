@@ -268,6 +268,7 @@ async function userProfileUpdate(req, res) {
   const updateBody = extractProps(req.body, [
     'email',
     'display_name',
+    'avatar',
     'user_name',
     'bio',
     'location',

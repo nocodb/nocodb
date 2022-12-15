@@ -28,6 +28,7 @@ import { randomTokenString } from '../../helpers/stringHelpers';
 export async function signup(req: Request, res: Response<TableType>) {
   const {
     email: _email,
+    avatar,
     display_name,
     user_name,
     bio,
@@ -78,6 +79,7 @@ export async function signup(req: Request, res: Response<TableType>) {
   if (user) {
     if (token) {
       await User.update(user.id, {
+        avatar,
         display_name,
         user_name,
         bio,
@@ -120,6 +122,7 @@ export async function signup(req: Request, res: Response<TableType>) {
     const token_version = randomTokenString();
 
     await User.insert({
+      avatar,
       display_name,
       user_name,
       bio,

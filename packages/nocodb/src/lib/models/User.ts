@@ -15,6 +15,7 @@ export default class User implements UserType {
   salt?: string;
   user_name?: string;
   display_name?: string;
+  avatar?: string;
   refresh_token?: string;
   invite_token?: string;
   invite_token_expires?: number | Date;
@@ -75,6 +76,7 @@ export default class User implements UserType {
       'email',
       'password',
       'salt',
+      'avatar',
       'display_name',
       'user_name',
       'refresh_token',
@@ -230,6 +232,7 @@ export default class User implements UserType {
       .select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.avatar`,
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.user_name`,
         `${MetaTable.USERS}.email_verified`,
@@ -281,6 +284,7 @@ export default class User implements UserType {
     return await ncMeta.metaGet2(null, null, MetaTable.USERS, userId, [
       'id',
       'email',
+      'avatar',
       'user_name',
       'display_name',
       'bio',
@@ -330,6 +334,7 @@ export default class User implements UserType {
       .select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.avatar`,
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.user_name`
       )
@@ -368,6 +373,7 @@ export default class User implements UserType {
       .select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.avatar`,
         `${MetaTable.USERS}.display_name`,
         `${MetaTable.USERS}.user_name`
       )

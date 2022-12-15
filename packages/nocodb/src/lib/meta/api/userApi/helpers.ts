@@ -7,6 +7,7 @@ export function genJwt(user: User, config: NcConfig) {
   return jwt.sign(
     {
       email: user.email,
+      avatar: user.avatar,
       display_name: user.display_name,
       user_name: user.user_name,
       id: user.id,

@@ -8,6 +8,7 @@ const up = async (knex: Knex) => {
     table.string('bio');
     table.string('location');
     table.string('website');
+    table.string('avatar');
     table.dropColumn('firstname');
     table.dropColumn('lastname');
     table.dropColumn('username');
@@ -31,6 +32,7 @@ const down = async (knex: Knex) => {
     table.dropColumn('bio');
     table.dropColumn('location');
     table.dropColumn('website');
+    table.dropColumn('avatar');
     table.string('firstname');
     table.string('lastname');
     table.string('username');

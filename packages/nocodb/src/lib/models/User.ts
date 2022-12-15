@@ -273,7 +273,7 @@ export default class User implements UserType {
     await NocoCache.del(`${CacheScope.USER}:${userId}`);
     await NocoCache.del(`${CacheScope.USER}:${user.email}`);
 
-    await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
+    return await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
   }
 
   // TODO: cache
@@ -413,6 +413,24 @@ export default class User implements UserType {
     return this.getFollower({ fk_user_id, fk_follower_id }, ncMeta);
   }
 
+  static async isUserFollowing(
+    {
+      fk_user_id,
+      fk_follower_id,
+    }: {
+      fk_user_id: string;
+      fk_follower_id: string;
+    },
+    ncMeta = Noco.ncMeta
+  ) {
+    if (!fk_user_id) NcError.badRequest('fk_user_id is required');
+    if (!fk_follower_id) NcError.badRequest('fk_follower_id is required');
+    return await ncMeta.metaGet2(null, null, MetaTable.FOLLOWER, {
+      fk_user_id,
+      fk_follower_id,
+    });
+  }
+
   // TODO: cache
   static async deleteFollower(
     {
@@ -427,7 +445,7 @@ export default class User implements UserType {
     if (!fk_user_id) NcError.badRequest('fk_user_id is required');
     if (!fk_follower_id) NcError.badRequest('fk_follower_id is required');
 
-    await ncMeta.metaDelete(null, null, MetaTable.FOLLOWER, {
+    return await ncMeta.metaDelete(null, null, MetaTable.FOLLOWER, {
       fk_user_id,
       fk_follower_id,
     });

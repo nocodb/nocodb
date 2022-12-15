@@ -319,6 +319,15 @@ async function userFollowerDelete(req, res) {
   );
 }
 
+async function isUserFollowing(req, res) {
+  res.json(
+    await User.isUserFollowing({
+      fk_user_id: req.params.userId,
+      fk_follower_id: req.body.fk_follower_id,
+    })
+  );
+}
+
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/users',
@@ -406,6 +415,12 @@ router.patch(
   '/api/v1/users/:userId/profile',
   metaApiMetrics,
   ncMetaAclMw(userProfileUpdate, 'userProfileUpdate')
+);
+
+router.get(
+  '/api/v1/users/:userId/isFollowing',
+  metaApiMetrics,
+  ncMetaAclMw(isUserFollowing, 'isUserFollowing')
 );
 
 router.get(

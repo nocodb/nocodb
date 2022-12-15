@@ -91,6 +91,20 @@ export default class User implements UserType {
       'website',
     ]);
 
+    if (updateObj.user_name) {
+      // check if the target username is in use or not
+      if (await this.getByUsername(updateObj.user_name, ncMeta)) {
+        NcError.badRequest('username is in use');
+      }
+    }
+
+    if (updateObj.email) {
+      // check if the target email addr is in use or not
+      if (await this.getByEmail(updateObj.email, ncMeta)) {
+        NcError.badRequest('email is in use');
+      }
+    }
+
     if (updateObj.email) {
       updateObj.email = updateObj.email.toLowerCase();
     } else {
@@ -101,7 +115,7 @@ export default class User implements UserType {
     // get old user
     const existingUser = await this.get(id, ncMeta);
 
-    // delete the emailbased cache to avoid unexpected behaviour since we can update email as well
+    // delete the email-based cache to avoid unexpected behaviour since we can update email as well
     await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
 
     // as <projectId> is unknown, delete user:<email>___<projectId> in cache
@@ -140,6 +154,13 @@ export default class User implements UserType {
       await NocoCache.set(`${CacheScope.USER}:${email}`, user);
     }
     return user;
+  }
+
+  // TODO: cache
+  public static async getByUsername(username: string, ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaGet2(null, null, MetaTable.USERS, {
+      user_name: username,
+    });
   }
 
   static async isFirst(ncMeta = Noco.ncMeta) {
@@ -252,6 +273,23 @@ export default class User implements UserType {
     await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
   }
 
+  // TODO: cache
+  static async getUserProfile(
+    userId,
+    ncMeta = Noco.ncMeta
+  ): Promise<Partial<UserType>> {
+    return await ncMeta.metaGet2(null, null, MetaTable.USERS, userId, [
+      'id',
+      'email',
+      'user_name',
+      'display_name',
+      'bio',
+      'location',
+      'website',
+    ]);
+  }
+
+  // TODO: cache
   static async getFollower(
     {
       fk_user_id,

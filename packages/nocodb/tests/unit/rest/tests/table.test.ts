@@ -2,6 +2,7 @@ import 'mocha';
 import request from 'supertest';
 import init from '../../init';
 import { createTable, getAllTables } from '../../factory/table';
+import { createLtarColumn } from '../../factory/column';
 import { createProject } from '../../factory/project';
 import { defaultColumns } from '../../factory/column';
 import Model from '../../../../src/lib/models/Model';
@@ -26,6 +27,22 @@ function tableTest() {
       .send({})
       .expect(200);
 
+    expect(response.body).to.containSubset({
+      list: [
+        {
+          title: "Table1_Title",
+          type: "table",
+          meta: null,
+          schema: null,
+          enabled: 1,
+          mm: 0,
+          tags: null,
+          pinned: null,
+          deleted: null,
+          order: 1,
+        },
+      ],
+    });
     expect(response.body.list).to.be.an('array').not.empty;
   });
 
@@ -39,6 +56,8 @@ function tableTest() {
         columns: defaultColumns(context),
       })
       .expect(200);
+
+    expect(response.body).to.containSubset(require('../fixtures/createTable.json'))
 
     const tables = await getAllTables({ project });
     if (tables.length !== 2) {
@@ -191,9 +210,41 @@ function tableTest() {
       .expect(200);
     const updatedTable = await Model.get(table.id);
 
+    expect(response.body).to.deep.equal({
+      msg: "success",
+    })
     if (!updatedTable.table_name.endsWith('new_title')) {
       return new Error('Table was not updated');
     }
+  });
+
+  it('Errors when Update table with invalid table name', async function () {
+    const response = await request(context.app)
+      .patch(`/api/v1/db/meta/tables/${table.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        project_id: project.id,
+        table_name: 'a'.repeat(256),
+      })
+      .expect(400);
+
+    expect(response.body).to.deep.equal({
+      msg: "Table name exceeds 255 characters",
+    })
+  });
+
+  it('Errors when Update table with no table name', async function () {
+    const response = await request(context.app)
+      .patch(`/api/v1/db/meta/tables/${table.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        project_id: project.id
+      })
+      .expect(400);
+
+    expect(response.body).to.deep.equal({
+      msg: "Missing table name `table_name` property in request body",
+    })
   });
 
   it('Delete table', async function () {
@@ -203,6 +254,32 @@ function tableTest() {
       .send({})
       .expect(200);
 
+    expect(response.body).to.equal(true);
+    const tables = await getAllTables({ project });
+
+    if (tables.length !== 0) {
+      return new Error('Table is not deleted');
+    }
+  });
+
+
+  it('Errors when Delete table with ltar column', async function () {
+    const childTable = await createTable(context, project, { table_name: 'child_table', title: 'ChildTable' });
+    await createLtarColumn(context, { 
+      title: 'LTAR_column',
+      parentTable: table,
+      childTable: childTable,
+      type: 'hm',
+     })
+    const response = await request(context.app)
+      .delete(`/api/v1/db/meta/tables/${table.id}`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(400);
+
+    expect(response.body).to.deep.equal({
+      msg: "Table can't be deleted since Table is being referred in following tables : [object Object]. Delete LinkToAnotherRecord columns and try again.",
+    });
     const tables = await getAllTables({ project });
 
     if (tables.length !== 0) {
@@ -220,6 +297,20 @@ function tableTest() {
       .send({})
       .expect(200);
 
+    expect(response.body).to.containSubset(require('../fixtures/getTable.json'));
+    if (response.body.id !== table.id) new Error('Wrong table');
+  });
+
+  it('Errors when Get table with incorrect table id', async function () {
+    const response = await request(context.app)
+      .get(`/api/v1/db/meta/tables/INCORRECT_${table.id}`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(400);
+
+    expect(response.body).to.deep.equal({
+      msg: "Cannot read properties of undefined (reading 'id')",
+    })
     if (response.body.id !== table.id) new Error('Wrong table');
   });
 
@@ -233,6 +324,8 @@ function tableTest() {
         order: newOrder,
       })
       .expect(200);
+
+    expect(response.body).to.deep.equal({});
     // .expect(200, async (err) => {
     //   if (err) return new Error(err);
 

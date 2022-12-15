@@ -720,7 +720,6 @@ export interface UserInfoType {
 }
 
 export interface FollowerType {
-  fk_user_id?: string;
   fk_follower_id?: string;
 }
 
@@ -1744,6 +1743,28 @@ export class Api<
     ) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}/following`,
+        method: 'GET',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Check if Organisation User is following someone
+     *
+     * @tags Org users
+     * @name IsFollowing
+     * @summary Organisation User IsFollowing
+     * @request GET:/api/v1/users/{userId}/isFollowing
+     * @response `200` `void` OK
+     */
+    isFollowing: (
+      userId: string,
+      data: FollowerType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/isFollowing`,
         method: 'GET',
         body: data,
         type: ContentType.Json,

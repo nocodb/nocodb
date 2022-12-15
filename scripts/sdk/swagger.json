@@ -1,5 +1,8 @@
 {
   "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "8e26nblgbju92"
+  },
   "info": {
     "title": "nocodb",
     "version": "1.0"
@@ -1106,6 +1109,40 @@
           }
         },
         "description": "List Organisation User Following",
+        "tags": [
+          "Org users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Follower"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{userId}/isFollowing": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Organisation User IsFollowing",
+        "operationId": "org-users-is-following",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Check if Organisation User is following someone",
         "tags": [
           "Org users"
         ],
@@ -9997,9 +10034,6 @@
         },
         "type": "object",
         "properties": {
-          "fk_user_id": {
-            "type": "string"
-          },
           "fk_follower_id": {
             "type": "string"
           }

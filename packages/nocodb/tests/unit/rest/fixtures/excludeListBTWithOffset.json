@@ -1,0 +1,251 @@
+{
+  "list": [
+    {
+      "CityId": 61,
+      "City": "Baybay",
+      "CountryId": 75,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 62,
+      "City": "Bayugan",
+      "CountryId": 75,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 63,
+      "City": "Bchar",
+      "CountryId": 2,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 64,
+      "City": "Beira",
+      "CountryId": 63,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 65,
+      "City": "Bellevue",
+      "CountryId": 103,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 66,
+      "City": "Belm",
+      "CountryId": 15,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 67,
+      "City": "Benguela",
+      "CountryId": 4,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 68,
+      "City": "Beni-Mellal",
+      "CountryId": 62,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 69,
+      "City": "Benin City",
+      "CountryId": 69,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 70,
+      "City": "Bergamo",
+      "CountryId": 49,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 71,
+      "City": "Berhampore (Baharampur)",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 72,
+      "City": "Bern",
+      "CountryId": 91,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 73,
+      "City": "Bhavnagar",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 74,
+      "City": "Bhilwara",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 75,
+      "City": "Bhimavaram",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 76,
+      "City": "Bhopal",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 77,
+      "City": "Bhusawal",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 78,
+      "City": "Bijapur",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 79,
+      "City": "Bilbays",
+      "CountryId": 29,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 80,
+      "City": "Binzhou",
+      "CountryId": 23,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 81,
+      "City": "Birgunj",
+      "CountryId": 66,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 82,
+      "City": "Bislig",
+      "CountryId": 75,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 83,
+      "City": "Blumenau",
+      "CountryId": 15,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 84,
+      "City": "Boa Vista",
+      "CountryId": 15,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 85,
+      "City": "Boksburg",
+      "CountryId": 85,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 86,
+      "City": "Botosani",
+      "CountryId": 78,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 87,
+      "City": "Botshabelo",
+      "CountryId": 85,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 88,
+      "City": "Bradford",
+      "CountryId": 102,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 89,
+      "City": "Braslia",
+      "CountryId": 15,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 90,
+      "City": "Bratislava",
+      "CountryId": 84,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 91,
+      "City": "Brescia",
+      "CountryId": 49,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 92,
+      "City": "Brest",
+      "CountryId": 34,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 93,
+      "City": "Brindisi",
+      "CountryId": 49,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 94,
+      "City": "Brockton",
+      "CountryId": 103,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 95,
+      "City": "Bucuresti",
+      "CountryId": 78,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 96,
+      "City": "Buenaventura",
+      "CountryId": 24,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 97,
+      "City": "Bydgoszcz",
+      "CountryId": 76,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 98,
+      "City": "Cabuyao",
+      "CountryId": 75,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 99,
+      "City": "Callao",
+      "CountryId": 74,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 100,
+      "City": "Cam Ranh",
+      "CountryId": 105,
+      "LastUpdate": "2006-02-15 04:45:25"
+    }
+  ],
+  "pageInfo": {
+    "totalRows": 599,
+    "page": 2.5,
+    "pageSize": 40,
+    "isFirstPage": false,
+    "isLastPage": false
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "list": [
+    {
+      "CityId": 1,
+      "City": "A Corua (La Corua)",
+      "CountryId": 87,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 2,
+      "City": "Abha",
+      "CountryId": 82,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 3,
+      "City": "Abu Dhabi",
+      "CountryId": 101,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 4,
+      "City": "Acua",
+      "CountryId": 60,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 5,
+      "City": "Adana",
+      "CountryId": 97,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 6,
+      "City": "Addis Abeba",
+      "CountryId": 31,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 7,
+      "City": "Aden",
+      "CountryId": 107,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 8,
+      "City": "Adoni",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 9,
+      "City": "Ahmadnagar",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 10,
+      "City": "Akishima",
+      "CountryId": 50,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 11,
+      "City": "Akron",
+      "CountryId": 103,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 12,
+      "City": "al-Ayn",
+      "CountryId": 101,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 13,
+      "City": "al-Hawiya",
+      "CountryId": 82,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 14,
+      "City": "al-Manama",
+      "CountryId": 11,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 15,
+      "City": "al-Qadarif",
+      "CountryId": 89,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 16,
+      "City": "al-Qatif",
+      "CountryId": 82,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 17,
+      "City": "Alessandria",
+      "CountryId": 49,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 18,
+      "City": "Allappuzha (Alleppey)",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 19,
+      "City": "Allende",
+      "CountryId": 60,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 20,
+      "City": "Almirante Brown",
+      "CountryId": 6,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 21,
+      "City": "Alvorada",
+      "CountryId": 15,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 22,
+      "City": "Ambattur",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 23,
+      "City": "Amersfoort",
+      "CountryId": 67,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 24,
+      "City": "Amroha",
+      "CountryId": 44,
+      "LastUpdate": "2006-02-15 04:45:25"
+    },
+    {
+      "CityId": 25,
+      "City": "Angra dos Reis",
+      "CountryId": 15,
+      "LastUpdate": "2006-02-15 04:45:25"
+    }
+  ],
+  "pageInfo": {
+    "totalRows": 599,
+    "page": 1,
+    "pageSize": 25,
+    "isFirstPage": true,
+    "isLastPage": false
+  }
+}

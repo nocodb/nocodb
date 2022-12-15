@@ -1,0 +1,236 @@
+{
+  "list": [
+    {
+      "RentalId": 76,
+      "RentalDate": "2005-05-25 11:30:37",
+      "InventoryId": 3021,
+      "CustomerId": 1,
+      "ReturnDate": "2005-06-03 12:00:37",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 573,
+      "RentalDate": "2005-05-28 10:35:23",
+      "InventoryId": 4020,
+      "CustomerId": 1,
+      "ReturnDate": "2005-06-03 06:32:23",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 1185,
+      "RentalDate": "2005-06-15 00:54:12",
+      "InventoryId": 2785,
+      "CustomerId": 1,
+      "ReturnDate": "2005-06-23 02:42:12",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 1422,
+      "RentalDate": "2005-06-15 18:02:53",
+      "InventoryId": 1021,
+      "CustomerId": 1,
+      "ReturnDate": "2005-06-19 15:54:53",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 1476,
+      "RentalDate": "2005-06-15 21:08:46",
+      "InventoryId": 1407,
+      "CustomerId": 1,
+      "ReturnDate": "2005-06-25 02:26:46",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 1725,
+      "RentalDate": "2005-06-16 15:18:57",
+      "InventoryId": 726,
+      "CustomerId": 1,
+      "ReturnDate": "2005-06-17 21:05:57",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 2308,
+      "RentalDate": "2005-06-18 08:41:48",
+      "InventoryId": 197,
+      "CustomerId": 1,
+      "ReturnDate": "2005-06-22 03:36:48",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 2363,
+      "RentalDate": "2005-06-18 13:33:59",
+      "InventoryId": 3497,
+      "CustomerId": 1,
+      "ReturnDate": "2005-06-19 17:40:59",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 3284,
+      "RentalDate": "2005-06-21 06:24:45",
+      "InventoryId": 4566,
+      "CustomerId": 1,
+      "ReturnDate": "2005-06-28 03:28:45",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 4526,
+      "RentalDate": "2005-07-08 03:17:05",
+      "InventoryId": 1443,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-14 01:19:05",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 4611,
+      "RentalDate": "2005-07-08 07:33:56",
+      "InventoryId": 3486,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-12 13:25:56",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 5244,
+      "RentalDate": "2005-07-09 13:24:07",
+      "InventoryId": 3726,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-14 14:01:07",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 5326,
+      "RentalDate": "2005-07-09 16:38:01",
+      "InventoryId": 797,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-13 18:02:01",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 6163,
+      "RentalDate": "2005-07-11 10:13:46",
+      "InventoryId": 1330,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-19 13:15:46",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 7273,
+      "RentalDate": "2005-07-27 11:31:22",
+      "InventoryId": 2465,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-31 06:50:22",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 7841,
+      "RentalDate": "2005-07-28 09:04:45",
+      "InventoryId": 1092,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-30 12:37:45",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 8033,
+      "RentalDate": "2005-07-28 16:18:23",
+      "InventoryId": 4268,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-30 17:56:23",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 8074,
+      "RentalDate": "2005-07-28 17:33:39",
+      "InventoryId": 1558,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-29 20:17:39",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 8116,
+      "RentalDate": "2005-07-28 19:20:07",
+      "InventoryId": 4497,
+      "CustomerId": 1,
+      "ReturnDate": "2005-07-29 22:54:07",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 8326,
+      "RentalDate": "2005-07-29 03:58:49",
+      "InventoryId": 108,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-01 05:16:49",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 9571,
+      "RentalDate": "2005-07-31 02:42:18",
+      "InventoryId": 2219,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-02 23:26:18",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 10437,
+      "RentalDate": "2005-08-01 08:51:04",
+      "InventoryId": 14,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-10 12:12:04",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 11299,
+      "RentalDate": "2005-08-02 15:36:52",
+      "InventoryId": 3232,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-10 16:40:52",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 11367,
+      "RentalDate": "2005-08-02 18:01:38",
+      "InventoryId": 1440,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-04 13:19:38",
+      "StaffId": 1,
+      "LastUpdate": "2006-02-15 21:30:53"
+    },
+    {
+      "RentalId": 11824,
+      "RentalDate": "2005-08-17 12:37:54",
+      "InventoryId": 2639,
+      "CustomerId": 1,
+      "ReturnDate": "2005-08-19 10:11:54",
+      "StaffId": 2,
+      "LastUpdate": "2006-02-15 21:30:53"
+    }
+  ],
+  "pageInfo": {
+    "totalRows": 32,
+    "page": 1,
+    "pageSize": 25,
+    "isFirstPage": true,
+    "isLastPage": false
+  }
+}

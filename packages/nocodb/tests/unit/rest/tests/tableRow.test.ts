@@ -1638,6 +1638,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
+    expect(response.body).to.deep.equal(require('../fixtures/nestedRowListHM.json'));
     const pageInfo = response.body['pageInfo'];
     if (pageInfo['totalRows'] !== 32 || pageInfo['pageSize'] !== 25) {
       console.log(pageInfo);
@@ -1661,6 +1662,7 @@ function tableTest() {
       })
       .expect(200);
 
+    expect(response.body).to.deep.equal(require('../fixtures/nestedRowListHMWithLimitOffset.json'));
     const pageInfo = response.body['pageInfo'];
     if (
       pageInfo['totalRows'] !== 32 ||
@@ -1669,6 +1671,24 @@ function tableTest() {
     ) {
       throw new Error('Wrong total rows');
     }
+  });
+
+  it('Nested row list hm with filters', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        where: '(StaffId,eq,2)',
+      })
+      .expect(200);
+
+    expect(response.body).to.deep.equal(require('../fixtures/nestedRowListHMWithFilters.json'));
   });
 
   it('Row list hm with invalid table id', async () => {
@@ -1735,6 +1755,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
+    expect(response.body).to.deep.equal(require('../fixtures/nestedRowListMM.json'));
     const pageInfo = response.body['pageInfo'];
     if (pageInfo['totalRows'] !== 19 || pageInfo['pageSize'] !== 25) {
       console.log(pageInfo);
@@ -1763,6 +1784,7 @@ function tableTest() {
       })
       .expect(200);
 
+    expect(response.body).to.deep.equal(require('../fixtures/nestedRowListMMWithLimitOffset.json'));
     const pageInfo = response.body['pageInfo'];
     if (
       pageInfo['totalRows'] !== 19 ||
@@ -1772,6 +1794,28 @@ function tableTest() {
       console.log(pageInfo, response.body.list.length);
       throw new Error('Wrong total rows');
     }
+  });
+
+  it('Nested row list mm with filters', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        where: '(Rating,eq,PG)'
+      })
+      .expect(200);
+
+    expect(response.body).to.deep.equal(require('../fixtures/nestedRowListMMWithFilters.json'));
   });
 
   it('Row list mm with invalid table id', async () => {
@@ -2168,6 +2212,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
+    expect(response.body).to.deep.equal(require('../fixtures/excludeListHM.json'));
     if (response.body.pageInfo.totalRows !== 16012) {
       console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
@@ -2191,6 +2236,7 @@ function tableTest() {
       })
       .expect(200);
 
+    expect(response.body).to.deep.equal(require('../fixtures/excludeListHMWithLimitOffset.json'));
     if (response.body.pageInfo.totalRows !== 16012) {
       console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
@@ -2219,6 +2265,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
+    expect(response.body).to.deep.equal(require('../fixtures/excludeListMM.json'));
     if (response.body.pageInfo.totalRows !== 981) {
       console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
@@ -2246,6 +2293,7 @@ function tableTest() {
       })
       .expect(200);
 
+    expect(response.body).to.deep.equal(require('../fixtures/excludeListMMWithOffset.json'));
     if (response.body.pageInfo.totalRows !== 981) {
       console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
@@ -2268,7 +2316,8 @@ function tableTest() {
     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`)
     .set('xc-auth', context.token)
     .expect(200);
-
+    
+    expect(response.body).to.deep.equal(require('../fixtures/excludeListBT.json'));
     expect(response.body.pageInfo.totalRows).equal(599)
     expect(response.body.list[0]['City']).equal('A Corua (La Corua)')
   })
@@ -2289,6 +2338,7 @@ function tableTest() {
     })
     .expect(200);
 
+    expect(response.body).to.deep.equal(require('../fixtures/excludeListBTWithOffset.json'));
     expect(response.body.pageInfo.totalRows).equal(599)
     expect(response.body.list[0]['City']).equal('Baybay')
   })

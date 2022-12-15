@@ -132,7 +132,6 @@ export default class DocsPage {
         projectId,
         parent_page_id: previousPage.parent_page_id,
       });
-      console.log({ previousParentChildren });
       if (previousParentChildren.length === 0) {
         await ncMeta.metaUpdate(
           projectId,

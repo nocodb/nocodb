@@ -19,7 +19,6 @@ async function get(
   next
 ) {
   try {
-    console.log(req.params);
     const page = await DocsPage.get(req.params.id);
 
     res.json(page);

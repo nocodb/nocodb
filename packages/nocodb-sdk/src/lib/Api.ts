@@ -40,6 +40,7 @@ export interface DocsPageType {
   title: string;
   description?: string;
   content: string;
+  order?: number;
   published_content?: string;
   slug?: string;
   parent_page_id?: string;

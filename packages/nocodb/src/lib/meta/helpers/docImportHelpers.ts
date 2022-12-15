@@ -64,6 +64,10 @@ export async function fetchGHDocs(user: string, repository: string, ref: string,
       ...processContent(await fetchMarkdownContent(user, repository, ref, file.path), type),
       pages: []
     })
+
+    activePath.sort(
+      (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
+    );
   }
   
   return docs
@@ -82,10 +86,15 @@ function processContent(content: string, type: string) {
         })
         content = content.split('---')[2]
       }
-      return {
+      const tempArgs = {
         content: marked(content),
-        description: metaObj['description'],
+        order: metaObj['position'] || null,
+        description: metaObj['description']?.replace(/^["'](.+(?=["']$))["']$/, '$1'),
       }
+
+      if (metaObj['menuTitle']) tempArgs['title'] = metaObj['title'].replace(/^["'](.+(?=["']$))["']$/, '$1');
+
+      return tempArgs
     case 'md':
     default:
       return {

@@ -12,6 +12,7 @@ export default class DocsPage {
   public slug: string;
   public project_id: string;
   public parent_page_id: string;
+  public order: number;
 
   constructor(project: Partial<DocsPage>) {
     Object.assign(this, project);
@@ -19,7 +20,7 @@ export default class DocsPage {
 
   public static async createPage(
     {
-      attributes: { title, description, content, parent_page_id },
+      attributes: { title, description, content, parent_page_id, order },
       projectId,
       user,
     }: {
@@ -28,6 +29,7 @@ export default class DocsPage {
         description?: string;
         content: string;
         parent_page_id: string;
+        order?: number;
       };
       projectId: string;
       user: UserType;
@@ -47,6 +49,7 @@ export default class DocsPage {
         content: content,
         parent_page_id: parent_page_id,
         slug: `${titleSlug}-${now}`,
+        order: order,
         project_id: projectId,
         created_by_id: user.id,
       } as Partial<DocsPageType>
@@ -73,6 +76,8 @@ export default class DocsPage {
       );
     }
 
+    await this.reorderPages(projectId, parent_page_id);
+  
     return await this.get(createdPageId, ncMeta);
   }
 
@@ -141,6 +146,10 @@ export default class DocsPage {
       }
     }
 
+    if (attributes.order) {
+      await this.reorderPages(projectId, attributes.parent_page_id, pageId);
+    }
+
     return await this.get(pageId, ncMeta);
   }
 
@@ -149,27 +158,73 @@ export default class DocsPage {
     parent_page_id,
     ncMeta = Noco.ncMeta,
   }): Promise<DocsPage[]> {
-    return await ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE, {
+    const pageList = await ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE, {
       condition: {
         parent_page_id: parent_page_id,
       },
     });
+
+    pageList.sort(
+      (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
+    );
+
+    return pageList;
   }
 
   public static async listPages(
     { projectId, parent_page_id },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPage[]> {
-    return await ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE, {
+    const pageList = await ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE, {
       condition: {
         parent_page_id: parent_page_id ?? null,
       },
     });
+
+    pageList.sort(
+      (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
+    );
+
+    return pageList;
   }
 
-  public static deletePage({ id }, ncMeta = Noco.ncMeta): Promise<void> {
+  public static async deletePage({ id }, ncMeta = Noco.ncMeta): Promise<void> {
     return ncMeta.metaDelete(null, null, MetaTable.DOCS_PAGE, {
       id,
     });
+  }
+
+  static async reorderPages(
+    projectId: string,
+    parent_page_id?: string,
+    keepPageId?: string,
+    ncMeta = Noco.ncMeta
+  ) {
+    const pages = await this.listPages({ projectId: projectId, parent_page_id }, ncMeta);
+
+    if (keepPageId) {
+      const kpPage = pages.splice(
+        pages.indexOf(pages.find((base) => base.id === keepPageId)),
+        1
+      );
+      if (kpPage.length) {
+        pages.splice(kpPage[0].order - 1, 0, kpPage[0]);
+      }
+    }
+
+    // update order for pages
+    for (const [i, b] of Object.entries(pages)) {
+      b.order = parseInt(i) + 1;
+      
+      await ncMeta.metaUpdate(
+        b.project_id,
+        null,
+        MetaTable.DOCS_PAGE,
+        {
+          order: b.order
+        },
+        b.id
+      );
+    }
   }
 }

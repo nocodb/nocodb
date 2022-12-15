@@ -281,27 +281,21 @@ async function userProfileUpdate(req, res) {
 }
 
 async function userFollowingList(req, res) {
-  const { followingCount, ...rest } = await User.getFollowingList(
-    req.params.user_id,
-    req.query
-  );
+  const list = await User.getFollowingList(req.params.userId, req.query);
   res.json(
-    new PagedResponseImpl(rest, {
+    new PagedResponseImpl(list, {
       ...req.query,
-      count: followingCount,
+      count: list.length,
     })
   );
 }
 
 async function userFollowerList(req, res) {
-  const { followerCount, ...rest } = await User.getFollowerList(
-    req.params.user_id,
-    req.query
-  );
+  const list = await User.getFollowerList(req.params.userId, req.query);
   res.json(
-    new PagedResponseImpl(rest, {
+    new PagedResponseImpl(list, {
       ...req.query,
-      count: followerCount,
+      count: list.length,
     })
   );
 }

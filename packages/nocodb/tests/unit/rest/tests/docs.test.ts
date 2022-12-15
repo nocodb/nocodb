@@ -2,10 +2,10 @@ import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
 import { createProject } from '../../factory/project';
-import init from '../../init';
+import init, { NcUnitContext } from '../../init';
 
 function docTests() {
-  let context;
+  let context: NcUnitContext;
   let project;
 
   beforeEach(async function () {
@@ -28,8 +28,10 @@ function docTests() {
       .set('xc-auth', context.token)
       .send({
         projectId: project.id,
-        title: 'test',
-        content: 'test',
+        attributes: {
+          title: 'test',
+          content: 'test',
+        }
       })
       .expect(200)
     expect(response.body).to.have.property('id');
@@ -54,8 +56,10 @@ function docTests() {
       .set('xc-auth', context.token)
       .send({
         projectId: project.id,
-        title: 'test',
-        content: 'test',
+        attributes: {
+          title: 'test',
+          content: 'test',
+        }
       })
       .expect(200)
       expect(response.body).to.have.property('id');
@@ -76,8 +80,10 @@ function docTests() {
       .set('xc-auth', context.token)
       .send({
         projectId: project.id,
-        title: 'test',
-        content: 'test',
+        attributes: {
+          title: 'test',
+          content: 'test',
+        }
       })
       .expect(200)
     expect(response.body).to.have.property('id');
@@ -88,9 +94,11 @@ function docTests() {
       .set('xc-auth', context.token)
       .send({
         projectId: project.id,
-        parentPageId: id,
-        title: 'nested test',
-        content: 'test',
+        attributes: {
+          parent_page_id: id,
+          title: 'nested test',
+          content: 'test',
+        }
       })
       .expect(200)
 
@@ -99,7 +107,7 @@ function docTests() {
     // get nested page
     response = await request(context.app)
       .get(`/api/v1/docs/pages`)
-      .query({ parentPageId: id })
+      .query({ parent_page_id: id })
       .set('xc-auth', context.token)
       .send({})
       .expect(200)
@@ -125,8 +133,10 @@ function docTests() {
     .set('xc-auth', context.token)
     .send({
       projectId: project.id,
-      title: 'test',
-      content: 'test',
+      attributes: {
+        title: 'test',
+        content: 'test',
+      }
     })
     .expect(200)
     expect(response.body).to.have.property('id');
@@ -136,12 +146,90 @@ function docTests() {
       .put(`/api/v1/docs/page/${id}`)
       .set('xc-auth', context.token)
       .send({
-        title: 'test2',
-        content: 'test2',
+        attributes: {
+          title: 'test2',
+          content: 'test2',
+        }
       })
+      .expect(200)
     
-    console.log(response.body)
     expect(response.body.title).to.equal('test2')
+    expect(response.body.last_updated_by_id).to.equal(context.user.id)
+  })
+
+  it('Update non existing page', async () => {
+    const response = await request(context.app)
+      .put(`/api/v1/docs/page/non-existing-id`)
+      .set('xc-auth', context.token)
+      .send({
+        attributes: {
+          title: 'test2',
+          content: 'test2',
+        }
+      })
+      .expect(400)
+    
+    expect(response.body.msg).to.equal('Page not found')
+  })
+
+  it('Update parent id should update is_parent attribute of that parent', async () => {
+    let response = await request(context.app)
+      .post(`/api/v1/docs/page`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        attributes: {
+          title: 'test',
+          content: 'test',
+        }
+      })
+      .expect(200)
+    expect(response.body).to.have.property('id');
+
+    const parentId = response.body.id
+
+    response = await request(context.app)
+      .post(`/api/v1/docs/page`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        attributes: {
+          parent_page_id: parentId,
+          title: 'nested test',
+          content: 'test',
+        }
+      })
+      .expect(200)
+    
+    const childId = response.body.id
+    expect(response.body.parent_page_id).to.equal(parentId)
+    expect(response.body.is_parent).to.equal(0)
+
+    response = await request(context.app)
+      .get(`/api/v1/docs/page/${parentId}`)
+      .set('xc-auth', context.token)
+      .send();
+    expect(response.body.is_parent).to.equal(1)
+
+    response = await request(context.app)
+      .put(`/api/v1/docs/page/${childId}`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        attributes: {
+          title: 'test2',
+          content: 'test2',
+          parent_page_id: null,
+        }
+      })
+      .expect(200)
+    expect(response.body.parent_page_id).to.equal(null)
+
+    response = await request(context.app)
+    .get(`/api/v1/docs/page/${parentId}`)
+    .set('xc-auth', context.token)
+    .send();
+    expect(response.body.is_parent).to.equal(0)
   })
 }
 

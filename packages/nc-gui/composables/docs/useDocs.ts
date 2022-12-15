@@ -1,6 +1,6 @@
 import { message } from 'ant-design-vue'
 import type { DocsPageType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useNuxtApp, useProject, useState } from '#imports'
+import { extractSdkResponseErrorMsg, useNuxtApp, useState } from '#imports'
 
 export interface DocsPage extends DocsPageType {
   children?: DocsPage[]
@@ -14,6 +14,7 @@ export function useDocs() {
 
   const pages = useState<DocsPage[]>('docsPages', () => [])
   const openedPageId = useState<string>('openedPageId', () => '')
+  const openedTabs = useState<string[]>('openedTabs', () => [])
   const openedPage = computed(() => findPage(openedPageId.value))
 
   // todo: Integrate useProject here
@@ -23,7 +24,7 @@ export function useDocs() {
     try {
       const docs = await $api.nocoDocs.listPages({
         projectId: projectId(),
-        parentPageId,
+        parent_page_id: parentPageId,
       })
 
       if (parentPageId) {
@@ -36,17 +37,18 @@ export function useDocs() {
       }
 
       if (docs.length > 0) openedPageId.value = docs[0].id!
+      openedTabs.value = [...openedTabs.value, openedPageId.value]
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
 
-  const createPage = async (page: DocsPage) => {
+  const createPage = async (page: DocsPageType) => {
     try {
-      const createdPageData = await $api.nocoDocs.createPage({ ...page, projectId: projectId() })
+      const createdPageData = await $api.nocoDocs.createPage({ attributes: page, projectId: projectId() })
 
-      if (page.parentPageId) {
-        const parentPage = findPage(page.parentPageId)
+      if (page.parent_page_id) {
+        const parentPage = findPage(page.parent_page_id)
         if (!parentPage) return
 
         if (!parentPage.children) parentPage.children = []
@@ -61,6 +63,7 @@ export function useDocs() {
       }
 
       openedPageId.value = createdPageData.id!
+      openedTabs.value = [...openedTabs.value, openedPageId.value]
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
@@ -83,8 +86,8 @@ export function useDocs() {
   }
 
   const updatePage = async (pageId: string, page: DocsPage) => {
-    await $api.nocoDocs.updatePage(pageId, page)
+    await $api.nocoDocs.updatePage(pageId, { attributes: page, projectId: projectId() })
   }
 
-  return { fetchPages, pages, createPage, openedPageId, openedPage, updatePage }
+  return { fetchPages, pages, createPage, openedPageId, openedPage, updatePage, openedTabs }
 }

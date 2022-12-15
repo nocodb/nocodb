@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import apiMetrics from '../../helpers/apiMetrics';
 import DocsPage from '../../../models/DocsPage';
+import { UserType } from 'nocodb-sdk';
 
 async function get(
   req: Request<any> & { user: { id: string; roles: string } },
@@ -27,7 +28,7 @@ async function list(
   try {
     const pages = await DocsPage.listPages({
       projectId: req.query?.projectId,
-      parentPageId: req.query?.parentPageId,
+      parent_page_id: req.query?.parent_page_id,
     });
 
     res // todo: pagination
@@ -44,7 +45,11 @@ async function create(
   next
 ) {
   try {
-    const page = await DocsPage.createPage(req.body);
+    const page = await DocsPage.createPage({
+      attributes: req.body.attributes,
+      projectId: req.body.projectId,
+      user: (req as any)?.session?.passport?.user as UserType,
+    });
 
     res.json(page);
   } catch (e) {
@@ -61,7 +66,8 @@ async function update(
   try {
     const page = await DocsPage.updatePage({
       pageId: req.params.id,
-      pageAttr: req.body,
+      attributes: req.body.attributes,
+      user: (req as any)?.session?.passport?.user as UserType,
       projectId: req.body.projectId,
     });
 

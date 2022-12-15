@@ -123,7 +123,11 @@ const getProjectPrimary = (project: ProjectType) => {
 
 const customRow = (record: ProjectType) => ({
   onClick: async () => {
-    await navigateTo(`/nc/${record.id}`)
+    if (record.type === 'docs') {
+      await navigateTo(`/nc/doc/${record.id}`)
+    } else {
+      await navigateTo(`/nc/${record.id}`)
+    }
 
     $e('a:project:open')
   },

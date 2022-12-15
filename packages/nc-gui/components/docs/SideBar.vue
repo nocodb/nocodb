@@ -8,6 +8,7 @@ const {
   pages,
   createPage,
   createMagic,
+  createImport,
   openedPageSlug,
   openedTabs,
   fetchNestedChildPagesFromRoute,
@@ -30,6 +31,14 @@ const magicFormData = ref({
 })
 const magicParentPageId = ref()
 const loadMagic = ref(false)
+
+const importModalOpen = ref(false)
+const importFormData = ref({
+  title: '',
+  content: '',
+})
+const importParentPageId = ref()
+const loadImport = ref(false)
 
 const onLoadData: TreeProps['loadData'] = async (treeNode) => {
   return new Promise((resolve) => {
@@ -62,6 +71,14 @@ const onMagic = async () => {
   loadMagic.value = false
 }
 
+const onImport = async () => {
+  loadImport.value = true
+  await createImport(importFormData.value.title, 'nuxt')
+  await fetchPages()
+  importModalOpen.value = false
+  loadImport.value = false
+}
+
 const openCreatePageModal = (parentId?: string | undefined) => {
   parentPageId.value = parentId
   createPageModalOpen.value = true
@@ -70,6 +87,11 @@ const openCreatePageModal = (parentId?: string | undefined) => {
 const openMagicModal = (parentId?: string | undefined) => {
   magicParentPageId.value = parentId
   magicModalOpen.value = true
+}
+
+const openImportModal = (parentId?: string | undefined) => {
+  importParentPageId.value = parentId
+  importModalOpen.value = true
 }
 
 onMounted(async () => {
@@ -98,6 +120,12 @@ const onTabClick = ({ slug }: { slug: string }) => {
     <div class="py-2.5 flex flex-row justify-between items-center ml-2 px-2 border-b-warm-gray-100 border-b-1">
       <div class="text-base text-[13px] !font-400">Pages</div>
       <div class="flex flex-row justify-between items-center">
+        <div
+          class="flex hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none p-1 border-gray-100 border-1 rounded-md mr-1"
+          @click="() => openImportModal()"
+        >
+          <PhSparkleFill class="text-orange-400" />
+        </div>
         <div
           class="flex hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none p-1 border-gray-100 border-1 rounded-md mr-1"
           @click="() => openMagicModal()"
@@ -166,6 +194,16 @@ const onTabClick = ({ slug }: { slug: string }) => {
     <a-form :model="magicFormData">
       <a-form-item label="Title">
         <a-input v-model:value="magicFormData.title" />
+      </a-form-item>
+    </a-form>
+  </a-modal>
+  <a-modal :visible="importModalOpen" :closable="false" :mask-closable="false" @cancel="importModalOpen = false" @ok="onImport">
+    <template #title>
+      <div class="flex items-center">Import documentation</div>
+    </template>
+    <a-form :model="importFormData">
+      <a-form-item label="Url">
+        <a-input v-model:value="importFormData.title" />
       </a-form-item>
     </a-form>
   </a-modal>

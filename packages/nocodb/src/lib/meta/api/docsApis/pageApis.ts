@@ -4,6 +4,7 @@ import apiMetrics from '../../helpers/apiMetrics';
 import DocsPage from '../../../models/DocsPage';
 import { UserType } from 'nocodb-sdk';
 import { NcError } from '../../helpers/catchError';
+import { fetchGHDocs } from '../../helpers/docImportHelpers';
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
@@ -144,12 +145,44 @@ async function magic(
   }
 }
 
+async function directoryImport(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    try {
+      const pages = []
+      switch (req.body.from) {
+        case 'github':
+          pages.push(...await fetchGHDocs(req.body.user, req.body.repo, req.body.branch, req.body.path, req.body.type));
+          break;
+        default:
+          NcError.badRequest('Invalid type');
+      }
+
+      for (const page of pages) {
+        await handlePageJSON(page, req.body.projectId, undefined, (req as any)?.session?.passport?.user as UserType);
+      }
+
+      res.json(true);
+    } catch (e) {
+      console.log(e)
+      NcError.badRequest('Failed to parse schema');
+    }
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 async function handlePageJSON(pg: any, projectId: string, parentPageId: string | undefined, user: UserType) {
   const parentPage = await DocsPage.createPage({
     attributes: {
       title: pg?.title,
+      description: pg?.description,
       content: pg?.content || '',
-      parent_page_id: parentPageId || '',
+      parent_page_id: parentPageId || null,
     },
     projectId: projectId,
     user: user
@@ -169,6 +202,7 @@ router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
 router.get('/api/v1/docs/pages', apiMetrics, ncMetaAclMw(list, 'pageList'));
 router.post('/api/v1/docs/page', apiMetrics, ncMetaAclMw(create, 'pageCreate'));
 router.post('/api/v1/docs/magic', apiMetrics, ncMetaAclMw(magic, 'pageMagic'));
+router.post('/api/v1/docs/import', apiMetrics, ncMetaAclMw(directoryImport, 'directoryImport'));
 router.put(
   '/api/v1/docs/page/:id',
   apiMetrics,

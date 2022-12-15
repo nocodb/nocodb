@@ -40,6 +40,7 @@ export enum MetaTable {
   SYNC_LOGS = 'nc_sync_logs_v2',
   STORE = 'nc_store',
   DOCS_PAGE = 'nc_docs_pages',
+  FOLLOWER = 'nc_follower'
 }
 
 export const orderedMetaTables = [
@@ -76,6 +77,7 @@ export const orderedMetaTables = [
   MetaTable.BASES,
   MetaTable.PROJECT,
   MetaTable.DOCS_PAGE,
+  MetaTable.FOLLOWER,
 ];
 
 export const sakilaTableNames = [
@@ -142,6 +144,7 @@ export enum CacheScope {
   INSTANCE_META = 'instanceMeta',
   USER_PROJECT = 'userProject',
   DOCS_PAGE = 'page',
+  FOLLOWER = 'follower',
 }
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',

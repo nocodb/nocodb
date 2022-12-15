@@ -9,6 +9,8 @@ const up = async (knex: Knex) => {
     table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
 
     table.string('title', 150).notNullable();
+    table.text('description', 'longtext').defaultTo('');
+    
     table.text('content', 'longtext').defaultTo('');
     table.text('published_content', 'longtext').defaultTo('');
     // todo: Handle the case when there is a slug duplicate

@@ -38,6 +38,7 @@ export interface DocsPageType {
   /** Unique identifier for the given user. */
   id?: string;
   title: string;
+  description?: string;
   content: string;
   published_content?: string;
   slug?: string;

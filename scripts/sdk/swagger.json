@@ -7177,7 +7177,8 @@
             "id": "142",
             "title": "Alice",
             "description": "Example description",
-            "content": "Smith"
+            "content": "Smith",
+            "order": 1
           }
         ],
         "x-internal": false,
@@ -7194,6 +7195,9 @@
           },
           "content": {
             "type": "string"
+          },
+          "order": {
+            "type": "number"
           },
           "published_content": {
             "type": "string"

@@ -37,6 +37,8 @@ const up = async (knex: Knex) => {
 
     table.text('metaJson', 'longtext').defaultTo('{}');
 
+    table.float('order');
+
     table.timestamps(true, true);
   });
 };

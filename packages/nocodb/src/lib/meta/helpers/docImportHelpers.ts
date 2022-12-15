@@ -39,41 +39,87 @@ export async function fetchGHDocs(user: string, repository: string, ref: string,
   
   const docs = []
 
-  for (const file of markdownFiles) {
-    const relPath = file.path.replace(dir, '').replace(/^\//, '')
-    const pathParts = relPath.split('/').filter(part => part !== '')
-    pathParts.pop()
-    let activePath = docs
+  if (type === 'md') {
+    for (const file of markdownFiles) {
+      const relPath = file.path.replace(dir, '').replace(/^\//, '')
+      const pathParts = relPath.split('/').filter(part => part !== '')
+      pathParts.pop()
+      let activePath = docs
 
-    for (const pathPart of pathParts) {
-      let fnd = activePath.find(page => page.title === pathPart)
-      if (!fnd) {
-        activePath.push({
-          title: pathPart,
-          content: '',
+      for (const pathPart of pathParts) {
+        let fnd = activePath.find(page => page.title === pathPart)
+        if (!fnd) {
+          activePath.push({
+            title: pathPart,
+            content: '',
+            pages: []
+          })
+          activePath = activePath.find(page => page.title === pathPart).pages
+        } else {
+          activePath = fnd.pages
+        }
+      }
+
+      activePath.push({
+        title: file.path.split('/').pop().replace('.md', ''),
+        ...processContent(await fetchMarkdownContent(user, repository, ref, file.path), type),
+        pages: []
+      })
+
+      activePath.sort(
+        (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
+      );
+    }
+  } else if (type === 'nuxt') {
+    for (const file of markdownFiles) {
+      const processedContent = processContent(await fetchMarkdownContent(user, repository, ref, file.path), type)
+      if (processedContent?.category) {
+        let fnd = docs.find(page => page.title === processedContent.category)
+
+        if (!fnd) {
+          docs.push({
+            title: processedContent.category,
+            order: processedContent.order,
+            content: '',
+            pages: []
+          })
+          fnd = docs.find(page => page.title === processedContent.category)
+        }
+
+        fnd.pages.push({
+          title: file.path.split('/').pop().replace('.md', ''),
+          ...processedContent,
           pages: []
         })
-        activePath = activePath.find(page => page.title === pathPart).pages
+
+        fnd.pages.sort(
+          (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
+        );
       } else {
-        activePath = fnd.pages
+        docs.push({
+          title: file.path.split('/').pop().replace('.md', ''),
+          content: '',
+          order: processedContent.order,
+          pages: [
+            {
+              title: file.path.split('/').pop().replace('.md', ''),
+              ...processedContent,
+              pages: []
+            }
+          ]
+        })
       }
+      
+      docs.sort(
+        (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
+      );
     }
-
-    activePath.push({
-      title: file.path.split('/').pop().replace('.md', ''),
-      ...processContent(await fetchMarkdownContent(user, repository, ref, file.path), type),
-      pages: []
-    })
-
-    activePath.sort(
-      (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
-    );
   }
   
   return docs
 }
 
-function processContent(content: string, type: string) {
+function processContent(content: string, type: string): any {
   switch (type) {
     case 'nuxt':
       const metaObj = {}
@@ -87,6 +133,7 @@ function processContent(content: string, type: string) {
         content = content.split('---')[2]
       }
       const tempArgs = {
+        category: metaObj['category']?.replace(/^["'](.+(?=["']$))["']$/, '$1'),
         content: marked(content),
         order: metaObj['position'] || null,
         description: metaObj['description']?.replace(/^["'](.+(?=["']$))["']$/, '$1'),

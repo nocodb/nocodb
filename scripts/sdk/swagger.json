@@ -7176,6 +7176,7 @@
           {
             "id": "142",
             "title": "Alice",
+            "description": "Example description",
             "content": "Smith"
           }
         ],
@@ -7186,6 +7187,9 @@
             "description": "Unique identifier for the given user."
           },
           "title": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           },
           "content": {

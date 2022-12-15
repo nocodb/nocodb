@@ -7,6 +7,7 @@ import { DocsPageType, UserType } from 'nocodb-sdk';
 export default class DocsPage {
   public id: string;
   public title: string;
+  public description: string;
   public content: string;
   public slug: string;
   public project_id: string;
@@ -18,12 +19,13 @@ export default class DocsPage {
 
   public static async createPage(
     {
-      attributes: { title, content, parent_page_id },
+      attributes: { title, description, content, parent_page_id },
       projectId,
       user,
     }: {
       attributes: {
         title: string;
+        description?: string;
         content: string;
         parent_page_id: string;
       };
@@ -41,6 +43,7 @@ export default class DocsPage {
       MetaTable.DOCS_PAGE,
       {
         title: title,
+        description: description,
         content: content,
         parent_page_id: parent_page_id,
         slug: `${titleSlug}-${now}`,

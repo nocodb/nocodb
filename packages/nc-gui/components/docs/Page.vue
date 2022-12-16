@@ -60,6 +60,15 @@ watch(
   },
 )
 
+watch(
+  () => openedPage.value?.title,
+  (title) => {
+    if (title && openedPage.value?.id) {
+      updatePage(openedPage.value?.id, { title } as any)
+    }
+  },
+)
+
 watchDebounced(
   content,
   () => openedPage.value?.id && updatePage(openedPage.value?.id, { content: openedPage.value!.content } as any),
@@ -97,9 +106,14 @@ watchDebounced(
           </div>
         </div>
       </div>
-      <a-typography-title class="px-2">
-        {{ openedPage.title }}
-      </a-typography-title>
+
+      <a-input
+        v-model:value="openedPage.title"
+        class="!text-4xl font-semibold"
+        :bordered="false"
+        placeholder="Type to add title"
+      />
+
       <BubbleMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100 }">
         <div class="flex flex-row gap-x-1 mb-1">
           <button

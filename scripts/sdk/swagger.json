@@ -903,6 +903,38 @@
         "description": ""
       }
     },
+    "/api/v1/users/{username}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "username",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Organisation User GetByUsername",
+        "operationId": "org-users-get-by-username",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "Organisation User GetByUsername"
+      }
+    },
     "/api/v1/users/{userId}/resend-invite": {
       "parameters": [
         {
@@ -971,16 +1003,7 @@
         "description": "Get Organisation User Profile",
         "tags": [
           "Org users"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            }
-          }
-        }
+        ]
       },
       "patch": {
         "summary": "",

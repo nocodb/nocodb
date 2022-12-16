@@ -1585,6 +1585,23 @@ export class Api<
       }),
 
     /**
+     * @description Organisation User GetByUsername
+     *
+     * @tags Org users
+     * @name GetByUsername
+     * @summary Organisation User GetByUsername
+     * @request GET:/api/v1/users/{username}
+     * @response `200` `UserType` OK
+     */
+    getByUsername: (username: string, params: RequestParams = {}) =>
+      this.request<UserType, any>({
+        path: `/api/v1/users/${username}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags Org users
@@ -1631,12 +1648,10 @@ export class Api<
      * @request GET:/api/v1/users/{userId}/profile
      * @response `200` `void` OK
      */
-    profileGet: (userId: string, data: UserType, params: RequestParams = {}) =>
+    profileGet: (userId: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}/profile`,
         method: 'GET',
-        body: data,
-        type: ContentType.Json,
         ...params,
       }),
 

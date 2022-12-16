@@ -1,8 +1,5 @@
 {
   "openapi": "3.1.0",
-  "x-stoplight": {
-    "id": "8e26nblgbju92"
-  },
   "info": {
     "title": "nocodb",
     "version": "1.0"

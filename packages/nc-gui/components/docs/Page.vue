@@ -50,6 +50,7 @@ const editor = useEditor({
     openedPage.value.content = editor.getHTML()
   },
 })
+const titleInputRef = ref<HTMLInputElement>()
 
 watch(
   () => content.value,
@@ -60,12 +61,17 @@ watch(
   },
 )
 
-watch(
+watchDebounced(
   () => openedPage.value?.title,
-  (title) => {
-    if (title && openedPage.value?.id) {
-      updatePage(openedPage.value?.id, { title } as any)
+  async () => {
+    if (openedPage.value?.title && openedPage.value?.id) {
+      await updatePage(openedPage.value?.id, { title: openedPage.value?.title } as any)
+      titleInputRef.value?.focus()
     }
+  },
+  {
+    debounce: 1000,
+    maxWait: 1300,
   },
 )
 
@@ -81,7 +87,7 @@ watchDebounced(
 
 <template>
   <a-layout-content>
-    <div v-if="openedPage" class="mx-20 mt-16 flex flex-col gap-y-4">
+    <div v-if="openedPage" class="mx-20 px-6 mt-16 flex flex-col gap-y-4">
       <div class="flex flex-row justify-between">
         <a-breadcrumb v-if="openedNestedPages.length !== 1" class="!px-2">
           <a-breadcrumb-item v-for="({ slug, title }, index) of openedNestedPages" :key="slug">
@@ -107,11 +113,13 @@ watchDebounced(
         </div>
       </div>
 
-      <a-input
+      <a-textarea
+        ref="titleInputRef"
         v-model:value="openedPage.title"
         class="!text-4xl font-semibold"
         :bordered="false"
         placeholder="Type to add title"
+        auto-size
       />
 
       <BubbleMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100 }">

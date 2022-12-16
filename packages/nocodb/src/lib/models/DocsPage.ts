@@ -113,6 +113,10 @@ export default class DocsPage {
 
     if (attributes.project_id) throw new Error('Cannot update project_id');
 
+    if (attributes.title) {
+      attributes.slug = `${slug(attributes.title)}-${pageId}`;
+    }
+
     attributes.last_updated_by_id = user.id;
 
     await ncMeta.metaUpdate(

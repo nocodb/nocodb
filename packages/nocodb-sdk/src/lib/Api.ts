@@ -914,6 +914,31 @@ export class Api<
       }),
 
     /**
+     * @description Delete page
+     *
+     * @tags Noco docs
+     * @name DeletePage
+     * @summary Delete page
+     * @request DELETE:/api/v1/docs/page/{id}
+     * @response `200` `void` OK
+     */
+    deletePage: (
+      id: string,
+      data: {
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/page/${id}`,
+        method: 'DELETE',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
      * @description Update page
      *
      * @tags Noco docs

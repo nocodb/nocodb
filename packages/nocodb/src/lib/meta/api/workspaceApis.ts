@@ -68,6 +68,8 @@ const workspaceDelete = async (
   req: Request<{ workspaceId: string }>,
   res: Response
 ) => {
+  // todo: avoid removing owner
+
   // block unauthorized user form deleting
 
   // todo: unlink any project linked

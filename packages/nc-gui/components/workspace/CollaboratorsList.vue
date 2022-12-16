@@ -9,22 +9,31 @@ const rolesLabel = {
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
 }
 
-const {collaborators, loadCollaborators} = useWorkspaceStoreOrThrow()
+const {collaborators, removeCollaborator, updateCollaborator: _updateCollaborator} = useWorkspaceStoreOrThrow()
 
 
 const getRolesLabel = (roles?: string) => {
   return roles?.split(/\s*,\s*/)?.map(role => rolesLabel[role]).join(', ') ?? ''
+}
+
+const updateCollaborator = async (collab) => {
+  try {
+    await _updateCollaborator(collab.id, collab.roles)
+    message.success('Successfully updated user role')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 </script>
 
 <template>
   <div>
     <div class="px-6 pb-2">
-    <div class="text-xl mb-2">Members</div>
-    <div class="text-gray-500 text-xs">Manage who has access to this workspace</div>
+      <div class="text-xl mb-2">Members</div>
+      <div class="text-gray-500 text-xs">Manage who has access to this workspace</div>
     </div>
 
-    <WorkspaceInviteSection />
+    <WorkspaceInviteSection/>
     <table v-if="collaborators?.length" class="nc-project-list-table">
       <thead>
       <tr>
@@ -46,12 +55,33 @@ const getRolesLabel = (roles?: string) => {
         </td>
         <td>{{ (i + 3) % 20 }} hours ago</td>
         <td>
-          <space>
+          <space v-if="collab.roles === WorkspaceUserRoles.OWNER">
             {{ getRolesLabel(collab.roles) }}
           </space>
+
+          <a-select v-else v-model:value="collab.roles" @change="updateCollaborator(collab)" class="w-30">
+            <a-select-option :value="WorkspaceUserRoles.CREATOR">
+              Creator
+            </a-select-option>
+            <a-select-option :value="WorkspaceUserRoles.VIEWER">
+              Viewer
+            </a-select-option>
+          </a-select>
         </td>
         <td>
-          <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu"/>
+          <a-dropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER">
+            <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu"/>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item @click="removeCollaborator(collab.id)">
+                  <div class="flex flex-row items-center py-3 gap-2">
+                    <MdiDeleteOutline/>
+                    Remove Collaborator
+                  </div>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </td>
       </tr>
       </tbody>

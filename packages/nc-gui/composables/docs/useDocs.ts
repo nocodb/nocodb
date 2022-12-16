@@ -8,6 +8,8 @@ export interface DocsPage extends DocsPageType {
   parentPageSlug?: string
   isLeaf: boolean
   key: string
+  style?: string | Record<string, string>
+  notSaved?: boolean
 }
 
 export function useDocs() {
@@ -28,7 +30,7 @@ export function useDocs() {
   // todo: Integrate useProject here
   const projectId = () => route.params.projectId as string
 
-  const fetchPages = async ({ parentPageId }: { parentPageId?: string; fetchNestedChildPagesFromRoute?: boolean } = {}) => {
+  const fetchPages = async ({ parentPageId, fetchChildren }: { parentPageId?: string; fetchChildren?: boolean } = {}) => {
     try {
       const docs = await $api.nocoDocs.listPages({
         projectId: projectId(),
@@ -41,7 +43,23 @@ export function useDocs() {
 
         parentPage.children = docs.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.slug!, parentPageSlug: parentPage.slug }))
       } else {
-        pages.value = docs.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.slug! }))
+        pages.value = docs.map((d, index) => ({
+          ...d,
+          isLeaf: !d.is_parent,
+          key: d.slug!,
+          style: {
+            marginTop: index !== 0 ? '1.2rem' : '0.5rem',
+          },
+        }))
+      }
+
+      if (fetchChildren) {
+        for (const doc of docs) {
+          await fetchPages({ parentPageId: doc.id })
+          if (!openedTabs.value.includes(doc.slug!)) {
+            openedTabs.value.push(doc.slug!)
+          }
+        }
       }
 
       return docs
@@ -91,6 +109,50 @@ export function useDocs() {
       }
 
       navigateTo(nestedUrl(createdPageData.slug!))
+
+      if (!openedTabs.value.includes(createdPageData.slug!)) {
+        openedTabs.value.push(createdPageData.slug!)
+      }
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  // const addNewPage = async (parentPageId?: string) => {
+  //   if (!parentPageId) {
+  //     pages.value.push({ title: 'New Page', content: '', isLeaf: true, key: 'new-page', notSaved: true })
+  //   } else {
+  //     const parentPage = findPage(parentPageId)
+  //     if (!parentPage) return
+
+  //     if (!parentPage.children) parentPage.children = []
+  //     parentPage.children.push({
+  //       title: 'New Page',
+  //       content: '',
+  //       isLeaf: true,
+  //       key: 'new-page',
+  //       notSaved: true,
+  //       parent_page_id: parentPageId,
+  //       parentPageSlug: parentPage.slug,
+  //     })
+  //     parentPage.isLeaf = false
+  //   }
+  // }
+
+  const deletePage = async (pageId: string) => {
+    try {
+      const page = findPage(pageId)
+      await $api.nocoDocs.deletePage(pageId, { projectId: projectId() })
+
+      if (page?.parent_page_id) {
+        const parentPage = findPage(page.parent_page_id)
+        if (!parentPage) return
+
+        parentPage.children = parentPage.children?.filter((p) => p.id !== pageId)
+        parentPage.isLeaf = parentPage.children?.length === 0
+      } else {
+        pages.value = pages.value.filter((p) => p.id !== pageId)
+      }
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
@@ -161,7 +223,14 @@ export function useDocs() {
   }
 
   const updatePage = async (pageId: string, page: DocsPage) => {
-    await $api.nocoDocs.updatePage(pageId, { attributes: page, projectId: projectId() })
+    const updatedPage = await $api.nocoDocs.updatePage(pageId, { attributes: page, projectId: projectId() })
+    if (page.title) {
+      const foundPage = findPage(pageId)
+      if (foundPage) {
+        foundPage.slug = updatedPage.slug
+      }
+      await navigateTo(nestedUrl(updatedPage.slug!))
+    }
   }
 
   const navigateToFirstPage = () => {
@@ -184,5 +253,7 @@ export function useDocs() {
     fetchNestedChildPagesFromRoute,
     nestedUrl,
     navigateToFirstPage,
+    deletePage,
+    // addNewPage,
   }
 }

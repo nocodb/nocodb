@@ -2,6 +2,7 @@
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
+import type { AntTreeNodeDragEnterEvent, AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 
 // todo: Move the ant tree data converstion from the composables to here
 const {
@@ -15,10 +16,14 @@ const {
   fetchNestedChildPagesFromRoute,
   nestedUrl,
   navigateToFirstPage,
+  deletePage,
+  // addNewPage,
 } = useDocs()
 const route = useRoute()
 
 const createPageModalOpen = ref(false)
+const deletePageModalOpen = ref(false)
+const pageIdForDeletion = ref<string | undefined>()
 const createPageFormData = ref({
   title: '',
   content: '',
@@ -84,6 +89,7 @@ const onImport = async () => {
 const openCreatePageModal = (parentId?: string | undefined) => {
   parentPageId.value = parentId
   createPageModalOpen.value = true
+  // addNewPage(parentId)
 }
 
 const openMagicModal = (parentId?: string | undefined) => {
@@ -98,7 +104,9 @@ const openImportModal = (parentId?: string | undefined) => {
 }
 
 onMounted(async () => {
-  await fetchPages()
+  await fetchPages({
+    fetchChildren: true,
+  })
   if (route.params.slugs?.length === 0) {
     navigateToFirstPage()
   }
@@ -108,6 +116,24 @@ onMounted(async () => {
 const onTabClick = ({ slug }: { slug: string }) => {
   navigateTo(nestedUrl(slug))
 }
+
+const onDeletePage = async () => {
+  await deletePage(pageIdForDeletion.value!)
+  deletePageModalOpen.value = false
+}
+
+const openDeleteModal = (pageId: string) => {
+  pageIdForDeletion.value = pageId
+  deletePageModalOpen.value = true
+}
+
+const onDragEnter = (info: AntTreeNodeDragEnterEvent) => {
+  console.log(info)
+}
+
+const onDrop = (info: AntTreeNodeDropEvent) => {
+  console.log('onDrop', info)
+}
 </script>
 
 <template>
@@ -115,13 +141,13 @@ const onTabClick = ({ slug }: { slug: string }) => {
     :collapsed="false"
     width="250"
     collapsed-width="50"
-    class="relative shadow-md h-full z-1 nc-docs-left-sidebar"
+    class="relative shadow-md h-full z-1 nc-docs-left-sidebar pb-12"
     :trigger="null"
     collapsible
     theme="light"
   >
-    <div class="py-2.5 flex flex-row justify-between items-center ml-2 px-2 border-b-warm-gray-100 border-b-1">
-      <div class="text-base text-[13px] !font-400">Pages</div>
+    <div class="py-2.5 flex flex-row justify-between items-center ml-2 px-2 border-b-warm-gray-100 border-b-1 overflow-scroll">
+      <div class="text-base text-[13px] !font-400">Categories</div>
       <div class="flex flex-row justify-between items-center">
         <div
           class="flex hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none p-1 border-gray-100 border-1 rounded-md mr-1"
@@ -163,11 +189,15 @@ const onTabClick = ({ slug }: { slug: string }) => {
       v-model:selectedKeys="openPageTabKeys"
       :load-data="onLoadData"
       :tree-data="pages"
+      draggable
+      :on-drop="onDrop"
       show-icon
+      class="h-full overflow-auto pb-20"
+      @dragenter="onDragEnter"
     >
-      <template #title="{ title, slug, id }">
+      <template #title="{ title, slug, id, parent_page_id }">
         <div class="flex flex-row w-full items-center justify-between group pt-1" @click="onTabClick({ slug })">
-          <div class="flex">{{ title }}</div>
+          <div class="flex" :class="{ 'font-semibold': !parent_page_id }">{{ title }}</div>
           <div class="flex flex-row justify-between items-center">
             <div
               class="flex hover:(text-primary/100) cursor-pointer select-none invisible group-hover:visible mr-2"
@@ -175,11 +205,23 @@ const onTabClick = ({ slug }: { slug: string }) => {
             >
               <MdiPlus />
             </div>
-            <div
-              class="flex hover:(text-primary/100 !bg-blue-50 rounded-md) cursor-pointer select-none invisible group-hover:visible"
-            >
-              <MdiDotsVertical />
-            </div>
+            <a-dropdown placement="bottomRight" trigger="click">
+              <div
+                class="flex hover:(text-primary/100 !bg-blue-50 rounded-md) cursor-pointer select-none invisible group-hover:visible"
+              >
+                <MdiDotsVertical />
+              </div>
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item class="!py-2">
+                    <div class="flex flex-row items-center space-x-2 text-red-500" @click="() => openDeleteModal(id)">
+                      <MdiDeleteOutline class="flex" />
+                      <div class="flex">Delete</div>
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </div>
         </div>
       </template>
@@ -246,6 +288,15 @@ const onTabClick = ({ slug }: { slug: string }) => {
         <a-input v-model:value="importFormData.title" />
       </a-form-item>
     </a-form>
+  </a-modal>
+  <a-modal v-model:visible="deletePageModalOpen" centered :closable="false" :footer="false">
+    <div class="flex flex-col">
+      <div class="flex">Are you sure you want to delete this page?</div>
+      <div class="flex flex-row mt-4 space-x-3 ml-2">
+        <a-button type="text" @click="deletePageModalOpen = false">Cancel</a-button>
+        <a-button type="danger" @click="onDeletePage">Delete</a-button>
+      </div>
+    </div>
   </a-modal>
 </template>
 

@@ -56,7 +56,7 @@ await loadProfile(route.params.username as string)
             </div>
           </div>
         </a-layout-sider>
-        <a-layout-content class="h-auto mx-5 my-2 scrollbar-thumb-gray-500">
+        <a-layout-content class="h-auto px-5 py-2 scrollbar-thumb-gray-500">
           <a-tabs>
             <a-tab-pane key="overview" class="w-full">
               <template #tab>

@@ -14,7 +14,12 @@ await loadProfile(route.params.username as string)
       <a-layout-sider :collapsed="false" width="320" class="h-max px-5" :trigger="null" collapsible theme="light">
         <div class="mx-2">
           <div class="my-3">
-            <a-avatar :size="150" :src="profile.avatar" />
+            <a-avatar v-if="profile.avatar" :size="150" :src="profile.avatar" />
+            <a-avatar v-else :size="150">
+              <template #icon>
+                <MdiAccount class="w-full h-full p-[15px]" />
+              </template>
+            </a-avatar>
           </div>
           <div class="nc-profile-display-name text-[30px] my-2 font-bold">
             {{ profile.display_name }}
@@ -43,11 +48,11 @@ await loadProfile(route.params.username as string)
             </a-button>
           </div>
 
-          <div class="nc-profile-location my-2">
+          <div v-if="profile.location" class="nc-profile-location my-2">
             <div class="flex items-center mr-4"><MdiMapMarkerOutline class="text-lg mr-2" /> {{ profile.location }}</div>
           </div>
 
-          <div class="nc-profile-website my-2">
+          <div v-if="profile.website" class="nc-profile-website my-2">
             <div class="flex items-center mr-4">
               <MdiLinkVariant class="text-lg mr-2" />
               <a class="!no-underline" :href="profile.website" target="_blank">{{ profile.website }}</a>

@@ -70,8 +70,8 @@ watchDebounced(
     }
   },
   {
-    debounce: 1000,
-    maxWait: 1300,
+    debounce: 250,
+    maxWait: 350,
   },
 )
 

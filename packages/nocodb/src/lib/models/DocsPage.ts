@@ -77,7 +77,7 @@ export default class DocsPage {
     }
 
     await this.reorderPages(projectId, parent_page_id);
-  
+
     return await this.get(createdPageId, ncMeta);
   }
 
@@ -153,6 +153,18 @@ export default class DocsPage {
       await this.reorderPages(projectId, attributes.parent_page_id, pageId);
     }
 
+    if (attributes.parent_page_id) {
+      await ncMeta.metaUpdate(
+        projectId,
+        null,
+        MetaTable.DOCS_PAGE,
+        {
+          is_parent: true,
+        },
+        attributes.parent_page_id
+      );
+    }
+
     return await this.get(pageId, ncMeta);
   }
 
@@ -161,15 +173,18 @@ export default class DocsPage {
     parent_page_id,
     ncMeta = Noco.ncMeta,
   }): Promise<DocsPage[]> {
-    const pageList = await ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE, {
-      condition: {
-        parent_page_id: parent_page_id,
-      },
-    });
-
-    pageList.sort(
-      (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
+    const pageList = await ncMeta.metaList2(
+      projectId,
+      null,
+      MetaTable.DOCS_PAGE,
+      {
+        condition: {
+          parent_page_id: parent_page_id,
+        },
+      }
     );
+
+    pageList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
     return pageList;
   }
@@ -178,15 +193,18 @@ export default class DocsPage {
     { projectId, parent_page_id },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPage[]> {
-    const pageList = await ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE, {
-      condition: {
-        parent_page_id: parent_page_id ?? null,
-      },
-    });
-
-    pageList.sort(
-      (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
+    const pageList = await ncMeta.metaList2(
+      projectId,
+      null,
+      MetaTable.DOCS_PAGE,
+      {
+        condition: {
+          parent_page_id: parent_page_id ?? null,
+        },
+      }
     );
+
+    pageList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
     return pageList;
   }
@@ -203,7 +221,10 @@ export default class DocsPage {
     keepPageId?: string,
     ncMeta = Noco.ncMeta
   ) {
-    const pages = await this.listPages({ projectId: projectId, parent_page_id }, ncMeta);
+    const pages = await this.listPages(
+      { projectId: projectId, parent_page_id },
+      ncMeta
+    );
 
     if (keepPageId) {
       const kpPage = pages.splice(
@@ -218,13 +239,13 @@ export default class DocsPage {
     // update order for pages
     for (const [i, b] of Object.entries(pages)) {
       b.order = parseInt(i) + 1;
-      
+
       await ncMeta.metaUpdate(
         b.project_id,
         null,
         MetaTable.DOCS_PAGE,
         {
-          order: b.order
+          order: b.order,
         },
         b.id
       );

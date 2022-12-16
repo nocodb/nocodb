@@ -2,7 +2,7 @@
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
-import type { AntTreeNodeDragEnterEvent, AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
+import type { AntTreeNodeDragEnterEvent, AntTreeNodeDropEvent, TreeDataItem } from 'ant-design-vue/lib/tree'
 
 // todo: Move the ant tree data converstion from the composables to here
 const {
@@ -17,6 +17,7 @@ const {
   nestedUrl,
   navigateToFirstPage,
   deletePage,
+  reorderPages,
   // addNewPage,
 } = useDocs()
 const route = useRoute()
@@ -127,12 +128,16 @@ const openDeleteModal = (pageId: string) => {
   deletePageModalOpen.value = true
 }
 
-const onDragEnter = (info: AntTreeNodeDragEnterEvent) => {
-  console.log(info)
+const onDragEnter = () => {
+  // console.log(info)
 }
 
-const onDrop = (info: AntTreeNodeDropEvent) => {
-  console.log('onDrop', info)
+const onDrop = async (info: AntTreeNodeDropEvent) => {
+  await reorderPages({
+    sourceNodeId: info.dragNode.dataRef.id,
+    targetParentNodeId: info.dropToGap ? info.node.dataRef.parent_page_id : info.node.dataRef.id,
+    index: info.dropPosition,
+  })
 }
 </script>
 

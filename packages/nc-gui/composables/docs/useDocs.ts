@@ -239,6 +239,79 @@ export function useDocs() {
     }
   }
 
+  const reorderPages = async ({
+    sourceNodeId,
+    targetParentNodeId,
+    index,
+  }: {
+    sourceNodeId: string
+    targetParentNodeId?: string
+    index: number
+  }) => {
+    const sourceNode = findPage(sourceNodeId)!
+    const targetParentNode = targetParentNodeId && findPage(targetParentNodeId)
+    const sourceParentNode = findPage(sourceNode.parent_page_id!)
+
+    if (!sourceParentNode && targetParentNode) return
+    if (sourceParentNode && !targetParentNode) return
+
+    if (sourceParentNode?.children) {
+      sourceParentNode.children = sourceParentNode.children.filter((p) => p.id !== sourceNode.id)
+      sourceParentNode.isLeaf = sourceParentNode.children.length === 0
+    }
+
+    if (!targetParentNode) {
+      index = index < 0 ? 0 : index
+      // index of the source node
+      const sourceIndex = pages.value.findIndex((p) => p.id === sourceNode.id)
+      // move the index to the correct position
+      if (index > pages.value.length) {
+        index = pages.value.length
+      }
+      pages.value.splice(index, 0, sourceNode)
+      // remove the previous duplicate node by source index
+      if (index > sourceIndex) {
+        pages.value.splice(sourceIndex, 1)
+      } else {
+        pages.value.splice(sourceIndex + 1, 1)
+      }
+
+      sourceNode.parent_page_id = undefined
+      sourceNode.parentPageSlug = undefined
+
+      const node = findPage(sourceNodeId)!
+      await $api.nocoDocs.updatePage(node.id!, {
+        attributes: { order: index + 1 } as any,
+        projectId: projectId(),
+      })
+      return
+    }
+
+    if (targetParentNode.children) {
+      targetParentNode.children.splice(index, 0, sourceNode)
+      targetParentNode.isLeaf = false
+    } else {
+      targetParentNode.children = [sourceNode]
+      targetParentNode.isLeaf = false
+    }
+
+    sourceNode.parent_page_id = targetParentNode.id
+    sourceNode.parentPageSlug = targetParentNode.slug
+
+    const node = findPage(sourceNodeId)!
+    await $api.nocoDocs.updatePage(node.id!, {
+      attributes: { order: index + 1, parent_page_id: targetParentNodeId } as any,
+      projectId: projectId(),
+    })
+
+    navigateTo(nestedUrl(node.slug!))
+    for (const slug of route.params.slugs) {
+      if (!openedTabs.value.includes(slug)) {
+        openedTabs.value.push(slug)
+      }
+    }
+  }
+
   return {
     fetchPages,
     pages,
@@ -254,6 +327,7 @@ export function useDocs() {
     nestedUrl,
     navigateToFirstPage,
     deletePage,
+    reorderPages,
     // addNewPage,
   }
 }

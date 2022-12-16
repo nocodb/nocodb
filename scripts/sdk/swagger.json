@@ -1052,11 +1052,6 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            },
-            "application/xml": {
-              "schema": {
                 "$ref": "#/components/schemas/Follower"
               }
             }

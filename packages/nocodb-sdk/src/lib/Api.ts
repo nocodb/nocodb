@@ -1687,7 +1687,7 @@ export class Api<
      */
     followerCreate: (
       userId: string,
-      data: UserType,
+      data: FollowerType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({

@@ -105,7 +105,6 @@ export const projectThemeColors = [
   '#333333',
 ]
 
-
 // convert string into a unique color
 export const stringToColour = function (str: string) {
   let i

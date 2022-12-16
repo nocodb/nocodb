@@ -1,6 +1,6 @@
-import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {OrgUserRoles, WorkspaceUserRoles} from 'nocodb-sdk';
 
-export default {
+const rolePermissions = {
   owner: {
     exclude: {
       pluginList: true,
@@ -310,6 +310,7 @@ export default {
   },
   [OrgUserRoles.VIEWER]: {
     include: {
+      workspaceProjectList: true,
       apiTokenList: true,
       apiTokenCreate: true,
       apiTokenDelete: true,
@@ -323,6 +324,7 @@ export default {
   [OrgUserRoles.SUPER_ADMIN]: '*',
   [OrgUserRoles.CREATOR]: {
     include: {
+      workspaceProjectList: true,
       apiTokenList: true,
       apiTokenCreate: true,
       apiTokenDelete: true,
@@ -346,12 +348,21 @@ export default {
       workspaceCreate: true,
     },
   },
+
+  // todo: role correction
   [WorkspaceUserRoles.CREATOR]: {
-    include: {
-      workspaceList: true,
-      workspaceGet: true,
-      workspaceDelete: true,
-    },
+    // include: {
+    //   workspaceList: true,
+    //   workspaceGet: true,
+    //   workspaceDelete: true,
+    // },
+    exclude: {
+      pluginList: true,
+      pluginTest: true,
+      pluginRead: true,
+      pluginUpdate: true,
+      isPluginActive: true,
+    }
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
@@ -361,23 +372,18 @@ export default {
     },
   },
   [WorkspaceUserRoles.OWNER]: {
-    include: {
-      workspaceCreate: true,
-      workspaceList: true,
-      workspaceGet: true,
-      workspaceUpdate: true,
-      workspaceDelete: true,
-      workspaceUserList: true,
-      workspaceUserGet: true,
-      workspaceUserUpdate: true,
-      workspaceUserDelete: true,
-      workspaceInvitationList: true,
-      workspaceInvitationGet: true,
-      workspaceInvitationUpdate: true,
-      workspaceInvitationDelete: true,
-      workspaceInvitationAccept: true,
-      workspaceInvitationReject: true,
-      workspaceInvitationTokenRead: true,
-    },
+    exclude: {
+      pluginList: true,
+      pluginTest: true,
+      pluginRead: true,
+      pluginUpdate: true,
+      isPluginActive: true,
+    }
   },
 };
+
+// include viewer project role permissions
+Object.assign(rolePermissions[WorkspaceUserRoles.VIEWER].include, rolePermissions["viewer"].include)
+
+
+export default rolePermissions;

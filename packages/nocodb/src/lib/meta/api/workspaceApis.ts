@@ -10,11 +10,14 @@ import User from '../../models/User';
 
 import { v4 as uuidv4 } from 'uuid';
 import Project from '../../models/Project';
+import validateParams from '../helpers/validateParams';
 
 const workspaceCreate = async (
   req: Request<any, WorkspaceType, WorkspaceType>,
   res
 ) => {
+  validateParams(['title'], req.body);
+
   const workspace = await Workspace.insert({
     ...req.body,
     // todo : extend request type
@@ -42,11 +45,13 @@ const workspaceGet = async (
 };
 
 const workspaceList = async (
-  _req: Request,
+  req: Request,
   // todo: replace type with paginated type
-  res: Response<any>
+  res: Response
 ) => {
-  const workspaces = await Workspace.list();
+  const workspaces = await WorkspaceUser.workspaceList({
+    fk_user_id: (req as any).user?.id,
+  });
 
   // todo: pagination
   res.json(
@@ -60,6 +65,8 @@ const workspaceUpdate = async (
   req: Request<{ workspaceId: string }, any, Partial<WorkspaceType>>,
   res: Response
 ) => {
+  validateParams(['title', 'description'], req.body);
+
   const workspace = await Workspace.update(req.params.workspaceId, req.body);
 
   res.json(workspace);
@@ -92,6 +99,8 @@ const workspaceUserGet = (_req, _res) => {
   // todo
 };
 const workspaceUserUpdate = async (req, res) => {
+  validateParams(['roles'], req.body);
+
   // todo
   const { workspaceId, userId } = req.params;
   const { roles } = req.body;
@@ -106,6 +115,8 @@ const workspaceUserDelete = async (req, res) => {
 };
 
 const workspaceInvite = async (req, res) => {
+  validateParams(['email', 'roles'], req.body);
+
   const { workspaceId } = req.params;
   const { email, roles } = req.body;
 

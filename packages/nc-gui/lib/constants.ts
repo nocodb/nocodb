@@ -1,4 +1,6 @@
-import { ProjectRole, Role } from './enums'
+import {ProjectRole, Role} from './enums'
+import {WorkspaceUser} from "../../nocodb/src/lib/models/WorkspaceUser";
+import {WorkspaceUserRoles} from "nocodb-sdk";
 
 export const NOCO = 'noco'
 
@@ -12,7 +14,7 @@ export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '..' : 
  *  `exclude` - which is an object, means all permissions are allowed except the ones listed in the object
  *  `undefined` or `{}` - which is the default value, means no permissions are allowed
  * */
-export const rolePermissions = {
+const rolePermissions = {
   // general role permissions
 
   [Role.Super]: '*',
@@ -79,3 +81,12 @@ export const rolePermissions = {
     },
   },
 } as const
+
+// todo: fix type error
+
+rolePermissions[WorkspaceUserRoles.CREATOR] = rolePermissions[ProjectRole.Creator]
+rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
+
+export {
+  rolePermissions
+}

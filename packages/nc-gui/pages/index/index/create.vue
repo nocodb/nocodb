@@ -11,8 +11,10 @@ import {
   ref,
   useApi,
   useNuxtApp,
+  useRoute,
   useSidebar,
 } from '#imports'
+import { NcProjectType } from '~/utils'
 
 const { $e } = useNuxtApp()
 
@@ -34,15 +36,19 @@ const formState = reactive({
   title: '',
 })
 
+const route = useRoute()
+
 const createProject = async () => {
   $e('a:project:create:xcdb')
   try {
+    // todo: provide proper project type
     const result = await api.project.create({
       title: formState.title,
-      type: 'docs',
+      fk_workspace_id: route.query.workspaceId,
+      type: route.query.type ?? NcProjectType.DB,
     })
 
-    await navigateTo(`/nc/doc/${result.id}`)
+    await navigateTo(`/nc/${route.query.type === NcProjectType.DOCS ? 'doc/' : ''}${result.id}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

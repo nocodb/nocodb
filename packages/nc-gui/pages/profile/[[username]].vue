@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useProfile, useRoute, userGlobal } from '#imports'
+import { useGlobal, useProfile, useRoute } from '#imports'
 
 const route = useRoute()
 

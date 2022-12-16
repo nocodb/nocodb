@@ -43,9 +43,9 @@ export function initStrategies(router): void {
               .then((user) => {
                 user['is_api_token'] = true;
 
-                if (req.workspaceId) {
+                if (req.ncWorkspaceId) {
                   // extract workspace role
-                  WorkspaceUser.get(req.workspaceId, user.id)
+                  WorkspaceUser.get(req.ncWorkspaceId, user.id)
                     .then((workspaceUser) => {
                       user.roles = user.roles + ',' + workspaceUser?.roles;
 
@@ -176,10 +176,10 @@ export function initStrategies(router): void {
               return done(new Error('Token Expired. Please login again.'));
             }
 
-            if (req.workspaceId) {
+            if (req.ncWorkspaceId) {
               // todo: cache
               // extract workspace role
-              WorkspaceUser.get(req.workspaceId, user.id)
+              WorkspaceUser.get(req.ncWorkspaceId, user.id)
                 .then((workspaceUser) => {
                   user.roles = user.roles + ',' + workspaceUser?.roles;
                   done(null, user);

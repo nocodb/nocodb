@@ -1,7 +1,7 @@
-import { OrgUserRoles } from 'nocodb-sdk';
+import {OrgUserRoles, WorkspaceUserRoles} from 'nocodb-sdk';
 import projectAcl from '../../utils/projectAcl';
-import { NextFunction, Request, Response } from 'express';
-import catchError, { NcError } from './catchError';
+import {NextFunction, Request, Response} from 'express';
+import catchError, {NcError} from './catchError';
 import extractWorkspaceProjectAndAuthenticate from './extractWorkspaceProjectAndAuthenticate';
 
 export default function (
@@ -32,7 +32,10 @@ export default function (
           roles?.commenter ||
           roles?.[OrgUserRoles.SUPER_ADMIN] ||
           roles?.[OrgUserRoles.CREATOR] ||
-          roles?.[OrgUserRoles.VIEWER]
+          roles?.[OrgUserRoles.VIEWER] ||
+          roles?.[WorkspaceUserRoles.OWNER] ||
+          roles?.[WorkspaceUserRoles.VIEWER] ||
+          roles?.[WorkspaceUserRoles.CREATOR]
         )
       ) {
         NcError.unauthorized('Unauthorized access');

@@ -11,7 +11,6 @@ import {
   useRouter,
   useSidebar,
 } from '#imports'
-import {navigateTo} from '#app'
 import {nextTick} from "@vue/runtime-core";
 
 definePageMeta({
@@ -209,7 +208,7 @@ const navigateToCreateProject = (type: NcProjectType) => {
       <!--      <a-layout-header></a-layout-header> -->
 
       <div class="w-full py-6 overflow-auto">
-        <div>
+        <div v-if="activeWorkspace">
           <div class="px-6 flex items-center">
             <div class="flex gap-2 items-center mb-4">
               <span class="nc-workspace-avatar !w-8 !h-8"

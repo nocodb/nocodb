@@ -1126,25 +1126,24 @@
         "description": "List Organisation User Following",
         "tags": [
           "Org users"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Follower"
-              }
-            }
-          }
-        }
+        ]
       }
     },
-    "/api/v1/users/{userId}/isFollowing": {
+    "/api/v1/users/{userId}/isFollowing/{followerId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
           "name": "userId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "followerId",
           "in": "path",
           "required": true
         }
@@ -1160,16 +1159,7 @@
         "description": "Check if Organisation User is following someone",
         "tags": [
           "Org users"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Follower"
-              }
-            }
-          }
-        }
+        ]
       }
     },
     "/api/v1/users/{userId}/generate-reset-url": {

@@ -1751,16 +1751,10 @@ export class Api<
      * @request GET:/api/v1/users/{userId}/following
      * @response `200` `void` OK
      */
-    followingList: (
-      userId: string,
-      data: FollowerType,
-      params: RequestParams = {}
-    ) =>
+    followingList: (userId: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}/following`,
         method: 'GET',
-        body: data,
-        type: ContentType.Json,
         ...params,
       }),
 
@@ -1770,19 +1764,17 @@ export class Api<
      * @tags Org users
      * @name IsFollowing
      * @summary Organisation User IsFollowing
-     * @request GET:/api/v1/users/{userId}/isFollowing
+     * @request GET:/api/v1/users/{userId}/isFollowing/{followerId}
      * @response `200` `void` OK
      */
     isFollowing: (
       userId: string,
-      data: FollowerType,
+      followerId: string,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/users/${userId}/isFollowing`,
+        path: `/api/v1/users/${userId}/isFollowing/${followerId}`,
         method: 'GET',
-        body: data,
-        type: ContentType.Json,
         ...params,
       }),
 

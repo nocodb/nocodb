@@ -11,7 +11,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Commands from './commands'
 import suggestion from './suggestion'
 
-const { openedPage, updatePage } = useDocs()
+const { openedPage, updatePage, openedNestedPages, nestedUrl } = useDocs()
 const content = computed(() => openedPage.value?.content || '')
 
 const editor = useEditor({
@@ -56,15 +56,43 @@ watch(
   },
 )
 
-watchDebounced(content, () => updatePage(openedPage.value!.id!, { content: openedPage.value!.content } as any), {
-  debounce: 300,
-  maxWait: 600,
-})
+watchDebounced(
+  content,
+  () => openedPage.value?.id && updatePage(openedPage.value?.id, { content: openedPage.value!.content } as any),
+  {
+    debounce: 300,
+    maxWait: 600,
+  },
+)
 </script>
 
 <template>
   <a-layout-content>
     <div v-if="openedPage" class="mx-20 mt-16 flex flex-col gap-y-4">
+      <div class="flex flex-row justify-between">
+        <a-breadcrumb v-if="openedNestedPages.length !== 1" class="!px-2">
+          <a-breadcrumb-item v-for="({ slug, title }, index) of openedNestedPages" :key="slug">
+            <NuxtLink
+              class="!text-gray-400 !hover:text-black docs-breadcrumb-item"
+              :to="nestedUrl(slug!)"
+              :class="{
+                '!text-black !underline-current': index === openedNestedPages.length - 1,
+                '!underline-transparent !hover:underline-transparent': index !== openedNestedPages.length - 1,
+              }"
+            >
+              {{ title }}
+            </NuxtLink>
+          </a-breadcrumb-item>
+        </a-breadcrumb>
+        <div v-else class="flex"></div>
+        <div class="flex flex-row">
+          <div
+            class="hover:cursor-pointer hover:bg-gray-50 flex flex-col justify-center !px-1 !py-1 rounded-md !text-gray-400 !hover:text-gray-600"
+          >
+            <MdiShareVariant />
+          </div>
+        </div>
+      </div>
       <a-typography-title class="px-2">
         {{ openedPage.title }}
       </a-typography-title>

@@ -43,7 +43,7 @@ export interface WorkspaceUserType {
 export interface WorkspaceUserInviteType {
   /** @format email */
   email?: string;
-  role?: string;
+  roles?: string;
 }
 
 /**
@@ -5078,6 +5078,24 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
         method: 'DELETE',
+        ...params,
+      }),
+  };
+  workspaceProject = {
+    /**
+     * @description Workspace projects list
+     *
+     * @tags Workspace project
+     * @name List
+     * @summary Workspace projects list
+     * @request GET:/api/v1/workspaces/{workspaceId}/projects
+     * @response `200` `ProjectListType` OK
+     */
+    list: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<ProjectListType, any>({
+        path: `/api/v1/workspaces/${workspaceId}/projects`,
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };

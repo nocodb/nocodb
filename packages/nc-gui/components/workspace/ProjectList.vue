@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {useWorkspaceStoreOrThrow} from "~/composables/useWorkspaceStore";
+import {useWorkspaceStoreOrThrow, stringToColour} from "#imports";
 import {Empty} from "ant-design-vue";
 
 
@@ -11,20 +11,6 @@ enum ProjectType {
 
 const {projects, loadProjects} = useWorkspaceStoreOrThrow()
 
-// todo: make it customizable
-const stringToColour = function (str: string) {
-  let i
-  let hash = 0
-  for (i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  let colour = '#'
-  for (i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xff
-    colour += `00${value.toString(16)}`.substr(-2)
-  }
-  return colour
-}
 // todo: load using api
 const projects1 = $ref([
   {

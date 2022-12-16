@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {useWorkspaceStoreOrThrow} from "#imports";
+import {useWorkspaceStoreOrThrow, stringToColour} from "#imports";
 import {OrgUserRoles, WorkspaceUserRoles} from "nocodb-sdk";
 import {Empty} from 'ant-design-vue'
 
@@ -11,20 +11,6 @@ const rolesLabel = {
 
 const {collaborators, loadCollaborators} = useWorkspaceStoreOrThrow()
 
-// todo: make it customizable
-const stringToColour = function (str: string) {
-  let i
-  let hash = 0
-  for (i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  let colour = '#'
-  for (i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xff
-    colour += `00${value.toString(16)}`.substr(-2)
-  }
-  return colour
-}
 
 const getRolesLabel = (roles?: string) => {
   return roles?.split(/\s*,\s*/)?.map(role => rolesLabel[role]).join(', ') ?? ''
@@ -33,6 +19,12 @@ const getRolesLabel = (roles?: string) => {
 
 <template>
   <div>
+    <div class="px-6 pb-2">
+    <div class="text-xl mb-2">Members</div>
+    <div class="text-gray-500 text-xs">Manage who has access to this workspace</div>
+    </div>
+
+    <WorkspaceInviteSection />
     <table v-if="collaborators?.length" class="nc-project-list-table">
       <thead>
       <tr>

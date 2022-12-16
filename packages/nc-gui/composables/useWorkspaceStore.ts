@@ -48,16 +48,20 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   }
 
   const deleteWorkspace = async (workspaceId: string) => {
-    try {
-      // todo: pagination
-      const res = await $api.workspace.delete(workspaceId)
-      console.log(res)
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    }
+    // todo: pagination
+    const res = await $api.workspace.delete(workspaceId)
+    console.log(res)
   }
 
-  const loadProjects = () => {}
+  const loadProjects = async () => {
+    if (!activeWorkspace.value?.id) {
+      throw new Error('Workspace not selected')
+    }
+
+    const { list } = await $api.workspaceProject.list(activeWorkspace.value?.id)
+
+    projects.value = list
+  }
 
   const loadCollaborators = async (params?: { offset?: number; limit?: number }) => {
     if (!activeWorkspace.value?.id) {
@@ -71,14 +75,14 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   }
 
   // invite new user to the workspace
-  const inviteCollaborator = async (email: string, role: WorkspaceUserRoles) => {
+  const inviteCollaborator = async (email: string, roles: WorkspaceUserRoles) => {
     if (!activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
     await $api.workspaceUser.invite(activeWorkspace.value.id!, {
       email,
-      role,
+      roles,
     })
   }
 

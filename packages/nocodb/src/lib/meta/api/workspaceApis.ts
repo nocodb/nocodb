@@ -1,15 +1,15 @@
-import {Request, Response, Router} from 'express';
-import {Workspace} from '../../models/Workspace';
-import {WorkspaceType, WorkspaceUserRoles} from 'nocodb-sdk';
-import {PagedResponseImpl} from '../helpers/PagedResponse';
+import { Request, Response, Router } from 'express';
+import { Workspace } from '../../models/Workspace';
+import { WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk';
+import { PagedResponseImpl } from '../helpers/PagedResponse';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import {WorkspaceUser} from '../../models/WorkspaceUser';
-import {NcError} from '../helpers/catchError';
+import { WorkspaceUser } from '../../models/WorkspaceUser';
+import { NcError } from '../helpers/catchError';
 import validator from 'validator';
 import User from '../../models/User';
-import ProjectUser from '../../models/ProjectUser';
 
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
+import Project from '../../models/Project';
 
 const workspaceCreate = async (
   req: Request<any, WorkspaceType, WorkspaceType>,
@@ -24,8 +24,8 @@ const workspaceCreate = async (
   await WorkspaceUser.insert({
     fk_workspace_id: workspace.id,
     fk_user_id: (req as any).user.id,
-    roles: WorkspaceUserRoles.OWNER
-  })
+    roles: WorkspaceUserRoles.OWNER,
+  });
 
   res.json(workspace);
 };
@@ -36,7 +36,7 @@ const workspaceGet = async (
 ) => {
   const workspace = await Workspace.get(req.params.workspaceId);
 
-  if(!workspace) NcError.notFound('Workspace not found')
+  if (!workspace) NcError.notFound('Workspace not found');
 
   res.json(workspace);
 };
@@ -64,7 +64,10 @@ const workspaceUpdate = async (
 
   res.json(workspace);
 };
-const workspaceDelete = async (req: Request<{ workspaceId: string }>, res: Response) => {
+const workspaceDelete = async (
+  req: Request<{ workspaceId: string }>,
+  res: Response
+) => {
   // block unauthorized user form deleting
 
   // todo: unlink any project linked
@@ -88,23 +91,23 @@ const workspaceUserGet = (_req, _res) => {
 };
 const workspaceUserUpdate = async (req, res) => {
   // todo
-  const {workspaceId, userId} = req.params;
-  const {roles} = req.body;
+  const { workspaceId, userId } = req.params;
+  const { roles } = req.body;
 
-  res.json(await WorkspaceUser.update(workspaceId, userId, {roles}));
+  res.json(await WorkspaceUser.update(workspaceId, userId, { roles }));
 };
 const workspaceUserDelete = async (req, res) => {
   // todo
-  const {workspaceId, userId} = req.params;
+  const { workspaceId, userId } = req.params;
 
   res.json(await WorkspaceUser.delete(workspaceId, userId));
 };
 
 const workspaceInvite = async (req, res) => {
-  const {workspaceId} = req.params;
-  const {email, roles} = req.body;
+  const { workspaceId } = req.params;
+  const { email, roles } = req.body;
 
-  if (roles.split(',').length > 1) {
+  if (roles?.split(',').length > 1) {
     NcError.badRequest('Only one role can be assigned');
   }
 
@@ -138,10 +141,10 @@ const workspaceInvite = async (req, res) => {
 
     if (user) {
       // check if this user has been added to this project
-      const projectUser = await ProjectUser.get(req.params.projectId, user.id);
-      if (projectUser) {
+      const workspaceUser = await WorkspaceUser.get(workspaceId, user.id);
+      if (workspaceUser) {
         NcError.badRequest(
-          `${user.email} with role ${projectUser.roles} already exists in this project`
+          `${user.email} with role ${workspaceUser.roles} already exists in this project`
         );
       }
 
@@ -229,13 +232,23 @@ const workspaceInvite = async (req, res) => {
       msg: 'success',
     });
   } else {
-    return res.json({invite_token, emails, error});
+    return res.json({ invite_token, emails, error });
   }
 
   // check if user exists
   // if not, create user
   // create workspace user
   // send email
+};
+
+const workspaceProjectList = async (req, res) => {
+  const projects = await Project.listByWorkspace(req.params.workspaceId);
+
+  res.json(
+    new PagedResponseImpl<WorkspaceType>(projects, {
+      count: projects.length,
+    })
+  );
 };
 
 /*
@@ -293,16 +306,13 @@ const workspaceInvitationReject = async (req, res) => {
   // todo
 };*/
 
-const router = Router({mergeParams: true});
+const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/workspaces',
   ncMetaAclMw(workspaceCreate, 'workspaceCreate')
 );
 
-router.get(
-  '/api/v1/workspaces/',
-  ncMetaAclMw(workspaceList, 'workspaceList')
-);
+router.get('/api/v1/workspaces/', ncMetaAclMw(workspaceList, 'workspaceList'));
 
 router.get(
   '/api/v1/workspaces/:workspaceId',
@@ -346,26 +356,10 @@ router.post(
   ncMetaAclMw(workspaceInvite, 'workspaceInvite')
 );
 
-/*  // invitation list
-
-
-  // invitation get
-  router.get(
-    '/api/v1/workspaces/:workspaceId/invitations/:invitationId',
-    ncMetaAclMw(workspaceInvitationGet, 'workspaceInvitationGet')
-  );
-
-  // invitation update
-  router.patch(
-    '/api/v1/workspaces/:workspaceId/invitations/:invitationId',
-    ncMetaAclMw(workspaceInvitationUpdate, 'workspaceInvitationUpdate')
-  );
-
-  // invitation delete
-  router.delete(
-    '/api/v1/workspaces/:workspaceId/invitations/:invitationId',
-    ncMetaAclMw(workspaceInvitationDelete, 'workspaceInvitationDelete')
-  );*/
+router.get(
+  '/api/v1/workspaces/:workspaceId/projects',
+  ncMetaAclMw(workspaceProjectList, 'workspaceProjectList')
+);
 
 // invitation accept
 router.post(
@@ -379,11 +373,4 @@ router.post(
   ncMetaAclMw(workspaceInvitationReject, 'workspaceInvitationReject')
 );
 
-/*  // invitation token read
-  router.post(
-    '/api/v1/workspaces/:workspaceId/invitations/:invitationId/:tokenId',
-    ncMetaAclMw(workspaceInvitationTokenRead, 'workspaceInvitationTokenRead')
-  );*/
-
-
-export default router
+export default router;

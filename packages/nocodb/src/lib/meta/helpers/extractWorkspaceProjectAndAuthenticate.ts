@@ -88,6 +88,8 @@ export default async (req, res, next) => {
       req.ncWorkspaceId = (await Project.get(req.ncProjectId)).fk_workspace_id
     } else if (req.params.workspaceId) {
       req.ncWorkspaceId = req.params.workspaceId;
+    } else if (req.body.fk_workspace_id) {
+      req.ncWorkspaceId = req.body.fk_workspace_id;
     }
 
 

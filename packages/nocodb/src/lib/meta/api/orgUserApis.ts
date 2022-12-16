@@ -24,6 +24,16 @@ import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { randomTokenString } from '../helpers/stringHelpers';
 import { sendInviteEmail } from './projectUserApis';
 
+async function userGetByUsername(req, res) {
+  const user = await User.getByUsername(req.params.username);
+
+  if (!user) {
+    NcError.notFound(`User with username '${req.params.username}' not found`);
+  }
+
+  res.json(user);
+}
+
 async function userList(req, res) {
   res.json(
     new PagedResponseImpl(await User.list(req.query), {
@@ -258,7 +268,7 @@ async function userProfileGet(req, res) {
   const user = await User.getUserProfile(req.params.userId);
 
   if (!user) {
-    NcError.badRequest(`User with id '${req.params.userId}' not found`);
+    NcError.notFound(`User with id '${req.params.userId}' not found`);
   }
 
   res.json(user);
@@ -337,6 +347,13 @@ router.get(
     blockApiTokenAccess: true,
   })
 );
+
+router.get(
+  '/api/v1/users/:username',
+  metaApiMetrics,
+  ncMetaAclMw(userGetByUsername, 'userGetByUsername')
+);
+
 router.patch(
   '/api/v1/users/:userId',
   metaApiMetrics,

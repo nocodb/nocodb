@@ -281,7 +281,7 @@ export default class User implements UserType {
     userId,
     ncMeta = Noco.ncMeta
   ): Promise<Partial<UserType>> {
-    return await ncMeta.metaGet2(null, null, MetaTable.USERS, userId, [
+    const profile = await ncMeta.metaGet2(null, null, MetaTable.USERS, userId, [
       'id',
       'email',
       'avatar',
@@ -291,6 +291,13 @@ export default class User implements UserType {
       'location',
       'website',
     ]);
+    const followerCount = (await this.getFollowerList(userId)).length;
+    const followingCount = (await this.getFollowingList(userId)).length;
+    return {
+      ...profile,
+      followerCount,
+      followingCount,
+    };
   }
 
   // TODO: cache

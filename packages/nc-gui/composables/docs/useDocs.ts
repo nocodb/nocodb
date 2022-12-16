@@ -4,6 +4,7 @@ import { extractSdkResponseErrorMsg, useNuxtApp, useState } from '#imports'
 
 export interface DocsPage extends DocsPageType {
   children?: DocsPage[]
+  parentPageSlug?: string
   isLeaf: boolean
   key: string
 }
@@ -13,14 +14,20 @@ export function useDocs() {
   const route = useRoute()
 
   const pages = useState<DocsPage[]>('docsPages', () => [])
-  const openedPageId = useState<string>('openedPageId', () => '')
-  const openedTabs = useState<string[]>('openedTabs', () => [])
-  const openedPage = computed(() => findPage(openedPageId.value))
+  const openedTabs = useState<string[]>('openedDocsTabs', () => [])
+  const openedPageSlug = computed(() => route.params.slugs[route.params.slugs.length - 1])
+  const openedPage = computed(() => findPage(openedPageSlug.value))
+
+  const openedNestedPages = computed(() => {
+    const slugs = route.params.slugs
+    const pages = slugs.map((slug) => findPage(slug)).filter((p) => p) as DocsPage[]
+    return pages
+  })
 
   // todo: Integrate useProject here
   const projectId = () => route.params.projectId as string
 
-  const fetchPages = async (parentPageId?: string | undefined) => {
+  const fetchPages = async ({ parentPageId }: { parentPageId?: string; fetchNestedChildPagesFromRoute?: boolean } = {}) => {
     try {
       const docs = await $api.nocoDocs.listPages({
         projectId: projectId(),
@@ -31,15 +38,34 @@ export function useDocs() {
         const parentPage = findPage(parentPageId)
         if (!parentPage) return
 
-        parentPage.children = docs.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id! }))
+        parentPage.children = docs.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.slug!, parentPageSlug: parentPage.slug }))
       } else {
-        pages.value = docs.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id! }))
+        pages.value = docs.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.slug! }))
       }
 
-      if (docs.length > 0) openedPageId.value = docs[0].id!
-      openedTabs.value = [...openedTabs.value, openedPageId.value]
+      return docs
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  async function fetchNestedChildPagesFromRoute() {
+    let parentPage: DocsPageType | undefined = pages.value.find((page) => page.slug === route.params.slugs[0])
+
+    if (!route.params.slugs) return
+
+    const slugs = (route.params.slugs as string[]).filter((_, index) => index !== 0)
+    for (const slug of slugs) {
+      const childDocs = await fetchPages({ parentPageId: parentPage?.id })
+
+      if (!childDocs) throw new Error(`Nested Child Page not found:${parentPage?.id}`)
+      parentPage = childDocs.find((page) => page.slug === slug)
+    }
+
+    for (const slug of route.params.slugs) {
+      if (!openedTabs.value.includes(slug)) {
+        openedTabs.value.push(slug)
+      }
     }
   }
 
@@ -55,39 +81,69 @@ export function useDocs() {
         parentPage.children?.push({
           ...createdPageData,
           isLeaf: !createdPageData.is_parent,
-          key: createdPageData.id!,
+          key: createdPageData.slug!,
+          parentPageSlug: parentPage.slug,
         })
         parentPage.isLeaf = false
       } else {
-        pages.value.push({ ...createdPageData, isLeaf: !createdPageData.is_parent, key: createdPageData.id! })
+        pages.value.push({ ...createdPageData, isLeaf: !createdPageData.is_parent, key: createdPageData.slug! })
       }
 
-      openedPageId.value = createdPageData.id!
-      openedTabs.value = [...openedTabs.value, openedPageId.value]
+      navigateTo(nestedUrl(createdPageData.slug!))
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
 
-  function findPage(pageId: string) {
+  function nestedUrl(slug: string) {
+    const page = findPage(slug)!
+    const slugs = [page.slug!]
+    let parentPage = page
+    while (parentPage.parentPageSlug) {
+      slugs.unshift(parentPage.parentPageSlug)
+      parentPage = findPage(parentPage.parentPageSlug)!
+    }
+
+    return `/nc/doc/${projectId()}/${slugs.join('/')}`
+  }
+
+  function findPage(pageIdOrSlug: string) {
     // traverse the tree and find the parent page
-    const findPageInTree = (_pages: DocsPage[], pageId: string): DocsPage | undefined => {
+    const findPageInTree = (_pages: DocsPage[], _pageIdOrSlug: string): DocsPage | undefined => {
       for (const page of _pages) {
-        if (page.id === pageId) return page
+        if (page.id === _pageIdOrSlug || page.slug === _pageIdOrSlug) return page
 
         if (page.children) {
-          const foundPage = findPageInTree(page.children, pageId)
+          const foundPage = findPageInTree(page.children, _pageIdOrSlug)
           if (foundPage) return foundPage
         }
       }
     }
 
-    return findPageInTree(pages.value, pageId)
+    return findPageInTree(pages.value, pageIdOrSlug)
   }
 
   const updatePage = async (pageId: string, page: DocsPage) => {
     await $api.nocoDocs.updatePage(pageId, { attributes: page, projectId: projectId() })
   }
 
-  return { fetchPages, pages, createPage, openedPageId, openedPage, updatePage, openedTabs }
+  const navigateToFirstPage = () => {
+    if (pages.value.length) {
+      navigateTo(nestedUrl(pages.value[0].slug!))
+    }
+  }
+
+  return {
+    fetchPages,
+    pages,
+    createPage,
+    openedPageSlug,
+    openedPage,
+    updatePage,
+    openedTabs,
+    openedNestedPages,
+    fetchNestedChildPagesFromRoute,
+    nestedUrl,
+    navigateToFirstPage,
+  }
 }

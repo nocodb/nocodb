@@ -1,4 +1,10 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+definePageMeta({
+  key: 'true',
+  hideHeader: true,
+  layout: 'docs',
+})
+</script>
 
 <template>
   <NuxtLayout id="content" class="flex">
@@ -16,7 +22,7 @@
 
 .nc-left-sidebar {
   .nc-sidebar-left-toggle-icon {
-    @apply opacity-0 transition-opactity duration-200 transition-color text-white/80 hover:text-white/100;
+    @apply opacity-0 transition-opacity duration-200 transition-color text-white/80 hover:text-white/100;
 
     .nc-left-sidebar {
       @apply !border-r-0;

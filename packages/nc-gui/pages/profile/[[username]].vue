@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { useProfile, useRoute } from '#imports'
+import { useProfile, useRoute, userGlobal } from '#imports'
 
 const route = useRoute()
 
-const { loadProfile, profile } = useProfile()
+const { user } = useGlobal()
+
+const { loadProfile, profile, followUser, unfollowUser, isFollowing } = useProfile()
 
 await loadProfile(route.params.username as string)
 </script>
@@ -38,8 +40,23 @@ await loadProfile(route.params.username as string)
             </div>
           </div>
 
-          <div class="nc-profile-follow-btn my-4">
-            <a-button class="!bg-primary !border-none w-full text-center !text-white rounded" size="large"> Follow </a-button>
+          <div v-if="profile.id !== user.id" class="nc-profile-follow-btn my-4">
+            <a-button
+              v-if="!isFollowing"
+              class="!bg-primary !border-none w-full text-center !text-white rounded"
+              size="large"
+              @click="followUser(profile.id)"
+            >
+              Follow
+            </a-button>
+            <a-button
+              v-else
+              class="!bg-primary !border-none w-full text-center !text-white rounded"
+              size="large"
+              @click="unfollowUser(profile.id)"
+            >
+              Unfollow
+            </a-button>
           </div>
 
           <div class="nc-profile-edit-btn my-4">

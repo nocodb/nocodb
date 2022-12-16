@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { Ref } from 'vue'
 import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 
@@ -39,6 +40,7 @@ const importFormData = ref({
 })
 const importParentPageId = ref()
 const loadImport = ref(false)
+const importType: Ref<'nuxt' | 'md' | 'docusaurus' | 'vitepress' | null> = ref(null)
 
 const onLoadData: TreeProps['loadData'] = async (treeNode) => {
   return new Promise((resolve) => {
@@ -91,6 +93,7 @@ const openMagicModal = (parentId?: string | undefined) => {
 
 const openImportModal = (parentId?: string | undefined) => {
   importParentPageId.value = parentId
+  importType.value = null
   importModalOpen.value = true
 }
 
@@ -122,25 +125,37 @@ const onTabClick = ({ slug }: { slug: string }) => {
       <div class="flex flex-row justify-between items-center">
         <div
           class="flex hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none p-1 border-gray-100 border-1 rounded-md mr-1"
-          @click="() => openImportModal()"
-        >
-          <PhSparkleFill class="text-orange-400" />
-        </div>
-        <div
-          class="flex hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none p-1 border-gray-100 border-1 rounded-md mr-1"
-          @click="() => openMagicModal()"
-        >
-          <PhSparkleFill class="text-orange-400" />
-        </div>
-        <div
-          class="flex hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none p-1 border-gray-100 border-1 rounded-md mr-1"
           @click="() => openCreatePageModal()"
         >
           <MdiPlus />
         </div>
-        <div class="flex hover:(text-primary/100 !bg-blue-50 rounded-md) cursor-pointer select-none p-1">
-          <MdiDotsVertical />
-        </div>
+        <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
+          <div class="flex hover:(text-primary/100 !bg-blue-50 rounded-md) cursor-pointer select-none p-1" @click.prevent>
+            <MdiDotsVertical />
+          </div>
+          <template #overlay>
+            <a-menu>
+              <a-menu-item>
+                <div
+                  class="flex items-center hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none px-4 py-2"
+                  @click="() => openImportModal()"
+                >
+                  <PhUploadSimpleFill class="text-blue-400 mr-2" />
+                  Import
+                </div>
+              </a-menu-item>
+              <a-menu-item>
+                <div
+                  class="flex items-center hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none px-4 py-2"
+                  @click="() => openMagicModal()"
+                >
+                  <PhSparkleFill class="text-orange-400 mr-2" />
+                  Create Docs
+                </div>
+              </a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
       </div>
     </div>
     <a-tree
@@ -199,9 +214,34 @@ const onTabClick = ({ slug }: { slug: string }) => {
   </a-modal>
   <a-modal :visible="importModalOpen" :closable="false" :mask-closable="false" @cancel="importModalOpen = false" @ok="onImport">
     <template #title>
-      <div class="flex items-center">Import documentation</div>
+      <div class="flex items-center">
+        Import documentation
+        <PhUploadSimpleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-blue-400" />
+      </div>
     </template>
-    <a-form :model="importFormData">
+    <div v-if="importType === null">
+      <a-card :bordered="false">
+        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
+          <LogosNuxtIcon class="text-5xl" />
+        </a-card-grid>
+        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
+          <LogosDocusaurus class="text-5xl" />
+        </a-card-grid>
+        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
+          <LogosVitejs class="text-5xl" />
+        </a-card-grid>
+        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
+          <LogosConfluence class="text-5xl" />
+        </a-card-grid>
+        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
+          <SimpleIconsGitbook class="text-5xl" />
+        </a-card-grid>
+        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
+          <SimpleIconsNotion class="text-5xl" />
+        </a-card-grid>
+      </a-card>
+    </div>
+    <a-form v-else :model="importFormData">
       <a-form-item label="Url">
         <a-input v-model:value="importFormData.title" />
       </a-form-item>
@@ -248,5 +288,9 @@ const onTabClick = ({ slug }: { slug: string }) => {
   .ant-tree-indent-unit {
     @apply w-4 !important;
   }
+}
+
+.nc-docs-menu .ant-dropdown-menu-item {
+  @apply p-0 !important;
 }
 </style>

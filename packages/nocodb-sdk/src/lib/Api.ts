@@ -4909,6 +4909,25 @@ export class Api<
       }),
 
     /**
+     * @description List workspaces
+     *
+     * @tags Workspace
+     * @name Create
+     * @summary List workspaces
+     * @request POST:/api/v1/workspaces
+     * @response `200` `WorkspaceType` OK
+     */
+    create: (data: WorkspaceType, params: RequestParams = {}) =>
+      this.request<WorkspaceType, any>({
+        path: `/api/v1/workspaces`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Read workspace
      *
      * @tags Workspace
@@ -4959,26 +4978,6 @@ export class Api<
     delete: (workspaceId: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/workspaces/${workspaceId}`,
-        method: 'DELETE',
-        ...params,
-      }),
-
-    /**
-     * @description Delete workspace user
-     *
-     * @tags Workspace
-     * @name UserDelete
-     * @summary Delete workspace user
-     * @request DELETE:/api/v1/workspaces/{workspaceId}/users/{userId}
-     * @response `200` `void` OK
-     */
-    userDelete: (
-      workspaceId: string,
-      userId: string,
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
         method: 'DELETE',
         ...params,
       }),
@@ -5063,6 +5062,22 @@ export class Api<
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete workspace user
+     *
+     * @tags Workspace User
+     * @name Delete
+     * @summary Delete workspace user
+     * @request DELETE:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `void` OK
+     */
+    delete: (workspaceId: string, userId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'DELETE',
         ...params,
       }),
   };

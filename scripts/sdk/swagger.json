@@ -7159,6 +7159,35 @@
         ],
         "description": "List workspaces"
       },
+      "post": {
+        "summary": "List workspaces",
+        "operationId": "workspace-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Workspace"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "List workspaces"
+      },
       "parameters": []
     },
     "/api/v1/workspaces/{workspaceId}": {
@@ -7275,13 +7304,13 @@
           }
         },
         "requestBody": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkspaceUserInvite"
-                }
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceUserInvite"
               }
             }
+          }
         },
         "tags": [
           "Workspace user"
@@ -7356,7 +7385,7 @@
           }
         },
         "tags": [
-          "Workspace"
+          "Workspace User"
         ],
         "description": "Delete workspace user"
       },

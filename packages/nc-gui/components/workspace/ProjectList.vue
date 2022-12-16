@@ -1,44 +1,6 @@
-<template>
-  <div>
-  <table class="nc-project-list-table">
-    <thead>
-    <tr>
-      <th>Project Name</th>
-      <th>Project Type</th>
-      <th>Last Modified</th>
-      <th>My Role</th>
-      <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr v-for="(project, i) of projects" :key="i">
-      <td class="!py-0">
-        <div class="flex items-center nc-project-title gap-2">
-          <span class="color-band" :style="{ backgroundColor: stringToColour(project.title) }" />
-          {{ project.title }}
-        </div>
-      </td>
-      <td>
-        <div class="flex items-center gap-2">
-          <MaterialSymbolsDocs class="text-gray-500" v-if="project.types?.includes(ProjectType.DOCS)" />
-          <MdiTransitConnectionVariant class="text-gray-500" v-if="project.types?.includes(ProjectType.AUTOMATION)" />
-          <MdiDatabaseOutline class="text-gray-500" v-if="project.types?.includes(ProjectType.DB)" />
-        </div>
-      </td>
-      <td>{{ (i + 3) % 20 }} hours ago</td>
-      <td>
-        {{ project.role }}
-      </td>
-      <td>
-        <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" />
-      </td>
-    </tr>
-    </tbody>
-  </table>
-  </div>
-</template>
-
 <script lang="ts" setup>
+import {useWorkspaceStoreOrThrow} from "~/composables/useWorkspaceStore";
+import {Empty} from "ant-design-vue";
 
 
 enum ProjectType {
@@ -47,37 +9,7 @@ enum ProjectType {
   AUTOMATION,
 }
 
-// todo: load using api
-const workspaces = $ref([
-  {
-    title: 'Noco 1',
-    description: 'Description 1',
-  },
-  {
-    title: 'Workspace 2',
-    description: 'Description 1',
-  },
-  {
-    title: 'Test 3',
-    description: 'Description 1',
-  },
-  {
-    title: 'Test work 4',
-    description: 'Description 1',
-  },
-  {
-    title: 'ABC 5',
-    description: 'Description 1',
-  },
-  {
-    title: 'Recent',
-    description: 'Description 1',
-  },
-  {
-    title: 'Favourites',
-    description: 'Description 1',
-  },
-])
+const {projects, loadProjects} = useWorkspaceStoreOrThrow()
 
 // todo: make it customizable
 const stringToColour = function (str: string) {
@@ -94,7 +26,7 @@ const stringToColour = function (str: string) {
   return colour
 }
 // todo: load using api
-const projects = $ref([
+const projects1 = $ref([
   {
     title: 'Noco 1',
     description: 'Description 1',
@@ -140,8 +72,49 @@ const projects = $ref([
 ])
 </script>
 
-<style scoped lang="scss">
+<template>
+  <div>
+    <table v-if="projects?.length" class="nc-project-list-table">
+      <thead>
+      <tr>
+        <th>Project Name</th>
+        <th>Project Type</th>
+        <th>Last Modified</th>
+        <th>My Role</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr v-for="(project, i) of projects" :key="i">
+        <td class="!py-0">
+          <div class="flex items-center nc-project-title gap-2">
+            <span class="color-band" :style="{ backgroundColor: stringToColour(project.title) }"/>
+            {{ project.title }}
+          </div>
+        </td>
+        <td>
+          <div class="flex items-center gap-2">
+            <MaterialSymbolsDocs v-if="project.types?.includes(ProjectType.DOCS)" class="text-gray-500"/>
+            <MdiTransitConnectionVariant v-if="project.types?.includes(ProjectType.AUTOMATION)" class="text-gray-500"/>
+            <MdiDatabaseOutline v-if="project.types?.includes(ProjectType.DB)" class="text-gray-500"/>
+          </div>
+        </td>
+        <td>{{ (i + 3) % 20 }} hours ago</td>
+        <td>
+          {{ project.role }}
+        </td>
+        <td>
+          <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu"/>
+        </td>
+      </tr>
+      </tbody>
+    </table>
 
+    <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Project list is empty"/>
+  </div>
+</template>
+
+<style scoped lang="scss">
 .nc-project-list-table {
   @apply min-w-[700px] !w-full;
 

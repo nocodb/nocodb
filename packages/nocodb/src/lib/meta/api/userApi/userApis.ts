@@ -124,6 +124,7 @@ export async function signup(req: Request, res: Response<TableType>) {
       token_version,
     });
   }
+
   user = await User.getByEmail(email);
 
   try {

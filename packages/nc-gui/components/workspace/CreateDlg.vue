@@ -1,95 +1,63 @@
 <script setup lang="ts">
-import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
-import { TabType } from '~/lib'
+import { message } from 'ant-design-vue'
+import { Form, nextTick, onMounted, ref, useVModel } from '#imports'
+import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 const props = defineProps<{
   modelValue: boolean
   baseId: string
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'success'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const isAdvanceOptVisible = ref(false)
-
 const inputEl = ref<HTMLInputElement>()
 
-const { addTab } = useTabs()
+const { createWorkspace } = useWorkspaceStoreOrThrow()
 
-const { loadTables, isMysql, isMssql, isPg } = useProject()
-
-const { table, createTable, generateUniqueTitle, tables, project } = useTable(async (table) => {
-  await loadTables()
-
-  addTab({
-    id: table.id as string,
-    title: table.title,
-    type: TabType.TABLE,
-  })
-
-  dialogShow.value = false
-}, props.baseId)
+const workspace = ref({})
 
 const useForm = Form.useForm
 
 const validators = computed(() => {
+  // todo: validation
   return {
     title: [
       validateTableName,
       {
-        validator: (_: any, value: any) => {
+        validator: (_: any, _value: any) => {
           // validate duplicate alias
-          return new Promise((resolve, reject) => {
-            if ((tables.value || []).some((t) => t.title === (value || ''))) {
-              return reject(new Error('Duplicate table alias'))
-            }
+          return new Promise((resolve, _reject) => {
+            // if (workspace.value || []).some((t) => t.title === (value || ''))) {
+            //   return reject(new Error('Duplicate workspace alias'))
+            // }
             return resolve(true)
           })
         },
       },
-      {
-        validator: (rule: any, value: any) => {
-          return new Promise<void>((resolve, reject) => {
-            let tableNameLengthLimit = 255
-            if (isMysql(props.baseId)) {
-              tableNameLengthLimit = 64
-            } else if (isPg(props.baseId)) {
-              tableNameLengthLimit = 63
-            } else if (isMssql(props.baseId)) {
-              tableNameLengthLimit = 128
-            }
-            const projectPrefix = project?.value?.prefix || ''
-            if ((projectPrefix + value).length > tableNameLengthLimit) {
-              return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
-            }
-            resolve()
-          })
-        },
-      },
     ],
-    table_name: [validateTableName],
   }
 })
-const { validate, validateInfos } = useForm(table, validators)
 
-const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
-  value: c,
-  disabled: index === 0,
-}))
-
-const _createTable = async () => {
+const { validate, validateInfos } = useForm(workspace, validators)
+const _createWorkspace = async () => {
   try {
     await validate()
   } catch (e: any) {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
   }
-  await createTable()
+  try {
+    await createWorkspace(workspace.value)
+    emit('success')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 onMounted(() => {
-  generateUniqueTitle()
   nextTick(() => {
     inputEl.value?.focus()
     inputEl.value?.select()
@@ -99,89 +67,54 @@ onMounted(() => {
 
 <template>
   <a-modal
-      v-model:visible="dialogShow"
-      :class="{ active: dialogShow }"
-      width="max(30vw, 600px)"
-      centered
-      wrap-class-name="nc-modal-table-create"
-      @keydown.esc="dialogShow = false"
+    v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
+    width="max(30vw, 600px)"
+    centered
+    wrap-class-name="nc-modal-workspace-create"
+    @keydown.esc="dialogShow = false"
   >
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" type="primary" @click="_createTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" size="large" type="primary" @click="_createWorkspace">{{ $t('general.submit') }}</a-button>
     </template>
 
     <div class="pl-10 pr-10 pt-5">
-      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable">
+      <a-form :model="workspace" name="create-new-workspace-form" @keydown.enter="_createWorkspace">
         <!-- Create A New Table -->
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
 
-        <!-- hint="Enter table name" -->
-        <!--        Table name -->
-        <div class="mb-2">{{ $t('labels.tableName') }}</div>
+        <!-- todo: i18n -->
+        <div class="mb-2">Workspace Name</div>
 
         <a-form-item v-bind="validateInfos.title">
           <a-input
-              ref="inputEl"
-              v-model:value="table.title"
-              size="large"
-              hide-details
-              data-testid="create-table-title-input"
-              :placeholder="$t('msg.info.enterTableName')"
+            ref="inputEl"
+            v-model:value="workspace.title"
+            size="large"
+            hide-details
+            data-testid="create-workspace-title-input"
+            placeholder="Workspace Title"
           />
         </a-form-item>
-
-        <div class="flex justify-end items-center">
-          <div class="pointer flex flex-row items-center gap-x-1" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
-            {{ isAdvanceOptVisible ? $t('general.hideAll') : $t('general.showMore') }}
-
-            <MdiMinusCircleOutline v-if="isAdvanceOptVisible" class="text-gray-500" />
-            <MdiPlusCircleOutline v-else class="text-gray-500" />
-          </div>
-        </div>
-        <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
-          <!-- hint="Table name as saved in database" -->
-          <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
-
-          <a-form-item v-if="!project.prefix" v-bind="validateInfos.table_name">
-            <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
-          </a-form-item>
-
-          <div>
-            <div class="mb-1">
-              <!-- Add Default Columns -->
-              {{ $t('msg.info.addDefaultColumns') }}
-            </div>
-
-            <a-row>
-              <a-checkbox-group
-                  v-model:value="table.columns"
-                  :options="systemColumnsCheckboxInfo"
-                  class="!flex flex-row justify-between w-full"
-              >
-                <template #label="{ value }">
-                  <a-tooltip v-if="value === 'id'" placement="top" class="!flex">
-                    <template #title>
-                      <span>ID column is required, you can rename this later if required.</span>
-                    </template>
-                    ID
-                  </a-tooltip>
-                  <div v-else class="flex">
-                    {{ value }}
-                  </div>
-                </template>
-              </a-checkbox-group>
-            </a-row>
-          </div>
-        </div>
+        <a-form-item v-bind="validateInfos.description">
+          <a-textarea
+            ref="inputEl"
+            v-model:value="workspace.description"
+            size="large"
+            hide-details
+            data-testid="create-workspace-title-input"
+            placeholder="Workspace Description"
+          />
+        </a-form-item>
       </a-form>
     </div>
   </a-modal>
 </template>
 
 <style scoped lang="scss">
-.nc-table-advanced-options {
+.nc-workspace-advanced-options {
   max-height: 0;
   transition: 0.3s max-height;
   overflow: hidden;

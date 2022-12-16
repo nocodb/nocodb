@@ -149,6 +149,7 @@ export async function signup(req: Request, res: Response<TableType>) {
       email_verification_token,
     });
   }
+
   user = await User.getByEmail(email);
 
   try {

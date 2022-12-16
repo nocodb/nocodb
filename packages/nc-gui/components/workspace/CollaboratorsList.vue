@@ -1,62 +1,15 @@
-<template>
-  <div>
-    <table class="nc-project-list-table">
-      <thead>
-      <tr>
-        <th>Name</th>
-        <th>Last Modified</th>
-        <th>My Role</th>
-        <th>Actions</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="(collab, i) of collaborators" :key="i">
-        <td class="!py-0">
-          <div class="flex items-center nc-project-title gap-2">
-            <span class="color-band"
-                  :style="{ backgroundColor: stringToColour(collab.title) }">{{ collab.title.slice(0, 2) }}</span>
-            {{ collab.title }}
-          </div>
-        </td>
-        <td>{{ (i + 3) % 20 }} hours ago</td>
-        <td>
-          {{ collab.role }}
-        </td>
-        <td>
-          <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu"/>
-        </td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-</template>
-
 <script lang="ts" setup>
+import {useWorkspaceStoreOrThrow} from "#imports";
+import {OrgUserRoles, WorkspaceUserRoles} from "nocodb-sdk";
+import {Empty} from 'ant-design-vue'
 
+const rolesLabel = {
+  [WorkspaceUserRoles.CREATOR]: 'Creator',
+  [WorkspaceUserRoles.OWNER]: 'Owner',
+  [WorkspaceUserRoles.VIEWER]: 'Viewer',
+}
 
-// todo: load using api
-const collaborators = $ref([
-  {
-    title: 'Sam',
-    role: 'Viewer',
-  },
-  {
-    title: 'John',
-    role: 'Admin',
-  },
-  {
-    title: 'Alex',
-    role: 'Viewer',
-  },
-  {
-    title: 'Samuel',
-    role: 'Editor',
-  },
-  {
-    title: 'George',
-    role: 'Admin',
-  },
-])
+const {collaborators, loadCollaborators} = useWorkspaceStoreOrThrow()
 
 // todo: make it customizable
 const stringToColour = function (str: string) {
@@ -72,48 +25,51 @@ const stringToColour = function (str: string) {
   }
   return colour
 }
-// todo: load using api
-const projects = $ref([
-  {
-    title: 'Noco 1',
-    description: 'Description 1',
-    role: 'Admin',
-  },
-  {
-    title: 'Workspace 2',
-    description: 'Description 1',
-    role: 'Viewer',
-  },
-  {
-    title: 'Test 3',
-    description: 'Description 1',
-    role: 'Admin',
-  },
-  {
-    title: 'Test work 4',
-    description: 'Description 1',
-    role: 'Viewer',
-  },
-  {
-    title: 'ABC 5',
-    description: 'Description 1',
-    role: 'Editor',
-  },
-  {
-    title: 'Recent',
-    description: 'Description 1',
-    role: 'Admin',
-  },
-  {
-    title: 'Favourites',
-    description: 'Description 1',
-    role: 'Editor',
-  },
-])
+
+const getRolesLabel = (roles?: string) => {
+  return roles?.split(/\s*,\s*/)?.map(role => rolesLabel[role]).join(', ') ?? ''
+}
 </script>
 
-<style scoped lang="scss">
+<template>
+  <div>
+    <table v-if="collaborators?.length" class="nc-project-list-table">
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Last Modified</th>
+        <th>My Role</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr v-for="(collab, i) of collaborators" :key="i">
+        <td class="!py-0">
+          <div class="flex items-center nc-project-title gap-2">
+              <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
+                  collab.email.slice(0, 2)
+                }}</span>
+            {{ collab.email }}
+          </div>
+        </td>
+        <td>{{ (i + 3) % 20 }} hours ago</td>
+        <td>
+          <space>
+            {{ getRolesLabel(collab.roles) }}
+          </space>
+        </td>
+        <td>
+          <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu"/>
+        </td>
+      </tr>
+      </tbody>
+    </table>
 
+    <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Collaborator list is empty"/>
+  </div>
+</template>
+
+<style scoped lang="scss">
 .nc-project-list-table {
   @apply min-w-[700px] !w-full;
 
@@ -142,7 +98,6 @@ const projects = $ref([
     @apply pr-6;
   }
 }
-
 
 .nc-project-title {
   .color-band {

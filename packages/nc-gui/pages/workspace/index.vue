@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import {definePageMeta, onMounted, useSidebar} from '#imports'
-import {useNuxtApp} from '#app'
-import {Empty, message} from 'ant-design-vue';
-import {extractSdkResponseErrorMsg} from "~/utils";
+import { Empty, Modal, } from 'ant-design-vue'
+import type { WorkspaceType } from 'nocodb-sdk'
+import { computed, definePageMeta, onMounted, useProvideWorkspaceStore, useSidebar } from '#imports'
 
 definePageMeta({
   layout: 'empty',
+  hideHeader: true,
 })
 
 // todo: make it customizable
 const stringToColour = function (str: string) {
   let i
   let hash = 0
-  for (i = 0; i < str.length; i++) {
+  for (i = 0; i < str?.length ?? 0; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash)
   }
   let colour = '#'
@@ -23,188 +23,153 @@ const stringToColour = function (str: string) {
   return colour
 }
 
-// todo: load using api
-const workspaces = $ref([
-  {
-    title: 'Noco 1',
-    description: 'Description 1',
-  },
-  {
-    title: 'Workspace 2',
-    description: 'Description 1',
-  },
-  {
-    title: 'Test 3',
-    description: 'Description 1',
-  },
-  {
-    title: 'Test work 4',
-    description: 'Description 1',
-  },
-  {
-    title: 'ABC 5',
-    description: 'Description 1',
-  },
-  {
-    title: 'Recent',
-    description: 'Description 1',
-  },
-  {
-    title: 'Favourites',
-    description: 'Description 1',
-  },
-])
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaceList, workspaces, activeWorkspace } = useProvideWorkspaceStore()
 
-/* // todo: load using api
-const projects = $ref([
-  {
-    title: 'Noco 1',
-    description: 'Description 1',
-    role: 'Admin',
-    types: [ProjectType.DB, ProjectType.DOCS],
+const selectedWorkspaceIndex = computed<number[]>({
+  get() {
+    return [workspaces?.value?.indexOf(activeWorkspace.value!)]
   },
-  {
-    title: 'Workspace 2',
-    description: 'Description 1',
-    role: 'Viewer',
-    types: [ProjectType.AUTOMATION],
+  set(index: number[]) {
+    if (index?.length) {
+      activeWorkspace.value = workspaces.value?.[index[0]]
+    } else {
+      activeWorkspace.value = null
+    }
   },
-  {
-    title: 'Test 3',
-    description: 'Description 1',
-    role: 'Admin',
-    types: [ProjectType.DB, ProjectType.AUTOMATION, ProjectType.DOCS],
-  },
-  {
-    title: 'Test work 4',
-    description: 'Description 1',
-    role: 'Viewer',
-    types: [ProjectType.DB, ProjectType.DOCS],
-  },
-  {
-    title: 'ABC 5',
-    description: 'Description 1',
-    role: 'Editor',
-    types: [ProjectType.DOCS],
-  },
-  {
-    title: 'Recent',
-    description: 'Description 1',
-    role: 'Admin',
-    types: [ProjectType.DB],
-  },
-  {
-    title: 'Favourites',
-    description: 'Description 1',
-    role: 'Editor',
-    types: [ProjectType.DOCS, ProjectType.DB],
-  },
-]) */
-
-/* // todo: load using api
-const collaborators = $ref([
-  {
-    title: 'Sam',
-    role: 'Viewer',
-  },
-  {
-    title: 'John',
-    role: 'Admin',
-  },
-  {
-    title: 'Alex',
-    role: 'Viewer',
-  },
-  {
-    title: 'Samuel',
-    role: 'Editor',
-  },
-  {
-    title: 'George',
-    role: 'Admin',
-  },
-]) */
-
-const selectedWorkspaceIndex = $ref([0])
-const selectedWorkspace = $computed(() => workspaces[selectedWorkspaceIndex[0]])
+})
 
 // create a new sidebar state
-const {isOpen, toggle, toggleHasSidebar} = useSidebar('nc-left-sidebar', {hasSidebar: false, isOpen: false})
+const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
-const {$api} = useNuxtApp()
+const isCreateDlgOpen = ref(false)
 
-const loadWorkspaceList = async () => {
-  try {
-    // todo: pagination
-    const {list, pageInfo: _} = await $api.workspace.list();
-    workspaces = list
-  } catch (e) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
+const { close } = useDialog(resolveComponent('WorkspaceCreateDlg'), {
+  'modelValue': isCreateDlgOpen,
+  'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
+  'onSuccess': loadWorkspaceList,
+})
+
+// TODO
+loadWorkspaceList()
 
 onMounted(async () => {
   toggle(true)
   toggleHasSidebar(true)
-  // await loadWorkspaceList()
+  await loadWorkspaceList()
 })
+
+const deleteWorkspace = (workspace: WorkspaceType) => {
+  Modal.confirm({
+    title: 'Are you sure you want to delete this workspace?',
+    type: 'warn',
+    onOk: async () => {
+      await _deleteWorkspace(workspace.id)
+      await loadWorkspaceList()
+    },
+  })
+}
 </script>
 
 <template>
   <NuxtLayout>
+    <a-layout-header class="h-20 !px-2">
+      <div class="flex w-full h-full items-center">
+        <div class="flex-1 min-w-0 w-50">
+          <img src="~/assets/img/brand/nocodb-full-color.png" class="h-12" />
+        </div>
+
+        <div class="flex gap-1">
+          <a-button ghost class="!text-inherit"> Workspaces</a-button>
+          <a-button ghost class="!text-inherit"> Explore</a-button>
+          <a-button ghost class="!text-inherit"> Help</a-button>
+          <a-button ghost class="!text-inherit"> Community</a-button>
+        </div>
+        <div class="flex-1 min-w-0 flex justify-end gap-2">
+          <div class="nc-quick-action-wrapper">
+            <MaterialSymbolsSearch class="nc-quick-action-icon" />
+            <input class="" placeholder="Quick Actions" />
+
+            <span class="nc-quick-action-shortcut">⌘ K</span>
+          </div>
+
+          <div class="flex items-center">
+            <MdiBellOutline class="text-xl" />
+            <MaterialSymbolsKeyboardArrowDownRounded />
+          </div>
+          <div class="flex items-center gap-1">
+            <div class="h-14 w-14 rounded-full bg-primary flex items-center justify-center font-weight-bold text-white">AB</div>
+            <MaterialSymbolsKeyboardArrowDownRounded />
+          </div>
+        </div>
+      </div>
+    </a-layout-header>
+
     <!--    todo: change class name -->
     <a-layout class="nc-root">
       <!--    <template #sidebar v-if="isOpen"> -->
       <a-layout-sider
-          ref="sidebar"
-          :collapsed="!isOpen"
-          width="250"
-          collapsed-width="50"
-          class="relative shadow-md h-full z-1 nc-left-sidebar"
-          :trigger="null"
-          collapsible
-          theme="light"
+        ref="sidebar"
+        :collapsed="!isOpen"
+        width="250"
+        collapsed-width="50"
+        class="relative shadow-md h-full z-1 nc-left-sidebar"
+        :trigger="null"
+        collapsible
+        theme="light"
       >
-        <div id="nc-sidebar-left" ref="sidebar">
+        <div class="h-[calc(100vh_-_80px)] flex flex-col">
           <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
             All workspaces
             <div class="flex-grow"></div>
-            <MdiPlus class="!text-gray-400 text-lg"/>
+            <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true" />
           </div>
 
+          <div class="overflow-auto flex-grow" style="flex-basis: 0">
+            <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-          <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE"/>
+            <a-menu v-else v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list">
+              <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
+                <div class="nc-workspace-list-item">
+                  <div class="nc-workspace-avatar" :style="{ backgroundColor: stringToColour(workspace.title) }">
+                    <span class="color-band" :style="{ backgroundColor: stringToColour(workspace.title) }" />
+                    {{ workspace.title?.slice(0, 2) }}
+                  </div>
+                  <div class="nc-workspace-title">{{ workspace.title }}</div>
+                  <div class="flex-grow"></div>
+                  <a-dropdown>
+                    <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" />
 
-          <a-menu v-else v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list">
-            <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
-              <div class="nc-workspace-list-item">
-                <div class="nc-workspace-avatar" :style="{ backgroundColor: stringToColour(workspace.title) }">
-                  <span class="color-band" :style="{ backgroundColor: stringToColour(workspace.title) }"/>
-                  {{ workspace.title.slice(0, 2) }}
+                    <template #overlay>
+                      <a-menu>
+                        <a-menu-item @click="deleteWorkspace(workspace)">
+                          <div class="flex flex-row items-center py-3 gap-2">
+                            <MdiDeleteOutline />
+                            Delete Workspace
+                          </div>
+                        </a-menu-item>
+                      </a-menu>
+                    </template>
+                  </a-dropdown>
                 </div>
-                <div class="nc-workspace-title">{{ workspace.title }}</div>
-                <div class="flex-grow"></div>
-
-                <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu"/>
-              </div>
-            </a-menu-item>
-          </a-menu>
-        </div>
-
-        <a-divider class="!my-4"/>
-
-        <div class="nc-workspace-group">
-          <div class="nc-workspace-group-item">
-            <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon"/>
-            <span>Recent</span>
+              </a-menu-item>
+            </a-menu>
           </div>
-          <div class="nc-workspace-group-item">
-            <MaterialSymbolsGroupsOutline class="nc-icon"/>
-            <span>Shared with me</span>
-          </div>
-          <div class="nc-workspace-group-item">
-            <MaterialSymbolsStarOutline class="nc-icon"/>
-            <span>Favourites</span>
+
+          <a-divider class="!my-4" />
+
+          <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
+            <div class="nc-workspace-group-item">
+              <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
+              <span>Recent</span>
+            </div>
+            <div class="nc-workspace-group-item">
+              <MaterialSymbolsGroupsOutline class="nc-icon" />
+              <span>Shared with me</span>
+            </div>
+            <div class="nc-workspace-group-item">
+              <MaterialSymbolsStarOutline class="nc-icon" />
+              <span>Favourites</span>
+            </div>
           </div>
         </div>
       </a-layout-sider>
@@ -213,129 +178,56 @@ onMounted(async () => {
       <!--    <a-layout class="!flex-col"> -->
       <!--      <a-layout-header></a-layout-header> -->
 
-      <div class="w-full">
-        <div class="py-6">
+      <div class="w-full py-6 overflow-auto">
+        <div>
           <div class="px-6 flex items-center">
             <h1 class="text-xl">{{ selectedWorkspace?.title }}</h1>
 
             <div class="flex-grow"></div>
-            <a-button type="primary">
-              <div class="flex items-center">
-                <MdiPlus/>
-                New Project
-              </div>
-            </a-button>
+            <a-dropdown>
+              <a-button type="primary">
+                <div class="flex items-center">
+                  <MdiPlus />
+                  New Project
+                </div>
+              </a-button>
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item>
+                    <div class="py-4 px-1 flex items-center gap-4">
+                      <MdiDatabaseOutline class="text-[#2824FB] text-lg" />
+                      New Database
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item>
+                    <div class="py-4 px-1 flex items-center gap-4">
+                      <MdiTransitConnectionVariant class="text-[#DDB00F] text-lg" />
+                      New Automation
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item>
+                    <div class="py-4 px-1 flex items-center gap-4">
+                      <MaterialSymbolsDocs class="text-[#247727] text-lg" />
+                      New Documentation
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </div>
 
           <a-tabs>
             <a-tab-pane key="projects" tab="All Projects" class="w-full">
-              <WorkspaceProjectList/>
-              <!--              <table class="nc-project-list-table">
-                              <thead>
-                                <tr>
-                                  <th>Project Name</th>
-                                  <th>Project Type</th>
-                                  <th>Last Modified</th>
-                                  <th>My Role</th>
-                                  <th>Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr v-for="(project, i) of projects" :key="i">
-                                  <td class="!py-0">
-                                    <div class="flex items-center nc-project-title gap-2">
-                                      <span class="color-band" :style="{ backgroundColor: stringToColour(project.title) }" />
-                                      {{ project.title }}
-                                    </div>
-                                  </td>
-                                  <td>
-                                    <div class="flex items-center gap-2">
-                                      <MaterialSymbolsDocs v-if="project.types?.includes(ProjectType.DOCS)" />
-                                      <MdiTransitConnectionVariant v-if="project.types?.includes(ProjectType.AUTOMATION)" />
-                                      <MdiDatabaseOutline v-if="project.types?.includes(ProjectType.DB)" />
-                                    </div>
-                                  </td>
-                                  <td>{{ (i + 3) % 20 }} hours ago</td>
-                                  <td>
-                                    {{ project.role }}
-                                  </td>
-                                  <td>
-                                    <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" />
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table> -->
+              <WorkspaceProjectList />
             </a-tab-pane>
             <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-              <WorkspaceCollaboratorsList/>
-              <!--              <table class="nc-project-list-table">
-                              <thead>
-                                <tr>
-                                  <th>Project Name</th>
-                                  <th>Project Type</th>
-                                  <th>Last Modified</th>
-                                  <th>My Role</th>
-                                  <th>Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr v-for="(project, i) of projects" :key="i">
-                                  <td class="!py-0">
-                                    <div class="flex items-center nc-project-title gap-2">
-                                      <span class="color-band" :style="{ backgroundColor: stringToColour(project.title) }" />
-                                      {{ project.title }}
-                                    </div>
-                                  </td>
-                                  <td>
-                                    <div class="flex items-center gap-2">
-                                      <MaterialSymbolsDocs v-if="project.types?.includes(ProjectType.DOCS)" />
-                                      <MdiTransitConnectionVariant v-if="project.types?.includes(ProjectType.AUTOMATION)" />
-                                      <MdiDatabaseOutline v-if="project.types?.includes(ProjectType.DB)" />
-                                    </div>
-                                  </td>
-                                  <td>{{ (i + 3) % 20 }} hours ago</td>
-                                  <td>
-                                    {{ project.role }}
-                                  </td>
-                                  <td>
-                                    <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" />
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table> -->
+              <WorkspaceCollaboratorsList />
             </a-tab-pane>
 
             <a-tab-pane key="settings" tab="Settings"></a-tab-pane>
           </a-tabs>
         </div>
       </div>
-
-      <!--
-            <a-layout-sider
-                ref="sidebar"
-                :collapsed="!isOpen"
-                width="250"
-                collapsed-width="50"
-                class="relative shadow-md h-full z-1 nc-left-sidebar"
-                :trigger="null"
-                collapsible
-                theme="light"
-            >
-              <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
-                Collaborators
-              </div>
-
-              <div class="nc-collab-list">
-                <div v-for="collaborator of collaborators" class="nc-collab-list-item">
-                  <div class="nc-collab-avatar" :style="{ backgroundColor: stringToColour(collaborator.title) }">
-                    {{ collaborator.title.slice(0, 2) }}
-                  </div>
-
-                  {{ collaborator.title }} <span class="!text-gray-400 text-xs">({{ collaborator.role }})</span>
-                </div>
-              </div>
-
-            </a-layout-sider> -->
     </a-layout>
     <!--    </a-layout> -->
     <!--  </a-layout> -->
@@ -406,5 +298,26 @@ onMounted(async () => {
 
 :deep(.ant-tabs-nav-list) {
   @apply ml-6;
+}
+
+.ant-layout-header {
+  @apply !h-20 bg-transparent;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.nc-quick-action-wrapper {
+  @apply relative;
+
+  input {
+    @apply h-10 w-60 bg-gray-100 rounded-md pl-9 pr-5 mr-2;
+  }
+
+  .nc-quick-action-icon {
+    @apply absolute left-2 top-6;
+  }
+
+  .nc-quick-action-shortcut {
+    @apply text-gray-400 absolute right-4 top-0;
+  }
 }
 </style>

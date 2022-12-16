@@ -222,6 +222,8 @@ declare module '@vue/runtime-core' {
     MdiRocketLaunchOutline: typeof import('~icons/mdi/rocket-launch-outline')['default']
     MdiScriptTextKeyOutline: typeof import('~icons/mdi/script-text-key-outline')['default']
     MdiScriptTextOutline: typeof import('~icons/mdi/script-text-outline')['default']
+    MdiShareVariant: typeof import('~icons/mdi/share-variant')['default']
+    MdiShareWhiteVariant: typeof import('~icons/mdi/share-white-variant')['default']
     MdiShieldKeyOutline: typeof import('~icons/mdi/shield-key-outline')['default']
     MdiSlack: typeof import('~icons/mdi/slack')['default']
     MdiSort: typeof import('~icons/mdi/sort')['default']

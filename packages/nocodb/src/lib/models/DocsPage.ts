@@ -1,5 +1,5 @@
 import Noco from '../Noco';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
+import { CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import slug from 'slug';
 import { DocsPageType, UserType } from 'nocodb-sdk';
@@ -70,16 +70,12 @@ export default class DocsPage {
       );
     }
 
-    return this.get(createdPageId, ncMeta);
+    return await this.get(createdPageId, ncMeta);
   }
 
   public static async get(id, ncMeta = Noco.ncMeta): Promise<DocsPageType> {
-    let page =
-      id &&
-      (await NocoCache.get(
-        `${CacheScope.DOCS_PAGE}:${id}`,
-        CacheGetType.TYPE_OBJECT
-      ));
+    // todo: Add cache
+    let page = undefined;
     if (!page) {
       page = await ncMeta.metaGet2(null, null, MetaTable.DOCS_PAGE, id);
       if (page) {
@@ -157,11 +153,11 @@ export default class DocsPage {
     });
   }
 
-  public static listPages(
+  public static async listPages(
     { projectId, parent_page_id },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPage[]> {
-    return ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE, {
+    return await ncMeta.metaList2(projectId, null, MetaTable.DOCS_PAGE, {
       condition: {
         parent_page_id: parent_page_id ?? null,
       },

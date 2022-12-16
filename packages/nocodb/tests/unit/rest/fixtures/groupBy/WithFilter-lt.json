@@ -1,0 +1,15 @@
+{
+  "list": [
+    {
+      "count": 326,
+      "store_id": 1
+    }
+  ],
+  "pageInfo": {
+    "totalRows": 326,
+    "page": 1,
+    "pageSize": 25,
+    "isFirstPage": true,
+    "isLastPage": false
+  }
+}

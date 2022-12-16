@@ -41,6 +41,23 @@ function tableTest() {
   let customerTable: Model;
   let customerColumns;
 
+
+  const filterValueMap = {
+    '(CustomerId,eq,1)': 'eq',
+    '(Active,neq,1)': 'neq',
+    '(Active,not,1)': 'not',
+    '(StoreId,gt,1)': 'gt',
+    '(StoreId,ge,2)': 'ge',
+    '(StoreId,lt,2)': 'lt',
+    '(AddressId,le,6)': 'le',
+    '(LastName,is,null)': 'is',
+    '(Email,isnot,null)': 'isnot',
+    '(AddressId,in,5,6)': 'in',
+    '(CustomerId,btw,1,3)': 'btw',
+    '(CustomerId,nbtw,1,3)': 'nbtw',
+    '(Email,like,%BARBARA%)': 'like',
+  }
+
   beforeEach(async function () {
     context = await init();
 
@@ -62,6 +79,8 @@ function tableTest() {
       .expect(200);
     const pageInfo = response.body.pageInfo;
 
+    expect(response.body).to.deep.equal(require('../fixtures/getTableDataList/WithoutFilter.json'))
+
     if (response.body.list.length !== pageInfo.pageSize) {
       console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
@@ -71,6 +90,24 @@ function tableTest() {
       throw new Error('Wrong columns');
     }
   });
+
+  describe('Get Table data with filters', async function () {
+    for(const filterValue in filterValueMap) {
+      const filter = filterValueMap[filterValue];
+      it(`filter ${filter}`, async function () {
+        const response = await request(context.app)
+          .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
+          .set('xc-auth', context.token)
+          .query({
+            where: filterValue
+          })
+          .send({})
+          .expect(200);
+    
+        expect(response.body).to.deep.equal(require(`../fixtures/getTableDataList/WithFilter-${filter}.json`))
+      });
+    }
+  })
 
   it('Get table data list with required columns', async function () {
     const requiredColumns = customerColumns.filter((_, index) => index < 3);
@@ -914,8 +951,60 @@ function tableTest() {
       })
       .expect(200);
 
+    expect(response.body).to.containSubset({
+      Id: 1,
+      Title: "Test",
+    })
     const row = response.body;
     if (row['Title'] !== 'Test') throw new Error('Wrong row title');
+  });
+
+  it('Errors when Create table row with system column', async function () {
+    const table = await createTable(context, project);
+
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        id: 1,
+      })
+      .expect(400);
+
+    expect(response.body).to.containSubset({
+      msg: "Editing system column Id is not allowed",
+    })
+  });
+
+  it('Errors when Create table row with created_at', async function () {
+    const table = await createTable(context, project);
+
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        created_at: '2020-10-10 00:00:00',
+      })
+      .expect(400);
+
+    expect(response.body).to.containSubset({
+      msg: "Editing system column CreatedAt is not allowed",
+    })
+  });
+
+  it('Errors when Create table row with updated_at', async function () {
+    const table = await createTable(context, project);
+
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        updated_at: '2020-10-10 00:00:00',
+      })
+      .expect(400);
+
+    expect(response.body).to.containSubset({
+      msg: "Editing system column UpdatedAt is not allowed",
+    })
   });
 
   it('Create table row with wrong table id', async function () {
@@ -979,6 +1068,26 @@ function tableTest() {
       throw new Error('Wrong sort');
     }
   });
+
+  describe('Find one with filters', async function () {
+    for(const filterValue in filterValueMap) {
+      const filter = filterValueMap[filterValue];
+      it(`filter ${filter}`, async function () {
+        const response = await request(context.app)
+          .get(
+            `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`
+          )
+          .set('xc-auth', context.token)
+          .query({
+            sort: '-FirstName',
+            where: filterValue
+          })
+          .expect(200);
+
+        expect(response.body).to.deep.equal(require(`../fixtures/findOne/WithFilter-${filter}`))
+      });
+    }
+  })
 
   it('Find one desc sorted and with rollup table data  list with required columns', async function () {
     const firstNameColumn = customerColumns.find(
@@ -1112,6 +1221,40 @@ function tableTest() {
     }
   });
 
+  it('Groupby', async function () {
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        column_name: 'store_id',
+      })
+      .expect(200);
+
+    expect(response.body).to.deep.equal(require('../fixtures/groupBy/WithoutFilter.json'));
+  });
+
+  describe('Group by with filters', async function () {
+    for(const filterValue in filterValueMap) {
+      const filter = filterValueMap[filterValue];
+      it(`filter ${filter}`, async function () {
+        const response = await request(context.app)
+          .get(
+            `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`
+          )
+          .set('xc-auth', context.token)
+          .query({
+            column_name: 'store_id',
+            where: filterValue
+          })
+          .expect(200);
+    
+        expect(response.body).to.deep.equal(require(`../fixtures/groupBy/WithFilter-${filter}.json`));
+      });
+    }
+  })
+
   it('Groupby desc sorted and with rollup table data  list with required columns', async function () {
     const firstNameColumn = customerColumns.find(
       (col) => col.title === 'FirstName'
@@ -1200,6 +1343,8 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
+    expect(readResponse.body).to.deep.equal(require('../fixtures/readTableRow.json'))
+    
     if (
       row['CustomerId'] !== readResponse.body['CustomerId'] ||
       row['FirstName'] !== readResponse.body['FirstName']
@@ -1219,6 +1364,11 @@ function tableTest() {
         title: 'Updated',
       })
       .expect(200);
+
+    expect(updateResponse.body).to.containSubset({
+      Id: 1,
+      Title: "Updated"
+    })
 
     if (updateResponse.body['Title'] !== 'Updated') {
       throw new Error('Wrong update');
@@ -1283,10 +1433,12 @@ function tableTest() {
     const table = await createTable(context, project);
     const row = await createRow(context, { project, table });
 
-    await request(context.app)
+    const response = await request(context.app)
       .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
       .set('xc-auth', context.token)
       .expect(200);
+
+    expect(response.body).to.equal(1);
 
     const deleteRow = await getRow(context, { project, table, id: row['Id'] });
     if (deleteRow && Object.keys(deleteRow).length > 0) {
@@ -1350,6 +1502,8 @@ function tableTest() {
       )
       .set('xc-auth', context.token)
       .expect(200);
+
+    expect(response.body).to.equal(true);
 
     if (!response.body) {
       throw new Error('Should exist');

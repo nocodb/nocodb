@@ -1,0 +1,210 @@
+{
+  "list": [
+    {
+      "CustomerId": 4,
+      "StoreId": 2,
+      "FirstName": "BARBARA",
+      "LastName": "JONES",
+      "Email": "BARBARA.JONES@sakilacustomer.org",
+      "AddressId": 8,
+      "Active": "1",
+      "CreateDate": "2006-02-14 22:04:36",
+      "LastUpdate": "2006-02-15 04:57:20",
+      "Address": {
+        "AddressId": 8,
+        "Address": "1566 Inegl Manor"
+      },
+      "Store": {
+        "StoreId": 2,
+        "ManagerStaffId": 2
+      },
+      "Payment List": [
+        {
+          "PaymentId": 86,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 87,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 88,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 89,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 90,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 91,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 92,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 93,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 94,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 95,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 96,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 97,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 98,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 99,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 100,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 101,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 102,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 103,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 104,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 105,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 106,
+          "CustomerId": 4
+        },
+        {
+          "PaymentId": 107,
+          "CustomerId": 4
+        }
+      ],
+      "Rental List": [
+        {
+          "RentalId": 1297,
+          "RentalDate": "2005-06-15 09:31:28"
+        },
+        {
+          "RentalId": 1633,
+          "RentalDate": "2005-06-16 08:08:40"
+        },
+        {
+          "RentalId": 1707,
+          "RentalDate": "2005-06-16 14:01:27"
+        },
+        {
+          "RentalId": 1735,
+          "RentalDate": "2005-06-16 15:51:52"
+        },
+        {
+          "RentalId": 2043,
+          "RentalDate": "2005-06-17 14:31:12"
+        },
+        {
+          "RentalId": 2642,
+          "RentalDate": "2005-06-19 09:39:01"
+        },
+        {
+          "RentalId": 7660,
+          "RentalDate": "2005-07-28 02:10:10"
+        },
+        {
+          "RentalId": 7718,
+          "RentalDate": "2005-07-28 04:37:59"
+        },
+        {
+          "RentalId": 8741,
+          "RentalDate": "2005-07-29 18:44:57"
+        },
+        {
+          "RentalId": 9100,
+          "RentalDate": "2005-07-30 08:46:09"
+        },
+        {
+          "RentalId": 9371,
+          "RentalDate": "2005-07-30 18:58:00"
+        },
+        {
+          "RentalId": 11069,
+          "RentalDate": "2005-08-02 07:09:34"
+        },
+        {
+          "RentalId": 11110,
+          "RentalDate": "2005-08-02 08:20:31"
+        },
+        {
+          "RentalId": 11529,
+          "RentalDate": "2005-08-17 00:28:01"
+        },
+        {
+          "RentalId": 12151,
+          "RentalDate": "2005-08-18 00:14:03"
+        },
+        {
+          "RentalId": 12294,
+          "RentalDate": "2005-08-18 05:14:44"
+        },
+        {
+          "RentalId": 12856,
+          "RentalDate": "2005-08-19 02:19:13"
+        },
+        {
+          "RentalId": 13704,
+          "RentalDate": "2005-08-20 09:32:04"
+        },
+        {
+          "RentalId": 13807,
+          "RentalDate": "2005-08-20 12:55:40"
+        },
+        {
+          "RentalId": 14225,
+          "RentalDate": "2005-08-21 04:53:37"
+        },
+        {
+          "RentalId": 15147,
+          "RentalDate": "2005-08-22 13:58:23"
+        },
+        {
+          "RentalId": 15635,
+          "RentalDate": "2005-08-23 07:43:00"
+        }
+      ]
+    }
+  ],
+  "pageInfo": {
+    "totalRows": 1,
+    "page": 1,
+    "pageSize": 25,
+    "isFirstPage": true,
+    "isLastPage": true
+  }
+}

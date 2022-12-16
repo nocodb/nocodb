@@ -1,0 +1,15 @@
+{
+  "list": [
+    {
+      "count": 1,
+      "store_id": 2
+    }
+  ],
+  "pageInfo": {
+    "totalRows": 1,
+    "page": 1,
+    "pageSize": 25,
+    "isFirstPage": true,
+    "isLastPage": true
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "CustomerId": 4,
+  "StoreId": 2,
+  "FirstName": "BARBARA",
+  "LastName": "JONES",
+  "Email": "BARBARA.JONES@sakilacustomer.org",
+  "AddressId": 8,
+  "Active": "1",
+  "CreateDate": "2006-02-14 22:04:36",
+  "LastUpdate": "2006-02-15 04:57:20"
+}

@@ -101,7 +101,7 @@ export class WorkspaceUser {
     //   queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     // }
 
-    queryBuilder.leftJoin(MetaTable.WORKSPACE_USER, function () {
+    queryBuilder.innerJoin(MetaTable.WORKSPACE_USER, function () {
       this.on(
         `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
         '=',

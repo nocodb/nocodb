@@ -1,7 +1,18 @@
 <script setup lang="ts">
-import {Empty, Modal,} from 'ant-design-vue'
+import {Empty, Menu, Modal} from 'ant-design-vue'
 import type {WorkspaceType} from 'nocodb-sdk'
-import {computed, definePageMeta, onMounted, useProvideWorkspaceStore, useSidebar, stringToColour} from '#imports'
+import {
+  NcProjectType,
+  computed,
+  definePageMeta,
+  onMounted,
+  stringToColour,
+  useProvideWorkspaceStore,
+  useRouter,
+  useSidebar,
+} from '#imports'
+import {navigateTo} from '#app'
+import {nextTick} from "@vue/runtime-core";
 
 definePageMeta({
   layout: 'empty',
@@ -9,7 +20,6 @@ definePageMeta({
 })
 
 // todo: make it customizable
-
 
 const {deleteWorkspace: _deleteWorkspace, loadWorkspaceList, workspaces, activeWorkspace} = useProvideWorkspaceStore()
 
@@ -31,12 +41,21 @@ const {isOpen, toggle, toggleHasSidebar} = useSidebar('nc-left-sidebar', {hasSid
 
 const isCreateDlgOpen = ref(false)
 
+const menu = ref<typeof Menu>()
+
+
 const {close} = useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,
   'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
   'onSuccess': async () => {
-    isCreateDlgOpen.value = false;
+    isCreateDlgOpen.value = false
     await loadWorkspaceList()
+    nextTick(() => {
+      // menu.value?.$el?.querySelectorAll('li.ant-menu-item')?.pop()?.scrollIntoView({
+      //   block: 'nearest',
+      //   inline: 'nearest'
+      // })
+    })
   },
 })
 
@@ -59,6 +78,24 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
     },
   })
 }
+
+const router = useRouter()
+
+const navigateToCreateProject = (type: NcProjectType) => {
+  if (type === NcProjectType.AUTOMATION) {
+    return message.info('Automation is not available at the moment')
+  } else {
+    router.push({
+      path: '/create',
+      query: {
+        type,
+        workspaceId: activeWorkspace.value.id,
+      },
+    })
+  }
+}
+
+
 </script>
 
 <template>
@@ -120,7 +157,7 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
           <div class="overflow-auto flex-grow min-h-25" style="flex-basis: 0px">
             <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE"/>
 
-            <a-menu v-else v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list">
+            <a-menu v-else v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list" ref="menu">
               <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
                 <div class="nc-workspace-list-item">
                   <div class="nc-workspace-avatar" :style="{ backgroundColor: stringToColour(workspace.title) }">
@@ -177,7 +214,7 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
             <div class="flex gap-2 items-center mb-4">
               <span class="nc-workspace-avatar !w-8 !h-8"
                     :style="{ backgroundColor: stringToColour(activeWorkspace?.title) }">
-              {{ activeWorkspace?.title?.slice(0, 2) }}
+                {{ activeWorkspace?.title?.slice(0, 2) }}
               </span>
               <h1 class="text-xl mb-0">{{ activeWorkspace?.title }}</h1>
             </div>
@@ -191,19 +228,19 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
               </a-button>
               <template #overlay>
                 <a-menu>
-                  <a-menu-item>
+                  <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
                     <div class="py-4 px-1 flex items-center gap-4">
                       <MdiDatabaseOutline class="text-[#2824FB] text-lg"/>
                       New Database
                     </div>
                   </a-menu-item>
-                  <a-menu-item>
+                  <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
                     <div class="py-4 px-1 flex items-center gap-4">
                       <MdiTransitConnectionVariant class="text-[#DDB00F] text-lg"/>
                       New Automation
                     </div>
                   </a-menu-item>
-                  <a-menu-item>
+                  <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
                     <div class="py-4 px-1 flex items-center gap-4">
                       <MaterialSymbolsDocs class="text-[#247727] text-lg"/>
                       New Documentation

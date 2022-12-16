@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import {useWorkspaceStoreOrThrow, stringToColour} from "#imports";
-import {OrgUserRoles, WorkspaceUserRoles} from "nocodb-sdk";
-import {Empty} from 'ant-design-vue'
+import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { Empty } from 'ant-design-vue'
+import { stringToColour, useWorkspaceStoreOrThrow } from '#imports'
 
 const rolesLabel = {
   [WorkspaceUserRoles.CREATOR]: 'Creator',
@@ -9,11 +9,15 @@ const rolesLabel = {
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
 }
 
-const {collaborators, removeCollaborator, updateCollaborator: _updateCollaborator} = useWorkspaceStoreOrThrow()
-
+const { collaborators, removeCollaborator, updateCollaborator: _updateCollaborator } = useWorkspaceStoreOrThrow()
 
 const getRolesLabel = (roles?: string) => {
-  return roles?.split(/\s*,\s*/)?.map(role => rolesLabel[role]).join(', ') ?? ''
+  return (
+    roles
+      ?.split(/\s*,\s*/)
+      ?.map((role) => rolesLabel[role])
+      .join(', ') ?? ''
+  )
 }
 
 const updateCollaborator = async (collab) => {
@@ -33,61 +37,57 @@ const updateCollaborator = async (collab) => {
       <div class="text-gray-500 text-xs">Manage who has access to this workspace</div>
     </div>
 
-    <WorkspaceInviteSection/>
+    <WorkspaceInviteSection />
     <table v-if="collaborators?.length" class="nc-project-list-table">
       <thead>
-      <tr>
-        <th>Name</th>
-        <th>Last Modified</th>
-        <th>My Role</th>
-        <th>Actions</th>
-      </tr>
+        <tr>
+          <th>Name</th>
+          <th>Last Modified</th>
+          <th>My Role</th>
+          <th>Actions</th>
+        </tr>
       </thead>
       <tbody>
-      <tr v-for="(collab, i) of collaborators" :key="i">
-        <td class="!py-0">
-          <div class="flex items-center nc-project-title gap-2">
+        <tr v-for="(collab, i) of collaborators" :key="i">
+          <td class="!py-0">
+            <div class="flex items-center nc-project-title gap-2">
               <span class="color-band" :style="{ backgroundColor: stringToColour(collab.email) }">{{
-                  collab.email.slice(0, 2)
-                }}</span>
-            {{ collab.email }}
-          </div>
-        </td>
-        <td>{{ (i + 3) % 20 }} hours ago</td>
-        <td>
-          <space v-if="collab.roles === WorkspaceUserRoles.OWNER">
-            {{ getRolesLabel(collab.roles) }}
-          </space>
+                collab.email.slice(0, 2)
+              }}</span>
+              {{ collab.email }}
+            </div>
+          </td>
+          <td>{{ (i + 3) % 20 }} hours ago</td>
+          <td>
+            <space v-if="collab.roles === WorkspaceUserRoles.OWNER">
+              {{ getRolesLabel(collab.roles) }}
+            </space>
 
-          <a-select v-else v-model:value="collab.roles" @change="updateCollaborator(collab)" class="w-30">
-            <a-select-option :value="WorkspaceUserRoles.CREATOR">
-              Creator
-            </a-select-option>
-            <a-select-option :value="WorkspaceUserRoles.VIEWER">
-              Viewer
-            </a-select-option>
-          </a-select>
-        </td>
-        <td>
-          <a-dropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER">
-            <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu"/>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item @click="removeCollaborator(collab.id)">
-                  <div class="flex flex-row items-center py-3 gap-2">
-                    <MdiDeleteOutline/>
-                    Remove Collaborator
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-        </td>
-      </tr>
+            <a-select v-else v-model:value="collab.roles" class="w-30" @change="updateCollaborator(collab)">
+              <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator </a-select-option>
+              <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer </a-select-option>
+            </a-select>
+          </td>
+          <td>
+            <a-dropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER">
+              <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" />
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item @click="removeCollaborator(collab.id)">
+                    <div class="flex flex-row items-center py-3 gap-2">
+                      <MdiDeleteOutline />
+                      Remove Collaborator
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </td>
+        </tr>
       </tbody>
     </table>
 
-    <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Collaborator list is empty"/>
+    <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Collaborator list is empty" />
   </div>
 </template>
 

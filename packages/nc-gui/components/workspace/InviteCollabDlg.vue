@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type {UserType} from 'nocodb-sdk'
+import type { UserType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   Form,
   computed,
@@ -12,9 +13,7 @@ import {
   useNuxtApp,
   validateEmail,
 } from '#imports'
-import type {User} from '~/lib'
-
-import {WorkspaceUserRoles} from 'nocodb-sdk';
+import type { User } from '~/lib'
 
 interface Props {
   show: boolean
@@ -27,19 +26,19 @@ interface Users {
   invitationToken?: string
 }
 
-const {show} = defineProps<Props>()
+const { show } = defineProps<Props>()
 
 const emit = defineEmits(['closed', 'reload'])
 
-const {t} = useI18n()
+const { t } = useI18n()
 
-const {$api, $e} = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
-const {copy} = useCopy()
+const { copy } = useCopy()
 
-const {dashboardUrl} = $(useDashboard())
+const { dashboardUrl } = $(useDashboard())
 
-const usersData = $ref<Users>({emails: '', role: WorkspaceUserRoles.VIEWER, invitationToken: undefined})
+const usersData = $ref<Users>({ emails: '', role: WorkspaceUserRoles.VIEWER, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -65,10 +64,10 @@ const validators = computed(() => {
   }
 })
 
-const {validateInfos} = useForm(usersData, validators)
+const { validateInfos } = useForm(usersData, validators)
 
 const saveUser = async () => {
-  $e('a:org-user:invite', {role: usersData.role})
+  $e('a:org-user:invite', { role: usersData.role })
 
   await formRef.value?.validateFields()
 
@@ -116,14 +115,14 @@ const emailInput = ref((el) => {
 
 <template>
   <a-modal
-      :class="{ active: show }"
-      :footer="null"
-      centered
-      :visible="show"
-      :closable="false"
-      width="max(50vw, 44rem)"
-      wrap-class-name="nc-modal-invite-user"
-      @cancel="emit('closed')"
+    :class="{ active: show }"
+    :footer="null"
+    centered
+    :visible="show"
+    :closable="false"
+    width="max(50vw, 44rem)"
+    wrap-class-name="nc-modal-invite-user"
+    @cancel="emit('closed')"
   >
     <!-- TODO: i18n -->
 
@@ -133,7 +132,7 @@ const emailInput = ref((el) => {
 
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
-            <MaterialSymbolsCloseRounded data-testid="nc-root-user-invite-modal-close" class="flex mx-auto"/>
+            <MaterialSymbolsCloseRounded data-testid="nc-root-user-invite-modal-close" class="flex mx-auto" />
           </template>
         </a-button>
       </div>
@@ -142,7 +141,7 @@ const emailInput = ref((el) => {
         <template v-if="usersData.invitationToken">
           <div class="flex flex-col mt-1 border-b-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
-              <MdiAccountOutline/>
+              <MdiAccountOutline />
               <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
             </div>
 
@@ -155,7 +154,7 @@ const emailInput = ref((el) => {
 
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
-                      <MdiContentCopy class="flex mx-auto text-green-700 h-[1rem]"/>
+                      <MdiContentCopy class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
                   </a-button>
                 </div>
@@ -170,7 +169,7 @@ const emailInput = ref((el) => {
             <div class="flex flex-row justify-start mt-4 ml-2">
               <a-button size="small" outlined @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
-                  <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]"/>
+                  <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]" />
 
                   <div class="text-xs text-gray-600">{{ $t('activity.inviteMore') }}</div>
                 </div>
@@ -181,33 +180,33 @@ const emailInput = ref((el) => {
 
         <div v-else class="flex flex-col pb-4">
           <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
-            <MdiAccountOutline/>
+            <MdiAccountOutline />
             <div class="text-xs ml-0.5 mt-0.5">{{ $t('activity.inviteUser') }}</div>
           </div>
 
           <div class="border-1 py-3 px-4 rounded-md mt-1">
             <a-form
-                ref="formRef"
-                :validate-on-rule-change="false"
-                :model="usersData"
-                validate-trigger="onBlur"
-                @finish="saveUser"
+              ref="formRef"
+              :validate-on-rule-change="false"
+              :model="usersData"
+              validate-trigger="onBlur"
+              @finish="saveUser"
             >
               <div class="flex flex-row space-x-4">
                 <div class="flex flex-col w-3/4">
                   <a-form-item
-                      v-bind="validateInfos.emails"
-                      validate-trigger="onBlur"
-                      name="emails"
-                      :rules="[{ required: true, message: 'Please input email' }]"
+                    v-bind="validateInfos.emails"
+                    validate-trigger="onBlur"
+                    name="emails"
+                    :rules="[{ required: true, message: 'Please input email' }]"
                   >
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
 
                     <a-input
-                        :ref="emailInput"
-                        v-model:value="usersData.emails"
-                        validate-trigger="onBlur"
-                        :placeholder="$t('labels.email')"
+                      :ref="emailInput"
+                      v-model:value="usersData.emails"
+                      validate-trigger="onBlur"
+                      :placeholder="$t('labels.email')"
                     />
                   </a-form-item>
                 </div>
@@ -216,12 +215,11 @@ const emailInput = ref((el) => {
                   <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
-                    <a-select v-model:value="usersData.role" class="nc-user-roles"
-                              dropdown-class-name="nc-dropdown-user-role">
+                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option
-                          class="nc-role-option"
-                          :value="WorkspaceUserRoles.CREATOR"
-                          :label="$t(`objects.roleType.workspaceLevelCreator`)"
+                        class="nc-role-option"
+                        :value="WorkspaceUserRoles.CREATOR"
+                        :label="$t(`objects.roleType.workspaceLevelCreator`)"
                       >
                         <div>{{ $t(`objects.roleType.workspaceLevelCreator`) }}</div>
                         <span class="text-gray-500 text-xs whitespace-normal">
@@ -230,9 +228,9 @@ const emailInput = ref((el) => {
                       </a-select-option>
 
                       <a-select-option
-                          class="nc-role-option"
-                          :value="WorkspaceUserRoles.VIEWER"
-                          :label="$t(`objects.roleType.workspaceLevelViewer`)"
+                        class="nc-role-option"
+                        :value="WorkspaceUserRoles.VIEWER"
+                        :label="$t(`objects.roleType.workspaceLevelViewer`)"
                       >
                         <div>{{ $t(`objects.roleType.workspaceLevelViewer`) }}</div>
                         <span class="text-gray-500 text-xs whitespace-normal">
@@ -247,7 +245,7 @@ const emailInput = ref((el) => {
               <div class="flex flex-row justify-center">
                 <a-button type="primary" html-type="submit">
                   <div class="flex flex-row justify-center items-center space-x-1.5">
-                    <MaterialSymbolsSendOutline class="flex h-[0.8rem]"/>
+                    <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
                     <div>{{ $t('activity.invite') }}</div>
                   </div>
                 </a-button>

@@ -1,61 +1,23 @@
 <script lang="ts" setup>
-import {useWorkspaceStoreOrThrow, stringToColour} from "#imports";
-import {Empty} from "ant-design-vue";
-
-
-enum ProjectType {
-  DOCS,
-  DB,
-  AUTOMATION,
-}
+import {Empty} from 'ant-design-vue'
+import {NcProjectType, stringToColour, useWorkspaceStoreOrThrow, navigateTo} from '#imports'
+import {ProjectType} from "nocodb-sdk";
 
 const {projects, loadProjects} = useWorkspaceStoreOrThrow()
 
-// todo: load using api
-const projects1 = $ref([
-  {
-    title: 'Noco 1',
-    description: 'Description 1',
-    role: 'Admin',
-    types: [ProjectType.DB, ProjectType.DOCS],
-  },
-  {
-    title: 'Workspace 2',
-    description: 'Description 1',
-    role: 'Viewer',
-    types: [ProjectType.AUTOMATION],
-  },
-  {
-    title: 'Test 3',
-    description: 'Description 1',
-    role: 'Admin',
-    types: [ProjectType.DB, ProjectType.AUTOMATION, ProjectType.DOCS],
-  },
-  {
-    title: 'Test work 4',
-    description: 'Description 1',
-    role: 'Viewer',
-    types: [ProjectType.DB, ProjectType.DOCS],
-  },
-  {
-    title: 'ABC 5',
-    description: 'Description 1',
-    role: 'Editor',
-    types: [ProjectType.DOCS],
-  },
-  {
-    title: 'Recent',
-    description: 'Description 1',
-    role: 'Admin',
-    types: [ProjectType.DB],
-  },
-  {
-    title: 'Favourites',
-    description: 'Description 1',
-    role: 'Editor',
-    types: [ProjectType.DOCS, ProjectType.DB],
-  },
-])
+
+const openProject =async (project:ProjectType) => {
+  switch (project.type){
+    case NcProjectType.DB:
+
+      await navigateTo(`/nc/${project.id}`)
+      break;
+    case NcProjectType.DOCS:
+      await navigateTo(`/nc/doc/${project.id}`)
+      break;
+
+  }
+}
 </script>
 
 <template>
@@ -71,7 +33,7 @@ const projects1 = $ref([
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(project, i) of projects" :key="i">
+      <tr v-for="(project, i) of projects" :key="i" class="cursor-pointer hover:bg-gray-50" @click="openProject(project)">
         <td class="!py-0">
           <div class="flex items-center nc-project-title gap-2">
             <span class="color-band" :style="{ backgroundColor: stringToColour(project.title) }"/>
@@ -80,9 +42,10 @@ const projects1 = $ref([
         </td>
         <td>
           <div class="flex items-center gap-2">
-            <MaterialSymbolsDocs v-if="project.types?.includes(ProjectType.DOCS)" class="text-gray-500"/>
-            <MdiTransitConnectionVariant v-if="project.types?.includes(ProjectType.AUTOMATION)" class="text-gray-500"/>
-            <MdiDatabaseOutline v-if="project.types?.includes(ProjectType.DB)" class="text-gray-500"/>
+            <!-- todo: replace with switch -->
+            <MaterialSymbolsDocs v-if="project.type === NcProjectType.DOCS" class="text-gray-400 text-xl"/>
+            <MdiTransitConnectionVariant v-else-if="project.type === NcProjectType.AUTOMATION" class="text-gray-400 text-xl"/>
+            <MdiDatabaseOutline v-else class="text-gray-400 text-xl"/>
           </div>
         </td>
         <td>{{ (i + 3) % 20 }} hours ago</td>
@@ -90,7 +53,19 @@ const projects1 = $ref([
           {{ project.role }}
         </td>
         <td>
-          <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu"/>
+          <a-dropdown>
+          <MdiDotsHorizontal @click.stop class="!text-gray-400 nc-workspace-menu"/>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item>
+                  <div class="flex flex-row items-center py-3 gap-2">
+                    <MdiDeleteOutline />
+                    Delete Project
+                  </div>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </td>
       </tr>
       </tbody>

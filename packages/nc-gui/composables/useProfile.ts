@@ -14,8 +14,6 @@ export function useProfile() {
   const loadIsFollowingUser = async (userId: string) => {
     if (!userId) return
     try {
-      console.log('user.value!.id', user.value!.id)
-      console.log('userId', userId)
       isFollowing.value = await $api.orgUsers.isFollowing(user.value!.id, userId)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -43,7 +41,7 @@ export function useProfile() {
       $api.orgUsers.followerCreate(user.value!.id, {
         fk_follower_id: userId,
       })
-      await loadIsFollowingUser(userId)
+      await loadProfile(profile.value.user_name)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -55,7 +53,7 @@ export function useProfile() {
       $api.orgUsers.followerDelete(user.value!.id, {
         fk_follower_id: userId,
       })
-      await loadIsFollowingUser(userId)
+      await loadProfile(profile.value.user_name)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

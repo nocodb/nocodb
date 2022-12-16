@@ -1,13 +1,13 @@
 import Base from './/Base';
 import Noco from '../Noco';
-import { ProjectType } from 'nocodb-sdk';
+import {ProjectType} from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import { extractProps } from '../meta/helpers/extractProps';
+import {extractProps} from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
 
 export default class Project implements ProjectType {
@@ -44,7 +44,7 @@ export default class Project implements ProjectType {
     },
     ncMeta = Noco.ncMeta
   ): Promise<Project> {
-    const { id: projectId } = await ncMeta.metaInsert2(
+    const {id: projectId} = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.PROJECT,
@@ -139,7 +139,7 @@ export default class Project implements ProjectType {
   }
 
   async getBases(ncMeta = Noco.ncMeta): Promise<Base[]> {
-    return (this.bases = await Base.list({ projectId: this.id }, ncMeta));
+    return (this.bases = await Base.list({projectId: this.id}, ncMeta));
   }
 
   // todo: hide credentials
@@ -216,7 +216,7 @@ export default class Project implements ProjectType {
       null,
       null,
       MetaTable.PROJECT,
-      { deleted: true },
+      {deleted: true},
       projectId
     );
   }
@@ -265,7 +265,7 @@ export default class Project implements ProjectType {
           projectId
         );
       }
-      o = { ...o, ...updateObj };
+      o = {...o, ...updateObj};
 
       await NocoCache.del(CacheScope.INSTANCE_META);
 
@@ -284,7 +284,7 @@ export default class Project implements ProjectType {
 
   // Todo: Remove the project entry from the connection pool in NcConnectionMgrv2
   static async delete(projectId, ncMeta = Noco.ncMeta): Promise<any> {
-    const bases = await Base.list({ projectId });
+    const bases = await Base.list({projectId});
     for (const base of bases) {
       await base.delete(ncMeta);
     }
@@ -403,5 +403,31 @@ export default class Project implements ProjectType {
     if (project) await project.getBases(ncMeta);
 
     return project;
+  }
+
+  static async listByWorkspace(workspaceId: string, ncMeta = Noco.ncMeta) {
+    // Todo: caching , pagination
+
+    const projectList = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
+      condition: {
+        fk_workspace_id: workspaceId
+      },
+      xcCondition: {
+        _or: [
+          {
+            deleted: {
+              eq: false,
+            },
+          },
+          {
+            deleted: {
+              eq: null,
+            },
+          },
+        ],
+      },
+    });
+
+    return projectList;
   }
 }

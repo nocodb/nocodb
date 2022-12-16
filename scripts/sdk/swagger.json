@@ -7293,6 +7293,38 @@
         }
       ]
     },
+    "/api/v1/workspaces/{workspaceId}/projects": {
+      "get": {
+        "summary": "Workspace projects list",
+        "operationId": "workspace-project-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace project"
+        ],
+        "description": "Workspace projects list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
     "/api/v1/workspaces/{workspaceId}/invitations": {
       "post": {
         "summary": "Workspace user invite",
@@ -7506,7 +7538,7 @@
             "type": "string",
             "format": "email"
           },
-          "role": {
+          "roles": {
             "type": "string"
           }
         }

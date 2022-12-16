@@ -44,11 +44,17 @@ await loadProfile(route.params.username as string)
               <a-button class="!bg-primary !border-none w-full text-center !text-white rounded" size="large"> Follow </a-button>
             </div>
 
-            <div class="nc-profile-follower my-2">
+            <div class="nc-profile-edit-btn my-4">
+              <a-button class="!bg-primary !border-none w-full text-center !text-white rounded" size="large">
+                Edit Profile
+              </a-button>
+            </div>
+
+            <div class="nc-profile-location my-2">
               <div class="flex items-center mr-4"><MdiMapMarkerOutline class="text-lg mr-2" /> {{ profile.location }}</div>
             </div>
 
-            <div class="nc-profile-follower my-2">
+            <div class="nc-profile-website my-2">
               <div class="flex items-center mr-4">
                 <MdiLinkVariant class="text-lg mr-2" />
                 <a class="!no-underline" :href="profile.website" target="_blank">{{ profile.website }}</a>

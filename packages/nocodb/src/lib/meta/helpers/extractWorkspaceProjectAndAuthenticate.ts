@@ -85,8 +85,8 @@ export default async (req, res, next) => {
 
     // extract workspace id based on request path params or projectId
     if(req.ncProjectId){
-      req.ncWorkspaceId = req.params.workspaceId;
-    }else if (req.params.workspaceId) {
+      req.ncWorkspaceId = (await Project.get(req.ncProjectId)).fk_workspace_id
+    } else if (req.params.workspaceId) {
       req.ncWorkspaceId = req.params.workspaceId;
     }
 

@@ -6,16 +6,14 @@ import {ProjectType} from "nocodb-sdk";
 const {projects, loadProjects} = useWorkspaceStoreOrThrow()
 
 
-const openProject =async (project:ProjectType) => {
-  switch (project.type){
-    case NcProjectType.DB:
-
-      await navigateTo(`/nc/${project.id}`)
-      break;
+const openProject = async (project: ProjectType) => {
+  switch (project.type) {
     case NcProjectType.DOCS:
       await navigateTo(`/nc/doc/${project.id}`)
       break;
-
+    default:
+      await navigateTo(`/nc/${project.id}`)
+      break;
   }
 }
 </script>
@@ -33,7 +31,8 @@ const openProject =async (project:ProjectType) => {
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(project, i) of projects" :key="i" class="cursor-pointer hover:bg-gray-50" @click="openProject(project)">
+      <tr v-for="(project, i) of projects" :key="i" class="cursor-pointer hover:bg-gray-50"
+          @click="openProject(project)">
         <td class="!py-0">
           <div class="flex items-center nc-project-title gap-2">
             <span class="color-band" :style="{ backgroundColor: stringToColour(project.title) }"/>
@@ -44,7 +43,8 @@ const openProject =async (project:ProjectType) => {
           <div class="flex items-center gap-2">
             <!-- todo: replace with switch -->
             <MaterialSymbolsDocs v-if="project.type === NcProjectType.DOCS" class="text-gray-400 text-xl"/>
-            <MdiTransitConnectionVariant v-else-if="project.type === NcProjectType.AUTOMATION" class="text-gray-400 text-xl"/>
+            <MdiTransitConnectionVariant v-else-if="project.type === NcProjectType.AUTOMATION"
+                                         class="text-gray-400 text-xl"/>
             <MdiDatabaseOutline v-else class="text-gray-400 text-xl"/>
           </div>
         </td>
@@ -54,12 +54,12 @@ const openProject =async (project:ProjectType) => {
         </td>
         <td>
           <a-dropdown>
-          <MdiDotsHorizontal @click.stop class="!text-gray-400 nc-workspace-menu"/>
+            <MdiDotsHorizontal @click.stop class="!text-gray-400 nc-workspace-menu"/>
             <template #overlay>
               <a-menu>
                 <a-menu-item>
                   <div class="flex flex-row items-center py-3 gap-2">
-                    <MdiDeleteOutline />
+                    <MdiDeleteOutline/>
                     Delete Project
                   </div>
                 </a-menu-item>

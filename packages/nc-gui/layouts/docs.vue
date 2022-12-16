@@ -59,14 +59,6 @@ export default {
         </a-tooltip>
       </div>
 
-      <div class="!text-white flex justify-center">
-        <div v-show="isLoading" class="flex items-center gap-2 ml-3" data-testid="nc-loading">
-          {{ $t('general.loading') }}
-
-          <MdiReload :class="{ 'animate-infinite animate-spin': isLoading }" />
-        </div>
-      </div>
-
       <div class="ml-2 font-semibold">Project Name</div>
 
       <div class="flex-1" />

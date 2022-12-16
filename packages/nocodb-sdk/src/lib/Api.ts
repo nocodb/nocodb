@@ -5058,7 +5058,7 @@ export class Api<
       workspaceId: string,
       userId: string,
       data: {
-        role?: string;
+        roles?: string;
       },
       params: RequestParams = {}
     ) =>

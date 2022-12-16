@@ -84,6 +84,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
       email,
       roles,
     })
+    await loadCollaborators()
   }
 
   // remove user from workspace
@@ -93,17 +94,19 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     }
 
     await $api.workspaceUser.delete(activeWorkspace.value.id!, userId)
+    await loadCollaborators()
   }
 
   // update existing collaborator role
-  const updateCollaborator = async (userId: string, role: WorkspaceUserRoles) => {
+  const updateCollaborator = async (userId: string, roles: WorkspaceUserRoles) => {
     if (!activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
     await $api.workspaceUser.update(activeWorkspace.value.id!, userId, {
-      role,
+      roles,
     })
+    await loadCollaborators()
   }
 
   // load projects and collaborators list on active workspace change

@@ -7402,7 +7402,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "role": {
+                  "roles": {
                     "type": "string"
                   }
                 }

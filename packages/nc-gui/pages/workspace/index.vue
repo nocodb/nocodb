@@ -34,7 +34,10 @@ const isCreateDlgOpen = ref(false)
 const {close} = useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,
   'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
-  'onSuccess': loadWorkspaceList,
+  'onSuccess': async () => {
+    isCreateDlgOpen.value = false;
+    await loadWorkspaceList()
+  },
 })
 
 // TODO

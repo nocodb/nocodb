@@ -27,7 +27,10 @@ await loadProfile(route.params.username as string)
           </div>
 
           <div class="nc-profile-follower my-2">
-            <div class="flex items-center mr-4"><MdiAccountSupervisorOutline class="text-lg" /> 256 followers．41 Following</div>
+            <div class="flex items-center mr-4">
+              <MdiAccountSupervisorOutline class="text-lg" />
+              {{ profile.followerCount }} followers．{{ profile.followingCount }} Following
+            </div>
           </div>
 
           <div class="nc-profile-follow-btn my-4">

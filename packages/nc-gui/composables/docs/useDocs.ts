@@ -170,10 +170,15 @@ export function useDocs() {
     return `/nc/doc/${projectId()}/${slugs.join('/')}`
   }
 
+  const { appInfo } = $(useGlobal())
+
+  const baseURL = appInfo.ncSiteUrl
+
   const createMagic = async (title: string) => {
     try {
-      await $fetch(`http://localhost:8080/api/v1/docs/magic`, {
+      await $fetch(`/api/v1/docs/magic`, {
         method: 'POST',
+        baseURL,
         headers: { 'xc-auth': $state.token.value as string },
         body: {
           title,
@@ -188,8 +193,9 @@ export function useDocs() {
   const createImport = async (url: string, type: 'md' | 'nuxt' | 'docusaurus' = 'md', from: 'github' | 'file' = 'github') => {
     try {
       const rs = gh(url)
-      await $fetch(`http://localhost:8080/api/v1/docs/import`, {
+      await $fetch(`/api/v1/docs/import`, {
         method: 'POST',
+        baseURL,
         headers: { 'xc-auth': $state.token.value as string },
         body: {
           user: rs?.owner,

@@ -110,7 +110,7 @@ async function magic(
 ) {
   try {
     let response;
-  
+
     try {
       response = await openai.createCompletion({
         model: "text-davinci-003",
@@ -127,7 +127,7 @@ async function magic(
       }
 
       const pages = JSON.parse(response.data.choices[0].text);
-    
+
       for (const page of pages.length ? pages : pages.data) {
         await handlePageJSON(page, req.body.projectId, undefined, (req as any)?.session?.passport?.user as UserType);
       }
@@ -201,7 +201,11 @@ router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
 router.get('/api/v1/docs/pages', apiMetrics, ncMetaAclMw(list, 'pageList'));
 router.post('/api/v1/docs/page', apiMetrics, ncMetaAclMw(create, 'pageCreate'));
 router.post('/api/v1/docs/magic', apiMetrics, ncMetaAclMw(magic, 'pageMagic'));
-router.post('/api/v1/docs/import', apiMetrics, ncMetaAclMw(directoryImport, 'directoryImport'));
+router.post(
+  '/api/v1/docs/import',
+  apiMetrics,
+  ncMetaAclMw(directoryImport, 'directoryImport')
+);
 router.put(
   '/api/v1/docs/page/:id',
   apiMetrics,

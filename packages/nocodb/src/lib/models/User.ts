@@ -420,7 +420,7 @@ export default class User implements UserType {
     return this.getFollower({ fk_user_id, fk_follower_id }, ncMeta);
   }
 
-  static async isUserFollowing(
+  static async isFollowing(
     {
       fk_user_id,
       fk_follower_id,

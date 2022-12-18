@@ -230,7 +230,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
 
   const project = await Project.getWithInfo(req.body.project_id);
   const base = project.bases.find((b) => b.id === model.base_id);
-  
+
   if (!req.body.table_name) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'

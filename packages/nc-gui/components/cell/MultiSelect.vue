@@ -105,7 +105,7 @@ const vModel = computed({
 const selectedTitles = computed(() =>
   modelValue
     ? typeof modelValue === 'string'
-      ? isMysql
+      ? isMysql(column.value.base_id)
         ? modelValue.split(',').sort((a, b) => {
             const opa = options.value.find((el) => el.title === a)
             const opb = options.value.find((el) => el.title === b)
@@ -180,7 +180,7 @@ useSelectedCellKeyupListener(active, (e) => {
       break
     default:
       // toggle only if char key pressed
-      if (e.key?.length === 1) {
+      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1) {
         e.stopPropagation()
         isOpen.value = true
       }

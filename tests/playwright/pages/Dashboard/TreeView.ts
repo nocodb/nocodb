@@ -6,18 +6,28 @@ export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly project: any;
   readonly quickImportButton: Locator;
-  readonly inviteTeamButton: Locator;
 
   constructor(dashboard: DashboardPage, project: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.project = project;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
-    this.inviteTeamButton = dashboard.get().locator('.nc-share-base');
   }
 
   get() {
     return this.dashboard.get().locator('.nc-treeview-container');
+  }
+
+  async isVisible() {
+    return await this.get().isVisible();
+  }
+
+  async verifyVisibility({ isVisible }: { isVisible: boolean }) {
+    if (isVisible) {
+      await expect(this.get()).toBeVisible();
+    } else {
+      await expect(this.get()).not.toBeVisible();
+    }
   }
 
   async focusTable({ title }: { title: string }) {
@@ -43,8 +53,8 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.waitForTabRender({ title, mode });
   }
 
-  async createTable({ title }: { title: string }) {
-    await this.get().locator('.nc-add-new-table').click();
+  async createTable({ title, skipOpeningModal }: { title: string; skipOpeningModal?: boolean }) {
+    if (!skipOpeningModal) await this.get().locator('.nc-add-new-table').click();
 
     await this.dashboard.get().locator('.nc-modal-table-create').locator('.ant-modal-body').waitFor();
 
@@ -63,13 +73,13 @@ export class TreeViewPage extends BasePage {
 
   async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {
     if (exists) {
-      await expect(this.get().locator(`.nc-project-tree-tbl-${title}`)).toBeVisible();
+      await expect(this.get().getByTestId(`tree-view-table-${title}`)).toHaveCount(1);
 
       if (index) {
-        await expect(await this.get().locator('.nc-tbl-title').nth(index)).toHaveText(title);
+        await expect(this.get().locator('.nc-tbl-title').nth(index)).toHaveText(title);
       }
     } else {
-      await expect(this.get().locator(`.nc-project-tree-tbl-${title}`)).toHaveCount(0);
+      await expect(this.get().getByTestId(`tree-view-table-${title}`)).toHaveCount(0);
     }
   }
 
@@ -119,13 +129,14 @@ export class TreeViewPage extends BasePage {
     await importMenu.locator(`.ant-dropdown-menu-title-content:has-text("${title}")`).click();
   }
 
+  // todo: Break this into smaller methods
   async validateRoleAccess(param: { role: string }) {
     // Add new table button
     await expect(this.get().locator(`.nc-add-new-table`)).toHaveCount(param.role === 'creator' ? 1 : 0);
     // Import menu
     await expect(this.get().locator(`.nc-import-menu`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    // Invite Team button
-    await expect(this.get().locator(`.nc-share-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
+    // Team and Settings button
+    await expect(this.get().locator(`.nc-new-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
     // Right click context menu
     await this.get().locator(`.nc-project-tree-tbl-Country`).click({
       button: 'right',

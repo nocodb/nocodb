@@ -8,6 +8,7 @@ import {
   IsPublicInj,
   computed,
   inject,
+  isDrawerExist,
   ref,
   useLTARStoreOrThrow,
   useSelectedCellKeyupListener,
@@ -23,6 +24,8 @@ const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 const vModel = useVModel(props, 'modelValue', emit)
 
 const column = inject(ColumnInj)
+
+const filterQueryRef = ref()
 
 const {
   childrenExcludedList,
@@ -141,6 +144,12 @@ useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
         }
       }
       break
+    default: {
+      const el = filterQueryRef.value?.$el
+      if (el && !isDrawerExist()) {
+        filterQueryRef.value.$el.focus()
+      }
+    }
   }
 })
 const activeRow = (vNode?: InstanceType<typeof Card>) => {
@@ -151,6 +160,7 @@ const activeRow = (vNode?: InstanceType<typeof Card>) => {
 <template>
   <a-modal
     v-model:visible="vModel"
+    :class="{ active: vModel }"
     :footer="null"
     :title="$t('activity.linkRecord')"
     :body-style="{ padding: 0 }"
@@ -159,6 +169,7 @@ const activeRow = (vNode?: InstanceType<typeof Card>) => {
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <a-input
+          ref="filterQueryRef"
           v-model:value="childrenExcludedListPagination.query"
           :placeholder="$t('placeholder.filterQuery')"
           class="max-w-[200px]"

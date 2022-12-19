@@ -6,7 +6,7 @@ import mkdirp from 'mkdirp';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import NcConfigFactory from '../../../../utils/NcConfigFactory';
 
-import request from 'request';
+import axios from 'axios';
 
 export default class Local implements IStorageAdapterV2 {
   constructor() {}
@@ -27,38 +27,43 @@ export default class Local implements IStorageAdapterV2 {
   async fileCreateByUrl(key: string, url: string): Promise<any> {
     const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
     return new Promise((resolve, reject) => {
-      mkdirp.sync(path.dirname(destPath));
-      const file = fs.createWriteStream(destPath);
-      const sendReq = request.get(url);
+      axios
+        .get(url, {
+          responseType: 'stream',
+          headers: {
+            accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'accept-language': 'en-US,en;q=0.9',
+            'cache-control': 'no-cache',
+            pragma: 'no-cache',
+            'user-agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+            origin: 'https://www.airtable.com/',
+          },
+        })
+        .then((response) => {
+          mkdirp.sync(path.dirname(destPath));
+          const file = fs.createWriteStream(destPath);
+          // close() is async, call cb after close completes
+          file.on('finish', () => {
+            file.close((err) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(null);
+            });
+          });
 
-      // verify response code
-      sendReq.on('response', (response) => {
-        if (response.statusCode !== 200) {
-          return reject('Response status was ' + response.statusCode);
-        }
+          file.on('error', (err) => {
+            // Handle errors
+            fs.unlink(destPath, () => reject(err.message)); // delete the (partial) file and then return the error
+          });
 
-        sendReq.pipe(file);
-      });
-
-      // close() is async, call cb after close completes
-      file.on('finish', () => {
-        file.close((err) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve(null);
+          response.data.pipe(file);
+        })
+        .catch((err) => {
+          reject(err.message);
         });
-      });
-
-      // check for request errors
-      sendReq.on('error', (err) => {
-        fs.unlink(destPath, () => reject(err.message)); // delete the (partial) file and then return the error
-      });
-
-      file.on('error', (err) => {
-        // Handle errors
-        fs.unlink(destPath, () => reject(err.message)); // delete the (partial) file and then return the error
-      });
     });
   }
 

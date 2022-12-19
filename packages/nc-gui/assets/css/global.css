@@ -1,15 +1,16 @@
 html {
-	font-size: 16px;
-	word-spacing: 1px;
-	-ms-text-size-adjust: 100%;
-	-webkit-text-size-adjust: 100%;
-	-moz-osx-font-smoothing: grayscale;
-	-webkit-font-smoothing: antialiased;
-	box-sizing: border-box;
+  font-size: 16px;
+  word-spacing: 1px;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
 }
 
 body {
-	font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, Vazirmatn, sans-serif;
+  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, Vazirmatn,
+    sans-serif;
 }
 
 /* 
@@ -17,16 +18,27 @@ Apply Vazirmatn for rtl
 */
 
 .rtl .v-application *:not(.material-icons) {
-	font-family: Vazirmatn !important;
+  font-family: Vazirmatn !important;
 }
 
 .rtl .v-application .ml-n1 {
-	margin-left: 0px !important;
+  margin-left: 0px !important;
 }
 
 /*
 For Drag and Drop
 */
 .grabbing * {
-	cursor: grabbing;
+  cursor: grabbing;
+}
+
+/*
+Prevent Ctrl + A selection
+*/
+.non-selectable {
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }

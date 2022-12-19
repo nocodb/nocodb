@@ -5,7 +5,8 @@ import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';
 
-import lodash from 'lodash';
+import findIndex from 'lodash/findIndex';
+import find from 'lodash/find';
 import fs from 'fs';
 import { promisify } from 'util';
 import jsonfile from 'jsonfile';
@@ -685,7 +686,7 @@ class KnexClient extends SqlClient {
   }
 
   _isColumnForeignKey(tableObj, cn) {
-    if (lodash.findIndex(tableObj.foreignKeys, { cn: cn }) === -1) {
+    if (findIndex(tableObj.foreignKeys, { cn: cn }) === -1) {
       return false;
     }
     return true;
@@ -699,7 +700,7 @@ class KnexClient extends SqlClient {
     ) {
       if (tableObj.primaryKeys.length > 1) {
         if (
-          lodash.findIndex(tableObj.primaryKeys, {
+          findIndex(tableObj.primaryKeys, {
             cn: columnObj.cn,
           }) > 0
         ) {
@@ -763,7 +764,7 @@ class KnexClient extends SqlClient {
 
     if (tableObj.primaryKeys.length) {
       const dt = this.getKnexDataTypeMock(pk.ct);
-      const col = lodash.find(tableObj.columns, {
+      const col = find(tableObj.columns, {
         cn: pk.cn,
       });
 
@@ -778,11 +779,7 @@ class KnexClient extends SqlClient {
 
     let max1 = 10000;
     let searchFrom = 0;
-    let foundIndex = lodash.findIndex(
-      tableObj.columns,
-      { ck: 'UNI' },
-      searchFrom
-    );
+    let foundIndex = findIndex(tableObj.columns, { ck: 'UNI' }, searchFrom);
 
     while (foundIndex !== -1) {
       const col = tableObj.columns[foundIndex];
@@ -798,16 +795,12 @@ class KnexClient extends SqlClient {
       }
 
       searchFrom = foundIndex;
-      foundIndex = lodash.findIndex(
-        tableObj.columns,
-        { ck: 'UNI' },
-        searchFrom + 1
-      );
+      foundIndex = findIndex(tableObj.columns, { ck: 'UNI' }, searchFrom + 1);
     }
 
     let max2 = 10000;
     searchFrom = 0;
-    foundIndex = lodash.findIndex(tableObj.columns, { ck: 'MUL' }, searchFrom);
+    foundIndex = findIndex(tableObj.columns, { ck: 'MUL' }, searchFrom);
 
     while (foundIndex !== -1) {
       const col = tableObj.columns[foundIndex];
@@ -823,11 +816,7 @@ class KnexClient extends SqlClient {
       }
 
       searchFrom = foundIndex;
-      foundIndex = lodash.findIndex(
-        tableObj.columns,
-        { ck: 'MUL' },
-        searchFrom + 1
-      );
+      foundIndex = findIndex(tableObj.columns, { ck: 'MUL' }, searchFrom + 1);
     }
 
     // console.log('min of: ', max, max1, max2, maxy);
@@ -1895,7 +1884,7 @@ class KnexClient extends SqlClient {
   //     let downQuery = "";
   //
   //     for (let i = 0; i < args.columns.length; ++i) {
-  //       const oldColumn = lodash.find(originalColumns, {
+  //       const oldColumn = find(originalColumns, {
   //         cn: args.columns[i].cno
   //       });
   //
@@ -2046,7 +2035,7 @@ class KnexClient extends SqlClient {
           pkUpdate(table, args.columns, args.originalColumns);
         } else {
           for (let i = 0; i < args.columns.length; ++i) {
-            const column = lodash.find(originalColumns, {
+            const column = find(originalColumns, {
               cn: args.columns[i].cno,
             });
 
@@ -2090,7 +2079,7 @@ class KnexClient extends SqlClient {
               pkUpdate(table, args.columns, args.originalColumns);
             } else {
               for (let i = 0; i < args.columns.length; ++i) {
-                const column = lodash.find(originalColumns, {
+                const column = find(originalColumns, {
                   cn: args.columns[i].cno,
                 });
                 if (args.columns[i].altered & 8) {
@@ -2124,7 +2113,7 @@ class KnexClient extends SqlClient {
               pkUpdate(table, args.columns, args.originalColumns);
             } else {
               for (let i = 0; i < args.columns.length; ++i) {
-                const column = lodash.find(originalColumns, {
+                const column = find(originalColumns, {
                   cn: args.columns[i].cno,
                 });
                 if (args.columns[i].altered & 8) {

@@ -1,9 +1,9 @@
 import knex from 'knex';
-import _ from 'lodash';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
-import lodash from 'lodash';
+import mapKeys from 'lodash/mapKeys';
+import find from 'lodash/find';
 
 const log = new Debug('OracleClient');
 
@@ -127,7 +127,7 @@ class OracleClient extends KnexClient {
       result.data.object = {};
 
       let versionDetails = rows[0];
-      versionDetails = _.mapKeys(versionDetails, (_v, k) => k.toLowerCase());
+      versionDetails = mapKeys(versionDetails, (_v, k) => k.toLowerCase());
       const version = versionDetails.version.split('.');
       result.data.object.version = versionDetails.version;
       result.data.object.primary = version[0];
@@ -399,7 +399,7 @@ class OracleClient extends KnexClient {
       );
       for (let i = 0; i < rows.length; i++) {
         let el = rows[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         rows[i] = el;
       }
 
@@ -431,7 +431,7 @@ class OracleClient extends KnexClient {
       );
       for (let i = 0; i < rows.length; i++) {
         let el = rows[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         rows[i] = el;
       }
 
@@ -567,7 +567,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.np = el.data_precision;
         el.pk = el.ck === 'P';
         el.nrqd = el.nrqd === 'Y';
@@ -639,7 +639,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.table = el.tn;
         el.non_unique = el.uniqueness === 'NONUNIQUE' ? 1 : 0;
         el.non_unique_original = el.uniqueness === 'NONUNIQUE' ? 1 : 0;
@@ -686,7 +686,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.table = el.tn;
         if (el.cst === 'P') el.cst = 'Primary Key';
         if (el.cst === 'U') el.cst = 'Unique';
@@ -758,7 +758,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.rtn = el.r_table_name;
         el.rcn = el.r_column_name;
         el.non_unique = el.uniqueness === 'NONUNIQUE';
@@ -811,7 +811,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.rtn = el.r_table_name;
         el.rcn = el.r_column_name;
         el.non_unique = el.uniqueness === 'NONUNIQUE';
@@ -862,7 +862,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.trigger = el.trigger_name;
         el.table = el.object_name;
         el.event = el.triggering_event;
@@ -910,7 +910,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.function_name = el.object_name;
         el.type = el.object_type;
         response[i] = el;
@@ -956,7 +956,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.procedure_name = el.object_name;
         el.type = el.object_type;
         response[i] = el;
@@ -996,7 +996,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.view_name = el.object_name;
         response[i] = el;
       }
@@ -1038,7 +1038,7 @@ class OracleClient extends KnexClient {
         let script = '';
         for (let i = 0; i < response.length; i++) {
           let el = response[i];
-          el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+          el = mapKeys(el, (_v, k) => k.toLowerCase());
           el.function_name = el.name;
           response[i] = el;
           script += el.text;
@@ -1084,7 +1084,7 @@ class OracleClient extends KnexClient {
         let script = '';
         for (let i = 0; i < response.length; i++) {
           let el = response[i];
-          el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+          el = mapKeys(el, (_v, k) => k.toLowerCase());
           el.procedure_name = el.name;
           response[i] = el;
           script += el.text;
@@ -1124,7 +1124,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.view_name = el.object_name;
         el.view_definition = el.text;
         response[i] = el;
@@ -1157,7 +1157,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
-        el = _.mapKeys(el, (_v, k) => k.toLowerCase());
+        el = mapKeys(el, (_v, k) => k.toLowerCase());
         el.trigger = el.trigger_name;
         el.table = el.object_name;
         el.event = el.triggering_event;
@@ -1622,7 +1622,7 @@ class OracleClient extends KnexClient {
       let downQuery = '';
 
       for (let i = 0; i < args.columns.length; ++i) {
-        const oldColumn = lodash.find(originalColumns, {
+        const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
         });
 

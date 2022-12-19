@@ -988,6 +988,11 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 type CustomKnex = Knex;
 
 function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
+  // sqlite does not support inserting default values and knex fires a warning without this flag
+  if (arg?.client === 'sqlite3') {
+    arg.useNullAsDefault = true;
+  }
+
   const kn: any = knex(arg);
 
   const knexRaw = kn.raw;

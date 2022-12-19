@@ -86,5 +86,5 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   })
 
   nuxtApp.provide('tele', tele)
-  nuxtApp.provide('e', tele.emit)
+  nuxtApp.provide('e', (e: string, data?: Record<string, any>) => tele.emit(e, { data }))
 })

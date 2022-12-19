@@ -1,6 +1,8 @@
 import knex from 'knex';
 
-import lodash from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import mapKeys from 'lodash/mapKeys';
+import find from 'lodash/find';
 import Debug from '../../../util/Debug';
 import Emit from '../../../util/emit';
 import Result from '../../../util/Result';
@@ -551,7 +553,7 @@ class MysqlClient extends KnexClient {
       );
       if (response.length === 2) {
         result.data.list = response[0].map((v) =>
-          lodash.mapKeys(v, (_, k) => k.toLowerCase())
+          mapKeys(v, (_, k) => k.toLowerCase())
         );
       } else {
         log.debug('Unknown response for schemaList:', result.data.list.length);
@@ -620,9 +622,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           const column: any = {};
 
-          response[0][i] = lodash.mapKeys(response[0][i], (_v, k) =>
-            k.toLowerCase()
-          );
+          response[0][i] = mapKeys(response[0][i], (_v, k) => k.toLowerCase());
 
           if (this._version.key === '57' || this._version.key === '80') {
             column.dp = response[0][i].dp;
@@ -753,7 +753,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let index = response[0][i];
-          index = lodash.mapKeys(index, function (_v, k) {
+          index = mapKeys(index, function (_v, k) {
             return k.toLowerCase();
           });
           index.cn = index.column_name;
@@ -810,7 +810,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let index = response[0][i];
-          index = lodash.mapKeys(index, function (_v, k) {
+          index = mapKeys(index, function (_v, k) {
             return k.toLowerCase();
           });
           indexes.push(index);
@@ -868,7 +868,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let relation = response[0][i];
-          relation = lodash.mapKeys(relation, function (_v, k) {
+          relation = mapKeys(relation, function (_v, k) {
             return k.toLowerCase();
           });
           relations.push(relation);
@@ -923,7 +923,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let relation = response[0][i];
-          relation = lodash.mapKeys(relation, function (_v, k) {
+          relation = mapKeys(relation, function (_v, k) {
             return k.toLowerCase();
           });
           relations.push(relation);
@@ -985,7 +985,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let trigger = response[0][i];
-          trigger = lodash.mapKeys(trigger, function (_v, k) {
+          trigger = mapKeys(trigger, function (_v, k) {
             return k.toLowerCase();
           });
           trigger.trigger_name = trigger.trigger;
@@ -1040,7 +1040,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let fn = response[0][i];
-          fn = lodash.mapKeys(fn, function (_v, k) {
+          fn = mapKeys(fn, function (_v, k) {
             return k.toLowerCase();
           });
           fn.function_name = fn.name;
@@ -1099,7 +1099,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
-          procedure = lodash.mapKeys(procedure, function (_v, k) {
+          procedure = mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
           procedure.procedure_name = procedure.name;
@@ -1205,7 +1205,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let _function = response[0][i];
 
-          _function = lodash.mapKeys(_function, function (_v, k) {
+          _function = mapKeys(_function, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -1259,7 +1259,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
 
-          procedure = lodash.mapKeys(procedure, function (_v, k) {
+          procedure = mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -1311,7 +1311,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let view = response[0][i];
 
-          view = lodash.mapKeys(view, function (_v, k) {
+          view = mapKeys(view, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -1847,7 +1847,7 @@ class MysqlClient extends KnexClient {
    */
   async _getQuery(args) {
     try {
-      if (lodash.isEmpty(this._version)) {
+      if (isEmpty(this._version)) {
         const result = await this.version();
         this._version = result.data.object;
         log.debug(
@@ -2085,7 +2085,7 @@ class MysqlClient extends KnexClient {
       let downQuery = '';
 
       for (let i = 0; i < args.columns.length; ++i) {
-        const oldColumn = lodash.find(originalColumns, {
+        const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
         });
 

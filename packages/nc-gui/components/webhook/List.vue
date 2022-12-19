@@ -52,7 +52,7 @@ onMounted(() => {
 <template>
   <div class="">
     <div class="mb-2">
-      <div class="float-left font-bold text-xl mt-2 mb-4">{{ meta.title }} : Webhooks</div>
+      <div class="float-left font-bold text-xl mt-2 mb-4">{{ meta?.title }} : Webhooks</div>
 
       <a-button
         v-e="['c:webhook:add']"

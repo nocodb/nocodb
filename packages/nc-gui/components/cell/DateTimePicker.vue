@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ActiveCellInj, ReadonlyInj, inject, ref, useProject, useSelectedCellKeyupListener, watch } from '#imports'
+import {
+  ActiveCellInj,
+  ReadonlyInj,
+  inject,
+  isDrawerOrModalExist,
+  ref,
+  useProject,
+  useSelectedCellKeyupListener,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -19,11 +28,13 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
+const column = inject(ColumnInj)!
+
 let isDateInvalid = $ref(false)
 
-const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+const dateFormat = isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
-const localState = $computed({
+let localState = $computed({
   get() {
     if (!modelValue) {
       return undefined
@@ -65,13 +76,84 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       e.stopPropagation()
-      open.value = true
+      // skip if drawer / modal is active
+      if (isDrawerOrModalExist()) {
+        return
+      }
+      if (!open.value) {
+        // open date picker
+        open.value = true
+      } else {
+        // click Ok button to save the currently selected date
+        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-ok button') as HTMLButtonElement)?.click()
+      }
       break
     case 'Escape':
+      // skip if drawer / modal is active
+      if (isDrawerOrModalExist()) {
+        return
+      }
       if (open.value) {
         e.stopPropagation()
         open.value = false
       }
+      break
+    case 'ArrowLeft':
+      if (!localState) {
+        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
+      } else {
+        const prevEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
+          ?.previousElementSibling as HTMLButtonElement
+        if (prevEl) {
+          prevEl.click()
+        } else {
+          // get the last td from previous tr
+          const prevRowLastEl = document
+            .querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
+            ?.closest('tr')
+            ?.previousElementSibling?.querySelector('td:last-child') as HTMLButtonElement
+          if (prevRowLastEl) {
+            prevRowLastEl.click()
+          } else {
+            // go to the previous month
+            ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-prev-btn') as HTMLButtonElement)?.click()
+          }
+        }
+      }
+      break
+    case 'ArrowRight':
+      if (!localState) {
+        ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-next-btn') as HTMLButtonElement)?.click()
+      } else {
+        const nextEl = document.querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
+          ?.nextElementSibling as HTMLButtonElement
+        if (nextEl) {
+          nextEl.click()
+        } else {
+          // get the last td from previous tr
+          const nextRowFirstEl = document
+            .querySelector('.nc-picker-datetime.active .ant-picker-cell-selected')
+            ?.closest('tr')
+            ?.nextElementSibling?.querySelector('td:first-child') as HTMLButtonElement
+          if (nextRowFirstEl) {
+            nextRowFirstEl.click()
+          } else {
+            // go to the next month
+            ;(document.querySelector('.nc-picker-datetime.active .ant-picker-header-next-btn') as HTMLButtonElement)?.click()
+          }
+        }
+      }
+      break
+    case 'ArrowUp':
+      if (!localState)
+        (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-prev-btn') as HTMLButtonElement)?.click()
+      break
+    case 'ArrowDown':
+      if (!localState)
+        (document.querySelector('.nc-picker-datetime.active .ant-picker-header-super-next-btn') as HTMLButtonElement)?.click()
+      break
+    case ';':
+      localState = dayjs(new Date())
       break
   }
 })

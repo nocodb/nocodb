@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
@@ -17,26 +17,49 @@ export class ColumnPageObject extends BasePage {
     return this.rootPage.locator('form[data-testid="add-or-edit-column"]');
   }
 
+  private getColumnHeader(title: string) {
+    return this.grid.get().locator(`th[data-title="${title}"]`);
+  }
+
+  async clickColumnHeader({ title }: { title: string }) {
+    await this.getColumnHeader(title).click();
+  }
+
   async create({
     title,
     type = 'SingleLineText',
     formula = '',
+    qrCodeValueColumnTitle = '',
     childTable = '',
     childColumn = '',
     relationType = '',
     rollupType = '',
-    format = '',
+    format,
+    insertAfterColumnTitle,
+    insertBeforeColumnTitle,
   }: {
     title: string;
     type?: string;
     formula?: string;
+    qrCodeValueColumnTitle?: string;
     childTable?: string;
     childColumn?: string;
     relationType?: string;
     rollupType?: string;
     format?: string;
+    insertBeforeColumnTitle?: string;
+    insertAfterColumnTitle?: string;
   }) {
-    await this.grid.get().locator('.nc-column-add').click();
+    if (insertBeforeColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before"):visible').click();
+    } else if (insertAfterColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert After"):visible').click();
+    } else {
+      await this.grid.get().locator('.nc-column-add').click();
+    }
+
     await this.rootPage.waitForTimeout(500);
     await this.fillTitle({ title });
     await this.rootPage.waitForTimeout(500);
@@ -44,8 +67,6 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(500);
 
     switch (type) {
-      case 'SingleTextLine':
-        break;
       case 'SingleSelect':
       case 'MultiSelect':
         await this.selectOption.addOption({
@@ -60,15 +81,25 @@ export class ColumnPageObject extends BasePage {
         });
         break;
       case 'Duration':
-        await this.get().locator('.ant-select-single').nth(1).click();
-        await this.rootPage
-          .locator(`.ant-select-item`, {
-            hasText: format,
-          })
-          .click();
+        if (format) {
+          await this.get().locator('.ant-select-single').nth(1).click();
+          await this.rootPage
+            .locator(`.ant-select-item`, {
+              hasText: format,
+            })
+            .click();
+        }
         break;
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
+        break;
+      case 'QrCode':
+        await this.get().locator('.ant-select-single').nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: new RegExp(`^${qrCodeValueColumnTitle}$`),
+          })
+          .click();
         break;
       case 'Lookup':
         await this.get().locator('.ant-select-single').nth(1).click();
@@ -124,6 +155,30 @@ export class ColumnPageObject extends BasePage {
     }
 
     await this.save();
+
+    // verify column inserted after the target column
+    if (insertAfterColumnTitle) {
+      const headersText = await this.grid.get().locator(`th`).allTextContents();
+
+      await expect(
+        this.grid
+          .get()
+          .locator(`th`)
+          .nth(headersText.findIndex(title => title.startsWith(insertAfterColumnTitle)) + 1)
+      ).toHaveText(title);
+    }
+
+    // verify column inserted before the target column
+    if (insertBeforeColumnTitle) {
+      const headersText = await this.grid.get().locator(`th`).allTextContents();
+
+      await expect(
+        this.grid
+          .get()
+          .locator(`th`)
+          .nth(headersText.findIndex(title => title.startsWith(insertBeforeColumnTitle)) - 1)
+      ).toHaveText(title);
+    }
   }
 
   async fillTitle({ title }: { title: string }) {
@@ -137,11 +192,22 @@ export class ColumnPageObject extends BasePage {
     await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
 
     // Select column type
-    await this.rootPage.locator(`text=${type}`).nth(1).click();
+    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
+  }
+
+  async changeReferencedColumnForQrCode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
+    await this.get().locator('.nc-qr-code-value-column-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: titleOfReferencedColumn,
+      })
+      .click();
+
+    await this.save();
   }
 
   async delete({ title }: { title: string }) {
-    await this.grid.get().locator(`th[data-title="${title}"] >> svg.ant-dropdown-trigger`).click();
+    await this.getColumnHeader(title).locator('svg.ant-dropdown-trigger').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').click();
 
@@ -162,7 +228,7 @@ export class ColumnPageObject extends BasePage {
     formula?: string;
     format?: string;
   }) {
-    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+    await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
 
     await this.get().waitFor({ state: 'visible' });
@@ -184,6 +250,26 @@ export class ColumnPageObject extends BasePage {
     }
   }
 
+  async duplicateColumn({ title, expectedTitle = `${title}_copy` }: { title: string; expectedTitle?: string }) {
+    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Duplicate"):visible').click();
+
+    await this.verifyToast({ message: 'Column duplicated successfully' });
+    await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).isVisible();
+  }
+
+  async hideColumn({ title }: { title: string }) {
+    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+
+    await this.waitForResponse({
+      uiAction: this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
+      requestUrlPathToMatch: 'api/v1/db/meta/views',
+      httpMethodsToMatch: ['PATCH'],
+    });
+
+    await expect(this.grid.get().locator(`th[data-title="${title}"]`)).toHaveCount(0);
+  }
+
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
       uiAction: this.get().locator('button:has-text("Save")').click(),
@@ -201,9 +287,9 @@ export class ColumnPageObject extends BasePage {
 
   async verify({ title, isVisible = true }: { title: string; isVisible?: boolean }) {
     if (!isVisible) {
-      return await expect(await this.rootPage.locator(`th[data-title="${title}"]`)).not.toBeVisible();
+      return await expect(this.getColumnHeader(title)).not.toBeVisible();
     }
-    await await expect(this.rootPage.locator(`th[data-title="${title}"]`)).toContainText(title);
+    await expect(this.getColumnHeader(title)).toContainText(title);
   }
 
   async verifyRoleAccess(param: { role: string }) {
@@ -215,5 +301,35 @@ export class ColumnPageObject extends BasePage {
       await expect(this.rootPage.locator('.nc-dropdown-column-operations')).toHaveCount(1);
       await this.grid.get().locator('.nc-ui-dt-dropdown:visible').first().click();
     }
+  }
+
+  async sortColumn({ title, direction = 'asc' }: { title: string; direction: 'asc' | 'desc' }) {
+    await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+    let menuOption;
+    if (direction === 'desc') {
+      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Descending"):visible').click();
+    } else {
+      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Ascending"):visible').click();
+    }
+
+    await this.waitForResponse({
+      uiAction: menuOption,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `/sorts`,
+    });
+
+    await this.grid.toolbar.parent.dashboard.waitForLoaderToDisappear();
+
+    await this.grid.toolbar.clickSort();
+
+    await this.rootPage.locator(`.ant-select-selection-item:has-text("${title}")`).first().isVisible();
+    await this.rootPage
+      .locator(
+        `.nc-sort-dir-select:has-text("${direction === 'asc' ? '1 → 9' : '9 → 1'}"),.nc-sort-dir-select:has-text("${
+          direction === 'asc' ? 'A → Z' : 'Z → A'
+        }")`
+      )
+      .first()
+      .isVisible();
   }
 }

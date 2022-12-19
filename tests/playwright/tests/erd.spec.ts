@@ -11,6 +11,7 @@ import { SettingsSubTab, SettingTab } from '../pages/Dashboard/Settings';
 import setup from '../setup';
 import { isMysql, isPg, isSqlite } from '../setup/db';
 import { SettingsErdPage } from '../pages/Dashboard/Settings/Erd';
+import { defaultBaseName } from '../constants';
 
 test.describe('Erd', () => {
   let dashboard: DashboardPage;
@@ -35,15 +36,21 @@ test.describe('Erd', () => {
     }
   });
 
-  const enableMM = async () => {
-    await dashboard.settings.selectTab({ tab: SettingTab.ProjectMetadata, subTab: SettingsSubTab.Miscellaneous });
+  const toggleMMAndOpenErd = async () => {
+    await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
     await dashboard.settings.miscellaneous.clickShowM2MTables();
-    await dashboard.settings.selectSubTab({ subTab: SettingsSubTab.ERD });
+    await dashboard.settings.selectTab({ tab: SettingTab.DataSources });
+    await dashboard.settings.dataSources.openErd({
+      dataSourceName: defaultBaseName,
+    });
   };
 
   const openSettingsErd = async () => {
     await dashboard.gotoSettings();
-    await dashboard.settings.selectTab({ tab: SettingTab.ProjectMetadata, subTab: SettingsSubTab.ERD });
+    await dashboard.settings.selectTab({ tab: SettingTab.DataSources });
+    await dashboard.settings.dataSources.openErd({
+      dataSourceName: defaultBaseName,
+    });
   };
 
   const openErdOfATable = async (tableName: string) => {
@@ -54,9 +61,9 @@ test.describe('Erd', () => {
 
   test('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
     await openSettingsErd();
-    await enableMM();
+    await toggleMMAndOpenErd();
 
-    const erd: SettingsErdPage = dashboard.settings.erd;
+    const erd: SettingsErdPage = dashboard.settings.dataSources.erd;
 
     await erd.dbClickShowColumnNames();
 
@@ -219,7 +226,7 @@ test.describe('Erd', () => {
     await dashboard.grid.column.create({ title: 'test_column' });
     // Verify in Settings ERD and table ERD
     await openSettingsErd();
-    await dashboard.settings.erd.verifyNode({
+    await dashboard.settings.dataSources.erd.verifyNode({
       tableName: `country`,
       columnName: 'test_column',
     });
@@ -242,7 +249,7 @@ test.describe('Erd', () => {
     });
     // Verify in Settings ERD and table ERD
     await openSettingsErd();
-    await dashboard.settings.erd.verifyNode({
+    await dashboard.settings.dataSources.erd.verifyNode({
       tableName: `country`,
       columnName: 'new_test_column',
     });
@@ -261,7 +268,7 @@ test.describe('Erd', () => {
     await dashboard.grid.column.delete({ title: 'new_test_column' });
     // Verify in Settings ERD and table ERD
     await openSettingsErd();
-    await dashboard.settings.erd.verifyNode({
+    await dashboard.settings.dataSources.erd.verifyNode({
       tableName: `country`,
       columnNameShouldNotExist: 'new_test_column',
     });
@@ -285,7 +292,7 @@ test.describe('Erd', () => {
     await dashboard.treeView.createTable({ title: 'Test' });
     // Verify in Settings ERD and table ERD
     await openSettingsErd();
-    await dashboard.settings.erd.verifyNode({
+    await dashboard.settings.dataSources.erd.verifyNode({
       tableName: `Test`,
     });
     await dashboard.settings.close();
@@ -293,14 +300,13 @@ test.describe('Erd', () => {
     // Delete table and verify ERD
     await dashboard.treeView.deleteTable({ title: 'Test' });
     await openSettingsErd();
-    await dashboard.settings.erd.verifyNodeDoesNotExist({
+    await dashboard.settings.dataSources.erd.verifyNodeDoesNotExist({
       tableName: `Test`,
     });
 
     // Verify that `show mm table` option disabled will not trigger easter in ERD options
-    await dashboard.settings.selectSubTab({ subTab: SettingsSubTab.Miscellaneous });
-    await dashboard.settings.miscellaneous.clickShowM2MTables(); // disable
-    await dashboard.settings.selectSubTab({ subTab: SettingsSubTab.ERD });
+    await dashboard.settings.dataSources.erd.dbClickShowColumnNames();
+    await dashboard.settings.dataSources.erd.verifyEasterEggNotShown();
     await dashboard.settings.close();
   });
 });

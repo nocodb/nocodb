@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, useRoute, useTheme } from '#imports'
+import { applyNonSelectable, computed, useRoute, useTheme } from '#imports'
 
 const route = useRoute()
 
 const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
 
 useTheme()
+
+applyNonSelectable()
 
 // TODO: Remove when https://github.com/vuejs/core/issues/5513 fixed
 const key = ref(0)

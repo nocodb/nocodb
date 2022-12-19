@@ -6,18 +6,10 @@ const value = inject(CellValueInj)
 const timeout = 3000 // in ms
 
 const showEditWarning = refAutoReset(false, timeout)
+
 const showClearWarning = refAutoReset(false, timeout)
 
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Enter':
-      showEditWarning.value = true
-      break
-    case 'Delete':
-      showClearWarning.value = true
-      break
-  }
-})
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), () => (showClearWarning.value = true))
 </script>
 
 <template>
@@ -28,12 +20,10 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 
     <div>
       <div v-if="showEditWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        <!-- TODO: i18n -->
-        Warning: Computed field - unable to edit content.
+        {{ $t('msg.info.computedFieldEditWarning') }}
       </div>
       <div v-if="showClearWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-        <!-- TODO: i18n -->
-        Warning: Computed field - unable to clear content.
+        {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
     </div>
   </div>

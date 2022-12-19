@@ -66,6 +66,8 @@ onMounted(() => {
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @selectstart.capture.stop
+    @mousedown.stop
   />
 
   <span v-else-if="vModel">{{ currency }}</span>

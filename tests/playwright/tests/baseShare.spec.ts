@@ -58,15 +58,18 @@ test.describe('Shared base', () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 
-    await dashboard.treeView.inviteTeamButton.click();
+    await dashboard.gotoSettings();
+    await dashboard.settings.teams.clickInviteTeamBtn();
     await dashboard.settings.teams.toggleSharedBase({ toggle: true });
     await dashboard.settings.teams.sharedBaseRole({ role: 'editor' });
     let url = await dashboard.settings.teams.getSharedBaseUrl();
     await dashboard.settings.teams.closeInvite();
+    await dashboard.settings.close();
 
     await dashboard.rootPage.waitForTimeout(2000);
     // access shared base link
     await dashboard.signOut();
+    await dashboard.rootPage.waitForTimeout(2000);
     // todo: Move this to a page object
     await dashboard.rootPage.goto(url);
 
@@ -81,11 +84,13 @@ test.describe('Shared base', () => {
     await projectPage.openProject({ title: context.project.title, withoutPrefix: true });
     await dashboard.closeTab({ title: 'Team & Auth' });
 
-    await dashboard.treeView.inviteTeamButton.click();
+    await dashboard.gotoSettings();
+    await dashboard.settings.teams.clickInviteTeamBtn();
     await dashboard.settings.teams.toggleSharedBase({ toggle: true });
     await dashboard.settings.teams.sharedBaseRole({ role: 'viewer' });
     url = await dashboard.settings.teams.getSharedBaseUrl();
     await dashboard.settings.teams.closeInvite();
+    await dashboard.settings.close();
 
     await dashboard.rootPage.waitForTimeout(2000);
     // access shared base link

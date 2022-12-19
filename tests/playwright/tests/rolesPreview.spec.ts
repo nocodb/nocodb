@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
-import { SettingsPage, SettingsSubTab, SettingTab } from '../pages/Dashboard/Settings';
+import { SettingsPage, SettingTab } from '../pages/Dashboard/Settings';
 
 const roles = ['Editor', 'Commenter', 'Viewer'];
 
@@ -30,16 +30,16 @@ test.describe('Preview Mode', () => {
     // configure access control
     await dashboard.gotoSettings();
     await settings.selectTab({
-      tab: SettingTab.ProjectMetadata,
-      subTab: SettingsSubTab.ACL,
+      tab: SettingTab.DataSources,
     });
-    await settings.acl.toggle({ table: 'Language', role: 'editor' });
-    await settings.acl.toggle({ table: 'Language', role: 'commenter' });
-    await settings.acl.toggle({ table: 'Language', role: 'viewer' });
-    await settings.acl.toggle({ table: 'CustomerList', role: 'editor' });
-    await settings.acl.toggle({ table: 'CustomerList', role: 'commenter' });
-    await settings.acl.toggle({ table: 'CustomerList', role: 'viewer' });
-    await settings.acl.save();
+    await settings.dataSources.openAcl();
+    await settings.dataSources.acl.toggle({ table: 'Language', role: 'editor' });
+    await settings.dataSources.acl.toggle({ table: 'Language', role: 'commenter' });
+    await settings.dataSources.acl.toggle({ table: 'Language', role: 'viewer' });
+    await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'editor' });
+    await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'commenter' });
+    await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'viewer' });
+    await settings.dataSources.acl.save();
     await settings.close();
 
     // Role test

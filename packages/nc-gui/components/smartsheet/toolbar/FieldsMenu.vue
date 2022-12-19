@@ -16,6 +16,7 @@ import {
   resolveComponent,
   useMenuCloseOnEsc,
   useNuxtApp,
+  useSmartsheetStoreOrThrow,
   useViewColumns,
   watch,
 } from '#imports'
@@ -46,7 +47,16 @@ const {
   hideAll,
   saveOrUpdate,
   metaColumnById,
+  loadViewColumns,
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+
+const { eventBus } = useSmartsheetStoreOrThrow()
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+    loadViewColumns()
+  }
+})
 
 watch(
   sortedAndFilteredFields,
@@ -56,7 +66,7 @@ watch(
   { immediate: true },
 )
 
-const isAnyFieldHidden = computed(() => filteredFieldList.value?.some((field) => !field.show))
+const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
 
 const onMove = (_event: { moved: { newIndex: number } }) => {
   // todo : sync with server
@@ -128,7 +138,7 @@ useMenuCloseOnEsc(open)
 
 <template>
   <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
-    <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
+    <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <MdiEyeOffOutline />
@@ -137,6 +147,8 @@ useMenuCloseOnEsc(open)
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
+
+          <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>
         </div>
       </a-button>
     </div>

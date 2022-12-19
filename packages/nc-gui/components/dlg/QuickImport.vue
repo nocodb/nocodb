@@ -27,6 +27,7 @@ import type { importFileList, streamImportFileList } from '~/lib'
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
+  baseId: string
   importDataOnly?: boolean
 }
 
@@ -345,6 +346,7 @@ const beforeUpload = (file: UploadFile) => {
 <template>
   <a-modal
     v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
     :width="modalWidth"
     wrap-class-name="nc-modal-quick-import"
     @keydown.esc="dialogShow = false"
@@ -363,6 +365,7 @@ const beforeUpload = (file: UploadFile) => {
             :import-data-only="importDataOnly"
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+            :base-id="baseId"
             class="nc-quick-import-template-editor"
             @import="handleImport"
           />

@@ -43,6 +43,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
+  const { loadProject } = useProject()
+
   const { t } = useI18n()
 
   const formState = ref<Record<string, any>>({})
@@ -83,6 +85,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
 
       await setMeta(viewMeta.model)
+
+      await loadProject(true, viewMeta.project_id)
 
       const relatedMetas = { ...viewMeta.relatedMetas }
 

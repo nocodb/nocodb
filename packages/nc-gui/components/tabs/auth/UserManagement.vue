@@ -174,7 +174,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
   <div v-else class="flex flex-col w-full px-6">
     <LazyTabsAuthUserManagementUsersModal
-      :key="showUserModal"
+      :key="`${showUserModal}`"
       :show="showUserModal"
       :selected-user="selectedUser"
       @closed="showUserModal = false"
@@ -183,6 +183,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
     <a-modal
       v-model:visible="showUserDeleteModal"
+      :class="{ active: showUserDeleteModal }"
       :closable="false"
       width="28rem"
       centered

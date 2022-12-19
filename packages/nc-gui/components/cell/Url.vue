@@ -84,6 +84,8 @@ watch(
       @keydown.right.stop
       @keydown.up.stop
       @keydown.delete.stop
+      @selectstart.capture.stop
+      @mousedown.stop
     />
 
     <nuxt-link

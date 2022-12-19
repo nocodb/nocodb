@@ -3,6 +3,7 @@ import { message } from 'ant-design-vue'
 import type { ViewType } from 'nocodb-sdk'
 import {
   ReloadRowDataHookInj,
+  isMac,
   useExpandedFormStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
@@ -58,6 +59,19 @@ const copyRecordUrl = () => {
   )
   message.success('Copied to clipboard')
 }
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl) {
+    switch (e.key) {
+      case 'Enter': {
+        if (isUIAllowed('tableRowUpdate')) {
+          await save()
+        }
+      }
+    }
+  }
+})
 </script>
 
 <template>

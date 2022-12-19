@@ -84,4 +84,12 @@ export default abstract class BasePage {
   async getClipboardText() {
     return await this.rootPage.evaluate(() => navigator.clipboard.readText());
   }
+
+  async os() {
+    return await this.rootPage.evaluate(() => navigator.platform);
+  }
+
+  async isMacOs() {
+    return (await this.os()).includes('Mac');
+  }
 }

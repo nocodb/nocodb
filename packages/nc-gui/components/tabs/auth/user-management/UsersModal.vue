@@ -21,7 +21,7 @@ import { ProjectRole } from '~/lib'
 
 interface Props {
   show: boolean
-  selectedUser?: User
+  selectedUser?: User | null
 }
 
 interface Users {
@@ -145,6 +145,7 @@ const emailField = (inputEl: typeof Input) => {
     :footer="null"
     centered
     :visible="show"
+    :class="{ active: show }"
     :closable="false"
     width="max(50vw, 44rem)"
     wrap-class-name="nc-modal-invite-user-and-share-base"
@@ -177,7 +178,7 @@ const emailField = (inputEl: typeof Input) => {
             <a-alert class="mt-1" type="success" show-icon>
               <template #message>
                 <div class="flex flex-row justify-between items-center py-1">
-                  <div class="flex pl-2 text-green-700 text-xs">
+                  <div class="flex pl-2 text-green-700 text-xs" data-testid="invite-modal-invitation-url">
                     {{ inviteUrl }}
                   </div>
 

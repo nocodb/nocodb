@@ -3,7 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { EditModeInj, inject, useVModel } from '#imports'
 
 const props = defineProps<{
-  modelValue?: string | null
+  modelValue?: string | number
 }>()
 
 const emits = defineEmits(['update:modelValue'])
@@ -31,6 +31,8 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @selectstart.capture.stop
+    @mousedown.stop
   />
 
   <span v-else>{{ vModel }}</span>

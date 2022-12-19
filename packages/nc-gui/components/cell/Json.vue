@@ -1,5 +1,17 @@
 <script setup lang="ts">
-import { Modal as AModal, EditModeInj, IsFormInj, ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
+import {
+  Modal as AModal,
+  ActiveCellInj,
+  EditModeInj,
+  IsFormInj,
+  ReadonlyInj,
+  computed,
+  inject,
+  ref,
+  useSelectedCellKeyupListener,
+  useVModel,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any> | undefined
@@ -14,6 +26,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const editEnabled = inject(EditModeInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -89,6 +103,22 @@ watch(editEnabled, () => {
 
   localValue.value = vModel.value
 })
+
+useSelectedCellKeyupListener(active, (e) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      if (e.shiftKey) {
+        return true
+      }
+      if (editEnabled.value) {
+        onSave()
+      } else {
+        editEnabled.value = true
+      }
+      break
+  }
+})
 </script>
 
 <template>
@@ -105,13 +135,13 @@ watch(editEnabled, () => {
           <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
 
           <a-button type="primary" size="small" :disabled="!!error || localValue === vModel">
-            <div class="text-xs" :onclick="onSave">Save</div>
+            <div class="text-xs" @click="onSave">Save</div>
           </a-button>
         </div>
       </div>
 
       <LazyMonacoEditor
-        :model-value="localValue"
+        :model-value="localValue || ''"
         class="min-w-full w-80"
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
         :hide-minimap="true"

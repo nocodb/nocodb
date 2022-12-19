@@ -89,6 +89,8 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
       @keydown.right.stop
       @keydown.up.stop
       @keydown.delete.stop
+      @selectstart.capture.stop
+      @mousedown.stop
     />
 
     <span v-else> {{ localState }}</span>

@@ -9,6 +9,7 @@ import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import catchError from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 // const storageAdapter = new Local();
 export async function upload(req: Request, res: Response) {
@@ -151,6 +152,9 @@ router.post(
   '/api/v1/db/storage/upload',
   multer({
     storage: multer.diskStorage({}),
+    limits: {
+      fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+    },
   }).any(),
   ncMetaAclMw(upload, 'upload')
 );

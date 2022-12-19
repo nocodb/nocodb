@@ -3,6 +3,7 @@ import orgLicenseApis from './orgLicenseApis';
 import orgTokenApis from './orgTokenApis';
 import orgUserApis from './orgUserApis';
 import projectApis from './projectApis';
+import baseApis from './baseApis';
 import tableApis from './tableApis';
 import columnApis from './columnApis';
 import { Router } from 'express';
@@ -56,10 +57,12 @@ import syncSourceApis from './sync/syncSourceApis';
 import mapViewApis from './mapViewApis';
 
 const clients: { [id: string]: Socket } = {};
+const jobs: { [id: string]: { last_message: any } } = {};
 
 export default function (router: Router, server) {
   initStrategies(router);
   projectApis(router);
+  baseApis(router);
   utilApis(router);
 
   if (process.env['PLAYWRIGHT_TEST'] === 'true') {
@@ -140,9 +143,16 @@ export default function (router: Router, server) {
     socket.on('event', (args) => {
       Tele.event({ ...args, id });
     });
+    socket.on('subscribe', (room) => {
+      if (room in jobs) {
+        socket.join(room);
+        socket.emit('job');
+        socket.emit('progress', jobs[room].last_message);
+      }
+    });
   });
 
-  importApis(router, clients);
+  importApis(router, io, jobs);
 }
 
 function getHash(str) {

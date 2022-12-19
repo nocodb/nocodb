@@ -84,6 +84,8 @@ export interface BaseType {
   updated_at?: any;
   inflection_column?: string;
   inflection_table?: string;
+  order?: number;
+  enabled?: boolean;
 }
 
 export interface BaseReqType {
@@ -106,8 +108,8 @@ export interface BaseListType {
 
 export interface TableType {
   id?: string;
-  fk_project_id?: string;
-  fk_base_id?: string;
+  project_id?: string;
+  base_id?: string;
   table_name: string;
   title: string;
   type?: string;
@@ -121,7 +123,6 @@ export interface TableType {
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
-  project_id?: string;
   mm?: boolean | number;
 }
 
@@ -598,92 +599,110 @@ export interface HookLogType {
   updated_at?: string;
 }
 
-export type ColumnReqType =
-  | {
-      uidt?:
-        | 'ID'
-        | 'SingleLineText'
-        | 'LongText'
-        | 'Attachment'
-        | 'Checkbox'
-        | 'MultiSelect'
-        | 'SingleSelect'
-        | 'Collaborator'
-        | 'Date'
-        | 'Year'
-        | 'Time'
-        | 'PhoneNumber'
-        | 'GeoData'
-        | 'Email'
-        | 'URL'
-        | 'Number'
-        | 'Decimal'
-        | 'Currency'
-        | 'Percent'
-        | 'Duration'
-        | 'Rating'
-        | 'Count'
-        | 'DateTime'
-        | 'CreateTime'
-        | 'LastModifiedTime'
-        | 'AutoNumber'
-        | 'Geometry'
-        | 'JSON'
-        | 'SpecificDBType'
-        | 'Barcode'
-        | 'Button';
-      id?: string;
-      base_id?: string;
-      fk_model_id?: string;
-      title?: string;
-      dt?: string;
-      np?: string;
-      ns?: string;
-      clen?: string | number;
-      cop?: string;
-      pk?: boolean;
-      pv?: boolean;
-      rqd?: boolean;
-      column_name?: string;
-      un?: boolean;
-      ct?: string;
-      ai?: boolean;
-      unique?: boolean;
-      cdf?: string;
-      cc?: string;
-      csn?: string;
-      dtx?: string;
-      dtxp?: string;
-      dtxs?: string;
-      au?: boolean;
-      ''?: string;
-    }
-  | {
-      uidt: 'LinkToAnotherRecord';
-      title: string;
-      parentId: string;
-      childId: string;
-      type: 'hm' | 'bt' | 'mm';
-    }
-  | {
-      uidt?: 'Rollup';
-      title?: string;
-      fk_relation_column_id?: string;
-      fk_rollup_column_id?: string;
-      rollup_function?: string;
-    }
-  | {
-      uidt?: 'Lookup';
-      title?: string;
-      fk_relation_column_id?: string;
-      fk_lookup_column_id?: string;
-    }
-  | {
-      uidt?: string;
-      formula_raw?: string;
-      formula?: string;
-      title?: string;
-    };
+export interface NormalColumnRequestType {
+  uidt?:
+    | 'ID'
+    | 'SingleLineText'
+    | 'LongText'
+    | 'Attachment'
+    | 'Checkbox'
+    | 'MultiSelect'
+    | 'SingleSelect'
+    | 'Collaborator'
+    | 'Date'
+    | 'Year'
+    | 'GeoData'
+    | 'Time'
+    | 'PhoneNumber'
+    | 'Email'
+    | 'URL'
+    | 'Number'
+    | 'Decimal'
+    | 'Currency'
+    | 'Percent'
+    | 'Duration'
+    | 'Rating'
+    | 'Count'
+    | 'DateTime'
+    | 'CreateTime'
+    | 'LastModifiedTime'
+    | 'AutoNumber'
+    | 'Geometry'
+    | 'JSON'
+    | 'SpecificDBType'
+    | 'Barcode'
+    | 'Button';
+  id?: string;
+  base_id?: string;
+  fk_model_id?: string;
+  title?: string;
+  dt?: string;
+  np?: string;
+  ns?: string;
+  clen?: string | number;
+  cop?: string;
+  pk?: boolean;
+  pv?: boolean;
+  rqd?: boolean;
+  column_name?: string;
+  un?: boolean;
+  ct?: string;
+  ai?: boolean;
+  unique?: boolean;
+  cdf?: string;
+  cc?: string;
+  csn?: string;
+  dtx?: string;
+  dtxp?: string;
+  dtxs?: string;
+  au?: boolean;
+}
+
+export interface LinkToAnotherColumnReqType {
+  uidt: 'LinkToAnotherRecord';
+  title: string;
+  virtual?: boolean;
+  parentId: string;
+  childId: string;
+  type: 'hm' | 'bt' | 'mm';
+}
+
+export interface RollupColumnReqType {
+  uidt?: 'Rollup';
+  title?: string;
+  fk_relation_column_id?: string;
+  fk_rollup_column_id?: string;
+  rollup_function?: string;
+}
+
+export interface LookupColumnReqType {
+  uidt?: 'Lookup';
+  title?: string;
+  fk_relation_column_id?: string;
+  fk_lookup_column_id?: string;
+}
+
+export interface FormulaColumnReqType {
+  uidt?: string;
+  formula_raw?: string;
+  formula?: string;
+  title?: string;
+}
+
+export type ColumnReqType = (
+  | NormalColumnRequestType
+  | LinkToAnotherColumnReqType
+  | RollupColumnReqType
+  | FormulaColumnReqType
+  | LookupColumnReqType
+) & {
+  column_name?: string;
+  title?: string;
+  column_order?: {
+    view_id?: string;
+    order?: number;
+  };
+};
 
 export interface UserInfoType {
   id?: string;
@@ -1902,6 +1921,194 @@ export class Api<
         ...params,
       }),
   };
+  base = {
+    /**
+     * @description Read project base details
+     *
+     * @tags Base
+     * @name Read
+     * @summary Base read
+     * @request GET:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+     * @response `200` `object` OK
+     */
+    read: (projectId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name Delete
+     * @summary Base delete
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+     * @response `200` `void` OK
+     */
+    delete: (projectId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name Update
+     * @summary Base update
+     * @request PATCH:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+     * @response `200` `void` OK
+     */
+    update: (
+      projectId: string,
+      baseId: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Get project base list
+     *
+     * @tags Base
+     * @name List
+     * @summary Base list
+     * @request GET:/api/v1/db/meta/projects/{projectId}/bases/
+     * @response `200` `object` OK
+     */
+    list: (projectId: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name Create
+     * @summary Base create
+     * @request POST:/api/v1/db/meta/projects/{projectId}/bases/
+     * @response `200` `BaseType` OK
+     */
+    create: (
+      projectId: string,
+      data: BaseType & {
+        external?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BaseType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name TableList
+     * @request GET:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+     * @response `200` `TableListType`
+     */
+    tableList: (
+      projectId: string,
+      baseId: string,
+      query?: {
+        page?: number;
+        pageSize?: number;
+        sort?: string;
+        includeM2M?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableListType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        method: 'GET',
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name TableCreate
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+     * @response `200` `TableType` OK
+     */
+    tableCreate: (
+      projectId: string,
+      baseId: string,
+      data: TableReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name MetaDiffSync
+     * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+     * @response `200` `any` OK
+     */
+    metaDiffSync: (
+      projectId: string,
+      baseId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name MetaDiffGet
+     * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+     * @response `200` `any` OK
+     */
+    metaDiffGet: (
+      projectId: string,
+      baseId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+  };
   dbTable = {
     /**
      * No description
@@ -2679,7 +2886,13 @@ export class Api<
      * @request POST:/api/v1/db/meta/views/{viewId}/sorts
      * @response `200` `void` OK
      */
-    create: (viewId: string, data: SortType, params: RequestParams = {}) =>
+    create: (
+      viewId: string,
+      data: SortType & {
+        push_to_top?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'POST',

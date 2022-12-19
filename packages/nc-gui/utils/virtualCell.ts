@@ -16,4 +16,5 @@ export const isBt = (column: ColumnType) =>
 export const isLookup = (column: ColumnType) => column.uidt === UITypes.Lookup
 export const isRollup = (column: ColumnType) => column.uidt === UITypes.Rollup
 export const isFormula = (column: ColumnType) => column.uidt === UITypes.Formula
+export const isQrCode = (column: ColumnType) => column.uidt === UITypes.QrCode
 export const isCount = (column: ColumnType) => column.uidt === UITypes.Count

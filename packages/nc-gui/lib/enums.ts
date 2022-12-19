@@ -77,3 +77,20 @@ export enum TabType {
   VIEW = 'view',
   AUTH = 'auth',
 }
+
+export enum SmartsheetStoreEvents {
+  SORT_RELOAD = 'sort-reload',
+  FILTER_RELOAD = 'filter-reload',
+  DATA_RELOAD = 'data-reload',
+  FIELD_RELOAD = 'field-reload',
+  FIELD_ADD = 'field-add',
+}
+
+export enum DataSourcesSubTab {
+  New = 'New',
+  Metadata = 'Metadata',
+  ERD = 'ERD',
+  UIAcl = 'UI ACL',
+  Misc = 'Misc',
+  Edit = 'Edit',
+}

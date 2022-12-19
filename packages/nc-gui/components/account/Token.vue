@@ -211,6 +211,7 @@ const descriptionInput = (el) => {
 
     <a-modal
       v-model:visible="showNewTokenModal"
+      :class="{ active: showNewTokenModal }"
       :closable="false"
       width="28rem"
       centered

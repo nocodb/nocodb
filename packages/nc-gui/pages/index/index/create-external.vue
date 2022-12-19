@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
+import type { DefaultConnection, ProjectCreateForm } from '#imports'
 import {
   CertTypes,
+  ClientType,
   Form,
   Modal,
   SSLUsage,
@@ -25,8 +27,6 @@ import {
   useSidebar,
   watch,
 } from '#imports'
-import { ClientType } from '~/lib'
-import type { DefaultConnection, ProjectCreateForm } from '~/utils'
 
 const useForm = Form.useForm
 
@@ -551,6 +551,7 @@ onMounted(async () => {
 
     <a-modal
       v-model:visible="configEditDlg"
+      :class="{ active: configEditDlg }"
       :title="$t('activity.editConnJson')"
       width="600px"
       wrap-class-name="nc-modal-edit-connection-json"
@@ -562,6 +563,7 @@ onMounted(async () => {
     <!--    Use Connection URL -->
     <a-modal
       v-model:visible="importURLDlg"
+      :class="{ active: importURLDlg }"
       :title="$t('activity.useConnectionUrl')"
       width="600px"
       :ok-text="$t('general.ok')"

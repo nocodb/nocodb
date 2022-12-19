@@ -1,5 +1,5 @@
-import { ViewTypes } from 'nocodb-sdk'
-import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
+import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -54,7 +54,7 @@ export function useViewData(
 
   const galleryData = ref<GalleryType>()
 
-  const formColumnData = ref<FormType>()
+  const formColumnData = ref<Record<string, any>[]>()
 
   const formViewData = ref<FormType>()
 
@@ -284,8 +284,23 @@ export function useViewData(
         prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
       })
 
-      /** update row data(to sync formula and other related columns) */
-      Object.assign(toUpdate.row, updatedRowData)
+      /** update row data(to sync formula and other related columns)
+       * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
+       */
+      Object.assign(
+        toUpdate.row,
+        metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+          if (
+            col.uidt === UITypes.Formula ||
+            col.uidt === UITypes.QrCode ||
+            col.uidt === UITypes.Rollup ||
+            col.au ||
+            col.cdf?.includes(' on update ')
+          )
+            acc[col.title!] = updatedRowData[col.title!]
+          return acc
+        }, {} as Record<string, any>),
+      )
       Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
@@ -404,14 +419,14 @@ export function useViewData(
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
-      const { columns, ...view } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
+      const { columns, ...view } = await $api.dbView.formRead(viewMeta.value.id)
 
-      const fieldById = columns.reduce(
+      const fieldById = (columns || []).reduce(
         (o: Record<string, any>, f: Record<string, any>) => ({
           ...o,
           [f.fk_column_id]: f,
         }),
-        {},
+        {} as Record<string, FormColumnType>,
       )
 
       let order = 1

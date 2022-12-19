@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { ColumnInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; required?: boolean | number; hideMenu?: boolean }>()
+interface Props {
+  column: ColumnType
+  required?: boolean | number
+  hideMenu?: boolean
+}
+const props = defineProps<Props>()
 
 const hideMenu = toRef(props, 'hideMenu')
 
@@ -17,6 +22,18 @@ const { isUIAllowed } = useUIPermission()
 provide(ColumnInj, column)
 
 const editColumnDropdown = ref(false)
+
+const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+const addField = async (payload) => {
+  columnOrder.value = payload
+  editColumnDropdown.value = true
+}
+
+const closeAddColumnDropdown = () => {
+  columnOrder.value = null
+  editColumnDropdown.value = false
+}
 </script>
 
 <template>
@@ -25,14 +42,25 @@ const editColumnDropdown = ref(false)
     :class="{ 'h-full': column, '!text-gray-400': isKanban }"
   >
     <SmartsheetHeaderCellIcon v-if="column" />
-    <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
+    <span
+      v-if="column"
+      class="name cursor-pointer"
+      style="white-space: nowrap"
+      :title="column.title"
+      @dblclick="editColumnDropdown = true"
+      >{{ column.title }}</span
+    >
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
     <template v-if="!hideMenu">
       <div class="flex-1" />
 
-      <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" @edit="editColumnDropdown = true" />
+      <LazySmartsheetHeaderMenu
+        v-if="!isForm && isUIAllowed('edit-column')"
+        @add-column="addField"
+        @edit="editColumnDropdown = true"
+      />
     </template>
 
     <a-dropdown
@@ -47,10 +75,11 @@ const editColumnDropdown = ref(false)
       <template #overlay>
         <SmartsheetColumnEditOrAddProvider
           v-if="editColumnDropdown"
-          :column="column"
+          :column="columnOrder ? null : column"
+          :column-position="columnOrder"
           class="w-full"
-          @submit="editColumnDropdown = false"
-          @cancel="editColumnDropdown = false"
+          @submit="closeAddColumnDropdown"
+          @cancel="closeAddColumnDropdown"
           @click.stop
           @keydown.stop
         />

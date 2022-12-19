@@ -70,9 +70,11 @@ export default class GridViewColumn implements GridColumnType {
     const insertObj = {
       fk_view_id: column.fk_view_id,
       fk_column_id: column.fk_column_id,
-      order: await ncMeta.metaGetNextOrder(MetaTable.GRID_VIEW_COLUMNS, {
-        fk_view_id: column.fk_view_id,
-      }),
+      order:
+        column?.order ??
+        (await ncMeta.metaGetNextOrder(MetaTable.GRID_VIEW_COLUMNS, {
+          fk_view_id: column.fk_view_id,
+        })),
       show: column.show,
       project_id: column.project_id,
       base_id: column.base_id,

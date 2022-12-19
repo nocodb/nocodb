@@ -28,10 +28,15 @@ export class TeamsPage extends BasePage {
     return this.rootPage.getByTestId('nc-share-base-sub-modal');
   }
 
-  async invite({ email, role }: { email: string; role: string }) {
+  async clickInviteTeamBtn() {
+    await this.inviteTeamBtn.click();
+  }
+
+  async invite({ email, role, skipOpeningModal }: { email: string; role: string; skipOpeningModal?: boolean }) {
     email = this.prefixEmail(email);
 
-    await this.inviteTeamBtn.click();
+    if (!skipOpeningModal) await this.inviteTeamBtn.click();
+
     await this.inviteTeamModal.locator(`input[placeholder="E-mail"]`).fill(email);
     await this.inviteTeamModal.locator(`.nc-user-roles`).click();
     const userRoleModal = this.rootPage.locator(`.nc-dropdown-user-role`);
@@ -76,6 +81,10 @@ export class TeamsPage extends BasePage {
 
   async getSharedBaseUrl() {
     return await this.getSharedBaseSubModal().locator(`.nc-url:visible`).textContent();
+  }
+
+  async getInvitationUrl() {
+    return await this.rootPage.getByTestId('invite-modal-invitation-url').textContent();
   }
 
   async sharedBaseActions({ action }: { action: string }) {

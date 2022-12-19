@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
 
+const props = defineProps<{
+  baseId: string
+}>()
+
+const emit = defineEmits(['baseSynced'])
+
 const { $api } = useNuxtApp()
 
 const { project, loadTables } = useProject()
@@ -19,7 +25,7 @@ async function loadMetaDiff() {
 
     isLoading = true
     isDifferent = false
-    metadiff = await $api.project.metaDiffGet(project.value?.id)
+    metadiff = await $api.base.metaDiffGet(project.value?.id, props.baseId)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
         model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
@@ -38,11 +44,12 @@ async function syncMetaDiff() {
     if (!project.value?.id || !isDifferent) return
 
     isLoading = true
-    await $api.project.metaDiffSync(project.value.id)
+    await $api.base.metaDiffSync(project.value.id, props.baseId)
     // Table metadata recreated successfully
     message.info(t('msg.info.metaDataRecreated'))
     await loadTables()
     await loadMetaDiff()
+    emit('baseSynced')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

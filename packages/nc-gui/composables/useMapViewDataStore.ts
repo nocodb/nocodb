@@ -1,10 +1,10 @@
-import { reactive } from 'vue';
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { ref, useInjectionState, useMetas } from '#imports'
 import type { Row } from '~/lib'
 
-export const geodataToggleState = reactive({ show: false })
+// export const geodataToggleState = reactive({ show: false })
+export const geodataToggleState = ref(false)
 
 const formatData = (list: Row[]) =>
   list.map((row) => ({

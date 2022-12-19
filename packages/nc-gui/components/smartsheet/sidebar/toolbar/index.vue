@@ -29,6 +29,10 @@ const onClick = () => {
       <LazySmartsheetSidebarToolbarDebugMeta />
 
       <div class="dot" />
+
+      <LazySmartsheetSidebarToolbarGeodataSwitcher />
+
+      <div class="dot" />
     </template>
 
     <slot name="end" />

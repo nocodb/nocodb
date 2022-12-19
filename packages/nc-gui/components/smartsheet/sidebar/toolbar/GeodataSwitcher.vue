@@ -12,7 +12,7 @@ import { IsGeodataActiveInj, ReadonlyInj, useGlobal } from '#imports'
 // provide(ReadonlyInj, GeoDataToggleRef)
 
 async function toggleGeodataFeature() {
-  geodataToggleState.value = !geodataToggleState.value
+  geodataToggleState.show = !geodataToggleState.show
   // console.log(GeoDataToggleRef.value)
 }
 

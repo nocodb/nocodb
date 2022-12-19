@@ -22,48 +22,38 @@ function onOpenModal(type: ViewTypes, title = '') {
   $e('c:view:create', { view: type })
   emits('openModal', { type, title })
 }
-
-const BAR = ref(true)
-
-setInterval(() => {
-  // alert('jo')
-  BAR.value = !BAR.value
-}, 2000)
 </script>
 
 <template>
+  {{ geodataToggleState.show }}
   <a-menu :selected-keys="[]" class="flex flex-col">
     <div>
       <h3 class="px-3 text-xs font-semibold flex items-center gap-4 text-gray-500">
         {{ $t('activity.createView') }}
       </h3>
 
-      <!-- <div v-if="BAR"> -->
-        BAR IS TRUE
-        <a-menu-item
-          v-if="BAR"
-          key="grid"
-          class="group !flex !items-center !my-0 !h-2.5rem nc-create-grid-view"
-          @click="onOpenModal(ViewTypes.GRID)"
-          >GRID BAR
-          <div v-if="BAR">BAR IS TRUE</div>
-          <a-tooltip :mouse-enter-delay="1" placement="left">
-            <template #title>
-              {{ $t('msg.info.addView.grid') }}
-            </template>
+      <a-menu-item
+        key="grid"
+        class="group !flex !items-center !my-0 !h-2.5rem nc-create-grid-view"
+        @click="onOpenModal(ViewTypes.GRID)"
+      >
+        <a-tooltip :mouse-enter-delay="1" placement="left">
+          <template #title>
+            {{ $t('msg.info.addView.grid') }}
+          </template>
 
-            <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
-              <component :is="viewIcons[ViewTypes.GRID].icon" :style="{ color: viewIcons[ViewTypes.GRID].color }" />
+          <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
+            <component :is="viewIcons[ViewTypes.GRID].icon" :style="{ color: viewIcons[ViewTypes.GRID].color }" />
 
-              <div>{{ $t('objects.viewType.grid') }}</div>
+            <div>{{ $t('objects.viewType.grid') }}</div>
 
-              <div class="flex-1" />
+            <div class="flex-1" />
 
-              <mdi-plus class="group-hover:text-primary" />
-            </div>
-          </a-tooltip>
-        </a-menu-item>
-      <!-- </div> -->
+            <mdi-plus class="group-hover:text-primary" />
+          </div>
+        </a-tooltip>
+      </a-menu-item>
+
       <a-menu-item
         key="gallery"
         class="group !flex !items-center !my-0 !h-2.5rem nc-create-gallery-view"
@@ -87,6 +77,7 @@ setInterval(() => {
       </a-menu-item>
 
       <a-menu-item
+        v-if="!isSqlView"
         key="form"
         class="group !flex !items-center !my-0 !h-2.5rem nc-create-form-view"
         @click="onOpenModal(ViewTypes.FORM)"
@@ -107,6 +98,7 @@ setInterval(() => {
           </div>
         </a-tooltip>
       </a-menu-item>
+
       <a-menu-item
         key="kanban"
         class="group !flex !items-center !my-0 !h-2.5rem nc-create-kanban-view"
@@ -128,13 +120,13 @@ setInterval(() => {
           </div>
         </a-tooltip>
       </a-menu-item>
-
+      <div v-if="geodataToggleState.show">SHOW</div>
       <a-menu-item
         key="map"
         class="group !flex !items-center !my-0 !h-2.5rem nc-create-map-view"
         @click="onOpenModal(ViewTypes.MAP)"
       >
-        <div id="FOO">FOO: {{ geodataToggleState }}</div>
+        {{ geodataToggleState.show }}
 
         <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>

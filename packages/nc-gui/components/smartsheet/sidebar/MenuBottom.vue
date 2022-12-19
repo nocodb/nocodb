@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { IsGeodataActiveInj, ReadonlyInj, ref, useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
+import { IsGeodataActiveInj, ReadonlyInj, ref, useGlobal, useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
 
 const isGeodataActive = inject(IsGeodataActiveInj, ref(false))
 
@@ -11,6 +11,8 @@ interface Emits {
 const emits = defineEmits<Emits>()
 
 const readOnly = inject(ReadonlyInj)
+
+const { includeM2M } = useGlobal()
 
 const { $e } = useNuxtApp()
 
@@ -23,6 +25,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 </script>
 
 <template>
+  {{ geodataToggleState.show }}
   <a-menu :selected-keys="[]" class="flex flex-col">
     <div>
       <h3 class="px-3 text-xs font-semibold flex items-center gap-4 text-gray-500">
@@ -117,14 +120,14 @@ function onOpenModal(type: ViewTypes, title = '') {
           </div>
         </a-tooltip>
       </a-menu-item>
-
-      isGeodataActive: {{ isGeodataActive }} readOnly: {{ readOnly }}
+      <div v-if="geodataToggleState.show">SHOW</div>
       <a-menu-item
-        v-if="readOnly"
         key="map"
         class="group !flex !items-center !my-0 !h-2.5rem nc-create-map-view"
         @click="onOpenModal(ViewTypes.MAP)"
       >
+        {{ geodataToggleState.show }}
+
         <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.map') }}

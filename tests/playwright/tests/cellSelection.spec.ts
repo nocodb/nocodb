@@ -14,36 +14,34 @@ test.describe('Verify cell selection', () => {
   });
 
   test('#1 when range is selected, it has correct number of selected cells', async () => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Customer' });
     await grid.selectRange({
-      start: { index: 0, columnHeader: 'Country' },
-      end: { index: 2, columnHeader: 'City List' },
+      start: { index: 0, columnHeader: 'FirstName' },
+      end: { index: 2, columnHeader: 'Email' },
     });
 
     expect(await grid.selectedCount()).toBe(9);
   });
 
   test('#2 when copied with clipboard, it copies correct text', async () => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Customer' });
     await grid.selectRange({
-      start: { index: 0, columnHeader: 'Country' },
-      end: { index: 1, columnHeader: 'LastUpdate' },
+      start: { index: 0, columnHeader: 'FirstName' },
+      end: { index: 1, columnHeader: 'LastName' },
     });
 
-    expect(await grid.copyWithKeyboard()).toBe(
-      'Afghanistan \t 2006-02-15 04:44:00\n' + ' Algeria \t 2006-02-15 04:44:00\n'
-    );
+    expect(await grid.copyWithKeyboard()).toBe('MARY \t SMITH\n' + ' PATRICIA \t JOHNSON\n');
   });
 
   test('#3 when copied with mouse, it copies correct text', async () => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Customer' });
     await grid.selectRange({
-      start: { index: 0, columnHeader: 'Country' },
-      end: { index: 1, columnHeader: 'LastUpdate' },
+      start: { index: 0, columnHeader: 'FirstName' },
+      end: { index: 1, columnHeader: 'LastName' },
     });
 
-    expect(await grid.copyWithMouse({ index: 0, columnHeader: 'Country' })).toBe(
-      'Afghanistan \t 2006-02-15 04:44:00\n' + ' Algeria \t 2006-02-15 04:44:00\n'
+    expect(await grid.copyWithMouse({ index: 0, columnHeader: 'FirstName' })).toBe(
+      'MARY \t SMITH\n' + ' PATRICIA \t JOHNSON\n'
     );
   });
 

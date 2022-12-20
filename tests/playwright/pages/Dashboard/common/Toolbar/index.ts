@@ -13,6 +13,7 @@ import { KanbanPage } from '../../Kanban';
 import { FormPage } from '../../Form';
 import { ToolbarStackbyPage } from './StackBy';
 import { ToolbarAddEditStackPage } from './AddEditKanbanStack';
+import { ToolbarSearchDataPage } from './SearchData';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage;
@@ -24,6 +25,7 @@ export class ToolbarPage extends BasePage {
   readonly actions: ToolbarActionsPage;
   readonly stackBy: ToolbarStackbyPage;
   readonly addEditStack: ToolbarAddEditStackPage;
+  readonly searchData: ToolbarSearchDataPage;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage) {
     super(parent.rootPage);
@@ -36,6 +38,7 @@ export class ToolbarPage extends BasePage {
     this.actions = new ToolbarActionsPage(this);
     this.stackBy = new ToolbarStackbyPage(this);
     this.addEditStack = new ToolbarAddEditStackPage(this);
+    this.searchData = new ToolbarSearchDataPage(this);
   }
 
   get() {

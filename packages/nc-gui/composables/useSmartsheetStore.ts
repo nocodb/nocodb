@@ -18,7 +18,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const cellRefs = ref<HTMLTableDataCellElement[]>([])
 
-    const { search } = useFieldQuery(view)
+    const { search } = useFieldQuery()
 
     const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 
@@ -49,16 +49,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
-
-    const tableName = computed(() => (meta.value as TableType)?.table_name)
-
-    watch(
-      () => tableName.value,
-      () => {
-        search.field = ''
-        search.query = ''
-      },
-    )
 
     return {
       view,

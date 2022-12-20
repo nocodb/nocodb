@@ -754,59 +754,9 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       args.databaseName = this.connectionConfig.connection.database;
-      const response = await this.sqlClient.raw(
-        `select
-                    c.table_name as tn, c.column_name as cn, c.data_type as dt,
-                    (CASE WHEN  trg.trigger_name is NULL THEN false  else  true end) as au,
-                    pk.constraint_type as ck,
-                    c.character_maximum_length as clen,
-                    c.numeric_precision as np,
-                    c.numeric_scale as ns,
-                    c.datetime_precision as dp,
-                    c.ordinal_position as cop,
-                    c.is_nullable as nrqd,
-                    c.column_default as cdf,
-                    c.generation_expression,
-                    c.character_octet_length,
-                    c.character_set_name as csn,
-                    -- c.collation_name as clnn,
-                    pk.ordinal_position as pk_ordinal_position, pk.constraint_name as pk_constraint_name,
-                    c.udt_name,
-
-       (SELECT count(*)
-            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc1
-                inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
-                    on cu.CONSTRAINT_NAME = tc1.CONSTRAINT_NAME
-            where
-                tc1.CONSTRAINT_TYPE = 'UNIQUE'
-                and tc1.TABLE_NAME = c.TABLE_NAME
-                and cu.COLUMN_NAME = c.COLUMN_NAME
-                and tc1.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
-                (SELECT
-        string_agg(enumlabel, ',')
-        FROM "pg_enum" "e"
-        INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
-        INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
-                ) enum_values
-
-
-            from information_schema.columns c
-              left join
-                ( select kc.constraint_name, kc.table_name,kc.column_name, kc.ordinal_position,tc.constraint_type
-                  from information_schema.key_column_usage kc
-                    inner join information_schema.table_constraints as tc
-                      on kc.constraint_name = tc.constraint_name 
-                      and kc.constraint_schema=tc.constraint_schema and tc.constraint_type in ('PRIMARY KEY')
-                  where kc.table_catalog='${args.databaseName}' and kc.table_schema= ?
-                  order by table_name,ordinal_position ) pk
-                on
-                pk.table_name = c.table_name and pk.column_name=c.column_name
-                left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , '${args.tn}' , '_' , c.column_name)
-              where c.table_catalog='${args.databaseName}' and c.table_schema=? and c.table_name='${args.tn}'
-              order by c.table_name, c.ordinal_position`,
-        [this.schema, this.schema]
-      );
+      const response = (await this.isMatView(args.tn))
+        ? await this.getColumnsForMatViews(args)
+        : await this.getColumnsForViewsAndTables(args);
 
       const columns = [];
 
@@ -873,6 +823,115 @@ class PGClient extends KnexClient {
     log.api(`${_func}: result`, result);
 
     return result;
+  }
+
+  private async isMatView(table_name: string) {
+    return !!(
+      await this.sqlClient.raw(
+        `select *
+        from pg_matviews
+        where schemaname = ? and matviewname = ?`,
+        [this.schema, table_name]
+      )
+    ).rows.length;
+  }
+
+  private async getColumnsForMatViews(args: any = {}) {
+    return await this.sqlClient.raw(
+      `SELECT pg_namespace.nspname AS table_schem
+        , pg_catalog.format_type(pg_attribute.atttypid
+        , pg_attribute.atttypmod) as dt,
+          CASE
+            WHEN pg_attribute.attnotnull THEN 'NO'
+            ELSE 'YES'
+          END 
+          AS nrqd
+        , pg_class.relname AS tn
+        , pg_attribute.attname AS cn
+        , pg_attribute.attnum AS cop
+        , pg_collation.collname as csn
+        , pg_get_expr(pg_attrdef.adbin
+        , pg_attrdef.adrelid) as cdf
+        , pg_type.typname as udt_name
+        , null as pk_constraint_name
+        , case 
+          when pg_type.typlen > 0 then pg_type.typlen * 8
+          else 0
+        end as np
+        FROM pg_catalog.pg_class
+        INNER JOIN pg_catalog.pg_namespace
+            ON pg_class.relnamespace = pg_namespace.oid
+        INNER JOIN pg_catalog.pg_attribute
+            ON pg_class.oid = pg_attribute.attrelid
+        inner join pg_catalog.pg_type 
+          on pg_attribute.atttypid = pg_type.oid
+        left join pg_catalog.pg_collation
+          on pg_attribute.attcollation = pg_collation.oid
+        left join pg_catalog.pg_attrdef
+            ON pg_class.oid = pg_attrdef.adrelid and pg_attribute.attnum = pg_attrdef.adnum
+        WHERE pg_namespace.nspname = ? AND pg_class.relname = '${args.tn}' AND pg_class.relkind = 'm'
+            AND pg_attribute.attnum >= 1
+        ORDER BY pg_namespace.nspname
+            , pg_class.relname
+            , pg_attribute.attnum`,
+      [this.schema]
+    );
+  }
+
+  private async getColumnsForViewsAndTables(args: any = {}) {
+    return await this.sqlClient.raw(
+      `select
+                  c.table_name as tn, c.column_name as cn, c.data_type as dt,
+                  (CASE WHEN  trg.trigger_name is NULL THEN false  else  true end) as au,
+                  pk.constraint_type as ck,
+                  c.character_maximum_length as clen,
+                  c.numeric_precision as np,
+                  c.numeric_scale as ns,
+                  c.datetime_precision as dp,
+                  c.ordinal_position as cop,
+                  c.is_nullable as nrqd,
+                  c.column_default as cdf,
+                  c.generation_expression,
+                  c.character_octet_length,
+                  c.character_set_name as csn,
+                  -- c.collation_name as clnn,
+                  pk.ordinal_position as pk_ordinal_position, pk.constraint_name as pk_constraint_name,
+                  c.udt_name,
+
+     (SELECT count(*)
+          FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc1
+              inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
+                  on cu.CONSTRAINT_NAME = tc1.CONSTRAINT_NAME
+          where
+              tc1.CONSTRAINT_TYPE = 'UNIQUE'
+              and tc1.TABLE_NAME = c.TABLE_NAME
+              and cu.COLUMN_NAME = c.COLUMN_NAME
+              and tc1.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
+              (SELECT
+      string_agg(enumlabel, ',')
+      FROM "pg_enum" "e"
+      INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
+      INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
+      WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+              ) enum_values
+
+
+          from information_schema.columns c
+            left join
+              ( select kc.constraint_name, kc.table_name,kc.column_name, kc.ordinal_position,tc.constraint_type
+                from information_schema.key_column_usage kc
+                  inner join information_schema.table_constraints as tc
+                    on kc.constraint_name = tc.constraint_name 
+                    and kc.constraint_schema=tc.constraint_schema and tc.constraint_type in ('PRIMARY KEY')
+                where kc.table_catalog='${args.databaseName}' and kc.table_schema= ?
+                order by table_name,ordinal_position ) pk
+              on
+              pk.table_name = c.table_name and pk.column_name=c.column_name
+              left join information_schema.triggers trg on trg.event_object_table = c.table_name and trg.trigger_name = CONCAT('xc_trigger_' , '${args.tn}' , '_' , c.column_name)
+            where c.table_catalog='${args.databaseName}' and c.table_schema=? and c.table_name='${args.tn}'
+            order by c.table_name, c.ordinal_position`,
+      [this.schema, this.schema]
+    );
   }
 
   /**
@@ -1348,9 +1407,17 @@ class PGClient extends KnexClient {
            WHERE table_schema = ANY (current_schemas(false));`
       );
 
+      const { rows: matViews } = await this.sqlClient.raw(
+        `SELECT * FROM pg_matviews
+         WHERE schemaname = ANY (current_schemas(false));`
+      );
+
+      rows.push(...matViews);
+
       for (let i = 0; i < rows.length; ++i) {
-        rows[i].view_name = rows[i].tn || rows[i].table_name;
-        // rows[i].view_definition = rows[i].view_definition;
+        rows[i].view_name =
+          rows[i].tn || rows[i].table_name || rows[i].matviewname;
+        rows[i].view_definition = rows[i].view_definition || rows[i].definition;
       }
 
       result.data.list = rows;

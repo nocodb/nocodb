@@ -52,9 +52,13 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
 
+const geoDataToggleCondition = (t) => {
+  return geodataToggleState.show ? geodataToggleState.show : !t.name.includes(UITypes.GeoData)
+}
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => !isEdit.value || !t.virtual),
+    ...uiTypes.filter((t) => geoDataToggleCondition(t) && (!isEdit.value || !t.virtual)),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {

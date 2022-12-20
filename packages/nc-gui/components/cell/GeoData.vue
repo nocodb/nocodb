@@ -102,23 +102,23 @@ const onGetCurrentLocation = () => {
   />
   <span v-else class="text-sm">{{ vModel }}</span> -->
 
-  <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
+  <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click" overlay-class-name="dropdown-new">
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
-      <a-form :model="formState" class="flex flex-col dropdown" @finish="handleFinish">
+      <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
         <a-form-item class="inputLat" label="Lat">
           <a-input v-model:value="formState.latitude" type="number" step="0.0000001" required :max="90" :min="-90" />
         </a-form-item>
         <a-form-item class="inputLng" label="Lng">
           <a-input v-model:value="formState.longitude" type="number" step="0.0000001" required :min="-180" :max="180" />
         </a-form-item>
-        <a-form-item>
-          <a-button @click="onGetCurrentLocation">Your Location</a-button>
+        <a-form-item class="button-location">
           <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
+          <a-button @click="onGetCurrentLocation">Your Location</a-button>
         </a-form-item>
         <a-form-item class="buttons">
-          <a-button class="buttons" type="text" @click="clear">Cancel</a-button>
-          <a-button class="buttons" type="primary" html-type="submit">Submit</a-button>
+          <a-button type="text" @click="clear">Cancel</a-button>
+          <a-button type="primary" html-type="submit">Submit</a-button>
         </a-form-item>
       </a-form>
     </template>
@@ -129,29 +129,27 @@ const onGetCurrentLocation = () => {
 input[type='number']:focus {
   @apply ring-transparent;
 }
-.dropdown {
-  background-color: beige;
-  // padding-top: 2rem;
-  align-items: start;
-  height: 230px !important;
-  width: 200px !important;
-}
+
 .inputLat {
   width: 180px;
   margin-top: 1rem;
+  margin-bottom: 0.5rem;
   margin-right: 0.5rem;
   margin-left: 0.5rem;
 }
 .inputLng {
   width: 180px;
   margin-right: 0.5rem;
-  margin-left: 0.5rem;
 }
 .button-location {
-  margin-left: auto;
-  margin-right: auto;
+  margin-right: 0.5rem;
 }
 .buttons {
+  margin-left: auto;
   margin-bottom: 0;
+}
+.ant-dropdown-menu {
+  height: fit-content;
+  align-items: flex-end;
 }
 </style>

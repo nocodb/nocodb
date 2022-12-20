@@ -63,10 +63,16 @@ provide(
   ReadonlyInj,
   computed(() => !isUIAllowed('xcDatatableEditable')),
 )
+
+const onDecode = () => {
+  console.log('QR Decode Event')
+}
 </script>
 
 <template>
   <div class="nc-container flex h-full">
+    <qrcode-stream @decode="onDecode"></qrcode-stream>
+
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
 

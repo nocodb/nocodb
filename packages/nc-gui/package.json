@@ -61,6 +61,7 @@
     "vue-dompurify-html": "^3.0.0",
     "vue-github-button": "^3.0.3",
     "vue-i18n": "^9.2.2",
+    "vue-qrcode-reader": "3.1.0-vue3-compatibility.2",
     "vuedraggable": "^4.1.0",
     "xlsx": "^0.18.5"
   },

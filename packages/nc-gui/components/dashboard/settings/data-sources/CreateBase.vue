@@ -84,7 +84,14 @@ const validators = computed(() => {
           'dataSource.connection.connection.filename': [fieldRequiredValidator()],
         }
       : formState.dataSource.client === ClientType.SNOWFLAKE
-      ? {}
+      ? {
+          'dataSource.connection.account': [fieldRequiredValidator()],
+          'dataSource.connection.user': [fieldRequiredValidator()],
+          'dataSource.connection.password': [fieldRequiredValidator()],
+          'dataSource.connection.warehouse': [fieldRequiredValidator()],
+          'dataSource.connection.database': [fieldRequiredValidator()],
+          'dataSource.connection.schema': [fieldRequiredValidator()],
+        }
       : {
           'dataSource.connection.host': [fieldRequiredValidator()],
           'dataSource.connection.port': [fieldRequiredValidator()],
@@ -387,7 +394,7 @@ watch(
 
       <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
         <!-- Account -->
-        <a-form-item label="Account">
+        <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
           <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
         </a-form-item>
 
@@ -397,12 +404,12 @@ watch(
         </a-form-item>
 
         <!-- Password -->
-        <a-form-item :label="$t('labels.password')">
+        <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
           <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
         </a-form-item>
 
         <!-- Warehouse -->
-        <a-form-item label="Warehouse">
+        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
           <a-input v-model:value="formState.dataSource.connection.warehouse" />
         </a-form-item>
 
@@ -417,7 +424,7 @@ watch(
         </a-form-item>
 
         <!-- Schema name -->
-        <a-form-item :label="$t('labels.schemaName')">
+        <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
           <a-input v-model:value="formState.dataSource.connection.schema" />
         </a-form-item>
       </template>

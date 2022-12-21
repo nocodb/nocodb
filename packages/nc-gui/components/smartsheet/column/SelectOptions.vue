@@ -115,10 +115,15 @@ const addNewOption = () => {
   options.push(tempOption)
 }
 
+const { appInfo } = $(useGlobal())
+
+const baseURL = appInfo.ncSiteUrl
+
 const optionsMagic = async () => {
   loadMagic.value = true
-  const res: Array<string> = await $fetch(`http://localhost:8080/api/v1/db/meta/select/magic`, {
+  const res: Array<string> = await $fetch(`/api/v1/db/meta/select/magic`, {
     method: 'POST',
+    baseURL,
     headers: { 'xc-auth': $state.token.value as string },
     body: {
       title: formState.value?.title,

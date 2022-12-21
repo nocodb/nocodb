@@ -24,6 +24,7 @@ import { CacheGetType, CacheScope } from '../../../utils/globals';
 import ApiToken from '../../../models/ApiToken';
 import Noco from '../../../Noco';
 import Plugin from '../../../models/Plugin';
+import { WorkspaceUser } from '../../../models/WorkspaceUser';
 
 export function initStrategies(router): void {
   passport.use(
@@ -41,15 +42,28 @@ export function initStrategies(router): void {
             User.get(apiToken.fk_user_id)
               .then((user) => {
                 user['is_api_token'] = true;
+
+                if (req.ncWorkspaceId) {
+                  // extract workspace role
+                  WorkspaceUser.get(req.ncWorkspaceId, user.id)
+                    .then((workspaceUser) => {
+                      user.roles = user.roles + ',' + workspaceUser?.roles;
+
+                      done(null, user);
+                    })
+                    .catch((e) => done(e));
+                }
+
                 if (req.ncProjectId) {
                   ProjectUser.get(req.ncProjectId, user.id)
                     .then(async (projectUser) => {
-                      user.roles = projectUser?.roles || user.roles;
                       user.roles =
-                        user.roles === 'owner' ? 'owner,creator' : user.roles;
-                      // + (user.roles ? `,${user.roles}` : '');
-                      // todo : cache
-                      // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
+                        user.roles +
+                        ',' +
+                        (projectUser.roles === 'owner'
+                          ? 'owner,creator'
+                          : projectUser.roles);
+
                       done(null, user);
                     })
                     .catch((e) => done(e));
@@ -161,6 +175,18 @@ export function initStrategies(router): void {
             ) {
               return done(new Error('Token Expired. Please login again.'));
             }
+
+            if (req.ncWorkspaceId) {
+              // todo: cache
+              // extract workspace role
+              WorkspaceUser.get(req.ncWorkspaceId, user.id)
+                .then((workspaceUser) => {
+                  user.roles = user.roles + ',' + workspaceUser?.roles;
+                  done(null, user);
+                })
+                .catch((e) => done(e));
+            }
+
             if (req.ncProjectId) {
               // this.xcMeta
               //   .metaGet(req.ncProjectId, null, 'nc_projects_users', {

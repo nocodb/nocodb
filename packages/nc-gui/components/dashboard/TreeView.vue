@@ -1042,7 +1042,7 @@ watch(
 
 <style scoped lang="scss">
 .nc-treeview-container {
-  @apply h-[calc(100vh_-_var(--header-height))];
+  @apply;
 }
 
 .nc-treeview-footer-item {

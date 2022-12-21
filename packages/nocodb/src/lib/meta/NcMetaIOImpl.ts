@@ -138,6 +138,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
       query.condition(xcCondition, {});
     }
 
+
     return query.del();
   }
 
@@ -855,6 +856,9 @@ export default class NcMetaIOImpl extends NcMetaIO {
         break;
       case MetaTable.API_TOKENS:
         prefix = 'tkn_';
+        break;
+      case MetaTable.WORKSPACE:
+        prefix = 'ws_';
         break;
       default:
         prefix = 'nc_';

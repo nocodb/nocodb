@@ -1,5 +1,12 @@
 import { ClientType } from '~/lib'
 
+// todo: move to noco-sdk
+export enum NcProjectType {
+  DB = 'database',
+  DOCS = 'documentation',
+  AUTOMATION = 'automation',
+}
+
 interface ProjectCreateForm {
   title: string
   dataSource: {

@@ -18,7 +18,7 @@ import Audit from '../../../models/Audit';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 
 import passport from 'passport';
-import extractProjectIdAndAuthenticate from '../../helpers/extractProjectIdAndAuthenticate';
+import extractProjectIdAndAuthenticate from '../../helpers/extractWorkspaceProjectAndAuthenticate';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { MetaTable } from '../../../utils/globals';
 import Noco from '../../../Noco';
@@ -124,6 +124,7 @@ export async function signup(req: Request, res: Response<TableType>) {
       token_version,
     });
   }
+
   user = await User.getByEmail(email);
 
   try {

@@ -40,6 +40,8 @@ export enum MetaTable {
   SYNC_LOGS = 'nc_sync_logs_v2',
   STORE = 'nc_store',
   DOCS_PAGE = 'nc_docs_pages',
+  WORKSPACE = 'workspace',
+  WORKSPACE_USER = 'workspace_user',
 }
 
 export const orderedMetaTables = [
@@ -50,6 +52,7 @@ export const orderedMetaTables = [
   MetaTable.TEAMS,
   MetaTable.ORGS,
   MetaTable.PROJECT_USERS,
+  MetaTable.WORKSPACE_USER,
   MetaTable.USERS,
   MetaTable.KANBAN_VIEW_COLUMNS,
   MetaTable.KANBAN_VIEW,
@@ -76,6 +79,7 @@ export const orderedMetaTables = [
   MetaTable.BASES,
   MetaTable.PROJECT,
   MetaTable.DOCS_PAGE,
+  MetaTable.WORKSPACE,
 ];
 
 export const sakilaTableNames = [
@@ -143,6 +147,7 @@ export enum CacheScope {
   USER_PROJECT = 'userProject',
   DOCS_PAGE = 'page',
 }
+
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',
   TYPE_OBJECT = 'TYPE_OBJECT',

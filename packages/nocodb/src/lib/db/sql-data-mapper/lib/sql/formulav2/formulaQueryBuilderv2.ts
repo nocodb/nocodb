@@ -721,6 +721,18 @@ export default async function formulaQueryBuilderv2(
               : pt.right.value === ''
             : 0
         }) ${colAlias}`;
+      } else if (knex.clientType() === 'pg') {
+        sql = `COALESCE(${left} ${pt.operator} ${right}, ${
+          pt.operator === '='
+            ? pt.left.type === 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : pt.operator === '!='
+            ? pt.left.type !== 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : false
+        }) ${colAlias}`;
       }
 
       const query = knex.raw(sql);

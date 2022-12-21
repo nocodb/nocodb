@@ -1674,13 +1674,13 @@ class BaseModelSqlv2 {
 
   private getTnPath(tb: Model) {
     const schema = (this.dbDriver as any).searchPath?.();
-    const table =
-    this.isMssql && schema
-      ? this.dbDriver.raw('??.??', [schema, tb.table_name])
-      : this.isSnowflake
-      ? [this.dbDriver.client.config.connection.database, this.dbDriver.client.config.connection.schema, tb.table_name].join('.')
-      : tb.table_name;
-    return table;
+    if (this.isMssql && schema) {
+      return this.dbDriver.raw('??.??', [schema, tb.table_name]);
+    } else if (this.isSnowflake) {
+      return [this.dbDriver.client.config.connection.database, this.dbDriver.client.config.connection.schema, tb.table_name].join('.');
+    } else {
+      return tb.table_name;
+    }
   }
 
   public get tnPath() {

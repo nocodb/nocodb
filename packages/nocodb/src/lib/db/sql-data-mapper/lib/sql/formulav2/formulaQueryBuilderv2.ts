@@ -736,8 +736,27 @@ export default async function formulaQueryBuilderv2(
               : pt.right.value === ''
             : false
         }) ${colAlias}`;
-      }
+      } else if (knex.clientType() === 'mssql') {
+        if (pt.operator === '=') {
+          if (pt.left.type === 'Literal' && pt.left.value === '') {
+            sql = `${right} IS NULL OR ${right} = ''`;
+          } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+            sql = `${left} IS NULL OR ${left} = ''`;
+          }
+        } else if (pt.operator === '!=') {
+          if (pt.left.type === 'Literal' && pt.left.value === '') {
+            sql = `${right} IS NOT NULL AND ${right} != ''`;
+          } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+            sql = `${left} IS NOT NULL AND ${left} != ''`;
+          }
+        }
 
+        if (prevBinaryOp !== 'AND' && prevBinaryOp !== 'OR') {
+          sql = `CASE WHEN ${sql} THEN 1 ELSE 0 END ${colAlias}`;
+        } else {
+          sql = `${sql} ${colAlias}`;
+        }
+      }
       const query = knex.raw(sql);
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');

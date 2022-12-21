@@ -158,7 +158,7 @@ async function uploadAttachment(filePath, column, files, ncSiteUrl) {
         mimetype: file.mimetype,
         size: file.size,
         icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
-        ...(!column.public ? s3KeyObject(storageAdapter, relativePath) : {})
+        ...(!column.public ? s3KeyObject(storageAdapter, relativePath) : {}),
       };
     })
   );
@@ -185,7 +185,8 @@ function s3KeyObject(storageAdapter, key: string) {
   if (!(storageAdapter instanceof S3)) return {};
 
   return {
-    S3Key: key
+    S3Key: key,
+    url: storageAdapter.getSignedUrl(key),
   };
 }
 

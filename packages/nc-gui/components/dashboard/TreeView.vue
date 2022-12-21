@@ -438,7 +438,7 @@ const setIcon = async (icon: string, table: TableType) => {
         <div v-if="bases[0] && bases[0].enabled && !bases.slice(1).filter((el) => el.enabled)?.length" class="flex-1">
           <div
             v-if="isUIAllowed('table-create')"
-            class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+            class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog(bases[0].id)"
           >
             <MdiPlus class="w-5" />
@@ -568,7 +568,7 @@ const setIcon = async (icon: string, table: TableType) => {
                     :data-testid="`tree-view-table-${table.title}`"
                     @click="addTableTab(table)"
                   >
-                    <GeneralTooltip class="pl-8 pr-3 py-2" modifier-key="Alt">
+                    <GeneralTooltip class="pl-2 pr-3 py-2" modifier-key="Alt">
                       <template #title>{{ table.table_name }}</template>
                       <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
@@ -606,7 +606,7 @@ const setIcon = async (icon: string, table: TableType) => {
                         </div>
 
                         <div class="nc-tbl-title flex-1">
-                          <GeneralTruncateText>{{ table.title }}</GeneralTruncateText>
+                          <GeneralTruncateText :length="activeTable === table.id ? 18 : 20">{{ table.title }}</GeneralTruncateText>
                         </div>
 
                         <a-dropdown

@@ -235,6 +235,63 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             },
             typeErrors,
           )
+        } else if (parsedTree.callee.name === 'DATETIME_DIFF') {
+          // parsedTree.arguments[0] = date
+          validateAgainstType(
+            parsedTree.arguments[0],
+            formulaTypes.DATE,
+            (v: any) => {
+              if (!validateDateWithUnknownFormat(v)) {
+                typeErrors.add('The first parameter of DATETIME_DIFF() should have date value')
+              }
+            },
+            typeErrors,
+          )
+          // parsedTree.arguments[1] = date
+          validateAgainstType(
+            parsedTree.arguments[1],
+            formulaTypes.DATE,
+            (v: any) => {
+              if (!validateDateWithUnknownFormat(v)) {
+                typeErrors.add('The second parameter of DATETIME_DIFF() should have date value')
+              }
+            },
+            typeErrors,
+          )
+          // parsedTree.arguments[2] = ["milliseconds" | "ms" | "seconds" | "s" | "minutes" | "m" | "hours" | "h" | "days" | "d" | "weeks" | "w" | "months" | "M" | "quarters" | "Q" | "years" | "y"]
+          validateAgainstType(
+            parsedTree.arguments[2],
+            formulaTypes.STRING,
+            (v: any) => {
+              if (
+                ![
+                  'milliseconds',
+                  'ms',
+                  'seconds',
+                  's',
+                  'minutes',
+                  'm',
+                  'hours',
+                  'h',
+                  'days',
+                  'd',
+                  'weeks',
+                  'w',
+                  'months',
+                  'M',
+                  'quarters',
+                  'Q',
+                  'years',
+                  'y',
+                ].includes(v)
+              ) {
+                typeErrors.add(
+                  'The third parameter of DATETIME_DIFF() should have value either "milliseconds", "ms", "seconds", "s", "minutes", "m", "hours", "h", "days", "d", "weeks", "w", "months", "M", "quarters", "Q", "years", or "y"',
+                )
+              }
+            },
+            typeErrors,
+          )
         }
       }
     }

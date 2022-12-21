@@ -606,7 +606,7 @@ const setIcon = async (icon: string, table: TableType) => {
                         </div>
 
                         <div class="nc-tbl-title flex-1">
-                          <GeneralTruncateText :length="activeTable === table.id ? 18 : 20">{{ table.title }}</GeneralTruncateText>
+                          <GeneralTruncateText :key="table.title" :length="activeTable === table.id ? 18 : 20">{{ table.title }}</GeneralTruncateText>
                         </div>
 
                         <a-dropdown

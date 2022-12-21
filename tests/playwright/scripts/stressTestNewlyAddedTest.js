@@ -5,7 +5,7 @@ const exec = util.promisify(require('child_process').exec);
 // Get items from `git diff develop'
 
 void (async () => {
-  const { stdout: allFileNames } = await exec('git diff --name-only origin/develop');
+  const { stdout: allFileNames } = await exec('git diff --name-only origin/master');
   // return if no changed file ends with .js
   const testFilesInChangedFiles = allFileNames
     .split('\n')
@@ -16,7 +16,7 @@ void (async () => {
     return;
   }
 
-  const { stdout } = await exec(`git diff origin/develop -- **/*.spec.ts | grep test\\( | cat`);
+  const { stdout } = await exec(`git diff origin/master -- **/*.spec.ts | grep test\\( | cat`);
   // eslint-disable-next-line no-undef
   const dbType = process.env.E2E_DB_TYPE;
 

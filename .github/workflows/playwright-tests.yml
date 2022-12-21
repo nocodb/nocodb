@@ -1,0 +1,24 @@
+# This workflow will do a clean installation of node dependencies, build the source code and run e2e tests
+
+name: "playwright e2e tests"
+on:
+  pull_request:
+    branches: [ "master" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright-pg-shard-1:
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-finn-workflow.yml
+    with:
+      db: pg
+      shard: 1
+  playwright-pg-shard-2:
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-finn-workflow.yml
+    with:
+      db: pg
+      shard: 2

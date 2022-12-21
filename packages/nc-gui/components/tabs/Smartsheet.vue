@@ -71,7 +71,7 @@ const onDecode = () => {
 
 <template>
   <div class="nc-container flex h-full">
-    <qrcode-stream @decode="onDecode"></qrcode-stream>
+    <!-- <qrcode-stream @decode="onDecode"></qrcode-stream> -->
 
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />

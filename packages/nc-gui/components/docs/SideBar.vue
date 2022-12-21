@@ -151,7 +151,7 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
     collapsible
     theme="light"
   >
-    <div class="py-2.5 flex flex-row justify-between items-center ml-2 px-2 border-b-warm-gray-100 border-b-1 overflow-scroll">
+    <div class="py-2.5 flex flex-row justify-between items-center ml-2 px-2 border-b-warm-gray-100 border-b-1">
       <div class="text-base text-[13px] !font-400">Categories</div>
       <div class="flex flex-row justify-between items-center">
         <div

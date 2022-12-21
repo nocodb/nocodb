@@ -24,7 +24,6 @@ export default {
     include: {
       hideAllColumns: true,
       showAllColumns: true,
-      auditRowUpdate: true,
       passwordChange: true,
       // new permissions
       // project
@@ -259,7 +258,6 @@ export default {
       filterList: true,
       projectInfoGet: true,
 
-
       galleryViewGet: true,
       kanbanViewGet: true,
       groupedDataList: true,
@@ -334,7 +332,6 @@ export default {
       xcPluginRead: true,
       xcMetaTablesImportZipToLocalFsAndDb: true,
       xcMetaTablesExportDbToZip: true,
-      auditRowUpdate: true,
     },
   },
 };

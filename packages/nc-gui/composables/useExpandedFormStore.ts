@@ -171,22 +171,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
           await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
 
-          for (const key of Object.keys(updateOrInsertObj)) {
-            // audit
-            $api.utils
-              .auditRowUpdate(id, {
-                fk_model_id: meta.value.id,
-                column_name: key,
-                row_id: id,
-                value: getHTMLEncodedText(updateOrInsertObj[key]),
-                prev_value: getHTMLEncodedText(row.value.oldRow[key]),
-              })
-              .then(async () => {
-                /** load latest comments/audit if right drawer is open */
-                if (commentsDrawer.value) {
-                  await loadCommentsAndLogs()
-                }
-              })
+          if (commentsDrawer.value) {
+            await loadCommentsAndLogs()
           }
         } else {
           // No columns to update

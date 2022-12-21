@@ -11,11 +11,11 @@ const { meta: tableMeta } = defineProps<{
   <IcIcon
     v-if="tableMeta.meta?.icon"
     :data-testid="`nc-icon-${tableMeta.meta?.icon}`"
-    class="text-xl"
+    class="text-lg"
     :icon="tableMeta.meta?.icon"
   ></IcIcon>
 
-  <MdiEyeCircleOutline v-else-if="tableMeta.meta?.type === 'view'" class="w-5" />
+  <MdiEyeCircleOutline v-else-if="tableMeta?.type === 'view'" class="w-5" />
   <MdiTableLarge v-else class="w-5" />
 </template>
 

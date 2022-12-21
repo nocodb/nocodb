@@ -48,7 +48,7 @@ export async function xcVisibilityMetaGet(
   const roles = ['owner', 'creator', 'viewer', 'editor', 'commenter', 'guest'];
 
   const defaultDisabled = roles.reduce((o, r) => ({ ...o, [r]: false }), {});
-  
+
   let models =
     _models ||
     (await Model.list({
@@ -78,6 +78,7 @@ export async function xcVisibilityMetaGet(
         ptype: model.type,
         tn: view.title,
         _tn: view.title,
+        table_meta: model.meta,
         ...view,
         disabled: { ...defaultDisabled },
       };

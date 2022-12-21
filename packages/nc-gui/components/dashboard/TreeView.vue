@@ -576,10 +576,10 @@ const setIcon = async (icon: string, table: TableType) => {
                             :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
                             trigger="click"
                             destroy-popup-on-hide
-                            @click.stop
                             class="flex items-center"
+                            @click.stop
                           >
-                            <div @click.stop class="flex items-center">
+                            <div class="flex items-center" @click.stop>
                               <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
                                 <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
                                   <Icon
@@ -606,7 +606,9 @@ const setIcon = async (icon: string, table: TableType) => {
                         </div>
 
                         <div class="nc-tbl-title flex-1">
-                          <GeneralTruncateText :key="table.title" :length="activeTable === table.id ? 18 : 20">{{ table.title }}</GeneralTruncateText>
+                          <GeneralTruncateText :key="table.title" :length="activeTable === table.id ? 18 : 20">{{
+                            table.title
+                          }}</GeneralTruncateText>
                         </div>
 
                         <a-dropdown

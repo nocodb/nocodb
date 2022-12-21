@@ -229,7 +229,6 @@ const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCell
           case 'ArrowUp':
             e.preventDefault()
             clearSelectedRange()
-            $e('c:shortcut', { key: 'CTRL + ArrowUp' })
             activeCell.row = 0
             activeCell.col = activeCell.col ?? 0
             scrollToCell?.()

@@ -24,6 +24,9 @@ const meta = inject(MetaInj, ref())
 // const tableName = meta.value?.table_name!
 // const tableName = view.
 
+const route = useRoute()
+const router = useRouter()
+
 const { $api } = useNuxtApp()
 const { project } = useProject()
 // const projectName = project.value.title!
@@ -40,21 +43,24 @@ interface Entry {
 onBeforeMount(init)
 
 async function init() {
+  // export const isPrimary = (column: ColumnType) => !!column.pv
+  console.log('meta.value?.id', meta.value?.id)
+
+  //   meta.value?.columns[0].pv
+
   //   const FOO = await $api.dbViewColumn.list(view.value?.id as string, {
   //     // query: {
   //     // },
   //   })
   //   console.log('FOO', FOO)
   //   const foundRowForQrCode = await $api.
-  const foundRowForQrCode = await $api.dbViewRow.findOne(NOCO, project.value!.id!, meta.value!.id!, view.value!.title!, {
-    where: '(Title,eq,1)',
-  })
+
   //   const foundRowForQrCode = await $api.dbTableRow.findOne(NOCO, projectName, tableName, {
   // fields: ['']
   // where: 'title5 == "Row 1"',
   //   })
 
-  console.log('foundRowForQrCode', foundRowForQrCode)
+  //   console.log('foundRowForQrCode', foundRowForQrCode)
 
   // debugger
   qrCodeFieldOptions.value = meta?.value
@@ -70,11 +76,44 @@ async function init() {
 const showQrCodeScanner = ref(false)
 const entry = ref<Entry | null>(null)
 
-const onDecode = async (qrCode: string) => {
+const selectedCodeColumnIdToScanFor = ref('')
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.query.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        query: {
+          ...route.query,
+          rowId: undefined,
+        },
+      })
+  },
+})
+
+
+const onDecode = async (qrCodeValue: string) => {
   try {
-    alert(qrCode)
+    alert(qrCodeValue)
 
     showQrCodeScanner.value = false
+
+    const whereClause = `(${selectedCodeColumnIdToScanFor.value},eq,${qrCodeValue})`
+    const foundRowForQrCode = await $api.dbViewRow.findOne(NOCO, project.value!.id!, meta.value!.id!, view.value!.title!, {
+      where: whereClause,
+    })
+
+    const rowIdOfFoundRow = meta.value?.id && foundRowForQrCode[meta.value.id]
+
+    const primaryKeyValueForFoundRow = extractPkFromRow(foundRowForQrCode, meta!.value!.columns!)
+
+    console.log('foundRowForQrCode', foundRowForQrCode)
+
+    console.log('rowIdOfFoundRow', rowIdOfFoundRow)
+
+    console.log('primaryKeyValueForFoundRow', primaryKeyValueForFoundRow)
 
     // const foundRowForQrCode = await $api.dbTableRow.findOne(NOCO, projectName, tableName, {
     //   // fields: ['']
@@ -119,6 +158,7 @@ const onDecode = async (qrCode: string) => {
     >
       <div class="relative flex flex-col h-full">
         <a-select
+          v-model:value="selectedCodeColumnIdToScanFor"
           class="w-full nc-kanban-grouping-field-select"
           :options="qrCodeFieldOptions"
           placeholder="Select a Code Field (QR or Barcode)"

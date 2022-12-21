@@ -34,7 +34,9 @@ export class ColumnPageObject extends BasePage {
     childColumn = '',
     relationType = '',
     rollupType = '',
-    format,
+    format = '',
+    dateFormat = '',
+    timeFormat = '',
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
   }: {
@@ -47,6 +49,8 @@ export class ColumnPageObject extends BasePage {
     relationType?: string;
     rollupType?: string;
     format?: string;
+    dateFormat?: string;
+    timeFormat?: string;
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
   }) {
@@ -89,6 +93,14 @@ export class ColumnPageObject extends BasePage {
             })
             .click();
         }
+        break;
+      case 'DateTime':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        // Time Format
+        await this.get().locator('.nc-time-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
         break;
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
@@ -222,11 +234,15 @@ export class ColumnPageObject extends BasePage {
     type = 'SingleLineText',
     formula = '',
     format,
+    dateFormat = '',
+    timeFormat = '',
   }: {
     title: string;
     type?: string;
     formula?: string;
     format?: string;
+    dateFormat?: string;
+    timeFormat?: string;
   }) {
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
@@ -244,6 +260,14 @@ export class ColumnPageObject extends BasePage {
             hasText: format,
           })
           .click();
+        break;
+      case 'DateTime':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        // Time Format
+        await this.get().locator('.nc-time-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
         break;
       default:
         break;

@@ -2194,6 +2194,8 @@
                   "order": {
                     "type": "number"
                   },
+                  "meta": {
+                  },
                   "title": {
                     "type": "string"
                   },
@@ -7585,6 +7587,8 @@
           },
           "uuid": {
             "type": "string"
+          },
+          "meta": {
           },
           "show_system_fields": {
             "type": "boolean"

@@ -1,4 +1,5 @@
 import Noco from '../Noco';
+import { parseMetaProp } from '../utils/modelUtils'
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
 import { XKnex } from '../db/sql-data-mapper';
@@ -22,21 +23,7 @@ import { NcError } from '../meta/helpers/catchError';
 import Audit from './Audit';
 import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
 
-function parseMetaProp(modelOrModelList: Model[] | Model) {
-  if (!modelOrModelList) return;
 
-  // parse meta property
-  for (const model of Array.isArray(modelOrModelList)
-    ? modelOrModelList
-    : [modelOrModelList]) {
-    try {
-      model.meta =
-        typeof model.meta === 'string' ? JSON.parse(model.meta) : model.meta;
-    } catch {
-      model.meta = {};
-    }
-  }
-}
 
 export default class Model implements TableType {
   copy_enabled: boolean;

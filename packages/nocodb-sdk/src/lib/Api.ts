@@ -135,6 +135,7 @@ export interface ViewType {
   fk_model_id?: string;
   slug?: string;
   uuid?: string;
+  meta?: any;
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
@@ -2316,6 +2317,7 @@ export class Api<
       viewId: string,
       data: {
         order?: number;
+        meta?: any;
         title?: string;
         show_system_fields?: boolean;
         lock_type?: 'collaborative' | 'locked' | 'personal';

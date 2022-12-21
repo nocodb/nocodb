@@ -577,10 +577,11 @@ const setIcon = async (icon: string, table: TableType) => {
                             trigger="click"
                             destroy-popup-on-hide
                             @click.stop
+                            class="flex items-center"
                           >
-                            <div @click.stop>
+                            <div @click.stop class="flex items-center">
                               <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
-                                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon">
+                                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
                                   <Icon
                                     :key="table.meta?.icon"
                                     :data-testid="`nc-icon-${table.meta?.icon}`"

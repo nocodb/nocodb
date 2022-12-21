@@ -2,7 +2,7 @@
 import type { UITypes } from 'nocodb-sdk'
 import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import { useVModel } from '#imports'
+import { onMounted, useVModel, watch } from '#imports'
 
 const props = defineProps<{
   modelValue: any
@@ -22,7 +22,7 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
-const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
+const columnsAllowedAsBarcodeValue = computed<SelectProps['options']>(() => {
   return fields.value
     ?.filter(
       (el) =>
@@ -52,7 +52,18 @@ const supportedBarcodeFormats = [
 
 onMounted(() => {
   // set default value
-  vModel.value.fk_barcode_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || ''
+  vModel.value.meta = {
+    barcodeFormat: supportedBarcodeFormats[0].value,
+    ...vModel.value.meta,
+  }
+  vModel.value.fk_barcode_value_column_id =
+    (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || columnsAllowedAsBarcodeValue.value?.[0]
+})
+
+watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {
+  if (vModel.value.fk_barcode_value_column_id == null) {
+    vModel.value.fk_barcode_value_column_id = newColumnsAllowedAsBarcodeValue?.[0].value
+  }
 })
 
 setAdditionalValidations({
@@ -61,10 +72,6 @@ setAdditionalValidations({
 })
 
 // set default meta value
-vModel.value.meta = {
-  barcodeFormat: supportedBarcodeFormats[0].value,
-  ...vModel.value.meta,
-}
 </script>
 
 <template>
@@ -77,8 +84,9 @@ vModel.value.meta = {
       >
         <a-select
           v-model:value="vModel.fk_barcode_value_column_id"
-          :options="columnsAllowedAsQrValue"
+          :options="columnsAllowedAsBarcodeValue"
           placeholder="Select a column for the Barcode value"
+          not-found-content="No valid Column Type can be found. The valid Column Types are: Number, Single Line Text, Long Text, Phone Number, URL, Email, Decimal. Please create one first."
           @click.stop
         />
       </a-form-item>

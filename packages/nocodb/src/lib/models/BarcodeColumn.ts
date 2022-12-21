@@ -4,6 +4,7 @@ import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
 
 export default class BarcodeColumn {
+  id: string;
   fk_column_id: string;
   fk_barcode_value_column_id: string;
   barcode_format: string;
@@ -43,8 +44,6 @@ export default class BarcodeColumn {
 
     return column ? new BarcodeColumn(column) : null;
   }
-
-  id: string;
 
   static async update(
     id: string,

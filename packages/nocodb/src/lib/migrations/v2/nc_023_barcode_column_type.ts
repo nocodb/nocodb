@@ -15,7 +15,6 @@ const up = async (knex: Knex) => {
 
     table.string('barcode_format', 15);
     table.boolean('deleted');
-    table.float('order');
     table.timestamps(true, true);
   });
 };

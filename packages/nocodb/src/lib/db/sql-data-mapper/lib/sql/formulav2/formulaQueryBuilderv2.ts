@@ -721,7 +721,10 @@ export default async function formulaQueryBuilderv2(
               : pt.right.value === ''
             : 0
         }) ${colAlias}`;
-      } else if (knex.clientType() === 'pg') {
+      } else if (
+        knex.clientType() === 'pg' ||
+        knex.clientType() === 'sqlite3'
+      ) {
         sql = `COALESCE(${left} ${pt.operator} ${right}, ${
           pt.operator === '='
             ? pt.left.type === 'Literal'

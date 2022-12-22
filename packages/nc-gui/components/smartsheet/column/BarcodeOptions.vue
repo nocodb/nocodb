@@ -78,17 +78,30 @@ setAdditionalValidations({
   <a-row>
     <a-col :span="24">
       <a-form-item
-        class="flex w-1/2 pb-2 nc-barcode-value-column-select"
+        class="flex pb-2 nc-barcode-value-column-select flex-row"
         :label="$t('labels.barcodeValueColumn')"
         v-bind="validateInfos.fk_barcode_value_column_id"
       >
-        <a-select
-          v-model:value="vModel.fk_barcode_value_column_id"
-          :options="columnsAllowedAsBarcodeValue"
-          placeholder="Select a column for the Barcode value"
-          not-found-content="No valid Column Type can be found. The valid Column Types are: Number, Single Line Text, Long Text, Phone Number, URL, Email, Decimal. Please create one first."
-          @click.stop
-        />
+        <div class="flex w-1/2 flex-row items-center">
+          <a-select
+            v-model:value="vModel.fk_barcode_value_column_id"
+            :options="columnsAllowedAsBarcodeValue"
+            placeholder="Select a column for the Barcode value"
+            not-found-content="No valid Column Type can be found."
+            @click.stop
+          />
+          <div v-if="!columnsAllowedAsBarcodeValue" class="pl-2">
+            <a-tooltip placement="bottom">
+              <template #title>
+                <span>
+                  The valid Column Types for a Barcode Column are: Number, Single Line Text, Long Text, Phone Number, URL, Email,
+                  Decimal. Please create one first.
+                </span>
+              </template>
+              <mdi-information class="cursor-pointer" />
+            </a-tooltip>
+          </div>
+        </div>
       </a-form-item>
       <a-form-item
         class="flex w-1/2 pb-2 nc-barcode-format-select"

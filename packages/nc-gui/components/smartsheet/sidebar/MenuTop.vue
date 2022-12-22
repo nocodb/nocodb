@@ -216,6 +216,7 @@ function openDeleteDialog(view: ViewType) {
 
 const setIcon = async (icon: string, view: ViewType) => {
   try {
+    // modify the icon property in meta
     view.meta = {
       ...(view.meta || {}),
       icon,

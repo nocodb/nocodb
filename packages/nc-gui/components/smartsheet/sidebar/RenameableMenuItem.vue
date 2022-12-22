@@ -12,6 +12,8 @@ import {
   useVModel,
 } from '#imports'
 
+import { Tooltip } from 'ant-design-vue'
+
 interface Props {
   view: ViewType
   onValidate: (view: ViewType) => boolean | string
@@ -173,10 +175,14 @@ function onStopEdit() {
     @dblclick.stop="onDblClick"
     @click.stop="onClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-testid="view-item">
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2"
+         data-testid="view-item">
       <div class="flex w-auto min-w-5" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <a-dropdown :trigger="['click']" @click.stop>
-          <GeneralViewIcon :meta="props.view"></GeneralViewIcon>
+          <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
+            <GeneralViewIcon :meta="props.view"></GeneralViewIcon>
+            <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
+          </component>
 
           <template v-if="isUIAllowed('viewIconCustomisation')" #overlay>
             <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="emits('selectIcon', $event)" />
@@ -184,7 +190,8 @@ function onStopEdit() {
         </a-dropdown>
       </div>
 
-      <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
+      <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel"
+               @keydown="onKeyDown($event)" />
 
       <div v-else>
         <LazyGeneralTruncateText>{{ vModel.alias || vModel.title }}</LazyGeneralTruncateText>
@@ -199,7 +206,8 @@ function onStopEdit() {
               {{ $t('activity.copyView') }}
             </template>
 
-            <MdiContentCopy class="hidden group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
+            <MdiContentCopy class="hidden group-hover:block text-gray-500 nc-view-copy-icon"
+                            @click.stop="onDuplicate" />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">

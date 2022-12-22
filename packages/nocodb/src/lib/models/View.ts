@@ -5,7 +5,7 @@ import {
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils'
+import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
 import Model from './Model';
 import FormView from './FormView';
 import GridView from './GridView';
@@ -715,10 +715,15 @@ export default class View implements ViewType {
     }
   }
 
+  // todo: cache
   static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
     const view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, {
       uuid,
     });
+
+    if (view) {
+      parseMetaProp(view);
+    }
 
     return view && new View(view);
   }
@@ -748,8 +753,9 @@ export default class View implements ViewType {
         viewId
       );
     }
-    if (!view.meta) {
+    if (!view.meta || !('allowCSVDownload' in view.meta)) {
       const defaultMeta = {
+        ...(view.meta ?? {}),
         allowCSVDownload: true,
       };
       // get existing cache
@@ -757,7 +763,7 @@ export default class View implements ViewType {
       const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
       if (o) {
         // update data
-        o.meta = JSON.stringify(defaultMeta);
+        o.meta = defaultMeta;
         // set cache
         await NocoCache.set(key, o);
       }

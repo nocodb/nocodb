@@ -1,5 +1,7 @@
-export function parseMetaProp(modelOrModelList: { meta: any } | { meta: any }[]) {
-  if (!modelOrModelList) return
+export function parseMetaProp(
+  modelOrModelList: { meta: any } | { meta: any }[]
+) {
+  if (!modelOrModelList) return;
 
   // parse meta property
   for (const model of Array.isArray(modelOrModelList)
@@ -7,17 +9,17 @@ export function parseMetaProp(modelOrModelList: { meta: any } | { meta: any }[])
     : [modelOrModelList]) {
     try {
       model.meta =
-        typeof model.meta === 'string' ? JSON.parse(model.meta) : model.meta
+        typeof model.meta === 'string' ? JSON.parse(model.meta) : model.meta;
     } catch {
-      model.meta = {}
+      model.meta = {};
     }
   }
 }
 
 export function stringifyMetaProp(
-  modelOrModelList: { meta?: any } | { meta?: any }[],
+  modelOrModelList: { meta?: any } | { meta?: any }[]
 ) {
-  if (!modelOrModelList) return
+  if (!modelOrModelList) return;
 
   // parse meta property
   for (const model of Array.isArray(modelOrModelList)
@@ -25,9 +27,9 @@ export function stringifyMetaProp(
     : [modelOrModelList]) {
     try {
       model.meta =
-        typeof model.meta !== 'string' ? model.meta : JSON.parse(model.meta)
+        typeof model.meta === 'string' ? model.meta : JSON.stringify(model.meta);
     } catch (e) {
-      model.meta = '{}'
+      model.meta = '{}';
     }
   }
 }

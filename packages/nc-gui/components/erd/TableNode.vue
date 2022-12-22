@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { NodeProps } from '@vue-flow/core'
-import { Handle, Position, useVueFlow } from '@vue-flow/core'
+import { Position, useVueFlow } from '@vue-flow/core'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { NodeData } from './utils'
@@ -60,7 +60,7 @@ watch(
         class="text-slate-600 text-md py-2 border-slate-500 rounded-t-lg w-full h-full px-3 font-semibold flex items-center"
       >
         <GeneralTableIcon class="text-primary" :meta="table" />
-        <div :class="showSkeleton ? 'text-6xl' : ''" class="flex px-2">
+        <div :class="showSkeleton ? 'text-6xl' : ''" class="flex pr-2 pl-1">
           {{ table.title }}
         </div>
       </div>

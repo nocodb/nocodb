@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
 import type { ComputedRef, Ref } from 'vue'
-import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { ref, useInjectionState, useMetas } from '#imports'
 import type { Row } from '~/lib'
 
@@ -13,10 +13,16 @@ const formatData = (list: Row[]) =>
     rowMeta: {},
   }))
 
+const { appInfo } = $(useGlobal())
+
+const appInfoDefaultLimit = 100
+const paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
+
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
     meta: Ref<TableType | MapType | undefined>,
     viewMeta: Ref<ViewType | MapType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
+    where?: ComputedRef<string | undefined>,
   ) => {
     const formattedData = ref<Row[]>([])
 
@@ -30,6 +36,12 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const geoDataFieldColumn = ref<ColumnType | undefined>()
 
+    const queryParams = computed(() => ({
+      // offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
+      limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
+      where: where?.value ?? '',
+    }))
+
     async function loadMapMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
       mapMetaData.value = await $api.dbView.mapRead(viewMeta.value.id)
@@ -40,7 +52,13 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     async function loadMapData() {
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
 
-      const res = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!)
+      const res = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+        ...queryParams.value,
+        // ...params,
+        // ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+        // ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+        where: where?.value,
+      })
 
       formattedData.value = formatData(res.list)
     }

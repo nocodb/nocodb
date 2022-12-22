@@ -1,18 +1,8 @@
 <script lang="ts" setup>
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import {
-  IsLockedInj,
-  inject,
-  message,
-  onKeyStroke,
-  useDebounceFn,
-  useNuxtApp,
-  useUIPermission,
-  useVModel,
-} from '#imports'
-
 import { Tooltip } from 'ant-design-vue'
+import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
 
 interface Props {
   view: ViewType
@@ -175,8 +165,7 @@ function onStopEdit() {
     @dblclick.stop="onDblClick"
     @click.stop="onClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2"
-         data-testid="view-item">
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-testid="view-item">
       <div class="flex w-auto min-w-5" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <a-dropdown :trigger="['click']" @click.stop>
           <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
@@ -190,8 +179,7 @@ function onStopEdit() {
         </a-dropdown>
       </div>
 
-      <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel"
-               @keydown="onKeyDown($event)" />
+      <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
 
       <div v-else>
         <LazyGeneralTruncateText>{{ vModel.alias || vModel.title }}</LazyGeneralTruncateText>
@@ -206,8 +194,7 @@ function onStopEdit() {
               {{ $t('activity.copyView') }}
             </template>
 
-            <MdiContentCopy class="hidden group-hover:block text-gray-500 nc-view-copy-icon"
-                            @click.stop="onDuplicate" />
+            <MdiContentCopy class="hidden group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">

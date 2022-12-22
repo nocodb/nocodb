@@ -319,14 +319,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           //   query: { ignoreWebhook: !saved }
           // }
         )
-        // audit
-        $api.utils.auditRowUpdate(id, {
-          fk_model_id: meta.value?.id as string,
-          column_name: property,
-          row_id: id,
-          value: getHTMLEncodedText(toUpdate.row[property]),
-          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
-        })
 
         /** update row data(to sync formula and other related columns) */
         Object.assign(toUpdate.row, updatedRowData)

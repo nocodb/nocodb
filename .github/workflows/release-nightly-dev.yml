@@ -10,7 +10,7 @@ on:
 jobs:
   # enrich tag for nightly auto release
   set-tag:
-    runs-on: 'ubuntu-latest'
+    runs-on: self-hosted
     steps:
       - name: set-tag
         id: tag-step

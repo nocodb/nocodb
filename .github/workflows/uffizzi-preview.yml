@@ -10,8 +10,7 @@ on:
 jobs:
   cache-compose-file:
     name: Cache Compose File
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
     outputs:
       compose-file-cache-key: ${{ env.COMPOSE_FILE_HASH }}
       pr-number: ${{ env.PR_NUMBER }}

@@ -19,7 +19,7 @@ on:
         required: true
 jobs:
   build-executables:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       # Get the latest draft release for asset upload url
       - uses: cardinalby/git-get-release-action@v1
@@ -179,7 +179,7 @@ jobs:
 
   publish-mac-executables-and-homebrew:
     needs: [sign-mac-executables,build-executables]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/download-artifact@master
         with:

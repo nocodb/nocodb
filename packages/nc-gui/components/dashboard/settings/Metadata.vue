@@ -69,9 +69,7 @@ const columns = [
   {
     // Models
     title: tableHeaderRenderer(t('labels.models')),
-    key: 'table_name',
-    customRender: ({ record }: { record: { table_name: string; title?: string } }) =>
-      h('div', {}, record.title || record.table_name),
+    key: 'table_name'
   },
   {
     // Sync state
@@ -122,7 +120,7 @@ const columns = [
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralTableIcon :meta="record" class="text-gray-500"></GeneralTableIcon>
                 </div>
-                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.table_name }}</span>
+                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.title || record.table_name }}</span>
               </div>
             </div>
           </template>

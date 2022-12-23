@@ -11,6 +11,5 @@ definePageMeta({
     <template #header> <GptHeader /> </template>
     <template #left> <GptInput /> </template>
     <template #right> <GptOutput /> </template>
-    <GptPage />
   </NuxtLayout>
 </template>

@@ -29,14 +29,17 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { getMeta, removeMeta } = useMetas()
 
-  const { loadTables } = useProject()
+  const { loadTables, sqlUis, project, tables } = useProject()
 
   const { closeTab } = useTabs()
-  const { sqlUis, project, tables } = useProject()
 
   const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 
   const createTable = async () => {
+    if (!baseId) {
+      baseId = project.value.bases?.[0].id
+    }
+
     if (!sqlUi?.value) return
     const columns = sqlUi?.value?.getNewTableColumns().filter((col) => {
       if (col.column_name === 'id' && table.columns.includes('id_ag')) {

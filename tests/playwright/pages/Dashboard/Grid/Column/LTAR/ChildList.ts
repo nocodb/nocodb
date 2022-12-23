@@ -20,9 +20,7 @@ export class ChildList extends BasePage {
     //    button: Link to 'City'
     //    icon: reload
     await expect(this.get().locator(`.ant-modal-title`)).toHaveText(`Child list`);
-    await expect(
-      await this.get().locator(`button:text-matches("Link to '.*${linkField}'", "i")`).isVisible()
-    ).toBeTruthy();
+    await expect(await this.get().locator(`text=/Link to '.*${linkField}'/i`).isVisible()).toBeTruthy();
     await expect(await this.get().locator(`[data-testid="nc-child-list-reload"]`).isVisible()).toBeTruthy();
 
     // child list body validation (card count, card title)
@@ -52,7 +50,7 @@ export class ChildList extends BasePage {
   }
 
   async openLinkRecord({ linkTableTitle }: { linkTableTitle: string }) {
-    const openActions = this.get().locator(`:text-matches("Link to '.*${linkTableTitle}'", "i")`).click();
+    const openActions = this.get().locator(`text=/Link to '.*${linkTableTitle}'/i`).click();
     await this.waitForResponse({
       requestUrlPathToMatch: '/exclude',
       httpMethodsToMatch: ['GET'],

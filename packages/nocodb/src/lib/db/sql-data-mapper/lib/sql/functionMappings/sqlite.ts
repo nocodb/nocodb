@@ -152,6 +152,30 @@ const sqlite3 = {
       )} % 7 + 7) % 7 ${colAlias}`
     );
   },
+  AND: (args: MapFnArgs) => {
+    return args.knex.raw(
+      `CASE WHEN ${args.knex
+        .raw(
+          `${args.pt.arguments
+            .map((ar) => args.fn(ar, '', 'AND').toQuery())
+            .join(' AND ')}`
+        )
+        .wrap('(', ')')
+        .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+    );
+  },
+  OR: (args: MapFnArgs) => {
+    return args.knex.raw(
+      `CASE WHEN ${args.knex
+        .raw(
+          `${args.pt.arguments
+            .map((ar) => args.fn(ar, '', 'OR').toQuery())
+            .join(' OR ')}`
+        )
+        .wrap('(', ')')
+        .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+    );
+  },
 };
 
 export default sqlite3;

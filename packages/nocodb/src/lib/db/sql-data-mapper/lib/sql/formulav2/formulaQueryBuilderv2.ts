@@ -722,37 +722,30 @@ export default async function formulaQueryBuilderv2(
             : 0
         }) ${colAlias}`;
       } else if (
+        knex.clientType() === 'sqlite3' ||
         knex.clientType() === 'pg' ||
-        knex.clientType() === 'sqlite3'
+        knex.clientType() === 'mssql'
       ) {
-        sql = `COALESCE(${left} ${pt.operator} ${right}, ${
-          pt.operator === '='
-            ? pt.left.type === 'Literal'
-              ? pt.left.value === ''
-              : pt.right.value === ''
-            : pt.operator === '!='
-            ? pt.left.type !== 'Literal'
-              ? pt.left.value === ''
-              : pt.right.value === ''
-            : false
-        }) ${colAlias}`;
-      } else if (knex.clientType() === 'mssql') {
         if (pt.operator === '=') {
           if (pt.left.type === 'Literal' && pt.left.value === '') {
-            sql = `${right} IS NULL OR ${right} = ''`;
+            sql = `${right} IS NULL OR CAST(${right} AS TEXT) = ''`;
           } else if (pt.right.type === 'Literal' && pt.right.value === '') {
-            sql = `${left} IS NULL OR ${left} = ''`;
+            sql = `${left} IS NULL OR CAST(${left} AS TEXT) = ''`;
           }
         } else if (pt.operator === '!=') {
           if (pt.left.type === 'Literal' && pt.left.value === '') {
-            sql = `${right} IS NOT NULL AND ${right} != ''`;
+            sql = `${right} IS NOT NULL AND CAST(${right} AS TEXT) != ''`;
           } else if (pt.right.type === 'Literal' && pt.right.value === '') {
-            sql = `${left} IS NOT NULL AND ${left} != ''`;
+            sql = `${left} IS NOT NULL AND CAST(${left} AS TEXT) != ''`;
           }
         }
 
-        if (prevBinaryOp !== 'AND' && prevBinaryOp !== 'OR') {
-          sql = `CASE WHEN ${sql} THEN 1 ELSE 0 END ${colAlias}`;
+        if (
+          (pt.operator === '=' || pt.operator === '!=') &&
+          prevBinaryOp !== 'AND' &&
+          prevBinaryOp !== 'OR'
+        ) {
+          sql = `(CASE WHEN ${sql} THEN true ELSE false END ${colAlias})`;
         } else {
           sql = `${sql} ${colAlias}`;
         }

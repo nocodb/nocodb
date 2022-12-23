@@ -320,7 +320,7 @@ class BaseModelSqlv2 {
       as: 'count',
     }).first();
     const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
-    return (this.isPg ? res.rows[0] : res[0][0] ?? res[0]).count;
+    return ((this.isPg || this.isSnowflake) ? res.rows[0] : res[0][0] ?? res[0]).count;
   }
 
   // todo: add support for sortArrJson and filterArrJson
@@ -1557,6 +1557,11 @@ class BaseModelSqlv2 {
                 .select(ai.column_name)
                 .max(ai.column_name, { as: 'id' })
             )[0].id;
+          } else if (this.isSnowflake) {
+            id = ((
+              await this.dbDriver(this.tnPath)
+                .max(ai.column_name, { as: 'id' })
+            ) as any)[0].id;
           }
           response = await this.readByPk(id);
         } else {
@@ -1669,11 +1674,13 @@ class BaseModelSqlv2 {
 
   private getTnPath(tb: Model) {
     const schema = (this.dbDriver as any).searchPath?.();
-    const table =
-      this.isMssql && schema
-        ? this.dbDriver.raw('??.??', [schema, tb.table_name])
-        : tb.table_name;
-    return table;
+    if (this.isMssql && schema) {
+      return this.dbDriver.raw('??.??', [schema, tb.table_name]);
+    } else if (this.isSnowflake) {
+      return [this.dbDriver.client.config.connection.database, this.dbDriver.client.config.connection.schema, tb.table_name].join('.');
+    } else {
+      return tb.table_name;
+    }
   }
 
   public get tnPath() {
@@ -1694,6 +1701,10 @@ class BaseModelSqlv2 {
 
   get isMySQL() {
     return this.clientType === 'mysql2' || this.clientType === 'mysql';
+  }
+
+  get isSnowflake() {
+    return this.clientType === 'snowflake';
   }
 
   get clientType() {
@@ -1798,7 +1809,19 @@ class BaseModelSqlv2 {
         }
 
         if (ai) {
-          // response = await this.readByPk(id)
+          if (this.isSqlite) {
+            // sqlite doesnt return id after insert
+            id = (
+              await this.dbDriver(this.tnPath)
+                .select(ai.column_name)
+                .max(ai.column_name, { as: 'id' })
+            )[0].id;
+          } else if (this.isSnowflake) {
+            id = ((
+              await this.dbDriver(this.tnPath)
+                .max(ai.column_name, { as: 'id' })
+            ) as any).rows[0].id;
+          }
           response = await this.readByPk(id);
         } else {
           response = data;
@@ -1871,10 +1894,10 @@ class BaseModelSqlv2 {
       const response =
         this.isPg || this.isMssql
           ? await this.dbDriver
-              .batchInsert(this.model.table_name, insertDatas, chunkSize)
+              .batchInsert(this.tnPath, insertDatas, chunkSize)
               .returning(this.model.primaryKey?.column_name)
           : await this.dbDriver.batchInsert(
-              this.model.table_name,
+              this.tnPath,
               insertDatas,
               chunkSize
             );
@@ -1907,7 +1930,7 @@ class BaseModelSqlv2 {
           continue;
         }
         const wherePk = await this._wherePk(pkValues);
-        const response = await transaction(this.model.table_name)
+        const response = await transaction(this.tnPath)
           .update(d)
           .where(wherePk);
         res.push(response);
@@ -1987,7 +2010,7 @@ class BaseModelSqlv2 {
       const res = [];
       for (const d of deleteIds) {
         if (Object.keys(d).length) {
-          const response = await transaction(this.model.table_name)
+          const response = await transaction(this.tnPath)
             .del()
             .where(d);
           res.push(response);
@@ -2236,7 +2259,7 @@ class BaseModelSqlv2 {
             subject: 'NocoDB Form',
             html: ejs.render(formSubmissionEmailTemplate, {
               data: transformedData,
-              tn: this.model.table_name,
+              tn: this.tnPath,
               _tn: this.model.title,
             }),
           });
@@ -2358,16 +2381,34 @@ class BaseModelSqlv2 {
 
           const vTn = this.getTnPath(vTable);
 
-          await this.dbDriver(vTn).insert({
-            [vParentCol.column_name]: this.dbDriver(parentTn)
-              .select(parentColumn.column_name)
-              .where(_wherePk(parentTable.primaryKeys, childId))
-              .first(),
-            [vChildCol.column_name]: this.dbDriver(childTn)
-              .select(childColumn.column_name)
-              .where(_wherePk(childTable.primaryKeys, rowId))
-              .first(),
-          });
+          if (this.isSnowflake) {
+            const parentPK = this.dbDriver(parentTn)
+            .select(parentColumn.column_name)
+            .where(_wherePk(parentTable.primaryKeys, childId))
+            .first();
+
+            const childPK = this.dbDriver(childTn)
+            .select(childColumn.column_name)
+            .where(_wherePk(childTable.primaryKeys, rowId))
+            .first();
+
+            await this.dbDriver.raw(`INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`, [
+              vTn,
+              vParentCol.column_name,
+              vChildCol.column_name,
+            ])
+          } else {
+            await this.dbDriver(vTn).insert({
+              [vParentCol.column_name]: this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .where(_wherePk(parentTable.primaryKeys, childId))
+                .first(),
+              [vChildCol.column_name]: this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId))
+                .first(),
+            });
+          }
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -2555,7 +2596,7 @@ class BaseModelSqlv2 {
       } else {
         groupingValues = new Set(
           (
-            await this.dbDriver(this.model.table_name)
+            await this.dbDriver(this.tnPath)
               .select(column.column_name)
               .distinct()
           ).map((row) => row[column.column_name])
@@ -2563,7 +2604,7 @@ class BaseModelSqlv2 {
         groupingValues.add(null);
       }
 
-      const qb = this.dbDriver(this.model.table_name);
+      const qb = this.dbDriver(this.tnPath);
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
@@ -2701,7 +2742,7 @@ class BaseModelSqlv2 {
     if (isVirtualCol(column))
       NcError.notImplemented('Grouping for virtual columns not implemented');
 
-    const qb = this.dbDriver(this.model.table_name)
+    const qb = this.dbDriver(this.tnPath)
       .count('*', { as: 'count' })
       .groupBy(column.column_name);
 
@@ -2764,13 +2805,13 @@ class BaseModelSqlv2 {
     childTable?: Model
   ) {
     let query = qb.toQuery();
-    if (!this.isPg && !this.isMssql) {
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
       query = unsanitize(qb.toQuery());
     } else {
       query = sanitize(query);
     }
     return this.convertAttachmentType(
-      this.isPg
+      this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows
         : query.slice(0, 6) === 'select' && !this.isMssql
         ? await this.dbDriver.from(

@@ -1,11 +1,11 @@
 import { Request, Response, Router } from 'express';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import apiMetrics from '../../helpers/apiMetrics';
-import DocsPage from '../../../models/DocsPage';
+import Page from '../../../models/Page';
 import { UserType } from 'nocodb-sdk';
 import { NcError } from '../../helpers/catchError';
 import { fetchGHDocs } from '../../helpers/docImportHelpers';
-const { Configuration, OpenAIApi } = require("openai");
+const { Configuration, OpenAIApi } = require('openai');
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -19,7 +19,11 @@ async function get(
   next
 ) {
   try {
-    const page = await DocsPage.get(req.params.id);
+    const page = await Page.get({
+      id: req.params.id,
+      projectId: req.query?.projectId as string,
+      bookId: req.query?.bookId as string,
+    });
 
     res.json(page);
   } catch (e) {
@@ -34,9 +38,10 @@ async function list(
   next
 ) {
   try {
-    const pages = await DocsPage.listPages({
-      projectId: req.query?.projectId,
-      parent_page_id: req.query?.parent_page_id,
+    const pages = await Page.list({
+      bookId: req.query?.bookId as string,
+      projectId: req.query?.projectId as string,
+      parent_page_id: req.query?.parent_page_id as string,
     });
 
     res // todo: pagination
@@ -53,9 +58,10 @@ async function create(
   next
 ) {
   try {
-    const page = await DocsPage.createPage({
+    const page = await Page.create({
       attributes: req.body.attributes,
-      projectId: req.body.projectId,
+      bookId: req.body.bookId,
+      projectId: req.body.projectId as string,
       user: (req as any)?.session?.passport?.user as UserType,
     });
 
@@ -72,11 +78,12 @@ async function update(
   next
 ) {
   try {
-    const page = await DocsPage.updatePage({
+    const page = await Page.update({
       pageId: req.params.id,
       attributes: req.body.attributes,
+      projectId: req.body.projectId as string,
       user: (req as any)?.session?.passport?.user as UserType,
-      projectId: req.body.projectId,
+      bookId: req.body.bookId,
     });
 
     res.json(page);
@@ -92,8 +99,10 @@ async function deletePage(
   next
 ) {
   try {
-    await DocsPage.deletePage({
+    await Page.delete({
       id: req.params.id,
+      projectId: req.query?.projectId as string,
+      bookId: req.query?.bookId,
     });
 
     res.json({});
@@ -113,7 +122,7 @@ async function magic(
 
     try {
       response = await openai.createCompletion({
-        model: "text-davinci-003",
+        model: 'text-davinci-003',
         prompt: `list required pages and nested sub-pages for '${req.body.title}' documentation Page: { title: string, pages: Page } as { data: Array<Page> } in json:`,
         temperature: 0.7,
         max_tokens: 4000,
@@ -128,14 +137,20 @@ async function magic(
 
       const pages = JSON.parse(response.data.choices[0].text);
 
-      for (const page of pages.length ? pages : (pages.title ? [pages] : pages.data)) {
-        await handlePageJSON(page, req.body.projectId, undefined, (req as any)?.session?.passport?.user as UserType);
+      for (const page of pages.length ? pages : pages.data) {
+        await handlePageJSON(
+          page,
+          req.body.bookId,
+          undefined,
+          (req as any)?.session?.passport?.user as UserType,
+          req.query?.projectId as string
+        );
       }
 
       res.json(true);
     } catch (e) {
-      console.log(response?.data?.choices[0]?.text)
-      console.log(e)
+      console.log(response?.data?.choices[0]?.text);
+      console.log(e);
       NcError.badRequest('Failed to parse schema');
     }
   } catch (e) {
@@ -151,22 +166,36 @@ async function directoryImport(
 ) {
   try {
     try {
-      const pages = []
+      const pages = [];
       switch (req.body.from) {
         case 'github':
-          pages.push(...await fetchGHDocs(req.body.user, req.body.repo, req.body.branch, req.body.path, req.body.type));
+          pages.push(
+            ...(await fetchGHDocs(
+              req.body.user,
+              req.body.repo,
+              req.body.branch,
+              req.body.path,
+              req.body.type
+            ))
+          );
           break;
         default:
           NcError.badRequest('Invalid type');
       }
 
       for (const page of pages) {
-        await handlePageJSON(page, req.body.projectId, undefined, (req as any)?.session?.passport?.user as UserType);
+        await handlePageJSON(
+          page,
+          req.body.bookId,
+          undefined,
+          (req as any)?.session?.passport?.user as UserType,
+          req.query?.projectId as string
+        );
       }
 
       res.json(true);
     } catch (e) {
-      console.log(e)
+      console.log(e);
       NcError.badRequest('Failed to parse schema');
     }
   } catch (e) {
@@ -175,21 +204,28 @@ async function directoryImport(
   }
 }
 
-async function handlePageJSON(pg: any, projectId: string, parentPageId: string | undefined, user: UserType) {
-  const parentPage = await DocsPage.createPage({
+async function handlePageJSON(
+  pg: any,
+  bookId: string,
+  parentPageId: string | undefined,
+  user: UserType,
+  projectId: string
+) {
+  const parentPage = await Page.create({
     attributes: {
       title: pg?.title,
       description: pg?.description,
       content: pg?.content || '',
       parent_page_id: parentPageId || null,
     },
-    projectId: projectId,
-    user: user
+    bookId: bookId,
+    projectId,
+    user: user,
   });
 
   if (pg.pages) {
     for (const page of pg.pages) {
-      await handlePageJSON(page, projectId, parentPage.id, user);
+      await handlePageJSON(page, bookId, parentPage.id, user, projectId);
     }
   }
 }

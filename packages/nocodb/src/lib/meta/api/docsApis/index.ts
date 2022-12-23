@@ -1,3 +1,4 @@
-import docsProjectApis from './pageApis';
+import docsPageApis from './pageApis';
+import docsBookApis from './booksApis';
 
-export { docsProjectApis };
+export { docsPageApis, docsBookApis };

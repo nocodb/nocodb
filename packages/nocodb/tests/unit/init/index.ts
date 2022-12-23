@@ -6,6 +6,7 @@ import cleanupMeta from './cleanupMeta';
 import {cleanUpSakila, resetAndSeedSakila} from './cleanupSakila';
 import { createUser } from '../factory/user';
 import { DbConfig } from '../../../src/interface/config';
+import { UserType } from 'nocodb-sdk';
 
 let server;
 
@@ -14,14 +15,14 @@ export interface NcUnitContext {
   token: string;
   dbConfig: DbConfig;
   sakilaDbConfig: DbConfig;
-  user: any;
+  user: UserType;
 }
 
 const serverInit = async () => {
   const serverInstance = express();
   serverInstance.enable('trust proxy');
   serverInstance.use(await Noco.init());
-  serverInstance.use(function(req, res, next){
+  serverInstance.use(function(req, res, next){  
     // 50 sec timeout
     req.setTimeout(500000, function(){
         console.log('Request has timed out.');

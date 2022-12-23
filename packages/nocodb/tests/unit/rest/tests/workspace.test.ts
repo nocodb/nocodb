@@ -50,7 +50,7 @@ function workspaceTests() {
 
   });
 
-  it.only('Delete workspace', async () => {
+  it('Delete workspace', async () => {
     let response = await request(context.app)
       .post('/api/v1/workspaces')
       .set('xc-auth', context.token)

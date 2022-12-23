@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { ref, useInjectionState, useMetas } from '#imports'
@@ -116,6 +116,16 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       }
     }
 
+    function addEmptyRow(addAfter = formattedData.value.length) {
+      formattedData.value.splice(addAfter, 0, {
+        row: {},
+        oldRow: {},
+        rowMeta: { new: true },
+      })
+
+      return formattedData.value[addAfter]
+    }
+
     return {
       formattedData,
       loadMapData,
@@ -123,6 +133,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       updateMapMeta,
       mapMetaData,
       geoDataFieldColumn,
+      addEmptyRow,
       insertRow,
       geodataToggleState,
     }

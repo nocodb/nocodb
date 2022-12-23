@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
-import { IsGalleryInj, IsGridInj, IsMapInj, onMounted, provide, ref } from '#imports'
+import { IsGalleryInj, IsGridInj, IsMapInj, OpenNewRecordFormHookInj, onMounted, provide, ref } from '#imports'
 
 import type { Row as RowType } from '~/lib'
 
@@ -13,7 +13,8 @@ provide(IsMapInj, ref(true))
 const route = useRoute()
 const router = useRouter()
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
-const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, insertRow } = useMapViewStoreOrThrow()
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
+const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, addEmptyRow } = useMapViewStoreOrThrow()
 
 const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
 const mapContainerRef = ref<HTMLElement>()
@@ -21,6 +22,7 @@ const myMapRef = ref<L.Map>()
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
+const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
@@ -52,6 +54,11 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
     expandedFormDlg.value = true
   }
 }
+
+openNewRecordFormHook?.on(async () => {
+  const newRow = await addEmptyRow()
+  expandForm(newRow)
+})
 
 const expandedFormOnRowIdDlg = computed({
   get() {
@@ -137,10 +144,15 @@ onMounted(async () => {
   // })
 })
 
-reloadViewDataHook?.on(async () => {
-  loadMapData()
-  loadMapMeta()
+reloadViewMetaHook?.on(async () => {
+  await loadMapMeta()
 })
+
+reloadViewDataHook?.on(async () => {
+  await loadMapData()
+})
+
+provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
   if (formattedData.value == null || mapMetaData.value?.fk_view_id == null || markersClusterGroupRef.value == null) {

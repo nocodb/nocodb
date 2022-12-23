@@ -48,7 +48,16 @@ const createProject = async () => {
       type: route.query.type ?? NcProjectType.DB,
     })
 
-    await navigateTo(`/nc/${route.query.type === NcProjectType.DOCS ? 'doc/' : ''}${result.id}`)
+    switch (route.query.type) {
+      case NcProjectType.DOCS:
+        await navigateTo(`/nc/doc/${result.id}`)
+        break
+      case NcProjectType.GPT:
+        await navigateTo(`/nc/gpt/${result.id}`)
+        break
+      default:
+        await navigateTo(`/nc/${result.id}`)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

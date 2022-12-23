@@ -69,7 +69,7 @@ const columns = [
   {
     // Models
     title: tableHeaderRenderer(t('labels.models')),
-    key: 'table_name'
+    key: 'table_name',
   },
   {
     // Sync state

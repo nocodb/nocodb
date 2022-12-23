@@ -2,6 +2,7 @@
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
 import { ref } from 'vue'
+import { StreamBarcodeReader } from 'vue-barcode-reader'
 import { NOCO } from '#imports'
 import QrCodeScan from '~icons/mdi/qrcode-scan'
 
@@ -40,6 +41,7 @@ const entry = ref<Entry | null>(null)
 const selectedCodeColumnIdToScanFor = ref('')
 
 const onDecode = async (qrCodeValue: string) => {
+  // alert(qrCodeValue)
   try {
     showQrCodeScanner.value = false
 
@@ -47,15 +49,12 @@ const onDecode = async (qrCodeValue: string) => {
     const foundRowForQrCode = await $api.dbViewRow.findOne(NOCO, project.value!.id!, meta.value!.id!, view.value!.title!, {
       where: whereClause,
     })
-
-    const rowIdOfFoundRow = meta.value?.id && foundRowForQrCode[meta.value.id]
-
-    const primaryKeyValueForFoundRow = extractPkFromRow(foundRowForQrCode, meta!.value!.columns!)
-
     console.log('foundRowForQrCode', foundRowForQrCode)
 
+    const rowIdOfFoundRow = meta.value?.id && foundRowForQrCode[meta.value.id]
     console.log('rowIdOfFoundRow', rowIdOfFoundRow)
 
+    const primaryKeyValueForFoundRow = extractPkFromRow(foundRowForQrCode, meta!.value!.columns!)
     console.log('primaryKeyValueForFoundRow', primaryKeyValueForFoundRow)
 
     router.push({
@@ -67,6 +66,13 @@ const onDecode = async (qrCodeValue: string) => {
   } catch (error) {
     console.error(error)
   }
+}
+
+const scannerIsReady = ref(false)
+
+const onLoaded = async () => {
+  // alert('FOO')
+  scannerIsReady.value = true
 }
 </script>
 
@@ -87,6 +93,8 @@ const onDecode = async (qrCodeValue: string) => {
       centered
       :footer="null"
       wrap-class-name="nc-modal-generate-token"
+      destroy-on-close
+      :after-close="(scannerIsReady = false)"
     >
       <div class="relative flex flex-col h-full">
         <a-form-item :label="$t('labels.qrCodeColumn')">
@@ -99,7 +107,11 @@ const onDecode = async (qrCodeValue: string) => {
           />
         </a-form-item>
 
-        <qrcode-stream v-if="showQrCodeScanner" @decode="onDecode" style="width: 100%; height: 100%"></qrcode-stream>
+        <!-- <qrcode-stream v-if="showQrCodeScanner" @decode="onDecode" style="width: 100%; height: 100%"></qrcode-stream> -->
+        <div>
+          <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"></StreamBarcodeReader>
+          <div v-if="!scannerIsReady">Loading the scanner...</div>
+        </div>
       </div>
     </a-modal>
 

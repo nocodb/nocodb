@@ -1,7 +1,10 @@
 <script setup lang="ts">
-// TODO:
+// TODO: 
+const data = ref('')
 </script>
 
 <template>
-  Prompt
+  <div class="h-min-[calc(100%_-_160px] w-full overflow-y-auto scrollbar-thin-dull">
+    <a-textarea v-model:value="data" :autosize="{ minRows: 20 }" />
+  </div>
 </template>

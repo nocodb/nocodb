@@ -7,21 +7,17 @@ import { IsGalleryInj, IsGridInj, IsMapInj, onMounted, provide, ref } from '#imp
 
 import type { Row as RowType } from '~/lib'
 
-// const props = defineProps<Props>()
-// const emits = defineEmits<Emits>()
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
 provide(IsMapInj, ref(true))
 const route = useRoute()
 const router = useRouter()
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
-// const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, insertRow } = useMapViewStoreOrThrow()
 
 const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
 const mapContainerRef = ref<HTMLElement>()
 const myMapRef = ref<L.Map>()
-// const submitted = ref(false)
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -30,37 +26,10 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-// const formState = reactive({})
-
-// const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
-//   meta,
-//   ref({
-//     row: formState,
-//     oldRow: {},
-//     rowMeta: { new: true },
-//   }),
-// )
-
-// async function submitForm() {
-//   const insertedRowData = await insertRow({ row: formState, oldRow: {}, rowMeta: { new: true } })
-
-//   if (insertedRowData) {
-//     await syncLTARRefs(insertedRowData)
-//   }
-//   console.log('onsubmitForm')
-//   submitted.value = true
-// }
-
-// interface Props {
-//   // modelValue?: GeoLocationType | null
-//   modelValue?: string | null
-// }
-
-// interface Emits {
-//   (event: 'update:modelValue', model: GeoLocationType): void
-// }
-
-// const vModel = useVModel(props, 'modelValue', emits)
+const fallBackCenterLocation = {
+  lat: 51,
+  lng: 0.0,
+}
 
 const getMapZoomLocalStorageKey = (viewId: string) => {
   return `mapView.zoom.${viewId}`
@@ -69,8 +38,6 @@ const getMapCenterLocalStorageKey = (viewId: string) => `mapView.center.${viewId
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-
-  // debugger
 
   if (rowId) {
     router.push({
@@ -101,17 +68,7 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-onBeforeMount(async () => {
-  await loadMapMeta()
-  await loadMapData()
-})
-
-reloadViewDataHook?.on(async () => {
-  loadMapData()
-  loadMapMeta()
-})
-
-function addMarker(lat: number, long: number, row: RowType) {
+const addMarker = (lat: number, long: number, row: RowType) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Map is null')
   }
@@ -119,10 +76,6 @@ function addMarker(lat: number, long: number, row: RowType) {
     expandForm(row)
   })
   markersClusterGroupRef.value?.addLayer(newMarker)
-
-  // if (newMarker) {
-  //   newMarker.bindPopup(popupContent)
-  // }
 }
 
 const resetZoomAndCenterBasedOnLocalStorage = () => {
@@ -134,57 +87,14 @@ const resetZoomAndCenterBasedOnLocalStorage = () => {
   const initialZoomLevel = parseInt(localStorage.getItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id)) || '10')
 
   const initialCenterLocalStorageStr = localStorage.getItem(getMapCenterLocalStorageKey(mapMetaData.value.fk_view_id))
-  const initialCenter = initialCenterLocalStorageStr
-    ? JSON.parse(initialCenterLocalStorageStr)
-    : {
-        lat: 51,
-        lng: 0.0,
-      }
+  const initialCenter = initialCenterLocalStorageStr ? JSON.parse(initialCenterLocalStorageStr) : fallBackCenterLocation
 
   myMapRef?.value?.setView([initialCenter.lat, initialCenter.lng], initialZoomLevel)
 }
 
-watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
-  console.log('CALL OF watch([formattedData, mapMetaData, markersClusterGroupRef]) handler')
-  // console.log('formattedData.value', formattedData.value)
-  // console.log('mapMetaData.value', mapMetaData.value)
-  // console.log('markersClusterGroupRef.value', markersClusterGroupRef.value)
-
-  if (formattedData.value == null || mapMetaData.value?.fk_view_id == null || markersClusterGroupRef.value == null) {
-    return
-  }
-
-  resetZoomAndCenterBasedOnLocalStorage()
-
-  markersClusterGroupRef.value?.clearLayers()
-
-  formattedData.value?.forEach((row) => {
-    const primaryGeoDataColumnTitle = geoDataFieldColumn.value?.title
-
-    if (primaryGeoDataColumnTitle == null) {
-      throw new Error('Cannot find primary geo data column title')
-    }
-
-    const primaryGeoDataValue = row.row[primaryGeoDataColumnTitle]
-
-    // const listItems = Object.entries(row)
-    //   .map(([key, val]) => {
-    //     const prettyVal = val !== null && (typeof val === 'object' || Array.isArray(val)) ? JSON.stringify(val) : val
-
-    //     return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
-    //   })
-    //   .join('')
-
-    // const popupContent = `<ul>${listItems}</ul>`
-
-    if (primaryGeoDataValue == null) {
-      return
-    }
-
-    const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
-
-    addMarker(lat, long, row)
-  })
+onBeforeMount(async () => {
+  await loadMapMeta()
+  await loadMapData()
 })
 
 onMounted(async () => {
@@ -217,13 +127,45 @@ onMounted(async () => {
       localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData?.value?.fk_view_id), JSON.stringify(myMap.getCenter()))
     }
   })
-  myMap.on('contextmenu', async function (e) {
-    // const newRow = await addEmptyRow()
-    const lat = e.latlng.lat
-    const lng = e.latlng.lng
-    addMarker(lat, lng, newRow)
-    expandForm(newRow)
-    // submitForm()
+  // myMap.on('contextmenu', async function (e) {
+  //   // const newRow = await addEmptyRow()
+  //   const lat = e.latlng.lat
+  //   const lng = e.latlng.lng
+  //   addMarker(lat, lng, newRow)
+  //   expandForm(newRow)
+  //   // submitForm()
+  // })
+})
+
+reloadViewDataHook?.on(async () => {
+  loadMapData()
+  loadMapMeta()
+})
+
+watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
+  if (formattedData.value == null || mapMetaData.value?.fk_view_id == null || markersClusterGroupRef.value == null) {
+    return
+  }
+
+  resetZoomAndCenterBasedOnLocalStorage()
+
+  markersClusterGroupRef.value?.clearLayers()
+
+  formattedData.value?.forEach((row) => {
+    const primaryGeoDataColumnTitle = geoDataFieldColumn.value?.title
+
+    if (primaryGeoDataColumnTitle == null) {
+      throw new Error('Cannot find primary geo data column title')
+    }
+
+    const primaryGeoDataValue = row.row[primaryGeoDataColumnTitle]
+    if (primaryGeoDataValue == null) {
+      return
+    }
+
+    const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
+
+    addMarker(lat, long, row)
   })
 })
 
@@ -231,14 +173,8 @@ watch(view, async (nextView) => {
   if (nextView?.type === ViewTypes.MAP) {
     await loadMapMeta()
     await loadMapData()
-    // await resetZoomAndCenterBasedOnLocalStorage()
   }
 })
-
-// openNewRecordFormHook?.on(async () => {
-//   const newRow = await addEmptyRow()
-//   expandForm(newRow)
-// })
 </script>
 
 <template>

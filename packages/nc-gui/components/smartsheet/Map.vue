@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
+import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
 import { IsGalleryInj, IsGridInj, IsMapInj, onMounted, provide, ref } from '#imports'
@@ -50,7 +50,6 @@ const expandedFormRowState = ref<Record<string, any>>()
 //   console.log('onsubmitForm')
 //   submitted.value = true
 // }
-
 
 // interface Props {
 //   // modelValue?: GeoLocationType | null
@@ -164,6 +163,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
 
 const resetZoomAndCenterBasedOnLocalStorage = () => {
   if (mapMetaData?.value?.fk_view_id == null) {
+    console.error('Early leaving of resetZoomAndCenterBasedOnLocalStorage because "mapMetaData?.value?.fk_view_id == null"');
     return
   }
   const initialZoomLevel = parseInt(localStorage.getItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id)) || '10')
@@ -180,7 +180,10 @@ const resetZoomAndCenterBasedOnLocalStorage = () => {
 }
 
 onMounted(async () => {
-  const myMap = L.map(mapContainerRef.value!)
+  const myMap = L.map(mapContainerRef.value!, {
+    center: new LatLng(10, 10),
+    zoom: 2,
+  })
 
   myMapRef.value = myMap
 

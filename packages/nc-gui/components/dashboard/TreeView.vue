@@ -392,6 +392,12 @@ watch(
                       MSSQL
                     </div>
                   </a-menu-item>
+                  <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)">
+                    <div class="color-transition nc-project-menu-item group">
+                      <LogosSnowflakeIcon class="group-hover:text-accent" />
+                      Snowflake
+                    </div>
+                  </a-menu-item>
                 </a-menu-item-group>
 
                 <a-menu-divider class="my-0" />
@@ -500,6 +506,12 @@ watch(
                       <div class="color-transition nc-project-menu-item group">
                         <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
                         MSSQL
+                      </div>
+                    </a-menu-item>
+                    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)">
+                      <div class="color-transition nc-project-menu-item group">
+                        <LogosSnowflakeIcon class="group-hover:text-accent" />
+                        Snowflake
                       </div>
                     </a-menu-item>
                   </a-menu-item-group>

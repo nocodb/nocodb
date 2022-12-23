@@ -5,6 +5,7 @@ export enum NcProjectType {
   DB = 'database',
   DOCS = 'documentation',
   AUTOMATION = 'automation',
+  GPT = 'gpt'
 }
 
 interface ProjectCreateForm {

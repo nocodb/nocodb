@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
+import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
 import { IsGalleryInj, IsGridInj, IsMapInj, onMounted, provide, ref } from '#imports'
@@ -113,7 +113,10 @@ const resetZoomAndCenterBasedOnLocalStorage = () => {
 }
 
 onMounted(async () => {
-  const myMap = L.map(mapContainerRef.value!)
+  const myMap = L.map(mapContainerRef.value!, {
+    center: new LatLng(10, 10),
+    zoom: 2,
+  })
 
   myMapRef.value = myMap
 
@@ -131,31 +134,13 @@ onMounted(async () => {
   })
   myMap.addLayer(markersClusterGroupRef.value)
 
-  myMap.on('zoomend', function () {
-    if (localStorage != null && mapMetaData?.value?.fk_view_id) {
-      localStorage.setItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id), myMap.getZoom().toString())
-    }
-  })
-  myMap.on('moveend', function () {
-    if (localStorage != null && mapMetaData?.value?.fk_view_id) {
-      localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData?.value?.fk_view_id), JSON.stringify(myMap.getCenter()))
-    }
-  })
-  myMap.on('contextmenu', async function (e) {
-    // const newRow = await addEmptyRow()
-    const lat = e.latlng.lat
-    const lng = e.latlng.lng
-    addMarker(lat, lng, newRow)
-    expandForm(newRow)
-    // submitForm()
-  })
 })
 
 watch(view, async (nextView) => {
   if (nextView?.type === ViewTypes.MAP) {
     await loadMapMeta()
     await loadMapData()
-    await resetZoomAndCenterBasedOnLocalStorage()
+    // await resetZoomAndCenterBasedOnLocalStorage()
   }
 })
 

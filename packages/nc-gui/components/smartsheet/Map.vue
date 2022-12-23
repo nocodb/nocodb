@@ -125,10 +125,36 @@ function addMarker(lat: number, long: number, row: RowType) {
   // }
 }
 
-watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
-  if (markersClusterGroupRef.value == null) {
+const resetZoomAndCenterBasedOnLocalStorage = () => {
+  if (mapMetaData?.value?.fk_view_id == null) {
+    console.error('Early leaving of resetZoomAndCenterBasedOnLocalStorage because "mapMetaData?.value?.fk_view_id == null"')
+    console.log('mapMetaData?.value', mapMetaData?.value)
     return
   }
+  const initialZoomLevel = parseInt(localStorage.getItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id)) || '10')
+
+  const initialCenterLocalStorageStr = localStorage.getItem(getMapCenterLocalStorageKey(mapMetaData.value.fk_view_id))
+  const initialCenter = initialCenterLocalStorageStr
+    ? JSON.parse(initialCenterLocalStorageStr)
+    : {
+        lat: 51,
+        lng: 0.0,
+      }
+
+  myMapRef?.value?.setView([initialCenter.lat, initialCenter.lng], initialZoomLevel)
+}
+
+watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
+  console.log('CALL OF watch([formattedData, mapMetaData, markersClusterGroupRef]) handler')
+  // console.log('formattedData.value', formattedData.value)
+  // console.log('mapMetaData.value', mapMetaData.value)
+  // console.log('markersClusterGroupRef.value', markersClusterGroupRef.value)
+
+  if (formattedData.value == null || mapMetaData.value?.fk_view_id == null || markersClusterGroupRef.value == null) {
+    return
+  }
+
+  resetZoomAndCenterBasedOnLocalStorage()
 
   markersClusterGroupRef.value?.clearLayers()
 
@@ -161,24 +187,6 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
   })
 })
 
-const resetZoomAndCenterBasedOnLocalStorage = () => {
-  if (mapMetaData?.value?.fk_view_id == null) {
-    console.error('Early leaving of resetZoomAndCenterBasedOnLocalStorage because "mapMetaData?.value?.fk_view_id == null"');
-    return
-  }
-  const initialZoomLevel = parseInt(localStorage.getItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id)) || '10')
-
-  const initialCenterLocalStorageStr = localStorage.getItem(getMapCenterLocalStorageKey(mapMetaData.value.fk_view_id))
-  const initialCenter = initialCenterLocalStorageStr
-    ? JSON.parse(initialCenterLocalStorageStr)
-    : {
-        lat: 51,
-        lng: 0.0,
-      }
-
-  myMapRef?.value?.setView([initialCenter.lat, initialCenter.lng], initialZoomLevel)
-}
-
 onMounted(async () => {
   const myMap = L.map(mapContainerRef.value!, {
     center: new LatLng(10, 10),
@@ -186,8 +194,6 @@ onMounted(async () => {
   })
 
   myMapRef.value = myMap
-
-  resetZoomAndCenterBasedOnLocalStorage()
 
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -225,7 +231,7 @@ watch(view, async (nextView) => {
   if (nextView?.type === ViewTypes.MAP) {
     await loadMapMeta()
     await loadMapData()
-    await resetZoomAndCenterBasedOnLocalStorage()
+    // await resetZoomAndCenterBasedOnLocalStorage()
   }
 })
 

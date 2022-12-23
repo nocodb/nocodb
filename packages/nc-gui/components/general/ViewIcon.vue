@@ -14,7 +14,7 @@ const { meta: viewMeta } = defineProps<{
     :data-testid="`nc-icon-${viewMeta?.meta?.icon}`"
     class="text-[16px]"
     :icon="viewMeta?.meta?.icon"
-  ></IcIcon>
+  />
   <component
     :is="viewIcons[viewMeta.type]?.icon"
     v-else

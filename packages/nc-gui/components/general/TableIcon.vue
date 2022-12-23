@@ -13,7 +13,7 @@ const { meta: tableMeta } = defineProps<{
     :data-testid="`nc-icon-${tableMeta.meta?.icon}`"
     class="text-lg"
     :icon="tableMeta.meta?.icon"
-  ></IcIcon>
+  />
 
   <MdiEyeCircleOutline v-else-if="tableMeta?.type === 'view'" class="w-5" />
   <MdiTableLarge v-else class="w-5" />

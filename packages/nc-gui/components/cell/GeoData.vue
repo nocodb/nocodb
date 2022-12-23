@@ -36,17 +36,6 @@ const latLongStr = computed(() => {
   return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
 })
 
-// interface LatLong {
-//   latitude: number
-//   longitude: number
-// }
-
-// const latitude = ref('INITIAL')
-
-// interface FormState {
-//   latitude: string
-//   longitude: string
-// }
 
 const formState = reactive({
   latitude,
@@ -70,38 +59,28 @@ const clear = () => {
 
 const onGetCurrentLocation = () => {
   isLoading = true
-  const success = (position) => {
+  const onSuccess = (position) => {
     const crd = position.coords
     formState.latitude = crd.latitude
     formState.longitude = crd.longitude
+    isLoading = false
   }
 
-  const error = (err) => {
+  const onError = (err) => {
     console.warn(`ERROR(${err.code}): ${err.message}`)
+    isLoading = false
   }
 
   const options = {
     enableHighAccuracy: true,
-    timeout: 8000,
-    maximumAge: 10000,
+    timeout: 20000,
+    maximumAge: 2000,
   }
-
-  navigator.geolocation.getCurrentPosition(success, error, options)
-  if (success !== null) isLoading = false
+  navigator.geolocation.getCurrentPosition(onSuccess, onError, options)
 }
 </script>
 
 <template>
-  <!-- <input
-    v-if="editEnabled"
-    :ref="focus"
-    v-model="vModel"
-    class="outline-none px-2 border-none w-full h-full text-sm"
-    type="string"
-    @blur="editEnabled = false"
-  />
-  <span v-else class="text-sm">{{ vModel }}</span> -->
-
   <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click" overlay-class-name="dropdown-new">
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
@@ -112,7 +91,7 @@ const onGetCurrentLocation = () => {
         <a-form-item class="inputLng" label="Lng">
           <a-input v-model:value="formState.longitude" type="number" step="0.0000001" required :min="-180" :max="180" />
         </a-form-item>
-        <a-form-item class="button-location">
+        <a-form-item class="flex align-center location">
           <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
           <a-button @click="onGetCurrentLocation">Your Location</a-button>
         </a-form-item>
@@ -141,8 +120,9 @@ input[type='number']:focus {
   width: 180px;
   margin-right: 0.5rem;
 }
-.button-location {
+.location {
   margin-right: 0.5rem;
+  align-items: center;
 }
 .buttons {
   margin-left: auto;

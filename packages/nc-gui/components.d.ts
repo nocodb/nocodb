@@ -262,6 +262,7 @@ declare module '@vue/runtime-core' {
     MdiTwitter: typeof import('~icons/mdi/twitter')['default']
     MdiUpload: typeof import('~icons/mdi/upload')['default']
     MdiUploadOutline: typeof import('~icons/mdi/upload-outline')['default']
+    MdiVectorTriangle: typeof import('~icons/mdi/vector-triangle')['default']
     MdiViewListOutline: typeof import('~icons/mdi/view-list-outline')['default']
     MdiWarning: typeof import('~icons/mdi/warning')['default']
     MdiWhatsapp: typeof import('~icons/mdi/whatsapp')['default']

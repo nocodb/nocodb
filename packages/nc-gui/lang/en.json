@@ -395,6 +395,7 @@
     "changePwd": "Change Password",
     "createView": "Create a View",
     "shareView": "Share View",
+    "scanQrCode": "Scan QR Code",
     "listSharedView": "Shared View List",
     "ListView": "Views List",
     "copyView": "Copy view",

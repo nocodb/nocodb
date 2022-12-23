@@ -1,37 +1,17 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
-// import type { TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { NOCO } from '#imports'
-import { Row } from '~~/lib'
+import QrCodeScan from '~icons/mdi/qrcode-scan'
 
-// interface Props {
-//   //   modelValue: boolean
-//   //   type: ViewTypes
-//   //   title?: string
-//   //   selectedViewId?: string
-//   //   groupingFieldColumnId?: string
-//   //   views: ViewType[]
-//   meta: TableType
-// }
-
-// const { views = [], meta, selectedViewId, groupingFieldColumnId, ...props } = defineProps<Props>()
-
-// const { meta } = defineProps<Props>()
 const meta = inject(MetaInj, ref())
-// const view = $(inject(ActiveViewInj, ref()))
-// const tableId = meta.value?.id
-// const tableName = meta.value?.table_name!
-// const tableName = view.
 
 const route = useRoute()
 const router = useRouter()
 
 const { $api } = useNuxtApp()
 const { project } = useProject()
-// const projectName = project.value.title!
-// const projectId = project.value.id
 
 const view = inject(ActiveViewInj, ref())
 
@@ -44,26 +24,6 @@ interface Entry {
 onBeforeMount(init)
 
 async function init() {
-  // export const isPrimary = (column: ColumnType) => !!column.pv
-  console.log('meta.value?.id', meta.value?.id)
-
-  //   meta.value?.columns[0].pv
-
-  //   const FOO = await $api.dbViewColumn.list(view.value?.id as string, {
-  //     // query: {
-  //     // },
-  //   })
-  //   console.log('FOO', FOO)
-  //   const foundRowForQrCode = await $api.
-
-  //   const foundRowForQrCode = await $api.dbTableRow.findOne(NOCO, projectName, tableName, {
-  // fields: ['']
-  // where: 'title5 == "Row 1"',
-  //   })
-
-  //   console.log('foundRowForQrCode', foundRowForQrCode)
-
-  // debugger
   qrCodeFieldOptions.value = meta?.value
     ?.columns!.filter((el) => el.uidt === UITypes.QrCode)
     .map((field) => {
@@ -78,45 +38,6 @@ const showQrCodeScanner = ref(false)
 const entry = ref<Entry | null>(null)
 
 const selectedCodeColumnIdToScanFor = ref('')
-
-// const expandedFormOnRowIdDlg = computed({
-//   get() {
-//     return !!route.query.rowId
-//   },
-//   set(val) {
-//     if (!val)
-//       router.push({
-//         query: {
-//           ...route.query,
-//           rowId: undefined,
-//         },
-//       })
-//   },
-// })
-
-// const expandForm = (row: Row, state?: Record<string, any>) => {
-//   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-
-//   if (rowId) {
-//     router.push({
-//       query: {
-//         ...route.query,
-//         rowId,
-//       },
-//     })
-//   // } else {
-//   //   expandedFormRow.value = row
-//   //   expandedFormRowState.value = state
-//   //   expandedFormDlg.value = true
-//   // }
-// }
-
-// const expandFormClick = async (e: MouseEvent, row: Row) => {
-//   const target = e.target as HTMLElement
-//   if (target && !target.closest('.gallery-carousel')) {
-//     expandForm(row)
-//   }
-// }
 
 const onDecode = async (qrCodeValue: string) => {
   try {
@@ -143,30 +64,6 @@ const onDecode = async (qrCodeValue: string) => {
         rowId: primaryKeyValueForFoundRow,
       },
     })
-
-    // const foundRowForQrCode = await $api.dbTableRow.findOne(NOCO, projectName, tableName, {
-    //   // fields: ['']
-    //   where: 'title5 == "Row 1"',
-    // })
-
-    // console.log('foundRowForQrCode', foundRowForQrCode)
-
-    // childrenExcludedList.value = await $api.dbTableRow.list(
-    //         NOCO,
-    //         projectId,
-    //         relatedTableMeta?.value?.id as string,
-    //         {
-    //           limit: childrenExcludedListPagination.size,
-    //           offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
-    //           where:
-    //             childrenExcludedListPagination.query &&
-    //             `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
-    //           fields: [relatedTablePrimaryValueProp.value, ...relatedTablePrimaryKeyProps.value],
-    //         } as any,
-    //       )
-    // const response = await fetch(`/api/entries/${qrCode}`)
-    // const data = await response.json()
-    // entry.value = data
   } catch (error) {
     console.error(error)
   }
@@ -175,7 +72,13 @@ const onDecode = async (qrCodeValue: string) => {
 
 <template>
   <div>
-    <button @click="showQrCodeScanner = true">Scan QR Code</button>
+    <a-button class="nc-btn-share-view nc-toolbar-btn" @click="showQrCodeScanner = true">
+      <div class="flex items-center gap-1">
+        <QrCodeScan />
+        <!-- Share View -->
+        <span class="!text-sm font-weight-normal"> {{ $t('activity.scanQrCode') }}</span>
+      </div>
+    </a-button>
     <a-modal
       v-model:visible="showQrCodeScanner"
       :class="{ active: showQrCodeScanner }"
@@ -189,14 +92,14 @@ const onDecode = async (qrCodeValue: string) => {
         <a-form-item :label="$t('labels.qrCodeColumn')">
           <a-select
             v-model:value="selectedCodeColumnIdToScanFor"
-            class="w-full nc-kanban-grouping-field-select"
+            class="w-full"
             :options="qrCodeFieldOptions"
             placeholder="Select a Code Field (QR or Barcode)"
             not-found-content="No Code Field can be found. Please create one first."
           />
         </a-form-item>
 
-        <qrcode-stream v-if="showQrCodeScanner" @decode="onDecode"></qrcode-stream>
+        <qrcode-stream v-if="showQrCodeScanner" @decode="onDecode" style="width: 100%; height: 100%"></qrcode-stream>
       </div>
     </a-modal>
 

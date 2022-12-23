@@ -68,24 +68,6 @@ const getMapZoomLocalStorageKey = (viewId: string) => {
 }
 const getMapCenterLocalStorageKey = (viewId: string) => `mapView.center.${viewId}`
 
-const expandForm = (row: RowType, state?: Record<string, any>) => {
-  const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-
-  // debugger
-
-  if (rowId) {
-    router.push({
-      query: {
-        ...route.query,
-        rowId,
-      },
-    })
-  } else {
-    expandedFormRow.value = row
-    expandedFormRowState.value = state
-    expandedFormDlg.value = true
-  }
-}
 
 const expandedFormOnRowIdDlg = computed({
   get() {
@@ -112,55 +94,6 @@ reloadViewDataHook?.on(async () => {
   loadMapMeta()
 })
 
-function addMarker(lat: number, long: number, row: RowType) {
-  if (markersClusterGroupRef.value == null) {
-    throw new Error('Map is null')
-  }
-  const newMarker = L.marker([lat, long]).on('click', () => {
-    expandForm(row)
-  })
-  markersClusterGroupRef.value?.addLayer(newMarker)
-
-  // if (newMarker) {
-  //   newMarker.bindPopup(popupContent)
-  // }
-}
-
-watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
-  if (markersClusterGroupRef.value == null) {
-    return
-  }
-
-  markersClusterGroupRef.value?.clearLayers()
-
-  formattedData.value?.forEach((row) => {
-    const primaryGeoDataColumnTitle = geoDataFieldColumn.value?.title
-
-    if (primaryGeoDataColumnTitle == null) {
-      throw new Error('Cannot find primary geo data column title')
-    }
-
-    const primaryGeoDataValue = row.row[primaryGeoDataColumnTitle]
-
-    // const listItems = Object.entries(row)
-    //   .map(([key, val]) => {
-    //     const prettyVal = val !== null && (typeof val === 'object' || Array.isArray(val)) ? JSON.stringify(val) : val
-
-    //     return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
-    //   })
-    //   .join('')
-
-    // const popupContent = `<ul>${listItems}</ul>`
-
-    if (primaryGeoDataValue == null) {
-      return
-    }
-
-    const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
-
-    addMarker(lat, long, row)
-  })
-})
 
 const resetZoomAndCenterBasedOnLocalStorage = () => {
   if (mapMetaData?.value?.fk_view_id == null) {

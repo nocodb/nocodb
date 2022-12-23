@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import {Empty, Menu, Modal} from 'ant-design-vue'
-import type {WorkspaceType} from 'nocodb-sdk'
+import type { Menu } from 'ant-design-vue'
+import { Empty, Modal } from 'ant-design-vue'
+import type { WorkspaceType } from 'nocodb-sdk'
+import { nextTick } from '@vue/runtime-core'
 import {
   NcProjectType,
   computed,
@@ -11,7 +13,6 @@ import {
   useRouter,
   useSidebar,
 } from '#imports'
-import {nextTick} from "@vue/runtime-core";
 
 definePageMeta({
   layout: 'empty',
@@ -20,7 +21,7 @@ definePageMeta({
 
 // todo: make it customizable
 
-const {deleteWorkspace: _deleteWorkspace, loadWorkspaceList, workspaces, activeWorkspace} = useProvideWorkspaceStore()
+const { deleteWorkspace: _deleteWorkspace, loadWorkspaceList, workspaces, activeWorkspace } = useProvideWorkspaceStore()
 
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
@@ -36,14 +37,13 @@ const selectedWorkspaceIndex = computed<number[]>({
 })
 
 // create a new sidebar state
-const {isOpen, toggle, toggleHasSidebar} = useSidebar('nc-left-sidebar', {hasSidebar: true, isOpen: true})
+const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
 const isCreateDlgOpen = ref(false)
 
 const menu = ref<typeof Menu>()
 
-
-const {close} = useDialog(resolveComponent('WorkspaceCreateDlg'), {
+const { close } = useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,
   'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
   'onSuccess': async () => {
@@ -93,8 +93,6 @@ const navigateToCreateProject = (type: NcProjectType) => {
     })
   }
 }
-
-
 </script>
 
 <template>
@@ -102,7 +100,7 @@ const navigateToCreateProject = (type: NcProjectType) => {
     <a-layout-header class="h-20 !px-2">
       <div class="flex w-full h-full items-center">
         <div class="flex-1 min-w-0 w-50">
-          <img src="~/assets/img/brand/nocodb-full-color.png" class="h-12"/>
+          <img src="~/assets/img/brand/nocodb-full-color.png" class="h-12" />
         </div>
 
         <div class="flex gap-1">
@@ -113,21 +111,19 @@ const navigateToCreateProject = (type: NcProjectType) => {
         </div>
         <div class="flex-1 min-w-0 flex justify-end gap-2">
           <div class="nc-quick-action-wrapper">
-            <MaterialSymbolsSearch class="nc-quick-action-icon"/>
-            <input class="" placeholder="Quick Actions"/>
+            <MaterialSymbolsSearch class="nc-quick-action-icon" />
+            <input class="" placeholder="Quick Actions" />
 
             <span class="nc-quick-action-shortcut">⌘ K</span>
           </div>
 
           <div class="flex items-center">
-            <MdiBellOutline class="text-xl"/>
-            <MaterialSymbolsKeyboardArrowDownRounded/>
+            <MdiBellOutline class="text-xl" />
+            <MaterialSymbolsKeyboardArrowDownRounded />
           </div>
           <div class="flex items-center gap-1">
-            <div class="h-14 w-14 rounded-full bg-primary flex items-center justify-center font-weight-bold text-white">
-              AB
-            </div>
-            <MaterialSymbolsKeyboardArrowDownRounded/>
+            <div class="h-14 w-14 rounded-full bg-primary flex items-center justify-center font-weight-bold text-white">AB</div>
+            <MaterialSymbolsKeyboardArrowDownRounded />
           </div>
         </div>
       </div>
@@ -137,42 +133,42 @@ const navigateToCreateProject = (type: NcProjectType) => {
     <a-layout class="nc-root">
       <!--    <template #sidebar v-if="isOpen"> -->
       <a-layout-sider
-          ref="sidebar"
-          :collapsed="!isOpen"
-          width="250"
-          collapsed-width="50"
-          class="relative shadow-md h-full z-1 nc-left-sidebar"
-          :trigger="null"
-          collapsible
-          theme="light"
+        ref="sidebar"
+        :collapsed="!isOpen"
+        width="250"
+        collapsed-width="50"
+        class="relative shadow-md h-full z-1 nc-left-sidebar"
+        :trigger="null"
+        collapsible
+        theme="light"
       >
         <div class="h-[calc(100vh_-_80px)] flex flex-col min-h-[400px] overflow-auto">
           <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
             All workspaces
             <div class="flex-grow"></div>
-            <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true"/>
+            <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true" />
           </div>
 
           <div class="overflow-auto flex-grow min-h-25" style="flex-basis: 0px">
-            <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE"/>
+            <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-            <a-menu v-else v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list" ref="menu">
+            <a-menu v-else ref="menu" v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list">
               <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
                 <div class="nc-workspace-list-item">
                   <div class="nc-workspace-avatar" :style="{ backgroundColor: stringToColour(workspace.title) }">
-                    <span class="color-band" :style="{ backgroundColor: stringToColour(workspace.title) }"/>
+                    <span class="color-band" :style="{ backgroundColor: stringToColour(workspace.title) }" />
                     {{ workspace.title?.slice(0, 2) }}
                   </div>
                   <div class="nc-workspace-title">{{ workspace.title }}</div>
                   <div class="flex-grow"></div>
                   <a-dropdown>
-                    <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu"/>
+                    <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" />
 
                     <template #overlay>
                       <a-menu>
                         <a-menu-item @click="deleteWorkspace(workspace)">
                           <div class="flex flex-row items-center py-3 gap-2">
-                            <MdiDeleteOutline/>
+                            <MdiDeleteOutline />
                             Delete Workspace
                           </div>
                         </a-menu-item>
@@ -184,19 +180,19 @@ const navigateToCreateProject = (type: NcProjectType) => {
             </a-menu>
           </div>
 
-          <a-divider class="!my-4"/>
+          <a-divider class="!my-4" />
 
           <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
             <div class="nc-workspace-group-item">
-              <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon"/>
+              <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
               <span>Recent</span>
             </div>
             <div class="nc-workspace-group-item">
-              <MaterialSymbolsGroupsOutline class="nc-icon"/>
+              <MaterialSymbolsGroupsOutline class="nc-icon" />
               <span>Shared with me</span>
             </div>
             <div class="nc-workspace-group-item">
-              <MaterialSymbolsStarOutline class="nc-icon"/>
+              <MaterialSymbolsStarOutline class="nc-icon" />
               <span>Favourites</span>
             </div>
           </div>
@@ -211,8 +207,7 @@ const navigateToCreateProject = (type: NcProjectType) => {
         <div v-if="activeWorkspace">
           <div class="px-6 flex items-center">
             <div class="flex gap-2 items-center mb-4">
-              <span class="nc-workspace-avatar !w-8 !h-8"
-                    :style="{ backgroundColor: stringToColour(activeWorkspace?.title) }">
+              <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: stringToColour(activeWorkspace?.title) }">
                 {{ activeWorkspace?.title?.slice(0, 2) }}
               </span>
               <h1 class="text-xl mb-0">{{ activeWorkspace?.title }}</h1>
@@ -222,29 +217,44 @@ const navigateToCreateProject = (type: NcProjectType) => {
               <a-button type="primary">
                 <div class="flex items-center gap-2">
                   New Project
-                  <MdiMenuDown/>
+                  <MdiMenuDown />
                 </div>
               </a-button>
               <template #overlay>
-                <a-menu>
+                <a-menu mode="vertical">
                   <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
                     <div class="py-4 px-1 flex items-center gap-4">
-                      <MdiDatabaseOutline class="text-[#2824FB] text-lg"/>
+                      <MdiDatabaseOutline class="text-[#2824FB] text-lg" />
                       New Database
                     </div>
                   </a-menu-item>
                   <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
                     <div class="py-4 px-1 flex items-center gap-4">
-                      <MdiTransitConnectionVariant class="text-[#DDB00F] text-lg"/>
+                      <MdiTransitConnectionVariant class="text-[#DDB00F] text-lg" />
                       New Automation
                     </div>
                   </a-menu-item>
                   <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
                     <div class="py-4 px-1 flex items-center gap-4">
-                      <MaterialSymbolsDocs class="text-[#247727] text-lg"/>
+                      <MaterialSymbolsDocs class="text-[#247727] text-lg" />
                       New Documentation
                     </div>
                   </a-menu-item>
+                  <a-sub-menu>
+                    <template #title>
+                      <div class="py-4 px-1 flex items-center gap-4">
+                        <MdiVectorTriangle class="text-[#8626FF] text-lg" />
+                        New GPT
+                      </div>
+                    </template>
+                    <!-- TODO: pass different types to query -->
+                    <a-menu-item key="create-from-blank-template" @click="navigateToCreateProject(NcProjectType.GPT)">
+                      <div class="flex items-center px-1 py-2 gap-1">Create from Blank Template</div>
+                    </a-menu-item>
+                    <a-menu-item key="create-from-preset-template" @click="navigateToCreateProject(NcProjectType.GPT)">
+                      <div class="flex items-center px-1 py-2 gap-1">Create from Preset Template</div>
+                    </a-menu-item>
+                  </a-sub-menu>
                 </a-menu>
               </template>
             </a-dropdown>
@@ -252,10 +262,10 @@ const navigateToCreateProject = (type: NcProjectType) => {
 
           <a-tabs>
             <a-tab-pane key="projects" tab="All Projects" class="w-full">
-              <WorkspaceProjectList/>
+              <WorkspaceProjectList />
             </a-tab-pane>
             <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-              <WorkspaceCollaboratorsList/>
+              <WorkspaceCollaboratorsList />
             </a-tab-pane>
 
             <a-tab-pane key="settings" tab="Settings"></a-tab-pane>

@@ -44,6 +44,11 @@ test.describe('Views CRUD Operations', () => {
       title: 'CityGallery',
       newTitle: 'CityGallery2',
     });
+
+    await dashboard.viewSidebar.changeViewIcon({
+      title: 'CityGallery',
+      icon: 'american-football',
+    });
     await dashboard.viewSidebar.verifyView({
       title: 'CityGallery2',
       index: 3,

@@ -169,7 +169,7 @@ function onStopEdit() {
       <div class="flex w-auto min-w-5" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <a-dropdown :trigger="['click']" @click.stop>
           <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
-            <GeneralViewIcon :meta="props.view"></GeneralViewIcon>
+            <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
             <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
           </component>
 

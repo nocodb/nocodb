@@ -852,8 +852,6 @@ export default class View implements ViewType {
       'meta',
       'uuid',
     ]);
-    // if meta data defined then stringify it
-    stringifyMetaProp(updateObj);
 
     // get existing cache
     const key = `${CacheScope.VIEW}:${viewId}`;
@@ -870,6 +868,10 @@ export default class View implements ViewType {
       // set cache
       await NocoCache.set(key, o);
     }
+
+    // if meta data defined then stringify it
+    stringifyMetaProp(updateObj);
+
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.VIEWS, updateObj, viewId);
     return this.get(viewId);

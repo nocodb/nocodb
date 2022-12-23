@@ -20,7 +20,9 @@ export class ChildList extends BasePage {
     //    button: Link to 'City'
     //    icon: reload
     await expect(this.get().locator(`.ant-modal-title`)).toHaveText(`Child list`);
-    await expect(await this.get().locator(`button:has-text("Link to '${linkField}'")`).isVisible()).toBeTruthy();
+    await expect(
+      await this.get().locator(`button:has-text("Link to"):hasText("${linkField}'")`).isVisible()
+    ).toBeTruthy();
     await expect(await this.get().locator(`[data-testid="nc-child-list-reload"]`).isVisible()).toBeTruthy();
 
     // child list body validation (card count, card title)

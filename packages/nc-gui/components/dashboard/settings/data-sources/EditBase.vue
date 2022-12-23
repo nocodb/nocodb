@@ -71,13 +71,7 @@ const customFormState = ref<ProjectCreateForm>({
 
 const validators = computed(() => {
   return {
-    'title': [
-      {
-        required: true,
-        message: 'Base name is required',
-      },
-      projectTitleValidator,
-    ],
+    'title': [projectTitleValidator],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
     ...(formState.value.dataSource.client === ClientType.SQLITE
@@ -87,7 +81,7 @@ const validators = computed(() => {
       : formState.value.dataSource.client === ClientType.SNOWFLAKE
       ? {
           'dataSource.connection.account': [fieldRequiredValidator()],
-          'dataSource.connection.user': [fieldRequiredValidator()],
+          'dataSource.connection.username': [fieldRequiredValidator()],
           'dataSource.connection.password': [fieldRequiredValidator()],
           'dataSource.connection.warehouse': [fieldRequiredValidator()],
           'dataSource.connection.database': [fieldRequiredValidator()],
@@ -392,7 +386,7 @@ onMounted(async () => {
         </a-form-item>
 
         <!-- Username -->
-        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
+        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
           <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
         </a-form-item>
 

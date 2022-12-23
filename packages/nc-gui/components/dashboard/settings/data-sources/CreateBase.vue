@@ -86,7 +86,7 @@ const validators = computed(() => {
       : formState.dataSource.client === ClientType.SNOWFLAKE
       ? {
           'dataSource.connection.account': [fieldRequiredValidator()],
-          'dataSource.connection.user': [fieldRequiredValidator()],
+          'dataSource.connection.username': [fieldRequiredValidator()],
           'dataSource.connection.password': [fieldRequiredValidator()],
           'dataSource.connection.warehouse': [fieldRequiredValidator()],
           'dataSource.connection.database': [fieldRequiredValidator()],
@@ -399,7 +399,7 @@ watch(
         </a-form-item>
 
         <!-- Username -->
-        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
+        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
           <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
         </a-form-item>
 

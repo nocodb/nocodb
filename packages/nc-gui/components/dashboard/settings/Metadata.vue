@@ -97,7 +97,6 @@ const columns = [
           </div>
         </a-button>
       </div>
-
       <div class="max-h-600px overflow-y-auto">
         <a-table
           class="w-full"
@@ -115,6 +114,17 @@ const columns = [
         >
           <template #emptyText>
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+          </template>
+
+          <template #bodyCell="{ record, column }">
+            <div v-if="column.key === 'table_name'">
+              <div class="flex items-center gap-1">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon :meta="record" class="text-gray-500"></GeneralTableIcon>
+                </div>
+                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.table_name }}</span>
+              </div>
+            </div>
           </template>
         </a-table>
       </div>

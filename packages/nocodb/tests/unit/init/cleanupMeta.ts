@@ -44,12 +44,28 @@ const cleanupMetaTables = async () => {
   await TestDbMngr.enableForeignKeyChecks(TestDbMngr.metaKnex);
 };
 
+const cleanupDocPagesTables = async () => {
+  const metaTables = await TestDbMngr.showAllTables(TestDbMngr.metaKnex);
+  const docPagesTables = metaTables.filter((tableName) =>
+    tableName.startsWith("nc_pages_")
+  );
+
+  await TestDbMngr.disableForeignKeyChecks(TestDbMngr.metaKnex);
+  for (const tableName of docPagesTables) {
+    try {
+      await TestDbMngr.metaKnex.raw(`DELETE FROM ${tableName}`);
+    } catch (e) {}
+  }
+  await TestDbMngr.enableForeignKeyChecks(TestDbMngr.metaKnex);
+}
+
 export default async function () {
   try {
     await NcConnectionMgrv2.destroyAll();
 
     await dropTablesAllNonExternalProjects();
     await cleanupMetaTables();
+    await cleanupDocPagesTables();
   } catch (e) {
     console.error('cleanupMeta', e);
   }

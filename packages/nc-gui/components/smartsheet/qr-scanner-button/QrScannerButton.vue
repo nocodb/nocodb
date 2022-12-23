@@ -4,6 +4,7 @@ import type { SelectProps } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { NOCO } from '#imports'
+import { Row } from '~~/lib'
 
 // interface Props {
 //   //   modelValue: boolean
@@ -78,26 +79,47 @@ const entry = ref<Entry | null>(null)
 
 const selectedCodeColumnIdToScanFor = ref('')
 
-const expandedFormOnRowIdDlg = computed({
-  get() {
-    return !!route.query.rowId
-  },
-  set(val) {
-    if (!val)
-      router.push({
-        query: {
-          ...route.query,
-          rowId: undefined,
-        },
-      })
-  },
-})
+// const expandedFormOnRowIdDlg = computed({
+//   get() {
+//     return !!route.query.rowId
+//   },
+//   set(val) {
+//     if (!val)
+//       router.push({
+//         query: {
+//           ...route.query,
+//           rowId: undefined,
+//         },
+//       })
+//   },
+// })
 
+// const expandForm = (row: Row, state?: Record<string, any>) => {
+//   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
+
+//   if (rowId) {
+//     router.push({
+//       query: {
+//         ...route.query,
+//         rowId,
+//       },
+//     })
+//   // } else {
+//   //   expandedFormRow.value = row
+//   //   expandedFormRowState.value = state
+//   //   expandedFormDlg.value = true
+//   // }
+// }
+
+// const expandFormClick = async (e: MouseEvent, row: Row) => {
+//   const target = e.target as HTMLElement
+//   if (target && !target.closest('.gallery-carousel')) {
+//     expandForm(row)
+//   }
+// }
 
 const onDecode = async (qrCodeValue: string) => {
   try {
-    alert(qrCodeValue)
-
     showQrCodeScanner.value = false
 
     const whereClause = `(${selectedCodeColumnIdToScanFor.value},eq,${qrCodeValue})`
@@ -114,6 +136,13 @@ const onDecode = async (qrCodeValue: string) => {
     console.log('rowIdOfFoundRow', rowIdOfFoundRow)
 
     console.log('primaryKeyValueForFoundRow', primaryKeyValueForFoundRow)
+
+    router.push({
+      query: {
+        ...route.query,
+        rowId: primaryKeyValueForFoundRow,
+      },
+    })
 
     // const foundRowForQrCode = await $api.dbTableRow.findOne(NOCO, projectName, tableName, {
     //   // fields: ['']
@@ -157,13 +186,15 @@ const onDecode = async (qrCodeValue: string) => {
       wrap-class-name="nc-modal-generate-token"
     >
       <div class="relative flex flex-col h-full">
-        <a-select
-          v-model:value="selectedCodeColumnIdToScanFor"
-          class="w-full nc-kanban-grouping-field-select"
-          :options="qrCodeFieldOptions"
-          placeholder="Select a Code Field (QR or Barcode)"
-          not-found-content="No Code Field can be found. Please create one first."
-        />
+        <a-form-item :label="$t('labels.qrCodeColumn')">
+          <a-select
+            v-model:value="selectedCodeColumnIdToScanFor"
+            class="w-full nc-kanban-grouping-field-select"
+            :options="qrCodeFieldOptions"
+            placeholder="Select a Code Field (QR or Barcode)"
+            not-found-content="No Code Field can be found. Please create one first."
+          />
+        </a-form-item>
 
         <qrcode-stream v-if="showQrCodeScanner" @decode="onDecode"></qrcode-stream>
       </div>

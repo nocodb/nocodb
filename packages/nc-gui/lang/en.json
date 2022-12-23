@@ -215,6 +215,7 @@
     "viewName": "View name",
     "viewLink": "View Link",
     "columnName": "Column Name",
+    "qrCodeColumn": "QR Code Column",
     "columnType": "Column Type",
     "roleName": "Role Name",
     "roleDescription": "Role Description",

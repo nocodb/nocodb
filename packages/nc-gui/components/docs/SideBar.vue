@@ -306,47 +306,49 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
 </template>
 
 <style lang="scss">
-.nc-docs-left-sidebar .ant-tree-treenode {
-  @apply w-full !important;
-}
-.nc-docs-left-sidebar .ant-tree-node-content-wrapper {
-  @apply w-full mr-2 pl-0.5 !important;
-}
-.ant-tree-list {
-  .ant-tree-switcher {
-    @apply mt-1 !important;
-  }
-  .ant-tree-switcher-icon {
-    @apply !text-gray-300;
-  }
+.nc-docs-left-sidebar {
   .ant-tree-treenode {
-    @apply !bg-white !hover:bg-gray-100;
-    transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
-    transition-duration: 0.3s, 0s, 0s, 0s;
-    transition-timing-function: ease, ease, ease, ease;
-    transition-delay: 0s, 0s, 0s, 0s;
-    transition-property: all, border, line-height, box-shadow;
+    @apply w-full !important;
   }
-  .ant-tree-treenode.ant-tree-treenode-selected {
-    @apply !bg-blue-50 !hover:bg-blue-50;
-    transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
-    transition-duration: 0.3s, 0s, 0s, 0s;
-    transition-timing-function: ease, ease, ease, ease;
-    transition-delay: 0s, 0s, 0s, 0s;
-    transition-property: all, border, line-height, box-shadow;
+  .ant-tree-node-content-wrapper {
+    @apply w-full mr-2 pl-0.5 !important;
   }
-  .ant-tree-node-selected {
-    @apply !bg-blue-50 !hover:bg-blue-50;
+  .ant-tree-list {
+    .ant-tree-switcher {
+      @apply mt-1 !important;
+    }
+    .ant-tree-switcher-icon {
+      @apply !text-gray-300;
+    }
+    .ant-tree-treenode {
+      @apply !bg-white !hover:bg-gray-100;
+      transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
+      transition-duration: 0.3s, 0s, 0s, 0s;
+      transition-timing-function: ease, ease, ease, ease;
+      transition-delay: 0s, 0s, 0s, 0s;
+      transition-property: all, border, line-height, box-shadow;
+    }
+    .ant-tree-treenode.ant-tree-treenode-selected {
+      @apply !bg-blue-50 !hover:bg-blue-50;
+      transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
+      transition-duration: 0.3s, 0s, 0s, 0s;
+      transition-timing-function: ease, ease, ease, ease;
+      transition-delay: 0s, 0s, 0s, 0s;
+      transition-property: all, border, line-height, box-shadow;
+    }
+    .ant-tree-node-selected {
+      @apply !bg-blue-50 !hover:bg-blue-50;
+    }
+    .ant-tree-treenode-selected {
+      @apply !bg-blue-50;
+    }
+    .ant-tree-indent-unit {
+      @apply w-4 !important;
+    }
   }
-  .ant-tree-treenode-selected {
-    @apply !bg-blue-50;
-  }
-  .ant-tree-indent-unit {
-    @apply w-4 !important;
-  }
-}
 
-.nc-docs-menu .ant-dropdown-menu-item {
-  @apply p-0 !important;
+  .nc-docs-menu .ant-dropdown-menu-item {
+    @apply p-0 !important;
+  }
 }
 </style>

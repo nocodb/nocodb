@@ -11,12 +11,20 @@ import {
   ref,
   useApi,
   useNuxtApp,
+  useProject,
   useRoute,
   useSidebar,
+  useTable,
 } from '#imports'
 import { NcProjectType } from '~/utils'
 
 const { $e } = useNuxtApp()
+
+const { loadTables, loadProject } = useProject()
+
+const { table, createTable } = useTable(async (_) => {
+  await loadTables()
+})
 
 const { api, isLoading } = useApi({ useGlobalInstance: true })
 
@@ -52,9 +60,16 @@ const createProject = async () => {
       case NcProjectType.DOCS:
         await navigateTo(`/nc/doc/${result.id}`)
         break
-      case NcProjectType.GPT:
+      case NcProjectType.GPT: {
+        // force load project so that baseId is available in useTable
+        await loadProject(true, result.id)
+        // Create a table for the GPT form
+        table.title = result.title!
+        await createTable()
+
         await navigateTo(`/nc/gpt/${result.id}`)
         break
+      }
       default:
         await navigateTo(`/nc/${result.id}`)
     }

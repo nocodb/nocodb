@@ -709,6 +709,47 @@ export default async function formulaQueryBuilderv2(
         sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')${colAlias}`;
       }
 
+      if (knex.clientType() === 'mysql2') {
+        sql = `IFNULL(${left} ${pt.operator} ${right}, ${
+          pt.operator === '='
+            ? pt.left.type === 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : pt.operator === '!='
+            ? pt.left.type !== 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : 0
+        }) ${colAlias}`;
+      } else if (
+        knex.clientType() === 'sqlite3' ||
+        knex.clientType() === 'pg' ||
+        knex.clientType() === 'mssql'
+      ) {
+        if (pt.operator === '=') {
+          if (pt.left.type === 'Literal' && pt.left.value === '') {
+            sql = `${right} IS NULL OR CAST(${right} AS TEXT) = ''`;
+          } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+            sql = `${left} IS NULL OR CAST(${left} AS TEXT) = ''`;
+          }
+        } else if (pt.operator === '!=') {
+          if (pt.left.type === 'Literal' && pt.left.value === '') {
+            sql = `${right} IS NOT NULL AND CAST(${right} AS TEXT) != ''`;
+          } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+            sql = `${left} IS NOT NULL AND CAST(${left} AS TEXT) != ''`;
+          }
+        }
+
+        if (
+          (pt.operator === '=' || pt.operator === '!=') &&
+          prevBinaryOp !== 'AND' &&
+          prevBinaryOp !== 'OR'
+        ) {
+          sql = `(CASE WHEN ${sql} THEN true ELSE false END ${colAlias})`;
+        } else {
+          sql = `${sql} ${colAlias}`;
+        }
+      }
       const query = knex.raw(sql);
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');

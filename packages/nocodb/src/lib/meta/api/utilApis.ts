@@ -3,7 +3,9 @@ import { Request, Response } from 'express';
 import { compareVersions, validate } from 'compare-versions';
 
 import { ViewTypes } from 'nocodb-sdk';
+import { NC_LICENSE_KEY } from '../../constants';
 import Project from '../../models/Project';
+import Store from '../../models/Store';
 import Noco from '../../Noco';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { MetaTable } from '../../utils/globals';
@@ -55,6 +57,7 @@ export async function appInfo(req: Request, res: Response) {
     ncMin: !!process.env.NC_MIN,
     teleEnabled: !process.env.NC_DISABLE_TELE,
     ncSiteUrl: (req as any).ncSiteUrl,
+    ee: !!(await Store.get(NC_LICENSE_KEY)),
   };
 
   res.json(result);

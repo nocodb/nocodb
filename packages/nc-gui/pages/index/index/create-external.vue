@@ -7,7 +7,7 @@ import {
   Form,
   Modal,
   SSLUsage,
-  clientTypes,
+  clientTypes as _clientTypes,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
@@ -27,6 +27,8 @@ import {
   useSidebar,
   watch,
 } from '#imports'
+
+const { appInfo } = useGlobal()
 
 const useForm = Form.useForm
 
@@ -64,7 +66,43 @@ const customFormState = ref<ProjectCreateForm>({
   extraParameters: [],
 })
 
+const clientTypes = computed(() => {
+  return _clientTypes.filter((type) => {
+    return appInfo.value?.ee || type.value !== ClientType.SNOWFLAKE
+  })
+})
+
 const validators = computed(() => {
+  let clientValidations: Record<string, any[]> = {
+    'dataSource.connection.host': [fieldRequiredValidator()],
+    'dataSource.connection.port': [fieldRequiredValidator()],
+    'dataSource.connection.user': [fieldRequiredValidator()],
+    'dataSource.connection.password': [fieldRequiredValidator()],
+    'dataSource.connection.database': [fieldRequiredValidator()],
+  }
+
+  switch (formState.dataSource.client) {
+    case ClientType.SQLITE:
+      clientValidations = {
+        'dataSource.connection.connection.filename': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.SNOWFLAKE:
+      clientValidations = {
+        'dataSource.connection.account': [fieldRequiredValidator()],
+        'dataSource.connection.username': [fieldRequiredValidator()],
+        'dataSource.connection.password': [fieldRequiredValidator()],
+        'dataSource.connection.warehouse': [fieldRequiredValidator()],
+        'dataSource.connection.database': [fieldRequiredValidator()],
+        'dataSource.connection.schema': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.PG:
+    case ClientType.MSSQL:
+      clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
+      break
+  }
+
   return {
     'title': [
       {
@@ -75,31 +113,7 @@ const validators = computed(() => {
     ],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
-    ...(formState.dataSource.client === ClientType.SQLITE
-      ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator()],
-        }
-      : formState.dataSource.client === ClientType.SNOWFLAKE
-      ? {
-          'dataSource.connection.account': [fieldRequiredValidator()],
-          'dataSource.connection.username': [fieldRequiredValidator()],
-          'dataSource.connection.password': [fieldRequiredValidator()],
-          'dataSource.connection.warehouse': [fieldRequiredValidator()],
-          'dataSource.connection.database': [fieldRequiredValidator()],
-          'dataSource.connection.schema': [fieldRequiredValidator()],
-        }
-      : {
-          'dataSource.connection.host': [fieldRequiredValidator()],
-          'dataSource.connection.port': [fieldRequiredValidator()],
-          'dataSource.connection.user': [fieldRequiredValidator()],
-          'dataSource.connection.password': [fieldRequiredValidator()],
-          'dataSource.connection.database': [fieldRequiredValidator()],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
-            ? {
-                'dataSource.searchPath.0': [fieldRequiredValidator()],
-              }
-            : {}),
-        }),
+    ...clientValidations,
   }
 })
 
@@ -483,8 +497,10 @@ onMounted(async () => {
               </div>
             </template>
             <a-form-item label="SSL mode">
-              <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
-                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
+              <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode"
+                        @select="onSSLModeChange">
+                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}
+                </a-select-option>
               </a-select>
             </a-form-item>
 
@@ -526,14 +542,16 @@ onMounted(async () => {
 
             <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.ca, caFileInput)" />
 
-            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.cert, certFileInput)" />
+            <input ref="certFileInput" type="file" class="!hidden"
+                   @change="onFileSelect(CertTypes.cert, certFileInput)" />
 
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.key, keyFileInput)" />
 
             <a-divider />
 
             <!--            Extra connection parameters -->
-            <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')" v-bind="validateInfos.extraParameters">
+            <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')"
+                         v-bind="validateInfos.extraParameters">
               <a-card>
                 <div v-for="(item, index) of formState.extraParameters" :key="index">
                   <div class="flex py-1 items-center gap-1">
@@ -547,7 +565,9 @@ onMounted(async () => {
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                  <div class="flex items-center justify-center">
+                    <MdiPlus />
+                  </div>
                 </a-button>
               </a-card>
             </a-form-item>

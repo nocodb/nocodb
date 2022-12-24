@@ -179,7 +179,7 @@ function onStopEdit() {
         </a-dropdown>
       </div>
 
-      <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
+      <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown.stop="onKeyDown($event)" />
 
       <div v-else>
         <LazyGeneralTruncateText>{{ vModel.alias || vModel.title }}</LazyGeneralTruncateText>

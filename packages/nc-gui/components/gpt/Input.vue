@@ -11,7 +11,7 @@ const activeKey = ref('gpt-form')
       <GptPrompt />
     </a-tab-pane>
     <template #rightExtra>
-      <div class="flex items-center gap-1 px-2">
+      <div class="flex items-center gap-1 px-8">
         <a-button class="!rounded-md" type="primary">
           {{ $t('general.generate') }}
         </a-button>

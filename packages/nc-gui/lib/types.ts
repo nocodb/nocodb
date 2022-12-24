@@ -78,6 +78,7 @@ export interface TabItem {
   viewId?: string
   sortsState?: Map<string, any>
   filterState?: Map<string, any>
+  meta?: Record<string, any>
 }
 
 export interface SharedViewMeta extends Record<string, any> {

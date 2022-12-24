@@ -129,7 +129,9 @@ const onClick = (row: Row) => {
         >
           <div class="flex items-center gap-1">
             <MdiLinkVariant class="text-xs" type="primary" />
-            Link to '{{ relatedTableMeta.title }}'
+            Link to '
+            <GeneralTableIcon :meta="relatedTableMeta" class="-mx-1 w-5" />
+            {{ relatedTableMeta.title }}'
           </div>
         </a-button>
       </div>

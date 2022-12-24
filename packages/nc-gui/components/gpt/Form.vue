@@ -339,117 +339,13 @@ watch(gptView, async () => {
 </script>
 
 <template>
-  <a-row class="h-full flex" data-testid="nc-form-wrapper">
-    <a-col v-if="isEditable" :span="8" class="shadow p-2 md:p-4 h-full overflow-auto scrollbar-thin-dull nc-form-left-drawer">
-      <div class="flex flex-wrap gap-2">
-        <div class="flex-1 text-lg">
-          {{ $t('objects.fields') }}
-        </div>
-
-        <div class="flex flex-wrap gap-2 mb-4">
-          <button
-            v-if="hiddenColumns.length"
-            type="button"
-            class="nc-form-add-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
-            data-testid="nc-form-add-all"
-            @click="addAllColumns"
-          >
-            <!-- Add all -->
-            {{ $t('general.addAll') }}
-          </button>
-
-          <button
-            v-if="localColumns.length"
-            type="button"
-            class="nc-form-remove-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
-            data-testid="nc-form-remove-all"
-            @click="removeAllColumns"
-          >
-            <!-- Remove all -->
-            {{ $t('general.removeAll') }}
-          </button>
-        </div>
+  <a-row class="h-full" data-testid="nc-form-wrapper">
+    <a-col v-if="formViewData" class="h-full w-full">
+      <div class="h-[200px]">
+        <!-- intended to be empty -->
       </div>
-
-      <Draggable
-        :list="hiddenColumns"
-        item-key="id"
-        draggable=".item"
-        group="form-inputs"
-        class="flex flex-col gap-2"
-        @start="drag = true"
-        @end="drag = false"
-      >
-        <template #item="{ element, index }">
-          <a-card
-            size="small"
-            class="!border-0 color-transition cursor-pointer item hover:(bg-primary ring-1 ring-accent ring-opacity-100) bg-opacity-10 !rounded !shadow-lg"
-            :data-testid="`nc-form-hidden-column-${element.label || element.title}`"
-            @mousedown="moved = false"
-            @mousemove="moved = false"
-            @mouseup="handleMouseUp(element, index)"
-          >
-            <div class="flex">
-              <div class="flex flex-1">
-                <LazySmartsheetHeaderVirtualCell
-                  v-if="isVirtualCol(element)"
-                  :column="{ ...element, title: element.label || element.title }"
-                  :required="isRequired(element, element.required)"
-                  :hide-menu="true"
-                />
-
-                <LazySmartsheetHeaderCell
-                  v-else
-                  :column="{ ...element, title: element.label || element.title }"
-                  :required="isRequired(element, element.required)"
-                  :hide-menu="true"
-                />
-              </div>
-            </div>
-          </a-card>
-        </template>
-
-        <template #footer>
-          <div
-            class="my-4 select-none border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide"
-            data-testid="nc-drag-n-drop-to-hide"
-          >
-            <!-- Drag and drop fields here to hide -->
-            {{ $t('msg.info.dragDropHide') }}
-          </div>
-
-          <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
-            <button type="button" class="group w-full mt-2" @click.stop="showColumnDropdown = true">
-              <span class="flex items-center flex-wrap justify-center gap-2 prose-sm text-gray-400">
-                <MdiPlus class="color-transition transform group-hover:(text-accent scale-125)" />
-                <!-- Add new field to this table -->
-                <span class="color-transition group-hover:text-primary break-words">
-                  {{ $t('activity.addField') }}
-                </span>
-              </span>
-            </button>
-
-            <template #overlay>
-              <SmartsheetColumnEditOrAddProvider
-                v-if="showColumnDropdown"
-                @submit="submitCallback"
-                @cancel="showColumnDropdown = false"
-                @click.stop
-                @keydown.stop
-              />
-            </template>
-          </a-dropdown>
-        </template>
-      </Draggable>
-    </a-col>
-
-    <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-dull">
-      <div class="h-[200px] bg-primary bg-opacity-75">
-        <!-- for future implementation of cover image -->
-      </div>
-
       <a-card
-        class="p-4 border-none"
+        class="p-4 border-none h-full bg-primary"
         :body-style="{
           maxWidth: 'max(50vw, 700px)',
           margin: '0 auto',
@@ -457,6 +353,24 @@ watch(gptView, async () => {
           padding: '0px',
         }"
       >
+        <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
+          <div class="flex items-center flex-wrap justify-end gap-2 px-8">
+            <a-button class="flex items-center" @click.stop="showColumnDropdown = true">
+              <span class="color-transition group-hover:text-primary break-words"> Add Field </span>
+            </a-button>
+          </div>
+
+          <template #overlay>
+            <SmartsheetColumnEditOrAddProvider
+              v-if="showColumnDropdown"
+              @submit="submitCallback"
+              @cancel="showColumnDropdown = false"
+              @click.stop
+              @keydown.stop
+            />
+          </template>
+        </a-dropdown>
+
         <a-form ref="formRef" :model="formState" class="nc-form" no-style>
           <a-card class="!rounded !shadow !m-2 md:(!m-4) xl:(!m-8)" :body-style="{ paddingLeft: '0px', paddingRight: '0px' }">
             <Draggable

@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { useProvideGPTStore, useRoute } from '#imports'
+import { useProject, useProvideGPTStore, useRoute } from '#imports'
 
 const route = useRoute()
 
+const { loadProject } = useProject()
+
 useProvideGPTStore(route.params.projectId as string)
+
+loadProject(true, route.params.projectId as string)
 
 definePageMeta({
   key: 'true',

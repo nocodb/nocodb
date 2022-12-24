@@ -26,7 +26,6 @@ const barcodeMeta = $computed(() => {
 
 const handleModalOkClick = () => (modalVisible.value = false)
 
-// const showBarcode = computed(() => barcodeValue?.value?.length > 0 && !tooManyCharsForBarcode.value)
 const showBarcode = computed(() => {
   return cellValue?.value?.length > 0 && !tooManyCharsForBarcode.value
 })

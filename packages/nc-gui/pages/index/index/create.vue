@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { customAlphabet } from 'nanoid'
 import type { Form } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
@@ -64,7 +65,8 @@ const createProject = async () => {
         // force load project so that baseId is available in useTable
         await loadProject(true, result.id)
         // Create a table for the GPT form
-        table.title = result.title!
+        const nanoidV2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14)
+        table.table_name = `nc_gpt_${nanoidV2()}`
         await createTable()
 
         await navigateTo(`/nc/gpt/${result.id}`)

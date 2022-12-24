@@ -319,7 +319,7 @@ const setIcon = async (icon: string, view: ViewType) => {
     <a-collapse-panel
       v-for="section in sections"
       :key="section.name"
-      header-class="group"
+      headerClass="group"
       :data-testid="`view-sidebar-section-${section.name}`"
     >
       <template #header>

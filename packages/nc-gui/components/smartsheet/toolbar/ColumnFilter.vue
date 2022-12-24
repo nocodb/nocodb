@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FilterType } from 'nocodb-sdk'
+import type { ColumnType, FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -99,6 +99,11 @@ watch(
     emit('update:filtersLength', length ?? 0)
   },
 )
+
+const getApplicableFilters = (id?: string) => {
+  const colType = (meta.value?.columnsById as Record<string, ColumnType>)?.[id ?? '']?.uidt
+  return comparisonOpList.filter((op) => !op.types || op.types.includes(colType))
+}
 
 const applyChanges = async (hookId?: string, _nested = false) => {
   await sync(hookId, _nested)
@@ -213,7 +218,12 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="">
+              <a-select-option
+                v-for="compOp in getApplicableFilters(filter.fk_column_id)"
+                :key="compOp.value"
+                :value="compOp.value"
+                class=""
+              >
                 {{ compOp.text }}
               </a-select-option>
             </a-select>

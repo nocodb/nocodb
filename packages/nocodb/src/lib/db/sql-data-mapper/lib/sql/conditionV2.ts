@@ -312,7 +312,7 @@ const parseConditionV2 = async (
           case 'nanyof':
             // Condition for filter, without negation
             const condition = (builder: Knex.QueryBuilder) => {
-              const items = val.split(',');
+              const items = val.split(',').map((item) => item.trim());
               for (let i = 0; i < items.length; i++) {
                 let sql;
                 const bindings = [field, `%,${items[i]},%`];
@@ -343,7 +343,7 @@ const parseConditionV2 = async (
             ) {
               qb = qb.where(condition);
             } else {
-              qb = qb.whereNot(condition);
+              qb = qb.whereNot(condition).orWhereNull(field);
             }
             break;
           case 'gt':

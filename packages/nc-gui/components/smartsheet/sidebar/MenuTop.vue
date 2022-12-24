@@ -9,7 +9,6 @@ import {
   extractSdkResponseErrorMsg,
   inject,
   message,
-  onMounted,
   ref,
   resolveComponent,
   useApi,
@@ -20,20 +19,27 @@ import {
   viewTypeAlias,
   watch,
 } from '#imports'
+import type { SectionType } from '~/lib'
 
 interface Props {
-  views: ViewType[]
+  sections: SectionType[]
 }
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
 
-  (event: 'deleted'): void
+  (event: 'updated'): void
 }
 
-const { views = [] } = defineProps<Props>()
+const { sections = [] } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
+
+const sectionNames = computed(() => sections.map((s) => s.name))
+
+const allViews = $computed(() => sections.flatMap((s) => s.views))
+
+let activeKey = $ref<string[]>([])
 
 const { t } = useI18n()
 
@@ -51,7 +57,7 @@ const selected = ref<string[]>([])
 /** dragging renamable view items */
 let dragging = $ref(false)
 
-const menuRef = $ref<typeof AntMenu>()
+const menuRefs = $ref<typeof AntMenu[]>([])
 
 let isMarked = $ref<string | false>(false)
 
@@ -70,17 +76,20 @@ function markItem(id: string) {
   }, 300)
 }
 
-/** validate view title */
-function validate(view: ViewType) {
+function validateViewTitle(view: ViewType) {
   if (!view.title || view.title.trim().length < 0) {
     return 'View name is required'
   }
 
-  if (views.some((v) => v.title === view.title && v.id !== view.id)) {
+  if (allViews.some((v) => v.title === view.title && v.id !== view.id)) {
     return 'View name should be unique'
   }
 
   return true
+}
+
+function validateSectionName(section: SectionType, nextName: string) {
+  return !sections.some((s) => s.name === nextName && s !== section)
 }
 
 function onSortStart(evt: SortableEvent) {
@@ -94,28 +103,35 @@ async function onSortEnd(evt: SortableEvent) {
   evt.preventDefault()
   dragging = false
 
-  if (views.length < 2) return
+  if (evt.from === evt.to && evt.oldIndex === evt.newIndex) {
+    return
+  }
 
-  const { newIndex = 0, oldIndex = 0 } = evt
-
-  if (newIndex === oldIndex) return
+  const newIndex = evt.newIndex || 0
 
   const children = evt.to.children as unknown as HTMLLIElement[]
 
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem = views.find((v) => v.id === evt.item.id)
+  const currentItem = allViews.find((v) => v.id === evt.item.id)
 
-  if (!currentItem || !currentItem.id) return
+  if (!currentItem || !currentItem.id) {
+    return
+  }
 
-  const previousItem = (previousEl ? views.find((v) => v.id === previousEl.id) : {}) as ViewType
-  const nextItem = (nextEl ? views.find((v) => v.id === nextEl.id) : {}) as ViewType
+  const currSectionName = evt.from.dataset.sectionName
+  const nextSectionName = evt.to.dataset.sectionName
+  const currViews = sections.find((s) => s.name === currSectionName)?.views || []
+  const nextViews = sections.find((s) => s.name === nextSectionName)?.views || []
+
+  const previousItem = (previousEl ? nextViews.find((v) => v.id === previousEl.id) : {}) as ViewType
+  const nextItem = (nextEl ? nextViews.find((v) => v.id === nextEl.id) : {}) as ViewType
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
-  if (views.length - 1 === newIndex) {
+  if (children.length - 1 === newIndex) {
     nextOrder = parseFloat(String(previousItem.order)) + 1
   } else if (newIndex === 0) {
     nextOrder = parseFloat(String(nextItem.order)) / 2
@@ -123,31 +139,57 @@ async function onSortEnd(evt: SortableEvent) {
     nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
   }
 
-  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+  const currIndex = currViews.findIndex((v) => v.id === currentItem.id)
+  if (currIndex > -1) {
+    currViews.splice(currIndex, 1)
+  }
+  const nextIndex = nextViews.findIndex((v) => (v?.order ?? 0) > nextOrder)
+  if (nextIndex > -1) {
+    nextViews.splice(nextIndex, 0, currentItem)
+  } else {
+    nextViews.push(currentItem)
+  }
+  evt.item.remove()
+
+  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : 1
 
   currentItem.order = _nextOrder
 
-  await api.dbView.update(currentItem.id, { order: _nextOrder })
+  await api.dbView.update(currentItem.id, { order: _nextOrder, section: nextSectionName })
 
   markItem(currentItem.id)
 
   $e('a:view:reorder')
 }
 
-let sortable: Sortable
+let sortables: Sortable[] = []
 
-const initSortable = (el: HTMLElement) => {
-  if (sortable) sortable.destroy()
+watch(
+  () => [...menuRefs],
+  () => {
+    sortables.forEach((sortable) => sortable.destroy())
 
-  sortable = new Sortable(el, {
-    // handle: '.nc-drag-icon',
-    ghostClass: 'ghost',
-    onStart: onSortStart,
-    onEnd: onSortEnd,
-  })
-}
+    sortables = menuRefs.map(
+      (menuRef) =>
+        new Sortable(menuRef.$el, {
+          group: 'views',
+          // handle: '.nc-drag-icon',
+          ghostClass: 'ghost',
+          onStart: onSortStart,
+          onEnd: onSortEnd,
+        }),
+    )
+  },
+  { immediate: true },
+)
 
-onMounted(() => menuRef && initSortable(menuRef.$el))
+watch(
+  sectionNames,
+  () => {
+    activeKey = sections.map((s) => s.name)
+  },
+  { immediate: true },
+)
 
 /** Navigate to view by changing url param */
 function changeView(view: ViewType) {
@@ -195,15 +237,54 @@ function openDeleteDialog(view: ViewType) {
     'onDeleted': () => {
       closeDialog()
 
-      emits('deleted')
+      emits('updated')
       if (activeView.value === view) {
         // return to the default view
         router.replace({
           params: {
-            viewTitle: views[0].title,
+            viewTitle: allViews[0].title,
           },
         })
       }
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openSectionRenameDialog(section: SectionType) {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgSectionRename'), {
+    'modelValue': isOpen,
+    'section': section,
+    'onUpdate:modelValue': closeDialog,
+    'validate': validateSectionName,
+    'onRenamed': () => {
+      emits('updated')
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openSectionDeleteDialog(section: SectionType) {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgSectionDelete'), {
+    'modelValue': isOpen,
+    'section': section,
+    'onUpdate:modelValue': closeDialog,
+    'onDeleted': () => {
+      emits('updated')
     },
   })
 
@@ -234,27 +315,67 @@ const setIcon = async (icon: string, view: ViewType) => {
 </script>
 
 <template>
-  <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
-    <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
-    <SmartsheetSidebarRenameableMenuItem
-      v-for="view of views"
-      :id="view.id"
-      :key="view.id"
-      :view="view"
-      :on-validate="validate"
-      class="nc-view-item transition-all ease-in duration-300"
-      :class="{
-        'bg-gray-100': isMarked === view.id,
-        'active': activeView?.id === view.id,
-        [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
-      }"
-      @change-view="changeView"
-      @open-modal="$emit('openModal', $event)"
-      @delete="openDeleteDialog"
-      @rename="onRename"
-      @select-icon="setIcon($event, view)"
-    />
-  </a-menu>
+  <a-collapse v-model:activeKey="activeKey" class="nc-views-menu flex-1" expand-icon-position="right" :bordered="false" ghost>
+    <a-collapse-panel
+      v-for="section in sections"
+      :key="section.name"
+      header-class="group"
+      :data-testid="`view-sidebar-section-${section.name}`"
+    >
+      <template #header>
+        <div class="flex w-full items-center gap-1 text-gray-500 font-bold">
+          <LazyGeneralTruncateText>{{ section.name || 'No section' }}</LazyGeneralTruncateText>
+
+          <div class="flex-1" />
+
+          <template v-if="section.name !== ''">
+            <a-tooltip placement="left">
+              <template #title>
+                {{ $t('activity.renameSection') }}
+              </template>
+
+              <MdiPencil
+                class="hidden group-hover:block text-gray-500 nc-view-copy-icon"
+                @click.stop="openSectionRenameDialog(section)"
+              />
+            </a-tooltip>
+
+            <a-tooltip placement="left">
+              <template #title>
+                {{ $t('activity.deleteSection') }}
+              </template>
+
+              <MdiTrashCan
+                class="hidden group-hover:block text-red-500 nc-view-delete-icon"
+                @click.stop="openSectionDeleteDialog(section)"
+              />
+            </a-tooltip>
+          </template>
+        </div>
+      </template>
+      <a-menu ref="menuRefs" :class="{ dragging }" :selected-keys="selected" :data-section-name="section.name">
+        <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
+        <SmartsheetSidebarRenameableMenuItem
+          v-for="view of section.views"
+          :id="view.id"
+          :key="view.id"
+          :view="view"
+          :on-validate="validateViewTitle"
+          class="nc-view-item transition-all ease-in duration-300"
+          :class="{
+            'bg-gray-100': isMarked === view.id,
+            'active': activeView?.id === view.id,
+            [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
+          }"
+          @change-view="changeView"
+          @open-modal="$emit('openModal', $event)"
+          @delete="openDeleteDialog"
+          @rename="onRename"
+          @select-icon="setIcon($event, view)"
+        />
+      </a-menu>
+    </a-collapse-panel>
+  </a-collapse>
 </template>
 
 <style lang="scss">
@@ -286,6 +407,14 @@ const setIcon = async (icon: string, view: ViewType) => {
 
   .active {
     @apply bg-primary bg-opacity-25 text-primary font-medium;
+  }
+
+  .ant-collapse-content {
+    @apply !min-h-2;
+  }
+
+  .ant-collapse-content-box {
+    @apply !p-0;
   }
 }
 </style>

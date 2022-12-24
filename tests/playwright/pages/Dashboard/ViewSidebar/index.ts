@@ -9,6 +9,7 @@ export class ViewSidebarPage extends BasePage {
   readonly createGridButton: Locator;
   readonly createFormButton: Locator;
   readonly createKanbanButton: Locator;
+  readonly createSectionButton: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -17,6 +18,7 @@ export class ViewSidebarPage extends BasePage {
     this.createGridButton = this.get().locator('.nc-create-grid-view:visible');
     this.createFormButton = this.get().locator('.nc-create-form-view:visible');
     this.createKanbanButton = this.get().locator('.nc-create-kanban-view:visible');
+    this.createSectionButton = this.get().locator('.nc-create-section:visible');
   }
 
   get() {
@@ -74,10 +76,16 @@ export class ViewSidebarPage extends BasePage {
   }
 
   // Todo: Make selection better
-  async verifyView({ title, index }: { title: string; index: number }) {
-    await expect(
-      this.get().locator('[data-testid="view-item"]').nth(index).locator('[data-testid="truncate-label"]')
-    ).toHaveText(title, { ignoreCase: true });
+  async verifyView({ title, index, section = 'No section' }: { title: string; index: number; section?: string }) {
+    const locator = this.get().locator('.nc-view-item').nth(index);
+    const viewTestId = await locator.getAttribute('data-testid');
+    const collapseHeaderLocator = this.get()
+      .locator('.ant-collapse-item', { has: this.rootPage.locator(`[data-testid="${viewTestId}"]`) })
+      .locator('.ant-collapse-header');
+    await expect(locator.locator('[data-testid="truncate-label"]')).toHaveText(title, { ignoreCase: true });
+    await expect(collapseHeaderLocator.locator('[data-testid="truncate-label"]')).toHaveText(section, {
+      ignoreCase: true,
+    });
   }
 
   async verifyViewNotPresent({ title, index }: { title: string; index: number }) {
@@ -167,5 +175,22 @@ export class ViewSidebarPage extends BasePage {
     await expect(this.createGalleryButton).toHaveCount(count);
     await expect(this.createFormButton).toHaveCount(count);
     await expect(this.createKanbanButton).toHaveCount(count);
+  }
+
+  async createSection({ name }: { name: string }) {
+    await this.createSectionButton.click();
+    await this.rootPage.locator('input[id="form_item_name"]:visible').fill(name);
+    await this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
+    await this.verifyToast({ message: 'Section created successfully' });
+  }
+
+  async moveViewToSection({ sourceView, destinationSection }: { sourceView: string; destinationSection: string }) {
+    const sectionContentLocator = this.get()
+      .locator(`[data-testid="view-sidebar-section-${destinationSection}"]`)
+      .locator('.ant-collapse-content');
+    await this.dashboard
+      .get()
+      .locator(`[data-testid="view-sidebar-drag-handle-${sourceView}"]`)
+      .dragTo(sectionContentLocator);
   }
 }

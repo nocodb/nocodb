@@ -23,7 +23,9 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { activeTab } = useTabs()
 
-const { views, loadViews, isLoading } = useViews(meta)
+const { sections, loadViews, isLoading } = useViews(meta)
+
+const views = computed(() => sections.value.flatMap((s) => s.views))
 
 const { lastOpenedViewMap } = useProject()
 
@@ -51,9 +53,10 @@ const sidebar = ref()
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
-  [views, () => route.params.viewTitle],
-  ([nextViews, viewTitle]) => {
+  [sections, () => route.params.viewTitle],
+  ([nextSections, viewTitle]) => {
     const lastOpenedViewId = activeTab.value?.id && lastOpenedViewMap.value[activeTab.value?.id]
+    const nextViews = nextSections.flatMap((s) => s.views)
     const lastOpenedView = nextViews.find((v) => v.id === lastOpenedViewId)
 
     if (viewTitle) {
@@ -133,6 +136,39 @@ function onOpenModal({
     close(1000)
   }
 }
+
+/** Open section create modal */
+function onOpenSectionModal() {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgSectionCreate'), {
+    'modelValue': isOpen,
+    'sections': sections,
+    'onUpdate:modelValue': closeDialog,
+    'onCreated': async (section: string) => {
+      closeDialog()
+      sections.value.push({
+        name: section,
+        views: [],
+      })
+      sections.value = sections.value.sort((s1, s2) => {
+        if (s1.name === '') {
+          return 1
+        }
+        if (s2.name === '') {
+          return -1
+        }
+        return s1.name.localeCompare(s2.name)
+      })
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 </script>
 
 <template>
@@ -156,12 +192,12 @@ function onOpenModal({
         </div>
       </GeneralOverlay>
 
-      <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
+      <LazySmartsheetSidebarMenuTop :sections="sections" @open-modal="onOpenModal" @updated="loadViews" />
 
       <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
         <div class="!my-3 w-full border-b-1" />
 
-        <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
+        <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" @open-section-modal="onOpenSectionModal" />
       </template>
     </div>
   </a-layout-sider>

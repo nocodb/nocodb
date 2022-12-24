@@ -4,6 +4,7 @@ import { useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void
+  (event: 'openSectionModal'): void
 }
 
 const emits = defineEmits<Emits>()
@@ -15,6 +16,9 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 function onOpenModal(type: ViewTypes, title = '') {
   $e('c:view:create', { view: type })
   emits('openModal', { type, title })
+}
+function onOpenSectionModal() {
+  emits('openSectionModal')
 }
 </script>
 
@@ -106,6 +110,22 @@ function onOpenModal(type: ViewTypes, title = '') {
             <component :is="viewIcons[ViewTypes.KANBAN].icon" :style="{ color: viewIcons[ViewTypes.KANBAN].color }" />
 
             <div>{{ $t('objects.viewType.kanban') }}</div>
+
+            <div class="flex-1" />
+
+            <mdi-plus class="group-hover:text-primary" />
+          </div>
+        </a-tooltip>
+      </a-menu-item>
+
+      <a-menu-item key="section" class="group !flex !items-center !my-0 !h-2.5rem nc-create-section" @click="onOpenSectionModal">
+        <a-tooltip :mouse-enter-delay="1" placement="left">
+          <template #title>
+            {{ $t('msg.info.addSection') }}
+          </template>
+
+          <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
+            <div>{{ $t('objects.section') }}</div>
 
             <div class="flex-1" />
 

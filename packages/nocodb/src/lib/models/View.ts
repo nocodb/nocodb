@@ -39,6 +39,7 @@ export default class View implements ViewType {
   order: number;
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
+  section?: string;
 
   fk_model_id: string;
   model?: Model;
@@ -255,6 +256,7 @@ export default class View implements ViewType {
       show: true,
       is_default: view.is_default,
       order,
+      section: view.section,
       type: view.type,
       fk_model_id: view.fk_model_id,
       project_id: view.project_id,
@@ -837,6 +839,7 @@ export default class View implements ViewType {
     body: {
       title?: string;
       order?: number;
+      section?: string;
       show_system_fields?: boolean;
       lock_type?: string;
       password?: string;
@@ -848,6 +851,7 @@ export default class View implements ViewType {
     const updateObj = extractProps(body, [
       'title',
       'order',
+      'section',
       'show_system_fields',
       'lock_type',
       'password',

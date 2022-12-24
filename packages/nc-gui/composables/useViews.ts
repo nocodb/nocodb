@@ -1,9 +1,10 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
 import { ref, unref, useNuxtApp, watch } from '#imports'
+import type { SectionType } from '~/lib'
 
 export function useViews(meta: MaybeRef<TableType | undefined>) {
-  const views = ref<ViewType[]>([])
+  const sections = ref<SectionType[]>([])
   const isLoading = ref(false)
 
   const { $api } = useNuxtApp()
@@ -15,7 +16,19 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
     if (_meta && _meta.id) {
       const response = (await $api.dbView.list(_meta.id)).list as ViewType[]
       if (response) {
-        views.value = response.sort((a, b) => a.order! - b.order!)
+        const views = response.sort((a, b) => a.order! - b.order!)
+        const sectionNames = [...new Set(views.map((v) => v.section).filter((v) => v))].sort() as string[]
+        sectionNames.push('')
+        sections.value = sectionNames.map((name) => ({
+          name,
+          views: views.filter((v) => {
+            if (name === '') {
+              return !v.section
+            } else {
+              return v.section === name
+            }
+          }),
+        }))
       }
     }
 
@@ -24,5 +37,5 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
 
   watch(() => unref(meta), loadViews, { immediate: true })
 
-  return { views, isLoading, loadViews }
+  return { sections, isLoading, loadViews }
 }

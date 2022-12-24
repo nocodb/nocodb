@@ -18,18 +18,5 @@ onMounted(loadProject)
         </div>
       </div>
     </div>
-
-    <div class="flex-1 min-w-0 flex justify-end gap-2">
-      <div class="flex items-center">
-        <a-button class="!rounded-md">
-          {{ $t('general.save') }}
-        </a-button>
-      </div>
-      <div class="flex items-center gap-1">
-        <a-button class="!rounded-md" type="primary">
-          {{ $t('general.generate') }}
-        </a-button>
-      </div>
-    </div>
   </div>
 </template>

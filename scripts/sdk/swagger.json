@@ -171,6 +171,103 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/magic": {
+      "post": {
+        "summary": "Create page using NocoAI",
+        "operationId": "create-magic",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Schema title",
+                    "required":true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create page using NocoAI"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/import": {
+      "post": {
+        "summary": "Import documentation",
+        "operationId": "import",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "description": "Import source",
+                    "required":true
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Source type",
+                    "required":true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "User name"
+                  },
+                  "repo": {
+                    "type": "string",
+                    "description": "Repository name"
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Branch name"
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Path inside repository"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create page using NocoAI"
+      },
+      "parameters": []
+    },
     "/api/v1/auth/user/signup": {
       "post": {
         "summary": "Signup",
@@ -1973,6 +2070,128 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TableReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "table-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "table-seed",
+                "type": "object",
+                "properties": {
+                  "table_name": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "table_name",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "schema-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "schema-seed",
+                "type": "object",
+                "properties": {
+                  "schema_name": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "schema_name",
+                  "title"
+                ]
               }
             }
           }
@@ -6442,6 +6661,54 @@
           }
         },
         "description": ""
+      }
+    },
+    "/api/v1/db/meta/select/magic": {
+      "parameters": [],
+      "post": {
+        "summary": "Get select options using NocoAI",
+        "operationId": "utils-select-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "table": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Get select options using NocoAI"
       }
     },
     "/api/v1/url_to_config": {

@@ -13,7 +13,9 @@ const vModel = useVModel(props, 'value', emit)
 
 const { formState, setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
 
-const { $state } = useNuxtApp()
+const { project } = useProject()
+
+const { $api } = useNuxtApp()
 
 const loadMagic = ref(false)
 
@@ -115,20 +117,12 @@ const addNewOption = () => {
   options.push(tempOption)
 }
 
-const { appInfo } = $(useGlobal())
-
-const baseURL = appInfo.ncSiteUrl
-
 const optionsMagic = async () => {
   loadMagic.value = true
-  const res: Array<string> = await $fetch(`/api/v1/db/meta/select/magic`, {
-    method: 'POST',
-    baseURL,
-    headers: { 'xc-auth': $state.token.value as string },
-    body: {
-      title: formState.value?.title,
-      table: formState.value?.table_name,
-    },
+  const res: Array<string> = await $api.utils.selectMagic({
+    schema: project.value?.title,
+    title: formState.value?.title,
+    table: formState.value?.table_name,
   })
 
   if (res.length) {

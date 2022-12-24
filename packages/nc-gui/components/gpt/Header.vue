@@ -4,7 +4,7 @@ const { gptProject } = useGPTStoreOrThrow()
 </script>
 
 <template>
-  <div class="flex w-full h-full items-center py-4">
+  <div v-if="gptProject" class="flex w-full h-full items-center py-4">
     <!-- TODO: update -->
     <img src="https://dummyimage.com/48x48/000/fff" class="h-20 w-20 p-2" />
     <div class="flex min-w-0 w-200 text-base">

@@ -459,46 +459,6 @@ watch(gptView, async () => {
       >
         <a-form ref="formRef" :model="formState" class="nc-form" no-style>
           <a-card class="!rounded !shadow !m-2 md:(!m-4) xl:(!m-8)" :body-style="{ paddingLeft: '0px', paddingRight: '0px' }">
-            <!-- Header -->
-            <div v-if="isEditable" class="px-4 lg:px-12">
-              <a-form-item v-if="isEditable">
-                <a-input
-                  v-model:value="formViewData.heading"
-                  class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  :style="{ borderRightWidth: '0px !important' }"
-                  size="large"
-                  hide-details
-                  placeholder="Form Title"
-                  :bordered="false"
-                  data-testid="nc-form-heading"
-                  @blur="updateView"
-                  @keydown.enter="updateView"
-                />
-              </a-form-item>
-            </div>
-            <div v-else class="px-4 ml-3 w-full text-bold text-4xl">{{ formViewData.heading }}</div>
-
-            <!-- Sub Header -->
-            <div v-if="isEditable" class="px-4 lg:px-12">
-              <a-form-item>
-                <a-input
-                  v-model:value="formViewData.subheading"
-                  class="w-full !border-0 !border-b-1 !border-dashed !rounded-none !border-gray-400"
-                  :style="{ borderRightWidth: '0px !important' }"
-                  size="large"
-                  hide-details
-                  :placeholder="$t('msg.info.formDesc')"
-                  :bordered="false"
-                  :disabled="!isEditable"
-                  data-testid="nc-form-sub-heading"
-                  @blur="updateView"
-                  @click="updateView"
-                />
-              </a-form-item>
-            </div>
-
-            <div v-else class="px-4 ml-3 w-full text-bold text-md">{{ formViewData.subheading || '---' }}</div>
-
             <Draggable
               ref="draggableRef"
               :list="localColumns"
@@ -646,80 +606,8 @@ watch(gptView, async () => {
                 </div>
               </template>
             </Draggable>
-
-            <div class="justify-center flex mt-6">
-              <button type="submit" class="uppercase scaling-btn nc-form-submit" data-testid="nc-form-submit" @click="submitForm">
-                {{ $t('general.submit') }}
-              </button>
-            </div>
           </a-card>
         </a-form>
-
-        <a-divider />
-
-        <div v-if="isEditable" class="px-4 flex flex-col gap-2">
-          <!-- After form is submitted -->
-          <div class="text-lg text-gray-700">
-            {{ $t('msg.info.afterFormSubmitted') }}
-          </div>
-
-          <!-- Show this message -->
-          <div class="text-gray-500 text-bold">{{ $t('msg.info.showMessage') }}:</div>
-          <a-textarea
-            v-model:value="formViewData.success_msg"
-            :rows="3"
-            hide-details
-            class="nc-form-after-submit-msg"
-            data-testid="nc-form-after-submit-msg"
-            @change="updateView"
-          />
-
-          <!-- Other options -->
-          <div class="flex flex-col gap-2 mt-4">
-            <div class="flex items-center">
-              <!-- Show "Submit Another Form" button -->
-              <a-switch
-                v-model:checked="formViewData.submit_another_form"
-                v-e="[`a:form-view:submit-another-form`]"
-                size="small"
-                class="nc-form-checkbox-submit-another-form"
-                data-testid="nc-form-checkbox-submit-another-form"
-                @change="updateView"
-              />
-              <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
-            </div>
-
-            <div class="flex items-center">
-              <!-- Show a blank form after 5 seconds -->
-              <a-switch
-                v-model:checked="formViewData.show_blank_form"
-                v-e="[`a:form-view:show-blank-form`]"
-                size="small"
-                class="nc-form-checkbox-show-blank-form"
-                data-testid="nc-form-checkbox-show-blank-form"
-                @change="updateView"
-              />
-
-              <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
-            </div>
-
-            <div class="mb-12 flex items-center">
-              <a-switch
-                v-model:checked="emailMe"
-                v-e="[`a:form-view:email-me`]"
-                size="small"
-                class="nc-form-checkbox-send-email"
-                data-testid="nc-form-checkbox-send-email"
-                @change="onEmailChange"
-              />
-
-              <!-- Email me at <email> -->
-              <span class="ml-4">
-                {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>
-              </span>
-            </div>
-          </div>
-        </div>
       </a-card>
     </a-col>
   </a-row>

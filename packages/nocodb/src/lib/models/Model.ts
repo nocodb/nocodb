@@ -1,5 +1,5 @@
 import Noco from '../Noco';
-import { parseMetaProp } from '../utils/modelUtils'
+import { parseMetaProp } from '../utils/modelUtils';
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
 import { XKnex } from '../db/sql-data-mapper';
@@ -22,8 +22,6 @@ import View from './View';
 import { NcError } from '../meta/helpers/catchError';
 import Audit from './Audit';
 import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
-
-
 
 export default class Model implements TableType {
   copy_enabled: boolean;
@@ -179,7 +177,10 @@ export default class Model implements TableType {
         }
       );
 
-      parseMetaProp(modelList);
+      // parse meta of each model
+      for (const model of modelList) {
+        model.meta = parseMetaProp(model);
+      }
 
       if (base_id) {
         await NocoCache.setList(
@@ -220,7 +221,10 @@ export default class Model implements TableType {
         MetaTable.MODELS
       );
 
-      parseMetaProp(modelList);
+      // parse meta of each model
+      for (const model of modelList) {
+        model.meta = parseMetaProp(model);
+      }
 
       await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
     }
@@ -244,7 +248,7 @@ export default class Model implements TableType {
       modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, id);
 
       if (modelData) {
-        parseMetaProp(modelData);
+        modelData.meta = parseMetaProp(modelData);
         await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
       }
     }
@@ -272,25 +276,7 @@ export default class Model implements TableType {
       ));
     if (!modelData) {
       modelData = await ncMeta.metaGet2(null, null, MetaTable.MODELS, k);
-      parseMetaProp(modelData);
-      // if (
-      //   this.baseModels?.[modelData.base_id]?.[modelData.db_alias]?.[
-      //     modelData.title
-      //   ]
-      // ) {
-      //   delete this.baseModels[modelData.base_id][modelData.db_alias][
-      //     modelData.title
-      //   ];
-      // }
-      // if (
-      //   this.baseModels?.[modelData.base_id]?.[modelData.db_alias]?.[
-      //     modelData.id
-      //   ]
-      // ) {
-      //   delete this.baseModels[modelData.base_id][modelData.db_alias][
-      //     modelData.id
-      //   ];
-      // }
+      modelData.meta = parseMetaProp(modelData);
     }
     if (modelData) {
       await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
@@ -324,7 +310,7 @@ export default class Model implements TableType {
           table_name,
         }
       );
-      parseMetaProp(modelData);
+      modelData.meta = parseMetaProp(modelData);
       await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
       // modelData.filters = await Filter.getFilterObject({
       //   viewId: modelData.id

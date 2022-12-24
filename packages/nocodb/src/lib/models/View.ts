@@ -119,7 +119,7 @@ export default class View implements ViewType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, viewId);
-      parseMetaProp(view);
+      view.meta = parseMetaProp(view);
       await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
     }
 
@@ -158,7 +158,7 @@ export default class View implements ViewType {
           ],
         }
       );
-      parseMetaProp(view);
+      view.meta = parseMetaProp(view);
       // todo: cache - titleOrId can be viewId so we need a different scope here
       await NocoCache.set(
         `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
@@ -191,7 +191,7 @@ export default class View implements ViewType {
         },
         null
       );
-      parseMetaProp(view);
+      view.meta = parseMetaProp(view);
       await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
     }
     return view && new View(view);
@@ -208,7 +208,9 @@ export default class View implements ViewType {
           order: 'asc',
         },
       });
-      parseMetaProp(viewsList);
+      for (const view of viewsList) {
+        view.meta = parseMetaProp(view);
+      }
       await NocoCache.setList(CacheScope.VIEW, [modelId], viewsList);
     }
     viewsList.sort(
@@ -262,7 +264,7 @@ export default class View implements ViewType {
       meta: view.meta ?? {},
     };
 
-    stringifyMetaProp(insertObj);
+    insertObj.meta = stringifyMetaProp(insertObj);
 
     // get project and base id if missing
     if (!(view.project_id && view.base_id)) {
@@ -722,7 +724,7 @@ export default class View implements ViewType {
     });
 
     if (view) {
-      parseMetaProp(view);
+      view.meta = parseMetaProp(view);
     }
 
     return view && new View(view);
@@ -870,7 +872,9 @@ export default class View implements ViewType {
     }
 
     // if meta data defined then stringify it
-    stringifyMetaProp(updateObj);
+    if ('meta' in updateObj) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
 
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.VIEWS, updateObj, viewId);

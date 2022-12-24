@@ -1,4 +1,5 @@
-import type { ProjectType, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
+import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg, useInjectionState, useNuxtApp } from '#imports'
 
@@ -13,6 +14,20 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   const { $api } = useNuxtApp()
 
+  /** getters */
+  const isWorkspaceCreator = computed(() => {
+    // todo: type correction
+    return (
+      activeWorkspace.value?.roles === WorkspaceUserRoles.CREATOR || activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER
+    )
+  })
+
+  const isWorkspaceOwner = computed(() => {
+    // todo: type correction
+    return activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER
+  })
+
+  /** actions */
   const loadWorkspaceList = async () => {
     try {
       // todo: pagination
@@ -139,6 +154,8 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     updateCollaborator,
     projects,
     collaborators,
+    isWorkspaceCreator,
+    isWorkspaceOwner,
   }
 })
 

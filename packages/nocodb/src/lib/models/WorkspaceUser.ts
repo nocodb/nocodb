@@ -144,6 +144,7 @@ export class WorkspaceUser {
       `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
       `${MetaTable.WORKSPACE_USER}.invite_token`,
       `${MetaTable.WORKSPACE_USER}.invite_accepted`,
+      `${MetaTable.WORKSPACE_USER}.created_at`,
       `${MetaTable.WORKSPACE_USER}.roles as roles`
     );
     // todo : pagination

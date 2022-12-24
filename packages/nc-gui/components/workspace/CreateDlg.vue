@@ -6,7 +6,6 @@ import { extractSdkResponseErrorMsg } from '~/utils'
 
 const props = defineProps<{
   modelValue: boolean
-  baseId: string
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success'])

@@ -466,7 +466,10 @@ watch(
                 <a-menu class="!py-0 rounded text-sm">
                   <a-menu-item-group class="!px-0 !mx-0">
                     <template #title>
-                      <div class="flex items-center">Noco<PhSparkleFill class="ml-1 text-orange-400" /></div>
+                      <div class="flex items-center">
+                        Noco
+                        <PhSparkleFill class="ml-1 text-orange-400" />
+                      </div>
                     </template>
                     <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
                       <div class="color-transition nc-project-menu-item group">
@@ -714,7 +717,10 @@ watch(
                         <a-menu class="!py-0 rounded text-sm">
                           <a-menu-item-group class="!px-0 !mx-0">
                             <template #title>
-                              <div class="flex items-center">Noco<PhSparkleFill class="ml-1 text-orange-400" /></div>
+                              <div class="flex items-center">
+                                Noco
+                                <PhSparkleFill class="ml-1 text-orange-400" />
+                              </div>
                             </template>
                             <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(bases[0].id)">
                               <div class="color-transition nc-project-menu-item group">
@@ -820,7 +826,10 @@ watch(
                         <a-menu class="!py-0 rounded text-sm">
                           <a-menu-item-group class="!px-0 !mx-0">
                             <template #title>
-                              <div class="flex items-center">Noco<PhSparkleFill class="ml-1 text-orange-400" /></div>
+                              <div class="flex items-center">
+                                Noco
+                                <PhSparkleFill class="ml-1 text-orange-400" />
+                              </div>
                             </template>
                             <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(base.id)">
                               <div class="color-transition nc-project-menu-item group">
@@ -1026,16 +1035,21 @@ watch(
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
       <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      <!--
+           todo: enable it back later
+           disable at the moment to avoid issue with navigation
 
-      <GithubButton
-        class="ml-2 py-1"
-        href="https://github.com/nocodb/nocodb"
-        data-icon="octicon-star"
-        data-show-count="true"
-        data-size="large"
-      >
-        Star
-      </GithubButton>
+           <GithubButton
+              class="ml-2 py-1"
+              href="https://github.com/nocodb/nocodb"
+              data-icon="octicon-star"
+              data-show-count="true"
+              data-size="large"
+              v-if="$route.name"
+            >
+              Star
+            </GithubButton>
+            -->
     </div>
   </div>
 </template>

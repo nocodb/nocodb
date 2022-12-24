@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { NcProjectType, navigateTo, stringToColour, useWorkspaceStoreOrThrow } from '#imports'
+import { NcProjectType, navigateTo, stringToColour, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 
-const { projects } = useWorkspaceStoreOrThrow()
+const { projects, loadProjects } = useWorkspaceStoreOrThrow()
 
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
@@ -45,13 +45,13 @@ const openProject = async (project: ProjectType) => {
               <MdiDatabaseOutline v-else class="text-gray-400 text-xl" />
             </div>
           </td>
-          <td>{{ (i + 3) % 20 }} hours ago</td>
+          <td>{{ timeAgo(project.created_at) }}</td>
           <td>
             {{ project.role }}
           </td>
           <td>
             <a-dropdown>
-              <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
+              <MdiDotsVertical class="!text-gray-400 nc-workspace-menu" @click.stop />
               <template #overlay>
                 <a-menu>
                   <a-menu-item>

@@ -380,7 +380,7 @@ const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
 export async function selectOptionsMagic(req: Request, res: Response) {
   const response = await openai.createCompletion({
     model: "text-davinci-003",
-    prompt: `return options for '${req.body.title}' column in '${req.body.table}' table as json string array:`,
+    prompt: `return select options for '${req.body.title}' column for '${req.body.table}' table in '${req.body.schema}' schema as Array<string> in json`,
     temperature: 0.7,
     max_tokens: 4000,
     top_p: 1,

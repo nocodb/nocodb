@@ -128,7 +128,7 @@ async function magic(
 
       const pages = JSON.parse(response.data.choices[0].text);
 
-      for (const page of pages.length ? pages : pages.data) {
+      for (const page of pages.length ? pages : (pages.title ? [pages] : pages.data)) {
         await handlePageJSON(page, req.body.projectId, undefined, (req as any)?.session?.passport?.user as UserType);
       }
 

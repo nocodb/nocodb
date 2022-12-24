@@ -1032,6 +1032,68 @@ export class Api<
         format: 'json',
         ...params,
       }),
+
+    /**
+     * @description Create page using NocoAI
+     *
+     * @tags Noco docs
+     * @name CreateMagic
+     * @summary Create page using NocoAI
+     * @request POST:/api/v1/docs/magic
+     * @response `200` `void` OK
+     */
+    createMagic: (
+      data: {
+        /** Schema title */
+        title: string;
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Create page using NocoAI
+     *
+     * @tags Noco docs
+     * @name Import
+     * @summary Import documentation
+     * @request POST:/api/v1/docs/import
+     * @response `200` `void` OK
+     */
+    import: (
+      data: {
+        /** Import source */
+        from: string;
+        /** Source type */
+        type: string;
+        /** Project id */
+        projectId: string;
+        /** User name */
+        user?: string;
+        /** Repository name */
+        repo?: string;
+        /** Branch name */
+        branch?: string;
+        /** Path inside repository */
+        path?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/import`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
   };
   auth = {
     /**
@@ -2216,6 +2278,58 @@ export class Api<
     ) =>
       this.request<TableType, any>({
         path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name TableMagic
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic
+     * @response `200` `TableType` OK
+     */
+    tableMagic: (
+      projectId: string,
+      baseId: string,
+      data: {
+        table_name: string;
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name SchemaMagic
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic
+     * @response `200` `TableType` OK
+     */
+    schemaMagic: (
+      projectId: string,
+      baseId: string,
+      data: {
+        schema_name: string;
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/schema/magic`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -4330,6 +4444,32 @@ export class Api<
         any
       >({
         path: `/api/v1/db/meta/connection/test`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get select options using NocoAI
+     *
+     * @tags Utils
+     * @name SelectMagic
+     * @summary Get select options using NocoAI
+     * @request POST:/api/v1/db/meta/select/magic
+     * @response `200` `(string)[]` OK
+     */
+    selectMagic: (
+      data: {
+        title: string;
+        table: string;
+        schema?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<string[], any>({
+        path: `/api/v1/db/meta/select/magic`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

@@ -501,7 +501,7 @@ export async function tableCreateMagic(req: Request<any, any, TableReqType>, res
   res.json(table);
 }
 
-export async function schemaMagic(req: Request<any, any, TableReqType>, res) {
+export async function schemaMagic(req: Request<any, any, { title: string; schema_name: string }>, res) {
   const project = await Project.getWithInfo(req.params.projectId);
   let base = project.bases[0];
 
@@ -509,9 +509,9 @@ export async function schemaMagic(req: Request<any, any, TableReqType>, res) {
     base = project.bases.find((b) => b.id === req.params.baseId);
   }
 
-  if (
-    !req.body.table_name ||
-    (project.prefix && project.prefix === req.body.table_name)
+  /* if (
+    !req.body.schema_name ||
+    (project.prefix && project.prefix === req.body.schema_name)
   ) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
@@ -519,15 +519,15 @@ export async function schemaMagic(req: Request<any, any, TableReqType>, res) {
   }
 
   if (base.is_meta && project.prefix) {
-    if (!req.body.table_name.startsWith(project.prefix)) {
-      req.body.table_name = `${project.prefix}_${req.body.table_name}`;
+    if (!req.body.schema_name.startsWith(project.prefix)) {
+      req.body.schema_name = `${project.prefix}_${req.body.schema_name}`;
     }
   }
 
-  req.body.table_name = DOMPurify.sanitize(req.body.table_name);
+  req.body.schema_name = DOMPurify.sanitize(req.body.schema_name);
 
   // validate table name
-  if (/^\s+|\s+$/.test(req.body.table_name)) {
+  if (/^\s+|\s+$/.test(req.body.schema_name)) {
     NcError.badRequest(
       'Leading or trailing whitespace not allowed in table names'
     );
@@ -535,7 +535,7 @@ export async function schemaMagic(req: Request<any, any, TableReqType>, res) {
 
   if (
     !(await Model.checkTitleAvailable({
-      table_name: req.body.table_name,
+      table_name: req.body.schema_name,
       project_id: project.id,
       base_id: base.id,
     }))
@@ -545,7 +545,7 @@ export async function schemaMagic(req: Request<any, any, TableReqType>, res) {
 
   if (!req.body.title) {
     req.body.title = getTableNameAlias(
-      req.body.table_name,
+      req.body.schema_name,
       project.prefix,
       base
     );
@@ -559,7 +559,7 @@ export async function schemaMagic(req: Request<any, any, TableReqType>, res) {
     }))
   ) {
     NcError.badRequest('Duplicate table alias');
-  }
+  } */
 
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
@@ -573,8 +573,8 @@ export async function schemaMagic(req: Request<any, any, TableReqType>, res) {
     tableNameLengthLimit = 128;
   }
 
-  if (req.body.table_name.length > tableNameLengthLimit) {
-    NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+  if (req.body.schema_name.length > tableNameLengthLimit) {
+    NcError.badRequest(`Schema name exceeds ${tableNameLengthLimit} characters`);
   }
 
   const response = await openai.createCompletion({

@@ -25,7 +25,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { t } = useI18n()
 
-  const { $e, $api, $state } = useNuxtApp()
+  const { $e, $api } = useNuxtApp()
 
   const { getMeta, removeMeta } = useMetas()
 
@@ -64,17 +64,10 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     if (!sqlUi?.value) return
 
     try {
-      const tableMeta = await $fetch(
-        `http://localhost:8080/api/v1/db/meta/projects/${project?.value?.id}/${baseId}/tables/magic`,
-        {
-          method: 'POST',
-          headers: { 'xc-auth': $state.token.value as string },
-          body: {
-            table_name: table.table_name,
-            title: table.title,
-          },
-        },
-      )
+      const tableMeta = await $api.base.tableMagic(project?.value?.id as string, baseId as string, {
+        table_name: table.table_name,
+        title: table.title,
+      })
 
       $e('a:table:create')
       onTableCreate?.(tableMeta as TableType)
@@ -87,17 +80,10 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     if (!sqlUi?.value) return
 
     try {
-      const tableMeta = await $fetch(
-        `http://localhost:8080/api/v1/db/meta/projects/${project?.value?.id}/${baseId}/schema/magic`,
-        {
-          method: 'POST',
-          headers: { 'xc-auth': $state.token.value as string },
-          body: {
-            table_name: table.table_name,
-            title: table.title,
-          },
-        },
-      )
+      const tableMeta = await $api.base.schemaMagic(project?.value?.id as string, baseId as string, {
+        schema_name: table.table_name,
+        title: table.title,
+      })
 
       $e('a:table:create')
       onTableCreate?.(tableMeta as TableType)

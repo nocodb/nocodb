@@ -4,22 +4,23 @@ import type { TableInfoType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import {
+  ActiveViewInj,
+  MetaInj,
   useGPTStoreOrThrow,
   useI18n,
-  useProject,
   useProvideSmartsheetRowStore,
   useProvideSmartsheetStore,
   useUIPermission,
   useViewData,
 } from '#imports'
-import type { Permission } from '~/lib'
 
 const { gptTable, gptView } = useGPTStoreOrThrow()
 
-const { sqlUis } = useProject()
-console.log(sqlUis.value)
+provide(MetaInj, gptTable as Ref<TableType>)
 
-// const { getMeta } = useMetas()
+provide(ActiveViewInj, gptView)
+
+provide(IsFormInj, ref(true))
 
 useProvideSmartsheetStore(gptView as Ref<ViewType>, gptTable as Ref<TableType>)
 
@@ -39,7 +40,7 @@ reloadEventHook.on(async () => {
   setFormData()
 })
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumns(gptView as Ref<ViewType>, gptTable as Ref<TableType>, async () =>
+const { saveOrUpdate } = useViewColumns(gptView as Ref<ViewType>, gptTable as Ref<TableType>, async () =>
   reloadEventHook.trigger(),
 )
 
@@ -59,8 +60,6 @@ const { isUIAllowed } = useUIPermission()
 const { t } = useI18n()
 
 const formState = reactive({})
-
-const isEditable = isUIAllowed('editFormView' as Permission)
 
 const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   gptTable as Ref<TableType>,
@@ -149,16 +148,6 @@ function hideColumn(idx: number) {
   $e('a:form-view:hide-columns')
 }
 
-async function addAllColumns() {
-  for (const col of (localColumns as Record<string, any>)?.value) {
-    if (!systemFieldsIds.value.includes(col.fk_column_id)) {
-      col.show = true
-    }
-  }
-  await showAll(systemFieldsIds.value)
-  $e('a:form-view:add-all')
-}
-
 function isDbRequired(column: Record<string, any>) {
   if (hiddenCols.includes(column.fk_column_id)) {
     return false
@@ -197,31 +186,6 @@ function shouldSkipColumn(col: Record<string, any>) {
   return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf) || col.uidt === UITypes.QrCode
 }
 
-async function removeAllColumns() {
-  for (const col of (localColumns as Record<string, any>)?.value) {
-    if (!shouldSkipColumn(col)) col.show = false
-  }
-  await hideAll(
-    (localColumns as Record<string, any>)?.value
-      .filter((col: Record<string, any>) => shouldSkipColumn(col))
-      .map((col: Record<string, any>) => col.fk_column_id),
-  )
-  $e('a:form-view:remove-all')
-}
-
-async function checkSMTPStatus() {
-  if (emailMe.value) {
-    const emailPluginActive = await $api.plugin.status('SMTP')
-    if (!emailPluginActive) {
-      emailMe.value = false
-      // Please activate SMTP plugin in App store for enabling email notification
-      message.info(t('msg.toast.formEmailSMTP'))
-      return false
-    }
-  }
-  return true
-}
-
 function setFormData() {
   console.log('setFormData')
   const col = formColumnData?.value || []
@@ -232,16 +196,8 @@ function setFormData() {
     show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
   }
 
-  // email me
-  let data: Record<string, boolean> = {}
-  try {
-    data = JSON.parse(formViewData.value?.email || '') || {}
-  } catch (e) {}
-
-  emailMe.value = data[state.user.value?.email as string]
-
   localColumns.value = col
-    .filter((f) => f.show && !hiddenColTypes.includes(f.uidt))
+    .filter((f) => !hiddenColTypes.includes(f.uidt))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
@@ -250,8 +206,6 @@ function setFormData() {
   hiddenColumns.value = col.filter(
     (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !hiddenColTypes.includes(f.uidt),
   )
-
-  console.log(formColumnData.value)
 }
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
@@ -270,16 +224,6 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)
 }
 
-async function updateEmail() {
-  try {
-    if (!(await checkSMTPStatus())) return
-
-    const data = formViewData.value?.email ? JSON.parse(formViewData.value?.email) : {}
-    data[state.user.value?.email as string] = emailMe.value
-    formViewData.value!.email = JSON.stringify(data)
-  } catch (e) {}
-}
-
 const updateView = useDebounceFn(
   () => {
     if ((formViewData.value?.subheading?.length || 0) > 255) {
@@ -292,32 +236,10 @@ const updateView = useDebounceFn(
   { maxWait: 2000 },
 )
 
-function onEmailChange() {
-  updateEmail()
-  updateView()
-}
-
 async function submitCallback() {
   await loadFormView()
   setFormData()
   showColumnDropdown.value = false
-}
-
-async function submitForm() {
-  try {
-    await formRef.value?.validateFields()
-  } catch (e: any) {
-    e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
-    if (e.errorFields.length) return
-  }
-
-  const insertedRowData = await insertRow({ row: formState, oldRow: {}, rowMeta: { new: true } })
-
-  if (insertedRowData) {
-    await syncLTARRefs(insertedRowData)
-  }
-
-  submitted.value = true
 }
 
 const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {

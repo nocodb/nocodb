@@ -62,7 +62,7 @@ onMounted(() => {
 
 watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {
   if (vModel.value.fk_barcode_value_column_id == null) {
-    vModel.value.fk_barcode_value_column_id = newColumnsAllowedAsBarcodeValue?.[0].value
+    vModel.value.fk_barcode_value_column_id = newColumnsAllowedAsBarcodeValue?.[0]?.value
   }
 })
 
@@ -70,6 +70,8 @@ setAdditionalValidations({
   fk_barcode_value_column_id: [{ required: true, message: 'Required' }],
   barcode_format: [{ required: true, message: 'Required' }],
 })
+
+const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeValue.value?.length)
 
 // set default meta value
 </script>
@@ -90,7 +92,7 @@ setAdditionalValidations({
             not-found-content="No valid Column Type can be found."
             @click.stop
           />
-          <div v-if="!columnsAllowedAsBarcodeValue" class="pl-2">
+          <div v-if="showBarcodeValueColumnInfoIcon" class="pl-2">
             <a-tooltip placement="bottom">
               <template #title>
                 <span>

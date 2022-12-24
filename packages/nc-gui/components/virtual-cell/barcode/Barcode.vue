@@ -26,6 +26,11 @@ const barcodeMeta = $computed(() => {
 
 const handleModalOkClick = () => (modalVisible.value = false)
 
+// const showBarcode = computed(() => barcodeValue?.value?.length > 0 && !tooManyCharsForBarcode.value)
+const showBarcode = computed(() => {
+  return cellValue?.value?.length > 0 && !tooManyCharsForBarcode.value
+})
+
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
 </script>
 
@@ -38,15 +43,11 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     :footer="null"
     @ok="handleModalOkClick"
   >
-    <JsBarcodeWrapper
-      v-if="barcodeValue && !tooManyCharsForBarcode"
-      :barcode-value="barcodeValue"
-      :barcode-format="barcodeMeta.barcodeFormat"
-    >
+    <JsBarcodeWrapper v-if="showBarcode" :barcode-value="barcodeValue" :barcode-format="barcodeMeta.barcodeFormat">
     </JsBarcodeWrapper>
   </a-modal>
   <JsBarcodeWrapper
-    v-if="barcodeValue && !tooManyCharsForBarcode"
+    v-if="showBarcode"
     :barcode-value="barcodeValue"
     :barcode-format="barcodeMeta.barcodeFormat"
     class="nc-barcode-svg"

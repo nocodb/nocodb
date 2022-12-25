@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
 
-const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
+const { signOut, signedIn, user, currentVersion } = useGlobal()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 

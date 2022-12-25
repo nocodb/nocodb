@@ -16,5 +16,16 @@ const { gptProject } = useGPTStoreOrThrow()
         </div>
       </div>
     </div>
+    <div class="flex-1 min-w-0 flex justify-end gap-3">
+      <div class="flex items-center">
+        <a-button class="!rounded-md"> API Snippet </a-button>
+      </div>
+      <div class="flex items-center">
+        <MdiContentCopy />
+      </div>
+      <div class="flex items-center">
+        <MdiGridLarge />
+      </div>
+    </div>
   </div>
 </template>

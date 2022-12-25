@@ -43,7 +43,7 @@ const isCreateDlgOpen = ref(false)
 
 const menu = ref<typeof Menu>()
 
-const { close } = useDialog(resolveComponent('WorkspaceCreateDlg'), {
+useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,
   'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
   'onSuccess': async () => {

@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { Empty } from 'ant-design-vue'
-import { NcProjectType, stringToColour, useWorkspaceStoreOrThrow, navigateTo } from '#imports'
-import { ProjectType } from 'nocodb-sdk'
+import type { ProjectType } from 'nocodb-sdk'
+import { NcProjectType, navigateTo, stringToColour, useWorkspaceStoreOrThrow } from '#imports'
 
-const { projects, loadProjects } = useWorkspaceStoreOrThrow()
+const { projects } = useWorkspaceStoreOrThrow()
 
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
@@ -55,7 +55,7 @@ const openProject = async (project: ProjectType) => {
           </td>
           <td>
             <a-dropdown>
-              <MdiDotsHorizontal @click.stop class="!text-gray-400 nc-workspace-menu" />
+              <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
               <template #overlay>
                 <a-menu>
                   <a-menu-item>

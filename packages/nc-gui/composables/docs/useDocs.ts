@@ -170,20 +170,11 @@ export function useDocs() {
     return `/nc/doc/${projectId()}/${slugs.join('/')}`
   }
 
-  const { appInfo } = $(useGlobal())
-
-  const baseURL = appInfo.ncSiteUrl
-
   const createMagic = async (title: string) => {
     try {
-      await $fetch(`/api/v1/docs/magic`, {
-        method: 'POST',
-        baseURL,
-        headers: { 'xc-auth': $state.token.value as string },
-        body: {
-          title,
-          projectId: projectId(),
-        },
+      await $api.nocoDocs.createMagic({
+        title,
+        projectId: projectId(),
       })
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -193,19 +184,14 @@ export function useDocs() {
   const createImport = async (url: string, type: 'md' | 'nuxt' | 'docusaurus' = 'md', from: 'github' | 'file' = 'github') => {
     try {
       const rs = gh(url)
-      await $fetch(`/api/v1/docs/import`, {
-        method: 'POST',
-        baseURL,
-        headers: { 'xc-auth': $state.token.value as string },
-        body: {
-          user: rs?.owner,
-          repo: rs?.name,
-          branch: rs?.branch,
-          path: rs?.path?.replace(`${rs?.repo}/tree/${rs?.branch}/`, ''),
-          projectId: projectId(),
-          type,
-          from,
-        },
+      await $api.nocoDocs.import({
+        user: rs?.owner || undefined,
+        repo: rs?.name || undefined,
+        branch: rs?.branch,
+        path: rs?.path?.replace(`${rs?.repo}/tree/${rs?.branch}/`, ''),
+        projectId: projectId(),
+        type,
+        from,
       })
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))

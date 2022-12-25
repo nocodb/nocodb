@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
 import { stringToColour, useWorkspaceStoreOrThrow } from '#imports'
 

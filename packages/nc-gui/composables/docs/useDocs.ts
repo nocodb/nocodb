@@ -13,7 +13,7 @@ export interface DocsPage extends DocsPageType {
 }
 
 export function useDocs() {
-  const { $api, $state } = useNuxtApp()
+  const { $api } = useNuxtApp()
   const route = useRoute()
 
   const pages = useState<DocsPage[]>('docsPages', () => [])

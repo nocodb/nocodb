@@ -1,6 +1,5 @@
-import {ProjectRole, Role} from './enums'
-import {WorkspaceUser} from "../../nocodb/src/lib/models/WorkspaceUser";
-import {WorkspaceUserRoles} from "nocodb-sdk";
+import { WorkspaceUserRoles } from 'nocodb-sdk'
+import { ProjectRole, Role } from './enums'
 
 export const NOCO = 'noco'
 
@@ -87,6 +86,4 @@ const rolePermissions = {
 rolePermissions[WorkspaceUserRoles.CREATOR] = rolePermissions[ProjectRole.Creator]
 rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
 
-export {
-  rolePermissions
-}
+export { rolePermissions }

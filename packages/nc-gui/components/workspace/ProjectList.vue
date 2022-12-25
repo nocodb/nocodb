@@ -1,19 +1,18 @@
 <script lang="ts" setup>
-import {Empty} from 'ant-design-vue'
-import {NcProjectType, stringToColour, useWorkspaceStoreOrThrow, navigateTo} from '#imports'
-import {ProjectType} from "nocodb-sdk";
+import { Empty } from 'ant-design-vue'
+import type { ProjectType } from 'nocodb-sdk'
+import { NcProjectType, navigateTo, stringToColour, useWorkspaceStoreOrThrow } from '#imports'
 
-const {projects, loadProjects} = useWorkspaceStoreOrThrow()
-
+const { projects } = useWorkspaceStoreOrThrow()
 
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
     case NcProjectType.DOCS:
       await navigateTo(`/nc/doc/${project.id}`)
-      break;
+      break
     default:
       await navigateTo(`/nc/${project.id}`)
-      break;
+      break
   }
 }
 </script>
@@ -22,56 +21,54 @@ const openProject = async (project: ProjectType) => {
   <div>
     <table v-if="projects?.length" class="nc-project-list-table">
       <thead>
-      <tr>
-        <th>Project Name</th>
-        <th>Project Type</th>
-        <th>Last Modified</th>
-        <th>My Role</th>
-        <th>Actions</th>
-      </tr>
+        <tr>
+          <th>Project Name</th>
+          <th>Project Type</th>
+          <th>Last Modified</th>
+          <th>My Role</th>
+          <th>Actions</th>
+        </tr>
       </thead>
       <tbody>
-      <tr v-for="(project, i) of projects" :key="i" class="cursor-pointer hover:bg-gray-50"
-          @click="openProject(project)">
-        <td class="!py-0">
-          <div class="flex items-center nc-project-title gap-2">
-            <span class="color-band" :style="{ backgroundColor: stringToColour(project.title) }"/>
-            {{ project.title }}
-          </div>
-        </td>
-        <td>
-          <div class="flex items-center gap-2">
-            <!-- todo: replace with switch -->
-            <MaterialSymbolsDocs v-if="project.type === NcProjectType.DOCS" class="text-gray-400 text-xl"/>
-            <MdiTransitConnectionVariant v-else-if="project.type === NcProjectType.AUTOMATION"
-                                         class="text-gray-400 text-xl"/>
-            <MdiDatabaseOutline v-else class="text-gray-400 text-xl"/>
-          </div>
-        </td>
-        <td>{{ (i + 3) % 20 }} hours ago</td>
-        <td>
-          {{ project.role }}
-        </td>
-        <td>
-          <a-dropdown>
-            <MdiDotsHorizontal @click.stop class="!text-gray-400 nc-workspace-menu"/>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item>
-                  <div class="flex flex-row items-center py-3 gap-2">
-                    <MdiDeleteOutline/>
-                    Delete Project
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-        </td>
-      </tr>
+        <tr v-for="(project, i) of projects" :key="i" class="cursor-pointer hover:bg-gray-50" @click="openProject(project)">
+          <td class="!py-0">
+            <div class="flex items-center nc-project-title gap-2">
+              <span class="color-band" :style="{ backgroundColor: stringToColour(project.title) }" />
+              {{ project.title }}
+            </div>
+          </td>
+          <td>
+            <div class="flex items-center gap-2">
+              <!-- todo: replace with switch -->
+              <MaterialSymbolsDocs v-if="project.type === NcProjectType.DOCS" class="text-gray-400 text-xl" />
+              <MdiTransitConnectionVariant v-else-if="project.type === NcProjectType.AUTOMATION" class="text-gray-400 text-xl" />
+              <MdiDatabaseOutline v-else class="text-gray-400 text-xl" />
+            </div>
+          </td>
+          <td>{{ (i + 3) % 20 }} hours ago</td>
+          <td>
+            {{ project.role }}
+          </td>
+          <td>
+            <a-dropdown>
+              <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item>
+                    <div class="flex flex-row items-center py-3 gap-2">
+                      <MdiDeleteOutline />
+                      Delete Project
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </td>
+        </tr>
       </tbody>
     </table>
 
-    <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Project list is empty"/>
+    <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Project list is empty" />
   </div>
 </template>
 

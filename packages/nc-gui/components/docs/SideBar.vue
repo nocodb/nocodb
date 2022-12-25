@@ -2,7 +2,7 @@
 import type { Ref } from 'vue'
 import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
-import type { AntTreeNodeDragEnterEvent, AntTreeNodeDropEvent, TreeDataItem } from 'ant-design-vue/lib/tree'
+import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 
 // todo: Move the ant tree data converstion from the composables to here
 const {

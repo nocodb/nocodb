@@ -32,7 +32,7 @@ hooks.hook('page:finish', () => {
 
 <script lang="ts">
 export default {
-  name: 'DocsLayout',
+  name: 'GPTLayout',
 }
 </script>
 

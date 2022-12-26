@@ -1098,7 +1098,7 @@ export class Api<
      */
     deletePage: (
       id: string,
-      data: {
+      query: {
         /** Project id */
         projectId: string;
         /** Book id */
@@ -1109,8 +1109,7 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/docs/page/${id}`,
         method: 'DELETE',
-        body: data,
-        type: ContentType.Json,
+        query: query,
         ...params,
       }),
 

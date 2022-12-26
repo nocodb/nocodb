@@ -4,6 +4,28 @@ definePageMeta({
   hideHeader: true,
   layout: 'docs',
 })
+
+const route = useRoute()
+const { loadBookProject } = useProject()
+const { fetchBooks, fetchNestedChildPagesFromRoute, openedPage, openedBook, books, navigateToFirstBook, fetchPages } = useDocs()
+
+onMounted(async () => {
+  await loadBookProject()
+  await fetchBooks()
+
+  await fetchNestedChildPagesFromRoute()
+  // Navigate to the first page if there is no page selected and only one book exists
+  console.log({
+    slug: route.params.slugs,
+  })
+  if (route.params.slugs?.length < 1 && books.value.length > 0) {
+    await navigateToFirstBook()
+  } else {
+    await fetchPages({
+      book: openedBook.value!,
+    })
+  }
+})
 </script>
 
 <template>
@@ -11,7 +33,13 @@ definePageMeta({
     <template #sidebar>
       <DocsSideBar />
     </template>
-    <DocsPage />
+    <DocsPage v-if="openedPage" />
+    <div v-else>
+      <div class="flex flex-col items-center justify-center h-full">
+        <a-icon type="file-text" class="text-4xl" />
+        <div class="text-2xl mt-4">No page selected</div>
+      </div>
+    </div>
   </NuxtLayout>
 </template>
 

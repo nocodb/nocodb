@@ -12,8 +12,20 @@ import Image from '@tiptap/extension-image'
 import Commands from './commands'
 import suggestion from './suggestion'
 
-const { openedPage, updatePage, openedNestedPages, nestedUrl } = useDocs()
+const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, bookUrl } = useDocs()
 const content = computed(() => openedPage.value?.content || '')
+
+const breadCrumbs = computed(() => {
+  const bookBreadcrumb = {
+    title: openedBook.value!.title,
+    href: bookUrl(openedBook.value!.slug!),
+  }
+  const pagesBreadcrumbs = openedNestedPagesOfBook.value.map((page) => ({
+    title: page.title,
+    href: nestedUrl(page.slug!, openedBook.value!),
+  }))
+  return [bookBreadcrumb, ...pagesBreadcrumbs]
+})
 
 const editor = useEditor({
   extensions: [
@@ -50,7 +62,9 @@ const editor = useEditor({
     openedPage.value.content = editor.getHTML()
   },
 })
+
 const titleInputRef = ref<HTMLInputElement>()
+const titleInputRefLoaded = ref(false)
 
 watch(
   () => content.value,
@@ -61,23 +75,40 @@ watch(
   },
 )
 
+watch(editor, () => {
+  editor.value?.commands.setContent(content.value)
+})
+
 watchDebounced(
-  () => openedPage.value?.title,
-  async () => {
-    if (openedPage.value?.title && openedPage.value?.id) {
-      await updatePage(openedPage.value?.id, { title: openedPage.value?.title } as any)
+  () => [openedPage.value?.id, openedPage.value?.title],
+  async ([newId, newTitle], [oldId, oldTitle]) => {
+    if (newId === oldId && newTitle !== oldTitle) {
+      await updatePage({ pageId: newId!, page: { title: newTitle } as any })
       titleInputRef.value?.focus()
     }
   },
   {
     debounce: 250,
-    maxWait: 350,
+    maxWait: 300,
+  },
+)
+
+// todo: Hack to focus on title when its edited since on edit route is changed
+watch(
+  () => titleInputRef.value,
+  (el) => {
+    // if (!titleInputRefLoaded.value) {
+    //   titleInputRefLoaded.value = true
+    //   return
+    // }
+
+    el?.focus()
   },
 )
 
 watchDebounced(
   content,
-  () => openedPage.value?.id && updatePage(openedPage.value?.id, { content: openedPage.value!.content } as any),
+  () => openedPage.value?.id && updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content } as any }),
   {
     debounce: 300,
     maxWait: 600,
@@ -89,14 +120,14 @@ watchDebounced(
   <a-layout-content>
     <div v-if="openedPage" class="mx-20 px-6 mt-16 flex flex-col gap-y-4">
       <div class="flex flex-row justify-between">
-        <a-breadcrumb v-if="openedNestedPages.length !== 1" class="!px-2">
-          <a-breadcrumb-item v-for="({ slug, title }, index) of openedNestedPages" :key="slug">
+        <a-breadcrumb v-if="breadCrumbs.length >= 0" class="!px-2">
+          <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
             <NuxtLink
               class="!text-gray-400 !hover:text-black docs-breadcrumb-item"
-              :to="nestedUrl(slug!)"
+              :to="href"
               :class="{
-                '!text-black !underline-current': index === openedNestedPages.length - 1,
-                '!underline-transparent !hover:underline-transparent': index !== openedNestedPages.length - 1,
+                '!text-black !underline-current': index === breadCrumbs.length - 1,
+                '!underline-transparent !hover:underline-transparent': index !== breadCrumbs.length - 1,
               }"
             >
               {{ title }}
@@ -127,28 +158,28 @@ watchDebounced(
           <button
             :class="{ 'is-active': editor.isActive('bold') }"
             class="px-1 border-black border bg-white"
-            @click="editor.chain().focus().toggleBold().run()"
+            @click="editor!.chain().focus().toggleBold().run()"
           >
             bold
           </button>
           <button
             :class="{ 'is-active': editor.isActive('italic') }"
             class="px-1 border-black border bg-white"
-            @click="editor.chain().focus().toggleItalic().run()"
+            @click="editor!.chain().focus().toggleItalic().run()"
           >
             italic
           </button>
           <button
             :class="{ 'is-active': editor.isActive('strike') }"
             class="px-1 border-black border bg-white"
-            @click="editor.chain().focus().toggleStrike().run()"
+            @click="editor!.chain().focus().toggleStrike().run()"
           >
             strike
           </button>
           <button
             :class="{ 'is-active': editor.isActive('strike') }"
             class="px-1 border-black border bg-white"
-            @click="editor.chain().focus().toggleBulletList().run()"
+            @click="editor!.chain().focus().toggleBulletList().run()"
           >
             bullet
           </button>
@@ -157,7 +188,7 @@ watchDebounced(
       <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
         <MdiPlus
           class="hover:cursor-pointer hover:bg-gray-100 rounded-md mt-1.5"
-          @click="editor.chain().focus().insertContent('/').run()"
+          @click="editor!.chain().focus().insertContent('/').run()"
         />
       </FloatingMenu>
       <EditorContent :editor="editor" class="px-2" />

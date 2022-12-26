@@ -138,7 +138,6 @@ export default class NcMetaIOImpl extends NcMetaIO {
       query.condition(xcCondition, {});
     }
 
-
     return query.del();
   }
 

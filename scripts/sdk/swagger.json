@@ -231,28 +231,26 @@
         "tags": [
           "Noco docs"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type":"object",
-                "properties": {
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required":true
-                  },
-                  "bookId": {
-                    "type": "string",
-                    "description": "Book id",
-                    "required":true
-                  }
-                }
-              }
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           },
-          "required": true
-        },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "description": "Delete page"
       },
       "put": {

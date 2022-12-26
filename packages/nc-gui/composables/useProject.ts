@@ -106,6 +106,13 @@ const [setup, use] = useInjectionState(() => {
     }
   }
 
+  async function loadBookProject(projectId?: string) {
+    projectId = projectId || (route.params.projectId as string)
+    if (projectId) {
+      project.value = await api.project.read(projectId)
+    }
+  }
+
   async function loadProject(withTheme = true, forcedId?: string) {
     if (forcedId) forcedProjectId = forcedId
     if (projectType === 'base') {
@@ -195,6 +202,7 @@ const [setup, use] = useInjectionState(() => {
     reset,
     isLoading,
     lastOpenedViewMap,
+    loadBookProject,
   }
 }, 'useProject')
 

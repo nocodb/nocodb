@@ -20,6 +20,8 @@ const logout = () => {
 
 const { hooks } = useNuxtApp()
 
+const { project } = useProject()
+
 const isDashboard = computed(() => !!route.params.projectType)
 
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */
@@ -59,7 +61,7 @@ export default {
         </a-tooltip>
       </div>
 
-      <div class="ml-2 font-semibold">Project Name</div>
+      <div class="ml-2 font-semibold">{{ project?.title }}</div>
 
       <div class="flex-1" />
 

@@ -216,6 +216,8 @@ export default class Page {
       }
     );
 
+    if (!pageList || pageList.length > 0) return [];
+
     pageList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
     return pageList;
@@ -240,7 +242,6 @@ export default class Page {
       {
         condition: {
           parent_page_id: parent_page_id ?? null,
-          book_id: bookId,
         },
       }
     );
@@ -269,6 +270,23 @@ export default class Page {
     { id, bookId, projectId },
     ncMeta = Noco.ncMeta
   ): Promise<void> {
+    const page = await this.get({ id, bookId, projectId }, ncMeta);
+    if (!page) throw new Error('Page not found');
+
+    const childPages = await this.getChildPages({
+      bookId,
+      parent_page_id: id,
+      projectId,
+    });
+
+    if (childPages?.length > 0) {
+      await Promise.all(
+        childPages.map((childPage) =>
+          this.delete({ id: childPage.id, bookId, projectId }, ncMeta)
+        )
+      );
+    }
+
     return ncMeta.metaDelete(
       null,
       null,

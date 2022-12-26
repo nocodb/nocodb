@@ -67,7 +67,7 @@ export default {
     <a-layout-header class="!bg-white !p-2">
       <slot name="header" />
     </a-layout-header>
-    <a-layout-content class="px-4 py-4">
+    <a-layout-content>
       <a-row>
         <a-col :span="12">
           <slot name="left" />

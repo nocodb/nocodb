@@ -3,7 +3,7 @@ const activeKey = ref('gpt-form')
 </script>
 
 <template>
-  <a-tabs v-model:activeKey="activeKey">
+  <a-tabs v-model:activeKey="activeKey" class="nc-gpt-tabs">
     <a-tab-pane key="gpt-form" tab="Fields">
       <GptForm />
     </a-tab-pane>
@@ -19,3 +19,13 @@ const activeKey = ref('gpt-form')
     </template>
   </a-tabs>
 </template>
+
+<style scoped lang="scss">
+:deep(.ant-tabs-nav) {
+  @apply !mb-0;
+}
+
+:deep(.ant-tabs-nav-wrap) {
+  @apply !ml-[30px];
+}
+</style>

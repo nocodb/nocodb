@@ -233,41 +233,41 @@ watch(gptView, async () => {
 </script>
 
 <template>
-  <div class="flex items-center flex-wrap justify-end gap-2 px-8">
-    <a-dropdown v-model:visble="showAddFieldDropdown">
-      <template #overlay>
-        <a-menu>
-          <a-menu-item key="add-column" :trigger="['click']">
-            <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
-              <div class="flex items-center py-3" @click.stop="showColumnDropdown = true">
-                <MdiViewColumnOutline class="mr-2" />
-                Add New Column
+  <div class="bg-[#FAFAFA] h-full px-[30px] py-[15px]">
+    <div class="flex items-center flex-wrap justify-end gap-2">
+      <a-dropdown v-model:visble="showAddFieldDropdown">
+        <template #overlay>
+          <a-menu>
+            <a-menu-item key="add-column" :trigger="['click']">
+              <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
+                <div class="flex items-center py-3" @click.stop="showColumnDropdown = true">
+                  <MdiViewColumnOutline class="mr-2" />
+                  Add New Column
+                </div>
+                <template #overlay>
+                  <SmartsheetColumnEditOrAddProvider
+                    v-if="showColumnDropdown"
+                    @submit="submitCallback"
+                    @cancel="showColumnDropdown = false"
+                    @click.stop
+                    @keydown.stop
+                  />
+                </template>
+              </a-dropdown>
+            </a-menu-item>
+            <a-menu-item key="add-column-using-ai">
+              <div class="flex items-center py-3">
+                <PhSparkleFill class="mr-2 text-orange-400" />
+                Add New Column Using AI
               </div>
-              <template #overlay>
-                <SmartsheetColumnEditOrAddProvider
-                  v-if="showColumnDropdown"
-                  @submit="submitCallback"
-                  @cancel="showColumnDropdown = false"
-                  @click.stop
-                  @keydown.stop
-                />
-              </template>
-            </a-dropdown>
-          </a-menu-item>
-          <a-menu-item key="add-column-using-ai">
-            <div class="flex items-center py-3">
-              <PhSparkleFill class="mr-2 text-orange-400" />
-              Add New Column Using AI
-            </div>
-          </a-menu-item>
-        </a-menu>
-      </template>
-      <a-button> Add Field </a-button>
-    </a-dropdown>
-  </div>
+            </a-menu-item>
+          </a-menu>
+        </template>
+        <a-button> Add Field </a-button>
+      </a-dropdown>
+    </div>
 
-  <a-form ref="formRef" :model="formState" class="nc-gtp-form" no-style>
-    <div class="ml-[10px] mr-[25px]">
+    <a-form ref="formRef" :model="formState" class="nc-gtp-form" no-style>
       <Draggable
         ref="draggableRef"
         :list="localColumns"
@@ -352,8 +352,8 @@ watch(gptView, async () => {
           </div>
         </template>
       </Draggable>
-    </div>
-  </a-form>
+    </a-form>
+  </div>
 </template>
 
 <style scoped lang="scss">

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useGPTStoreOrThrow } from '#imports'
 const { gptProject } = useGPTStoreOrThrow()
+
+const showApiSnippetDrawer = ref(false)
 </script>
 
 <template>
@@ -18,7 +20,7 @@ const { gptProject } = useGPTStoreOrThrow()
     </div>
     <div class="flex-1 min-w-0 flex justify-end gap-3">
       <div class="flex items-center">
-        <a-button class="!rounded-md"> API Snippet </a-button>
+        <a-button class="!rounded-md" @click="showApiSnippetDrawer = true"> API Snippet </a-button>
       </div>
       <div class="flex items-center">
         <MdiFormSelect />
@@ -28,4 +30,5 @@ const { gptProject } = useGPTStoreOrThrow()
       </div>
     </div>
   </div>
+  <LazySmartsheetApiSnippet v-model="showApiSnippetDrawer" type="gpt" />
 </template>

@@ -40,8 +40,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     :footer="null"
     @ok="handleModalOkClick"
   >
-    <JsBarcodeWrapper v-if="showBarcode" :barcode-value="barcodeValue" :barcode-format="barcodeMeta.barcodeFormat">
-    </JsBarcodeWrapper>
+    <JsBarcodeWrapper v-if="showBarcode" :barcode-value="barcodeValue" :barcode-format="barcodeMeta.barcodeFormat" />
   </a-modal>
   <JsBarcodeWrapper
     v-if="showBarcode"

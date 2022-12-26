@@ -6,7 +6,9 @@ const maxNumberOfAllowedCharsForQrValue = 2000
 const cellValue = inject(CellValueInj)
 
 const qrValue = computed(() => String(cellValue?.value))
+
 const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
+
 const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value)
 
 const qrCode = useQRCode(qrValue, {

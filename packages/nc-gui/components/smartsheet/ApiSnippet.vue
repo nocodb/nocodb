@@ -18,6 +18,7 @@ import {
 
 const props = defineProps<{
   modelValue: boolean
+  type?: 'gpt' | null
 }>()
 
 const emits = defineEmits(['update:modelValue'])
@@ -79,10 +80,20 @@ let selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clien
 
 const selectedLangName = $ref(langs[0].name)
 
-const apiUrl = $computed(
-  () =>
-    new URL(`/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
-)
+const apiUrl = $computed(() => {
+  if (props.type === 'gpt') {
+    // TODO: update it when the GPT API is ready
+    return new URL(
+      `/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`,
+      (appInfo && appInfo.ncSiteUrl) || '/',
+    ).href
+  } else {
+    return new URL(
+      `/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`,
+      (appInfo && appInfo.ncSiteUrl) || '/',
+    ).href
+  }
+})
 
 const snippet = $computed(
   () =>
@@ -151,8 +162,12 @@ watch($$(activeLang), (newLang) => {
     @after-visible-change="afterVisibleChange"
   >
     <div class="flex flex-col w-full h-full p-4">
-      <!--      Code Snippet -->
+      <!-- Code Snippet -->
       <a-typography-title :level="4" class="pb-1">{{ $t('title.codeSnippet') }}</a-typography-title>
+
+      <a-typography-paragraph v-if="props.type === 'gpt'">
+        You can use following code to start integrating your current prompt and settings into your application.
+      </a-typography-paragraph>
 
       <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
         <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">

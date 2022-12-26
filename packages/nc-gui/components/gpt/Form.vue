@@ -24,8 +24,6 @@ provide(IsFormInj, ref(true))
 
 useProvideSmartsheetStore(gptView as Ref<ViewType>, gptTable as Ref<TableType>)
 
-console.log(gptTable)
-
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(
   gptTable as Ref<TableType>,
   gptView as Ref<ViewType>,
@@ -222,176 +220,140 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)
 }
 
-const updateView = useDebounceFn(
-  () => {
-    if ((formViewData.value?.subheading?.length || 0) > 255) {
-      return message.error(t('msg.error.formDescriptionTooLong'))
-    }
-
-    updateFormView(formViewData.value)
-  },
-  300,
-  { maxWait: 2000 },
-)
-
 async function submitCallback() {
   await loadFormView()
   setFormData()
   showColumnDropdown.value = false
 }
 
-const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
-  if (col.id) {
-    try {
-      await $api.dbView.formColumnUpdate(col.id, col)
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    }
-  }
-}, 250)
-
 watch(gptView, async () => {
-  console.log('loading')
   await loadFormView()
   setFormData()
-  console.log('formViewData', formViewData)
 })
 </script>
 
 <template>
-  <a-card
-    class="border-none h-full"
-    :body-style="{
-      maxWidth: 'max(50vw, 700px)',
-      margin: '0 auto',
-      padding: '0px',
-    }"
-  >
-    <div class="flex items-center flex-wrap justify-end gap-2 px-8 pt-4">
-      <a-dropdown v-model:visble="showAddFieldDropdown">
-        <template #overlay>
-          <a-menu>
-            <a-menu-item key="add-column" :trigger="['click']">
-              <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
-                <div class="flex items-center py-3" @click.stop="showColumnDropdown = true">
-                  <MdiViewColumnOutline class="mr-2" />
-                  Add New Column
-                </div>
-                <template #overlay>
-                  <SmartsheetColumnEditOrAddProvider
-                    v-if="showColumnDropdown"
-                    @submit="submitCallback"
-                    @cancel="showColumnDropdown = false"
-                    @click.stop
-                    @keydown.stop
-                  />
-                </template>
-              </a-dropdown>
-            </a-menu-item>
-            <a-menu-item key="add-column-using-ai">
-              <div class="flex items-center py-3">
-                <PhSparkleFill class="mr-2 text-orange-400" />
-                Add New Column Using AI
+  <div class="flex items-center flex-wrap justify-end gap-2 px-8">
+    <a-dropdown v-model:visble="showAddFieldDropdown">
+      <template #overlay>
+        <a-menu>
+          <a-menu-item key="add-column" :trigger="['click']">
+            <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
+              <div class="flex items-center py-3" @click.stop="showColumnDropdown = true">
+                <MdiViewColumnOutline class="mr-2" />
+                Add New Column
               </div>
-            </a-menu-item>
-          </a-menu>
-        </template>
-        <a-button> Add Field </a-button>
-      </a-dropdown>
-    </div>
-
-    <a-form ref="formRef" :model="formState" class="nc-gtp-form" no-style>
-      <a-card class="!rounded !shadow !m-2 md:(!m-4) xl:(!m-8)" :body-style="{ paddingLeft: '10px', paddingRight: '10px' }">
-        <Draggable
-          ref="draggableRef"
-          :list="localColumns"
-          item-key="fk_column_id"
-          draggable=".item"
-          group="form-inputs"
-          class="h-full"
-          :move="onMoveCallback"
-          @change="onMove($event)"
-          @start="drag = true"
-          @end="drag = false"
-        >
-          <template #item="{ element, index }">
-            <div
-              class="color-transition nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10 ring-1 ring-accent ring-opacity-100) px-4 lg:px-12 py-4 relative"
-              :class="[`nc-form-drag-${element.title.replaceAll(' ', '')}`]"
-              data-testid="nc-form-fields"
-            >
-              <div
-                v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)"
-                class="absolute flex top-2 right-2"
-              >
-                <MdiDeleteOutline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
-              </div>
-
-              <div>
-                <LazySmartsheetHeaderVirtualCell
-                  v-if="isVirtualCol(element)"
-                  :column="{ ...element, title: element.label || element.title }"
-                  :required="isRequired(element, element.required)"
-                  :hide-menu="true"
-                  data-testid="nc-form-input-label"
+              <template #overlay>
+                <SmartsheetColumnEditOrAddProvider
+                  v-if="showColumnDropdown"
+                  @submit="submitCallback"
+                  @cancel="showColumnDropdown = false"
+                  @click.stop
+                  @keydown.stop
                 />
+              </template>
+            </a-dropdown>
+          </a-menu-item>
+          <a-menu-item key="add-column-using-ai">
+            <div class="flex items-center py-3">
+              <PhSparkleFill class="mr-2 text-orange-400" />
+              Add New Column Using AI
+            </div>
+          </a-menu-item>
+        </a-menu>
+      </template>
+      <a-button> Add Field </a-button>
+    </a-dropdown>
+  </div>
 
-                <LazySmartsheetHeaderCell
-                  v-else
-                  :column="{ ...element, title: element.label || element.title }"
-                  :required="isRequired(element, element.required)"
-                  :hide-menu="true"
-                  data-testid="nc-form-input-label"
-                />
-              </div>
+  <a-form ref="formRef" :model="formState" class="nc-gtp-form" no-style>
+    <div class="ml-[10px] mr-[25px]">
+      <Draggable
+        ref="draggableRef"
+        :list="localColumns"
+        item-key="fk_column_id"
+        draggable=".item"
+        group="form-inputs"
+        class="h-full"
+        :move="onMoveCallback"
+        @change="onMove($event)"
+        @start="drag = true"
+        @end="drag = false"
+      >
+        <template #item="{ element, index }">
+          <div
+            class="color-transition nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10 ring-1 ring-accent ring-opacity-100) px-4 lg:px-12 py-4 relative"
+            :class="[`nc-form-drag-${element.title.replaceAll(' ', '')}`]"
+            data-testid="nc-form-fields"
+          >
+            <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="absolute flex top-2 right-2">
+              <MdiDeleteOutline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
+            </div>
 
-              <a-form-item
+            <div>
+              <LazySmartsheetHeaderVirtualCell
                 v-if="isVirtualCol(element)"
-                :name="element.title"
-                class="!mb-0"
-                :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
-              >
-                <LazySmartsheetVirtualCell
-                  v-model="formState[element.title]"
-                  :row="row"
-                  class="nc-input"
-                  :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                  :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                  :column="element"
-                  @click.stop.prevent
-                />
-              </a-form-item>
+                :column="{ ...element, title: element.label || element.title }"
+                :required="isRequired(element, element.required)"
+                :hide-menu="true"
+                data-testid="nc-form-input-label"
+              />
 
-              <a-form-item
+              <LazySmartsheetHeaderCell
                 v-else
-                :name="element.title"
-                class="!mb-0"
-                :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
-              >
-                <LazySmartsheetCell
-                  v-model="formState[element.title]"
-                  class="nc-input"
-                  :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                  :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                  :column="element"
-                  :edit-enabled="true"
-                  @click.stop.prevent
-                />
-              </a-form-item>
-
-              <div class="text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
+                :column="{ ...element, title: element.label || element.title }"
+                :required="isRequired(element, element.required)"
+                :hide-menu="true"
+                data-testid="nc-form-input-label"
+              />
             </div>
-          </template>
 
-          <template #footer>
-            <div v-if="!localColumns.length" class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
-              Drag and drop fields here to add
-            </div>
-          </template>
-        </Draggable>
-      </a-card>
-    </a-form>
-  </a-card>
+            <a-form-item
+              v-if="isVirtualCol(element)"
+              :name="element.title"
+              class="!mb-0"
+              :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
+            >
+              <LazySmartsheetVirtualCell
+                v-model="formState[element.title]"
+                :row="row"
+                class="nc-input"
+                :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                :column="element"
+                @click.stop.prevent
+              />
+            </a-form-item>
+
+            <a-form-item
+              v-else
+              :name="element.title"
+              class="!mb-0"
+              :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
+            >
+              <LazySmartsheetCell
+                v-model="formState[element.title]"
+                class="nc-input"
+                :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                :column="element"
+                :edit-enabled="true"
+                @click.stop.prevent
+              />
+            </a-form-item>
+
+            <div class="text-gray-500 text-xs" data-testid="nc-form-input-help-text-label">{{ element.description }}</div>
+          </div>
+        </template>
+
+        <template #footer>
+          <div v-if="!localColumns.length" class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
+            Click Add Field to add columns
+          </div>
+        </template>
+      </Draggable>
+    </div>
+  </a-form>
 </template>
 
 <style scoped lang="scss">

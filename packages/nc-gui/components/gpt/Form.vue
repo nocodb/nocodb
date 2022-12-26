@@ -80,6 +80,8 @@ const draggableRef = ref()
 
 const systemFieldsIds = ref<Record<string, any>[]>([])
 
+const showAddFieldDropdown = ref(false)
+
 const showColumnDropdown = ref(false)
 
 const moved = ref(false)
@@ -265,23 +267,38 @@ watch(gptView, async () => {
       padding: '0px',
     }"
   >
-    <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
-      <div class="flex items-center flex-wrap justify-end gap-2 px-8 pt-4">
-        <a-button class="flex items-center" @click.stop="showColumnDropdown = true">
-          <span class="color-transition group-hover:text-primary break-words"> Add Field </span>
-        </a-button>
-      </div>
-
-      <template #overlay>
-        <SmartsheetColumnEditOrAddProvider
-          v-if="showColumnDropdown"
-          @submit="submitCallback"
-          @cancel="showColumnDropdown = false"
-          @click.stop
-          @keydown.stop
-        />
-      </template>
-    </a-dropdown>
+    <div class="flex items-center flex-wrap justify-end gap-2 px-8 pt-4">
+      <a-dropdown v-model:visble="showAddFieldDropdown">
+        <template #overlay>
+          <a-menu>
+            <a-menu-item key="add-column" :trigger="['click']">
+              <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
+                <div class="flex items-center py-3" @click.stop="showColumnDropdown = true">
+                  <MdiViewColumnOutline class="mr-2" />
+                  Add New Column
+                </div>
+                <template #overlay>
+                  <SmartsheetColumnEditOrAddProvider
+                    v-if="showColumnDropdown"
+                    @submit="submitCallback"
+                    @cancel="showColumnDropdown = false"
+                    @click.stop
+                    @keydown.stop
+                  />
+                </template>
+              </a-dropdown>
+            </a-menu-item>
+            <a-menu-item key="add-column-using-ai">
+              <div class="flex items-center py-3">
+                <PhSparkleFill class="mr-2 text-orange-400" />
+                Add New Column Using AI
+              </div>
+            </a-menu-item>
+          </a-menu>
+        </template>
+        <a-button> Add Field </a-button>
+      </a-dropdown>
+    </div>
 
     <a-form ref="formRef" :model="formState" class="nc-gtp-form" no-style>
       <a-card class="!rounded !shadow !m-2 md:(!m-4) xl:(!m-8)" :body-style="{ paddingLeft: '10px', paddingRight: '10px' }">

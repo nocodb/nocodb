@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
+import { useNuxtApp, useSmartsheetStoreOrThrow, viewIcons, sectionIcon } from '#imports'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void
@@ -125,6 +125,8 @@ function onOpenSectionModal() {
           </template>
 
           <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
+            <component :is="sectionIcon.icon" :style="{ color: sectionIcon.color }" />
+
             <div>{{ $t('objects.section') }}</div>
 
             <div class="flex-1" />

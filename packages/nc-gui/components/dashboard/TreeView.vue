@@ -18,6 +18,7 @@ import {
   ref,
   resolveComponent,
   useDialog,
+  useGlobal,
   useNuxtApp,
   useProject,
   useRoute,
@@ -26,7 +27,6 @@ import {
   useToggle,
   useUIPermission,
   watchEffect,
-  useGlobal
 } from '#imports'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
@@ -417,7 +417,11 @@ const setIcon = async (icon: string, table: TableType) => {
                       MSSQL
                     </div>
                   </a-menu-item>
-                  <a-menu-item v-if="appInfo.ee" key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)">
+                  <a-menu-item
+                    v-if="appInfo.ee"
+                    key="connect-new-source"
+                    @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
+                  >
                     <div class="color-transition nc-project-menu-item group">
                       <LogosSnowflakeIcon class="group-hover:text-accent" />
                       Snowflake
@@ -533,7 +537,11 @@ const setIcon = async (icon: string, table: TableType) => {
                         MSSQL
                       </div>
                     </a-menu-item>
-                    <a-menu-item v-if="appInfo.ee" key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)">
+                    <a-menu-item
+                      v-if="appInfo.ee"
+                      key="connect-new-source"
+                      @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
+                    >
                       <div class="color-transition nc-project-menu-item group">
                         <LogosSnowflakeIcon class="group-hover:text-accent" />
                         Snowflake

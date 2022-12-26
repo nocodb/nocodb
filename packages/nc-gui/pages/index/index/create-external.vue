@@ -497,10 +497,8 @@ onMounted(async () => {
               </div>
             </template>
             <a-form-item label="SSL mode">
-              <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode"
-                        @select="onSSLModeChange">
-                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}
-                </a-select-option>
+              <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
+                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
               </a-select>
             </a-form-item>
 
@@ -542,16 +540,14 @@ onMounted(async () => {
 
             <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.ca, caFileInput)" />
 
-            <input ref="certFileInput" type="file" class="!hidden"
-                   @change="onFileSelect(CertTypes.cert, certFileInput)" />
+            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.cert, certFileInput)" />
 
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.key, keyFileInput)" />
 
             <a-divider />
 
             <!--            Extra connection parameters -->
-            <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')"
-                         v-bind="validateInfos.extraParameters">
+            <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')" v-bind="validateInfos.extraParameters">
               <a-card>
                 <div v-for="(item, index) of formState.extraParameters" :key="index">
                   <div class="flex py-1 items-center gap-1">

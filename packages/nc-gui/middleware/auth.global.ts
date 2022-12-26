@@ -1,6 +1,7 @@
 import type { Api } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
 import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 /**
  * Global auth middleware
@@ -98,10 +99,8 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       )
 
       signIn(token)
-    } catch (e: any) {
-      if (e.response && e.response.data && e.response.data.msg) {
-        message.error({ content: e.response.data.msg })
-      }
+    } catch (e) {
+      message.error({ content: await extractSdkResponseErrorMsg(e) })
     }
 
     const newURL = window.location.href.split('?')[0]

@@ -14,7 +14,7 @@ import {
   useViewData,
 } from '#imports'
 
-const { gptTable, gptView } = useGPTStoreOrThrow()
+const { gptTable, gptView, loadGPTTable } = useGPTStoreOrThrow()
 
 provide(MetaInj, gptTable as Ref<TableType>)
 
@@ -34,8 +34,7 @@ const reloadEventHook = createEventHook<boolean | void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
 
 reloadEventHook.on(async () => {
-  await loadFormView()
-  setFormData()
+  await loadGPTTable()
 })
 
 const { saveOrUpdate } = useViewColumns(gptView as Ref<ViewType>, gptTable as Ref<TableType>, async () =>
@@ -183,7 +182,6 @@ function shouldSkipColumn(col: Record<string, any>) {
 }
 
 function setFormData() {
-  console.log('setFormData')
   const col = formColumnData?.value || []
 
   formViewData.value = {
@@ -192,12 +190,12 @@ function setFormData() {
     show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
   }
 
+  systemFieldsIds.value = getSystemColumns(col).map((c: any) => c.fk_column_id)
+
   localColumns.value = col
-    .filter((f) => !hiddenColTypes.includes(f.uidt))
+    .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
-
-  systemFieldsIds.value = getSystemColumns(col).map((c: any) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
     (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !hiddenColTypes.includes(f.uidt),
@@ -221,12 +219,10 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 }
 
 async function submitCallback() {
-  await loadFormView()
-  setFormData()
   showColumnDropdown.value = false
 }
 
-watch(gptView, async () => {
+watch([gptTable, gptView], async () => {
   await loadFormView()
   setFormData()
 })

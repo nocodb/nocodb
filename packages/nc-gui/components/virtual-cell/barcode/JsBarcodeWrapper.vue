@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import JsBarcode from 'jsbarcode'
+import { onMounted } from '#imports'
 
 const props = defineProps({
   barcodeValue: { type: String, required: true },
@@ -7,6 +8,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['onClickBarcode'])
+
 const barcodeSvgRef = ref(null)
 const errorForCurrentInput = ref(false)
 
@@ -27,8 +29,7 @@ const onBarcodeClick = (ev: MouseEvent) => {
   emit('onClickBarcode')
 }
 
-watch(() => props.barcodeValue, generate)
-watch(() => props.barcodeFormat, generate)
+watch([() => props.barcodeValue, () => props.barcodeFormat], generate)
 onMounted(generate)
 </script>
 

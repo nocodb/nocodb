@@ -7,9 +7,14 @@ const cellValue = inject(CellValueInj)
 
 const column = inject(ColumnInj)
 
-const barcodeValue = computed(() => String(cellValue?.value))
+const barcodeValue = computed(() => {
+  if (cellValue?.value === undefined) {
+    return undefined
+  }
+  return String(cellValue.value)
+})
 
-const tooManyCharsForBarcode = computed(() => barcodeValue?.value.length > maxNumberOfAllowedCharsForBarcodeValue)
+const tooManyCharsForBarcode = computed(() => barcodeValue?.value?.length > maxNumberOfAllowedCharsForBarcodeValue)
 
 const modalVisible = ref(false)
 
@@ -27,7 +32,7 @@ const barcodeMeta = $computed(() => {
 const handleModalOkClick = () => (modalVisible.value = false)
 
 const showBarcode = computed(() => {
-  return cellValue?.value?.length > 0 && !tooManyCharsForBarcode.value
+  return barcodeValue && barcodeValue?.value?.length > 0 && !tooManyCharsForBarcode.value
 })
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()

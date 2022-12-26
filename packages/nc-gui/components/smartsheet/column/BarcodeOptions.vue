@@ -72,8 +72,6 @@ setAdditionalValidations({
 })
 
 const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeValue.value?.length)
-
-// set default meta value
 </script>
 
 <template>

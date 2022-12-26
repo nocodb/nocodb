@@ -59,8 +59,11 @@ export function useSharedView() {
         'xc-password': localPassword ?? password.value,
       },
     })
-
-    allowCSVDownload.value = JSON.parse(viewMeta.meta)?.allowCSVDownload
+    try {
+      allowCSVDownload.value = (typeof viewMeta.meta === 'string' ? JSON.parse(viewMeta.meta) : viewMeta.meta)?.allowCSVDownload
+    } catch {
+      allowCSVDownload.value = false
+    }
 
     if (localPassword) password.value = localPassword
     sharedView.value = { title: '', ...viewMeta }

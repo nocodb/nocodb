@@ -13,7 +13,7 @@ test.describe('Table Operations', () => {
     settings = dashboard.settings;
   });
 
-  test('Create, and delete table, verify in audit tab, rename City table and reorder tables', async () => {
+  test('Create, and delete table, verify in audit tab, rename City table, update icon and reorder tables', async () => {
     await dashboard.treeView.createTable({ title: 'tablex' });
     await dashboard.treeView.verifyTable({ title: 'tablex' });
 
@@ -46,5 +46,10 @@ test.describe('Table Operations', () => {
       destinationTable: 'Address',
     });
     await dashboard.treeView.verifyTable({ title: 'Address', index: 0 });
+
+    // verify table icon customization
+    await dashboard.treeView.openTable({ title: 'Address' });
+    await dashboard.treeView.changeTableIcon({ title: 'Address', icon: 'american-football' });
+    await dashboard.treeView.verifyTabIcon({ title: 'Address', icon: 'american-football' });
   });
 });

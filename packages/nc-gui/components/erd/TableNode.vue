@@ -59,10 +59,8 @@ watch(
         :class="[showSkeleton ? '' : 'bg-primary bg-opacity-10', hasColumns ? 'border-b-1' : '']"
         class="text-slate-600 text-md py-2 border-slate-500 rounded-t-lg w-full h-full px-3 font-semibold flex items-center"
       >
-        <MdiTableLarge v-if="table.type === 'table'" class="text-primary" :class="showSkeleton ? 'text-6xl !px-2' : ''" />
-        <MdiEyeCircleOutline v-else class="text-primary" :class="showSkeleton ? 'text-6xl !px-2' : ''" />
-
-        <div :class="showSkeleton ? 'text-6xl' : ''" class="flex px-2">
+        <GeneralTableIcon class="text-primary" :class="{ '!text-6xl !w-auto mr-2': showSkeleton }" :meta="table" />
+        <div :class="showSkeleton ? 'text-6xl' : ''" class="flex pr-2 pl-1">
           {{ table.title }}
         </div>
       </div>

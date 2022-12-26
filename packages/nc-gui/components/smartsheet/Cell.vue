@@ -163,6 +163,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
         v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
         class="nc-locked-overlay"
         @click.stop.prevent
+        @dblclick.stop.prevent
       />
     </template>
   </div>

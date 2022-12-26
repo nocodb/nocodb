@@ -51,6 +51,7 @@ const [useProvideGPTStore, useGPTStore] = useInjectionState((projectId: string) 
     gptProject,
     gptTable,
     gptView,
+    loadGPTTable,
   }
 })
 

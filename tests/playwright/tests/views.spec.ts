@@ -83,6 +83,21 @@ test.describe('Views CRUD Operations', () => {
     });
   });
 
+  test('Create sections, move view into section', async () => {
+    await dashboard.treeView.openTable({ title: 'City' });
+    await dashboard.viewSidebar.createGridView({ title: 'SectionGrid' });
+    await dashboard.viewSidebar.createSection({ name: 'Section' });
+    await dashboard.viewSidebar.moveViewToSection({
+      sourceView: 'SectionGrid',
+      destinationSection: 'Section',
+    });
+    await dashboard.viewSidebar.verifyView({
+      title: 'SectionGrid',
+      index: 0,
+      section: 'Section',
+    });
+  });
+
   test('Save search query for each table and view', async () => {
     await dashboard.treeView.openTable({ title: 'City' });
 

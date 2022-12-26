@@ -21,7 +21,7 @@ const { gptProject } = useGPTStoreOrThrow()
         <a-button class="!rounded-md"> API Snippet </a-button>
       </div>
       <div class="flex items-center">
-        <MdiContentCopy />
+        <MdiFormSelect />
       </div>
       <div class="flex items-center">
         <MdiGridLarge />

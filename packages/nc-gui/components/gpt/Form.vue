@@ -347,7 +347,7 @@ watch(gptView, async () => {
         </template>
 
         <template #footer>
-          <div v-if="!localColumns.length" class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
+          <div v-if="!localColumns.length" class="mt-4 border-1 border-gray-300 py-3 text-gray-400 text-center">
             Click Add Field to add columns
           </div>
         </template>

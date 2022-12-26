@@ -196,6 +196,21 @@ watch(passwordProtected, (value) => {
 const { locale } = useI18n()
 
 const isRtl = computed(() => isRtlLang(locale.value as any))
+
+const iframeCode = computed(() => {
+  if (!sharedViewUrl.value) return
+
+  return `<iframe src="${sharedViewUrl.value}?embed" width="100%" height="600"/>`
+})
+
+const copyIframeCode = async () => {
+  if (iframeCode.value) {
+    await copy(iframeCode.value)
+
+    // Copied to clipboard
+    message.success(t('msg.info.copiedToClipboard'))
+  }
+}
 </script>
 
 <template>
@@ -228,13 +243,20 @@ const isRtl = computed(() => isRtlLang(locale.value as any))
         data-testid="nc-modal-share-view__link"
         class="share-link-box !bg-primary !bg-opacity-5 ring-1 ring-accent ring-opacity-100"
       >
-        <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
+        <div class="flex-1 h-min text-xs text-gray-500">{{ sharedViewUrl }}</div>
 
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
           <MdiOpenInNew class="text-sm text-gray-500 mt-2" />
         </a>
 
         <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+      </div>
+
+      <div
+        class="flex gap-1 items-center pb-1 text-gray-500 cursor-pointer font-weight-medium mb-2 mt-4 pl-1"
+        @click="copyIframeCode"
+      >
+        <MdiCodeTags class="text-gray-500" /> Embed this view in your site
       </div>
 
       <div class="px-1 mt-2 flex flex-col gap-3">
@@ -352,7 +374,7 @@ const isRtl = computed(() => isRtlLang(locale.value as any))
 
 <style scoped>
 .share-link-box {
-  @apply flex p-2 w-full items-center items-center gap-1 bg-gray-100 rounded;
+  @apply flex p-2 w-full items-center items-center gap-2 bg-gray-100 rounded;
 }
 
 :deep(.ant-collapse-header) {

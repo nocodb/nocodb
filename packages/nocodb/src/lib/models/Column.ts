@@ -6,8 +6,8 @@ import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
 import {
-  ColumnReqType,
   AllowedColumnTypesForQrAndBarcodes,
+  ColumnReqType,
   ColumnType,
   UITypes,
 } from 'nocodb-sdk';

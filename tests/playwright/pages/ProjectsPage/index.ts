@@ -28,15 +28,16 @@ export class ProjectsPage extends BasePage {
   }) {
     if (!withoutPrefix) name = this.prefixTitle(name);
 
+    // Click "New Project" button
     await this.get().locator('.nc-new-project-menu').click();
 
-    const createProjectMenu = await this.rootPage.locator('.nc-dropdown-create-project');
-
-    if (type === 'xcdb') {
-      await createProjectMenu.locator(`.ant-dropdown-menu-title-content`).nth(0).click();
-    } else {
-      await createProjectMenu.locator(`.ant-dropdown-menu-title-content`).nth(1).click();
-    }
+    // const createProjectMenu = await this.rootPage.locator('.nc-dropdown-create-project');
+    //
+    // if (type === 'xcdb') {
+    //   await createProjectMenu.locator(`.ant-dropdown-menu-title-content`).nth(0).click();
+    // } else {
+    //   await createProjectMenu.locator(`.ant-dropdown-menu-title-content`).nth(1).click();
+    // }
 
     await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
     await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);

@@ -15,11 +15,15 @@ import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
+  if (!req['user']?.id) {
+    NcError.unauthorized('Unauthorized');
+  }
+
   try {
     // check user is super admin or creator
     if (
-      req['user']?.roles?.includes(OrgUserRoles.SUPER_ADMIN) ||
-      req['user']?.roles?.includes(OrgUserRoles.CREATOR) ||
+      req['user'].roles?.includes(OrgUserRoles.SUPER_ADMIN) ||
+      req['user'].roles?.includes(OrgUserRoles.CREATOR) ||
       // if viewer then check at-least one project have editor or higher role
       // todo: cache
       !!(await Noco.ncMeta
@@ -29,7 +33,7 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
           this.orWhere('roles', ProjectRoles.CREATOR);
           this.orWhere('roles', ProjectRoles.EDITOR);
         })
-        .andWhere('fk_user_id', req['user']?.id)
+        .andWhere('fk_user_id', req['user'].id)
         .first())
     )
       return next();
@@ -182,12 +186,20 @@ router.post(
       fieldSize: NC_ATTACHMENT_FIELD_SIZE,
     },
   }).any(),
-  [extractProjectIdAndAuthenticate, isUploadAllowed, catchError(upload)]
+  [
+    extractProjectIdAndAuthenticate,
+    catchError(isUploadAllowed),
+    catchError(upload),
+  ]
 );
 router.post(
   '/api/v1/db/storage/upload-by-url',
 
-  [extractProjectIdAndAuthenticate, isUploadAllowed, catchError(uploadViaURL)]
+  [
+    extractProjectIdAndAuthenticate,
+    catchError(isUploadAllowed),
+    catchError(uploadViaURL),
+  ]
 );
 router.get(/^\/download\/(.+)$/, catchError(fileRead));
 

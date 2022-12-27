@@ -18,6 +18,7 @@ import {
   ref,
   resolveComponent,
   useDialog,
+  useGlobal,
   useNuxtApp,
   useProject,
   useRoute,
@@ -45,6 +46,8 @@ const { isUIAllowed } = useUIPermission()
 const route = useRoute()
 
 const [searchActive, toggleSearchActive] = useToggle()
+
+const { appInfo } = useGlobal()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -414,7 +417,11 @@ const setIcon = async (icon: string, table: TableType) => {
                       MSSQL
                     </div>
                   </a-menu-item>
-                  <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)">
+                  <a-menu-item
+                    v-if="appInfo.ee"
+                    key="connect-new-source"
+                    @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
+                  >
                     <div class="color-transition nc-project-menu-item group">
                       <LogosSnowflakeIcon class="group-hover:text-accent" />
                       Snowflake
@@ -530,7 +537,11 @@ const setIcon = async (icon: string, table: TableType) => {
                         MSSQL
                       </div>
                     </a-menu-item>
-                    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)">
+                    <a-menu-item
+                      v-if="appInfo.ee"
+                      key="connect-new-source"
+                      @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
+                    >
                       <div class="color-transition nc-project-menu-item group">
                         <LogosSnowflakeIcon class="group-hover:text-accent" />
                         Snowflake

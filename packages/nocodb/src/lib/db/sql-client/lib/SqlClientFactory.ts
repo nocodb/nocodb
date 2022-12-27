@@ -1,3 +1,5 @@
+import Noco from '../../../Noco';
+import SqlClientFactoryEE from './ee/SqlClientFactoryEE';
 import MySqlClient from './mysql/MysqlClient';
 import MssqlClient from './mssql/MssqlClient';
 import OracleClient from './oracle/OracleClient';
@@ -6,10 +8,8 @@ import PgClient from './pg/PgClient';
 import YugabyteClient from './pg/YugabyteClient';
 import TidbClient from './mysql/TidbClient';
 import VitessClient from './mysql/VitessClient';
-import SfClient from './snowflake/SnowflakeClient';
-import { SnowflakeClient } from 'nc-help';
 
-class SqlClientFactory {
+export class SqlClientFactory {
   static create(connectionConfig) {
     connectionConfig.meta = connectionConfig.meta || {};
     connectionConfig.pool = connectionConfig.pool || { min: 0, max: 5 };
@@ -33,13 +33,18 @@ class SqlClientFactory {
       if (connectionConfig.meta.dbtype === 'yugabyte')
         return new YugabyteClient(connectionConfig);
       return new PgClient(connectionConfig);
-    } else if (connectionConfig.client === 'snowflake') {
-      connectionConfig.client = SnowflakeClient;
-      return new SfClient(connectionConfig);
     }
 
     throw new Error('Database not supported');
   }
 }
 
-export default SqlClientFactory;
+export default class {
+  static create(connectionConfig) {
+    if (Noco.isEE()) {
+      return SqlClientFactoryEE.create(connectionConfig);
+    }
+
+    return SqlClientFactory.create(connectionConfig);
+  }
+}

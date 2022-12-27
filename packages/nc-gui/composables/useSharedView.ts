@@ -17,7 +17,7 @@ export function useSharedView() {
 
   const { appInfo } = $(useGlobal())
 
-  const { loadProject } = useProject()
+  const { project } = useProject()
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
@@ -77,7 +77,16 @@ export function useSharedView() {
 
     await setMeta(viewMeta.model)
 
-    await loadProject(true, viewMeta.project_id)
+    // if project is not defined then set it with an object containing base
+    if (!project.value?.bases)
+      project.value = {
+        bases: [
+          {
+            id: viewMeta.base_id,
+            type: viewMeta.client,
+          },
+        ],
+      }
 
     const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))

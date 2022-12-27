@@ -95,7 +95,7 @@ useMenuCloseOnEsc(open)
           <GeneralViewIcon :meta="selectedView"></GeneralViewIcon>
 
           <span class="!text-sm font-weight-normal">
-            <GeneralTruncateText>{{ selectedView?.title }}</GeneralTruncateText>
+            <GeneralTruncateText :key="selectedView?.title">{{ selectedView?.title }}</GeneralTruncateText>
           </span>
 
           <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />

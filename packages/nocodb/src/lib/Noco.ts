@@ -16,7 +16,9 @@ import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 
 import { NcConfig } from '../interface/config';
+import { NC_LICENSE_KEY } from './constants';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
+import Store from './models/Store';
 import NcConfigFactory from './utils/NcConfigFactory';
 import { Tele } from 'nc-help';
 
@@ -53,6 +55,7 @@ const NcProjectBuilder = process.env.EE
 
 export default class Noco {
   private static _this: Noco;
+  private static ee: boolean;
 
   public static get dashboardUrl(): string {
     let siteUrl = `http://localhost:${process.env.PORT || 8080}`;
@@ -192,6 +195,7 @@ export default class Noco {
     }
 
     await Noco._ncMeta.metaInit();
+    await Noco.loadEEState();
     await this.initJwt();
     await initAdminFromEnv();
 
@@ -541,5 +545,17 @@ export default class Noco {
 
   public static getConfig(): NcConfig {
     return Noco.config;
+  }
+
+  public static isEE(): boolean {
+    return Noco.ee;
+  }
+
+  public static async loadEEState(): Promise<boolean> {
+    try {
+      return (Noco.ee = !!(await Store.get(NC_LICENSE_KEY)));
+    } catch {
+      return (Noco.ee = false);
+    }
   }
 }

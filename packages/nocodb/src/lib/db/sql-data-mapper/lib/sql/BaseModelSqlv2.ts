@@ -45,6 +45,7 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
 import QrCodeColumn from '../../../../models/QrCodeColumn';
+import BarcodeColumn from '../../../../models/BarcodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -100,7 +101,7 @@ class BaseModelSqlv2 {
 
     qb.where(_wherePk(this.model.primaryKeys, id));
 
-    let data = (await this.execAndParse(qb))?.[0];
+    const data = (await this.execAndParse(qb))?.[0];
 
     if (data) {
       const proto = await this.getProto();
@@ -158,7 +159,7 @@ class BaseModelSqlv2 {
       qb.orderBy(this.model.primaryKey.column_name);
     }
 
-    let data = await qb.first();
+    const data = await qb.first();
 
     if (data) {
       const proto = await this.getProto();
@@ -252,7 +253,7 @@ class BaseModelSqlv2 {
 
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    let data = await this.execAndParse(qb);
+    const data = await this.execAndParse(qb);
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -320,7 +321,8 @@ class BaseModelSqlv2 {
       as: 'count',
     }).first();
     const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
-    return ((this.isPg || this.isSnowflake) ? res.rows[0] : res[0][0] ?? res[0]).count;
+    return (this.isPg || this.isSnowflake ? res.rows[0] : res[0][0] ?? res[0])
+      .count;
   }
 
   // todo: add support for sortArrJson and filterArrJson
@@ -423,7 +425,7 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
-      let children = await this.execAndParse(childQb, childTable);
+      const children = await this.execAndParse(childQb, childTable);
       const proto = await (
         await Model.getBaseModelSQL({
           id: childTable.id,
@@ -550,7 +552,7 @@ class BaseModelSqlv2 {
 
       await childModel.selectObject({ qb });
 
-      let children = await this.execAndParse(qb, childTable);
+      const children = await this.execAndParse(qb, childTable);
 
       const proto = await (
         await Model.getBaseModelSQL({
@@ -735,7 +737,7 @@ class BaseModelSqlv2 {
     qb.limit(+rest?.limit || 25);
     qb.offset(+rest?.offset || 0);
 
-    let children = await this.execAndParse(qb, childTable);
+    const children = await this.execAndParse(qb, childTable);
     const proto = await (
       await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
@@ -961,7 +963,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await qb;
+    const data = await qb;
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -1075,7 +1077,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await this.execAndParse(qb, childTable);
+    const data = await this.execAndParse(qb, childTable);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1193,7 +1195,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    let data = await this.execAndParse(qb, childTable);
+    const data = await this.execAndParse(qb, childTable);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1460,6 +1462,40 @@ class BaseModelSqlv2 {
 
           break;
         }
+        case 'Barcode': {
+          const barcodeColumn = await column.getColOptions<BarcodeColumn>();
+          const barcodeValueColumn = await Column.get({
+            colId: barcodeColumn.fk_barcode_value_column_id,
+          });
+
+          // If the referenced value cannot be found: cancel current iteration
+          if (barcodeValueColumn == null) {
+            break;
+          }
+
+          switch (barcodeValueColumn.uidt) {
+            case UITypes.Formula:
+              try {
+                const selectQb = await this.getSelectQueryBuilderForFormula(
+                  barcodeValueColumn
+                );
+                qb.select({
+                  [column.column_name]: selectQb.builder,
+                });
+              } catch {
+                continue;
+              }
+              break;
+            default: {
+              qb.select({
+                [column.column_name]: barcodeValueColumn.column_name,
+              });
+              break;
+            }
+          }
+
+          break;
+        }
         case 'Formula':
           {
             try {
@@ -1558,10 +1594,11 @@ class BaseModelSqlv2 {
                 .max(ai.column_name, { as: 'id' })
             )[0].id;
           } else if (this.isSnowflake) {
-            id = ((
-              await this.dbDriver(this.tnPath)
-                .max(ai.column_name, { as: 'id' })
-            ) as any)[0].id;
+            id = (
+              (await this.dbDriver(this.tnPath).max(ai.column_name, {
+                as: 'id',
+              })) as any
+            )[0].id;
           }
           response = await this.readByPk(id);
         } else {
@@ -1677,7 +1714,11 @@ class BaseModelSqlv2 {
     if (this.isMssql && schema) {
       return this.dbDriver.raw('??.??', [schema, tb.table_name]);
     } else if (this.isSnowflake) {
-      return [this.dbDriver.client.config.connection.database, this.dbDriver.client.config.connection.schema, tb.table_name].join('.');
+      return [
+        this.dbDriver.client.config.connection.database,
+        this.dbDriver.client.config.connection.schema,
+        tb.table_name,
+      ].join('.');
     } else {
       return tb.table_name;
     }
@@ -1817,10 +1858,11 @@ class BaseModelSqlv2 {
                 .max(ai.column_name, { as: 'id' })
             )[0].id;
           } else if (this.isSnowflake) {
-            id = ((
-              await this.dbDriver(this.tnPath)
-                .max(ai.column_name, { as: 'id' })
-            ) as any).rows[0].id;
+            id = (
+              (await this.dbDriver(this.tnPath).max(ai.column_name, {
+                as: 'id',
+              })) as any
+            ).rows[0].id;
           }
           response = await this.readByPk(id);
         } else {
@@ -2010,9 +2052,7 @@ class BaseModelSqlv2 {
       const res = [];
       for (const d of deleteIds) {
         if (Object.keys(d).length) {
-          const response = await transaction(this.tnPath)
-            .del()
-            .where(d);
+          const response = await transaction(this.tnPath).del().where(d);
           res.push(response);
         }
       }
@@ -2234,6 +2274,7 @@ class BaseModelSqlv2 {
               f.uidt !== UITypes.Lookup &&
               f.uidt !== UITypes.Formula &&
               f.uidt !== UITypes.QrCode &&
+              f.uidt !== UITypes.Barcode &&
               f.uidt !== UITypes.SpecificDBType
           )
           .sort(
@@ -2383,20 +2424,19 @@ class BaseModelSqlv2 {
 
           if (this.isSnowflake) {
             const parentPK = this.dbDriver(parentTn)
-            .select(parentColumn.column_name)
-            .where(_wherePk(parentTable.primaryKeys, childId))
-            .first();
+              .select(parentColumn.column_name)
+              .where(_wherePk(parentTable.primaryKeys, childId))
+              .first();
 
             const childPK = this.dbDriver(childTn)
-            .select(childColumn.column_name)
-            .where(_wherePk(childTable.primaryKeys, rowId))
-            .first();
+              .select(childColumn.column_name)
+              .where(_wherePk(childTable.primaryKeys, rowId))
+              .first();
 
-            await this.dbDriver.raw(`INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`, [
-              vTn,
-              vParentCol.column_name,
-              vChildCol.column_name,
-            ])
+            await this.dbDriver.raw(
+              `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
+              [vTn, vParentCol.column_name, vChildCol.column_name]
+            );
           } else {
             await this.dbDriver(vTn).insert({
               [vParentCol.column_name]: this.dbDriver(parentTn)
@@ -2697,7 +2737,7 @@ class BaseModelSqlv2 {
 
       const proto = await this.getProto();
 
-      let data = await groupedQb;
+      const data = await groupedQb;
       const result = data?.map((d) => {
         d.__proto__ = proto;
         return d;
@@ -2800,10 +2840,7 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  private async execAndParse(
-    qb: Knex.QueryBuilder,
-    childTable?: Model
-  ) {
+  private async execAndParse(qb: Knex.QueryBuilder, childTable?: Model) {
     let query = qb.toQuery();
     if (!this.isPg && !this.isMssql && !this.isSnowflake) {
       query = unsanitize(qb.toQuery());

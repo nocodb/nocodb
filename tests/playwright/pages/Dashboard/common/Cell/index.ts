@@ -156,6 +156,48 @@ export class CellPageObject extends BasePage {
     await _verify(expectedSrcValue);
   }
 
+  async verifyBarcodeCellShowsInvalidInputMessage({ index, columnHeader }: { index: number; columnHeader: string }) {
+    const _verify = async expectedInvalidInputMessage => {
+      await expect
+        .poll(async () => {
+          const barcodeCell = await this.get({
+            index,
+            columnHeader,
+          });
+          const barcodeInvalidInputMessage = await barcodeCell.getByTestId('barcode-invalid-input-message');
+          return await barcodeInvalidInputMessage.textContent();
+        })
+        .toEqual(expectedInvalidInputMessage);
+    };
+
+    await _verify('Barcode error - please check compatibility between input and barcode type');
+  }
+
+  async verifyBarcodeCell({
+    index,
+    columnHeader,
+    expectedSvgValue,
+  }: {
+    index: number;
+    columnHeader: string;
+    expectedSvgValue: string;
+  }) {
+    const _verify = async expectedBarcodeSvg => {
+      await expect
+        .poll(async () => {
+          const barcodeCell = await this.get({
+            index,
+            columnHeader,
+          });
+          const barcodeSvg = await barcodeCell.getByTestId('barcode');
+          return await barcodeSvg.innerHTML();
+        })
+        .toEqual(expectedBarcodeSvg);
+    };
+
+    await _verify(expectedSvgValue);
+  }
+
   // todo: Improve param names (i.e value => values)
   // verifyVirtualCell
   //  : virtual relational cell- HM, BT, MM

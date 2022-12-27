@@ -200,7 +200,12 @@ const isRtl = computed(() => isRtlLang(locale.value as any))
 const iframeCode = computed(() => {
   if (!sharedViewUrl.value) return
 
-  return `<iframe src="${sharedViewUrl.value}?embed" width="100%" height="600"/>`
+  return `<iframe class="nc-embed"
+"src="${sharedViewUrl.value}?embed"
+frameborder="0"
+width="100%"
+height="700"
+style="background: transparent; border: 1px solid #ddd"/>`
 })
 
 const copyIframeCode = async () => {

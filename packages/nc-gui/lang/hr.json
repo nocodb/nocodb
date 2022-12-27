@@ -248,7 +248,10 @@
     "sqlOutput": "SQL izlaz",
     "addOption": "Dodajte opciju",
     "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "Agregatna funkcija",
     "dbCreateIfNotExists": "Baza podataka: stvoriti ako ne postoji",
     "clientKey": "Ključ klijenta",
@@ -496,6 +499,9 @@
   },
   "msg": {
     "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
         "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."

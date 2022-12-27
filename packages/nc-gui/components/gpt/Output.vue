@@ -16,9 +16,12 @@
     </div>
   </div>
   <!-- TODO: -->
-  <div v-for="i of [1, 2, 3]" :key="i" class="bg-[#EEF2FF] p-10 border-b-1 border-gray-200">
-    -NESCAFE Original is made with 100% coffee beans for a rich, full flavor <br />
-    -The hinged lid with Click-to-close technology keeps your coffee fresh and easy to acccess <br />
-    -Space efficient tin is perfect for small kitchens or on the go <br />
+  <div v-for="i of [1, 2, 3]" :key="i" class="bg-[#EEF2FF] border-b-1 border-gray-200">
+    <div class="p-[24px] pb-0">
+      -NESCAFE Original is made with 100% coffee beans for a rich, full flavor <br />
+      -The hinged lid with Click-to-close technology keeps your coffee fresh and easy to acccess <br />
+      -Space efficient tin is perfect for small kitchens or on the go <br />
+    </div>
+    <div class="flex justify-end pr-3 pb-3">3 mins ago</div>
   </div>
 </template>

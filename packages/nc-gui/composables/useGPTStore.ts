@@ -3,6 +3,8 @@ import { ViewTypes } from 'nocodb-sdk'
 import { useNuxtApp, useViews } from '#imports'
 
 const [useProvideGPTStore, useGPTStore] = useInjectionState((projectId: string) => {
+  const gptLayout = ref<'form' | 'grid'>('form')
+
   const gptProject = ref<ProjectType | null>()
 
   const gptTable = ref<TableInfoType | null>()
@@ -48,6 +50,7 @@ const [useProvideGPTStore, useGPTStore] = useInjectionState((projectId: string) 
   )
 
   return {
+    gptLayout,
     gptProject,
     gptTable,
     gptView,

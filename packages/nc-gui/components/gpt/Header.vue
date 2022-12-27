@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useGPTStoreOrThrow } from '#imports'
-const { gptProject } = useGPTStoreOrThrow()
+const { gptLayout, gptProject } = useGPTStoreOrThrow()
 
 const showApiSnippetDrawer = ref(false)
 </script>
@@ -22,11 +22,11 @@ const showApiSnippetDrawer = ref(false)
       <div class="flex items-center">
         <a-button class="!rounded-md" @click="showApiSnippetDrawer = true"> API Snippet </a-button>
       </div>
-      <div class="flex items-center">
-        <MdiFormSelect />
+      <div class="flex items-center cursor-pointer">
+        <MdiFormSelect @click="gptLayout = 'form'" />
       </div>
-      <div class="flex items-center">
-        <MdiGridLarge />
+      <div class="flex items-center cursor-pointer">
+        <MdiGridLarge @click="gptLayout = 'grid'" />
       </div>
     </div>
   </div>

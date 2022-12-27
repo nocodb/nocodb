@@ -58,7 +58,8 @@ export default {
                 <MdiReload :class="{ 'animate-infinite animate-spin ': isLoading }" />
               </template>
 
-              <div v-else class="text-xl font-semibold truncate text-white nc-shared-view-title">
+              <div v-else class="text-xl font-semibold truncate text-white nc-shared-view-title flex gap-2 items-center">
+                <GeneralViewIcon class="!text-xl" :meta="sharedView" />
                 {{ sharedView?.title }}
               </div>
             </div>

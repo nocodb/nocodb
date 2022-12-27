@@ -44,6 +44,7 @@ type MetaDiff = {
   table_name: string;
   base_id: string;
   type: ModelTypes;
+  meta?: any;
   detectedChanges: Array<MetaDiffChange>;
 };
 
@@ -176,6 +177,7 @@ async function getMetaDiff(
 
     const tableProp: MetaDiff = {
       title: oldMeta.title,
+      meta: oldMeta.meta,
       table_name: table.tn,
       base_id: base.id,
       type: ModelTypes.TABLE,
@@ -248,6 +250,7 @@ async function getMetaDiff(
   for (const model of oldTableMetas) {
     changes.push({
       table_name: model.table_name,
+      meta: model.meta,
       base_id: base.id,
       type: ModelTypes.TABLE,
       detectedChanges: [
@@ -452,6 +455,7 @@ async function getMetaDiff(
 
     const tableProp: MetaDiff = {
       title: oldMeta.title,
+      meta: oldMeta.meta,
       table_name: view.tn,
       base_id: base.id,
       type: ModelTypes.VIEW,
@@ -520,6 +524,7 @@ async function getMetaDiff(
   for (const model of oldViewMetas) {
     changes.push({
       table_name: model.table_name,
+      meta: model.meta,
       base_id: base.id,
       type: ModelTypes.TABLE,
       detectedChanges: [
@@ -539,7 +544,7 @@ async function getMetaDiff(
 
 export async function metaDiff(req, res) {
   const project = await Project.getWithInfo(req.params.projectId);
-  let changes = []
+  let changes = [];
   for (const base of project.bases) {
     try {
       // @ts-ignore
@@ -556,7 +561,7 @@ export async function metaDiff(req, res) {
 export async function baseMetaDiff(req, res) {
   const project = await Project.getWithInfo(req.params.projectId);
   const base = await Base.get(req.params.baseId);
-  let changes = []
+  let changes = [];
 
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
   changes = await getMetaDiff(sqlClient, project, base);
@@ -572,10 +577,10 @@ export async function metaDiffSync(req, res) {
     // @ts-ignore
     const sqlClient = NcConnectionMgrv2.getSqlClient(base);
     const changes = await getMetaDiff(sqlClient, project, base);
-  
+
     /* Get all relations */
     // const relations = (await sqlClient.relationListAll())?.data?.list;
-  
+
     for (const { table_name, detectedChanges } of changes) {
       // reorder changes to apply relation remove changes
       // before column remove to avoid foreign key constraint error
@@ -585,7 +590,7 @@ export async function metaDiffSync(req, res) {
           applyChangesPriorityOrder.indexOf(a.type)
         );
       });
-      
+
       for (const change of detectedChanges) {
         switch (change.type) {
           case MetaDiffType.TABLE_NEW:
@@ -593,15 +598,19 @@ export async function metaDiffSync(req, res) {
               const columns = (
                 await sqlClient.columnList({ tn: table_name })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
-  
+
               mapDefaultPrimaryValue(columns);
-  
+
               const model = await Model.insert(project.id, base.id, {
                 table_name: table_name,
-                title: getTableNameAlias(table_name, base.is_meta ? project.prefix : '', base),
+                title: getTableNameAlias(
+                  table_name,
+                  base.is_meta ? project.prefix : '',
+                  base
+                ),
                 type: ModelTypes.TABLE,
               });
-  
+
               for (const column of columns) {
                 await Column.insert({
                   uidt: getColumnUiType(base, column),
@@ -617,15 +626,15 @@ export async function metaDiffSync(req, res) {
               const columns = (
                 await sqlClient.columnList({ tn: table_name })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
-  
+
               mapDefaultPrimaryValue(columns);
-  
+
               const model = await Model.insert(project.id, base.id, {
                 table_name: table_name,
                 title: getTableNameAlias(table_name, project.prefix, base),
                 type: ModelTypes.VIEW,
               });
-  
+
               for (const column of columns) {
                 await Column.insert({
                   uidt: getColumnUiType(base, column),
@@ -657,7 +666,7 @@ export async function metaDiffSync(req, res) {
             // update old
             // populateParams.tableNames.push({ tn });
             // populateParams.oldMetas[tn] = oldMetas.find(m => m.tn === tn);
-  
+
             break;
           case MetaDiffType.TABLE_COLUMN_TYPE_CHANGE:
           case MetaDiffType.VIEW_COLUMN_TYPE_CHANGE:
@@ -698,17 +707,21 @@ export async function metaDiffSync(req, res) {
                 });
                 const parentCol = await parentModel
                   .getColumns()
-                  .then((cols) => cols.find((c) => c.column_name === change.rcn));
+                  .then((cols) =>
+                    cols.find((c) => c.column_name === change.rcn)
+                  );
                 const childCol = await childModel
                   .getColumns()
-                  .then((cols) => cols.find((c) => c.column_name === change.cn));
-  
+                  .then((cols) =>
+                    cols.find((c) => c.column_name === change.cn)
+                  );
+
                 await Column.update(childCol.id, {
                   ...childCol,
                   uidt: UITypes.ForeignKey,
                   system: true,
                 });
-  
+
                 if (change.relationType === RelationTypes.BELONGS_TO) {
                   const title = getUniqueColumnAliasName(
                     childModel.columns,
@@ -746,9 +759,9 @@ export async function metaDiffSync(req, res) {
         }
       }
     }
-  
+
     await NcHelp.executeOperations(virtualColumnInsert, base.type);
-  
+
     // populate m2m relations
     await extractAndGenerateManyToManyRelations(await base.getModels());
   }
@@ -784,7 +797,11 @@ export async function baseMetaDiffSync(req, res) {
 
             const model = await Model.insert(project.id, base.id, {
               table_name: table_name,
-              title: getTableNameAlias(table_name, base.is_meta ? project.prefix : '', base),
+              title: getTableNameAlias(
+                table_name,
+                base.is_meta ? project.prefix : '',
+                base
+              ),
               type: ModelTypes.TABLE,
             });
 

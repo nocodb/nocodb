@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Icon } from '@iconify/vue'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 import { TabMetaInj, iconMap, provide, useGlobal, useSidebar, useTabs } from '#imports'
@@ -46,9 +47,15 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
         <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
           <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>
-              <div class="flex items-center gap-2 max-w-[110px]">
+              <div class="flex items-center gap-2 max-w-[110px]" data-testid="nc-tab-title">
                 <div class="flex items-center">
-                  <component :is="icon(tab)" class="text-sm" />
+                  <Icon
+                    v-if="tab.meta?.icon"
+                    :icon="tab.meta?.icon"
+                    class="text-xl"
+                    :data-testid="`nc-tab-icon-${tab.meta?.icon}`"
+                  />
+                  <component :is="icon(tab)" v-else class="text-sm" />
                 </div>
 
                 <a-tooltip v-if="tab.title?.length > 12" placement="bottom">

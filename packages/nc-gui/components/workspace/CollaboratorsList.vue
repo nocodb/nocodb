@@ -62,7 +62,7 @@ const updateCollaborator = async (collab) => {
               {{ collab.email }}
             </div>
           </td>
-          <td>
+          <td class="text-gray-500 text-xs">
             {{ timeAgo(collab.created_at) }}
           </td>
           <td>

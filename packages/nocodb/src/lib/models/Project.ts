@@ -419,29 +419,55 @@ export default class Project implements ProjectType {
     return project;
   }
 
-  static async listByWorkspace(workspaceId: string, ncMeta = Noco.ncMeta) {
-    // Todo: caching , pagination
+  static async listByWorkspaceAndUser(
+    fk_workspace_id: string,
+    userId: string,
+    ncMeta = Noco.ncMeta
+  ) {
+    // Todo: caching , pagination, query optimisation
 
-    const projectList = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
-      condition: {
-        fk_workspace_id: workspaceId,
-      },
-      xcCondition: {
-        _or: [
-          {
-            deleted: {
-              eq: false,
-            },
-          },
-          {
-            deleted: {
-              eq: null,
-            },
-          },
-        ],
-      },
-    });
+    const projectListQb = ncMeta
+      .knex(MetaTable.PROJECT)
+      .select(`${MetaTable.PROJECT}.*`)
+      .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
+      .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
+      .leftJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          '=',
+          `${MetaTable.PROJECT}.fk_workspace_id`
+        ).andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId])
+        );
+      })
+      .leftJoin(MetaTable.PROJECT_USERS, function () {
+        this.on(
+          `${MetaTable.PROJECT_USERS}.project_id`,
+          '=',
+          `${MetaTable.PROJECT}.id`
+        ).andOn(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId])
+        );
+      })
 
-    return projectList;
+      .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
+
+      .where(function () {
+        this.where(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId])
+        ).orWhere(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId])
+        );
+      });
+
+    return await projectListQb;
   }
 }

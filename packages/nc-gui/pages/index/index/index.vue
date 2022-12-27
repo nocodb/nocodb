@@ -3,6 +3,7 @@ import type { Menu } from 'ant-design-vue'
 import { Empty, Modal } from 'ant-design-vue'
 import type { WorkspaceType } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   NcProjectType,
   computed,
@@ -17,6 +18,12 @@ import {
 definePageMeta({
   hideHeader: true,
 })
+
+const roleAlias = {
+  [WorkspaceUserRoles.OWNER]: 'Owner',
+  [WorkspaceUserRoles.VIEWER]: 'Viewer',
+  [WorkspaceUserRoles.CREATOR]: 'Creator',
+}
 
 // todo: make it customizable
 
@@ -166,7 +173,10 @@ const navigateToCreateProject = (type: NcProjectType) => {
                     <span class="color-band" :style="{ backgroundColor: stringToColour(workspace.title) }" />
                     {{ workspace.title?.slice(0, 2) }}
                   </div>
-                  <div class="nc-workspace-title">{{ workspace.title }}</div>
+                  <div class="nc-workspace-title">
+                    {{ workspace.title }}
+                    <span v-if="workspace.roles" class="text-xs text-gray-500">({{ roleAlias[workspace.roles] }})</span>
+                  </div>
                   <div class="flex-grow"></div>
                   <a-dropdown>
                     <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" />
@@ -275,7 +285,7 @@ const navigateToCreateProject = (type: NcProjectType) => {
 
 <style scoped lang="scss">
 .nc-workspace-avatar {
-  @apply w-6 h-6 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
+  @apply min-w-6 h-6 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
   font-size: 0.7rem;
 }
 
@@ -288,7 +298,7 @@ const navigateToCreateProject = (type: NcProjectType) => {
     @apply relative;
 
     & .color-band {
-      @apply opacity-0 absolute w-2 h-7 -left-1 top-[6px] bg-[#4351E8] rounded-[99px] content-[''] trasition-opacity;
+      @apply opacity-0 absolute w-2 h-7 -left-1 top-[6px] bg-[#4351E8] rounded-[99px] trasition-opacity;
     }
   }
 

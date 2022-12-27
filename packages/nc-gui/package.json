@@ -93,6 +93,7 @@
     "@types/axios": "^0.14.0",
     "@types/dagre": "^0.7.48",
     "@types/papaparse": "^5.3.2",
+    "@types/qrcode": "^1.5.0",
     "@types/sortablejs": "^1.13.0",
     "@types/tinycolor2": "^1.4.3",
     "@types/validator": "^13.7.10",

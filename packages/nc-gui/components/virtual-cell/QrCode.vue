@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
+import type QRCode from 'qrcode'
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 
@@ -11,11 +12,25 @@ const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOf
 
 const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value)
 
+const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
+  errorCorrectionLevel: 'M',
+  // type: 'image/png',
+  // quality: 0.92,
+  margin: 1,
+  version: 4,
+  rendererOpts: {
+    quality: 1,
+  },
+}
+console.log(qrCodeOptions)
+
 const qrCode = useQRCode(qrValue, {
+  ...qrCodeOptions,
   width: 150,
 })
 
 const qrCodeLarge = useQRCode(qrValue, {
+  ...qrCodeOptions,
   width: 600,
 })
 

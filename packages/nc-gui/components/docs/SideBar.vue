@@ -100,15 +100,7 @@ const onImport = async () => {
   loadImport.value = false
 }
 
-const openCreateBookOrPage = ({
-  parentId,
-  bookId,
-  isBook,
-}: {
-  parentId?: string | undefined
-  bookId?: string
-  isBook: boolean
-}) => {
+const openCreateBookOrPage = ({ parentId, isBook }: { parentId?: string | undefined; isBook: boolean }) => {
   if (isBook) {
     selectedBookId.value = undefined
     selectedPageId.value = undefined
@@ -246,6 +238,7 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
       </div>
     </div>
     <a-tree
+      :key="openedBook?.id"
       v-model:expandedKeys="openedTabs"
       v-model:selectedKeys="openPageTabKeys"
       :load-data="onLoadData"
@@ -257,15 +250,15 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >
-      <template #title="{ title, id, book_id }">
+      <template #title="{ title, id, book_id, parent_page_id }">
         <div class="flex flex-row w-full items-center justify-between group pt-1">
-          <div class="flex" :class="{ 'font-semibold': !book_id }">
+          <div class="flex" :class="{ 'font-semibold': !parent_page_id }">
             {{ title }}
           </div>
           <div class="flex flex-row justify-between items-center">
             <div
               class="flex hover:(text-primary/100) cursor-pointer select-none invisible group-hover:visible mr-2"
-              @click="() => openCreateBookOrPage({ parentId: book_id ? id : undefined, bookId: book_id ?? id, isBook: false })"
+              @click="() => openCreateBookOrPage({ parentId: id, isBook: false })"
             >
               <MdiPlus />
             </div>

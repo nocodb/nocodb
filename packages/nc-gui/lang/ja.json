@@ -248,7 +248,10 @@
     "sqlOutput": "SQL出力",
     "addOption": "オプションを追加",
     "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "集約関数",
     "dbCreateIfNotExists": "データベース：存在しない場合は作成",
     "clientKey": "クライアントキー",
@@ -496,6 +499,9 @@
   },
   "msg": {
     "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
       "nonEditableFields": {
         "computedFieldUnableToClear": "警告: 計算フィールド - テキストをクリアできません",
         "qrFieldsCannotBeDirectlyChanged": "警告：QRコードフィールドは直接変更できません。"

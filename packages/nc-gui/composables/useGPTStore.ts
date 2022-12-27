@@ -9,7 +9,9 @@ const [useProvideGPTStore, useGPTStore] = useInjectionState((projectId: string) 
 
   const gptTable = ref<TableInfoType | null>()
 
-  const gptView = ref<ViewType | null>()
+  const gptFormView = ref<ViewType | null>()
+
+  const gptGridView = ref<ViewType | null>()
 
   const { $api } = useNuxtApp()
 
@@ -36,8 +38,8 @@ const [useProvideGPTStore, useGPTStore] = useInjectionState((projectId: string) 
       } as ViewType)
       await loadViews()
     }
-    gptView.value = views.value[1]
-    console.log(gptView.value)
+    gptGridView.value = views.value[0]
+    gptFormView.value = views.value[1]
   }
 
   watch(
@@ -53,7 +55,8 @@ const [useProvideGPTStore, useGPTStore] = useInjectionState((projectId: string) 
     gptLayout,
     gptProject,
     gptTable,
-    gptView,
+    gptGridView,
+    gptFormView,
     loadGPTTable,
   }
 })

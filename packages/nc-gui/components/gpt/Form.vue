@@ -14,19 +14,19 @@ import {
   useViewData,
 } from '#imports'
 
-const { gptTable, gptView, loadGPTTable } = useGPTStoreOrThrow()
+const { gptTable, gptFormView, loadGPTTable } = useGPTStoreOrThrow()
 
 provide(MetaInj, gptTable as Ref<TableType>)
 
-provide(ActiveViewInj, gptView)
+provide(ActiveViewInj, gptFormView)
 
 provide(IsFormInj, ref(true))
 
-useProvideSmartsheetStore(gptView as Ref<ViewType>, gptTable as Ref<TableType>)
+useProvideSmartsheetStore(gptFormView as Ref<ViewType>, gptTable as Ref<TableType>)
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(
   gptTable as Ref<TableType>,
-  gptView as Ref<ViewType>,
+  gptFormView as Ref<ViewType>,
 )
 
 const reloadEventHook = createEventHook<boolean | void>()
@@ -37,7 +37,7 @@ reloadEventHook.on(async () => {
   await loadGPTTable()
 })
 
-const { saveOrUpdate } = useViewColumns(gptView as Ref<ViewType>, gptTable as Ref<TableType>, async () =>
+const { saveOrUpdate } = useViewColumns(gptFormView as Ref<ViewType>, gptTable as Ref<TableType>, async () =>
   reloadEventHook.trigger(),
 )
 
@@ -222,7 +222,7 @@ async function submitCallback() {
   showColumnDropdown.value = false
 }
 
-watch([gptTable, gptView], async () => {
+watch([gptTable, gptFormView], async () => {
   await loadFormView()
   setFormData()
 })

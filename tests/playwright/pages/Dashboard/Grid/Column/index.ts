@@ -30,6 +30,8 @@ export class ColumnPageObject extends BasePage {
     type = 'SingleLineText',
     formula = '',
     qrCodeValueColumnTitle = '',
+    barcodeValueColumnTitle = '',
+    barcodeFormat = '',
     childTable = '',
     childColumn = '',
     relationType = '',
@@ -44,6 +46,8 @@ export class ColumnPageObject extends BasePage {
     type?: string;
     formula?: string;
     qrCodeValueColumnTitle?: string;
+    barcodeValueColumnTitle?: string;
+    barcodeFormat?: string;
     childTable?: string;
     childColumn?: string;
     relationType?: string;
@@ -110,6 +114,14 @@ export class ColumnPageObject extends BasePage {
         await this.rootPage
           .locator(`.ant-select-item`, {
             hasText: new RegExp(`^${qrCodeValueColumnTitle}$`),
+          })
+          .click();
+        break;
+      case 'Barcode':
+        await this.get().locator('.ant-select-single').nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: new RegExp(`^${barcodeValueColumnTitle}$`),
           })
           .click();
         break;
@@ -212,6 +224,28 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage
       .locator(`.ant-select-item`, {
         hasText: titleOfReferencedColumn,
+      })
+      .click();
+
+    await this.save();
+  }
+
+  async changeReferencedColumnForBarcode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
+    await this.get().locator('.nc-barcode-value-column-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: titleOfReferencedColumn,
+      })
+      .click();
+
+    await this.save();
+  }
+
+  async changeBarcodeFormat({ barcodeFormatName }: { barcodeFormatName: string }) {
+    await this.get().locator('.nc-barcode-format-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: barcodeFormatName,
       })
       .click();
 

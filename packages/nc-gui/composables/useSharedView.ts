@@ -42,6 +42,7 @@ export function useSharedView() {
             f.uidt !== UITypes.Rollup &&
             f.uidt !== UITypes.Lookup &&
             f.uidt !== UITypes.Formula &&
+            f.uidt !== UITypes.Barcode &&
             f.uidt !== UITypes.QrCode,
         )
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)

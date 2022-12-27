@@ -248,7 +248,10 @@
     "sqlOutput": "إخراج SQL",
     "addOption": "إضافة خيار",
     "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "وظيفة التجميع",
     "dbCreateIfNotExists": "قاعدة البيانات: إنشاء إذا لم يكن موجودا",
     "clientKey": "مفتاح العميل",
@@ -496,6 +499,9 @@
   },
   "msg": {
     "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
         "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."

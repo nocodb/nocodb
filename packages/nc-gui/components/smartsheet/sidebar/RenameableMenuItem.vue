@@ -168,9 +168,9 @@ function onStopEdit() {
     <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-testid="view-item">
       <div class="flex w-auto min-w-5" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <a-dropdown :trigger="['click']" @click.stop>
-          <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
+          <component :is="isUIAllowed('viewIconCustomisation') ? Tooltip : 'div'">
             <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
-            <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
+            <template v-if="isUIAllowed('viewIconCustomisation')" #title>Change icon</template>
           </component>
 
           <template v-if="isUIAllowed('viewIconCustomisation')" #overlay>

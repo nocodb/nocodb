@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { Icon as IcIcon } from '@iconify/vue'
 import type { TableType } from 'nocodb-sdk'
-import { viewIcons } from '#imports'
+import { toRef, viewIcons } from '#imports'
 
-const { meta: viewMeta } = defineProps<{
+const props = defineProps<{
   meta: TableType
 }>()
+
+const viewMeta = toRef(props, 'meta')
 </script>
 
 <template>

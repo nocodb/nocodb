@@ -112,7 +112,7 @@ const validators = computed(() => {
     'title': [
       {
         required: true,
-        message: 'Project name is required',
+        message: 'Base name is required',
       },
       projectTitleValidator,
     ],

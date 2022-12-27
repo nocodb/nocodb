@@ -12,8 +12,9 @@ import Image from '@tiptap/extension-image'
 import Commands from './commands'
 import suggestion from './suggestion'
 
-const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, bookUrl, pageFirstRender } = useDocs()
+const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, bookUrl } = useDocs()
 
+const isTitleInputRefLoaded = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
 
 const content = computed(() => openedPage.value?.content || '')
@@ -94,12 +95,12 @@ watchDebounced(
 
 // todo: Hack to focus on title when its edited since on edit route is changed
 watch(titleInputRef, (el) => {
-  if (pageFirstRender.value) {
-    pageFirstRender.value = false
+  if (!isTitleInputRefLoaded.value && !openedPage.value?.new) {
+    isTitleInputRefLoaded.value = true
     return
   }
 
-  pageFirstRender.value = false
+  isTitleInputRefLoaded.value = true
   el?.focus()
 })
 
@@ -144,7 +145,7 @@ watchDebounced(
       <a-textarea
         ref="titleInputRef"
         v-model:value="openedPage.title"
-        class="!text-4xl font-semibold"
+        class="!text-4xl font-semibold !px-1.5"
         :bordered="false"
         placeholder="Type to add title"
         auto-size

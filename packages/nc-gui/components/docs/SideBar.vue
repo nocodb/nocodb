@@ -14,14 +14,13 @@ const {
   createImport,
   openedPageSlug,
   openedTabs,
-  bookUrl,
   nestedUrl,
   deletePage,
   deleteBook,
   reorderPages,
   openedBook,
   selectBook,
-  // addNewPage,
+  addNewPage,
 } = useDocs()
 
 const createModalOpen = ref(false)
@@ -203,8 +202,12 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
       </a-dropdown>
       <div class="flex flex-row justify-between items-center">
         <div
-          class="flex hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none p-1 border-gray-100 border-1 rounded-md mr-1"
-          @click="() => openCreateBookOrPage({ isBook: false })"
+          class="flex select-none p-1 border-gray-100 border-1 rounded-md mr-1"
+          :class="{
+            'cursor-not-allowed !bg-gray-50 text-gray-400': !openedBook,
+            'hover:(text-primary/100 !bg-blue-50) cursor-pointer': openedBook,
+          }"
+          @click="() => openedBook && addNewPage()"
         >
           <MdiPlus />
         </div>
@@ -258,7 +261,7 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
           <div class="flex flex-row justify-between items-center">
             <div
               class="flex hover:(text-primary/100) cursor-pointer select-none invisible group-hover:visible mr-2"
-              @click="() => openCreateBookOrPage({ parentId: id, isBook: false })"
+              @click="() => addNewPage(id)"
             >
               <MdiPlus />
             </div>

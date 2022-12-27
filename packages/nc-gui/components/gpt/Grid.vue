@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { ActiveViewInj, MetaInj, useGPTStoreOrThrow, useProvideSmartsheetStore } from '#imports'
+import { ActiveViewInj, MetaInj, useGPTStoreOrThrow, useMetas, useProvideSmartsheetStore } from '#imports'
+
+const { getMeta } = useMetas()
 
 const { gptTable, gptGridView } = useGPTStoreOrThrow()
 
@@ -13,9 +15,13 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
 const openNewRecordFormHook = createEventHook<void>()
 
+const { isLocked } = useProvideSmartsheetStore(gptGridView as Ref<ViewType>, gptTable as Ref<TableType>)
+
 provide(MetaInj, gptTable as Ref<TableType>)
 
 provide(ActiveViewInj, gptGridView)
+
+provide(IsLockedInj, isLocked)
 
 provide(IsFormInj, ref(false))
 
@@ -27,7 +33,7 @@ provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 
-useProvideSmartsheetStore(gptGridView as Ref<ViewType>, gptTable as Ref<TableType>)
+onMounted(async () => await getMeta(gptTable.value?.id as string, true))
 </script>
 
 <template>

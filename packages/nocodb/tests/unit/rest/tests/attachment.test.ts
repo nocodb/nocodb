@@ -29,7 +29,7 @@ function attachmentTests() {
     const response = await request(context.app)
       .post('/api/v1/db/storage/upload')
       .attach('files', FILE_PATH)
-      // .set('xc-auth', context.token)
+      .set('xc-auth', context.token)
       .expect(200)
 
 
@@ -46,18 +46,6 @@ function attachmentTests() {
 
     const msg = response.body.msg
     expect(msg).to.be.eq('Unauthorized')
-  })
-
-  it('Upload file - Super admin', async () => {
-    const response = await request(context.app)
-      .post('/api/v1/db/storage/upload')
-      .attach('files', FILE_PATH)
-      .set('xc-auth', context.token)
-      .expect(200)
-
-    const attachments = response.body
-    expect(attachments).to.be.an('array')
-    expect(attachments[0].title).to.be.eq(path.basename(FILE_PATH))
   })
 
   it('Upload file - Org level viewer', async () => {

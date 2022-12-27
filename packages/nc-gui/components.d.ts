@@ -90,6 +90,7 @@ declare module '@vue/runtime-core' {
     LogosMysqlIcon: typeof import('~icons/logos/mysql-icon')['default']
     LogosPostgresql: typeof import('~icons/logos/postgresql')['default']
     LogosRedditIcon: typeof import('~icons/logos/reddit-icon')['default']
+    LogosSnowflakeIcon: typeof import('~icons/logos/snowflake-icon')['default']
     LogosSwagger: typeof import('~icons/logos/swagger')['default']
     MaterialSymbolsAccountTreeRounded: typeof import('~icons/material-symbols/account-tree-rounded')['default']
     MaterialSymbolsArrowCircleLeftRounded: typeof import('~icons/material-symbols/arrow-circle-left-rounded')['default']

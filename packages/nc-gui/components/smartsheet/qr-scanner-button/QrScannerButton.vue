@@ -25,14 +25,12 @@ interface Entry {
 onBeforeMount(init)
 
 async function init() {
-  qrCodeFieldOptions.value = meta?.value
-    ?.columns!.filter((el) => el.uidt === UITypes.QrCode)
-    .map((field) => {
-      return {
-        value: field.id,
-        label: field.title,
-      }
-    })
+  qrCodeFieldOptions.value = meta?.value?.columns!.map((field) => {
+    return {
+      value: field.id,
+      label: field.title,
+    }
+  })
 }
 
 const showQrCodeScanner = ref(false)
@@ -41,7 +39,7 @@ const entry = ref<Entry | null>(null)
 const selectedCodeColumnIdToScanFor = ref('')
 
 const onDecode = async (qrCodeValue: string) => {
-  // alert(qrCodeValue)
+  alert(qrCodeValue)
   try {
     showQrCodeScanner.value = false
 
@@ -74,6 +72,12 @@ const onLoaded = async () => {
   // alert('FOO')
   scannerIsReady.value = true
 }
+
+const FOO = async () => {
+  alert('FOO')
+}
+
+// TODO: ensure that when modal is closed, scannerIsReady gets set back to false
 </script>
 
 <template>
@@ -94,7 +98,6 @@ const onLoaded = async () => {
       :footer="null"
       wrap-class-name="nc-modal-generate-token"
       destroy-on-close
-      :after-close="(scannerIsReady = false)"
     >
       <div class="relative flex flex-col h-full">
         <a-form-item :label="$t('labels.qrCodeColumn')">

@@ -46,6 +46,9 @@ export default {
         <a-col :span="12">
           <slot name="right" />
         </a-col>
+        <a-col :span="24">
+          <slot name="middle" />
+        </a-col>
       </a-row>
     </a-layout-content>
   </a-layout>

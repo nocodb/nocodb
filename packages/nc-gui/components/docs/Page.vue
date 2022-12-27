@@ -12,7 +12,10 @@ import Image from '@tiptap/extension-image'
 import Commands from './commands'
 import suggestion from './suggestion'
 
-const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, bookUrl } = useDocs()
+const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, bookUrl, pageFirstRender } = useDocs()
+
+const titleInputRef = ref<HTMLInputElement>()
+
 const content = computed(() => openedPage.value?.content || '')
 
 const breadCrumbs = computed(() => {
@@ -63,9 +66,6 @@ const editor = useEditor({
   },
 })
 
-const titleInputRef = ref<HTMLInputElement>()
-const titleInputRefLoaded = ref(false)
-
 watch(
   () => content.value,
   () => {
@@ -84,7 +84,6 @@ watchDebounced(
   async ([newId, newTitle], [oldId, oldTitle]) => {
     if (newId === oldId && newTitle !== oldTitle) {
       await updatePage({ pageId: newId!, page: { title: newTitle } as any })
-      titleInputRef.value?.focus()
     }
   },
   {
@@ -94,17 +93,15 @@ watchDebounced(
 )
 
 // todo: Hack to focus on title when its edited since on edit route is changed
-watch(
-  () => titleInputRef.value,
-  (el) => {
-    // if (!titleInputRefLoaded.value) {
-    //   titleInputRefLoaded.value = true
-    //   return
-    // }
+watch(titleInputRef, (el) => {
+  if (pageFirstRender.value) {
+    pageFirstRender.value = false
+    return
+  }
 
-    el?.focus()
-  },
-)
+  pageFirstRender.value = false
+  el?.focus()
+})
 
 watchDebounced(
   content,

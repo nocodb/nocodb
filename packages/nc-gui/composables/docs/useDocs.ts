@@ -25,6 +25,7 @@ export function useDocs() {
   const books = useState<BookSidebarNode[]>('books', () => [])
   const pages = useState<PageSidebarNode[]>('pages', () => [])
   const openedTabs = useState<string[]>('openedSidebarTabs', () => [])
+  const pageFirstRender = useState<boolean>('pageFirstRender', () => true)
 
   // First slug is book slug, rest are page slugs
   const openedPageSlug = computed<string | undefined>(() =>
@@ -48,6 +49,7 @@ export function useDocs() {
   })
 
   const selectBook = async (book: BookSidebarNode) => {
+    console.log('selectBook', pages.value)
     await fetchPages({ book })
     navigateTo(bookUrl(book.slug!))
   }
@@ -244,7 +246,7 @@ export function useDocs() {
       parentPage = findPage(parentPage.parentNodeSlug)!
     }
 
-    return `/nc/doc/${project.id!}/${book.slug}/${pageSlugs.join('/')}`
+    return `/nc/doc/${project.id!}/${pageSlugs.join('/')}`
   }
 
   const createMagic = async (title: string) => {
@@ -312,9 +314,16 @@ export function useDocs() {
     })
     if (page.title) {
       const foundPage = findPage(pageId)
+      const oldSlug = foundPage!.slug
       if (foundPage) {
         foundPage.slug = updatedPage.slug
       }
+
+      if (openedTabs.value.find((t) => t === oldSlug)) {
+        openedTabs.value = openedTabs.value.filter((t) => t !== oldSlug)
+        openedTabs.value.push(page.slug!)
+      }
+
       await navigateTo(nestedUrl(updatedPage.slug!, openedBook.value!))
     }
   }
@@ -423,6 +432,7 @@ export function useDocs() {
     deleteBook,
     reorderPages,
     selectBook,
+    pageFirstRender,
     // addNewPage,
   }
 }

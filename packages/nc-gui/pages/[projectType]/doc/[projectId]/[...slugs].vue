@@ -20,7 +20,7 @@ onMounted(async () => {
   })
   if (route.params.slugs?.length < 1 && books.value.length > 0) {
     await navigateToFirstBook()
-  } else {
+  } else if (route.params.slugs?.length === 1) {
     await fetchPages({
       book: openedBook.value!,
     })

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { NcProjectType, navigateTo, stringToColour, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 
 const { projects, loadProjects } = useWorkspaceStoreOrThrow()
@@ -14,6 +15,17 @@ const openProject = async (project: ProjectType) => {
       await navigateTo(`/nc/${project.id}`)
       break
   }
+}
+
+const roleAlias = {
+  [WorkspaceUserRoles.OWNER]: 'Workspace Owner',
+  [WorkspaceUserRoles.VIEWER]: 'Workspace Viewer',
+  [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
+  [ProjectRole.Creator]: 'Project Creator',
+  [ProjectRole.Editor]: 'Project Editor',
+  [ProjectRole.Viewer]: 'Project Viewer',
+  [ProjectRole.Commenter]: 'Project Commenter',
+  [ProjectRole.Owner]: 'Project Owner',
 }
 </script>
 
@@ -45,9 +57,9 @@ const openProject = async (project: ProjectType) => {
               <MdiDatabaseOutline v-else class="text-gray-400 text-xl" />
             </div>
           </td>
-          <td>{{ timeAgo(project.created_at) }}</td>
-          <td>
-            {{ project.role }}
+          <td class="text-gray-500 text-xs">{{ timeAgo(project.created_at) }}</td>
+          <td class="text-xs">
+            {{ roleAlias[project.workspace_role || project.project_role] }}
           </td>
           <td>
             <a-dropdown>

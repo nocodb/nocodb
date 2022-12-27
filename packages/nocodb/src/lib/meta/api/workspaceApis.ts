@@ -255,7 +255,10 @@ const workspaceInvite = async (req, res) => {
 };
 
 const workspaceProjectList = async (req, res) => {
-  const projects = await Project.listByWorkspace(req.params.workspaceId);
+  const projects = await Project.listByWorkspaceAndUser(
+    req.params.workspaceId,
+    req.user?.id
+  );
 
   res.json(
     new PagedResponseImpl<WorkspaceType>(projects, {

@@ -39,21 +39,18 @@ const entry = ref<Entry | null>(null)
 const selectedCodeColumnIdToScanFor = ref('')
 
 const onDecode = async (qrCodeValue: string) => {
-  alert(qrCodeValue)
   try {
     showQrCodeScanner.value = false
 
-    const whereClause = `(${selectedCodeColumnIdToScanFor.value},eq,${qrCodeValue})`
+    const nameOfSelectedColumnToScanFor = meta.value?.columns?.find(
+      (column) => column.id === selectedCodeColumnIdToScanFor.value,
+    )?.title
+    const whereClause = `(${nameOfSelectedColumnToScanFor},eq,${qrCodeValue})`
     const foundRowForQrCode = await $api.dbViewRow.findOne(NOCO, project.value!.id!, meta.value!.id!, view.value!.title!, {
       where: whereClause,
     })
-    console.log('foundRowForQrCode', foundRowForQrCode)
-
-    const rowIdOfFoundRow = meta.value?.id && foundRowForQrCode[meta.value.id]
-    console.log('rowIdOfFoundRow', rowIdOfFoundRow)
 
     const primaryKeyValueForFoundRow = extractPkFromRow(foundRowForQrCode, meta!.value!.columns!)
-    console.log('primaryKeyValueForFoundRow', primaryKeyValueForFoundRow)
 
     router.push({
       query: {
@@ -69,12 +66,7 @@ const onDecode = async (qrCodeValue: string) => {
 const scannerIsReady = ref(false)
 
 const onLoaded = async () => {
-  // alert('FOO')
   scannerIsReady.value = true
-}
-
-const FOO = async () => {
-  alert('FOO')
 }
 
 // TODO: ensure that when modal is closed, scannerIsReady gets set back to false

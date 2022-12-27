@@ -51,7 +51,7 @@ const openProject = async (project: ProjectType) => {
           </td>
           <td>
             <a-dropdown>
-              <MdiDotsVertical class="!text-gray-400 nc-workspace-menu" @click.stop />
+              <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
               <template #overlay>
                 <a-menu>
                   <a-menu-item>

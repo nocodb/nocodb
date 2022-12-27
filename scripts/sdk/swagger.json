@@ -2351,6 +2351,8 @@
                   },
                   "project_id": {
                     "type": "string"
+                  },
+                  "meta": {
                   }
                 }
               }
@@ -2571,6 +2573,8 @@
                 "properties": {
                   "order": {
                     "type": "number"
+                  },
+                  "meta": {
                   },
                   "title": {
                     "type": "string"
@@ -8348,6 +8352,8 @@
               "boolean",
               "number"
             ]
+          },
+          "meta": {
           }
         },
         "required": [
@@ -8445,6 +8451,8 @@
           },
           "uuid": {
             "type": "string"
+          },
+          "meta": {
           },
           "show_system_fields": {
             "type": "boolean"
@@ -8687,6 +8695,8 @@
             "items": {
               "$ref": "#/components/schemas/Column"
             }
+          },
+          "meta": {
           }
         },
         "required": [

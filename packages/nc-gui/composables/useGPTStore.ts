@@ -13,6 +13,8 @@ const [useProvideGPTStore, useGPTStore] = useInjectionState((projectId: string) 
 
   const gptGridView = ref<ViewType | null>()
 
+  const promptStatement = ref('')
+
   const { $api } = useNuxtApp()
 
   async function loadGPTProject() {
@@ -57,6 +59,7 @@ const [useProvideGPTStore, useGPTStore] = useInjectionState((projectId: string) 
     gptTable,
     gptGridView,
     gptFormView,
+    promptStatement,
     loadGPTTable,
   }
 })

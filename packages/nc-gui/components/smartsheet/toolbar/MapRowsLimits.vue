@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ActiveViewInj, MetaInj, inject, useViewData } from '#imports'
+// import { ActiveViewInj, MetaInj, inject, useViewData } from '#imports'
 
-const meta = inject(MetaInj)
-const view = inject(ActiveViewInj)
-const { syncCount, paginationData } = useViewData(meta!, view!)
+
+// const meta = inject(MetaInj)
+// const view = inject(ActiveViewInj)
+const { syncCount, paginationData } = useMapViewStoreOrThrow()
 
 const count = computed(() => {
   return paginationData.value.totalRows

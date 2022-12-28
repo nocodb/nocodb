@@ -6,15 +6,16 @@ import type { Row } from '~/lib'
 
 export const geodataToggleState = reactive({ show: false })
 
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+// const { project, isSharedBase } = useProject()
+
 const formatData = (list: Row[]) =>
   list.map((row) => ({
     row: { ...row },
     oldRow: { ...row },
     rowMeta: {},
   }))
-
-const appInfoDefaultLimit = 1000
-const paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
@@ -36,13 +37,27 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const view = inject(ActiveViewInj)
 
-    const { syncCount } = useViewData(meta, view!)
+    // const { syncCount } = useViewData(meta, view!)
+
+    const appInfoDefaultLimit = 1000
+
+    const paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
     const queryParams = computed(() => ({
       // offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
       limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
       where: where?.value ?? '',
     }))
+
+    async function syncCount() {
+      const { count } = await $api.dbViewRow.count(
+        NOCO,
+        project?.value?.title as string,
+        meta?.value?.id as string,
+        viewMeta?.value?.id as string,
+      )
+      paginationData.value.totalRows = count
+    }
 
     async function loadMapMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
@@ -59,7 +74,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
         where: where?.value,
       })
 
-      syncCount()
+      // syncCount()
 
       formattedData.value = formatData(res.list)
     }
@@ -139,6 +154,8 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       addEmptyRow,
       insertRow,
       geodataToggleState,
+      syncCount,
+      paginationData,
     }
   },
 )

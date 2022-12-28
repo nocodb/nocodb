@@ -1,4 +1,4 @@
-import type { ProjectType, TableInfoType, ViewType } from 'nocodb-sdk'
+import type { CowriterType, ProjectType, TableInfoType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { useNuxtApp, useViews } from '#imports'
 
@@ -12,6 +12,14 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   const cowriterFormView = ref<ViewType | null>()
 
   const cowriterGridView = ref<ViewType | null>()
+
+  const cowriterHistoryList = ref<CowriterType[] | []>([])
+
+  const cowriterOutputList = ref<CowriterType[] | []>([])
+
+  const cowriterInputActiveKey = ref('cowriter-form')
+
+  const cowriterOutputActiveKey = ref('cowriter-output')
 
   const cowriterFormRef = ref()
 
@@ -31,11 +39,21 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     }
   }
 
+  async function clearCowriterOutput() {
+    await Promise.all(
+      cowriterOutputList.value.map(
+        async (record) => await $api.cowriterTable.patch(cowriterTable.value!.id!, record!.id!, { is_read: true }),
+      ),
+    )
+    await loadCowriterList()
+  }
+
   async function loadCowriterTable() {
     const firstTable = (await $api.dbTable.list(projectId)).list?.[0]
     cowriterTable.value = await $api.dbTable.read(firstTable!.id!)
     console.log(cowriterTable.value)
     await loadCowriterView()
+    await loadCowriterList()
   }
 
   async function loadCowriterView() {
@@ -71,6 +89,14 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
       prompt_statement: translatePromptStatement(promptStatementTemplate.value),
     })
     console.log(cowriter)
+    // TODO: append the cowriter object to the list instead of fetching again
+    await loadCowriterList()
+  }
+
+  async function loadCowriterList() {
+    cowriterHistoryList.value = (await $api.cowriterTable.list(cowriterTable.value!.id!)).list as CowriterType[]
+    cowriterOutputList.value = cowriterHistoryList.value.filter((o: CowriterType) => !!o.is_read! === false)
+    console.log(cowriterOutputList.value)
   }
 
   watch(
@@ -92,7 +118,13 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     cowriterFormState,
     promptStatementTemplate,
     loadCowriterTable,
+    loadCowriterList,
     generateCowriter,
+    clearCowriterOutput,
+    cowriterHistoryList,
+    cowriterOutputList,
+    cowriterInputActiveKey,
+    cowriterOutputActiveKey,
   }
 })
 

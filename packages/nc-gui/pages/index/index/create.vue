@@ -55,6 +55,11 @@ const createProject = async () => {
       title: formState.title,
       fk_workspace_id: route.query.workspaceId,
       type: route.query.type ?? NcProjectType.DB,
+      ...(route.query.type === NcProjectType.COWRITER && {
+        meta: {
+          prompt_statement: '',
+        },
+      }),
     })
 
     switch (route.query.type) {

@@ -40,12 +40,14 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   }
 
   async function clearCowriterOutput() {
-    await Promise.all(
-      cowriterOutputList.value.map(
-        async (record) => await $api.cowriterTable.patch(cowriterTable.value!.id!, record!.id!, { is_read: true }),
-      ),
-    )
-    await loadCowriterList()
+    if (cowriterOutputList.value.length) {
+      await Promise.all(
+        cowriterOutputList.value.map(
+          async (record) => await $api.cowriterTable.patch(cowriterTable.value!.id!, record!.id!, { is_read: true }),
+        ),
+      )
+      await loadCowriterList()
+    }
   }
 
   async function loadCowriterTable() {

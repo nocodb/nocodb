@@ -82,11 +82,7 @@ const selectedLangName = $ref(langs[0].name)
 
 const apiUrl = $computed(() => {
   if (props.type === 'cowriter') {
-    // TODO: update it when the Cowriter API is ready
-    return new URL(
-      `/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`,
-      (appInfo && appInfo.ncSiteUrl) || '/',
-    ).href
+    return new URL(`/api/v1/cowriter/meta/tables/${meta?.id}`, (appInfo && appInfo.ncSiteUrl) || '/').href
   } else {
     return new URL(
       `/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`,

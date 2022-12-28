@@ -243,7 +243,7 @@ const navigateToCreateProject = (type: NcProjectType) => {
                   <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
                     <div class="py-4 px-1 flex items-center gap-4">
                       <MdiVectorTriangle class="text-[#8626FF] text-lg" />
-                      New COWRITER
+                      New Cowriter
                     </div>
                   </a-menu-item>
                   <!-- TODO: support preset template import in the future -->
@@ -251,7 +251,7 @@ const navigateToCreateProject = (type: NcProjectType) => {
                   <!--                    <template #title> -->
                   <!--                      <div class="py-4 px-1 flex items-center gap-4"> -->
                   <!--                        <MdiVectorTriangle class="text-[#8626FF] text-lg" /> -->
-                  <!--                        New COWRITER -->
+                  <!--                        New Cowriter -->
                   <!--                      </div> -->
                   <!--                    </template> -->
                   <!--                    <a-menu-item key="create-from-blank-template" @click="navigateToCreateProject(NcProjectType.COWRITER)"> -->

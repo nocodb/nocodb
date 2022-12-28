@@ -45,8 +45,6 @@ const enableAbort = ref(false)
 
 let socket: Socket | null
 
-let socketInterval: NodeJS.Timer
-
 const syncSource = ref({
   id: '',
   type: 'Airtable',
@@ -275,10 +273,10 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   if (socket) {
-    socket.removeAllListeners()
+    socket.off('disconnect')
     socket.disconnect()
+    socket.removeAllListeners()
   }
-  clearInterval(socketInterval)
 })
 </script>
 

@@ -190,6 +190,13 @@ export default async (
     const duration = Date.now() - start;
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
+    
+    if (!ft.baseId) {
+      throw {
+        message:
+          'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+      };
+    }
 
     const file = ft.schema;
     baseId = ft.baseId;

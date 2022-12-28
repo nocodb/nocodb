@@ -65,7 +65,8 @@ const workspaceUpdate = async (
   req: Request<{ workspaceId: string }, any, Partial<WorkspaceType>>,
   res: Response
 ) => {
-  validateParams(['title', 'description'], req.body);
+  // todo: validate params
+  // validateParams(['title', 'description'], req.body);
 
   const workspace = await Workspace.update(req.params.workspaceId, req.body);
 

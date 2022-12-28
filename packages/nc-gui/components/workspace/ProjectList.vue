@@ -3,8 +3,11 @@ import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { NcProjectType, navigateTo, stringToColour, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
+import { useNuxtApp } from '#app'
 
-const { projects, loadProjects } = useWorkspaceStoreOrThrow()
+const { projects, loadProjects,  } = useWorkspaceStoreOrThrow()
+
+const { $e ,$api} = useNuxtApp()
 
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
@@ -26,6 +29,29 @@ const roleAlias = {
   [ProjectRole.Viewer]: 'Project Viewer',
   [ProjectRole.Commenter]: 'Project Commenter',
   [ProjectRole.Owner]: 'Project Owner',
+}
+
+const deleteProject = (project: ProjectType) => {
+  $e('c:project:delete')
+
+  Modal.confirm({
+    title: `Do you want to delete '${project.title}' project?`,
+    wrapClassName: 'nc-modal-project-delete',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    async onOk() {
+      try {
+        await $api.project.delete(project.id as string)
+
+        $e('a:project:delete')
+
+        projects.value?.splice(projects.value?.indexOf(project), 1)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
 }
 </script>
 
@@ -58,7 +84,7 @@ const roleAlias = {
             </div>
           </td>
           <td class="text-gray-500 text-xs">{{ timeAgo(project.created_at) }}</td>
-          <td class="text-xs">
+          <td class="text-xs text-gry-500">
             {{ roleAlias[project.workspace_role || project.project_role] }}
           </td>
           <td>
@@ -66,7 +92,7 @@ const roleAlias = {
               <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
               <template #overlay>
                 <a-menu>
-                  <a-menu-item>
+                  <a-menu-item @click="deleteProject(project)">
                     <div class="flex flex-row items-center py-3 gap-2">
                       <MdiDeleteOutline />
                       Delete Project

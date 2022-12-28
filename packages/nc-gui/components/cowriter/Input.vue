@@ -1,5 +1,12 @@
 <script setup lang="ts">
+import { useCowriterStoreOrThrow } from '#imports'
+const { generateCowriter } = useCowriterStoreOrThrow()
+
 const activeKey = ref('cowriter-form')
+
+async function generate() {
+  await generateCowriter()
+}
 </script>
 
 <template>
@@ -12,7 +19,7 @@ const activeKey = ref('cowriter-form')
     </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-8">
-        <a-button class="!rounded-md" type="primary">
+        <a-button class="!rounded-md" type="primary" @click="generate">
           {{ $t('general.generate') }}
         </a-button>
       </div>

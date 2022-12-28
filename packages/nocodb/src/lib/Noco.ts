@@ -17,6 +17,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { NcConfig } from '../interface/config';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
+import Store from './models/Store'
 import NcConfigFactory from './utils/NcConfigFactory';
 import { Tele } from 'nc-help';
 
@@ -196,6 +197,9 @@ export default class Noco {
     await initAdminFromEnv();
 
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
+
+    // load default settings from env
+    await Store.setDefaultDataFromEnv();
 
     if (args?.afterMetaMigrationInit) {
       await args.afterMetaMigrationInit();

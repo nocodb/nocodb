@@ -1,3 +1,4 @@
+import { NC_APP_SETTINGS } from '../constants'
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
 import Noco from '../Noco';
@@ -42,6 +43,22 @@ export default class Store {
       });
     } else {
       await ncMeta.metaInsert(null, null, MetaTable.STORE, insertObj);
+    }
+  }
+
+  static async setDefaultDataFromEnv(ncMeta = Noco.ncMeta) {
+    // set initial data from env if settings not defined
+    if (
+      process.env.NC_INVITE_ONLY_SIGNUP &&
+      !(await Store.get(NC_APP_SETTINGS, ncMeta))
+    ) {
+      await Store.saveOrUpdate(
+        {
+          value: '{ "invite_only_signup": true }',
+          key: NC_APP_SETTINGS,
+        },
+        ncMeta
+      );
     }
   }
 }

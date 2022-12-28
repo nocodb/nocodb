@@ -240,10 +240,10 @@ const navigateToCreateProject = (type: NcProjectType) => {
                       New Documentation
                     </div>
                   </a-menu-item>
-                  <a-menu-item @click="navigateToCreateProject(NcProjectType.GPT)">
+                  <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
                     <div class="py-4 px-1 flex items-center gap-4">
                       <MdiVectorTriangle class="text-[#8626FF] text-lg" />
-                      New GPT
+                      New COWRITER
                     </div>
                   </a-menu-item>
                   <!-- TODO: support preset template import in the future -->
@@ -251,13 +251,13 @@ const navigateToCreateProject = (type: NcProjectType) => {
                   <!--                    <template #title> -->
                   <!--                      <div class="py-4 px-1 flex items-center gap-4"> -->
                   <!--                        <MdiVectorTriangle class="text-[#8626FF] text-lg" /> -->
-                  <!--                        New GPT -->
+                  <!--                        New COWRITER -->
                   <!--                      </div> -->
                   <!--                    </template> -->
-                  <!--                    <a-menu-item key="create-from-blank-template" @click="navigateToCreateProject(NcProjectType.GPT)"> -->
+                  <!--                    <a-menu-item key="create-from-blank-template" @click="navigateToCreateProject(NcProjectType.COWRITER)"> -->
                   <!--                      <div class="flex items-center px-1 py-2 gap-1">Create from Blank Template</div> -->
                   <!--                    </a-menu-item> -->
-                  <!--                    <a-menu-item key="create-from-preset-template" @click="navigateToCreateProject(NcProjectType.GPT)"> -->
+                  <!--                    <a-menu-item key="create-from-preset-template" @click="navigateToCreateProject(NcProjectType.COWRITER)"> -->
                   <!--                      <div class="flex items-center px-1 py-2 gap-1">Create from Preset Template</div> -->
                   <!--                    </a-menu-item> -->
                   <!--                  </a-sub-menu> -->

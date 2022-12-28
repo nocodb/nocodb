@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { ActiveViewInj, MetaInj, useGPTStoreOrThrow, useMetas, useProvideSmartsheetStore } from '#imports'
+import { ActiveViewInj, MetaInj, useCowriterStoreOrThrow, useMetas, useProvideSmartsheetStore } from '#imports'
 
 const { getMeta } = useMetas()
 
-const { gptTable, gptGridView } = useGPTStoreOrThrow()
+const { cowriterTable, cowriterGridView } = useCowriterStoreOrThrow()
 
 const fields = ref<ColumnType[]>([])
 
@@ -15,11 +15,11 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
 const openNewRecordFormHook = createEventHook<void>()
 
-const { isLocked } = useProvideSmartsheetStore(gptGridView as Ref<ViewType>, gptTable as Ref<TableType>)
+const { isLocked } = useProvideSmartsheetStore(cowriterGridView as Ref<ViewType>, cowriterTable as Ref<TableType>)
 
-provide(MetaInj, gptTable as Ref<TableType>)
+provide(MetaInj, cowriterTable as Ref<TableType>)
 
-provide(ActiveViewInj, gptGridView)
+provide(ActiveViewInj, cowriterGridView)
 
 provide(IsLockedInj, isLocked)
 
@@ -33,7 +33,7 @@ provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 
-onMounted(async () => await getMeta(gptTable.value?.id as string, true))
+onMounted(async () => await getMeta(cowriterTable.value?.id as string, true))
 </script>
 
 <template>
@@ -41,9 +41,9 @@ onMounted(async () => await getMeta(gptTable.value?.id as string, true))
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
       <Transition name="layout" mode="out-in">
-        <template v-if="gptTable">
+        <template v-if="cowriterTable">
           <div class="flex flex-1 min-h-0">
-            <div v-if="gptGridView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
+            <div v-if="cowriterGridView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
               <LazySmartsheetGrid />
             </div>
           </div>

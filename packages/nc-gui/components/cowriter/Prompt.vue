@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useGPTStoreOrThrow } from '#imports'
+import { useCowriterStoreOrThrow } from '#imports'
 
-const { promptStatement } = useGPTStoreOrThrow()
+const { promptStatement } = useCowriterStoreOrThrow()
 </script>
 
 <template>

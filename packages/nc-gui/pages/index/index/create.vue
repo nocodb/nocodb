@@ -61,15 +61,15 @@ const createProject = async () => {
       case NcProjectType.DOCS:
         await navigateTo(`/nc/doc/${result.id}`)
         break
-      case NcProjectType.GPT: {
+      case NcProjectType.COWRITER: {
         // force load project so that baseId is available in useTable
         await loadProject(true, result.id)
-        // Create a table for the GPT form
+        // Create a table for the COWRITER form
         const nanoidV2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14)
-        table.table_name = `nc_gpt_${nanoidV2()}`
+        table.table_name = `nc_cowriter_${nanoidV2()}`
         await createTable()
 
-        await navigateTo(`/nc/gpt/${result.id}`)
+        await navigateTo(`/nc/cowriter/${result.id}`)
         break
       }
       default:

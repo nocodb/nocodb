@@ -1,14 +1,14 @@
 <script setup lang="ts">
-const activeKey = ref('gpt-form')
+const activeKey = ref('cowriter-form')
 </script>
 
 <template>
-  <a-tabs v-model:activeKey="activeKey" class="nc-gpt-tabs">
-    <a-tab-pane key="gpt-form" tab="Fields">
-      <GptForm />
+  <a-tabs v-model:activeKey="activeKey" class="nc-cowriter-tabs">
+    <a-tab-pane key="cowriter-form" tab="Fields">
+      <CowriterForm />
     </a-tab-pane>
-    <a-tab-pane key="gpt-prompt" tab="Prompt">
-      <GptPrompt />
+    <a-tab-pane key="cowriter-prompt" tab="Prompt">
+      <CowriterPrompt />
     </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-8">

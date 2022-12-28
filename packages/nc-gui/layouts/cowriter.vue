@@ -4,7 +4,7 @@
 
 <script lang="ts">
 export default {
-  name: 'GPTLayout',
+  name: 'CowriterLayout',
 }
 </script>
 

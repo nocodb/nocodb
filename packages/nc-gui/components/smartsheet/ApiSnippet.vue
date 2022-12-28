@@ -18,7 +18,7 @@ import {
 
 const props = defineProps<{
   modelValue: boolean
-  type?: 'gpt' | null
+  type?: 'cowriter' | null
 }>()
 
 const emits = defineEmits(['update:modelValue'])
@@ -81,8 +81,8 @@ let selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clien
 const selectedLangName = $ref(langs[0].name)
 
 const apiUrl = $computed(() => {
-  if (props.type === 'gpt') {
-    // TODO: update it when the GPT API is ready
+  if (props.type === 'cowriter') {
+    // TODO: update it when the Cowriter API is ready
     return new URL(
       `/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`,
       (appInfo && appInfo.ncSiteUrl) || '/',
@@ -165,7 +165,7 @@ watch($$(activeLang), (newLang) => {
       <!-- Code Snippet -->
       <a-typography-title :level="4" class="pb-1">{{ $t('title.codeSnippet') }}</a-typography-title>
 
-      <a-typography-paragraph v-if="props.type === 'gpt'">
+      <a-typography-paragraph v-if="props.type === 'cowriter'">
         You can use following code to start integrating your current prompt and settings into your application.
       </a-typography-paragraph>
 

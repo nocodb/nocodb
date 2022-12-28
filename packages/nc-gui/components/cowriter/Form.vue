@@ -6,7 +6,7 @@ import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-s
 import {
   ActiveViewInj,
   MetaInj,
-  useGPTStoreOrThrow,
+  useCowriterStoreOrThrow,
   useI18n,
   useProvideSmartsheetRowStore,
   useProvideSmartsheetStore,
@@ -14,19 +14,19 @@ import {
   useViewData,
 } from '#imports'
 
-const { gptTable, gptFormView, loadGPTTable } = useGPTStoreOrThrow()
+const { cowriterTable, cowriterFormView, loadCowriterTable } = useCowriterStoreOrThrow()
 
-provide(MetaInj, gptTable as Ref<TableType>)
+provide(MetaInj, cowriterTable as Ref<TableType>)
 
-provide(ActiveViewInj, gptFormView)
+provide(ActiveViewInj, cowriterFormView)
 
 provide(IsFormInj, ref(true))
 
-useProvideSmartsheetStore(gptFormView as Ref<ViewType>, gptTable as Ref<TableType>)
+useProvideSmartsheetStore(cowriterFormView as Ref<ViewType>, cowriterTable as Ref<TableType>)
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(
-  gptTable as Ref<TableType>,
-  gptFormView as Ref<ViewType>,
+  cowriterTable as Ref<TableType>,
+  cowriterFormView as Ref<ViewType>,
 )
 
 const reloadEventHook = createEventHook<boolean | void>()
@@ -34,10 +34,10 @@ const reloadEventHook = createEventHook<boolean | void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
 
 reloadEventHook.on(async () => {
-  await loadGPTTable()
+  await loadCowriterTable()
 })
 
-const { saveOrUpdate } = useViewColumns(gptFormView as Ref<ViewType>, gptTable as Ref<TableType>, async () =>
+const { saveOrUpdate } = useViewColumns(cowriterFormView as Ref<ViewType>, cowriterTable as Ref<TableType>, async () =>
   reloadEventHook.trigger(),
 )
 
@@ -59,7 +59,7 @@ const { t } = useI18n()
 const formState = reactive({})
 
 const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
-  gptTable as Ref<TableType>,
+  cowriterTable as Ref<TableType>,
   ref({
     row: formState,
     oldRow: {},
@@ -67,7 +67,7 @@ const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const columns = computed(() => (gptTable?.value as TableInfoType)?.column || [])
+const columns = computed(() => (cowriterTable?.value as TableInfoType)?.column || [])
 
 const localColumns = ref<Record<string, any>[]>([])
 
@@ -222,7 +222,7 @@ async function submitCallback() {
   showColumnDropdown.value = false
 }
 
-watch([gptTable, gptFormView], async () => {
+watch([cowriterTable, cowriterFormView], async () => {
   await loadFormView()
   setFormData()
 })

@@ -283,7 +283,7 @@ function docTests() {
     expect(response.body.id).to.equal(id)
   });
 
-  it.only('Verify nested pages', async () => {
+  it('Verify nested pages', async () => {
     let response = await request(context.app)
       .post(`/api/v1/docs/page`)
       .set('xc-auth', context.token)

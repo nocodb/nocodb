@@ -4,7 +4,7 @@ import NocoCache from '../cache/NocoCache';
 import slug from 'slug';
 import { DocsPageType, UserType } from 'nocodb-sdk';
 import Book from './Book';
-
+const { v4: uuidv4 } = require('uuid');
 export default class Page {
   public id: string;
   public title: string;
@@ -377,24 +377,35 @@ export default class Page {
         table.string('parent_page_id', 20).nullable();
         table
           .foreign('parent_page_id')
-          .references(`${Page.tableName({ projectId, bookId })}.id`);
+          .references(`${Page.tableName({ projectId, bookId })}.id`)
+          .withKeyName(`nc_page_parent_${uuidv4()}`);
 
         table.boolean('is_published').defaultTo(false);
         table.datetime('last_published_date').nullable();
         table.string('last_published_by_id', 20).nullable();
         table
           .foreign('last_published_by_id')
-          .references(`${MetaTable.USERS}.id`);
+          .references(`${MetaTable.USERS}.id`)
+          .withKeyName(`nc_page_last_published_id_${uuidv4()}`);
 
         table.string('last_updated_by_id', 20).nullable();
-        table.foreign('last_updated_by_id').references(`${MetaTable.USERS}.id`);
+        table
+          .foreign('last_updated_by_id')
+          .references(`${MetaTable.USERS}.id`)
+          .withKeyName(`nc_page_last_updated_id_${uuidv4()}`);
 
         table.string('created_by_id', 20).notNullable();
-        table.foreign('created_by_id').references(`${MetaTable.USERS}.id`);
+        table
+          .foreign('created_by_id')
+          .references(`${MetaTable.USERS}.id`)
+          .withKeyName(`nc_page_last_created_id_${uuidv4()}`);
 
         table.timestamp('archived_date').nullable();
         table.string('archived_by_id', 20).nullable();
-        table.foreign('archived_by_id').references(`${MetaTable.USERS}.id`);
+        table
+          .foreign('archived_by_id')
+          .references(`${MetaTable.USERS}.id`)
+          .withKeyName(`nc_page_last_archived_id_${uuidv4()}`);
 
         table.text('metaJson', 'longtext').defaultTo('{}');
 

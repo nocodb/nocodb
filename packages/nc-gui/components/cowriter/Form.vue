@@ -14,7 +14,7 @@ import {
   useViewData,
 } from '#imports'
 
-const { cowriterTable, cowriterFormView, loadCowriterTable } = useCowriterStoreOrThrow()
+const { cowriterFormState, cowriterFormRef, cowriterTable, cowriterFormView, loadCowriterTable } = useCowriterStoreOrThrow()
 
 provide(MetaInj, cowriterTable as Ref<TableType>)
 
@@ -56,12 +56,10 @@ const { isUIAllowed } = useUIPermission()
 
 const { t } = useI18n()
 
-const formState = reactive({})
-
 const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   cowriterTable as Ref<TableType>,
   ref({
-    row: formState,
+    row: cowriterFormState,
     oldRow: {},
     rowMeta: { new: true },
   }),
@@ -263,7 +261,7 @@ watch([cowriterTable, cowriterFormView], async () => {
       </a-dropdown>
     </div>
 
-    <a-form ref="formRef" :model="formState" class="nc-gtp-form" no-style>
+    <a-form ref="cowriterFormRef" :model="cowriterFormState" class="nc-gtp-form" no-style>
       <Draggable
         ref="draggableRef"
         :list="localColumns"
@@ -311,7 +309,7 @@ watch([cowriterTable, cowriterFormView], async () => {
               :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
             >
               <LazySmartsheetVirtualCell
-                v-model="formState[element.title]"
+                v-model="cowriterFormState[element.title]"
                 :row="row"
                 class="nc-input"
                 :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
@@ -328,7 +326,7 @@ watch([cowriterTable, cowriterFormView], async () => {
               :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
             >
               <LazySmartsheetCell
-                v-model="formState[element.title]"
+                v-model="cowriterFormState[element.title]"
                 class="nc-input"
                 :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                 :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"

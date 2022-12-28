@@ -10,6 +10,7 @@ export default class Cowriter implements CowriterType {
   prompt_statement?: string;
   prompt_statement_template?: string;
   output?: string;
+  is_read?: boolean;
   time_taken?: number;
   created_by?: string;
 
@@ -38,6 +39,7 @@ export default class Cowriter implements CowriterType {
       'prompt_statement',
       'prompt_statement_template',
       'output',
+      'is_read',
       'time_taken',
       'created_by',
     ]);
@@ -68,7 +70,7 @@ export default class Cowriter implements CowriterType {
           fk_model_id,
         },
         orderBy: {
-          order: 'asc',
+          created_at: 'desc',
         },
       }
     );

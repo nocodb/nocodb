@@ -15,7 +15,7 @@ const formatData = (list: Row[]) =>
 
 const { appInfo } = $(useGlobal())
 
-const appInfoDefaultLimit = 100
+const appInfoDefaultLimit = 1000
 const paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(

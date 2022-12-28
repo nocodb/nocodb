@@ -12,6 +12,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
+    const paginatedData = inject(PaginationDataInj)!
     const { $api } = useNuxtApp()
     const { sqlUis } = useProject()
 
@@ -24,6 +25,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 
     // getters
+    const count = computed(() => paginatedData.value?.totalRows ?? Infinity)
     const isLocked = computed(() => view.value?.lock_type === 'locked')
     const isPkAvail = computed(() => (meta.value as TableType)?.columns?.some((c) => c.pk))
     const isGrid = computed(() => view.value?.type === ViewTypes.GRID)
@@ -53,6 +55,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
     return {
+      count,
       view,
       meta,
       isLocked,

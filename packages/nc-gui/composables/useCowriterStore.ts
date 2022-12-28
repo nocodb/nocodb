@@ -1,4 +1,4 @@
-import type { CowriterType, ProjectType, TableInfoType, ViewType } from 'nocodb-sdk'
+import type { CowriterType, ProjectType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { useNuxtApp, useViews } from '#imports'
 
@@ -7,7 +7,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const cowriterProject = ref<ProjectType | null>()
 
-  const cowriterTable = ref<TableInfoType | null>()
+  const cowriterTable = ref<TableType | TableInfoType | null>()
 
   const cowriterFormView = ref<ViewType | null>()
 
@@ -23,7 +23,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const cowriterFormRef = ref()
 
-  const cowriterFormState = reactive({})
+  const cowriterFormState = reactive<Record<string, any>>({})
 
   const promptStatementTemplate = ref('')
 
@@ -74,8 +74,18 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   }
 
   function translatePromptStatement(promptStatementTemplate: string) {
-    // TODO:
-    return ''
+    if (!cowriterTable.value) {
+      return
+    }
+
+    // replace {{col}} in the given template
+    let promptStatement = promptStatementTemplate
+
+    ;(cowriterTable.value as TableType).columns!.forEach((c) => {
+      promptStatement = promptStatement.replaceAll(`{{${c.title}}}`, cowriterFormState[c.title!])
+    })
+
+    return promptStatement
   }
 
   async function generateCowriter() {

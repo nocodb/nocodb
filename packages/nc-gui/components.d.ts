@@ -202,6 +202,7 @@ declare module '@vue/runtime-core' {
     MdiLogout: typeof import('~icons/mdi/logout')['default']
     MdiMagnify: typeof import('~icons/mdi/magnify')['default']
     MdiMapMarker: typeof import('~icons/mdi/map-marker')['default']
+    MdiMapMarkerAlert: typeof import('~icons/mdi/map-marker-alert')['default']
     MdiMenu: typeof import('~icons/mdi/menu')['default']
     MdiMenuDown: typeof import('~icons/mdi/menu-down')['default']
     MdiMenuIcon: typeof import('~icons/mdi/menu-icon')['default']

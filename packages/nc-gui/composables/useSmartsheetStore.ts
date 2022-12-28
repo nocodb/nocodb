@@ -1,7 +1,7 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
+import { NOCO, computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
 import type { SmartsheetStoreEvents } from '~/lib'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
@@ -12,9 +12,22 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
-    const paginatedData = inject(PaginationDataInj)!
+    // const paginatedData = inject(PaginationDataInj)!
+    // const { paginationData } = useViewData(meta, view)
+
+    // debugger
     const { $api } = useNuxtApp()
-    const { sqlUis } = useProject()
+    const { sqlUis, project } = useProject()
+
+    const totalNumberOfTableRows = ref(async () => {
+      const { count } = await $api.dbViewRow.count(
+        NOCO,
+        project?.value?.title as string,
+        meta?.value?.id as string,
+        meta?.value?.id as string,
+      )
+      return count
+    })
 
     const sqlUi = ref(meta.value?.base_id ? sqlUis.value[meta.value?.base_id] : Object.values(sqlUis.value)[0])
 
@@ -25,7 +38,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 
     // getters
-    const count = computed(() => paginatedData.value?.totalRows ?? Infinity)
+    // const count = computed(() => paginatedData.value?.totalRows ?? Infinity)
     const isLocked = computed(() => view.value?.lock_type === 'locked')
     const isPkAvail = computed(() => (meta.value as TableType)?.columns?.some((c) => c.pk))
     const isGrid = computed(() => view.value?.type === ViewTypes.GRID)
@@ -55,7 +68,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
     return {
-      count,
+      totalNumberOfTableRows,
       view,
       meta,
       isLocked,

@@ -13,14 +13,12 @@ const formatData = (list: Row[]) =>
     rowMeta: {},
   }))
 
-const { appInfo } = $(useGlobal())
-
 const appInfoDefaultLimit = 1000
 const paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
-    meta: Ref<TableType | MapType | undefined>,
+    meta: Ref<TableType | undefined>,
     viewMeta: Ref<ViewType | MapType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
     where?: ComputedRef<string | undefined>,
   ) => {
@@ -35,6 +33,10 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     const mapMetaData = ref<MapType>({})
 
     const geoDataFieldColumn = ref<ColumnType | undefined>()
+
+    const view = inject(ActiveViewInj)
+
+    const { syncCount } = useViewData(meta, view!)
 
     const queryParams = computed(() => ({
       // offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
@@ -54,11 +56,10 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
       const res = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
         ...queryParams.value,
-        // ...params,
-        // ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-        // ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
         where: where?.value,
       })
+
+      syncCount()
 
       formattedData.value = formatData(res.list)
     }
@@ -107,6 +108,8 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
           rowMeta: { ...(currentRow.rowMeta || {}), new: undefined },
           oldRow: { ...insertedData },
         })
+
+        syncCount()
 
         return insertedData
       } catch (error: any) {

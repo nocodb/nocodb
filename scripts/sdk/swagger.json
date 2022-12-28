@@ -10682,6 +10682,9 @@
           "output": {
             "type": "string"
           },
+          "is_read": {
+            "type": "boolean"
+          },
           "time_taken": {
             "type": "integer"
           },

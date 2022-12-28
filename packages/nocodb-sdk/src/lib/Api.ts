@@ -774,6 +774,7 @@ export interface CowriterType {
   prompt_statement?: string;
   prompt_statement_template?: string;
   output?: string;
+  is_read?: boolean;
   time_taken?: number;
   created_by?: string;
   created_at?: string;

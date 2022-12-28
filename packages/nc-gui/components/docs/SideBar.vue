@@ -21,6 +21,8 @@ const {
   openedBook,
   selectBook,
   addNewPage,
+  fetchBooks,
+  navigateToLastBook,
 } = useDocs()
 
 const createModalOpen = ref(false)
@@ -46,7 +48,6 @@ const importFormData = ref({
   title: '',
   content: '',
 })
-const importParentPageId = ref()
 const loadImport = ref(false)
 const importType: Ref<'nuxt' | 'md' | 'docusaurus' | 'vitepress' | null> = ref(null)
 
@@ -86,7 +87,8 @@ const onOk = async () => {
 const onMagic = async () => {
   loadMagic.value = true
   await createMagic(magicFormData.value.title)
-  await fetchPages()
+  await fetchBooks()
+  await navigateToLastBook()
   magicModalOpen.value = false
   loadMagic.value = false
 }
@@ -94,7 +96,8 @@ const onMagic = async () => {
 const onImport = async () => {
   loadImport.value = true
   await createImport(importFormData.value.title, 'nuxt')
-  await fetchPages()
+  await fetchBooks()
+  await navigateToLastBook()
   importModalOpen.value = false
   loadImport.value = false
 }
@@ -119,8 +122,7 @@ const openMagicModal = (parentId?: string | undefined) => {
   magicModalOpen.value = true
 }
 
-const openImportModal = (parentId?: string | undefined) => {
-  importParentPageId.value = parentId
+const openImportModal = () => {
   importType.value = null
   importModalOpen.value = true
 }
@@ -163,10 +165,8 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
 const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any }) => {
   if (e.selected) {
     const slug = e.node.dataRef!.slug
-    const bookId = e.node.dataRef!.book_id
 
-    const book = books.value.find((book) => book.id === bookId)
-    navigateTo(nestedUrl(slug, book!))
+    navigateTo(nestedUrl(slug))
   }
 }
 </script>

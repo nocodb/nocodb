@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { useCowriterStoreOrThrow } from '#imports'
-const { generateCowriter } = useCowriterStoreOrThrow()
-
-const activeKey = ref('cowriter-form')
+const { cowriterInputActiveKey, generateCowriter } = useCowriterStoreOrThrow()
 
 async function generate() {
   await generateCowriter()
@@ -10,7 +8,7 @@ async function generate() {
 </script>
 
 <template>
-  <a-tabs v-model:activeKey="activeKey" class="nc-cowriter-tabs">
+  <a-tabs v-model:activeKey="cowriterInputActiveKey" class="nc-cowriter-tabs">
     <a-tab-pane key="cowriter-form" tab="Fields">
       <CowriterForm />
     </a-tab-pane>

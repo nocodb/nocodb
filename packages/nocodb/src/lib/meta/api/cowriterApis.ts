@@ -10,7 +10,7 @@ export async function cowriterCreate(
 ) {
   const cowriter = await Cowriter.insert({
     ...req.body,
-    // todo : extend request type
+    fk_model_id: req.params.tableId,
     created_by: (req as any).user.id,
   });
   res.json(cowriter);

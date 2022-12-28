@@ -6554,6 +6554,27 @@
         "tags": [
           "Cowriter Table"
         ]
+      },
+      "patch": {
+        "summary": "Cowriter Patch",
+        "operationId": "cowriter-table-patch",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cowriter"
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/cowriter/meta/tables/{tableId}/bulk": {

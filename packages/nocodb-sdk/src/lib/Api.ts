@@ -4896,6 +4896,29 @@ export class Api<
      * No description
      *
      * @tags Cowriter Table
+     * @name Patch
+     * @summary Cowriter Patch
+     * @request PATCH:/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}
+     * @response `200` `void` OK
+     */
+    patch: (
+      tableId: string,
+      cowriterId: string,
+      data: CowriterType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/${cowriterId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
      * @name CreateBulk
      * @summary Cowriter Create Bulk
      * @request POST:/api/v1/cowriter/meta/tables/{tableId}/bulk

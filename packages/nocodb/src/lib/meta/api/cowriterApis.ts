@@ -29,7 +29,7 @@ export async function cowriterList(
   res: Response<CowriterListType>
 ) {
   const cowriterList = await Cowriter.list({
-    fk_model_id: req.params.fk_model_id,
+    fk_model_id: req.params.tableId,
   });
 
   res.json(new PagedResponseImpl(cowriterList));

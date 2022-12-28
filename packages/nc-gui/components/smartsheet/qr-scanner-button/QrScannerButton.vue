@@ -18,9 +18,9 @@ const view = inject(ActiveViewInj, ref())
 
 const qrCodeFieldOptions = ref<SelectProps['options']>([])
 
-interface Entry {
-  name: string
-}
+// interface Entry {
+//   name: string
+// }
 
 onBeforeMount(init)
 
@@ -34,23 +34,38 @@ async function init() {
 }
 
 const showQrCodeScanner = ref(false)
-const entry = ref<Entry | null>(null)
+// const entry = ref<Entry | null>(null)
 
 const selectedCodeColumnIdToScanFor = ref('')
 
 const onDecode = async (qrCodeValue: string) => {
+  showQrCodeScanner.value = false
   try {
-    showQrCodeScanner.value = false
-
     const nameOfSelectedColumnToScanFor = meta.value?.columns?.find(
       (column) => column.id === selectedCodeColumnIdToScanFor.value,
     )?.title
     const whereClause = `(${nameOfSelectedColumnToScanFor},eq,${qrCodeValue})`
-    const foundRowForQrCode = await $api.dbViewRow.findOne(NOCO, project.value!.id!, meta.value!.id!, view.value!.title!, {
-      where: whereClause,
-    })
+    // const foundRowsForQrCode = await $api.dbViewRow.findOne(NOCO, project.value!.id!, meta.value!.id!, view.value!.title!, {
+    const foundRowsForQrCode = (
+      await $api.dbViewRow.list(NOCO, project.value!.id!, meta.value!.id!, view.value!.title!, {
+        where: whereClause,
+      })
+    ).list
 
-    const primaryKeyValueForFoundRow = extractPkFromRow(foundRowForQrCode, meta!.value!.columns!)
+    if (foundRowsForQrCode.length === 0) {
+      // extract into localisation file
+      message.info('No row found for this QR code')
+      showQrCodeScanner.value = true
+      return
+    } else if (foundRowsForQrCode.length > 1) {
+      // TODO: improve this message and extract into localisation file
+      message.warn('More than one row found for this QR code. Currently only unique QR codes are supported.')
+      showQrCodeScanner.value = true
+      return
+    }
+
+    message.info('Found row for this QR code - opening edit mode...')
+    const primaryKeyValueForFoundRow = extractPkFromRow(foundRowsForQrCode[0], meta!.value!.columns!)
 
     router.push({
       query: {
@@ -110,6 +125,6 @@ const onLoaded = async () => {
       </div>
     </a-modal>
 
-    <p v-if="entry">Entry found: {{ entry.name }}</p>
+    <!-- <p v-if="entry">Entry found: {{ entry.name }}</p> -->
   </div>
 </template>

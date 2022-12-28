@@ -13,6 +13,10 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const cowriterGridView = ref<ViewType | null>()
 
+  const cowriterFormRef = ref()
+
+  const cowriterFormState = reactive({})
+
   const promptStatement = ref('')
 
   const { $api } = useNuxtApp()
@@ -44,6 +48,18 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     cowriterFormView.value = views.value[1]
   }
 
+  async function generateCowriter() {
+    try {
+      await cowriterFormRef.value?.validateFields()
+    } catch (e: any) {
+      console.log(e)
+      e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
+      if (e.errorFields.length) return
+    }
+    const cowriter = await $api.cowriterTable.create(cowriterTable.value!.id!, cowriterFormState)
+    console.log(cowriter)
+  }
+
   watch(
     cowriterProject,
     async (project) => {
@@ -59,8 +75,11 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     cowriterTable,
     cowriterGridView,
     cowriterFormView,
+    cowriterFormRef,
+    cowriterFormState,
     promptStatement,
     loadCowriterTable,
+    generateCowriter,
   }
 })
 

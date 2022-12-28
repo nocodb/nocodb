@@ -517,6 +517,11 @@ export interface WorkspaceListType {
   pageInfo?: PaginatedType;
 }
 
+export interface CowriterListType {
+  list?: CowriterType[];
+  pageInfo?: PaginatedType;
+}
+
 export interface WorkspaceUserListType {
   list?: WorkspaceUserType[];
   pageInfo?: PaginatedType;
@@ -758,6 +763,21 @@ export interface UserInfoType {
   firstname?: string;
   lastname?: string;
   roles?: any;
+}
+
+/**
+ * Cowriter Model
+ */
+export interface CowriterType {
+  id?: string;
+  fk_model_id?: string;
+  prompt_statement?: string;
+  prompt_statement_template?: string;
+  output?: string;
+  time_taken?: number;
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
@@ -4813,6 +4833,83 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/db/meta/hooks/${hookId}`,
         method: 'DELETE',
+        ...params,
+      }),
+  };
+  cowriterTable = {
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name Create
+     * @summary Cowriter Create
+     * @request POST:/api/v1/cowriter/meta/tables/{tableId}
+     * @response `200` `CowriterType` OK
+     */
+    create: (tableId: string, data: CowriterType, params: RequestParams = {}) =>
+      this.request<CowriterType, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name List
+     * @summary Cowriter List
+     * @request GET:/api/v1/cowriter/meta/tables/{tableId}
+     * @response `200` `CowriterListType` OK
+     */
+    list: (tableId: string, params: RequestParams = {}) =>
+      this.request<CowriterListType, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name Get
+     * @summary Cowriter Get
+     * @request GET:/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}
+     * @response `200` `CowriterListType` OK
+     * @response `0` `CowriterType`
+     */
+    get: (tableId: string, cowriterId: string, params: RequestParams = {}) =>
+      this.request<CowriterListType, CowriterType>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/${cowriterId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name CreateBulk
+     * @summary Cowriter Create Bulk
+     * @request POST:/api/v1/cowriter/meta/tables/{tableId}/bulk
+     * @response `200` `void` OK
+     */
+    createBulk: (
+      tableId: string,
+      data: CowriterType[],
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/bulk`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
   };

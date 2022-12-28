@@ -72,12 +72,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -109,7 +109,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/DocsPage"
@@ -117,7 +117,7 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -151,7 +151,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/DocsPage"
@@ -159,7 +159,7 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -187,17 +187,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "title": {
                     "type": "string",
                     "description": "Schema title",
-                    "required":true
+                    "required": true
                   },
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -225,22 +225,22 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "from": {
                     "type": "string",
                     "description": "Import source",
-                    "required":true
+                    "required": true
                   },
                   "type": {
                     "type": "string",
                     "description": "Source type",
-                    "required":true
+                    "required": true
                   },
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "user": {
                     "type": "string",
@@ -2352,8 +2352,7 @@
                   "project_id": {
                     "type": "string"
                   },
-                  "meta": {
-                  }
+                  "meta": {}
                 }
               }
             }
@@ -2574,8 +2573,7 @@
                   "order": {
                     "type": "number"
                   },
-                  "meta": {
-                  },
+                  "meta": {},
                   "title": {
                     "type": "string"
                   },
@@ -6451,6 +6449,150 @@
         ]
       }
     },
+    "/api/v1/cowriter/meta/tables/{tableId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Create",
+        "operationId": "cowriter-table-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cowriter"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Cowriter List",
+        "operationId": "cowriter-table-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CowriterList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ]
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "cowriterId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Cowriter Get",
+        "operationId": "cowriter-table-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CowriterList"
+                }
+              }
+            }
+          },
+          "": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ]
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/bulk": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Create Bulk",
+        "operationId": "cowriter-table-create-bulk",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "",
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/plugins": {
       "parameters": [],
       "get": {
@@ -7888,7 +8030,10 @@
             "type": "string"
           },
           "metaJson": {
-            "type": ["string", "object"]
+            "type": [
+              "string",
+              "object"
+            ]
           }
         },
         "required": [
@@ -8353,8 +8498,7 @@
               "number"
             ]
           },
-          "meta": {
-          }
+          "meta": {}
         },
         "required": [
           "table_name",
@@ -8452,8 +8596,7 @@
           "uuid": {
             "type": "string"
           },
-          "meta": {
-          },
+          "meta": {},
           "show_system_fields": {
             "type": "boolean"
           },
@@ -8696,8 +8839,7 @@
               "$ref": "#/components/schemas/Column"
             }
           },
-          "meta": {
-          }
+          "meta": {}
         },
         "required": [
           "table_name",
@@ -9859,6 +10001,24 @@
           }
         }
       },
+      "CowriterList": {
+        "type": "object",
+        "x-stoplight": {
+          "id": "24eab7d1ead43"
+        },
+        "title": "Cowriter List",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Cowriter"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        }
+      },
       "WorkspaceUserList": {
         "description": "",
         "type": "object",
@@ -10497,6 +10657,43 @@
             "type": "string"
           },
           "roles": {}
+        }
+      },
+      "Cowriter": {
+        "title": "Cowriter",
+        "x-stoplight": {
+          "id": "9oec4p6dooeyw"
+        },
+        "type": "object",
+        "description": "Cowriter Model",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "prompt_statement": {
+            "type": "string"
+          },
+          "prompt_statement_template": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          },
+          "time_taken": {
+            "type": "integer"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
         }
       }
     },

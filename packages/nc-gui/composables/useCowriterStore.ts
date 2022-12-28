@@ -111,6 +111,18 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     console.log(cowriterOutputList.value)
   }
 
+  async function savePromptStatementTemplate() {
+    if (!cowriterProject.value) return
+    const oldMeta =
+      typeof cowriterProject.value.meta === 'string' ? JSON.parse(cowriterProject.value.meta) : cowriterProject.value.meta
+    $api.project.update(cowriterProject.value.id!, {
+      meta: JSON.stringify({
+        ...oldMeta,
+        prompt_statement: promptStatementTemplate.value,
+      }),
+    })
+  }
+
   watch(
     cowriterProject,
     async (project) => {
@@ -132,6 +144,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     loadCowriterTable,
     loadCowriterList,
     generateCowriter,
+    savePromptStatementTemplate,
     clearCowriterOutput,
     cowriterHistoryList,
     cowriterOutputList,

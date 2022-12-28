@@ -7,7 +7,6 @@ import {
   ActiveViewInj,
   MetaInj,
   useCowriterStoreOrThrow,
-  useI18n,
   useProvideSmartsheetRowStore,
   useProvideSmartsheetStore,
   useUIPermission,
@@ -24,7 +23,7 @@ provide(IsFormInj, ref(true))
 
 useProvideSmartsheetStore(cowriterFormView as Ref<ViewType>, cowriterTable as Ref<TableType>)
 
-const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(
+const { loadFormView, formColumnData, formViewData } = useViewData(
   cowriterTable as Ref<TableType>,
   cowriterFormView as Ref<ViewType>,
 )
@@ -46,17 +45,11 @@ const hiddenCols = ['created_at', 'updated_at']
 
 const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
 
-const state = useGlobal()
-
-const formRef = ref()
-
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
-const { t } = useI18n()
-
-const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
+const { row } = useProvideSmartsheetRowStore(
   cowriterTable as Ref<TableType>,
   ref({
     row: cowriterFormState,
@@ -79,11 +72,7 @@ const showAddFieldDropdown = ref(false)
 
 const showColumnDropdown = ref(false)
 
-const moved = ref(false)
-
 const drag = ref(false)
-
-const submitted = ref(false)
 
 /** Block user from drag n drop required column to hidden fields */
 function onMoveCallback(event: any) {
@@ -118,27 +107,11 @@ function onMove(event: any) {
     saveOrUpdate(element, newIndex)
   }
 
-  $e('a:form-view:reorder')
+  $e('a:cowriter-form:reorder')
 }
 
-function hideColumn(idx: number) {
-  if (shouldSkipColumn(localColumns.value[idx])) {
-    // Required field can't be moved
-    message.info(t('msg.info.requriedFieldsCantBeMoved'))
-    return
-  }
-
-  saveOrUpdate(
-    {
-      ...localColumns.value[idx],
-      show: false,
-    },
-    idx,
-  )
-
-  reloadEventHook.trigger()
-
-  $e('a:form-view:hide-columns')
+function deleteColumn(idx: number) {
+  // TODO
 }
 
 function isDbRequired(column: Record<string, any>) {
@@ -281,7 +254,7 @@ watch([cowriterTable, cowriterFormView], async () => {
             data-testid="nc-form-fields"
           >
             <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="absolute flex top-2 right-2">
-              <MdiDeleteOutline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
+              <MdiDeleteOutline class="opacity-0 nc-field-remove-icon" @click.stop="deleteColumn(index)" />
             </div>
 
             <div>

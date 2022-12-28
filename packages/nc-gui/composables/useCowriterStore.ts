@@ -17,13 +17,18 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const cowriterFormState = reactive({})
 
-  const promptStatement = ref('')
+  const promptStatementTemplate = ref('')
 
   const { $api } = useNuxtApp()
 
   async function loadCowriterProject() {
     cowriterProject.value = await $api.project.read(projectId)
-    console.log(cowriterProject.value)
+
+    if (cowriterProject.value) {
+      const meta =
+        typeof cowriterProject.value.meta === 'string' ? JSON.parse(cowriterProject.value.meta) : cowriterProject.value.meta
+      promptStatementTemplate.value = meta?.prompt_statement ?? ''
+    }
   }
 
   async function loadCowriterTable() {
@@ -48,15 +53,23 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     cowriterFormView.value = views.value[1]
   }
 
+  function translatePromptStatement(promptStatementTemplate: string) {
+    // TODO:
+    return ''
+  }
+
   async function generateCowriter() {
     try {
       await cowriterFormRef.value?.validateFields()
     } catch (e: any) {
-      console.log(e)
       e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
       if (e.errorFields.length) return
     }
-    const cowriter = await $api.cowriterTable.create(cowriterTable.value!.id!, cowriterFormState)
+    const cowriter = await $api.cowriterTable.create(cowriterTable.value!.id!, {
+      ...cowriterFormState,
+      prompt_statement_template: promptStatementTemplate.value,
+      prompt_statement: translatePromptStatement(promptStatementTemplate.value),
+    })
     console.log(cowriter)
   }
 
@@ -77,7 +90,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     cowriterFormView,
     cowriterFormRef,
     cowriterFormState,
-    promptStatement,
+    promptStatementTemplate,
     loadCowriterTable,
     generateCowriter,
   }

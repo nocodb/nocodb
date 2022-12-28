@@ -61,7 +61,7 @@ export function useDocs() {
     navigateTo(bookUrl(book.slug!))
   }
 
-  const fetchBooks = async ({ fetchChildPages }: { fetchChildPages?: boolean } = {}) => {
+  const fetchBooks = async () => {
     try {
       books.value = (await $api.nocoBooks.listBooks({ projectId: project.id! })).map((book) => ({
         ...book,
@@ -69,12 +69,6 @@ export function useDocs() {
         key: book.slug!,
         isBook: true,
       }))
-
-      if (fetchChildPages) {
-        for (const book of books.value) {
-          await fetchPages({ book })
-        }
-      }
 
       return books
     } catch (e) {
@@ -279,14 +273,9 @@ export function useDocs() {
 
   const createMagic = async (title: string) => {
     try {
-      await $fetch(`/api/v1/docs/magic`, {
-        method: 'POST',
-        baseURL,
-        headers: { 'xc-auth': $state.token.value as string },
-        body: {
-          title,
-          projectId: project.id!,
-        },
+      await $api.nocoBooks.createBookMagic({
+        projectId: project.id!,
+        title,
       })
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -296,19 +285,14 @@ export function useDocs() {
   const createImport = async (url: string, type: 'md' | 'nuxt' | 'docusaurus' = 'md', from: 'github' | 'file' = 'github') => {
     try {
       const rs = gh(url)
-      await $fetch(`/api/v1/docs/import`, {
-        method: 'POST',
-        baseURL,
-        headers: { 'xc-auth': $state.token.value as string },
-        body: {
-          user: rs?.owner,
-          repo: rs?.name,
-          branch: rs?.branch,
-          path: rs?.path?.replace(`${rs?.repo}/tree/${rs?.branch}/`, ''),
-          projectId: project.id!,
-          type,
-          from,
-        },
+      await $api.nocoBooks.importBook({
+        user: rs!.owner!,
+        repo: rs!.name!,
+        branch: rs!.branch!,
+        path: rs!.path!.replace(`${rs?.repo}/tree/${rs?.branch}/`, ''),
+        projectId: project.id!,
+        type,
+        from,
       })
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -359,6 +343,12 @@ export function useDocs() {
 
   const navigateToFirstBook = async () => {
     const book = books.value[0]
+    await fetchPages({ book })
+    navigateTo(bookUrl(book.slug!))
+  }
+
+  const navigateToLastBook = async () => {
+    const book = books.value[books.value.length - 1]
     await fetchPages({ book })
     navigateTo(bookUrl(book.slug!))
   }
@@ -457,6 +447,7 @@ export function useDocs() {
     bookUrl,
     nestedUrl,
     navigateToFirstBook,
+    navigateToLastBook,
     deletePage,
     deleteBook,
     reorderPages,

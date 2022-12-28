@@ -164,6 +164,127 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/book/magic": {
+      "post": {
+        "summary": "Create magic",
+        "operationId": "create-book-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco books"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Title",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create book"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/book/import": {
+      "post": {
+        "summary": "Import book",
+        "operationId": "import-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco books"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "repo": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "from": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create book"
+      },
+      "parameters": []
+    },
     "/api/v1/docs/pages": {
       "get": {
         "summary": "List pages",

@@ -1060,6 +1060,74 @@ export class Api<
         format: 'json',
         ...params,
       }),
+
+    /**
+     * @description Create book
+     *
+     * @tags Noco books
+     * @name CreateBookMagic
+     * @summary Create magic
+     * @request POST:/api/v1/docs/book/magic
+     * @response `200` `BookType` OK
+     */
+    createBookMagic: (
+      data: {
+        /** Book of noco books */
+        attributes?: BookType;
+        /** Project id */
+        projectId: string;
+        /** Title */
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BookType, any>({
+        path: `/api/v1/docs/book/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create book
+     *
+     * @tags Noco books
+     * @name ImportBook
+     * @summary Import book
+     * @request POST:/api/v1/docs/book/import
+     * @response `200` `BookType` OK
+     */
+    importBook: (
+      data: {
+        /** Book of noco books */
+        attributes?: BookType;
+        /** Project id */
+        user: string;
+        /** Project id */
+        repo: string;
+        /** Project id */
+        branch: string;
+        /** Project id */
+        path: string;
+        /** Project id */
+        projectId: string;
+        /** Project id */
+        type: string;
+        /** Project id */
+        from: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BookType, any>({
+        path: `/api/v1/docs/book/import`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
   };
   nocoDocs = {
     /**

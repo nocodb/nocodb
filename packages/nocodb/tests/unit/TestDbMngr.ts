@@ -53,7 +53,7 @@ export default class TestDbMngr {
   static async init() {
     TestDbMngr.populateConnectionConfig()
 
-    if(await TestDbMngr.isMysqlConfigured() && false){
+    if(await TestDbMngr.isMysqlConfigured()){
       await TestDbMngr.connectMysql();
     } else {
       console.log('Mysql is not configured. Switching to sqlite');

@@ -24,6 +24,14 @@ export async function cowriterCreateBulk(
   res.json({});
 }
 
+export async function cowriterUpdate(req, res) {
+  res.json(
+    await Cowriter.update(req.params.cowriterId, {
+      ...req.body,
+    })
+  );
+}
+
 export async function cowriterList(
   req: Request,
   res: Response<CowriterListType>
@@ -60,6 +68,11 @@ router.get(
 router.get(
   '/api/v1/cowriter/meta/tables/:tableId/:cowriterId',
   ncMetaAclMw(cowriterGet, 'cowriterGet')
+);
+
+router.patch(
+  '/api/v1/cowriter/meta/tables/:tableId/:cowriterId',
+  ncMetaAclMw(cowriterUpdate, 'cowriterUpdate')
 );
 
 export default router;

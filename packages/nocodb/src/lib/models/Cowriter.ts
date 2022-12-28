@@ -53,6 +53,20 @@ export default class Cowriter implements CowriterType {
     return this.get(id);
   }
 
+  static async update(
+    cowriterId: string,
+    cowriterObj: Partial<CowriterType>,
+    ncMeta = Noco.ncMeta
+  ) {
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.COWRITER,
+      cowriterObj,
+      cowriterId
+    );
+  }
+
   static async list(
     {
       fk_model_id,

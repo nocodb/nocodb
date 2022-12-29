@@ -39,7 +39,9 @@ export default class SyncSource {
   }
 
   static async list(projectId: string, baseId?: string, ncMeta = Noco.ncMeta) {
-    const condition = baseId ? { project_id: projectId, base_id: baseId } : { project_id: projectId };
+    const condition = baseId
+      ? { project_id: projectId, base_id: baseId }
+      : { project_id: projectId };
     const syncSources = await ncMeta.metaList(
       null,
       null,

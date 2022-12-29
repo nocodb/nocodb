@@ -1022,9 +1022,9 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
       value: () => {
         return typeof arg === 'string'
           ? arg.match(/^(\w+):/) ?? [1]
-          : (typeof arg.client === 'string')
-            ? arg.client
-            : arg.client?.prototype?.dialect || arg.client?.prototype?.driverName;
+          : typeof arg.client === 'string'
+          ? arg.client
+          : arg.client?.prototype?.dialect || arg.client?.prototype?.driverName;
       },
     },
     searchPath: {

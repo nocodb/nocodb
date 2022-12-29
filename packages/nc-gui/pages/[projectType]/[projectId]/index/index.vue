@@ -75,7 +75,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
         <span class="flex-1" />
 
         <div class="flex justify-center self-center mr-2 min-w-[115px]">
-          <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-gray-200" data-testid="nc-loading">
+          <div v-if="isLoading" class="flex items-center gap-2 ml-3 text-gray-200" data-testid="nc-loading">
             {{ $t('general.loading') }}
 
             <MdiLoading class="animate-infinite animate-spin" />

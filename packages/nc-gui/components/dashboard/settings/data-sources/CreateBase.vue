@@ -8,7 +8,7 @@ import {
   DefaultConnection,
   SQLiteConnection,
   SSLUsage,
-  clientTypes,
+  clientTypes as _clientTypes,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
@@ -21,6 +21,7 @@ import {
   readFile,
   ref,
   useApi,
+  useGlobal,
   useI18n,
   useNuxtApp,
   watch,
@@ -29,6 +30,8 @@ import {
 const { connectionType } = defineProps<{ connectionType: ClientType }>()
 
 const emit = defineEmits(['baseCreated'])
+
+const { appInfo } = useGlobal()
 
 const { project, loadProject } = useProject()
 
@@ -68,7 +71,43 @@ const customFormState = ref<ProjectCreateForm>({
   extraParameters: [],
 })
 
+const clientTypes = computed(() => {
+  return _clientTypes.filter((type) => {
+    return appInfo.value?.ee || type.value !== ClientType.SNOWFLAKE
+  })
+})
+
 const validators = computed(() => {
+  let clientValidations: Record<string, any[]> = {
+    'dataSource.connection.host': [fieldRequiredValidator()],
+    'dataSource.connection.port': [fieldRequiredValidator()],
+    'dataSource.connection.user': [fieldRequiredValidator()],
+    'dataSource.connection.password': [fieldRequiredValidator()],
+    'dataSource.connection.database': [fieldRequiredValidator()],
+  }
+
+  switch (formState.dataSource.client) {
+    case ClientType.SQLITE:
+      clientValidations = {
+        'dataSource.connection.connection.filename': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.SNOWFLAKE:
+      clientValidations = {
+        'dataSource.connection.account': [fieldRequiredValidator()],
+        'dataSource.connection.username': [fieldRequiredValidator()],
+        'dataSource.connection.password': [fieldRequiredValidator()],
+        'dataSource.connection.warehouse': [fieldRequiredValidator()],
+        'dataSource.connection.database': [fieldRequiredValidator()],
+        'dataSource.connection.schema': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.PG:
+    case ClientType.MSSQL:
+      clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
+      break
+  }
+
   return {
     'title': [
       {
@@ -79,31 +118,7 @@ const validators = computed(() => {
     ],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
-    ...(formState.dataSource.client === ClientType.SQLITE
-      ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator()],
-        }
-      : formState.dataSource.client === ClientType.SNOWFLAKE
-      ? {
-          'dataSource.connection.account': [fieldRequiredValidator()],
-          'dataSource.connection.username': [fieldRequiredValidator()],
-          'dataSource.connection.password': [fieldRequiredValidator()],
-          'dataSource.connection.warehouse': [fieldRequiredValidator()],
-          'dataSource.connection.database': [fieldRequiredValidator()],
-          'dataSource.connection.schema': [fieldRequiredValidator()],
-        }
-      : {
-          'dataSource.connection.host': [fieldRequiredValidator()],
-          'dataSource.connection.port': [fieldRequiredValidator()],
-          'dataSource.connection.user': [fieldRequiredValidator()],
-          'dataSource.connection.password': [fieldRequiredValidator()],
-          'dataSource.connection.database': [fieldRequiredValidator()],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
-            ? {
-                'dataSource.searchPath.0': [fieldRequiredValidator()],
-              }
-            : {}),
-        }),
+    ...clientValidations,
   }
 })
 

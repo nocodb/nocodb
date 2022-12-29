@@ -55,6 +55,7 @@ export async function appInfo(req: Request, res: Response) {
     ncMin: !!process.env.NC_MIN,
     teleEnabled: !process.env.NC_DISABLE_TELE,
     ncSiteUrl: (req as any).ncSiteUrl,
+    ee: Noco.isEE(),
   };
 
   res.json(result);

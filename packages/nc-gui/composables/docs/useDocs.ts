@@ -24,10 +24,11 @@ export function useDocs() {
   const pages = useState<PageSidebarNode[]>('pages', () => [])
   const openedTabs = useState<string[]>('openedSidebarTabs', () => [])
 
-  // // First slug is book slug, rest are page slugs
+  // First slug is book slug, rest are page slugs
   const openedPageSlug = computed<string | undefined>(() =>
     Number(route.params.slugs?.length) >= 2 ? route.params.slugs[route.params.slugs.length - 1] : undefined,
   )
+
   const openedBook = computed<BookType | undefined>(() => {
     if (route.params.slugs?.length === 0) return undefined
 
@@ -35,36 +36,34 @@ export function useDocs() {
     return books.value.find((b) => b.slug === bookSlug)
   })
 
+  // hack: Since openedPageSlug and pages changes are not in sync, we need to use this
+  let prevOpenedPage: PageSidebarNode | undefined
+
   const openedNestedPagesOfBook = computed(() => {
     if (route.params.slugs?.length < 1 || !openedBook.value || pages.value.length === 0) return []
     const pageSlugs = (route.params.slugs as string[]).filter((_, i) => i !== 0)
 
     let currentPages = pages.value
-    const nestedPages = pageSlugs
-      .map((slug) => {
-        const rootPage = currentPages.find((p) => p.slug === slug)
-        currentPages = rootPage?.children || []
+    const nestedPages = pageSlugs.map((slug) => {
+      const rootPage = currentPages.find((p) => p.slug === slug)
+      currentPages = rootPage?.children || []
 
-        return rootPage
-      })
-      .filter((p) => p) as PageSidebarNode[]
+      return rootPage
+    }) as PageSidebarNode[]
 
-    return nestedPages
+    // hack: Since openedPageSlug and pages changes are not in sync, last page if its title/slug is editied, it will undefined for a moment
+    if (nestedPages.length === nestedPages.filter((p) => p).length + 1) {
+      nestedPages[nestedPages.length - 1] = prevOpenedPage!
+    }
+    return nestedPages.filter((p) => p)
   })
 
-  // hack: Since openedPageSlug and pages changes are not in sync, we need to use this
-  let prevOpenedPage: PageSidebarNode | undefined
-
-  // todo: Fix
   const openedPage = computed(() => {
-    const val = openedPageSlug.value
-      ? openedNestedPagesOfBook.value.length > 0
-        ? openedNestedPagesOfBook.value[openedNestedPagesOfBook.value.length - 1] || prevOpenedPage
-        : prevOpenedPage
-      : undefined
+    if (!openedPageSlug.value) return undefined
 
-    // console.log('openedPage', val ? JSON.parse(JSON.stringify(val)) : val)
-    return val
+    return openedNestedPagesOfBook.value.length > 0
+      ? openedNestedPagesOfBook.value[openedNestedPagesOfBook.value.length - 1]
+      : prevOpenedPage
   })
 
   watch(openedPage, (page) => {
@@ -402,117 +401,6 @@ export function useDocs() {
       }
     }
   }
-
-  // const reorderPagesOld = async ({
-  //   sourceNodeId,
-  //   targetParentNodeId,
-  //   index,
-  // }: {
-  //   sourceNodeId: string
-  //   targetParentNodeId?: string
-  //   index: number
-  // }) => {
-  //   const sourceNode = findPage(sourceNodeId)!
-  //   const targetParentNode = targetParentNodeId ? findPage(targetParentNodeId) : undefined
-  //   const sourceParentNode = findPage(sourceNode.parent_page_id!)
-
-  //   console.log('reorderPages', { sourceNode, targetParentNode, sourceParentNode, index })
-  //   // if (!sourceParentNode && targetParentNode) return
-  //   // if (sourceParentNode && !targetParentNode) return
-
-  //   if (sourceParentNode?.children) {
-  //     sourceParentNode.children = sourceParentNode.children.filter((p) => p.id !== sourceNode.id)
-  //     sourceParentNode.isLeaf = sourceParentNode.children.length === 0
-  //   }
-
-  //   if (!targetParentNode && !sourceParentNode) {
-  //     index = index < 0 ? 0 : index
-  //     // index of the source node
-  //     const sourceIndex = pages.value.findIndex((p) => p.id === sourceNode.id)
-  //     // move the index to the correct position
-  //     if (index > pages.value.length) {
-  //       index = pages.value.length
-  //     }
-  //     pages.value.splice(index, 0, sourceNode)
-  //     // remove the previous duplicate node by source index
-  //     if (index > sourceIndex) {
-  //       pages.value.splice(sourceIndex, 1)
-  //     } else {
-  //       pages.value.splice(sourceIndex + 1, 1)
-  //     }
-
-  //     sourceNode.parent_page_id = undefined
-  //     sourceNode.parentNodeId = undefined
-
-  //     const node = findPage(sourceNodeId)!
-  //     await $api.nocoDocs.updatePage(node.id!, {
-  //       attributes: { order: index + 1 } as any,
-  //       projectId: project.id!,
-  //       bookId: openedBook.value!.id!,
-  //     })
-  //     return
-  //   } else if (!targetParentNode && sourceParentNode) {
-  //     if (!sourceParentNode.children) throw new Error('sourceParentNode.children is undefined')
-
-  //     // index of the source node
-  //     const sourceIndex = sourceParentNode.children.findIndex((p) => p.id === sourceNode.id)
-  //     // move the index to the correct position
-  //     if (index > sourceParentNode.children!.length) {
-  //       index = sourceParentNode.children!.length
-  //     }
-
-  //     // insert in root pages
-  //     pages.value.splice(index, 0, sourceNode)
-  //     // remove the previous duplicate node by source index
-  //     if (index > sourceIndex) {
-  //       sourceParentNode.children.splice(sourceIndex, 1)
-  //     } else {
-  //       sourceParentNode.children.splice(sourceIndex + 1, 1)
-  //     }
-  //   } else if (targetParentNode && !sourceParentNode) {
-  //     if (!targetParentNode.children) throw new Error('sourceParentNode.children is undefined')
-
-  //     // index of the source node
-  //     const sourceIndex = targetParentNode.children.findIndex((p) => p.id === sourceNode.id)
-  //     // move the index to the correct position
-  //     if (index > targetParentNode.children!.length) {
-  //       index = targetParentNode.children!.length
-  //     }
-
-  //     // remove the previous duplicate node by source index
-  //     if (index > sourceIndex) {
-  //       pages.value.splice(sourceIndex, 1)
-  //     } else {
-  //       pages.value.splice(sourceIndex + 1, 1)
-  //     }
-  //   }
-
-  //   if (targetParentNode?.children) {
-  //     targetParentNode.children.splice(index, 0, sourceNode)
-  //     targetParentNode.isLeaf = false
-  //   } else if (targetParentNode) {
-  //     targetParentNode.children = [sourceNode]
-  //     targetParentNode.isLeaf = false
-  //   }
-
-  //   sourceNode.parent_page_id = targetParentNode?.id
-  //   sourceNode.parentNodeId = targetParentNode?.id ? targetParentNode.id : openedBook.value?.id
-
-  //   const node = findPage(sourceNodeId)!
-  //   await $api.nocoDocs.updatePage(node.id!, {
-  //     attributes: { order: index + 1, parent_page_id: targetParentNodeId } as any,
-  //     projectId: project.id!,
-  //     bookId: openedBook.value!.id!,
-  //   })
-
-  //   navigateTo(nestedUrl(node.slug!))
-  //   const openedPages = [...getPageWithParents(node), node]
-  //   for (const page of openedPages) {
-  //     if (!openedTabs.value.includes(page.id!)) {
-  //       openedTabs.value.push(page.id!)
-  //     }
-  //   }
-  // }
 
   function getPageWithParents(page: PageSidebarNode) {
     const parents: PageSidebarNode[] = []

@@ -88,18 +88,17 @@ watchDebounced(
     }
   },
   {
-    debounce: 250,
+    debounce: 100,
     maxWait: 300,
   },
 )
 
 // todo: Hack to focus on title when its edited since on edit route is changed
 watch(titleInputRef, (el) => {
-  // console.log('titleInputRef', isTitleInputRefLoaded.value, openedPage.value)
-  // if (!isTitleInputRefLoaded.value && !openedPage.value?.new) {
-  //   isTitleInputRefLoaded.value = true
-  //   return
-  // }
+  if (!isTitleInputRefLoaded.value && !openedPage.value?.new) {
+    isTitleInputRefLoaded.value = true
+    return
+  }
 
   isTitleInputRefLoaded.value = true
   el?.focus()

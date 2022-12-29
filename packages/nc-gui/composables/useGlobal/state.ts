@@ -114,6 +114,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** our local user object */
   const user = ref<User | null>(null)
 
+  const isMobileMode = ref<boolean>(false)
+
   return {
     ...toRefs(storage.value),
     storage,
@@ -124,5 +126,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     error,
     user,
     appInfo,
+    isMobileMode,
   }
 }

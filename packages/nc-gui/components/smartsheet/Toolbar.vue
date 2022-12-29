@@ -14,8 +14,11 @@ const { allowCSVDownload } = useSharedView()
 
 <template>
   <div class="nc-table-toolbar w-full py-1 flex gap-2 items-center px-2 border-b overflow-x-hidden flex-wrap" style="z-index: 7">
-    <LazySmartsheetToolbarViewActions v-if="(isGrid || isGallery || isKanban) && !isPublic && isUIAllowed('dataInsert')"
-      :show-system-fields="false" class="ml-1" />
+    <LazySmartsheetToolbarViewActions
+      v-if="(isGrid || isGallery || isKanban) && !isPublic && isUIAllowed('dataInsert')"
+      :show-system-fields="false"
+      class="ml-1"
+    />
 
     <LazySmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
 
@@ -31,7 +34,7 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban || isGallery) && !isPublic" />
 
-    <LazySmartsheetQrScannerButton />
+    <LazySmartsheetQrScannerButton v-if="isGrid || isKanban || isGallery" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
     <div class="flex-1" />

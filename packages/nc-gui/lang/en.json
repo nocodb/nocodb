@@ -515,6 +515,12 @@
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
       },
+      "codeScanner": {
+        "loadingScanner": "Loading the scanner...", 
+        "selectColumn": "Please select a column", 
+        "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
+        "noRowFoundForCode": "No row found for this code for the selected column"
+      },
       "footerInfo": "Rows per page",
       "upload": "Select file to Upload",
       "upload_sub": "or drag and drop file",

@@ -7,6 +7,7 @@ import QrCodeScan from '~icons/mdi/qrcode-scan'
 
 const meta = inject(MetaInj, ref())
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
@@ -15,18 +16,15 @@ const { project } = useProject()
 
 const view = inject(ActiveViewInj, ref())
 
-const codeFieldOptions = ref<SelectProps['options']>([])
-
-onBeforeMount(init)
-
-async function init() {
-  codeFieldOptions.value = meta?.value?.columns!.map((field) => {
-    return {
-      value: field.id,
-      label: field.title,
-    }
-  })
-}
+const codeFieldOptions = computed<SelectProps['options']>(
+  () =>
+    meta?.value?.columns!.map((field) => {
+      return {
+        value: field.id,
+        label: field.title,
+      }
+    }) || [],
+)
 
 const showCodeScannerOverlay = ref(false)
 
@@ -66,11 +64,11 @@ const onDecode = async (codeValue: string) => {
       }, 4000)
       if (foundRowsForCode.length === 0) {
         // extract into localisation file
-        message.info(`No row found for this code for column '${nameOfSelectedColumnToScanFor}'.`)
+        message.info(t('msg.info.codeScanner.noRowFoundForCode'))
       }
       if (foundRowsForCode.length > 1) {
         // extract into localisation file
-        message.warn('More than one row found for this code. Currently only unique codes are supported.')
+        message.warn(t('msg.info.codeScanner.moreThanOneRowFoundForCode'))
       }
       return
     }
@@ -89,7 +87,6 @@ const onDecode = async (codeValue: string) => {
     console.error(error)
   }
 }
-
 </script>
 
 <template>
@@ -102,7 +99,6 @@ const onDecode = async (codeValue: string) => {
     </a-button>
     <a-modal
       v-model:visible="showCodeScannerOverlay"
-      :class="{ active: showCodeScannerOverlay }"
       :closable="false"
       width="28rem"
       centered
@@ -113,21 +109,17 @@ const onDecode = async (codeValue: string) => {
     >
       <div class="relative flex flex-col h-full">
         <a-form-item :label="$t('labels.columnToScanFor')">
-          <a-select
-            v-model:value="selectedCodeColumnIdToScanFor"
-            class="w-full"
-            :options="codeFieldOptions"
-            placeholder="Select a Code Field (QR or Barcode)"
-          />
+          <a-select v-model:value="selectedCodeColumnIdToScanFor" class="w-full" :options="codeFieldOptions" />
         </a-form-item>
 
         <div>
           <StreamBarcodeReader v-show="showScannerField" @decode="onDecode" @loaded="onLoaded"></StreamBarcodeReader>
           <div v-if="showPleaseSelectColumnMessage" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
             Please select a column
+            {{ $t('msg.info.codeScanner.selectColumn') }}
           </div>
           <div v-if="showScannerIsLoadingMessage" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-            Loading the scanner...
+            {{ $t('msg.info.codeScanner.loadingScanner') }}
           </div>
         </div>
       </div>

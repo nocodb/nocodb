@@ -49,6 +49,7 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>
   appInfo: Ref<AppInfo>
+  isMobileMode: Ref<boolean>
 }
 
 export interface Getters {
@@ -60,6 +61,7 @@ export interface Actions {
   signOut: () => void
   signIn: (token: string) => void
   refreshToken: () => void
+  setIsMobileMode: (isMobileMode: boolean) => void
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

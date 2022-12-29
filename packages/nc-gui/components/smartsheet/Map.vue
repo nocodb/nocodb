@@ -14,7 +14,8 @@ const route = useRoute()
 const router = useRouter()
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
-const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, addEmptyRow } = useMapViewStoreOrThrow()
+const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, addEmptyRow, syncCount, paginationData } =
+  useMapViewStoreOrThrow()
 
 const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
 const mapContainerRef = ref<HTMLElement>()
@@ -187,11 +188,28 @@ watch(view, async (nextView) => {
     await loadMapData()
   }
 })
+
+const count = computed(() => paginationData.value.totalRows)
+
+syncCount()
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full no-underline">
-    <div id="mapContainer" ref="mapContainerRef"></div>
+    <div id="mapContainer" ref="mapContainerRef">
+      <a-tooltip placement="bottom" class="tooltip">
+        <template #title>
+          <span v-if="count > 1000"> You're over the limit. </span>
+          <span v-else> You're getting close to the limit. </span>
+          <span> The limit of markers shown in a Map View is 1000 records. </span>
+        </template>
+
+        <div v-if="count > 900" class="nc-warning-info flex min-w-32px h-32px items-center gap-1 px-2 bg-white">
+          <div>{{ count }} records</div>
+          <mdi-map-marker-alert />
+        </div>
+      </a-tooltip>
+    </div>
   </div>
 
   <Suspense>
@@ -239,5 +257,15 @@ watch(view, async (nextView) => {
 .leaflet-popup-content-wrapper {
   max-height: 255px;
   overflow: scroll;
+}
+.tooltip {
+  height: 2rem;
+  max-width: fit-content;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 10px;
+  z-index: 500;
+  cursor: default;
 }
 </style>

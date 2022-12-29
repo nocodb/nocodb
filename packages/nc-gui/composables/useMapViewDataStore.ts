@@ -6,8 +6,6 @@ import type { Row } from '~/lib'
 
 export const geodataToggleState = reactive({ show: false })
 
-const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
-
 // const { project, isSharedBase } = useProject()
 
 const formatData = (list: Row[]) =>
@@ -34,10 +32,6 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     const mapMetaData = ref<MapType>({})
 
     const geoDataFieldColumn = ref<ColumnType | undefined>()
-
-    const view = inject(ActiveViewInj)
-
-    // const { syncCount } = useViewData(meta, view!)
 
     const appInfoDefaultLimit = 1000
 

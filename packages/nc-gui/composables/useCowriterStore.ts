@@ -82,7 +82,9 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     let promptStatement = promptStatementTemplate
 
     ;(cowriterTable.value as TableType).columns!.forEach((c) => {
-      promptStatement = promptStatement.replaceAll(`{{${c.title}}}`, cowriterFormState[c.title!])
+      if (cowriterFormState[c.title!]) {
+        promptStatement = promptStatement.replaceAll(`{{${c.title}}}`, cowriterFormState[c.title!])
+      }
     })
 
     return promptStatement

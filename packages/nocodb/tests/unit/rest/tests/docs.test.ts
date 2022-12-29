@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
 import { createBook, deleteBook, getBook, listBooks } from '../../factory/book';
-import { listPages } from '../../factory/page';
+import { createPage, getPage, listPages } from '../../factory/page';
 import { createProject } from '../../factory/project';
 import init, { NcUnitContext } from '../../init';
 
@@ -13,14 +13,8 @@ function docTests() {
 
   beforeEach(async function () {
     context = await init();
-    project = await createProject(context, { title: 'test', type: 'docs' });
-    book = await createBook({
-      attributes: {
-        title: 'test',
-      },
-      user: context.user,
-      project
-    });
+    project = await createProject(context, { title: 'test', type: 'documentation' });
+    book = (await listBooks({ project: project, user: context.user }))[0];
   });
 
   it('Create book', async () => {
@@ -389,52 +383,32 @@ function docTests() {
   })
 
   it('Update parent id should update is_parent attribute of that parent', async () => {
-    let response = await request(context.app)
-      .post(`/api/v1/docs/page`)
-      .set('xc-auth', context.token)
-      .send({
-        projectId: project.id,
-        bookId: book.id,
-        attributes: {
-          title: 'test',
-          content: 'test',
-        }
-      })
-      .expect(200)
-    expect(response.body).to.have.property('id');
+    const parentPage = await createPage({
+      project,
+      book,
+      attributes: {
+        title: 'parent',
+        content: 'parent',
+      },
+      user: context.user,
+    })
 
-    const parentId = response.body.id
-
-    response = await request(context.app)
-      .post(`/api/v1/docs/page`)
-      .set('xc-auth', context.token)
-      .send({
-        projectId: project.id,
-        bookId: book.id,
-        attributes: {
-          parent_page_id: parentId,
-          title: 'nested test',
-          content: 'test',
-        }
-      })
-      .expect(200)
+    const child = await createPage({
+      project,
+      book,
+      attributes: {
+        parent_page_id: parentPage.id!,
+        title: 'nested test',
+        content: 'test',
+      },
+      user: context.user,
+    })
     
-    const childId = response.body.id
-    expect(response.body.parent_page_id).to.equal(parentId)
-    expect(response.body.is_parent).to.equal(0)
+    expect(child.parent_page_id).to.equal(parentPage.id)
+    expect(child.is_parent).to.equal(0)
 
-    response = await request(context.app)
-      .get(`/api/v1/docs/page/${parentId}`)
-      .query({
-        projectId: project.id,
-        bookId: book.id,
-      })
-      .set('xc-auth', context.token)
-      .send();
-    expect(response.body.is_parent).to.equal(1)
-
-    response = await request(context.app)
-      .put(`/api/v1/docs/page/${childId}`)
+    let response = await request(context.app)
+      .put(`/api/v1/docs/page/${child.id!}`)
       .set('xc-auth', context.token)
       .send({
         projectId: project.id,
@@ -448,15 +422,298 @@ function docTests() {
       .expect(200)
     expect(response.body.parent_page_id).to.equal(null)
 
-    response = await request(context.app)
-    .get(`/api/v1/docs/page/${parentId}`)
-    .set('xc-auth', context.token)
-    .query({
-      projectId: project.id,
-      bookId: book.id,
+    const updatedParentWhichIsNotParent = await getPage({
+      id: parentPage.id!,
+      project,
+      book,
+      user: context.user,
     })
-    .send();
-    expect(response.body.is_parent).to.equal(0)
+    expect(updatedParentWhichIsNotParent.is_parent).to.equal(0)
+
+    response = await request(context.app)
+      .put(`/api/v1/docs/page/${child.id!}`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        bookId: book.id,
+        attributes: {
+          title: 'test2',
+          content: 'test2',
+          parent_page_id: parentPage.id!,
+        }
+      })
+      .expect(200)
+    expect(response.body.parent_page_id).to.equal(parentPage.id!)
+
+    const updatedParentWhichIsParentAgain = await getPage({
+      id: parentPage.id!,
+      project,
+      book,
+      user: context.user,
+    })
+    expect(updatedParentWhichIsParentAgain.is_parent).to.equal(1)
+  })
+
+  it('Slug should be unique if same slug already exists', async () => {
+    await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+      },
+      user: context.user,
+    });
+
+    const page2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+      },
+      user: context.user,
+    });
+    expect(page2.slug).to.equal('test-1')
+  })
+
+  it('Slug should be unique across sibling pages if if title is updated ', async () => {
+    const parent = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'parent test',
+      },
+      user: context.user,
+    });
+
+    const page0 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+        parent_page_id: parent.id,
+      },
+      user: context.user,
+    });
+    expect(page0.slug).to.equal('test')
+
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test-1',
+        parent_page_id: parent.id,
+      },
+      user: context.user,
+    });
+    expect(page1.slug).to.equal('test-1')
+
+    const page3 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test-3',
+        parent_page_id: parent.id,
+      },
+      user: context.user,
+    });
+    expect(page3.slug).to.equal('test-3')
+
+    const page2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test-2',
+        parent_page_id: parent.id,
+      },
+      user: context.user,
+    });
+    expect(page2.slug).to.equal('test-2')
+
+    await request(context.app)
+      .put(`/api/v1/docs/page/${page2.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        bookId: book.id,
+        attributes: {
+          title: 'test',
+        }
+      })
+      .expect(200)
+    const page2Updated = await getPage({
+      id: page2.id!,
+      project: project,
+      book: book,
+      user: context.user,
+    })
+    expect(page2Updated.slug).to.equal('test-4')
+  })
+
+  it('Slug should be unique if same slug already exists when its parent page is updated', async () => {
+    const parent = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'parent test',
+      },
+      user: context.user,
+    });
+
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+        parent_page_id: parent.id,
+      },
+      user: context.user,
+    });
+
+    const page2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+      },
+      user: context.user,
+    });
+    expect(page2.slug).to.equal('test')
+
+    await request(context.app)
+      .put(`/api/v1/docs/page/${page1.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        bookId: book.id,
+        attributes: {
+          parent_page_id: parent.id,
+        }
+      })
+      .expect(200)
+    const page1Updated = await getPage({
+      id: page1.id!,
+      project: project,
+      book: book,
+      user: context.user,
+    })
+    expect(page1Updated.slug).to.equal('test-1')
+  })
+
+  it('Slug should be unique if same slug already exists when its parent page and title is updated', async () => {
+    const parent = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'parent test',
+      },
+      user: context.user,
+    });
+
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+        parent_page_id: parent.id,
+      },
+      user: context.user,
+    });
+
+    const page2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+      },
+      user: context.user,
+    });
+    expect(page2.slug).to.equal('test')
+
+    await request(context.app)
+      .put(`/api/v1/docs/page/${page1.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        bookId: book.id,
+        attributes: {
+          parent_page_id: parent.id,
+          title: 'Updated Test',
+        }
+      })
+      .expect(200)
+    const page1Updated = await getPage({
+      id: page1.id!,
+      project: project,
+      book: book,
+      user: context.user,
+    })
+    expect(page1Updated.slug).to.equal('updated-test-1')
+    expect(page1Updated.title).to.equal('Updated Test')
+    expect(page1Updated.parent_page_id).to.equal(parent.id)
+    expect(page1Updated.is_parent).to.equal(0)
+
+    const parentUpdated = await getPage({
+      id: parent.id!,
+      project: project,
+      book: book,
+      user: context.user,
+    })
+    expect(parentUpdated.is_parent).to.equal(1)
+    expect(parentUpdated.slug).to.equal('parent-test')
+    expect(parentUpdated.title).to.equal('parent test')
+    expect(parentUpdated.parent_page_id).to.equal(null)
+  })
+
+  it('is_parent should be correct when child pages are changed', async () => {
+    const parent = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'parent test',
+      },
+      user: context.user,
+    });
+
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+        parent_page_id: parent.id,
+      },
+      user: context.user,
+    });
+
+    const page2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+        parent_page_id: parent.id,
+      },
+      user: context.user,
+    });
+
+    await request(context.app)
+      .put(`/api/v1/docs/page/${page1.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        bookId: book.id,
+        attributes: {
+          parent_page_id: null,
+          title: 'Updated Test',
+        }
+      })
+      .expect(200)
+    const parentPageUpdated = await getPage({
+      id: parent.id!,
+      project: project,
+      book: book,
+      user: context.user,
+    })
+
+    expect(parentPageUpdated.is_parent).to.equal(1)
   })
 }
 

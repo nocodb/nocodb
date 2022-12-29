@@ -177,7 +177,10 @@ async function projectCreate(req: Request<any, any>, res) {
   projectBody.title = DOMPurify.sanitize(projectBody.title);
   projectBody.slug = projectBody.title;
 
-  const project = await Project.createProject(projectBody);
+  const project = await Project.createProject({
+    ...projectBody,
+    user: (req as any).user,
+  });
   await ProjectUser.insert({
     fk_user_id: (req as any).user.id,
     project_id: project.id,

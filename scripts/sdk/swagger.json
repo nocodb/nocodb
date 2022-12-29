@@ -30,7 +30,7 @@
           }
         },
         "tags": [
-          "Noco books"
+          "Noco docs"
         ],
         "parameters": [
           {
@@ -65,7 +65,7 @@
           }
         },
         "tags": [
-          "Noco books"
+          "Noco docs"
         ],
         "parameters": [
           {
@@ -96,7 +96,7 @@
           }
         },
         "tags": [
-          "Noco books"
+          "Noco docs"
         ],
         "requestBody": {
           "content": {
@@ -138,7 +138,7 @@
           }
         },
         "tags": [
-          "Noco books"
+          "Noco docs"
         ],
         "requestBody": {
           "content": {
@@ -181,7 +181,7 @@
           }
         },
         "tags": [
-          "Noco books"
+          "Noco docs"
         ],
         "requestBody": {
           "content": {
@@ -193,6 +193,11 @@
                     "$ref": "#/components/schemas/Book"
                   },
                   "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "bookId": {
                     "type": "string",
                     "description": "Project id",
                     "required":true
@@ -229,7 +234,7 @@
           }
         },
         "tags": [
-          "Noco books"
+          "Noco docs"
         ],
         "requestBody": {
           "content": {
@@ -239,6 +244,11 @@
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/Book"
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
                   },
                   "user": {
                     "type": "string",
@@ -8110,7 +8120,7 @@
       "Book": {
         "title": "Book",
         "type": "object",
-        "description": "Book of noco books",
+        "description": "Book of Noco docs",
         "x-internal": false,
         "examples": [
           {
@@ -8184,7 +8194,7 @@
       "DocsPage": {
         "title": "DocsPage",
         "type": "object",
-        "description": "Page of noco books",
+        "description": "Page of Noco docs",
         "examples": [
           {
             "id": "142",

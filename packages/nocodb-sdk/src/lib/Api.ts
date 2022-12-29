@@ -47,7 +47,7 @@ export interface WorkspaceUserInviteType {
 }
 
 /**
- * Book of noco books
+ * Book of Noco docs
  */
 export interface BookType {
   /** Unique identifier for the given book. */
@@ -76,7 +76,7 @@ export interface BookType {
 }
 
 /**
- * Page of noco books
+ * Page of Noco docs
  */
 export interface DocsPageType {
   /** Unique identifier for the given page. */
@@ -955,11 +955,11 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<
   SecurityDataType extends unknown
 > extends HttpClient<SecurityDataType> {
-  nocoBooks = {
+  nocoDocs = {
     /**
      * @description List books
      *
-     * @tags Noco books
+     * @tags Noco docs
      * @name ListBooks
      * @summary List books
      * @request GET:/api/v1/docs/books
@@ -985,7 +985,7 @@ export class Api<
     /**
      * @description Delete book
      *
-     * @tags Noco books
+     * @tags Noco docs
      * @name DeleteBook
      * @summary Delete book
      * @request DELETE:/api/v1/docs/book/{id}
@@ -1009,7 +1009,7 @@ export class Api<
     /**
      * @description Update book
      *
-     * @tags Noco books
+     * @tags Noco docs
      * @name UpdateBook
      * @summary Update book
      * @request PUT:/api/v1/docs/book/{id}
@@ -1018,7 +1018,7 @@ export class Api<
     updateBook: (
       id: string,
       data: {
-        /** Book of noco books */
+        /** Book of Noco docs */
         attributes?: BookType;
         /** Project id */
         projectId: string;
@@ -1037,7 +1037,7 @@ export class Api<
     /**
      * @description Create book
      *
-     * @tags Noco books
+     * @tags Noco docs
      * @name CreateBook
      * @summary Create book
      * @request POST:/api/v1/docs/book
@@ -1045,7 +1045,7 @@ export class Api<
      */
     createBook: (
       data: {
-        /** Book of noco books */
+        /** Book of Noco docs */
         attributes?: BookType;
         /** Project id */
         projectId: string;
@@ -1064,7 +1064,7 @@ export class Api<
     /**
      * @description Create book
      *
-     * @tags Noco books
+     * @tags Noco docs
      * @name CreateBookMagic
      * @summary Create magic
      * @request POST:/api/v1/docs/book/magic
@@ -1072,10 +1072,12 @@ export class Api<
      */
     createBookMagic: (
       data: {
-        /** Book of noco books */
+        /** Book of Noco docs */
         attributes?: BookType;
         /** Project id */
         projectId: string;
+        /** Project id */
+        bookId: string;
         /** Title */
         title: string;
       },
@@ -1093,7 +1095,7 @@ export class Api<
     /**
      * @description Create book
      *
-     * @tags Noco books
+     * @tags Noco docs
      * @name ImportBook
      * @summary Import book
      * @request POST:/api/v1/docs/book/import
@@ -1101,8 +1103,10 @@ export class Api<
      */
     importBook: (
       data: {
-        /** Book of noco books */
+        /** Book of Noco docs */
         attributes?: BookType;
+        /** Project id */
+        bookId: string;
         /** Project id */
         user: string;
         /** Project id */
@@ -1128,8 +1132,7 @@ export class Api<
         format: 'json',
         ...params,
       }),
-  };
-  nocoDocs = {
+
     /**
      * @description List pages
      *
@@ -1196,7 +1199,7 @@ export class Api<
     updatePage: (
       id: string,
       data: {
-        /** Page of noco books */
+        /** Page of Noco docs */
         attributes?: DocsPageType;
         /** Project id */
         projectId: string;
@@ -1225,7 +1228,7 @@ export class Api<
      */
     createPage: (
       data: {
-        /** Page of noco books */
+        /** Page of Noco docs */
         attributes?: DocsPageType;
         /** Project id */
         projectId: string;

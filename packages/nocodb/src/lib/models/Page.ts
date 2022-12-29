@@ -1,9 +1,10 @@
 import Noco from '../Noco';
 import { CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
-import slug from 'slug';
+import slugify from 'slug';
 import { DocsPageType, UserType } from 'nocodb-sdk';
 import Book from './Book';
+import console from 'console';
 const { v4: uuidv4 } = require('uuid');
 export default class Page {
   public id: string;
@@ -39,9 +40,6 @@ export default class Page {
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType> {
-    const titleSlug = slug(title);
-    const now = new Date().toString();
-
     const { id: createdPageId } = await ncMeta.metaInsert2(
       null,
       null,
@@ -51,22 +49,20 @@ export default class Page {
         description: description,
         content: content,
         parent_page_id: parent_page_id,
-        slug: `${titleSlug}-${now}`,
+        slug: await this.uniqueSlug(
+          {
+            title,
+            bookId,
+            projectId,
+            parent_page_id,
+          },
+          ncMeta
+        ),
         order: order,
         book_id: bookId,
         created_by_id: user.id,
       } as Partial<DocsPageType>
     );
-
-    await this.update({
-      bookId,
-      pageId: createdPageId,
-      attributes: {
-        slug: `${titleSlug}-${createdPageId}`,
-      },
-      user: user,
-      projectId,
-    });
 
     if (parent_page_id) {
       await ncMeta.metaUpdate(
@@ -133,10 +129,23 @@ export default class Page {
     const previousPage = await this.get({ id: pageId, bookId, projectId });
     if (!previousPage) throw new Error('Page not found');
 
-    if (attributes.book_id) throw new Error('Cannot update project_id');
+    if (attributes.book_id) throw new Error('Cannot update book_id');
+
+    if (attributes.title === previousPage.title) delete attributes.title;
 
     if (attributes.title) {
-      attributes.slug = `${slug(attributes.title)}-${pageId}`;
+      if (attributes.title.length === 0) {
+        throw new Error('Title cannot be empty');
+      }
+
+      const uniqueSlug = await this.uniqueSlug({
+        bookId,
+        projectId,
+        parent_page_id: previousPage.parent_page_id,
+        title: attributes.title,
+      });
+
+      attributes.slug = uniqueSlug;
     }
 
     attributes.last_updated_by_id = user.id;
@@ -151,6 +160,7 @@ export default class Page {
 
     // if parent page is changed, update is_parent flag of previous parent page
     if (
+      'parent_page_id' in attributes &&
       previousPage.parent_page_id &&
       attributes.parent_page_id !== previousPage.parent_page_id
     ) {
@@ -160,6 +170,7 @@ export default class Page {
         projectId,
       });
       if (previousParentChildren.length === 0) {
+        console.log('previousParentChildren', previousParentChildren);
         await ncMeta.metaUpdate(
           null,
           null,
@@ -193,6 +204,30 @@ export default class Page {
         },
         attributes.parent_page_id
       );
+      const currentPage = await this.get({ id: pageId, bookId, projectId });
+
+      // Since there can be slug collision, when page is moved to a new parent
+      const uniqueSlug = await this.uniqueSlug(
+        {
+          bookId,
+          projectId,
+          parent_page_id: attributes.parent_page_id,
+          title: currentPage.title,
+        },
+        ncMeta
+      );
+      if (uniqueSlug !== currentPage.slug) {
+        await ncMeta.metaUpdate(
+          null,
+          null,
+          Page.tableName({ projectId, bookId }),
+          {
+            slug: uniqueSlug,
+            book_id: bookId,
+          },
+          pageId
+        );
+      }
     }
 
     return await this.get({ id: pageId, bookId, projectId });
@@ -216,7 +251,7 @@ export default class Page {
       }
     );
 
-    if (!pageList || pageList.length > 0) return [];
+    if (!pageList || pageList.length === 0) return [];
 
     pageList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
@@ -353,6 +388,57 @@ export default class Page {
     return Book.pages_table_name(projectId, bookId);
   }
 
+  private static async uniqueSlug(
+    {
+      title,
+      projectId,
+      bookId,
+      parent_page_id,
+    }: {
+      title: string;
+      projectId: string;
+      bookId: string;
+      parent_page_id?: string;
+    },
+    ncMeta = Noco.ncMeta
+  ) {
+    const slug = slugify(title);
+    const count = await ncMeta.metaCount(
+      null,
+      null,
+      Page.tableName({ projectId, bookId }),
+      {
+        condition: {
+          slug,
+          parent_page_id: parent_page_id ?? null,
+        },
+      }
+    );
+
+    if (count === 0) return slug;
+
+    let newSlug;
+    let collisionCount = 0;
+    let slugCount = -1;
+    while (slugCount !== 0) {
+      newSlug = slug + '-' + String(count + collisionCount);
+      slugCount = await ncMeta.metaCount(
+        null,
+        null,
+        Page.tableName({ projectId, bookId }),
+        {
+          condition: {
+            slug: newSlug,
+            parent_page_id: parent_page_id ?? null,
+          },
+        }
+      );
+      if (slugCount === 0) return newSlug;
+
+      collisionCount = collisionCount + 1;
+    }
+  }
+
   static async createPageTable(
     { projectId, bookId }: { projectId: string; bookId: string },
     ncMeta = Noco.ncMeta
@@ -371,7 +457,7 @@ export default class Page {
 
         table.text('content', 'longtext').defaultTo('');
         table.text('published_content', 'longtext').defaultTo('');
-        table.string('slug', 150).notNullable().unique();
+        table.string('slug', 150).notNullable();
 
         table.boolean('is_parent').defaultTo(false);
         table.string('parent_page_id', 20).nullable();

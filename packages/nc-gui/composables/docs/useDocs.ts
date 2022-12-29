@@ -3,7 +3,7 @@ import type { BookType, DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
 import { extractSdkResponseErrorMsg, useNuxtApp, useState } from '#imports'
 export interface AntSidebarNode {
-  parentNodeSlug?: string
+  parentNodeId?: string
   isLeaf: boolean
   key: string
   style?: string | Record<string, string>
@@ -15,58 +15,73 @@ export interface AntSidebarNode {
 
 export type PageSidebarNode = DocsPageType & AntSidebarNode
 
-export type BookSidebarNode = BookType & AntSidebarNode
-
 export function useDocs() {
   const { $api } = useNuxtApp()
   const route = useRoute()
   const { project } = $(useProject())
 
-  const books = useState<BookSidebarNode[]>('books', () => [])
+  const books = useState<BookType[]>('books', () => [])
   const pages = useState<PageSidebarNode[]>('pages', () => [])
   const openedTabs = useState<string[]>('openedSidebarTabs', () => [])
 
-  // First slug is book slug, rest are page slugs
+  // // First slug is book slug, rest are page slugs
   const openedPageSlug = computed<string | undefined>(() =>
     Number(route.params.slugs?.length) >= 2 ? route.params.slugs[route.params.slugs.length - 1] : undefined,
   )
-  const openedBook = computed<BookSidebarNode | undefined>(() => {
+  const openedBook = computed<BookType | undefined>(() => {
     if (route.params.slugs?.length === 0) return undefined
 
     const bookSlug = route.params.slugs[0]
     return books.value.find((b) => b.slug === bookSlug)
   })
 
-  // hack: Since openedPageSlug and pages changes are not in sync, we need to use this
-  const prevOpenedPage = ref<PageSidebarNode | undefined>()
+  const openedNestedPagesOfBook = computed(() => {
+    if (route.params.slugs?.length < 1 || !openedBook.value || pages.value.length === 0) return []
+    const pageSlugs = (route.params.slugs as string[]).filter((_, i) => i !== 0)
 
+    let currentPages = pages.value
+    const nestedPages = pageSlugs
+      .map((slug) => {
+        const rootPage = currentPages.find((p) => p.slug === slug)
+        currentPages = rootPage?.children || []
+
+        return rootPage
+      })
+      .filter((p) => p) as PageSidebarNode[]
+
+    return nestedPages
+  })
+
+  // hack: Since openedPageSlug and pages changes are not in sync, we need to use this
+  let prevOpenedPage: PageSidebarNode | undefined
+
+  // todo: Fix
   const openedPage = computed(() => {
-    return openedPageSlug.value ? findPage(openedPageSlug.value) || prevOpenedPage.value : undefined
+    const val = openedPageSlug.value
+      ? openedNestedPagesOfBook.value.length > 0
+        ? openedNestedPagesOfBook.value[openedNestedPagesOfBook.value.length - 1] || prevOpenedPage
+        : prevOpenedPage
+      : undefined
+
+    // console.log('openedPage', val ? JSON.parse(JSON.stringify(val)) : val)
+    return val
   })
 
   watch(openedPage, (page) => {
-    prevOpenedPage.value = page
+    prevOpenedPage = page
   })
 
-  const openedNestedPagesOfBook = computed(() => {
-    if (route.params.slugs?.length < 1 || !openedBook.value) return []
-    const pageSlugs = (route.params.slugs as string[]).filter((_, i) => i !== 0)
-
-    return pageSlugs.map((slug) => findPage(slug)).filter((p) => p) as PageSidebarNode[]
-  })
-
-  const selectBook = async (book: BookSidebarNode) => {
-    console.log('selectBook', pages.value)
+  const selectBook = async (book: BookType) => {
     await fetchPages({ book })
     navigateTo(bookUrl(book.slug!))
   }
 
   const fetchBooks = async () => {
     try {
-      books.value = (await $api.nocoBooks.listBooks({ projectId: project.id! })).map((book) => ({
+      books.value = (await $api.nocoDocs.listBooks({ projectId: project.id! })).map((book) => ({
         ...book,
         isLeaf: false,
-        key: book.slug!,
+        key: book.id!,
         isBook: true,
       }))
 
@@ -76,7 +91,7 @@ export function useDocs() {
     }
   }
 
-  async function fetchPages({ parentPageId, book }: { parentPageId?: string; book: BookSidebarNode }) {
+  async function fetchPages({ parentPageId, book }: { parentPageId?: string; book: BookType }) {
     try {
       const docs = await $api.nocoDocs.listPages({
         projectId: project.id!,
@@ -88,13 +103,13 @@ export function useDocs() {
         const parentPage = findPage(parentPageId)
         if (!parentPage) return
 
-        parentPage.children = docs.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.slug!, parentNodeSlug: parentPage.slug }))
+        parentPage.children = docs.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: parentPage.id }))
       } else {
         pages.value = docs.map((d) => ({
           ...d,
           isLeaf: !d.is_parent,
-          key: d.slug!,
-          parentNodeSlug: book.slug,
+          key: d.id!,
+          parentNodeId: book.id,
         }))
       }
 
@@ -110,17 +125,19 @@ export function useDocs() {
 
     let parentPage: DocsPageType | undefined = pages.value.find((page) => page.slug === route.params.slugs[1])
     const pagesSlugs = route.params.slugs as string[]
-
+    const pagesIds = []
     for (const slug of pagesSlugs) {
       const childDocs = await fetchPages({ parentPageId: parentPage?.id, book: openedBook.value! })
+
+      if (parentPage) pagesIds.push(parentPage.id!)
 
       if (!childDocs) throw new Error(`Nested Child Page not found:${parentPage?.id}`)
       parentPage = childDocs.find((page) => page.slug === slug)
     }
 
-    for (const slug of pagesSlugs) {
-      if (!openedTabs.value.includes(slug)) {
-        openedTabs.value.push(slug)
+    for (const id of pagesIds) {
+      if (!openedTabs.value.includes(id)) {
+        openedTabs.value.push(id)
       }
     }
   }
@@ -152,23 +169,23 @@ export function useDocs() {
         parentPage.children?.push({
           ...createdPageData,
           isLeaf: !createdPageData.is_parent,
-          key: createdPageData.slug!,
-          parentNodeSlug: parentPage.slug,
+          key: createdPageData.id!,
+          parentNodeId: parentPage.id,
         })
         parentPage.isLeaf = false
       } else {
         pages.value.push({
           ...createdPageData,
           isLeaf: !createdPageData.is_parent,
-          key: createdPageData.slug!,
-          parentNodeSlug: book.slug,
+          key: createdPageData.id!,
+          parentNodeId: book.id,
         })
       }
 
-      await navigateTo(nestedUrl(createdPageData.slug!))
+      await navigateTo(nestedUrl(createdPageData.id!))
 
-      if (!openedTabs.value.includes(createdPageData.slug!)) {
-        openedTabs.value.push(createdPageData.slug!)
+      if (!openedTabs.value.includes(createdPageData.id!)) {
+        openedTabs.value.push(createdPageData.id!)
       }
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -177,17 +194,12 @@ export function useDocs() {
 
   const createBook = async ({ book }: { book: BookType }) => {
     try {
-      const createdBook = await $api.nocoBooks.createBook({
+      const createdBook = await $api.nocoDocs.createBook({
         attributes: book,
         projectId: project.id!,
       })
 
-      books.value.push({
-        ...createdBook,
-        isLeaf: false,
-        key: createdBook.slug!,
-        isBook: true,
-      })
+      books.value.push(createdBook)
 
       navigateTo(bookUrl(createdBook.slug!))
       pages.value = []
@@ -198,7 +210,7 @@ export function useDocs() {
 
   const deleteBook = async ({ id }: { id: string }) => {
     try {
-      await $api.nocoBooks.deleteBook(id, {
+      await $api.nocoDocs.deleteBook(id, {
         projectId: project.id!,
       })
 
@@ -258,22 +270,24 @@ export function useDocs() {
     return `/nc/doc/${project.id!}/${bookSlug}`
   }
 
-  function nestedUrl(slug: string) {
-    const page = findPage(slug)!
-    const slugs = [page.slug!]
+  function nestedUrl(id: string) {
+    const page = findPage(id)!
+    const slugs = []
     let parentPage = page
-    while (parentPage?.parentNodeSlug) {
-      slugs.unshift(parentPage.parentNodeSlug)
-      parentPage = findPage(parentPage.parentNodeSlug)!
+    while (parentPage?.parentNodeId) {
+      slugs.unshift(parentPage!.slug!)
+      parentPage = findPage(parentPage.parentNodeId)!
     }
 
-    // Will include book slug, as we use `parentNodeSlug` which is book slug for root pages
+    slugs.unshift(openedBook.value!.slug!)
+    // Will include book slug, as we use `parentNodeId` which is book slug for root pages
     return `/nc/doc/${project.id!}/${slugs.join('/')}`
   }
 
   const createMagic = async (title: string) => {
     try {
-      await $api.nocoBooks.createBookMagic({
+      await $api.nocoDocs.createBookMagic({
+        bookId: openedBook.value!.id!,
         projectId: project.id!,
         title,
       })
@@ -285,7 +299,8 @@ export function useDocs() {
   const createImport = async (url: string, type: 'md' | 'nuxt' | 'docusaurus' = 'md', from: 'github' | 'file' = 'github') => {
     try {
       const rs = gh(url)
-      await $api.nocoBooks.importBook({
+      await $api.nocoDocs.importBook({
+        bookId: openedBook.value!.id!,
         user: rs!.owner!,
         repo: rs!.name!,
         branch: rs!.branch!,
@@ -326,18 +341,12 @@ export function useDocs() {
     })
     if (page.title) {
       const foundPage = findPage(pageId)
-      const oldSlug = foundPage!.slug
       if (foundPage) {
         foundPage.slug = updatedPage.slug
         if (foundPage.new) foundPage.new = false
       }
 
-      if (openedTabs.value.find((t) => t === oldSlug)) {
-        openedTabs.value = openedTabs.value.filter((t) => t !== oldSlug)
-        openedTabs.value.push(page.slug!)
-      }
-
-      await navigateTo(nestedUrl(updatedPage.slug!))
+      await navigateTo(nestedUrl(updatedPage.id!))
     }
   }
 
@@ -355,77 +364,175 @@ export function useDocs() {
 
   const reorderPages = async ({
     sourceNodeId,
-    targetParentNodeId,
+    targetNodeId,
     index,
   }: {
     sourceNodeId: string
-    targetParentNodeId?: string
+    targetNodeId?: string
     index: number
   }) => {
     const sourceNode = findPage(sourceNodeId)!
-    const targetParentNode = targetParentNodeId && findPage(targetParentNodeId)
+    const targetNode = targetNodeId ? findPage(targetNodeId) : undefined
+
     const sourceParentNode = findPage(sourceNode.parent_page_id!)
+    const sourceNodeSiblings = sourceParentNode ? sourceParentNode.children! : pages.value
 
-    if (!sourceParentNode && targetParentNode) return
-    if (sourceParentNode && !targetParentNode) return
+    sourceNodeSiblings.splice(
+      sourceNodeSiblings.findIndex((node) => node.id === sourceNode.id),
+      1,
+    )
+    if (sourceParentNode) sourceParentNode.isLeaf = sourceParentNode.children?.length === 0
 
-    if (sourceParentNode?.children) {
-      sourceParentNode.children = sourceParentNode.children.filter((p) => p.id !== sourceNode.id)
-      sourceParentNode.isLeaf = sourceParentNode.children.length === 0
-    }
+    if (targetNode && !targetNode.children) targetNode.children = []
 
-    if (!targetParentNode) {
-      index = index < 0 ? 0 : index
-      // index of the source node
-      const sourceIndex = books.value.findIndex((p) => p.id === sourceNode.id)
-      // move the index to the correct position
-      if (index > books.value.length) {
-        index = books.value.length
-      }
-      books.value.splice(index, 0, sourceNode as BookSidebarNode)
-      // remove the previous duplicate node by source index
-      if (index > sourceIndex) {
-        books.value.splice(sourceIndex, 1)
-      } else {
-        books.value.splice(sourceIndex + 1, 1)
-      }
+    const targetNodeSiblings = targetNode ? targetNode.children! : pages.value
 
-      sourceNode.parent_page_id = undefined
-      sourceNode.parentNodeSlug = undefined
-
-      const node = findPage(sourceNodeId)!
-      await $api.nocoDocs.updatePage(node.id!, {
-        attributes: { order: index + 1 } as any,
-        projectId: project.id!,
-        bookId: openedBook.value!.id!,
-      })
-      return
-    }
-
-    if (targetParentNode.children) {
-      targetParentNode.children.splice(index, 0, sourceNode)
-      targetParentNode.isLeaf = false
-    } else {
-      targetParentNode.children = [sourceNode]
-      targetParentNode.isLeaf = false
-    }
-
-    sourceNode.parent_page_id = targetParentNode.id
-    sourceNode.parentNodeSlug = targetParentNode.slug
+    sourceNode.parent_page_id = targetNode?.id
+    sourceNode.parentNodeId = targetNode?.id || openedBook.value!.id
+    targetNodeSiblings.splice(index, 0, sourceNode)
 
     const node = findPage(sourceNodeId)!
-    await $api.nocoDocs.updatePage(node.id!, {
-      attributes: { order: index + 1, parent_page_id: targetParentNodeId } as any,
-      projectId: project.id!,
-      bookId: openedBook.value!.id!,
-    })
+    await updatePage({ pageId: sourceNodeId, page: { order: index + 1 } as any })
 
-    navigateTo(nestedUrl(node.slug!))
-    for (const slug of route.params.slugs) {
-      if (!openedTabs.value.includes(slug)) {
-        openedTabs.value.push(slug)
+    navigateTo(nestedUrl(node.id!))
+    const openedPages = [...getPageWithParents(node), node]
+    for (const page of openedPages) {
+      if (!openedTabs.value.includes(page.id!)) {
+        openedTabs.value.push(page.id!)
       }
     }
+  }
+
+  // const reorderPagesOld = async ({
+  //   sourceNodeId,
+  //   targetParentNodeId,
+  //   index,
+  // }: {
+  //   sourceNodeId: string
+  //   targetParentNodeId?: string
+  //   index: number
+  // }) => {
+  //   const sourceNode = findPage(sourceNodeId)!
+  //   const targetParentNode = targetParentNodeId ? findPage(targetParentNodeId) : undefined
+  //   const sourceParentNode = findPage(sourceNode.parent_page_id!)
+
+  //   console.log('reorderPages', { sourceNode, targetParentNode, sourceParentNode, index })
+  //   // if (!sourceParentNode && targetParentNode) return
+  //   // if (sourceParentNode && !targetParentNode) return
+
+  //   if (sourceParentNode?.children) {
+  //     sourceParentNode.children = sourceParentNode.children.filter((p) => p.id !== sourceNode.id)
+  //     sourceParentNode.isLeaf = sourceParentNode.children.length === 0
+  //   }
+
+  //   if (!targetParentNode && !sourceParentNode) {
+  //     index = index < 0 ? 0 : index
+  //     // index of the source node
+  //     const sourceIndex = pages.value.findIndex((p) => p.id === sourceNode.id)
+  //     // move the index to the correct position
+  //     if (index > pages.value.length) {
+  //       index = pages.value.length
+  //     }
+  //     pages.value.splice(index, 0, sourceNode)
+  //     // remove the previous duplicate node by source index
+  //     if (index > sourceIndex) {
+  //       pages.value.splice(sourceIndex, 1)
+  //     } else {
+  //       pages.value.splice(sourceIndex + 1, 1)
+  //     }
+
+  //     sourceNode.parent_page_id = undefined
+  //     sourceNode.parentNodeId = undefined
+
+  //     const node = findPage(sourceNodeId)!
+  //     await $api.nocoDocs.updatePage(node.id!, {
+  //       attributes: { order: index + 1 } as any,
+  //       projectId: project.id!,
+  //       bookId: openedBook.value!.id!,
+  //     })
+  //     return
+  //   } else if (!targetParentNode && sourceParentNode) {
+  //     if (!sourceParentNode.children) throw new Error('sourceParentNode.children is undefined')
+
+  //     // index of the source node
+  //     const sourceIndex = sourceParentNode.children.findIndex((p) => p.id === sourceNode.id)
+  //     // move the index to the correct position
+  //     if (index > sourceParentNode.children!.length) {
+  //       index = sourceParentNode.children!.length
+  //     }
+
+  //     // insert in root pages
+  //     pages.value.splice(index, 0, sourceNode)
+  //     // remove the previous duplicate node by source index
+  //     if (index > sourceIndex) {
+  //       sourceParentNode.children.splice(sourceIndex, 1)
+  //     } else {
+  //       sourceParentNode.children.splice(sourceIndex + 1, 1)
+  //     }
+  //   } else if (targetParentNode && !sourceParentNode) {
+  //     if (!targetParentNode.children) throw new Error('sourceParentNode.children is undefined')
+
+  //     // index of the source node
+  //     const sourceIndex = targetParentNode.children.findIndex((p) => p.id === sourceNode.id)
+  //     // move the index to the correct position
+  //     if (index > targetParentNode.children!.length) {
+  //       index = targetParentNode.children!.length
+  //     }
+
+  //     // remove the previous duplicate node by source index
+  //     if (index > sourceIndex) {
+  //       pages.value.splice(sourceIndex, 1)
+  //     } else {
+  //       pages.value.splice(sourceIndex + 1, 1)
+  //     }
+  //   }
+
+  //   if (targetParentNode?.children) {
+  //     targetParentNode.children.splice(index, 0, sourceNode)
+  //     targetParentNode.isLeaf = false
+  //   } else if (targetParentNode) {
+  //     targetParentNode.children = [sourceNode]
+  //     targetParentNode.isLeaf = false
+  //   }
+
+  //   sourceNode.parent_page_id = targetParentNode?.id
+  //   sourceNode.parentNodeId = targetParentNode?.id ? targetParentNode.id : openedBook.value?.id
+
+  //   const node = findPage(sourceNodeId)!
+  //   await $api.nocoDocs.updatePage(node.id!, {
+  //     attributes: { order: index + 1, parent_page_id: targetParentNodeId } as any,
+  //     projectId: project.id!,
+  //     bookId: openedBook.value!.id!,
+  //   })
+
+  //   navigateTo(nestedUrl(node.slug!))
+  //   const openedPages = [...getPageWithParents(node), node]
+  //   for (const page of openedPages) {
+  //     if (!openedTabs.value.includes(page.id!)) {
+  //       openedTabs.value.push(page.id!)
+  //     }
+  //   }
+  // }
+
+  function getPageWithParents(page: PageSidebarNode) {
+    const parents: PageSidebarNode[] = []
+    let parent: PageSidebarNode | undefined = page
+    while (parent.parent_page_id) {
+      parent = findPage(parent.parent_page_id!)
+      if (!parent) break
+
+      parents.push(parent)
+    }
+    return parents
+  }
+
+  const getChildrenOfPage = (pageId?: string) => {
+    if (!pageId) return pages.value
+
+    const page = findPage(pageId!)
+    if (!page) return []
+
+    return page.children || []
   }
 
   return {
@@ -437,7 +544,6 @@ export function useDocs() {
     createMagic,
     createImport,
     createBook,
-    openedPageSlug,
     openedPage,
     openedBook,
     updatePage,
@@ -453,5 +559,6 @@ export function useDocs() {
     reorderPages,
     selectBook,
     addNewPage,
+    getChildrenOfPage,
   }
 }

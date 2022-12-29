@@ -116,14 +116,12 @@ async function magic(
     let response;
     const { projectId } = req.body;
 
-    const book = await Book.create({
-      user: (req as any)?.session?.passport?.user as UserType,
+    const book = await Book.get({
+      id: req.body.bookId,
       projectId,
-      attributes: {
-        title: req.body.title,
-        description: '',
-      },
     });
+
+    if (!book) throw new Error('Book not found');
 
     try {
       response = await openai.createCompletion({
@@ -174,17 +172,12 @@ async function directoryImport(
     try {
       const pages = [];
 
-      const count = await Book.count({
-        projectId: projectId as string,
+      const book = await Book.get({
+        id: req.body.bookId,
+        projectId,
       });
-      const book = await Book.create({
-        user: (req as any)?.session?.passport?.user as UserType,
-        projectId: projectId as string,
-        attributes: {
-          title: `Version ${count + 1}`,
-          description: '',
-        },
-      });
+
+      if (!book) throw new Error('Book not found');
 
       switch (req.body.from) {
         case 'github':

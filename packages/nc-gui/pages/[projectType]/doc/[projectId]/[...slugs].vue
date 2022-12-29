@@ -15,9 +15,6 @@ onMounted(async () => {
 
   await fetchNestedChildPagesFromRoute()
   // Navigate to the first page if there is no page selected and only one book exists
-  console.log({
-    slug: route.params.slugs,
-  })
   if (route.params.slugs?.length < 1 && books.value.length > 0) {
     await navigateToFirstBook()
   } else if (route.params.slugs?.length === 1) {
@@ -26,6 +23,23 @@ onMounted(async () => {
     })
   }
 })
+
+watch(
+  () => route.params.slugs,
+  async (slugs) => {
+    if (!slugs || slugs?.length === 0) {
+      await navigateToFirstBook()
+    }
+  },
+)
+
+// watch(
+//   openedPage,
+//   (page) => {
+//     console.log('watch', page?.id)
+//   },
+//   { deep: true, immediate: true },
+// )
 </script>
 
 <template>

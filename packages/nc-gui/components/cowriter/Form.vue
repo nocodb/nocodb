@@ -1,20 +1,34 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import type { TableInfoType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
+  Modal,
+  extractSdkResponseErrorMsg,
   useCowriterStoreOrThrow,
+  useI18n,
   useProvideSmartsheetRowStore,
   useProvideSmartsheetStore,
   useUIPermission,
   useViewData,
 } from '#imports'
 
-const { cowriterFormState, cowriterFormRef, cowriterTable, cowriterFormView, loadCowriterTable, generateAIColumns } =
-  useCowriterStoreOrThrow()
+const {
+  cowriterFormState,
+  cowriterFormRef,
+  cowriterTable,
+  cowriterFormView,
+  loadCowriterTable,
+  generateAIColumns,
+  deleteCowriterFormColumn,
+} = useCowriterStoreOrThrow()
+
+const { t } = useI18n()
+
+const { $e } = useNuxtApp()
 
 provide(MetaInj, cowriterTable as Ref<TableType>)
 
@@ -45,8 +59,6 @@ const { saveOrUpdate } = useViewColumns(cowriterFormView as Ref<ViewType>, cowri
 const hiddenCols = ['created_at', 'updated_at']
 
 const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
-
-const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -111,8 +123,22 @@ function onMove(event: any) {
   $e('a:cowriter-form:reorder')
 }
 
-function deleteColumn(idx: number) {
-  // TODO
+function deleteColumn(ele: Record<string, any>) {
+  console.log(ele.fk_column_id)
+  Modal.confirm({
+    title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [ele.title]), ' column ?']),
+    wrapClassName: 'nc-modal-column-delete',
+    okText: t('general.delete'),
+    okType: 'danger',
+    cancelText: t('general.cancel'),
+    async onOk() {
+      try {
+        await deleteCowriterFormColumn(ele.fk_column_id)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
 }
 
 function isDbRequired(column: Record<string, any>) {
@@ -198,6 +224,11 @@ watch([cowriterTable, cowriterFormView], async () => {
   await loadFormView()
   setFormData()
 })
+
+onMounted(async () => {
+  await loadFormView()
+  setFormData()
+})
 </script>
 
 <template>
@@ -248,14 +279,14 @@ watch([cowriterTable, cowriterFormView], async () => {
         @start="drag = true"
         @end="drag = false"
       >
-        <template #item="{ element, index }">
+        <template #item="{ element }">
           <div
             class="color-transition nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10 ring-1 ring-accent ring-opacity-100) px-4 lg:px-12 py-4 relative"
             :class="[`nc-form-drag-${element.title.replaceAll(' ', '')}`]"
             data-testid="nc-form-fields"
           >
             <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="absolute flex top-2 right-2">
-              <MdiDeleteOutline class="opacity-0 nc-field-remove-icon" @click.stop="deleteColumn(index)" />
+              <MdiDeleteOutline class="opacity-0 nc-field-remove-icon" @click.stop="deleteColumn(element)" />
             </div>
 
             <div>

@@ -7,6 +7,7 @@ import {
   message,
   ref,
   useCopy,
+  useCowriterStoreOrThrow,
   useGlobal,
   useI18n,
   useProject,
@@ -110,8 +111,7 @@ const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLa
 
 const code = $computed(() => {
   if (activeLang?.name === 'nocodb-sdk') {
-    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
-const api = new Api({
+    let content = `const api = new Api({
   baseURL: "${(appInfo && appInfo.ncSiteUrl) || '/'}",
   headers: {
     "xc-auth": ${JSON.stringify(token as string)}
@@ -126,7 +126,24 @@ api.dbViewRow.list(
   console.log(data);
 }).catch(function (error) {
   console.error(error);
-});
+});`
+    if (props.type === 'cowriter') {
+      const { cowriterTable } = useCowriterStoreOrThrow()
+      content = `const api = new Api({
+  baseURL: "${(appInfo && appInfo.ncSiteUrl) || '/'}",
+  headers: {
+    "xc-auth": ${JSON.stringify(token as string)}
+  }
+})
+
+api.cowriterTable.list('${cowriterTable.value!.id!}').then(function (data) {
+  console.log(data);
+}).catch(function (error) {
+  console.error(error);
+});`
+    }
+    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
+${content}
     `
   }
 

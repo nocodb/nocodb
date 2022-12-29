@@ -72,19 +72,49 @@ const onGetCurrentLocation = () => {
 </script>
 
 <template>
-  <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click" overlay-class-name="dropdown-new">
+  <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
       <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
         <a-form-item class="inputLat" label="Lat">
-          <a-input v-model:value="formState.latitude" type="number" step="0.0000001" required :max="90" :min="-90" />
+          <a-input
+            v-model:value="formState.latitude"
+            type="number"
+            step="0.0000001"
+            :min="-90"
+            required
+            :max="90"
+            @keydown.down.stop
+            @keydown.left.stop
+            @keydown.right.stop
+            @keydown.up.stop
+            @keydown.delete.stop
+            @selectstart.capture.stop
+            @mousedown.stop
+          />
         </a-form-item>
         <a-form-item class="inputLng" label="Lng">
-          <a-input v-model:value="formState.longitude" type="number" step="0.0000001" required :min="-180" :max="180" />
+          <a-input
+            v-model:value="formState.longitude"
+            type="number"
+            step="0.0000001"
+            required
+            :min="-180"
+            :max="180"
+            @keydown.down.stop
+            @keydown.left.stop
+            @keydown.right.stop
+            @keydown.up.stop
+            @keydown.delete.stop
+            @selectstart.capture.stop
+            @mousedown.stop
+          />
         </a-form-item>
-        <a-form-item class="flex align-center location">
-          <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
-          <a-button class="ml-2" @click="onGetCurrentLocation">Your Location</a-button>
+        <a-form-item>
+          <div style="display: flex; align-items: center; margin-right: 0.5rem">
+            <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
+            <a-button class="ml-2" @click="onGetCurrentLocation">Your Location</a-button>
+          </div>
         </a-form-item>
         <a-form-item class="buttons">
           <a-button type="text" @click="clear">Cancel</a-button>
@@ -110,10 +140,6 @@ input[type='number']:focus {
 .inputLng {
   width: 180px;
   margin-right: 0.5rem;
-}
-.location {
-  margin-right: 0.5rem;
-  align-items: center;
 }
 .buttons {
   margin-left: auto;

@@ -6,7 +6,7 @@ import { TabMetaInj, iconMap, provide, useGlobal, useSidebar, useTabs } from '#i
 
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
-const { isLoading } = useGlobal()
+const { isLoading, isMobileMode } = useGlobal()
 
 provide(TabMetaInj, activeTab)
 
@@ -83,7 +83,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
         </div>
 
         <LazyGeneralShareBaseButton />
-        <LazyGeneralFullScreen class="nc-fullscreen-icon" />
+        <LazyGeneralFullScreen v-if="!isMobileMode" class="nc-fullscreen-icon" />
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">

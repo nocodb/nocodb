@@ -5,6 +5,8 @@ const { isGrid, isForm, isGallery, isKanban, isSqlView } = useSmartsheetStoreOrT
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const { isMobileMode } = useGlobal()
+
 const { isUIAllowed } = useUIPermission()
 
 const { isOpen } = useSidebar('nc-right-sidebar')
@@ -45,7 +47,7 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink mx-2" />
 
-    <template v-if="!isOpen && !isPublic">
+    <template v-if="!isOpen && !isPublic && !isMobileMode">
       <div class="border-l-1 pl-3">
         <LazySmartsheetSidebarToolbarToggleDrawer class="mr-2" />
       </div>

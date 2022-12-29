@@ -4916,6 +4916,30 @@ export class Api<
       }),
 
     /**
+     * @description Generate Columns using AI
+     *
+     * @tags Cowriter Table
+     * @name GenerateColumns
+     * @summary Cowriter Generate Columns
+     * @request POST:/api/v1/cowriter/meta/tables/{tableId}/generate-columns
+     * @response `200` `void` OK
+     */
+    generateColumns: (
+      tableId: string,
+      data: {
+        title?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/generate-columns`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags Cowriter Table

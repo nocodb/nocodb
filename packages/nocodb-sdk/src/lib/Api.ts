@@ -1242,68 +1242,6 @@ export class Api<
         format: 'json',
         ...params,
       }),
-
-    /**
-     * @description Create page using NocoAI
-     *
-     * @tags Noco docs
-     * @name CreateMagic
-     * @summary Create page using NocoAI
-     * @request POST:/api/v1/docs/magic
-     * @response `200` `void` OK
-     */
-    createMagic: (
-      data: {
-        /** Schema title */
-        title: string;
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/docs/magic`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * @description Create page using NocoAI
-     *
-     * @tags Noco docs
-     * @name Import
-     * @summary Import documentation
-     * @request POST:/api/v1/docs/import
-     * @response `200` `void` OK
-     */
-    import: (
-      data: {
-        /** Import source */
-        from: string;
-        /** Source type */
-        type: string;
-        /** Project id */
-        projectId: string;
-        /** User name */
-        user?: string;
-        /** Repository name */
-        repo?: string;
-        /** Branch name */
-        branch?: string;
-        /** Path inside repository */
-        path?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/docs/import`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        ...params,
-      }),
   };
   auth = {
     /**

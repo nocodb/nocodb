@@ -7,7 +7,7 @@ const up = async (knex: Knex) => {
 
     table.string('title', 150).notNullable();
     table.text('description', 'longtext').defaultTo('');
-    table.string('slug', 150).notNullable().unique();
+    table.string('slug', 150).notNullable();
 
     table.string('project_id', 20).notNullable();
     table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);

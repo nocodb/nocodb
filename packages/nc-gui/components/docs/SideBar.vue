@@ -12,7 +12,7 @@ const {
   createBook,
   createMagic,
   createImport,
-  openedPageSlug,
+  openedPage,
   openedTabs,
   nestedUrl,
   deletePage,
@@ -23,6 +23,7 @@ const {
   addNewPage,
   fetchBooks,
   navigateToLastBook,
+  getChildrenOfPage,
 } = useDocs()
 
 const createModalOpen = ref(false)
@@ -68,7 +69,7 @@ const onLoadData: TreeProps['loadData'] = async (treeNode) => {
 }
 
 const openPageTabKeys = computed({
-  get: () => [openedPageSlug.value],
+  get: () => [openedPage.value?.id],
   set: () => {},
 })
 
@@ -155,18 +156,33 @@ const onDragEnter = () => {
 }
 
 const onDrop = async (info: AntTreeNodeDropEvent) => {
+  if (info.dropPosition < 0) info.dropPosition = 0
+
+  // if drag node and drop node are in the same parent and using `==` since `info.node.dataRef.parent_page_id` can be `null`
+  if (info.dragNode.dataRef.parent_page_id == info.node.dataRef.parent_page_id) {
+    const parentId: string | undefined = info.dragNode.dataRef!.parent_page_id
+    const siblings: any[] = getChildrenOfPage(parentId)
+    const targetNodeIndex = siblings.findIndex((node) => node.id === info.node.dataRef!.id)
+    const dragNodeIndex = siblings.findIndex((node) => node.id === info.dragNode.dataRef!.id)
+
+    if (dragNodeIndex < targetNodeIndex) {
+      info.dropPosition = info.dropPosition - 1
+    }
+  }
+
   await reorderPages({
     sourceNodeId: info.dragNode.dataRef!.id!,
-    targetParentNodeId: info.dropToGap ? info.node.dataRef!.parent_page_id : info.node.dataRef!.id,
-    index: info.dropPosition,
+    targetNodeId: info.dropToGap ? info.node.dataRef!.parent_page_id : info.node.dataRef!.id,
+    index: info.dropToGap ? info.dropPosition : 0,
   })
 }
 
 const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any }) => {
   if (e.selected) {
-    const slug = e.node.dataRef!.slug
+    const id = e.node.dataRef!.id
+    console.log(e.node.dataRef, nestedUrl(id))
 
-    navigateTo(nestedUrl(slug))
+    navigateTo(nestedUrl(id))
   }
 }
 </script>

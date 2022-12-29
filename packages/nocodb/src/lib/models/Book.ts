@@ -1,7 +1,6 @@
 import Noco from '../Noco';
 import { CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
-import slug from 'slug';
 import { BookType, UserType } from 'nocodb-sdk';
 import NcMetaIO from '../meta/NcMetaIO';
 import Page from './Page';
@@ -21,24 +20,20 @@ export default class Book {
 
   public static async create(
     {
-      attributes: { title, description, order },
+      attributes: { title, description },
       projectId,
       user,
     }: {
       attributes: {
         title: string;
         description: string;
-        order?: number;
       };
       projectId: string;
       user: UserType;
     },
     ncMeta = Noco.ncMeta
   ): Promise<BookType> {
-    const titleSlug = slug(title);
-    const now = new Date().toString();
-
-    if (!order) order = (await this.count({ projectId })) + 1;
+    const order = (await this.count({ projectId })) + 1;
 
     const { id: createdBookId } = await ncMeta.metaInsert2(
       null,
@@ -47,7 +42,7 @@ export default class Book {
       {
         title: title,
         description: description,
-        slug: `${titleSlug}-${now}`,
+        slug: `v-${order}`,
         order: order,
         created_by_id: user.id,
         project_id: projectId,
@@ -59,7 +54,6 @@ export default class Book {
       id: createdBookId,
       projectId,
       attributes: {
-        slug: `${titleSlug}-${createdBookId}`,
         pages_table_name: this.pages_table_name(projectId, createdBookId),
       },
       user: user,
@@ -113,9 +107,9 @@ export default class Book {
 
     if (attributes.project_id) throw new Error('Cannot update project_id');
 
-    if (attributes.title) {
-      attributes.slug = `${slug(attributes.title)}-${id}`;
-    }
+    // if (attributes.title) {
+    //   attributes.slug = `${slug(attributes.title)}-${id}`;
+    // }
 
     attributes.last_updated_by_id = user.id;
 
@@ -132,7 +126,7 @@ export default class Book {
     { projectId },
     ncMeta = Noco.ncMeta
   ): Promise<number> {
-    return await ncMeta.metaCount(projectId, null, MetaTable.BOOK, {
+    return await ncMeta.metaCount(null, null, MetaTable.BOOK, {
       condition: {
         project_id: projectId,
       },
@@ -143,15 +137,15 @@ export default class Book {
     { projectId },
     ncMeta = Noco.ncMeta
   ): Promise<BookType[]> {
-    const pageList = await ncMeta.metaList2(null, null, MetaTable.BOOK, {
+    const list = await ncMeta.metaList2(null, null, MetaTable.BOOK, {
       condition: {
         project_id: projectId,
       },
     });
 
-    pageList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+    list.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
-    return pageList;
+    return list;
   }
 
   public static async delete(

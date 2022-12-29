@@ -26,7 +26,7 @@ const breadCrumbs = computed(() => {
   }
   const pagesBreadcrumbs = openedNestedPagesOfBook.value.map((page) => ({
     title: page.title,
-    href: nestedUrl(page.slug!, openedBook.value!),
+    href: nestedUrl(page.slug!),
   }))
   return [bookBreadcrumb, ...pagesBreadcrumbs]
 })
@@ -83,7 +83,7 @@ watch(editor, () => {
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.title],
   async ([newId, newTitle], [oldId, oldTitle]) => {
-    if (newId === oldId && newTitle !== oldTitle) {
+    if (newId === oldId && newTitle && newTitle.length > 0 && newTitle !== oldTitle) {
       await updatePage({ pageId: newId!, page: { title: newTitle } as any })
     }
   },
@@ -95,10 +95,11 @@ watchDebounced(
 
 // todo: Hack to focus on title when its edited since on edit route is changed
 watch(titleInputRef, (el) => {
-  if (!isTitleInputRefLoaded.value && !openedPage.value?.new) {
-    isTitleInputRefLoaded.value = true
-    return
-  }
+  // console.log('titleInputRef', isTitleInputRefLoaded.value, openedPage.value)
+  // if (!isTitleInputRefLoaded.value && !openedPage.value?.new) {
+  //   isTitleInputRefLoaded.value = true
+  //   return
+  // }
 
   isTitleInputRefLoaded.value = true
   el?.focus()

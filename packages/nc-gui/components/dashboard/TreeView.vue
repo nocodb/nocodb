@@ -896,18 +896,37 @@ const setIcon = async (icon: string, table: TableType) => {
                         <template #title>{{ table.table_name }}</template>
                         <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-                            <MdiDragVertical
-                              v-if="isUIAllowed('treeview-drag-n-drop')"
-                              :class="`nc-child-draggable-icon-${table.title}`"
-                              class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
-                              @click.stop.prevent
-                            />
-
                             <component
-                              :is="icon(table)"
-                              class="nc-view-icon text-xs"
-                              :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
-                            />
+                              :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
+                              trigger="click"
+                              destroy-popup-on-hide
+                              class="flex items-center"
+                              @click.stop
+                            >
+                              <div class="flex items-center" @click.stop>
+                                <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
+                                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
+                                  <Icon
+                                    :key="table.meta?.icon"
+                                    :data-testid="`nc-icon-${table.meta?.icon}`"
+                                    class="text-xl"
+                                    :icon="table.meta?.icon"
+                                  ></Icon>
+                                </span>
+                                  <component
+                                    :is="icon(table)"
+                                    v-else
+                                    class="nc-table-icon nc-view-icon w-5"
+                                    :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                                  />
+
+                                  <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
+                                </component>
+                              </div>
+                              <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
+                                <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+                              </template>
+                            </component>
                           </div>
 
                           <div class="nc-tbl-title flex-1">

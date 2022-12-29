@@ -3,7 +3,6 @@ import type { GeoLocationType } from 'nocodb-sdk'
 import { useVModel } from '#imports'
 
 interface Props {
-  // modelValue?: GeoLocationType | null
   modelValue?: string | null
 }
 
@@ -15,13 +14,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-// const editEnabled = inject(EditModeInj)
-
-// const isForm = inject(IsFormInj, ref(false))
-
 const vModel = useVModel(props, 'modelValue', emits)
-
-// const localValueState = ref<string | undefined>()
 
 let error = $ref<string | undefined>()
 
@@ -35,7 +28,6 @@ const latLongStr = computed(() => {
   const [latitude, longitude] = (vModel.value || '').split(';')
   return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
 })
-
 
 const formState = reactive({
   latitude,
@@ -54,7 +46,6 @@ const clear = () => {
 
   formState.latitude = latitude
   formState.longitude = longitude
-  console.log(`clear - formState: `, formState)
 }
 
 const onGetCurrentLocation = () => {
@@ -92,8 +83,8 @@ const onGetCurrentLocation = () => {
           <a-input v-model:value="formState.longitude" type="number" step="0.0000001" required :min="-180" :max="180" />
         </a-form-item>
         <a-form-item class="flex align-center location">
-          <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
-          <a-button @click="onGetCurrentLocation">Your Location</a-button>
+          <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
+          <a-button class="ml-2" @click="onGetCurrentLocation">Your Location</a-button>
         </a-form-item>
         <a-form-item class="buttons">
           <a-button type="text" @click="clear">Cancel</a-button>

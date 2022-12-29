@@ -6,8 +6,6 @@ import type { Row } from '~/lib'
 
 export const geodataToggleState = reactive({ show: false })
 
-// const { project, isSharedBase } = useProject()
-
 const formatData = (list: Row[]) =>
   list.map((row) => ({
     row: { ...row },
@@ -38,7 +36,6 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     const paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
     const queryParams = computed(() => ({
-      // offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
       limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
       where: where?.value ?? '',
     }))

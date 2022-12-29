@@ -135,14 +135,6 @@ onMounted(async () => {
       localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData?.value?.fk_view_id), JSON.stringify(myMap.getCenter()))
     }
   })
-  // myMap.on('contextmenu', async function (e) {
-  //   // const newRow = await addEmptyRow()
-  //   const lat = e.latlng.lat
-  //   const lng = e.latlng.lng
-  //   addMarker(lat, lng, newRow)
-  //   expandForm(newRow)
-  //   // submitForm()
-  // })
 })
 
 reloadViewMetaHook?.on(async () => {

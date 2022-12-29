@@ -123,6 +123,12 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     })
   }
 
+  async function generateAIColumns() {
+    if (!cowriterTable.value || !cowriterProject.value) return
+    await $api.cowriterTable.generateColumns(cowriterTable.value!.id!, { title: cowriterProject.value.title })
+    await loadCowriterTable()
+  }
+
   watch(
     cowriterProject,
     async (project) => {
@@ -146,6 +152,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     generateCowriter,
     savePromptStatementTemplate,
     clearCowriterOutput,
+    generateAIColumns,
     cowriterHistoryList,
     cowriterOutputList,
     cowriterInputActiveKey,

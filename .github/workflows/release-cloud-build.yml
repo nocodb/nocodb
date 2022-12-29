@@ -1,4 +1,4 @@
-name: "Build cloud image - test"
+name: "Build cloud docker image"
 
 on:
   # Triggered manually
@@ -10,7 +10,7 @@ on:
 
 jobs:
   cloud-docker-build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     env:
       working-directory: ./packages/nocodb
     steps:
@@ -58,7 +58,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nocohubx
-          IMAGE_TAG: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.inputs.tag }}
         run: |
           cd packages/nocodb &&
           docker build -f Dockerfile-cloud -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .

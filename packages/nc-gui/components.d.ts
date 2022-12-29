@@ -152,7 +152,6 @@ declare module '@vue/runtime-core' {
     MdiCurrencyUsd: typeof import('~icons/mdi/currency-usd')['default']
     MdiDatabaseAlert: typeof import('~icons/mdi/database-alert')['default']
     MdiDatabaseLockOutline: typeof import('~icons/mdi/database-lock-outline')['default']
-    MdiDatabaseOutline: typeof import('~icons/mdi/database-outline')['default']
     MdiDatabasePlusOutline: typeof import('~icons/mdi/database-plus-outline')['default']
     MdiDatabaseSync: typeof import('~icons/mdi/database-sync')['default']
     MdiDelete: typeof import('~icons/mdi/delete')['default']

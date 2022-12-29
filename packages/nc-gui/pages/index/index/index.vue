@@ -3,7 +3,7 @@ import type {Menu} from 'ant-design-vue'
 import {Empty, Modal} from 'ant-design-vue'
 import type {WorkspaceType} from 'nocodb-sdk'
 import {nextTick} from '@vue/runtime-core'
-import {WorkspaceUserRoles} from 'nocodb-sdk'
+import {ProjectType, WorkspaceUserRoles} from 'nocodb-sdk'
 import {
   NcProjectType,
   computed,
@@ -16,6 +16,7 @@ import {
   useSidebar,
 } from '#imports'
 import {extractSdkResponseErrorMsg} from "~/utils";
+import tinycolor from "tinycolor2";
 
 definePageMeta({
   hideHeader: true,
@@ -119,6 +120,26 @@ const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean }
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+
+const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
+  const tcolor = tinycolor(color)
+
+  if (tcolor.isValid()) {
+    const meta = workspace?.meta && typeof workspace.meta === 'string' ? JSON.parse(workspace.meta) : workspace.meta || {}
+
+    await updateWorkspace(workspace.id!, {
+      meta: {
+        ...(meta || {}),
+        color
+      }
+    })
+
+    // Update local workspace meta
+    workspace.meta = meta;
+    workspaces.value = [...workspaces.value]
+  }
+}
 </script>
 
 <template>
@@ -182,20 +203,37 @@ const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean }
             <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE"/>
 
             <a-menu v-else ref="menu" v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list">
-              <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
+              <a-menu-item v-for="(workspace) of workspaces" :key="workspace.id">
                 <div class="nc-workspace-list-item">
                   <a-dropdown :trigger="['click']" @click.stop>
-                  <div class="nc-workspace-avatar" :style="{ backgroundColor: stringToColour(workspace.title) }">
-                    <span class="color-band" :style="{ backgroundColor: stringToColour(workspace.title) }"/>
-                    {{ workspace.title?.slice(0, 2) }}
-                  </div>
+                    <div class="nc-workspace-avatar" :key="workspace.meta?.color"
+                         :style="{ backgroundColor: workspace.meta?.color || stringToColour(workspace.id) }">
+                      <span class="color-band"
+                            :style="{ backgroundColor: workspace.meta?.color || stringToColour(workspace.id) }"/>
+                      {{ workspace.title?.slice(0, 2) }}
+                    </div>
                     <template #overlay>
-                      <LazyGeneralColorPicker
-                          :model-value="getProjectPrimary(record)"
-                          :colors="projectThemeColors"
-                          :row-size="9"
-                          :advanced="false"
-                      />
+                      <a-menu>
+                        <LazyGeneralColorPicker
+                            :model-value="workspace.meta?.color || stringToColour(workspace.id)"
+                            :colors="projectThemeColors"
+                            :row-size="9"
+                            :advanced="false"
+                            @input="handleProjectColor(workspace, $event)"
+                        />
+                        <a-sub-menu key="pick-primary">
+                          <template #title>
+                            <div class="nc-project-menu-item group !py-0">
+                              <ClarityColorPickerSolid class="group-hover:text-accent"/>
+                              Custom Color
+                            </div>
+                          </template>
+
+                          <template #expandIcon></template>
+
+                          <LazyGeneralChromeWrapper @input="handleProjectColor(workspace, $event)"/>
+                        </a-sub-menu>
+                      </a-menu>
                     </template>
                   </a-dropdown>
                   <input autofocus v-if="workspace.edit" v-model="workspace.title"
@@ -213,16 +251,16 @@ const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean }
 
                     <template #overlay>
                       <a-menu>
-                        <a-menu-item @click="deleteWorkspace(workspace)">
-                          <div class="flex flex-row items-center py-3 gap-2">
-                            <MdiDeleteOutline/>
-                            Delete Workspace
-                          </div>
-                        </a-menu-item>
                         <a-menu-item @click="workspace.edit = true">
                           <div class="flex flex-row items-center py-3 gap-2">
                             <MdiPencil/>
                             Rename Workspace
+                          </div>
+                        </a-menu-item>
+                        <a-menu-item @click="deleteWorkspace(workspace)">
+                          <div class="flex flex-row items-center py-3 gap-2">
+                            <MdiDeleteOutline/>
+                            Delete Workspace
                           </div>
                         </a-menu-item>
                       </a-menu>

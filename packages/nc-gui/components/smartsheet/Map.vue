@@ -180,6 +180,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
 
     addMarker(lat, long, row)
   })
+  syncCount()
 })
 
 watch(view, async (nextView) => {

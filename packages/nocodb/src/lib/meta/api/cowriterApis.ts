@@ -82,7 +82,7 @@ router.post(
 );
 
 router.post(
-  '/api/v1/cowriter/meta/tables/:tableId/generate/bulk',
+  '/api/v1/cowriter/meta/tables/:tableId/bulk',
   ncMetaAclMw(cowriterCreateBulk, 'cowriterCreateBulk')
 );
 

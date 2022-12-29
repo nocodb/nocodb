@@ -905,14 +905,14 @@ const setIcon = async (icon: string, table: TableType) => {
                             >
                               <div class="flex items-center" @click.stop>
                                 <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
-                                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
-                                  <Icon
-                                    :key="table.meta?.icon"
-                                    :data-testid="`nc-icon-${table.meta?.icon}`"
-                                    class="text-xl"
-                                    :icon="table.meta?.icon"
-                                  ></Icon>
-                                </span>
+                                  <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
+                                    <Icon
+                                      :key="table.meta?.icon"
+                                      :data-testid="`nc-icon-${table.meta?.icon}`"
+                                      class="text-xl"
+                                      :icon="table.meta?.icon"
+                                    ></Icon>
+                                  </span>
                                   <component
                                     :is="icon(table)"
                                     v-else

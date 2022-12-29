@@ -124,6 +124,7 @@ export interface TableType {
   columnsById?: object;
   slug?: string;
   mm?: boolean | number;
+  meta?: any;
 }
 
 export interface ViewType {
@@ -134,6 +135,7 @@ export interface ViewType {
   fk_model_id?: string;
   slug?: string;
   uuid?: string;
+  meta?: any;
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
@@ -175,6 +177,7 @@ export interface TableReqType {
   order?: number;
   mm?: boolean;
   columns: ColumnType[];
+  meta?: any;
 }
 
 export interface TableListType {
@@ -2187,6 +2190,7 @@ export class Api<
         table_name?: string;
         title?: string;
         project_id?: string;
+        meta?: any;
       },
       params: RequestParams = {}
     ) =>
@@ -2341,6 +2345,7 @@ export class Api<
       viewId: string,
       data: {
         order?: number;
+        meta?: any;
         title?: string;
         show_system_fields?: boolean;
         lock_type?: 'collaborative' | 'locked' | 'personal';

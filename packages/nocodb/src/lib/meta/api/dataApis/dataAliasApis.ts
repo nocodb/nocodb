@@ -127,8 +127,10 @@ async function getDataList(model, view: View, req) {
     );
     count = await baseModel.count(listArgs);
   } catch (e) {
-    // show empty result instead of throwing error here
-    // e.g. search some text in a numeric field
+    console.log(e);
+    NcError.internalServerError(
+      'Internal Server Error, check server log for more details'
+    );
   }
 
   return new PagedResponseImpl(data, {
@@ -284,8 +286,9 @@ async function getGroupedDataList(model, view: View, req) {
     });
   } catch (e) {
     console.log(e);
-    // show empty result instead of throwing error here
-    // e.g. search some text in a numeric field
+    NcError.internalServerError(
+      'Internal Server Error, check server log for more details'
+    );
   }
   return data;
 }

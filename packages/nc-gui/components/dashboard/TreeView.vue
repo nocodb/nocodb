@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
+import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 import GithubButton from 'vue-github-button'
+import { Icon } from '@iconify/vue'
 import type { VNodeRef } from '#imports'
 import {
   ClientType,
   Empty,
   TabType,
   computed,
+  extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
   isMac,
   reactive,
   ref,
   resolveComponent,
   useDialog,
+  useGlobal,
   useNuxtApp,
   useProject,
   useRoute,
@@ -27,7 +31,7 @@ import {
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 
-const { addTab } = useTabs()
+const { addTab, updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
@@ -42,6 +46,8 @@ const { isUIAllowed } = useUIPermission()
 const route = useRoute()
 
 const [searchActive, toggleSearchActive] = useToggle()
+
+const { appInfo } = useGlobal()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -77,7 +83,6 @@ const initSortable = (el: Element) => {
   if (!base_id) return
   if (sortables[base_id]) sortables[base_id].destroy()
   Sortable.create(el as HTMLLIElement, {
-    handle: '.nc-drag-icon',
     onEnd: async (evt) => {
       const offset = tables.value.findIndex((table) => table.base_id === base_id)
 
@@ -299,6 +304,26 @@ watch(
   },
   { immediate: true },
 )
+
+const setIcon = async (icon: string, table: TableType) => {
+  try {
+    table.meta = {
+      ...(table.meta || {}),
+      icon,
+    }
+    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
+
+    updateTab({ id: table.id }, { meta: table.meta })
+
+    $api.dbTable.update(table.id as string, {
+      meta: table.meta,
+    })
+
+    $e('a:table:icon:navdraw', { icon })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
@@ -392,6 +417,16 @@ watch(
                       MSSQL
                     </div>
                   </a-menu-item>
+                  <a-menu-item
+                    v-if="appInfo.ee"
+                    key="connect-new-source"
+                    @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
+                  >
+                    <div class="color-transition nc-project-menu-item group">
+                      <LogosSnowflakeIcon class="group-hover:text-accent" />
+                      Snowflake
+                    </div>
+                  </a-menu-item>
                 </a-menu-item-group>
 
                 <a-menu-divider class="my-0" />
@@ -416,10 +451,10 @@ watch(
         <div v-if="bases[0] && bases[0].enabled && !bases.slice(1).filter((el) => el.enabled)?.length" class="flex-1">
           <div
             v-if="isUIAllowed('table-create')"
-            class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+            class="group flex items-center gap-2 pl-2 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog(bases[0].id)"
           >
-            <MdiPlus />
+            <MdiPlus class="w-5" />
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
@@ -502,6 +537,16 @@ watch(
                         MSSQL
                       </div>
                     </a-menu-item>
+                    <a-menu-item
+                      v-if="appInfo.ee"
+                      key="connect-new-source"
+                      @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
+                    >
+                      <div class="color-transition nc-project-menu-item group">
+                        <LogosSnowflakeIcon class="group-hover:text-accent" />
+                        Snowflake
+                      </div>
+                    </a-menu-item>
                   </a-menu-item-group>
 
                   <a-menu-divider class="my-0" />
@@ -546,26 +591,47 @@ watch(
                     :data-testid="`tree-view-table-${table.title}`"
                     @click="addTableTab(table)"
                   >
-                    <GeneralTooltip class="pl-8 pr-3 py-2" modifier-key="Alt">
+                    <GeneralTooltip class="pl-2 pr-3 py-2" modifier-key="Alt">
                       <template #title>{{ table.table_name }}</template>
                       <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-                          <MdiDragVertical
-                            v-if="isUIAllowed('treeview-drag-n-drop')"
-                            :class="`nc-child-draggable-icon-${table.title}`"
-                            class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
-                            @click.stop.prevent
-                          />
-
                           <component
-                            :is="icon(table)"
-                            class="nc-view-icon text-xs"
-                            :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
-                          />
+                            :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
+                            trigger="click"
+                            destroy-popup-on-hide
+                            class="flex items-center"
+                            @click.stop
+                          >
+                            <div class="flex items-center" @click.stop>
+                              <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
+                                <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
+                                  <Icon
+                                    :key="table.meta?.icon"
+                                    :data-testid="`nc-icon-${table.meta?.icon}`"
+                                    class="text-xl"
+                                    :icon="table.meta?.icon"
+                                  ></Icon>
+                                </span>
+                                <component
+                                  :is="icon(table)"
+                                  v-else
+                                  class="nc-table-icon nc-view-icon w-5"
+                                  :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                                />
+
+                                <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
+                              </component>
+                            </div>
+                            <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
+                              <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+                            </template>
+                          </component>
                         </div>
 
                         <div class="nc-tbl-title flex-1">
-                          <GeneralTruncateText>{{ table.title }}</GeneralTruncateText>
+                          <GeneralTruncateText :key="table.title" :length="activeTable === table.id ? 18 : 20">{{
+                            table.title
+                          }}</GeneralTruncateText>
                         </div>
 
                         <a-dropdown
@@ -830,18 +896,37 @@ watch(
                         <template #title>{{ table.table_name }}</template>
                         <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-                            <MdiDragVertical
-                              v-if="isUIAllowed('treeview-drag-n-drop')"
-                              :class="`nc-child-draggable-icon-${table.title}`"
-                              class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
-                              @click.stop.prevent
-                            />
-
                             <component
-                              :is="icon(table)"
-                              class="nc-view-icon text-xs"
-                              :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
-                            />
+                              :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
+                              trigger="click"
+                              destroy-popup-on-hide
+                              class="flex items-center"
+                              @click.stop
+                            >
+                              <div class="flex items-center" @click.stop>
+                                <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
+                                  <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
+                                    <Icon
+                                      :key="table.meta?.icon"
+                                      :data-testid="`nc-icon-${table.meta?.icon}`"
+                                      class="text-xl"
+                                      :icon="table.meta?.icon"
+                                    ></Icon>
+                                  </span>
+                                  <component
+                                    :is="icon(table)"
+                                    v-else
+                                    class="nc-table-icon nc-view-icon w-5"
+                                    :class="{ 'group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                                  />
+
+                                  <template v-if="isUIAllowed('tableIconCustomisation')" #title>Change icon</template>
+                                </component>
+                              </div>
+                              <template v-if="isUIAllowed('tableIconCustomisation')" #overlay>
+                                <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon($event, table)" />
+                              </template>
+                            </component>
                           </div>
 
                           <div class="nc-tbl-title flex-1">

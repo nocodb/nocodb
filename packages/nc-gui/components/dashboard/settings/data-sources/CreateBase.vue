@@ -8,7 +8,7 @@ import {
   DefaultConnection,
   SQLiteConnection,
   SSLUsage,
-  clientTypes,
+  clientTypes as _clientTypes,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
@@ -21,6 +21,7 @@ import {
   readFile,
   ref,
   useApi,
+  useGlobal,
   useI18n,
   useNuxtApp,
   watch,
@@ -29,6 +30,8 @@ import {
 const { connectionType } = defineProps<{ connectionType: ClientType }>()
 
 const emit = defineEmits(['baseCreated'])
+
+const { appInfo } = useGlobal()
 
 const { project, loadProject } = useProject()
 
@@ -68,7 +71,43 @@ const customFormState = ref<ProjectCreateForm>({
   extraParameters: [],
 })
 
+const clientTypes = computed(() => {
+  return _clientTypes.filter((type) => {
+    return appInfo.value?.ee || type.value !== ClientType.SNOWFLAKE
+  })
+})
+
 const validators = computed(() => {
+  let clientValidations: Record<string, any[]> = {
+    'dataSource.connection.host': [fieldRequiredValidator()],
+    'dataSource.connection.port': [fieldRequiredValidator()],
+    'dataSource.connection.user': [fieldRequiredValidator()],
+    'dataSource.connection.password': [fieldRequiredValidator()],
+    'dataSource.connection.database': [fieldRequiredValidator()],
+  }
+
+  switch (formState.dataSource.client) {
+    case ClientType.SQLITE:
+      clientValidations = {
+        'dataSource.connection.connection.filename': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.SNOWFLAKE:
+      clientValidations = {
+        'dataSource.connection.account': [fieldRequiredValidator()],
+        'dataSource.connection.username': [fieldRequiredValidator()],
+        'dataSource.connection.password': [fieldRequiredValidator()],
+        'dataSource.connection.warehouse': [fieldRequiredValidator()],
+        'dataSource.connection.database': [fieldRequiredValidator()],
+        'dataSource.connection.schema': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.PG:
+    case ClientType.MSSQL:
+      clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
+      break
+  }
+
   return {
     'title': [
       {
@@ -79,22 +118,7 @@ const validators = computed(() => {
     ],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
-    ...(formState.dataSource.client === ClientType.SQLITE
-      ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator()],
-        }
-      : {
-          'dataSource.connection.host': [fieldRequiredValidator()],
-          'dataSource.connection.port': [fieldRequiredValidator()],
-          'dataSource.connection.user': [fieldRequiredValidator()],
-          'dataSource.connection.password': [fieldRequiredValidator()],
-          'dataSource.connection.database': [fieldRequiredValidator()],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
-            ? {
-                'dataSource.searchPath.0': [fieldRequiredValidator()],
-              }
-            : {}),
-        }),
+    ...clientValidations,
   }
 })
 
@@ -382,6 +406,43 @@ watch(
       >
         <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
       </a-form-item>
+
+      <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
+        <!-- Account -->
+        <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
+          <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
+        </a-form-item>
+
+        <!-- Username -->
+        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
+          <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
+        </a-form-item>
+
+        <!-- Password -->
+        <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
+          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
+        </a-form-item>
+
+        <!-- Warehouse -->
+        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
+          <a-input v-model:value="formState.dataSource.connection.warehouse" />
+        </a-form-item>
+
+        <!-- Database -->
+        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+          <!-- Database : create if not exists -->
+          <a-input
+            v-model:value="formState.dataSource.connection.database"
+            :placeholder="$t('labels.dbCreateIfNotExists')"
+            class="nc-extdb-host-database"
+          />
+        </a-form-item>
+
+        <!-- Schema name -->
+        <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
+          <a-input v-model:value="formState.dataSource.connection.schema" />
+        </a-form-item>
+      </template>
 
       <template v-else>
         <!-- Host Address -->

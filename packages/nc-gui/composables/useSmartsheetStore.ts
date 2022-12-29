@@ -33,7 +33,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const cellRefs = ref<HTMLTableDataCellElement[]>([])
 
-    const { search } = useFieldQuery(view)
+    const { search } = useFieldQuery()
 
     const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 

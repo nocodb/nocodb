@@ -7,6 +7,9 @@ const { currentVersion, latestRelease, hiddenRelease } = useGlobal()
 
 const releaseAlert = computed({
   get() {
+    if (currentVersion.value?.includes('-beta.') || latestRelease.value?.includes('-beta.')) {
+      return false
+    }
     return (
       currentVersion.value &&
       latestRelease.value &&
@@ -22,7 +25,7 @@ const releaseAlert = computed({
 async function fetchReleaseInfo() {
   try {
     const versionInfo = await $api.utils.appVersion()
-    if (versionInfo && versionInfo.releaseVersion && versionInfo.currentVersion && !/[^0-9.]/.test(versionInfo.currentVersion)) {
+    if (versionInfo && versionInfo.releaseVersion && versionInfo.currentVersion) {
       currentVersion.value = versionInfo.currentVersion
       latestRelease.value = versionInfo.releaseVersion
     } else {

@@ -14,18 +14,6 @@ Simple installation - takes about three minutes!
     
 ## Quick try
 
-### Heroku
-
-Before doing so, make sure you have a Heroku account. By default, an add-on Heroku Postgres will be used as meta database. You can see the connection string defined in `DATABASE_URL` by navigating to Heroku App Settings and selecting Config Vars.
-
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a>
-
 ### Docker
 
 If you are a Docker user, you may try this way!
@@ -466,7 +454,7 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 | NC_DB                              | Yes       | See our database URLs                                                                                                   | A local SQLite will be created in root folder                                                  |   |
 | NC_DB_JSON                         | Yes       | Can be used instead of `NC_DB` and value should be valid knex connection JSON                                           |                                                                                                |   |
 | NC_DB_JSON_FILE                    | Yes       | Can be used instead of `NC_DB` and value should be a valid path to knex connection JSON                                 |                                                                                                |   |
-| DATABASE_URL                       | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment                                        |                                                                                                |   |
+| DATABASE_URL                       | No        | JDBC URL Format. Can be used instead of NC_DB.                                         |                                                                                                |   |
 | DATABASE_URL_FILE                  | No        | Can be used instead of DATABASE_URL: path to file containing JDBC URL Format.                                           |                                                                                                |   |
 | NC_AUTH_JWT_SECRET                 | Yes       | JWT secret used for auth and storing other secrets                                                                      | A Random secret will be generated                                                              |   |
 | PORT                               | No        | For setting app running port                                                                                            | `8080`                                                                                         |   |
@@ -477,7 +465,7 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 | NC_PUBLIC_URL                      | Yes       | Used for sending Email invitations                                                                                      | Best guess from http request params                                                            |   |
 | NC_JWT_EXPIRES_IN                  | No        | JWT token expiry time                                                                                                   | `10h`                                                                                          |   |
 | NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No        | Disable Project creation with external database                                                                         |                                                                                                |   |
-| NC_INVITE_ONLY_SIGNUP              | No        | Allow users to signup only via invite url, value should be any non-empty string.                                        |                                                                                                |   |
+| NC_INVITE_ONLY_SIGNUP              | No        | <strong>Removed</strong> since version <kbd>0.99.0</kbd> and now it's recommended to use [super admin settings menu](/setup-and-usages/account-settings#enable--disable-signup). <br><br>Allow users to signup only via invite url, value should be any non-empty string.                                        |                                                                                                |   |
 | NUXT_PUBLIC_NC_BACKEND_URL         | No        | Custom Backend URL                                                                                                      | ``http://localhost:8080`` will be used                                                         |   |
 | NC_REQUEST_BODY_SIZE               | No        | Request body size [limit](https://expressjs.com/en/resources/middleware/body-parser.html#limit)                         | `1048576`                                                                                      |   |
 | NC_EXPORT_MAX_TIMEOUT              | No        | After NC_EXPORT_MAX_TIMEOUT csv gets downloaded in batches                                                              | Default value 5000(in millisecond) will be used                                                |   |
@@ -486,7 +474,6 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 | NC_GOOGLE_CLIENT_ID                | No        | Google client id to enable google authentication                                                                        |                                                                                                |   |
 | NC_GOOGLE_CLIENT_SECRET            | No        | Google client secret to enable google authentication                                                                    |                                                                                                |   |
 | NC_MIGRATIONS_DISABLED             | No        | Disable NocoDB migration                                                                                                |                                                                                                |   |
-| NC_ONE_CLICK                       | No        | Used for Heroku one-click deployment                                                                                    |                                                                                                |   |
 | NC_MIN                             | No        | If set to any non-empty string the default splash screen(initial welcome animation) and matrix screensaver will disable |                                                                                                |   |
 | NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                                   |                                                                                                |   |
 | NC_REDIS_URL                       | No        | Custom Redis URL. Example: `redis://:authpassword@127.0.0.1:6380/4`                                                     | Meta data will be stored in memory                                                             |   |
@@ -527,6 +514,3 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 ### Using NPX
 
 <youtube id="v6Nn75P1p7I"></youtube>
-
-### Heroku Deployment
-<youtube id="WB7yYXfhocY"></youtube>

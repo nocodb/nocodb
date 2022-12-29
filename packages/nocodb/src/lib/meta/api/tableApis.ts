@@ -228,9 +228,23 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 export async function tableUpdate(req: Request<any, any>, res) {
   const model = await Model.get(req.params.tableId);
 
-  const project = await Project.getWithInfo(req.body.project_id);
+  const project = await Project.getWithInfo(
+    req.body.project_id || (req as any).ncProjectId
+  );
   const base = project.bases.find((b) => b.id === model.base_id);
-  
+
+  if (model.project_id !== project.id) {
+    NcError.badRequest('Model does not belong to project');
+  }
+
+  // if meta present update meta and return
+  // todo: allow user to update meta  and other prop in single api call
+  if ('meta' in req.body) {
+    await Model.updateMeta(req.params.tableId, req.body.meta);
+
+    return res.json({ msg: 'success' });
+  }
+
   if (!req.body.table_name) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'

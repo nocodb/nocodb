@@ -175,6 +175,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
+        <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
         <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
         <LazySmartsheetColumnGeoDataOptions v-if="formState.uidt === UITypes.GeoData" v-model:value="formState" />
         <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
@@ -182,6 +183,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
         <LazySmartsheetColumnLookupOptions v-if="!isEdit && formState.uidt === UITypes.Lookup" v-model:value="formState" />
         <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+        <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
         <LazySmartsheetColumnRollupOptions v-if="!isEdit && formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <LazySmartsheetColumnLinkedToAnotherRecordOptions
           v-if="!isEdit && formState.uidt === UITypes.LinkToAnotherRecord"

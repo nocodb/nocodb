@@ -5,6 +5,7 @@ import {
   CacheScope,
   MetaTable,
 } from '../utils/globals';
+import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
 import Model from './Model';
 import FormView from './FormView';
 import GridView from './GridView';
@@ -130,6 +131,7 @@ export default class View implements ViewType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, viewId);
+      view.meta = parseMetaProp(view);
       await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
     }
 
@@ -168,6 +170,7 @@ export default class View implements ViewType {
           ],
         }
       );
+      view.meta = parseMetaProp(view);
       // todo: cache - titleOrId can be viewId so we need a different scope here
       await NocoCache.set(
         `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
@@ -200,6 +203,7 @@ export default class View implements ViewType {
         },
         null
       );
+      view.meta = parseMetaProp(view);
       await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
     }
     return view && new View(view);
@@ -216,6 +220,9 @@ export default class View implements ViewType {
           order: 'asc',
         },
       });
+      for (const view of viewsList) {
+        view.meta = parseMetaProp(view);
+      }
       await NocoCache.setList(CacheScope.VIEW, [modelId], viewsList);
     }
     viewsList.sort(
@@ -266,7 +273,10 @@ export default class View implements ViewType {
       base_id: view.base_id,
       created_at: view.created_at,
       updated_at: view.updated_at,
+      meta: view.meta ?? {},
     };
+
+    insertObj.meta = stringifyMetaProp(insertObj);
 
     // get project and base id if missing
     if (!(view.project_id && view.base_id)) {
@@ -775,10 +785,15 @@ export default class View implements ViewType {
     }
   }
 
+  // todo: cache
   static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
     const view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, {
       uuid,
     });
+
+    if (view) {
+      view.meta = parseMetaProp(view);
+    }
 
     return view && new View(view);
   }
@@ -808,8 +823,9 @@ export default class View implements ViewType {
         viewId
       );
     }
-    if (!view.meta) {
+    if (!view.meta || !('allowCSVDownload' in view.meta)) {
       const defaultMeta = {
+        ...(view.meta ?? {}),
         allowCSVDownload: true,
       };
       // get existing cache
@@ -817,7 +833,7 @@ export default class View implements ViewType {
       const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
       if (o) {
         // update data
-        o.meta = JSON.stringify(defaultMeta);
+        o.meta = defaultMeta;
         // set cache
         await NocoCache.set(key, o);
       }
@@ -906,7 +922,7 @@ export default class View implements ViewType {
       'meta',
       'uuid',
     ]);
-    updateObj.meta = JSON.stringify(updateObj.meta);
+
     // get existing cache
     const key = `${CacheScope.VIEW}:${viewId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -922,6 +938,12 @@ export default class View implements ViewType {
       // set cache
       await NocoCache.set(key, o);
     }
+
+    // if meta data defined then stringify it
+    if ('meta' in updateObj) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.VIEWS, updateObj, viewId);
     return this.get(viewId);

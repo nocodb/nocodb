@@ -31,6 +31,46 @@ const formulaDataByDbType = (context: NcContext) => [
     result: ['2', '2', '2', '2', '2'],
   },
   {
+    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15")`,
+    result: ['-86400', '-86400', '-86400', '-86400', '-86400'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "minutes")`,
+    result: ['-1440', '-1440', '-1440', '-1440', '-1440'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "seconds")`,
+    result: ['-86400', '-86400', '-86400', '-86400', '-86400'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "milliseconds")`,
+    result: ['-86400000', '-86400000', '-86400000', '-86400000', '-86400000'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "hours")`,
+    result: ['-24', '-24', '-24', '-24', '-24'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "w")`,
+    result: ['-52', '-52', '-52', '-52', '-52'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "M")`,
+    result: ['-12', '-12', '-12', '-12', '-12'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "Q")`,
+    result: ['-4', '-4', '-4', '-4', '-4'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "y")`,
+    result: ['-1', '-1', '-1', '-1', '-1'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "d")`,
+    result: ['-365', '-365', '-365', '-365', '-365'],
+  },
+  {
     formula: `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`,
     result: [
       'A CORUA (LA CORUA)a corua (la corua)trimmed',

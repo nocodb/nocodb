@@ -19,7 +19,7 @@ const { isOverDropZone } = useDropZone(dropZone, onDrop)
 
 const { files, open, reset } = useFileDialog()
 
-const { isSharedBase } = useProject()
+const { bases, isSharedBase } = useProject()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -128,6 +128,7 @@ function openCreateTable() {
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
+    'baseId': bases.value[0].id,
   })
 
   function closeDialog() {

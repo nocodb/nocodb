@@ -21,7 +21,6 @@ const up = async (knex) => {
     table.string('help');
 
     table.boolean('show');
-    table.float('order');
 
     table.timestamps(true, true);
   });

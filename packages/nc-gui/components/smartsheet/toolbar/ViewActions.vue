@@ -4,7 +4,6 @@ import {
   IsLockedInj,
   IsPublicInj,
   extractSdkResponseErrorMsg,
-  getViewIcon,
   inject,
   message,
   ref,
@@ -93,14 +92,10 @@ useMenuCloseOnEsc(open)
     <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
-          <component
-            :is="getViewIcon(selectedView?.type)?.icon"
-            class="nc-view-icon group-hover:hidden"
-            :style="{ color: getViewIcon(selectedView?.type)?.color }"
-          />
+          <GeneralViewIcon :meta="selectedView"></GeneralViewIcon>
 
           <span class="!text-sm font-weight-normal">
-            <GeneralTruncateText>{{ selectedView?.title }}</GeneralTruncateText>
+            <GeneralTruncateText :key="selectedView?.title">{{ selectedView?.title }}</GeneralTruncateText>
           </span>
 
           <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />

@@ -2,6 +2,7 @@
 import type { Form } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import type { VNodeRef } from '@vue/runtime-core'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -25,7 +26,7 @@ const nameValidationRules = [
     message: 'Project name is required',
   },
   projectTitleValidator,
-]
+] as RuleObject[]
 
 const form = ref<typeof Form>()
 

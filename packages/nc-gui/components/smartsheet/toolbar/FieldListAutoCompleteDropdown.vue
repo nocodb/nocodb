@@ -21,7 +21,7 @@ const localValue = computed({
 const options = computed<SelectProps['options']>(() =>
   meta.value?.columns
     ?.filter((c: ColumnType) => {
-      if (c.uidt === UITypes.QrCode) {
+      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode) {
         return false
       } else if (isSort) {
         /** ignore hasmany and manytomany relations if it's using within sort menu */

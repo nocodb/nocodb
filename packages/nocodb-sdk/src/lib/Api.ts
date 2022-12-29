@@ -84,6 +84,8 @@ export interface BaseType {
   updated_at?: any;
   inflection_column?: string;
   inflection_table?: string;
+  order?: number;
+  enabled?: boolean;
 }
 
 export interface BaseReqType {
@@ -106,8 +108,8 @@ export interface BaseListType {
 
 export interface TableType {
   id?: string;
-  fk_project_id?: string;
-  fk_base_id?: string;
+  project_id?: string;
+  base_id?: string;
   table_name: string;
   title: string;
   type?: string;
@@ -121,8 +123,8 @@ export interface TableType {
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
-  project_id?: string;
   mm?: boolean | number;
+  meta?: any;
 }
 
 export interface ViewType {
@@ -133,6 +135,7 @@ export interface ViewType {
   fk_model_id?: string;
   slug?: string;
   uuid?: string;
+  meta?: any;
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
@@ -174,6 +177,7 @@ export interface TableReqType {
   order?: number;
   mm?: boolean;
   columns: ColumnType[];
+  meta?: any;
 }
 
 export interface TableListType {
@@ -1892,6 +1896,194 @@ export class Api<
         ...params,
       }),
   };
+  base = {
+    /**
+     * @description Read project base details
+     *
+     * @tags Base
+     * @name Read
+     * @summary Base read
+     * @request GET:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+     * @response `200` `object` OK
+     */
+    read: (projectId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name Delete
+     * @summary Base delete
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+     * @response `200` `void` OK
+     */
+    delete: (projectId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name Update
+     * @summary Base update
+     * @request PATCH:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+     * @response `200` `void` OK
+     */
+    update: (
+      projectId: string,
+      baseId: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Get project base list
+     *
+     * @tags Base
+     * @name List
+     * @summary Base list
+     * @request GET:/api/v1/db/meta/projects/{projectId}/bases/
+     * @response `200` `object` OK
+     */
+    list: (projectId: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name Create
+     * @summary Base create
+     * @request POST:/api/v1/db/meta/projects/{projectId}/bases/
+     * @response `200` `BaseType` OK
+     */
+    create: (
+      projectId: string,
+      data: BaseType & {
+        external?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BaseType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name TableList
+     * @request GET:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+     * @response `200` `TableListType`
+     */
+    tableList: (
+      projectId: string,
+      baseId: string,
+      query?: {
+        page?: number;
+        pageSize?: number;
+        sort?: string;
+        includeM2M?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableListType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        method: 'GET',
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name TableCreate
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+     * @response `200` `TableType` OK
+     */
+    tableCreate: (
+      projectId: string,
+      baseId: string,
+      data: TableReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name MetaDiffSync
+     * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+     * @response `200` `any` OK
+     */
+    metaDiffSync: (
+      projectId: string,
+      baseId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name MetaDiffGet
+     * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+     * @response `200` `any` OK
+     */
+    metaDiffGet: (
+      projectId: string,
+      baseId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+  };
   dbTable = {
     /**
      * No description
@@ -1970,6 +2162,7 @@ export class Api<
         table_name?: string;
         title?: string;
         project_id?: string;
+        meta?: any;
       },
       params: RequestParams = {}
     ) =>
@@ -2124,6 +2317,7 @@ export class Api<
       viewId: string,
       data: {
         order?: number;
+        meta?: any;
         title?: string;
         show_system_fields?: boolean;
         lock_type?: 'collaborative' | 'locked' | 'personal';

@@ -19,7 +19,10 @@ export const jsepCurlyHook = {
           context.index += 1;
           env.node = {
             type: jsep.IDENTIFIER,
-            name: nodes.map((node) => node.name).join(' '),
+            // column name with space would break it down to jsep.IDENTIFIER + jsep.LITERAL
+            // either take node.name for jsep.IDENTIFIER
+            // or take node.value for jsep.LITERAL
+            name: nodes.map((node) => node.name || node.value).join(' '),
           };
           return env.node;
         } else {
@@ -129,6 +132,7 @@ export function jsepTreeToFormula(node) {
       'AVG',
       'ADD',
       'DATEADD',
+      'DATETIME_DIFF',
       'WEEKDAY',
       'AND',
       'OR',

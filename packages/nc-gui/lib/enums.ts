@@ -20,6 +20,7 @@ export enum ClientType {
   PG = 'pg',
   SQLITE = 'sqlite3',
   VITESS = 'vitess',
+  SNOWFLAKE = 'snowflake',
 }
 
 export enum Language {
@@ -84,4 +85,13 @@ export enum SmartsheetStoreEvents {
   DATA_RELOAD = 'data-reload',
   FIELD_RELOAD = 'field-reload',
   FIELD_ADD = 'field-add',
+}
+
+export enum DataSourcesSubTab {
+  New = 'New',
+  Metadata = 'Metadata',
+  ERD = 'ERD',
+  UIAcl = 'UI ACL',
+  Misc = 'Misc',
+  Edit = 'Edit',
 }

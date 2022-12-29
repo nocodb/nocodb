@@ -7,6 +7,8 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 
+import PurgeIcons from 'vite-plugin-purge-icons'
+
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
@@ -129,12 +131,18 @@ export default defineNuxtConfig({
               'ph',
               'ri',
               'system-uicons',
+              'vscode-icons',
+              'simple-icons',
             ],
           }),
         ],
       }),
       monacoEditorPlugin({
         languageWorkers: ['json'],
+      }),
+      PurgeIcons({
+        /* PurgeIcons Options */
+        includedCollections: ['emojione'],
       }),
     ],
     define: {

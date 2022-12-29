@@ -3,7 +3,6 @@ import ModelRoleVisibility from '../../models/ModelRoleVisibility';
 import { Router } from 'express';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import Project from '../../models/Project';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 async function xcVisibilityMetaSetAll(req, res) {
   Tele.emit('evt', { evt_type: 'uiAcl:updated' });
@@ -49,13 +48,12 @@ export async function xcVisibilityMetaGet(
   const roles = ['owner', 'creator', 'viewer', 'editor', 'commenter', 'guest'];
 
   const defaultDisabled = roles.reduce((o, r) => ({ ...o, [r]: false }), {});
-  const project = await Project.getWithInfo(projectId);
 
   let models =
     _models ||
     (await Model.list({
       project_id: projectId,
-      base_id: project?.bases?.[0]?.id,
+      base_id: undefined,
     }));
 
   models = includeM2M ? models : (models.filter((t) => !t.mm) as Model[]);
@@ -80,6 +78,7 @@ export async function xcVisibilityMetaGet(
         ptype: model.type,
         tn: view.title,
         _tn: view.title,
+        table_meta: model.meta,
         ...view,
         disabled: { ...defaultDisabled },
       };

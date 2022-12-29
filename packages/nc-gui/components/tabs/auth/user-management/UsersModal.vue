@@ -21,7 +21,7 @@ import { ProjectRole } from '~/lib'
 
 interface Props {
   show: boolean
-  selectedUser?: User
+  selectedUser?: User | null
 }
 
 interface Users {

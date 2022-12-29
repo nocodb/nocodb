@@ -1,6 +1,6 @@
 import { UITypes } from 'nocodb-sdk'
 
-export const getSortDirectionOptions = (uidt: UITypes) => {
+export const getSortDirectionOptions = (uidt: UITypes | string) => {
   switch (uidt) {
     case UITypes.Year:
     case UITypes.Number:

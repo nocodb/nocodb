@@ -8,6 +8,7 @@ import { XKnex } from '../../../index';
 import LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../../../models/LookupColumn';
 import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
+import { validateDateWithUnknownFormat } from '../helpers/formulaFnHelper';
 
 // todo: switch function based on database
 
@@ -55,8 +56,11 @@ export default async function formulaQueryBuilderv2(
   jsep.plugins.register(jsepCurlyHook);
   const tree = jsep(_tree);
 
+  const columnIdToUidt = {};
+
   // todo: improve - implement a common solution for filter, sort, formula, etc
   for (const col of await model.getColumns()) {
+    columnIdToUidt[col.id] = col.uidt;
     if (col.id in aliasToColumn) continue;
     switch (col.uidt) {
       case UITypes.Formula:
@@ -659,11 +663,93 @@ export default async function formulaQueryBuilderv2(
       const right = fn(pt.right, null, pt.operator).toQuery();
       let sql = `${left} ${pt.operator} ${right}${colAlias}`;
 
+      // comparing a date with empty string would throw
+      // `ERROR: zero-length delimited identifier` in Postgres
+      if (
+        knex.clientType() === 'pg' &&
+        columnIdToUidt[pt.left.name] === UITypes.Date
+      ) {
+        // The correct way to compare with Date should be using
+        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+        // This is to prevent empty data returned to UI due to incorrect SQL
+        if (pt.right.value === '') {
+          if (pt.operator === '=') {
+            sql = `${left} IS NULL ${colAlias}`;
+          } else {
+            sql = `${left} IS NOT NULL ${colAlias}`;
+          }
+        } else if (!validateDateWithUnknownFormat(pt.right.value)) {
+          // left tree value is date but right tree value is not date
+          // return true if left tree value is not null, else false
+          sql = `${left} IS NOT NULL ${colAlias}`;
+        }
+      }
+      if (
+        knex.clientType() === 'pg' &&
+        columnIdToUidt[pt.right.name] === UITypes.Date
+      ) {
+        // The correct way to compare with Date should be using
+        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+        // This is to prevent empty data returned to UI due to incorrect SQL
+        if (pt.left.value === '') {
+          if (pt.operator === '=') {
+            sql = `${right} IS NULL ${colAlias}`;
+          } else {
+            sql = `${right} IS NOT NULL ${colAlias}`;
+          }
+        } else if (!validateDateWithUnknownFormat(pt.left.value)) {
+          // right tree value is date but left tree value is not date
+          // return true if right tree value is not null, else false
+          sql = `${right} IS NOT NULL ${colAlias}`;
+        }
+      }
+
       // handle NULL values when calling CONCAT for sqlite3
       if (pt.left.fnName === 'CONCAT' && knex.clientType() === 'sqlite3') {
         sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')${colAlias}`;
       }
 
+      if (knex.clientType() === 'mysql2') {
+        sql = `IFNULL(${left} ${pt.operator} ${right}, ${
+          pt.operator === '='
+            ? pt.left.type === 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : pt.operator === '!='
+            ? pt.left.type !== 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : 0
+        }) ${colAlias}`;
+      } else if (
+        knex.clientType() === 'sqlite3' ||
+        knex.clientType() === 'pg' ||
+        knex.clientType() === 'mssql'
+      ) {
+        if (pt.operator === '=') {
+          if (pt.left.type === 'Literal' && pt.left.value === '') {
+            sql = `${right} IS NULL OR CAST(${right} AS TEXT) = ''`;
+          } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+            sql = `${left} IS NULL OR CAST(${left} AS TEXT) = ''`;
+          }
+        } else if (pt.operator === '!=') {
+          if (pt.left.type === 'Literal' && pt.left.value === '') {
+            sql = `${right} IS NOT NULL AND CAST(${right} AS TEXT) != ''`;
+          } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+            sql = `${left} IS NOT NULL AND CAST(${left} AS TEXT) != ''`;
+          }
+        }
+
+        if (
+          (pt.operator === '=' || pt.operator === '!=') &&
+          prevBinaryOp !== 'AND' &&
+          prevBinaryOp !== 'OR'
+        ) {
+          sql = `(CASE WHEN ${sql} THEN true ELSE false END ${colAlias})`;
+        } else {
+          sql = `${sql} ${colAlias}`;
+        }
+      }
       const query = knex.raw(sql);
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');

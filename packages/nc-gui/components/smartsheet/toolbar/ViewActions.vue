@@ -13,7 +13,6 @@ import {
   useProject,
   useSmartsheetStoreOrThrow,
   useUIPermission,
-  viewIcons,
 } from '#imports'
 import { LockType } from '~/lib'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
@@ -30,9 +29,11 @@ const isView = false
 
 const { $api, $e } = useNuxtApp()
 
-const selectedView = inject(ActiveViewInj)
+const { isSqlView } = useSmartsheetStoreOrThrow()
 
-const isLocked = inject(IsLockedInj)
+const selectedView = inject(ActiveViewInj, ref())
+
+const isLocked = inject(IsLockedInj, ref(false))
 
 const showWebhookDrawer = ref(false)
 
@@ -47,7 +48,7 @@ const { isUIAllowed } = useUIPermission()
 const { isSharedBase } = useProject()
 
 const Icon = computed(() => {
-  switch (selectedView?.value.lock_type) {
+  switch (selectedView.value?.lock_type) {
     case LockType.Personal:
       return MdiAccountIcon
     case LockType.Locked:
@@ -58,10 +59,12 @@ const Icon = computed(() => {
   }
 })
 
+const lockType = $computed(() => (selectedView.value?.lock_type as LockType) || LockType.Collaborative)
+
 async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })
 
-  if (!selectedView?.value) return
+  if (!selectedView.value) return
 
   if (type === 'personal') {
     // Coming soon
@@ -79,8 +82,6 @@ async function changeLockType(type: LockType) {
   }
 }
 
-const { isSqlView } = useSmartsheetStoreOrThrow()
-
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
@@ -91,14 +92,10 @@ useMenuCloseOnEsc(open)
     <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
-          <component
-            :is="viewIcons[selectedView?.type].icon"
-            class="nc-view-icon group-hover:hidden"
-            :style="{ color: viewIcons[selectedView?.type].color }"
-          />
+          <GeneralViewIcon :meta="selectedView"></GeneralViewIcon>
 
           <span class="!text-sm font-weight-normal">
-            <GeneralTruncateText>{{ selectedView?.title }}</GeneralTruncateText>
+            <GeneralTruncateText :key="selectedView?.title">{{ selectedView?.title }}</GeneralTruncateText>
           </span>
 
           <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
@@ -117,7 +114,7 @@ useMenuCloseOnEsc(open)
             >
               <template #title>
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
-                  <LazySmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
+                  <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
 
                   <MaterialSymbolsChevronRightRounded
                     class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"

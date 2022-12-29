@@ -82,7 +82,9 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { sqlUi } = useProject()
+const { sqlUis } = useProject()
+
+const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -161,6 +163,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
         v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
         class="nc-locked-overlay"
         @click.stop.prevent
+        @dblclick.stop.prevent
       />
     </template>
   </div>

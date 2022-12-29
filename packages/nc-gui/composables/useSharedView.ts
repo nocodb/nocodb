@@ -17,6 +17,8 @@ export function useSharedView() {
 
   const { appInfo } = $(useGlobal())
 
+  const { project } = useProject()
+
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
   const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
@@ -40,6 +42,7 @@ export function useSharedView() {
             f.uidt !== UITypes.Rollup &&
             f.uidt !== UITypes.Lookup &&
             f.uidt !== UITypes.Formula &&
+            f.uidt !== UITypes.Barcode &&
             f.uidt !== UITypes.QrCode,
         )
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
@@ -56,8 +59,11 @@ export function useSharedView() {
         'xc-password': localPassword ?? password.value,
       },
     })
-
-    allowCSVDownload.value = JSON.parse(viewMeta.meta)?.allowCSVDownload
+    try {
+      allowCSVDownload.value = (typeof viewMeta.meta === 'string' ? JSON.parse(viewMeta.meta) : viewMeta.meta)?.allowCSVDownload
+    } catch {
+      allowCSVDownload.value = false
+    }
 
     if (localPassword) password.value = localPassword
     sharedView.value = { title: '', ...viewMeta }
@@ -70,6 +76,17 @@ export function useSharedView() {
       .sort((a, b) => a.order - b.order)
 
     await setMeta(viewMeta.model)
+
+    // if project is not defined then set it with an object containing base
+    if (!project.value?.bases)
+      project.value = {
+        bases: [
+          {
+            id: viewMeta.base_id,
+            type: viewMeta.client,
+          },
+        ],
+      }
 
     const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
@@ -103,7 +120,7 @@ export function useSharedView() {
     const page = paginationData.value.page || 1
     const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
 
-    const data = await $api.public.groupedDataList(
+    return await $api.public.groupedDataList(
       sharedView.value.uuid!,
       columnId,
       {
@@ -118,7 +135,6 @@ export function useSharedView() {
         },
       },
     )
-    return data
   }
 
   const exportFile = async (
@@ -126,7 +142,7 @@ export function useSharedView() {
     offset: number,
     type: ExportTypes.EXCEL | ExportTypes.CSV,
     responseType: 'base64' | 'blob',
-    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
+    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] } = { sortsArr: [], filtersArr: [] },
   ) => {
     return await $api.public.csvExport(sharedView.value!.uuid!, type, {
       format: responseType,

@@ -107,13 +107,17 @@ export default (
         baseURL = `http://localhost:${process.env.PORT || 8080}`;
       }
 
-      NocoJobs.jobsMgr.add<AirtableSyncConfig>(AIRTABLE_IMPORT_JOB, {
-        id: req.params.syncId,
-        ...(syncSource?.details || {}),
-        projectId: syncSource.project_id,
-        authToken: token,
-        baseURL,
-      });
+      setTimeout(() => {
+        NocoJobs.jobsMgr.add<AirtableSyncConfig>(AIRTABLE_IMPORT_JOB, {
+          id: req.params.syncId,
+          ...(syncSource?.details || {}),
+          projectId: syncSource.project_id,
+          baseId: syncSource.base_id,
+          authToken: token,
+          baseURL,
+        });
+      }, 1000);
+
       jobs[req.params.syncId] = {
         last_message: {
           msg: 'Sync started',

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
+import type { Row } from '~/lib'
 import {
   ColumnInj,
   Empty,
@@ -27,7 +28,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj, ref())
 
 const readonly = inject(ReadonlyInj, ref(false))
 
@@ -81,6 +82,8 @@ const expandedFormDlg = ref(false)
 
 const expandedFormRow = ref()
 
+const colTitle = $computed(() => column.value?.title || '')
+
 /** reload children list whenever cell value changes and list is visible */
 watch(
   () => props.cellValue,
@@ -88,6 +91,12 @@ watch(
     if (!isNew.value && vModel.value) loadChildrenList()
   },
 )
+
+const onClick = (row: Row) => {
+  if (readonly.value) return
+  expandedFormRow.value = row
+  expandedFormDlg.value = true
+}
 </script>
 
 <template>
@@ -119,25 +128,21 @@ watch(
           @click="emit('attachRecord')"
         >
           <div class="flex items-center gap-1">
-            <MdiLinkVariantRemove class="text-xs" type="primary" @click="unlinkRow(row)" />
-            Link to '{{ relatedTableMeta.title }}'
+            <MdiLinkVariant class="text-xs" type="primary" />
+            Link to '
+            <GeneralTableIcon :meta="relatedTableMeta" class="-mx-1 w-5" />
+            {{ relatedTableMeta.title }}'
           </div>
         </a-button>
       </div>
 
-      <template v-if="(isNew && state?.[column?.title]?.length) || childrenList?.pageInfo?.totalRows">
+      <template v-if="(isNew && state?.[colTitle]?.length) || childrenList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12 cursor-pointer">
           <a-card
-            v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
+            v-for="(row, i) of childrenList?.list ?? state?.[colTitle] ?? []"
             :key="i"
             class="!my-4 hover:(!bg-gray-200/50 shadow-md)"
-            @click="
-              () => {
-                if (readonly) return
-                expandedFormRow = row
-                expandedFormDlg = true
-              }
-            "
+            @click="onClick(row)"
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
@@ -169,7 +174,7 @@ watch(
             v-model:page-size="childrenListPagination.size"
             class="mt-2 mx-auto"
             size="small"
-            :total="childrenList.pageInfo.totalRows"
+            :total="childrenList?.pageInfo.totalRows"
             show-less-items
           />
         </div>

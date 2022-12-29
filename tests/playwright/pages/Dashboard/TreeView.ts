@@ -6,14 +6,12 @@ export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly project: any;
   readonly quickImportButton: Locator;
-  readonly inviteTeamButton: Locator;
 
   constructor(dashboard: DashboardPage, project: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.project = project;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
-    this.inviteTeamButton = dashboard.get().locator('.nc-share-base');
   }
 
   get() {
@@ -131,13 +129,35 @@ export class TreeViewPage extends BasePage {
     await importMenu.locator(`.ant-dropdown-menu-title-content:has-text("${title}")`).click();
   }
 
+  async changeTableIcon({ title, icon }: { title: string; icon: string }) {
+    await this.get().locator(`.nc-project-tree-tbl-${title} .nc-table-icon`).click();
+
+    await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
+    await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
+
+    await this.rootPage.getByTestId('nc-emoji-container').isHidden();
+    await expect(
+      this.get().locator(`.nc-project-tree-tbl-${title} [data-testid="nc-icon-emojione:${icon}"]`)
+    ).toHaveCount(1);
+  }
+
+  async verifyTabIcon({ title, icon }: { title: string; icon: string }) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await expect(
+      this.rootPage.locator(
+        `[data-testid="nc-tab-title"]:has-text("${title}") [data-testid="nc-tab-icon-emojione:${icon}"]`
+      )
+    ).toBeVisible();
+  }
+
+  // todo: Break this into smaller methods
   async validateRoleAccess(param: { role: string }) {
     // Add new table button
     await expect(this.get().locator(`.nc-add-new-table`)).toHaveCount(param.role === 'creator' ? 1 : 0);
     // Import menu
     await expect(this.get().locator(`.nc-import-menu`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    // Invite Team button
-    await expect(this.get().locator(`.nc-share-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
+    // Team and Settings button
+    await expect(this.get().locator(`.nc-new-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
     // Right click context menu
     await this.get().locator(`.nc-project-tree-tbl-Country`).click({
       button: 'right',

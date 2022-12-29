@@ -21,7 +21,7 @@ const booleanOptions = [
 const aggBooleanOptions: any = booleanOptions.reduce((obj, o) => ({ ...obj, ...o }), {})
 
 const getColVal = (row: any, col?: number) => {
-  return row && col ? row[col] : row
+  return row && col !== undefined ? row[col] : row
 }
 
 export const isCheckboxType: any = (values: [], col?: number) => {

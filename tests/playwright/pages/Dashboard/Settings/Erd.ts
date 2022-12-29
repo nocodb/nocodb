@@ -1,15 +1,15 @@
-import { SettingsPage } from '.';
 import { ErdBasePage } from '../commonBase/Erd';
+import { DataSourcesPage } from './DataSources';
 
 export class SettingsErdPage extends ErdBasePage {
-  readonly settings: SettingsPage;
+  readonly dataSources: DataSourcesPage;
 
-  constructor(settings: SettingsPage) {
-    super(settings.rootPage);
-    this.settings = settings;
+  constructor(dataSources: DataSourcesPage) {
+    super(dataSources.rootPage);
+    this.dataSources = dataSources;
   }
 
   get() {
-    return this.rootPage.locator(`[data-testid="nc-settings-subtab-ERD View"]`);
+    return this.dataSources.get();
   }
 }

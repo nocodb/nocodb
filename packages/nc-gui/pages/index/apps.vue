@@ -7,6 +7,8 @@ definePageMeta({
   allowedRoles: [Role.Super],
   title: 'title.appStore',
 })
+
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 </script>
 
 <template>

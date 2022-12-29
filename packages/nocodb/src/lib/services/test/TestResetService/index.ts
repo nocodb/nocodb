@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
+import Noco from '../../../Noco';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import resetPgSakilaProject from './resetPgSakilaProject';
@@ -111,8 +112,9 @@ export class TestResetService {
 
       const bases = await project.getBases();
 
-      if (bases.length > 0) {
-        await NcConnectionMgrv2.deleteAwait(bases[0]);
+      for (const base of bases) {
+        await NcConnectionMgrv2.deleteAwait(base);
+        await base.delete(Noco.ncMeta, { force: true });
       }
 
       await Project.delete(project.id);

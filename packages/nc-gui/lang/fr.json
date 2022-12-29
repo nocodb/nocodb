@@ -248,7 +248,10 @@
     "sqlOutput": "Sortie SQL",
     "addOption": "Ajouter une option",
     "qrCodeValueColumn": "Column with QR code value",
-    "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
+    "qrCodeValueTooLong": "Trop de caractères pour un code QR",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "Fonction agrégée",
     "dbCreateIfNotExists": "Base de données : la créer si elle n'existe pas",
     "clientKey": "Clé client",
@@ -276,11 +279,11 @@
     "childColumn": "Colonne enfant",
     "onUpdate": "Mise à jour en cours",
     "onDelete": "Suppression en cours",
-    "account": "Account",
+    "account": "Compte",
     "language": "Language",
     "primaryColor": "Primary Color",
     "accentColor": "Accent Color",
-    "customTheme": "Custom Theme",
+    "customTheme": "Thème personnalisé",
     "requestDataSource": "Request a data source you need?",
     "apiKey": "Clé d'API",
     "sharedBase": "Shared Base",
@@ -304,8 +307,8 @@
     "commentsOnly": "Comments only",
     "documentation": "Documentation",
     "subscribeNewsletter": "Subscribe to our weekly newsletter",
-    "signUpWithGoogle": "Sign up with Google",
-    "signInWithGoogle": "Sign in with Google",
+    "signUpWithGoogle": "S’enregistrer avec Google",
+    "signInWithGoogle": "Se connecter avec Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "Allow signup only using invite url"
@@ -496,6 +499,9 @@
   },
   "msg": {
     "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
         "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."

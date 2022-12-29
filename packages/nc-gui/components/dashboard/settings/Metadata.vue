@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
 
+const props = defineProps<{
+  baseId: string
+}>()
+
+const emit = defineEmits(['baseSynced'])
+
 const { $api } = useNuxtApp()
 
 const { project, loadTables } = useProject()
@@ -19,7 +25,7 @@ async function loadMetaDiff() {
 
     isLoading = true
     isDifferent = false
-    metadiff = await $api.project.metaDiffGet(project.value?.id)
+    metadiff = await $api.base.metaDiffGet(project.value?.id, props.baseId)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
         model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
@@ -38,11 +44,12 @@ async function syncMetaDiff() {
     if (!project.value?.id || !isDifferent) return
 
     isLoading = true
-    await $api.project.metaDiffSync(project.value.id)
+    await $api.base.metaDiffSync(project.value.id, props.baseId)
     // Table metadata recreated successfully
     message.info(t('msg.info.metaDataRecreated'))
     await loadTables()
     await loadMetaDiff()
+    emit('baseSynced')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -63,8 +70,6 @@ const columns = [
     // Models
     title: tableHeaderRenderer(t('labels.models')),
     key: 'table_name',
-    customRender: ({ record }: { record: { table_name: string; title?: string } }) =>
-      h('div', {}, record.title || record.table_name),
   },
   {
     // Sync state
@@ -90,7 +95,6 @@ const columns = [
           </div>
         </a-button>
       </div>
-
       <div class="max-h-600px overflow-y-auto">
         <a-table
           class="w-full"
@@ -108,6 +112,17 @@ const columns = [
         >
           <template #emptyText>
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+          </template>
+
+          <template #bodyCell="{ record, column }">
+            <div v-if="column.key === 'table_name'">
+              <div class="flex items-center gap-1">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon :meta="record" class="text-gray-500"></GeneralTableIcon>
+                </div>
+                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.title || record.table_name }}</span>
+              </div>
+            </div>
           </template>
         </a-table>
       </div>

@@ -11,9 +11,7 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { isPg, isMysql } = useProject()
-
-const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
 
 let options = $ref<any[]>([])
 

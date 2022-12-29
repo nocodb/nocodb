@@ -2,10 +2,13 @@
 import dayjs from 'dayjs'
 import {
   ActiveCellInj,
+  ColumnInj,
   ReadonlyInj,
+  dateFormats,
   inject,
   isDrawerOrModalExist,
   ref,
+  timeFormats,
   useProject,
   useSelectedCellKeyupListener,
   watch,
@@ -28,9 +31,15 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
+const column = inject(ColumnInj)!
+
 let isDateInvalid = $ref(false)
 
-const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+const dateTimeFormat = $computed(() => {
+  const dateFormat = column?.value?.meta?.date_format ?? dateFormats[0]
+  const timeFormat = column?.value?.meta?.time_format ?? timeFormats[0]
+  return `${dateFormat} ${timeFormat}`
+})
 
 let localState = $computed({
   get() {
@@ -52,7 +61,7 @@ let localState = $computed({
     }
 
     if (val.isValid()) {
-      emit('update:modelValue', val?.format(dateFormat))
+      emit('update:modelValue', val?.format(isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'))
     }
   },
 })
@@ -163,7 +172,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :show-time="true"
     :bordered="false"
     class="!w-full !px-0 !border-none"
-    format="YYYY-MM-DD HH:mm"
+    :format="dateTimeFormat"
     :placeholder="isDateInvalid ? 'Invalid date' : ''"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"

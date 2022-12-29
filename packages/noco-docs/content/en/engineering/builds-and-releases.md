@@ -6,7 +6,9 @@ category: "Engineering"
 menuTitle: "Releases & Builds"
 ---
 ## Builds of NocoDB
+
 There are 3 kinds of docker builds in NocoDB
+
 - Release builds [nocodb/nocodb](https://hub.docker.com/r/nocodb/nocodb) : built during NocoDB release. 
 - Daily builds [nocodb/nocodb-daily](https://hub.docker.com/r/nocodb/nocodb-daily) : built every 6 hours from Develop branch.
 - Daily builds [nocodb/nocodb-timely](https://hub.docker.com/r/nocodb/nocodb-timely): built for every PR.
@@ -26,12 +28,24 @@ Below is an overview of how to make these builds and what happens behind the sce
   ![image](https://user-images.githubusercontent.com/35857179/167240383-dda05f76-8323-4f4a-b3e7-9db886dbd68d.png)
 - Then there would be two cases - you can either leave target tag and pervious tag blank or manually input some values
 
-> Target Tag means the target deployment version, while Previous Tag means the latest version as of now. Previous Tag is used for Release Note only - showing the file / commit differences between two tags.
+- Target Tag means the target deployment version, while Previous Tag means the latest version as of now. Previous Tag is used for Release Note only - showing the file / commit differences between two tags.
+
+### Tagging
+
+The naming convention would be following given the actual release tag is `0.100.0`
+
+- `0.100.0-beta.0` (first version of pre-release)
+- `0.100.0-beta.1` (include bug fix changes on top of the previous version)
+- `0.100.0-beta.2`(include bug fix changes on top of the previous version)
+-  and so on ...
+- `0.100.0` (actual release)
+- `0.100.1` (minor bug fix release)
+- `0.100.2` (minor bug fix release)
 
 ### Case 1: Leaving inputs blank
 
 - If Previous Tag is blank, then the value will be fetched from [latest](https://github.com/nocodb/nocodb/releases/latest)
-- If Target Tag is blank, then the value will be Previous Tag plus one. Example: 0.90.11 (Previous Tag) + 1 = 0.90.12 (Target Tag)
+- If Target Tag is blank, then the value will be Previous Tag plus one. Example: 0.90.11 (Previous Tag) + 0.0.1 = 0.90.12 (Target Tag)
 
 ### Case 2: Manually Input
 

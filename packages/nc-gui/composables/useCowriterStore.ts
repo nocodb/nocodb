@@ -131,6 +131,11 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     await loadCowriterTable()
   }
 
+  async function deleteCowriterFormColumn(columnId: string) {
+    await $api.dbTableColumn.delete(columnId)
+    await loadCowriterTable()
+  }
+
   watch(
     cowriterProject,
     async (project) => {
@@ -151,6 +156,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     promptStatementTemplate,
     loadCowriterTable,
     loadCowriterList,
+    deleteCowriterFormColumn,
     generateCowriter,
     savePromptStatementTemplate,
     clearCowriterOutput,

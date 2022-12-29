@@ -1,0 +1,66 @@
+name: "Build cloud image - test"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag"
+        required: false
+
+jobs:
+  cloud-docker-build:
+    runs-on: ubuntu-latest
+    env:
+      working-directory: ./packages/nocodb
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: build nocodb-sdk
+        run: |
+          # build nocodb-sdk
+
+          cd packages/nocodb-sdk &&
+          npm ci && npm run build
+      - name: build nc-gui and copy to nocodb
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=16384"
+          # generate static build of nc-gui
+          cd packages/nc-gui &&
+          npm ci &&
+          npm run generate &&
+
+          # copy build to nocodb
+          rsync -rvzh ./dist/ ../nocodb/docker/nc-gui/
+
+
+      - name: build nocodb
+        run: |
+          # build nocodb ( pack nocodb-sdk and nc-gui )
+          cd packages/nocodb && npm install &&
+          EE=true ./node_modules/.bin/webpack --config webpack.cloud.config.js &&
+          # remove nocodb-sdk since it's packed with the build
+          npm uninstall --save nocodb-sdk
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nocohubx
+          IMAGE_TAG: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          cd packages/nocodb &&
+          docker build -f Dockerfile-cloud -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

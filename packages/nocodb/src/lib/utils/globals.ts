@@ -39,7 +39,7 @@ export enum MetaTable {
   SYNC_SOURCE = 'nc_sync_source_v2',
   SYNC_LOGS = 'nc_sync_logs_v2',
   STORE = 'nc_store',
-  DOCS_PAGE = 'nc_docs_pages',
+  BOOK = 'nc_books',
   WORKSPACE = 'workspace',
   WORKSPACE_USER = 'workspace_user',
 }
@@ -78,7 +78,7 @@ export const orderedMetaTables = [
   MetaTable.MODELS,
   MetaTable.BASES,
   MetaTable.PROJECT,
-  MetaTable.DOCS_PAGE,
+  MetaTable.BOOK,
   MetaTable.WORKSPACE,
 ];
 
@@ -146,6 +146,7 @@ export enum CacheScope {
   INSTANCE_META = 'instanceMeta',
   USER_PROJECT = 'userProject',
   DOCS_PAGE = 'page',
+  BOOK = 'book',
 }
 
 export enum CacheGetType {

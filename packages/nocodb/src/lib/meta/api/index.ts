@@ -35,7 +35,7 @@ import cacheApis from './cacheApis';
 import apiTokenApis from './apiTokenApis';
 import hookFilterApis from './hookFilterApis';
 import testApis from './testApis';
-import { docsProjectApis } from './docsApis';
+import { docsBookApis, docsPageApis } from './docsApis';
 import {
   bulkDataAliasApis,
   dataAliasApis,
@@ -107,7 +107,8 @@ export default function (router: Router, server) {
   router.use(swaggerApis);
   router.use(syncSourceApis);
   router.use(kanbanViewApis);
-  router.use(docsProjectApis);
+  router.use(docsBookApis);
+  router.use(docsPageApis);
   router.use(workspaceApis);
 
   userApis(router);

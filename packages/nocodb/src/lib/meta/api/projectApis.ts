@@ -170,9 +170,10 @@ async function projectCreate(req: Request<any, any>, res) {
     NcError.badRequest('Project title exceeds 50 characters');
   }
 
-  if (await Project.getByTitle(projectBody?.title)) {
-    NcError.badRequest('Project title already in use');
-  }
+  // todo: check if project with same title exists
+  // if (await Project.getByTitle(projectBody?.title)) {
+  //   NcError.badRequest('Project title already in use');
+  // }
 
   projectBody.title = DOMPurify.sanitize(projectBody.title);
   projectBody.slug = projectBody.title;

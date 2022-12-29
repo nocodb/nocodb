@@ -3,17 +3,15 @@ import { message } from 'ant-design-vue'
 import { Form, nextTick, onMounted, ref, useVModel } from '#imports'
 import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
 import { extractSdkResponseErrorMsg } from '~/utils'
+import {VNodeRef} from "@vue/runtime-core";
 
 const props = defineProps<{
   modelValue: boolean
-  baseId: string
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
-
-const inputEl = ref<HTMLInputElement>()
 
 const { createWorkspace } = useWorkspaceStoreOrThrow()
 
@@ -57,11 +55,14 @@ const _createWorkspace = async () => {
   }
 }
 
-onMounted(() => {
-  nextTick(() => {
-    inputEl.value?.focus()
-    inputEl.value?.select()
-  })
+const inputEl: VNodeRef = (el) => {
+  ;(el as HTMLInputElement)?.focus()
+}
+
+watch(dialogShow, (val) => {
+  if (!val) {
+    workspace.value = {}
+  }
 })
 </script>
 
@@ -90,7 +91,7 @@ onMounted(() => {
 
         <a-form-item v-bind="validateInfos.title">
           <a-input
-            ref="inputEl"
+            :ref="inputEl"
             v-model:value="workspace.title"
             size="large"
             hide-details
@@ -100,7 +101,6 @@ onMounted(() => {
         </a-form-item>
         <a-form-item v-bind="validateInfos.description">
           <a-textarea
-            ref="inputEl"
             v-model:value="workspace.description"
             size="large"
             hide-details

@@ -1,8 +1,11 @@
 import { Request, Response, Router } from 'express';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { NcError } from '../helpers/catchError';
-import { CowriterListType, CowriterType } from 'nocodb-sdk';
+import { CowriterListType, CowriterType, UITypes } from 'nocodb-sdk';
 import Cowriter from '../../models/Cowriter';
+import Column from '../../models/Column';
+import Model from '../../models/Model';
+import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 
 const { Configuration, OpenAIApi } = require('openai');
@@ -50,6 +53,70 @@ export async function cowriterCreateBulk(
   res.json({});
 }
 
+export async function cowriterGenerateColumns(req, res) {
+  const response = await openai.createCompletion({
+    model: 'text-davinci-003',
+    prompt: `list the variables in ${req.body.title} and return it in a string separated by commas`,
+    temperature: 0.7,
+    max_tokens: 2048,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    NcError.badRequest('Failed to generate output');
+  }
+
+  const table = await Model.getWithInfo({
+    id: req.params.tableId,
+  });
+
+  const columns = await table.getColumns();
+
+  const output = response.data.choices[0].text
+    .replaceAll('\n\n', '')
+    .trim()
+    .split(',');
+
+  console.log(output);
+
+  // TODO: check if column exists
+  Promise.all(
+    output.map(async (o) => {
+      const title = getUniqueColumnAliasName(columns, o);
+      await Column.insert({
+        title,
+        column_name: o,
+        fk_model_id: req.params.tableId,
+        uidt: UITypes.SingleLineText,
+        meta: {},
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar(45)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '45',
+        dtxs: '',
+        altered: 1,
+        uip: '',
+        uicn: '',
+      });
+    })
+  );
+
+  // TODO: return something meaningful
+  res.json({ res: true });
+}
+
 export async function cowriterUpdate(req, res) {
   res.json(
     await Cowriter.update(req.params.cowriterId, {
@@ -84,6 +151,11 @@ router.post(
 router.post(
   '/api/v1/cowriter/meta/tables/:tableId/bulk',
   ncMetaAclMw(cowriterCreateBulk, 'cowriterCreateBulk')
+);
+
+router.post(
+  '/api/v1/cowriter/meta/tables/:tableId/generate-columns',
+  ncMetaAclMw(cowriterGenerateColumns, 'cowriterGenerateColumns')
 );
 
 router.get(

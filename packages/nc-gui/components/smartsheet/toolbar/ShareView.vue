@@ -201,11 +201,11 @@ const iframeCode = computed(() => {
   if (!sharedViewUrl.value) return
 
   return `<iframe class="nc-embed"
-"src="${sharedViewUrl.value}?embed"
-frameborder="0"
-width="100%"
-height="700"
-style="background: transparent; border: 1px solid #ddd"/>`
+  src="${sharedViewUrl.value}?embed"
+  frameborder="0"
+  width="100%"
+  height="700"
+  style="background: transparent; border: 1px solid #ddd"/>`
 })
 
 const copyIframeCode = async () => {

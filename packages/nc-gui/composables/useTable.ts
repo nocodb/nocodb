@@ -1,4 +1,4 @@
-import type { LinkToAnotherRecordType, TableType, ColumnType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import {
   Modal,

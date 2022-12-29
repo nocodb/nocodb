@@ -13,7 +13,8 @@ import {
   useViewData,
 } from '#imports'
 
-const { cowriterFormState, cowriterFormRef, cowriterTable, cowriterFormView, loadCowriterTable } = useCowriterStoreOrThrow()
+const { cowriterFormState, cowriterFormRef, cowriterTable, cowriterFormView, loadCowriterTable, generateAIColumns } =
+  useCowriterStoreOrThrow()
 
 provide(MetaInj, cowriterTable as Ref<TableType>)
 
@@ -222,7 +223,7 @@ watch([cowriterTable, cowriterFormView], async () => {
                 </template>
               </a-dropdown>
             </a-menu-item>
-            <a-menu-item key="add-column-using-ai">
+            <a-menu-item key="add-column-using-ai" @click="generateAIColumns">
               <div class="flex items-center py-3">
                 <PhSparkleFill class="mr-2 text-orange-400" />
                 Add New Column Using AI

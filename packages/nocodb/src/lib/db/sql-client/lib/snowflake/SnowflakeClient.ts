@@ -9,14 +9,14 @@ import lodash from 'lodash';
 const log = new Debug('SnowflakeClient');
 
 const rowsToLower = (arr) => {
-  for(const a of arr) {
-    for(const [k, v] of Object.entries(a)) {
+  for (const a of arr) {
+    for (const [k, v] of Object.entries(a)) {
       delete a[k];
       a[k.toLowerCase()] = v;
     }
   }
   return arr;
-}
+};
 
 class SnowflakeClient extends KnexClient {
   private queries: any;
@@ -228,7 +228,7 @@ class SnowflakeClient extends KnexClient {
    * @returns {Number} code
    * @returns {String} message
    */
-   async testConnection(args: any = {}) {
+  async testConnection(args: any = {}) {
     const func = this.testConnection.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -253,7 +253,7 @@ class SnowflakeClient extends KnexClient {
   getKnexDataTypes() {
     const result = new Result();
 
-    result.data.list = [      
+    result.data.list = [
       'NUMBER',
       'DECIMAL',
       'NUMERIC',
@@ -309,7 +309,9 @@ class SnowflakeClient extends KnexClient {
 
     try {
       result.data.object = {};
-      const data = await this.sqlClient.raw('SELECT CURRENT_VERSION() as "server_version"');
+      const data = await this.sqlClient.raw(
+        'SELECT CURRENT_VERSION() as "server_version"'
+      );
       log.debug(data.rows[0]);
       result.data.object.version = data.rows[0].server_version;
       const versions = data.rows[0].server_version.split('.');
@@ -363,8 +365,10 @@ class SnowflakeClient extends KnexClient {
         await this.sqlClient.raw(`CREATE DATABASE ??`, [args.database]);
       }
 
-      await this.sqlClient.raw(`CREATE SCHEMA IF NOT EXISTS ??.??`,[args.database, this.schema]);
-
+      await this.sqlClient.raw(`CREATE SCHEMA IF NOT EXISTS ??.??`, [
+        args.database,
+        this.schema,
+      ]);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -549,8 +553,9 @@ class SnowflakeClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const { rows } = await this
-        .raw(`SELECT SCHEMA_NAME as "schema_name" FROM "${this.database}".information_schema.SCHEMATA order by schema_name;`);
+      const { rows } = await this.raw(
+        `SELECT SCHEMA_NAME as "schema_name" FROM "${this.database}".information_schema.SCHEMATA order by schema_name;`
+      );
 
       result.data.list = rows;
     } catch (e) {
@@ -595,22 +600,30 @@ class SnowflakeClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       args.databaseName = this.database;
-      await this.sqlClient.raw(`SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
-      await this.sqlClient.raw(`SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
-      
-  
+      await this.sqlClient.raw(
+        `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+      );
+      await this.sqlClient.raw(
+        `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+      );
+
       const lastQueries = await this.sqlClient.raw(`
         select * from table("${this.database}".information_schema.query_history())
         WHERE query_text like 'SHOW%'
         ORDER BY start_time DESC
-        LIMIT 30;`
-      );
+        LIMIT 30;`);
 
       let pk_query_id, uq_query_id;
       for (const r of lastQueries.rows) {
-        if (r.QUERY_TEXT === `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`) {
+        if (
+          r.QUERY_TEXT ===
+          `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        ) {
           pk_query_id = r.QUERY_ID;
-        } else if (r.QUERY_TEXT === `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`) {
+        } else if (
+          r.QUERY_TEXT ===
+          `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        ) {
           uq_query_id = r.QUERY_ID;
         }
         if (pk_query_id && uq_query_id) {
@@ -766,21 +779,30 @@ class SnowflakeClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      await this.sqlClient.raw(`SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
-      await this.sqlClient.raw(`SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
+      await this.sqlClient.raw(
+        `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+      );
+      await this.sqlClient.raw(
+        `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+      );
 
       const lastQueries = await this.sqlClient.raw(`
         select * from table("${this.database}".INFORMATION_SCHEMA.query_history())
         WHERE query_text like 'SHOW%'
         ORDER BY start_time DESC
-        LIMIT 30;`
-      );
+        LIMIT 30;`);
 
       let pk_query_id, uq_query_id;
       for (const r of lastQueries.rows) {
-        if (r.QUERY_TEXT === `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`) {
+        if (
+          r.QUERY_TEXT ===
+          `SHOW PRIMARY KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        ) {
           pk_query_id = r.QUERY_ID;
-        } else if (r.QUERY_TEXT === `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`) {
+        } else if (
+          r.QUERY_TEXT ===
+          `SHOW UNIQUE KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        ) {
           uq_query_id = r.QUERY_ID;
         }
         if (pk_query_id && uq_query_id) {
@@ -797,7 +819,8 @@ class SnowflakeClient extends KnexClient {
         LEFT JOIN (select * from table(result_scan('${pk_query_id}')) UNION select * from table(result_scan('${uq_query_id}'))) pk
         ON "PK"."constraint_name" = tc.constraint_name
         WHERE tc.table_catalog = ? and tc.table_schema = ? and tc.table_name = ?;`,
-        [this.database, this.schema, args.tn]);
+        [this.database, this.schema, args.tn]
+      );
 
       result.data.list = rows;
     } catch (e) {
@@ -826,23 +849,27 @@ class SnowflakeClient extends KnexClient {
    * @property {String} - relations[].dr -
    * @property {String} - relations[].mo -
    */
-   async relationList(args: any = {}) {
+  async relationList(args: any = {}) {
     const _func = this.relationList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      await this.sqlClient.raw(`SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
+      await this.sqlClient.raw(
+        `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+      );
 
       const lastQueries = await this.sqlClient.raw(`
         select * from table("${this.database}".information_schema.query_history())
         WHERE query_text like 'SHOW%'
         ORDER BY start_time DESC
-        LIMIT 30;`
-      );
+        LIMIT 30;`);
 
       let ik_query_id;
       for (const r of lastQueries.rows) {
-        if (r.QUERY_TEXT === `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`) {
+        if (
+          r.QUERY_TEXT ===
+          `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        ) {
           ik_query_id = r.QUERY_ID;
           break;
         }
@@ -897,18 +924,22 @@ class SnowflakeClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
-      await this.sqlClient.raw(`SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`);
+      await this.sqlClient.raw(
+        `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+      );
 
       const lastQueries = await this.sqlClient.raw(`
         select * from table("${this.database}".information_schema.query_history())
         WHERE query_text like 'SHOW%'
         ORDER BY start_time DESC
-        LIMIT 30;`
-      );
+        LIMIT 30;`);
 
       let ik_query_id;
       for (const r of lastQueries.rows) {
-        if (r.QUERY_TEXT === `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`) {
+        if (
+          r.QUERY_TEXT ===
+          `SHOW IMPORTED KEYS IN SCHEMA "${this.database}"."${this.schema}";`
+        ) {
           ik_query_id = r.QUERY_ID;
           break;
         }
@@ -1060,7 +1091,7 @@ class SnowflakeClient extends KnexClient {
     try {
       const { rows } = await this.sqlClient.raw(
         `select * from "${this.database}".INFORMATION_SCHEMA.views WHERE table_schema = ?;`,
-          [this.schema]
+        [this.schema]
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1434,7 +1465,9 @@ class SnowflakeClient extends KnexClient {
       throw new Error('Function not supported for Snowflake yet');
       const upQuery =
         this.querySeparator() +
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${
+          args.event
+        }\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`;
       await this.sqlClient.raw(upQuery);
       const downQuery =
         this.querySeparator() +
@@ -1472,7 +1505,9 @@ class SnowflakeClient extends KnexClient {
         this.querySeparator() + `DROP TRIGGER ${args.procedure_name}`;
       const upQuery =
         this.querySeparator() +
-        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${args.event}\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER \`${args.procedure_name}\` \n${args.timing} ${
+          args.event
+        }\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`;
 
       await this.sqlClient.raw(query);
       await this.sqlClient.raw(upQuery);
@@ -1507,7 +1542,9 @@ class SnowflakeClient extends KnexClient {
       throw new Error('Function not supported for Snowflake yet');
       const upQuery =
         this.querySeparator() +
-        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`;
+        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${
+          args.event
+        }\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`;
       await this.sqlClient.raw(upQuery);
       result.data.object = {
         upStatement: [{ sql: upQuery }],
@@ -1544,7 +1581,9 @@ class SnowflakeClient extends KnexClient {
         `DROP TRIGGER ${args.trigger_name} ON ${args.tn}`
       );
       await this.sqlClient.raw(
-        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`
+        `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${
+          args.event
+        }\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`
       );
 
       result.data.object = {
@@ -1554,10 +1593,14 @@ class SnowflakeClient extends KnexClient {
             args.tn
           };${this.querySeparator()}CREATE TRIGGER ${args.trigger_name} \n${
             args.timing
-          } ${args.event}\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.statement}`,
+          } ${args.event}\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${
+            args.statement
+          }`,
         downStatement:
           this.querySeparator() +
-          `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.oldStatement}`,
+          `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${
+            args.event
+          }\nON ${this.getTnPath(args.tn)} FOR EACH ROW\n${args.oldStatement}`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1712,7 +1755,9 @@ class SnowflakeClient extends KnexClient {
 
       const downStatement =
         this.querySeparator() +
-        this.sqlClient.raw(`DROP TABLE ??`, [this.getTnPath(args.table)]).toString();
+        this.sqlClient
+          .raw(`DROP TABLE ??`, [this.getTnPath(args.table)])
+          .toString();
 
       this.emit(`Success : ${upQuery}`);
 
@@ -1857,7 +1902,7 @@ class SnowflakeClient extends KnexClient {
         //downQuery = `ALTER TABLE "${args.columns[0].tn}" ${downQuery};`;
       }
 
-      for(const q of upQuery.split(';')) {
+      for (const q of upQuery.split(';')) {
         if (q && q.trim() !== '') {
           await this.sqlClient.raw(q);
         }
@@ -1902,7 +1947,9 @@ class SnowflakeClient extends KnexClient {
       /** ************** create up & down statements *************** */
       const upStatement =
         this.querySeparator() +
-        this.sqlClient.raw(`DROP TABLE ??`, [this.getTnPath(args.tn)]).toString();
+        this.sqlClient
+          .raw(`DROP TABLE ??`, [this.getTnPath(args.tn)])
+          .toString();
       let downQuery = this.createTable(args.tn, args);
 
       /**
@@ -2007,7 +2054,7 @@ class SnowflakeClient extends KnexClient {
    * @param {String} - args.childTable
    * @returns {Promise<{upStatement, downStatement}>}
    */
-   async relationCreate(args) {
+  async relationCreate(args) {
     const _func = this.relationCreate.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -2371,7 +2418,10 @@ class SnowflakeClient extends KnexClient {
         : '';
       if (numOfPksInNew.length) {
         if (createTable) {
-          query += this.genQuery(`, constraint ?? PRIMARY KEY (??)`, [`${t}_pkey`, numOfPksInNew]);
+          query += this.genQuery(`, constraint ?? PRIMARY KEY (??)`, [
+            `${t}_pkey`,
+            numOfPksInNew,
+          ]);
         } else {
           query += this.genQuery(
             `alter TABLE ?? add constraint ?? PRIMARY KEY(??);`,
@@ -2416,7 +2466,9 @@ class SnowflakeClient extends KnexClient {
 
     query += this.alterTablePK(table, args.columns, [], query, true);
 
-    query = this.genQuery(`CREATE TABLE ?? (${query});`, [this.getTnPath(args.tn)]);
+    query = this.genQuery(`CREATE TABLE ?? (${query});`, [
+      this.getTnPath(args.tn),
+    ]);
 
     return query;
   }
@@ -2430,7 +2482,11 @@ class SnowflakeClient extends KnexClient {
     if (change === 0) {
       query = existingQuery ? ',' : '';
       if (n.ai) {
-        query += this.genQuery(` ?? NUMBER(38,0) NOT NULL autoincrement UNIQUE`, [n.cn], shouldSanitize);
+        query += this.genQuery(
+          ` ?? NUMBER(38,0) NOT NULL autoincrement UNIQUE`,
+          [n.cn],
+          shouldSanitize
+        );
       } else {
         query += this.genQuery(` ?? ${n.dt}`, [n.cn], shouldSanitize);
         query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
@@ -2442,7 +2498,11 @@ class SnowflakeClient extends KnexClient {
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
-      query = this.genQuery(`ALTER TABLE ?? ${query};`, [this.getTnPath(t)], shouldSanitize);
+      query = this.genQuery(
+        `ALTER TABLE ?? ${query};`,
+        [this.getTnPath(t)],
+        shouldSanitize
+      );
     } else {
       if (n.cn !== o.cn) {
         query += this.genQuery(
@@ -2483,17 +2543,11 @@ class SnowflakeClient extends KnexClient {
   }
 
   get schema() {
-    return (
-      (this.connectionConfig &&
-        this.connectionConfig.connection.schema)
-    );
+    return this.connectionConfig && this.connectionConfig.connection.schema;
   }
 
   get database() {
-    return (
-      (this.connectionConfig &&
-        this.connectionConfig.connection.database)
-    );
+    return this.connectionConfig && this.connectionConfig.connection.database;
   }
 
   getTnPath(t) {

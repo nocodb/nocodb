@@ -190,7 +190,7 @@ export default async (
     const duration = Date.now() - start;
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
-    
+
     if (!ft.baseId) {
       throw {
         message:
@@ -221,7 +221,8 @@ export default async (
   }
 
   function getRootDbType() {
-    return ncCreatedProjectSchema?.bases.find((el) => el.id === syncDB.baseId)?.type;
+    return ncCreatedProjectSchema?.bases.find((el) => el.id === syncDB.baseId)
+      ?.type;
   }
 
   // base mapping table
@@ -319,7 +320,10 @@ export default async (
   // @ts-ignore
   async function nc_DumpTableSchema() {
     console.log('[');
-    const ncTblList = await api.base.tableList(ncCreatedProjectSchema.id, syncDB.baseId);
+    const ncTblList = await api.base.tableList(
+      ncCreatedProjectSchema.id,
+      syncDB.baseId
+    );
     for (let i = 0; i < ncTblList.list.length; i++) {
       const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
       console.log(JSON.stringify(ncTbl, null, 2));
@@ -2237,7 +2241,10 @@ export default async (
       try {
         // await nc_DumpTableSchema();
         const _perfStart = recordPerfStart();
-        const ncTblList = await api.base.tableList(ncCreatedProjectSchema.id, syncDB.baseId);
+        const ncTblList = await api.base.tableList(
+          ncCreatedProjectSchema.id,
+          syncDB.baseId
+        );
         recordPerfStats(_perfStart, 'base.tableList');
 
         logBasic('Reading Records...');

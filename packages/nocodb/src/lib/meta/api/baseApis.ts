@@ -35,19 +35,17 @@ export async function baseUpdate(
 ) {
   const baseBody = req.body;
   const project = await Project.getWithInfo(req.params.projectId);
-  const base = await Base.updateBase(req.params.baseId,
-    {
-      ...baseBody,
-      type: baseBody.config?.client,
-      projectId: project.id,
-      id: req.params.baseId,
-    }
-  );
+  const base = await Base.updateBase(req.params.baseId, {
+    ...baseBody,
+    type: baseBody.config?.client,
+    projectId: project.id,
+    id: req.params.baseId,
+  });
 
   delete base.config;
 
   Tele.emit('evt', {
-    evt_type: 'base:updated'
+    evt_type: 'base:updated',
   });
 
   res.json(base);
@@ -63,12 +61,11 @@ export async function baseList(
 
     res // todo: pagination
       .json({
-          bases: new PagedResponseImpl(bases, {
-            count: bases.length,
-            limit: bases.length,
-          })
-        }
-      );
+        bases: new PagedResponseImpl(bases, {
+          count: bases.length,
+          limit: bases.length,
+        }),
+      });
   } catch (e) {
     console.log(e);
     next(e);
@@ -98,13 +95,13 @@ async function baseCreate(req: Request<any, any>, res) {
   await syncBaseMigration(project, base);
 
   const info = await populateMeta(base, project);
-  
+
   Tele.emit('evt_api_created', info);
 
   delete base.config;
 
   Tele.emit('evt', {
-    evt_type: 'base:created'
+    evt_type: 'base:created',
   });
 
   res.json(base);
@@ -142,14 +139,12 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
       return t;
     });
 
-
   /* filter based on prefix */
   if (base.is_meta && project?.prefix) {
     tables = tables.filter((t) => {
       return t?.tn?.startsWith(project?.prefix);
     });
   }
-  
 
   info.tablesCount = tables.length;
 

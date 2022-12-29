@@ -121,8 +121,7 @@ async function read() {
     };
   } else {
     throw {
-      message:
-        'Error Initializing :: please try again !!',
+      message: 'Error Initializing :: please try again !!',
     };
   }
 }
@@ -177,8 +176,7 @@ async function readView(viewId) {
     return { view: resreq.data };
   } else {
     throw {
-      message:
-        'Error Initializing :: please try again !!',
+      message: 'Error Initializing :: please try again !!',
     };
   }
 }

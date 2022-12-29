@@ -553,9 +553,8 @@ export default class Noco {
 
   public static async loadEEState(): Promise<boolean> {
     try {
-      return (Noco.ee = !!(await Store.get(NC_LICENSE_KEY)));
-    } catch {
-      return (Noco.ee = false);
-    }
+      return (Noco.ee = !!(await Store.get(NC_LICENSE_KEY))?.value);
+    } catch {}
+    return (Noco.ee = false);
   }
 }

@@ -158,8 +158,10 @@ const onDragEnter = () => {
 const onDrop = async (info: AntTreeNodeDropEvent) => {
   if (info.dropPosition < 0) info.dropPosition = 0
 
-  // if drag node and drop node are in the same parent and using `==` since `info.node.dataRef.parent_page_id` can be `null`
-  if (info.dragNode.dataRef.parent_page_id == info.node.dataRef.parent_page_id) {
+  // Since `info.node.dataRef.parent_page_id` can be `null`, make `undefined` is converted to `null`
+  if (!info.dragNode.dataRef!.parent_page_id) info.dragNode.dataRef!.parent_page_id = null
+
+  if (info.dragNode.dataRef!.parent_page_id === info.node.dataRef!.parent_page_id) {
     const parentId: string | undefined = info.dragNode.dataRef!.parent_page_id
     const siblings: any[] = getChildrenOfPage(parentId)
     const targetNodeIndex = siblings.findIndex((node) => node.id === info.node.dataRef!.id)

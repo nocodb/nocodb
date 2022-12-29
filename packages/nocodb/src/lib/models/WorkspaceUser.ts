@@ -140,8 +140,6 @@ export class WorkspaceUser {
       );
     });
 
-    console.log(queryBuilder.toQuery());
-
     const workspaceList = await queryBuilder;
 
     // parse meta json
@@ -156,7 +154,7 @@ export class WorkspaceUser {
       }
     }
 
-    return await queryBuilder;
+    return workspaceList;
   }
 
   static async userList(

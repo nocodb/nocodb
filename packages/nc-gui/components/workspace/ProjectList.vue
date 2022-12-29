@@ -84,7 +84,7 @@ const deleteProject = (project: ProjectType) => {
             </div>
           </td>
           <td class="text-gray-500 text-xs">{{ timeAgo(project.created_at) }}</td>
-          <td class="text-xs text-gry-500">
+          <td class="text-xs text-gray-500">
             {{ roleAlias[project.workspace_role || project.project_role] }}
           </td>
           <td>

@@ -43,7 +43,6 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     try {
       // todo: pagination
       const res = await $api.workspace.create(workspace)
-      console.log(res)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -55,8 +54,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   ) => {
     try {
       // todo: pagination
-      const res = await $api.workspace.update(workspaceId, workspace)
-      console.log(res)
+      await $api.workspace.update(workspaceId, workspace)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -64,8 +62,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   const deleteWorkspace = async (workspaceId: string) => {
     // todo: pagination
-    const res = await $api.workspace.delete(workspaceId)
-    console.log(res)
+    await $api.workspace.delete(workspaceId)
   }
 
   const loadProjects = async () => {

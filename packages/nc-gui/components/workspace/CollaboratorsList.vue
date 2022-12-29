@@ -66,9 +66,9 @@ const updateCollaborator = async (collab) => {
             {{ timeAgo(collab.created_at) }}
           </td>
           <td>
-            <space v-if="collab.roles === WorkspaceUserRoles.OWNER">
+            <span class="text-xs text-gray-500" v-if="collab.roles === WorkspaceUserRoles.OWNER">
               {{ getRolesLabel(collab.roles) }}
-            </space>
+            </span>
 
             <a-select v-else v-model:value="collab.roles" class="w-30" @change="updateCollaborator(collab)">
               <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator</a-select-option>

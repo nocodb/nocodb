@@ -10,7 +10,7 @@ on:
 
 jobs:
   cloud-docker-build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       working-directory: ./packages/nocodb
     steps:

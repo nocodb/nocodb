@@ -76,8 +76,9 @@ export async function cowriterGenerateColumns(req, res) {
 
   const output = response.data.choices[0].text
     .replaceAll('\n\n', '')
+    .replaceAll('"', '')
     .trim()
-    .split(',');
+    .split(', ');
 
   console.log(output);
 

@@ -201,11 +201,11 @@ const iframeCode = computed(() => {
   if (!sharedViewUrl.value) return
 
   return `<iframe class="nc-embed"
-"src="${sharedViewUrl.value}?embed"
-frameborder="0"
-width="100%"
-height="700"
-style="background: transparent; border: 1px solid #ddd"/>`
+  src="${sharedViewUrl.value}?embed"
+  frameborder="0"
+  width="100%"
+  height="700"
+  style="background: transparent; border: 1px solid #ddd"/>`
 })
 
 const copyIframeCode = async () => {
@@ -251,7 +251,7 @@ const copyIframeCode = async () => {
         <div class="flex-1 h-min text-xs text-gray-500">{{ sharedViewUrl }}</div>
 
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
-          <MdiOpenInNew class="text-sm text-gray-500 mt-2" />
+          <MdiOpenInNew class="text-sm text-gray-500" />
         </a>
 
         <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />

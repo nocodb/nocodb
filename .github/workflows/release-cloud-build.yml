@@ -57,7 +57,7 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: nocohubx
+          ECR_REPOSITORY: nocohub
           IMAGE_TAG: ${{ github.event.inputs.tag }}
         run: |
           cd packages/nocodb &&

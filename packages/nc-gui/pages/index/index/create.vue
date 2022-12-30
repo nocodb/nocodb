@@ -72,6 +72,8 @@ const createProject = async () => {
         // Create a table for the COWRITER form
         const nanoidV2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14)
         table.table_name = `nc_cowriter_${nanoidV2()}`
+        // exclude title
+        table.columns = ['id', 'created_at', 'updated_at']
         await createTable()
 
         await navigateTo(`/nc/cowriter/${result.id}`)

@@ -159,7 +159,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.sqlClient.clientType();
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -306,7 +306,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.sqlClient.clientType();
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -459,7 +459,7 @@ export async function tableCreateMagic(
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.sqlClient.clientType();
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -574,7 +574,7 @@ export async function schemaMagic(
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.sqlClient.clientType();
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {

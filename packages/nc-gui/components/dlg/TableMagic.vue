@@ -20,7 +20,6 @@ const { addTab } = useTabs()
 const { loadTables, isMysql, isMssql, isPg } = useProject()
 
 const { table, createTableMagic, generateUniqueTitle, tables, project } = useTable(async (table) => {
-  console.log('table', table)
   await loadTables()
 
   addTab({

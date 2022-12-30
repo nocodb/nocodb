@@ -36,7 +36,7 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const meta = inject(MetaInj, ref())
 
@@ -51,6 +51,8 @@ const advancedOptions = ref(false)
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
+
+const predictFirstType = ref(false)
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
@@ -107,9 +109,26 @@ watchEffect(() => {
   advancedOptions.value = false
 })
 
+const debouncedPredict = useDebounceFn(async () => {
+  if (!predictFirstType.value) return
+  predictFirstType.value = false
+  const predictRes = await $api.utils.magic({
+    operation: 'predictColumnType',
+    data: {
+      title: formState.value.title,
+    },
+  })
+  const predictType = predictRes?.data
+  if (predictType && Object.values(UITypes).includes(predictType)) {
+    formState.value.uidt = predictType
+    onUidtOrIdTypeChange()
+  }
+}, 1000)
+
 onMounted(() => {
   if (!isEdit.value) {
     generateNewColumnMeta()
+    predictFirstType.value = true
   } else {
     if (formState.value.pk) {
       message.info(t('msg.info.editingPKnotSupported'))
@@ -145,6 +164,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             class="nc-column-name-input"
             :disabled="isKanban"
             @input="onAlter(8)"
+            @change="debouncedPredict"
           />
         </a-form-item>
 

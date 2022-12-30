@@ -377,10 +377,10 @@ const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
   });
 };
 
-export async function selectOptionsMagic(req: Request, res: Response) {
+async function selectOptionsMagic(req: Request, res: Response) {
   const response = await openai.createCompletion({
-    model: 'text-davinci-003',
-    prompt: `return select options for '${req.body.title}' column for '${req.body.table}' table in '${req.body.schema}' schema as Array<string> in json`,
+    model: "text-davinci-003",
+    prompt: `return select options for '${req.body.data.title}' column for '${req.body.data.table}' table in '${req.body.data.schema}' schema as Array<string> in json`,
     temperature: 0.7,
     max_tokens: 4000,
     top_p: 1,
@@ -389,7 +389,7 @@ export async function selectOptionsMagic(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res.status(500).json({ error: 'No options found' });
+    res.status(500).json({ msg: "Unable to process request, please try again!" });
     return;
   }
 
@@ -398,14 +398,56 @@ export async function selectOptionsMagic(req: Request, res: Response) {
   res.json(options);
 }
 
+async function predictColumnType(req: Request, res: Response) {
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: `Within types: ID,LinkToAnotherRecord,ForeignKey,SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry select most appropiate type for '${req.body.data.title}' column:`,
+    temperature: 0.7,
+    max_tokens: 4000,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    return;
+  }
+
+  const resObject = { data: response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim() };
+
+  res.json(resObject);
+}
+
+export async function genericGPT(req: Request, res: Response) {
+  // req.body.operation
+  // req.body.data
+
+  try {
+    switch (req.body.operation) {
+      case "selectOptions":
+        // req.body.data.table, req.body.data.schema, req.body.data.title
+        return await selectOptionsMagic(req, res);
+      case "predictColumnType":
+        // req.body.data.title
+        return await predictColumnType(req, res);
+      default:
+        return res.status(500).json({ msg: "Unknown operation" });
+    }
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ msg: "Unable to process request, please try again!" });
+  }
+}
+
 export default (router) => {
   router.post(
     '/api/v1/db/meta/connection/test',
     ncMetaAclMw(testConnection, 'testConnection')
   );
   router.post(
-    '/api/v1/db/meta/select/magic',
-    ncMetaAclMw(selectOptionsMagic, 'selectOptionsMagic')
+    '/api/v1/db/meta/magic',
+    ncMetaAclMw(genericGPT, 'genericGPT')
   );
 
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));

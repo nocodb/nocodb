@@ -77,77 +77,83 @@ export async function cowriterGenerateColumns(req, res) {
 
   const columns = await table.getColumns();
 
+  const existingColumnNames = columns.map((c) => c.column_name);
+
   const output = response.data.choices[0].text
     .replaceAll('\n\n', '')
     .replaceAll('"', '')
     .trim()
-    .split(', ');
+    .split(', ')
+    .filter((column_name) => !existingColumnNames.includes(column_name));
 
-  console.log(output);
+  if (output.length > 0) {
+    const base = await Base.get(table.base_id);
 
-  const base = await Base.get(table.base_id);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr({
+      id: base.project_id,
+    });
 
-  const sqlMgr = await ProjectMgrv2.getSqlMgr({
-    id: base.project_id,
-  });
+    const newColumns: Column[] = [];
 
-  const newColumns: Column[] = [];
-  // TODO: check if column exists
-  await Promise.all(
-    output.map(async (o) => {
-      const title = getUniqueColumnAliasName(columns, o);
-      const column = await Column.insert({
-        title,
-        column_name: o,
-        fk_model_id: req.params.tableId,
-        uidt: UITypes.SingleLineText,
-        meta: {},
-        dt: 'varchar',
-        dtx: 'specificType',
-        ct: 'varchar(45)',
-        nrqd: true,
-        rqd: false,
-        ck: false,
-        pk: false,
-        un: false,
-        ai: false,
-        cdf: null,
-        clen: 45,
-        np: null,
-        ns: null,
-        dtxp: '45',
-        dtxs: '',
-        altered: 1,
-        uip: '',
-        uicn: '',
-      });
-      newColumns.push(column);
-    })
-  );
+    await Promise.all(
+      output.map(async (column_name) => {
+        const title = getUniqueColumnAliasName(columns, column_name);
+        const column = await Column.insert({
+          title,
+          column_name,
+          fk_model_id: req.params.tableId,
+          uidt: UITypes.SingleLineText,
+          meta: {},
+          dt: 'varchar',
+          dtx: 'specificType',
+          ct: 'varchar(45)',
+          nrqd: true,
+          rqd: false,
+          ck: false,
+          pk: false,
+          un: false,
+          ai: false,
+          cdf: null,
+          clen: 45,
+          np: null,
+          ns: null,
+          dtxp: '45',
+          dtxs: '',
+          altered: 1,
+          uip: '',
+          uicn: '',
+        });
+        newColumns.push(column);
+      })
+    );
 
-  const originalColumns = columns.map((c) => ({
-    ...c,
-    cn: c.column_name,
-  }));
-
-  const tableUpdateBody = {
-    ...table,
-    tn: table.table_name,
-    originalColumns,
-    columns: [
-      ...originalColumns,
-      ...newColumns.map((c) => ({
+    if (newColumns.length > 0) {
+      const originalColumns = columns.map((c) => ({
         ...c,
         cn: c.column_name,
-        altered: Altered.NEW_COLUMN,
-      })),
-    ],
-  };
+      }));
 
-  await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+      const tableUpdateBody = {
+        ...table,
+        tn: table.table_name,
+        originalColumns,
+        columns: [
+          ...originalColumns,
+          ...newColumns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+            altered: Altered.NEW_COLUMN,
+          })),
+        ],
+      };
 
-  // TODO: return something meaningful
-  res.json({ res: true });
+      await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+    }
+
+    await table.getColumns();
+  }
+
+  res.json(table);
 }
 
 export async function cowriterUpdate(req, res) {

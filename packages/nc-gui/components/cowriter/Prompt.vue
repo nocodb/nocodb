@@ -17,13 +17,13 @@ const vModel = computed({
 </script>
 
 <template>
-  <div class="h-min-[calc(100%_-_160px] w-full overflow-y-auto scrollbar-thin-dull">
+  <div class="h-min-[calc(100%_-_160px] w-full overflow-y-auto scrollbar-thin-dull nc-cowriter-prompt">
     <a-textarea v-model:value="vModel" :auto-size="{ minRows: 20 }" />
   </div>
 </template>
 
 <style>
-textarea {
+.nc-cowriter-prompt textarea {
   @apply !px-[20px] !py-[30px];
 }
 </style>

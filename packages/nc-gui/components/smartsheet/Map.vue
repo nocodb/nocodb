@@ -3,6 +3,8 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
+// import contextmenu from 'vue3-contextmenu'
+// import 'vue3-contextmenu/dist/vue3-contextmenu.css'
 import { IsGalleryInj, IsGridInj, IsMapInj, OpenNewRecordFormHookInj, onMounted, provide, ref } from '#imports'
 
 import type { Row as RowType } from '~/lib'
@@ -28,6 +30,7 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
+const expandedFormClickedLatLongForNewRow = ref<[number, number]>()
 
 const fallBackCenterLocation = {
   lat: 51,
@@ -39,9 +42,11 @@ const getMapZoomLocalStorageKey = (viewId: string) => {
 }
 const getMapCenterLocalStorageKey = (viewId: string) => `mapView.center.${viewId}`
 
-const expandForm = (row: RowType, state?: Record<string, any>) => {
+const expandForm = (row: RowType, state?: Record<string, any>, clickedLatLongForNewRow?: [number, number]) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-
+  console.log('state in expandForm', state)
+  console.log('row in expandForm', row)
+  console.log('clickedLatLongForNewRow', clickedLatLongForNewRow)
   if (rowId) {
     router.push({
       query: {
@@ -50,9 +55,13 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
       },
     })
   } else {
+    expandedFormClickedLatLongForNewRow.value = clickedLatLongForNewRow
     expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
+
+    // const lat = state?.lat
+    // const lng = state?.lng
   }
 }
 
@@ -81,8 +90,10 @@ const addMarker = (lat: number, long: number, row: RowType) => {
     throw new Error('Map is null')
   }
   const newMarker = L.marker([lat, long]).on('click', () => {
+    console.log('OnNewMarker')
     expandForm(row)
   })
+  console.log('onaddMarker', lat, long)
   markersClusterGroupRef.value?.addLayer(newMarker)
 }
 
@@ -135,6 +146,25 @@ onMounted(async () => {
       localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData?.value?.fk_view_id), JSON.stringify(myMap.getCenter()))
     }
   })
+
+  // myMap.on('contextmenu', async function (e) {
+  // console.log('onContext')
+  // const newRow = await addEmptyRow()
+  // const lat = e.latlng.lat
+  // const lng = e.latlng.lng
+  // addMarker(lat, lng, newRow)
+  // expandForm(newRow)
+  // submitForm()
+  // })
+
+  myMap.on('contextmenu', async function (e) {
+    const newRow = await addEmptyRow()
+    const lat = e.latlng.lat
+    const lng = e.latlng.lng
+    addMarker(lat, lng, newRow)
+    console.log('oncontextClick', lat, lng, newRow)
+    expandForm(newRow, undefined, [lat, lng])
+  })
 })
 
 reloadViewMetaHook?.on(async () => {
@@ -182,13 +212,19 @@ watch(view, async (nextView) => {
   }
 })
 
-const count = computed(() => paginationData.value.totalRows)
+const expandedFormDlgInitialGeoPositionData = computed(() => ({
+  lat: expandedFormClickedLatLongForNewRow.value?.[0],
+  long: expandedFormClickedLatLongForNewRow.value?.[1],
+  geoColId: geoDataFieldColumn.value?.id,
+}))
 
-syncCount()
+const count = computed(() => paginationData.value.totalRows)
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full no-underline">
+    expandedFormDlgInitialGeoPositionData: {{ JSON.stringify(expandedFormDlgInitialGeoPositionData) }}
+
     <div id="mapContainer" ref="mapContainerRef">
       <a-tooltip placement="bottom" class="tooltip">
         <template #title>
@@ -213,6 +249,7 @@ syncCount()
       :state="expandedFormRowState"
       :meta="meta"
       :view="view"
+      :initial-geo-position-data="expandedFormDlgInitialGeoPositionData"
     />
   </Suspense>
 

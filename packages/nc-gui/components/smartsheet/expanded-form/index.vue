@@ -23,6 +23,12 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 
+interface InitialGeoPositionData {
+  lat?: number
+  long?: number
+  geoColId?: string
+}
+
 interface Props {
   modelValue?: boolean
   row: Row
@@ -32,6 +38,7 @@ interface Props {
   useMetaFields?: boolean
   rowId?: string
   view?: ViewType
+  initialGeoPositionData?: InitialGeoPositionData
 }
 
 const props = defineProps<Props>()
@@ -43,6 +50,9 @@ const row = ref(props.row)
 const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
+
+// const initialGeoPositionData = toRef(props, 'initialGeoPositionData')
+const initialGeoPositionData = ref(props.initialGeoPositionData)
 
 const router = useRouter()
 
@@ -125,6 +135,7 @@ if (isKanban.value) {
 const cellWrapperEl = ref<HTMLElement>()
 
 onMounted(() => {
+
   setTimeout(() => {
     ;(cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus()
   })
@@ -150,6 +161,8 @@ export default {
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
     <div class="!bg-gray-100 rounded flex-1">
+      FOO geodata: {{ JSON.stringify(initialGeoPositionData) }} BAR
+
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">

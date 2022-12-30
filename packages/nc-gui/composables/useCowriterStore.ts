@@ -27,6 +27,8 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const promptStatementTemplate = ref('')
 
+  const generateButtonLoading = ref(false)
+
   const { $api } = useNuxtApp()
 
   async function loadCowriterProject() {
@@ -74,10 +76,12 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   }
 
   async function generateCowriter() {
+    generateButtonLoading.value = true
     try {
       await cowriterFormRef.value?.validateFields()
     } catch (e: any) {
       e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
+      generateButtonLoading.value = false
       if (e.errorFields.length) return
     }
     if (!promptStatementTemplate.value) {
@@ -86,6 +90,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     }
     const cowriter = await $api.cowriterTable.create(cowriterTable.value!.id!, cowriterFormState)
     ;(cowriterOutputList.value as CowriterType[]).unshift(cowriter)
+    generateButtonLoading.value = false
   }
 
   async function loadCowriterList() {
@@ -142,6 +147,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     savePromptStatementTemplate,
     clearCowriterOutput,
     generateAIColumns,
+    generateButtonLoading,
     cowriterHistoryList,
     cowriterOutputList,
     cowriterInputActiveKey,

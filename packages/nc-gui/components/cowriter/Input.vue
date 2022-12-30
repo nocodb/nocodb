@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCowriterStoreOrThrow } from '#imports'
-const { cowriterInputActiveKey, generateCowriter } = useCowriterStoreOrThrow()
+const { cowriterInputActiveKey, generateCowriter, generateButtonLoading } = useCowriterStoreOrThrow()
 
 async function generate() {
   await generateCowriter()
@@ -17,7 +17,7 @@ async function generate() {
     </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-8">
-        <a-button class="!rounded-md" type="primary" @click="generate">
+        <a-button class="!rounded-md" type="primary" @click="generate" :loading="generateButtonLoading">
           {{ $t('general.generate') }}
         </a-button>
       </div>

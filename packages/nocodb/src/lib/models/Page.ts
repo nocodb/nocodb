@@ -126,6 +126,7 @@ export default class Page {
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType> {
+    // const now = new Date();
     const previousPage = await this.get({ id: pageId, bookId, projectId });
     if (!previousPage) throw new Error('Page not found');
 
@@ -146,6 +147,13 @@ export default class Page {
       });
 
       attributes.slug = uniqueSlug;
+    }
+
+    if ('is_published' in attributes && attributes.is_published) {
+      // todo: Set published date
+      // attributes.last_published_date = now.toISOString();
+      attributes.last_published_by_id = user.id;
+      attributes.published_content = attributes.content || previousPage.content;
     }
 
     attributes.last_updated_by_id = user.id;
@@ -269,7 +277,7 @@ export default class Page {
       projectId: string;
     },
     ncMeta = Noco.ncMeta
-  ): Promise<Page[]> {
+  ): Promise<DocsPageType[]> {
     const pageList = await ncMeta.metaList2(
       null,
       null,

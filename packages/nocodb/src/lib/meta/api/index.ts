@@ -47,6 +47,8 @@ import {
 import {
   publicDataApis,
   publicDataExportApis,
+  publicDocsBooksApis,
+  publicDocsPagesApis,
   publicMetaApis,
 } from './publicApis';
 import { Server, Socket } from 'socket.io';
@@ -85,6 +87,8 @@ export default function (router: Router, server) {
   router.use(publicDataApis);
   router.use(publicDataExportApis);
   router.use(publicMetaApis);
+  router.use(publicDocsBooksApis);
+  router.use(publicDocsPagesApis);
   router.use(gridViewColumnApis);
   router.use(tableApis);
   router.use(galleryViewApis);

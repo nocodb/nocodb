@@ -10,6 +10,92 @@
     }
   ],
   "paths": {
+    "/api/v1/public/docs/books/{slug}": {
+      "get": {
+        "summary": "get public book",
+        "operationId": "get-public-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get public book"
+      }
+    },
+    "/api/v1/public/docs/pages": {
+      "get": {
+        "summary": "list public pages",
+        "operationId": "list-public-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parent_page_id",
+            "in": "query",
+            "description": "parent_page_id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get public book"
+      }
+    },
     "/api/v1/docs/books": {
       "get": {
         "summary": "List books",

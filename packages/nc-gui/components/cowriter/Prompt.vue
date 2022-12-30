@@ -21,3 +21,9 @@ const vModel = computed({
     <a-textarea v-model:value="vModel" :auto-size="{ minRows: 20 }" />
   </div>
 </template>
+
+<style>
+textarea {
+  @apply !px-[20px] !py-[30px];
+}
+</style>

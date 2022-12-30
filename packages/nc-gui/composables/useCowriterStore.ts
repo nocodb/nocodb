@@ -73,23 +73,6 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     cowriterFormView.value = views.value[1]
   }
 
-  function translatePromptStatement(promptStatementTemplate: string) {
-    if (!cowriterTable.value) {
-      return
-    }
-
-    // replace {{col}} in the given template
-    let promptStatement = promptStatementTemplate
-
-    ;(cowriterTable.value as TableType).columns!.forEach((c) => {
-      if (cowriterFormState[c.title!]) {
-        promptStatement = promptStatement.replaceAll(`{{${c.title}}}`, cowriterFormState[c.title!])
-      }
-    })
-
-    return promptStatement
-  }
-
   async function generateCowriter() {
     try {
       await cowriterFormRef.value?.validateFields()
@@ -97,11 +80,11 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
       e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
       if (e.errorFields.length) return
     }
-    const cowriter = await $api.cowriterTable.create(cowriterTable.value!.id!, {
-      ...cowriterFormState,
-      prompt_statement_template: promptStatementTemplate.value,
-      prompt_statement: translatePromptStatement(promptStatementTemplate.value),
-    })
+    if (!promptStatementTemplate.value) {
+      message.warn('No prompt statement is found.')
+      return
+    }
+    const cowriter = await $api.cowriterTable.create(cowriterTable.value!.id!, cowriterFormState)
     ;(cowriterOutputList.value as CowriterType[]).unshift(cowriter)
   }
 

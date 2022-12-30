@@ -12,9 +12,9 @@ import * as nc_021_add_fields_in_token from './v2/nc_021_add_fields_in_token';
 import * as nc_022_qr_code_column_type from './v2/nc_022_qr_code_column_type';
 import * as nc_023_multiple_source from './v2/nc_023_multiple_source';
 import * as nc_024_barcode_column_type from './v2/nc_024_barcode_column_type';
-import * as nc_024_add_type_to_project from './v2/nc_024_add_type_to_project';
-import * as nc_025_create_books from './v2/nc_025_create_books';
-import * as nc_026_workspace from './v2/nc_026_workspace';
+import * as nc_025_add_type_to_project from './v2/nc_025_add_type_to_project';
+import * as nc_026_create_books from './v2/nc_026_create_books';
+import * as nc_027_workspace from './v2/nc_027_workspace';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -78,12 +78,12 @@ export default class XcMigrationSourcev2 {
         return nc_023_multiple_source;
       case 'nc_024_barcode_column_type':
         return nc_024_barcode_column_type;
-      case 'nc_024_add_type_to_project':
-        return nc_024_add_type_to_project;
-      case 'nc_025_create_books':
-        return nc_025_create_books;
-      case 'nc_026_workspace':
-        return nc_026_workspace;
+      case 'nc_025_add_type_to_project':
+        return nc_025_add_type_to_project;
+      case 'nc_026_create_books':
+        return nc_026_create_books;
+      case 'nc_027_workspace':
+        return nc_027_workspace;
     }
   }
 }

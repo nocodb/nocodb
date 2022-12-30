@@ -66,7 +66,7 @@ const updateCollaborator = async (collab) => {
             {{ timeAgo(collab.created_at) }}
           </td>
           <td>
-            <span class="text-xs text-gray-500" v-if="collab.roles === WorkspaceUserRoles.OWNER">
+            <span v-if="collab.roles === WorkspaceUserRoles.OWNER" class="text-xs text-gray-500">
               {{ getRolesLabel(collab.roles) }}
             </span>
 

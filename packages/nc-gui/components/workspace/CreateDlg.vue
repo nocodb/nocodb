@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
+import type { VNodeRef } from '@vue/runtime-core'
 import { Form, nextTick, onMounted, ref, useVModel } from '#imports'
 import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import {VNodeRef} from "@vue/runtime-core";
 
 const props = defineProps<{
   modelValue: boolean

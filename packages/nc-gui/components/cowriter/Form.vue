@@ -346,8 +346,12 @@ onMounted(async () => {
         </template>
 
         <template #footer>
-          <div v-if="!localColumns.length" class="mt-4 border-1 border-gray-300 py-3 text-gray-400 text-center">
-            Click Add Field to add columns
+          <div v-if="!localColumns.length" class="p-3 text-gray-400 flex gap-y-2 flex-col">
+            <div class="font-bold">GET STARTED IN 3 SIMPLE STEPS</div>
+            <div>1. Click on <span class="text-[#EC6D45]">Add Field</span> button - to add fields required for your prompt</div>
+            <div>2. Click on <span class="text-[#EC6D45]">Prompt</span> tab - to create a prompt statement</div>
+            <div>3. Click on <span class="text-[#EC6D45]">Generate</span> button.</div>
+            <a href="#">Click here to read more</a>
           </div>
         </template>
       </Draggable>

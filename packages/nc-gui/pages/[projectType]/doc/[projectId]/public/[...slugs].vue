@@ -1,9 +1,14 @@
 <script setup lang="ts">
 definePageMeta({
+  public: true,
+  requiresAuth: false,
   key: 'true',
   hideHeader: true,
   layout: 'docs',
 })
+
+const isPublic = ref(true)
+provide(IsDocsPublicInj, isPublic)
 </script>
 
 <template>

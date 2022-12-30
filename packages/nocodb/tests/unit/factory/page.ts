@@ -38,4 +38,14 @@ const listPages = async ({user, project, book}:{user: UserType, project: Project
   });
 }
 
-export { createPage, getPage, booksCount, listPages }
+const updatePage = async ({id, attributes, user, project, book}:{id: string, attributes: Partial<DocsPageType>, user: UserType, project: ProjectType, book: BookType}): Promise<DocsPageType> => {
+  return await Page.update({
+    pageId: id,
+    attributes,
+    projectId: project.id!,
+    bookId: book.id!,
+    user,
+  });
+}
+
+export { createPage, getPage, booksCount, listPages, updatePage }

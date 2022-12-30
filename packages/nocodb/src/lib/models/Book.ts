@@ -70,16 +70,27 @@ export default class Book {
     {
       id,
       projectId,
+      slug,
     }: {
-      id: string;
+      id?: string;
       projectId: string;
+      slug?: string;
     },
     ncMeta = Noco.ncMeta
   ): Promise<BookType> {
     // todo: Add cache
     let page = undefined;
     if (!page) {
-      page = await ncMeta.metaGet2(projectId, null, MetaTable.BOOK, id);
+      page = await ncMeta.metaGet2(
+        projectId,
+        null,
+        MetaTable.BOOK,
+        slug
+          ? {
+              slug: slug,
+            }
+          : id
+      );
       if (page) {
         await NocoCache.set(`${CacheScope.BOOK}:${id}`, page);
       }
@@ -146,6 +157,22 @@ export default class Book {
     list.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
     return list;
+  }
+
+  public static async last(
+    { projectId },
+    ncMeta = Noco.ncMeta
+  ): Promise<BookType> {
+    const list = await await ncMeta.metaList2(null, null, MetaTable.BOOK, {
+      condition: {
+        project_id: projectId,
+      },
+      orderBy: {
+        order: 'desc',
+      },
+      limit: 1,
+    });
+    return list.length > 0 && list[0];
   }
 
   public static async delete(

@@ -9,6 +9,7 @@ import Strike from '@tiptap/extension-strike'
 import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
+import CodeBlock from '@tiptap/extension-code-block'
 import Commands from './commands'
 import suggestion from './suggestion'
 
@@ -69,6 +70,7 @@ const editor = useEditor({
     Image.configure({
       inline: true,
     }),
+    CodeBlock,
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -306,10 +308,10 @@ div[contenteditable='false'].ProseMirror {
   margin-bottom: 1em;
 }
 .ProseMirror h1 {
-  font-size: 3rem;
+  font-size: 1.75rem;
 }
 .ProseMirror h2 {
-  font-size: 2rem;
+  font-size: 1.5rem;
 }
 .ProseMirror h3 {
   font-size: 1.25rem;
@@ -322,6 +324,30 @@ div[contenteditable='false'].ProseMirror {
 }
 .ProseMirror h6 {
   font-size: 1rem;
+}
+.ProseMirror pre {
+  background: #0d0d0d;
+  color: #fff;
+  font-family: 'JetBrainsMono', monospace;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 1rem;
+  border-radius: 0.5rem;
+
+  code {
+    color: inherit;
+    padding: 0;
+    background: none;
+    font-size: 0.8rem;
+  }
+}
+
+ul {
+  padding-left: 1rem;
+  li > p {
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+  }
 }
 
 ul[data-type='taskList'] {

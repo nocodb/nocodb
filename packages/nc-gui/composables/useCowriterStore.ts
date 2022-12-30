@@ -102,9 +102,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
       prompt_statement_template: promptStatementTemplate.value,
       prompt_statement: translatePromptStatement(promptStatementTemplate.value),
     })
-    console.log(cowriter)
-    // TODO: append the cowriter object to the list instead of fetching again
-    await loadCowriterList()
+    ;(cowriterOutputList.value as CowriterType[]).unshift(cowriter)
   }
 
   async function loadCowriterList() {

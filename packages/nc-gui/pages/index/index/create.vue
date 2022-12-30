@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { customAlphabet } from 'nanoid'
 import type { Form } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
@@ -11,12 +12,20 @@ import {
   ref,
   useApi,
   useNuxtApp,
+  useProject,
   useRoute,
   useSidebar,
+  useTable,
 } from '#imports'
 import { NcProjectType } from '~/utils'
 
 const { $e } = useNuxtApp()
+
+const { loadTables, loadProject } = useProject()
+
+const { table, createTable } = useTable(async (_) => {
+  await loadTables()
+})
 
 const { api, isLoading } = useApi({ useGlobalInstance: true })
 
@@ -46,9 +55,33 @@ const createProject = async () => {
       title: formState.title,
       fk_workspace_id: route.query.workspaceId,
       type: route.query.type ?? NcProjectType.DB,
+      ...(route.query.type === NcProjectType.COWRITER && {
+        meta: {
+          prompt_statement: '',
+        },
+      }),
     })
 
-    await navigateTo(`/nc/${route.query.type === NcProjectType.DOCS ? 'doc/' : ''}${result.id}`)
+    switch (route.query.type) {
+      case NcProjectType.DOCS:
+        await navigateTo(`/nc/doc/${result.id}`)
+        break
+      case NcProjectType.COWRITER: {
+        // force load project so that baseId is available in useTable
+        await loadProject(true, result.id)
+        // Create a table for the COWRITER form
+        const nanoidV2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14)
+        table.table_name = `nc_cowriter_${nanoidV2()}`
+        // exclude title
+        table.columns = ['id', 'created_at', 'updated_at']
+        await createTable()
+
+        await navigateTo(`/nc/cowriter/${result.id}`)
+        break
+      }
+      default:
+        await navigateTo(`/nc/${result.id}`)
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

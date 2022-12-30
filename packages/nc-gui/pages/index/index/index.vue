@@ -335,6 +335,12 @@ const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
                       New Documentation
                     </div>
                   </a-menu-item>
+                  <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
+                    <div class="py-4 px-1 flex items-center gap-4">
+                      <MdiVectorTriangle class="text-[#8626FF] text-lg" />
+                      New Cowriter
+                    </div>
+                  </a-menu-item>
                 </a-menu>
               </template>
             </a-dropdown>

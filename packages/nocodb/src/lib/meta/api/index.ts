@@ -23,6 +23,7 @@ import pluginApis from './pluginApis';
 import gridViewColumnApis from './gridViewColumnApis';
 import kanbanViewApis from './kanbanViewApis';
 import workspaceApis from './workspaceApis';
+import cowriterApis from './cowriterApis';
 import { userApis } from './userApi';
 // import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
 import utilApis from './utilApis';
@@ -114,6 +115,7 @@ export default function (router: Router, server) {
   router.use(docsBookApis);
   router.use(docsPageApis);
   router.use(workspaceApis);
+  router.use(cowriterApis);
 
   userApis(router);
 

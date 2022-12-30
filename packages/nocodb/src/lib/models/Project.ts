@@ -60,6 +60,7 @@ export default class Project implements ProjectType {
         updated_at: projectBody.updated_at,
         type: projectBody.type,
         fk_workspace_id: projectBody.fk_workspace_id,
+        meta: projectBody.meta,
       }
     );
 

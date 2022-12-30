@@ -43,6 +43,7 @@ export enum MetaTable {
   BOOK = 'nc_books',
   WORKSPACE = 'workspace',
   WORKSPACE_USER = 'workspace_user',
+  COWRITER = 'cowriter',
 }
 
 export const orderedMetaTables = [
@@ -81,6 +82,7 @@ export const orderedMetaTables = [
   MetaTable.PROJECT,
   MetaTable.BOOK,
   MetaTable.WORKSPACE,
+  MetaTable.COWRITER,
 ];
 
 export const sakilaTableNames = [
@@ -149,6 +151,7 @@ export enum CacheScope {
   USER_PROJECT = 'userProject',
   DOCS_PAGE = 'page',
   BOOK = 'book',
+  COWRITER = 'cowriter',
 }
 
 export enum CacheGetType {

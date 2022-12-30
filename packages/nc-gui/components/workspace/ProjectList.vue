@@ -14,6 +14,9 @@ const openProject = async (project: ProjectType) => {
     case NcProjectType.DOCS:
       await navigateTo(`/nc/doc/${project.id}`)
       break
+    case NcProjectType.COWRITER:
+      await navigateTo(`/nc/cowriter/${project.id}`)
+      break
     default:
       await navigateTo(`/nc/${project.id}`)
       break
@@ -78,9 +81,10 @@ const deleteProject = (project: ProjectType) => {
           <td>
             <div class="flex items-center gap-2">
               <!-- todo: replace with switch -->
-              <MaterialSymbolsDocs v-if="project.type === NcProjectType.DOCS" class="text-gray-400 text-xl" />
-              <MdiTransitConnectionVariant v-else-if="project.type === NcProjectType.AUTOMATION" class="text-gray-400 text-xl" />
-              <MdiDatabaseOutline v-else class="text-gray-400 text-xl" />
+              <MaterialSymbolsDocs v-if="project.type === NcProjectType.DOCS" class="text-[#247727] text-xl" />
+              <MdiVectorTriangle v-else-if="project.type === NcProjectType.COWRITER" class="text-[#8626FF] text-xl" />
+              <MdiTransitConnectionVariant v-else-if="project.type === NcProjectType.AUTOMATION" class="text-[#DDB00F] text-xl" />
+              <MdiDatabaseOutline v-else class="text-[#2824FB] text-xl" />
             </div>
           </td>
           <td class="text-gray-500 text-xs">{{ timeAgo(project.created_at) }}</td>

@@ -1141,7 +1141,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
 <style scoped lang="scss">
 .nc-treeview-container {
-  @apply;
+  @apply h-[calc(100vh_-_var(--header-height))];
 }
 
 .nc-treeview-footer-item {

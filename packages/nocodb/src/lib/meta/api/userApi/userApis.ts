@@ -47,16 +47,16 @@ async function createDefaultWorkspace(user: User) {
 
 export async function registerNewUserIfAllowed({
   avatar,
-  firstname,
-  lastname,
+  user_name,
+  display_name,
   email,
   salt,
   password,
   email_verification_token,
 }: {
   avatar;
-  firstname;
-  lastname;
+  user_name;
+  display_name;
   email: string;
   salt: any;
   password;
@@ -89,8 +89,8 @@ export async function registerNewUserIfAllowed({
 
   return await User.insert({
     avatar,
-    firstname,
-    lastname,
+    display_name,
+    user_name,
     email,
     salt,
     password,
@@ -173,8 +173,8 @@ export async function signup(req: Request, res: Response<TableType>) {
   } else {
     await registerNewUserIfAllowed({
       avatar,
-      firstname,
-      lastname,
+      user_name,
+      display_name,
       email,
       salt,
       password,

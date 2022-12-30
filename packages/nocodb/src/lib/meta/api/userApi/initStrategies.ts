@@ -375,8 +375,9 @@ export function initStrategies(router): void {
               } else {
                 const salt = await promisify(bcrypt.genSalt)(10);
                 const user = await registerNewUserIfAllowed({
-                  firstname: null,
-                  lastname: null,
+                  avatar: null,
+                  user_name: null,
+                  display_name: null,
                   email_verification_token: null,
                   email: profile.emails[0].value,
                   password: '',

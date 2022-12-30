@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
 import { createBook, deleteBook, getBook, listBooks } from '../../factory/book';
-import { createPage, getPage, listPages } from '../../factory/page';
+import { createPage, getPage, listPages, updatePage } from '../../factory/page';
 import { createProject } from '../../factory/project';
 import init, { NcUnitContext } from '../../init';
 
@@ -714,6 +714,122 @@ function docTests() {
     })
 
     expect(parentPageUpdated.is_parent).to.equal(1)
+  })
+
+  it('Page publish should change its flag and update published_content', async () => {
+    const page = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test',
+      },
+      user: context.user,
+    });
+
+    await request(context.app)
+      .put(`/api/v1/docs/page/${page.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        bookId: book.id,
+        attributes: {
+          is_published: true,
+        }
+      })
+      .expect(200)
+
+    const pageUpdated = await getPage({
+      id: page.id!,
+      project: project,
+      book: book,
+      user: context.user,
+    })
+
+    expect(pageUpdated.is_published).to.equal(1)
+    expect(pageUpdated.published_content).to.equal(page.content)
+  })
+
+  it('Public book api', async () => {
+    const response = await request(context.app)
+      .get(`/api/v1/public/docs/books/latest`)
+      .query({
+        projectId: project.id,
+      })
+      .expect(200)
+    expect(response.body.title).to.equal(book.title)
+
+    const book2 = await createBook({
+      project: project,
+      attributes: {
+        title: 'test2',
+      },
+      user: context.user,
+    });
+
+    const response2 = await request(context.app)
+      .get(`/api/v1/public/docs/books/latest`)
+      .query({
+        projectId: project.id,
+      })
+      .expect(200)
+    
+    expect(response2.body.title).to.equal(book2.title)
+  })
+
+  it('Public page list and get api', async () => {
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test1',
+      },
+      user: context.user,
+    });
+    const page2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test2',
+      },
+      user: context.user,
+    });
+
+    await updatePage({
+      id: page1.id!,
+      project: project,
+      book: book,
+      attributes: {
+        is_published: true,
+      },
+      user: context.user,
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/public/docs/pages`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+      })
+      .expect(200)
+    expect(response.body.length).to.equal(1)
+    expect(response.body[0].title).to.equal(page1.title)
+
+    const response2 = await request(context.app)
+      .get(`/api/v1/public/docs/page/${page1.id}`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+      })
+      .expect(200)
+    expect(response2.body.title).to.equal(page1.title)
+
+    const response3 = await request(context.app)
+      .get(`/api/v1/public/docs/page/${page2.id}`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+      })
+      .expect(400)
   })
 }
 

@@ -954,6 +954,59 @@ export class Api<
 > extends HttpClient<SecurityDataType> {
   nocoDocs = {
     /**
+     * @description Get public book
+     *
+     * @tags Noco docs
+     * @name GetPublicBook
+     * @summary get public book
+     * @request GET:/api/v1/public/docs/books/{slug}
+     * @response `200` `BookType` OK
+     */
+    getPublicBook: (
+      slug: string,
+      query: {
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BookType, any>({
+        path: `/api/v1/public/docs/books/${slug}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get public book
+     *
+     * @tags Noco docs
+     * @name ListPublicPages
+     * @summary list public pages
+     * @request GET:/api/v1/public/docs/pages
+     * @response `200` `(DocsPageType)[]` OK
+     */
+    listPublicPages: (
+      query: {
+        /** Project id */
+        projectId: string;
+        /** book id */
+        bookId: string;
+        /** parent_page_id */
+        parent_page_id?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType[], any>({
+        path: `/api/v1/public/docs/pages`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description List books
      *
      * @tags Noco docs

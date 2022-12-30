@@ -32,3 +32,5 @@ export const SharedViewPasswordInj: InjectionKey<Ref<string | null>> = Symbol('s
 export const CellUrlDisableOverlayInj: InjectionKey<Ref<boolean>> = Symbol('cell-url-disable-url')
 export const DropZoneRef: InjectionKey<Ref<Element | undefined>> = Symbol('drop-zone-ref')
 export const ToggleDialogInj: InjectionKey<Function> = Symbol('toggle-dialog-injection')
+
+export const IsDocsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-docs-public-injection')

@@ -4,37 +4,28 @@ import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 
+const isPublic = inject(IsDocsPublicInj, ref(false))
+
 const {
   fetchPages,
   pages,
   books,
-  createPage,
-  createBook,
   createMagic,
   createImport,
   openedPage,
   openedTabs,
   nestedUrl,
   deletePage,
-  deleteBook,
   reorderPages,
   openedBook,
-  selectBook,
   addNewPage,
   fetchBooks,
   navigateToLastBook,
   getChildrenOfPage,
 } = useDocs()
 
-const createModalOpen = ref(false)
 const deleteModalOpen = ref(false)
-const modalFormData = ref({
-  title: '',
-})
-
 const selectedPageId = ref()
-const selectedBookId = ref()
-const isSelectedPage = ref(false)
 
 const magicModalOpen = ref(false)
 const magicFormData = ref({
@@ -73,18 +64,6 @@ const openPageTabKeys = computed({
   set: () => {},
 })
 
-const onOk = async () => {
-  if (isSelectedPage.value) {
-    await createPage({
-      page: { ...modalFormData.value, parent_page_id: selectedPageId.value } as any,
-      bookId: openedBook.value!.id!,
-    })
-  } else {
-    await createBook({ book: { ...modalFormData.value } })
-  }
-  createModalOpen.value = false
-}
-
 const onMagic = async () => {
   loadMagic.value = true
   await createMagic(magicFormData.value.title)
@@ -103,21 +82,6 @@ const onImport = async () => {
   loadImport.value = false
 }
 
-const openCreateBookOrPage = ({ parentId, isBook }: { parentId?: string | undefined; isBook: boolean }) => {
-  if (isBook) {
-    selectedBookId.value = undefined
-    selectedPageId.value = undefined
-    isSelectedPage.value = false
-  } else {
-    selectedBookId.value = openedBook.value?.id
-    selectedPageId.value = parentId
-    isSelectedPage.value = true
-  }
-
-  createModalOpen.value = true
-  // addNewPage(parentId)
-}
-
 const openMagicModal = (parentId?: string | undefined) => {
   magicParentPageId.value = parentId
   magicModalOpen.value = true
@@ -128,26 +92,16 @@ const openImportModal = () => {
   importModalOpen.value = true
 }
 
-const openDeleteModal = ({ pageId, bookId, isBook }: { pageId: string; bookId: string; isBook: boolean }) => {
-  if (isBook) {
-    selectedBookId.value = bookId
-    selectedPageId.value = undefined
-  } else {
-    selectedBookId.value = bookId
-    selectedPageId.value = pageId
-  }
+const openDeleteModal = ({ pageId }: { pageId: string }) => {
+  selectedPageId.value = pageId
+
   deleteModalOpen.value = true
 }
 
 const onDeletePage = async () => {
-  if (selectedPageId.value) {
-    await deletePage({ pageId: selectedPageId.value, bookId: selectedBookId.value })
-  } else {
-    await deleteBook({ id: selectedBookId.value })
-  }
-  selectedBookId.value = undefined
-  selectedPageId.value = undefined
+  await deletePage({ pageId: selectedPageId.value, bookId: openedBook.value!.id })
 
+  selectedPageId.value = undefined
   deleteModalOpen.value = false
 }
 
@@ -156,10 +110,13 @@ const onDragEnter = () => {
 }
 
 const onDrop = async (info: AntTreeNodeDropEvent) => {
+  console.log(info)
   if (info.dropPosition < 0) info.dropPosition = 0
 
-  // if drag node and drop node are in the same parent and using `==` since `info.node.dataRef.parent_page_id` can be `null`
-  if (info.dragNode.dataRef.parent_page_id == info.node.dataRef.parent_page_id) {
+  // Since `info.node.dataRef.parent_page_id` can be `null`, make `undefined` is converted to `null`
+  if (!info.dragNode.dataRef!.parent_page_id) info.dragNode.dataRef!.parent_page_id = null
+
+  if (info.dragNode.dataRef!.parent_page_id === info.node.dataRef!.parent_page_id) {
     const parentId: string | undefined = info.dragNode.dataRef!.parent_page_id
     const siblings: any[] = getChildrenOfPage(parentId)
     const targetNodeIndex = siblings.findIndex((node) => node.id === info.node.dataRef!.id)
@@ -197,25 +154,8 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
     collapsible
     theme="light"
   >
-    <div class="py-2.5 flex flex-row justify-between items-center ml-2 px-2 border-b-warm-gray-100 border-b-1">
-      <a-dropdown trigger="click">
-        <div
-          class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 py-1 rounded-md bg-gray-50 flex flex-row w-full mr-8 justify-between items-center"
-        >
-          <div class="flex font-semibold">
-            {{ openedBook?.title }}
-          </div>
-          <MdiMenuDown />
-        </div>
-        <template #overlay>
-          <a-menu>
-            <a-menu-item class="!py-2" @click="() => openCreateBookOrPage({ isBook: true })"> Create new book </a-menu-item>
-            <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
-              {{ book.title }}
-            </a-menu-item>
-          </a-menu>
-        </template>
-      </a-dropdown>
+    <div v-if="!isPublic" class="py-2.5 flex flex-row justify-between items-center ml-2 px-2 border-b-warm-gray-100 border-b-1">
+      <div class="flex">Pages</div>
       <div class="flex flex-row justify-between items-center">
         <div
           class="flex select-none p-1 border-gray-100 border-1 rounded-md mr-1"
@@ -256,25 +196,26 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
         </a-dropdown>
       </div>
     </div>
+    <div v-else class="flex py-0.5"></div>
     <a-tree
       :key="openedBook?.id"
       v-model:expandedKeys="openedTabs"
       v-model:selectedKeys="openPageTabKeys"
       :load-data="onLoadData"
       :tree-data="pages"
-      draggable
+      :draggable="!isPublic"
       :on-drop="onDrop"
       show-icon
       class="h-full overflow-auto pb-20"
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >
-      <template #title="{ title, id, book_id, parent_page_id }">
+      <template #title="{ title, id, parent_page_id }">
         <div class="flex flex-row w-full items-center justify-between group pt-1">
           <div class="flex" :class="{ 'font-semibold': !parent_page_id }">
             {{ title }}
           </div>
-          <div class="flex flex-row justify-between items-center">
+          <div v-if="!isPublic" class="flex flex-row justify-between items-center">
             <div
               class="flex hover:(text-primary/100) cursor-pointer select-none invisible group-hover:visible mr-2"
               @click="() => addNewPage(id)"
@@ -290,13 +231,7 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
               <template #overlay>
                 <a-menu>
                   <a-menu-item class="!py-2">
-                    <div
-                      class="flex flex-row items-center space-x-2 text-red-500"
-                      @click="
-                        () =>
-                          openDeleteModal({ pageId: book_id ? id : undefined, bookId: book_id ? book_id : id, isBook: !book_id })
-                      "
-                    >
+                    <div class="flex flex-row items-center space-x-2 text-red-500" @click="() => openDeleteModal({ pageId: id })">
                       <MdiDeleteOutline class="flex" />
                       <div class="flex">Delete</div>
                     </div>
@@ -309,20 +244,6 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
       </template>
     </a-tree>
   </a-layout-sider>
-  <a-modal
-    :visible="createModalOpen"
-    :title="isSelectedPage ? 'Create Page' : 'Create book'"
-    :closable="false"
-    :mask-closable="false"
-    @cancel="createModalOpen = false"
-    @ok="onOk"
-  >
-    <a-form :model="modalFormData">
-      <a-form-item label="Title">
-        <a-input v-model:value="modalFormData.title" />
-      </a-form-item>
-    </a-form>
-  </a-modal>
   <a-modal :visible="magicModalOpen" :closable="false" :mask-closable="false" @cancel="magicModalOpen = false" @ok="onMagic">
     <template #title>
       <div class="flex items-center">

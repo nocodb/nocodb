@@ -419,6 +419,29 @@ async function predictColumnType(req: Request, res: Response) {
   res.json(resObject);
 }
 
+async function predictFormula(req: Request, res: Response) {
+  const colPrompt = req.body.data.columns.map((col) => `'${col}'`).join(', ');
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: `accounting table has ${colPrompt} columns
+    write formula for '${req.body.data.title}' using basic arithmetics and wrapping each column name with {}`,
+    temperature: 0.7,
+    max_tokens: 4000,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    return;
+  }
+
+  const resObject = { data: response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim() };
+
+  res.json(resObject);
+}
+
 export async function genericGPT(req: Request, res: Response) {
   // req.body.operation
   // req.body.data
@@ -431,6 +454,9 @@ export async function genericGPT(req: Request, res: Response) {
       case "predictColumnType":
         // req.body.data.title
         return await predictColumnType(req, res);
+      case "predictFormula":
+        // req.body.data.columns, req.body.data.title
+        return await predictFormula(req, res);
       default:
         return res.status(500).json({ msg: "Unknown operation" });
     }

@@ -7479,7 +7479,8 @@
                     "required": true,
                     "enum": [
                       "selectOptions",
-                      "predictColumnType"
+                      "predictColumnType",
+                      "predictFormula"
                     ]
                   },
                   "data": {

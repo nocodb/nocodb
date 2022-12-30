@@ -4847,7 +4847,7 @@ export class Api<
      * @request POST:/api/v1/cowriter/meta/tables/{tableId}
      * @response `200` `CowriterType` OK
      */
-    create: (tableId: string, data: CowriterType, params: RequestParams = {}) =>
+    create: (tableId: string, data: object, params: RequestParams = {}) =>
       this.request<CowriterType, any>({
         path: `/api/v1/cowriter/meta/tables/${tableId}`,
         method: 'POST',

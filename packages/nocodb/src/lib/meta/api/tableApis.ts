@@ -29,7 +29,7 @@ import getColumnUiType from '../helpers/getColumnUiType';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { baseMetaDiffFN } from './metaDiffApis';
-const { Configuration, OpenAIApi } = require("openai");
+const { Configuration, OpenAIApi } = require('openai');
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -393,7 +393,10 @@ export async function tableDelete(req: Request, res: Response) {
   res.json(await table.delete());
 }
 
-export async function tableCreateMagic(req: Request<any, any, TableReqType>, res) {
+export async function tableCreateMagic(
+  req: Request<any, any, TableReqType>,
+  res
+) {
   const project = await Project.getWithInfo(req.params.projectId);
   let base = project.bases[0];
 
@@ -470,7 +473,7 @@ export async function tableCreateMagic(req: Request<any, any, TableReqType>, res
   }
 
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `create best schema for '${req.body.title}' table without constraints using sqlite:`,
     temperature: 0.7,
     max_tokens: 2048,
@@ -501,7 +504,10 @@ export async function tableCreateMagic(req: Request<any, any, TableReqType>, res
   res.json(table);
 }
 
-export async function schemaMagic(req: Request<any, any, { title: string; schema_name: string }>, res) {
+export async function schemaMagic(
+  req: Request<any, any, { title: string; schema_name: string }>,
+  res
+) {
   const project = await Project.getWithInfo(req.params.projectId);
   let base = project.bases[0];
 
@@ -574,11 +580,13 @@ export async function schemaMagic(req: Request<any, any, { title: string; schema
   }
 
   if (req.body.schema_name.length > tableNameLengthLimit) {
-    NcError.badRequest(`Schema name exceeds ${tableNameLengthLimit} characters`);
+    NcError.badRequest(
+      `Schema name exceeds ${tableNameLengthLimit} characters`
+    );
   }
 
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `create best schema for '${req.body.title}' database using sqlite:`,
     temperature: 0.7,
     max_tokens: 4000,

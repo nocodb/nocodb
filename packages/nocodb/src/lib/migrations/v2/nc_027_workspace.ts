@@ -25,7 +25,6 @@ const up = async (knex: Knex) => {
 
     table.string('roles', 255);
 
-
     // todo: move to a separate table if required
     table.string('invite_token', 255);
     table.boolean('invite_accepted').defaultTo(false);

@@ -10,6 +10,377 @@
     }
   ],
   "paths": {
+    "/api/v1/public/docs/books/{slug}": {
+      "get": {
+        "summary": "get public book",
+        "operationId": "get-public-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get public book"
+      }
+    },
+    "/api/v1/public/docs/pages": {
+      "get": {
+        "summary": "list public pages",
+        "operationId": "list-public-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parent_page_id",
+            "in": "query",
+            "description": "parent_page_id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get public book"
+      }
+    },
+    "/api/v1/docs/books": {
+      "get": {
+        "summary": "List books",
+        "operationId": "list-books",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Book"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Book id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "List books"
+      }
+    },
+    "/api/v1/docs/book/{id}": {
+      "delete": {
+        "summary": "Delete book",
+        "operationId": "delete-book",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Delete book"
+      },
+      "put": {
+        "summary": "Update book",
+        "operationId": "update-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Update book"
+      }
+    },
+    "/api/v1/docs/book": {
+      "post": {
+        "summary": "Create book",
+        "operationId": "create-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create book"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/book/magic": {
+      "post": {
+        "summary": "Create magic",
+        "operationId": "create-book-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Title",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create book"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/book/import": {
+      "post": {
+        "summary": "Import book",
+        "operationId": "import-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "repo": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "from": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create book"
+      },
+      "parameters": []
+    },
     "/api/v1/docs/pages": {
       "get": {
         "summary": "List pages",
@@ -37,7 +408,16 @@
             "name": "projectId",
             "in": "query",
             "description": "Page number",
-            "required": false,
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "book id",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -68,23 +448,26 @@
         "tags": [
           "Noco docs"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  }
-                }
-              }
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           },
-          "required": true
-        },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "description": "Delete page"
       },
       "put": {
@@ -117,7 +500,12 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required": true
+                    "required":true
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Book id",
+                    "required":true
                   }
                 }
               }
@@ -159,7 +547,12 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required": true
+                    "required":true
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Book id",
+                    "required":true
                   }
                 }
               }
@@ -168,103 +561,6 @@
           "required": true
         },
         "description": "Create page"
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/magic": {
-      "post": {
-        "summary": "Create page using NocoAI",
-        "operationId": "create-magic",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "title": {
-                    "type": "string",
-                    "description": "Schema title",
-                    "required": true
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Create page using NocoAI"
-      },
-      "parameters": []
-    },
-    "/api/v1/docs/import": {
-      "post": {
-        "summary": "Import documentation",
-        "operationId": "import",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "from": {
-                    "type": "string",
-                    "description": "Import source",
-                    "required": true
-                  },
-                  "type": {
-                    "type": "string",
-                    "description": "Source type",
-                    "required": true
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "user": {
-                    "type": "string",
-                    "description": "User name"
-                  },
-                  "repo": {
-                    "type": "string",
-                    "description": "Repository name"
-                  },
-                  "branch": {
-                    "type": "string",
-                    "description": "Branch name"
-                  },
-                  "path": {
-                    "type": "string",
-                    "description": "Path inside repository"
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Create page using NocoAI"
       },
       "parameters": []
     },
@@ -8012,10 +8308,84 @@
           }
         }
       },
+      "Book": {
+        "title": "Book",
+        "type": "object",
+        "description": "Book of Noco docs",
+        "x-internal": false,
+        "examples": [
+          {
+            "id": "142",
+            "project_id": "sample_project_id",
+            "pages_table_name": "sample_pages_table_name"
+          }
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the given book."
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "pages_table_name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "create_by_id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "is_published": {
+            "type": "boolean"
+          },
+          "last_published_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "last_published_by_id": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "last_updated_by_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "created_by_id": {
+            "type": "string"
+          },
+          "archived_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "archived_by_id": {
+            "type": "string"
+          },
+          "metaJson": {
+            "type": ["string", "object"]
+          }
+        }
+      },
       "DocsPage": {
         "title": "DocsPage",
         "type": "object",
-        "description": "Page of noco docs",
+        "description": "Page of Noco docs",
         "examples": [
           {
             "id": "142",
@@ -8029,7 +8399,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique identifier for the given user."
+            "description": "Unique identifier for the given page."
           },
           "title": {
             "type": "string"
@@ -8054,8 +8424,8 @@
           },
           "is_parent": {
             "type": "boolean"
-          },
-          "project_id": {
+          }, 
+          "book_id": {
             "type": "string"
           },
           "is_published": {

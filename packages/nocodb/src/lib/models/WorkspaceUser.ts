@@ -39,7 +39,7 @@ export class WorkspaceUser {
     //   `${projectUser.fk_user_id}:*`
     // );
 
-    return this.get( fk_workspace_id, fk_user_id, ncMeta);
+    return this.get(fk_workspace_id, fk_user_id, ncMeta);
   }
 
   // public static async update(id, user: Partial<WorkspaceUser>, ncMeta = Noco.ncMeta) {
@@ -92,6 +92,7 @@ export class WorkspaceUser {
         `${MetaTable.WORKSPACE_USER}.invite_accepted`,
         `${MetaTable.WORKSPACE_USER}.roles as roles`
       );
+
     // todo : pagination
     // .offset(offset)
     // .limit(limit);
@@ -101,7 +102,7 @@ export class WorkspaceUser {
     //   queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     // }
 
-    queryBuilder.innerJoin(MetaTable.WORKSPACE_USER, function () {
+    queryBuilder.leftJoin(MetaTable.WORKSPACE_USER, function () {
       this.on(
         `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
         '=',
@@ -110,6 +111,32 @@ export class WorkspaceUser {
         `${MetaTable.WORKSPACE_USER}.fk_user_id`,
         '=',
         ncMeta.knex.raw('?', [fk_user_id])
+      );
+    });
+
+    queryBuilder.where(function () {
+      this.where(
+        `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+        '=',
+        ncMeta.knex.raw('?', [fk_user_id])
+      );
+
+      this.orWhereIn(
+        `${MetaTable.WORKSPACE}.id`,
+        ncMeta
+          .knex(MetaTable.PROJECT)
+          .select('fk_workspace_id')
+          .innerJoin(MetaTable.PROJECT_USERS, function () {
+            this.on(
+              `${MetaTable.PROJECT_USERS}.project_id`,
+              '=',
+              `${MetaTable.PROJECT}.id`
+            ).andOn(
+              `${MetaTable.PROJECT_USERS}.fk_user_id`,
+              '=',
+              ncMeta.knex.raw('?', [fk_user_id])
+            );
+          })
       );
     });
 
@@ -127,7 +154,7 @@ export class WorkspaceUser {
       }
     }
 
-    return await queryBuilder;
+    return workspaceList;
   }
 
   static async userList(
@@ -144,6 +171,7 @@ export class WorkspaceUser {
       `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
       `${MetaTable.WORKSPACE_USER}.invite_token`,
       `${MetaTable.WORKSPACE_USER}.invite_accepted`,
+      `${MetaTable.WORKSPACE_USER}.created_at`,
       `${MetaTable.WORKSPACE_USER}.roles as roles`
     );
     // todo : pagination

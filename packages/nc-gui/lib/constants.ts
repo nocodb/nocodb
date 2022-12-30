@@ -82,7 +82,7 @@ const rolePermissions = {
 } as const
 
 // todo: fix type error
-
+rolePermissions[WorkspaceUserRoles.OWNER] = rolePermissions[ProjectRole.Owner]
 rolePermissions[WorkspaceUserRoles.CREATOR] = rolePermissions[ProjectRole.Creator]
 rolePermissions[WorkspaceUserRoles.VIEWER] = rolePermissions[ProjectRole.Viewer]
 

@@ -1,9 +1,13 @@
 <script lang="ts" setup>
 import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { NcProjectType, navigateTo, stringToColour, useWorkspaceStoreOrThrow } from '#imports'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
+import { NcProjectType, navigateTo, stringToColour, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
+import { useNuxtApp } from '#app'
 
-const { projects } = useWorkspaceStoreOrThrow()
+const { projects, loadProjects,  } = useWorkspaceStoreOrThrow()
+
+const { $e ,$api} = useNuxtApp()
 
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
@@ -17,6 +21,40 @@ const openProject = async (project: ProjectType) => {
       await navigateTo(`/nc/${project.id}`)
       break
   }
+}
+
+const roleAlias = {
+  [WorkspaceUserRoles.OWNER]: 'Workspace Owner',
+  [WorkspaceUserRoles.VIEWER]: 'Workspace Viewer',
+  [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
+  [ProjectRole.Creator]: 'Project Creator',
+  [ProjectRole.Editor]: 'Project Editor',
+  [ProjectRole.Viewer]: 'Project Viewer',
+  [ProjectRole.Commenter]: 'Project Commenter',
+  [ProjectRole.Owner]: 'Project Owner',
+}
+
+const deleteProject = (project: ProjectType) => {
+  $e('c:project:delete')
+
+  Modal.confirm({
+    title: `Do you want to delete '${project.title}' project?`,
+    wrapClassName: 'nc-modal-project-delete',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    async onOk() {
+      try {
+        await $api.project.delete(project.id as string)
+
+        $e('a:project:delete')
+
+        projects.value?.splice(projects.value?.indexOf(project), 1)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
 }
 </script>
 
@@ -49,16 +87,16 @@ const openProject = async (project: ProjectType) => {
               <MdiDatabaseOutline v-else class="text-[#2824FB] text-xl" />
             </div>
           </td>
-          <td>{{ (i + 3) % 20 }} hours ago</td>
-          <td>
-            {{ project.role }}
+          <td class="text-gray-500 text-xs">{{ timeAgo(project.created_at) }}</td>
+          <td class="text-xs text-gray-500">
+            {{ roleAlias[project.workspace_role || project.project_role] }}
           </td>
           <td>
             <a-dropdown>
               <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
               <template #overlay>
                 <a-menu>
-                  <a-menu-item>
+                  <a-menu-item @click="deleteProject(project)">
                     <div class="flex flex-row items-center py-3 gap-2">
                       <MdiDeleteOutline />
                       Delete Project

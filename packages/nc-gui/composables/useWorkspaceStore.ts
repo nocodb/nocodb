@@ -1,4 +1,5 @@
-import type { ProjectType, WorkspaceType, WorkspaceUserRoles, WorkspaceUserType } from 'nocodb-sdk'
+import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg, useInjectionState, useNuxtApp } from '#imports'
 
@@ -13,6 +14,20 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   const { $api } = useNuxtApp()
 
+  /** getters */
+  const isWorkspaceCreator = computed(() => {
+    // todo: type correction
+    return (
+      activeWorkspace.value?.roles === WorkspaceUserRoles.CREATOR || activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER
+    )
+  })
+
+  const isWorkspaceOwner = computed(() => {
+    // todo: type correction
+    return activeWorkspace.value?.roles === WorkspaceUserRoles.OWNER
+  })
+
+  /** actions */
   const loadWorkspaceList = async () => {
     try {
       // todo: pagination
@@ -28,7 +43,6 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     try {
       // todo: pagination
       const res = await $api.workspace.create(workspace)
-      console.log(res)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -40,8 +54,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   ) => {
     try {
       // todo: pagination
-      const res = await $api.workspace.update(workspaceId, workspace)
-      console.log(res)
+      await $api.workspace.update(workspaceId, workspace)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -49,8 +62,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   const deleteWorkspace = async (workspaceId: string) => {
     // todo: pagination
-    const res = await $api.workspace.delete(workspaceId)
-    console.log(res)
+    await $api.workspace.delete(workspaceId)
   }
 
   const loadProjects = async () => {
@@ -139,6 +151,8 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     updateCollaborator,
     projects,
     collaborators,
+    isWorkspaceCreator,
+    isWorkspaceOwner,
   }
 })
 

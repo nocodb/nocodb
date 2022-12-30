@@ -14,7 +14,7 @@ import Sort from '../../models/Sort';
 
 export default async (req, res, next) => {
   try {
-    const { params } = req;
+    const { params, query, body } = req;
 
     // extract project id based on request path params
     if (params.projectName) {
@@ -82,16 +82,26 @@ export default async (req, res, next) => {
       const sort = await Sort.get(params.sortId);
       req.ncProjectId = sort?.project_id;
     }
+    // todo : verify id not present in body
+    else if (body.projectId) {
+      req.ncProjectId = body.projectId;
+    } else if (body.project_id) {
+      req.ncProjectId = body.project_id;
+    } else if (query.projectId) {
+      req.ncProjectId = query.projectId;
+    } else if (query.project_id) {
+      req.ncProjectId = query.project_id;
+    }
 
+    // todo:  verify all scenarios
     // extract workspace id based on request path params or projectId
-    if(req.ncProjectId){
-      req.ncWorkspaceId = (await Project.get(req.ncProjectId)).fk_workspace_id
+    if (req.ncProjectId) {
+      req.ncWorkspaceId = (await Project.get(req.ncProjectId)).fk_workspace_id;
     } else if (req.params.workspaceId) {
       req.ncWorkspaceId = req.params.workspaceId;
     } else if (req.body.fk_workspace_id) {
       req.ncWorkspaceId = req.body.fk_workspace_id;
     }
-
 
     const user = await new Promise((resolve, _reject) => {
       passport.authenticate('jwt', { session: false }, (_err, user, _info) => {

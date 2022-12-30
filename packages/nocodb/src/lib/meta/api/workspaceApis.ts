@@ -65,7 +65,8 @@ const workspaceUpdate = async (
   req: Request<{ workspaceId: string }, any, Partial<WorkspaceType>>,
   res: Response
 ) => {
-  validateParams(['title', 'description'], req.body);
+  // todo: validate params
+  // validateParams(['title', 'description'], req.body);
 
   const workspace = await Workspace.update(req.params.workspaceId, req.body);
 
@@ -255,7 +256,10 @@ const workspaceInvite = async (req, res) => {
 };
 
 const workspaceProjectList = async (req, res) => {
-  const projects = await Project.listByWorkspace(req.params.workspaceId);
+  const projects = await Project.listByWorkspaceAndUser(
+    req.params.workspaceId,
+    req.user?.id
+  );
 
   res.json(
     new PagedResponseImpl<WorkspaceType>(projects, {

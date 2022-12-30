@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TableType, validatePassword } from 'nocodb-sdk';
+import { TableType, validatePassword, WorkspaceUserRoles } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '../../../constants';
 import Store from '../../../models/Store';
@@ -24,6 +24,26 @@ import { MetaTable } from '../../../utils/globals';
 import Noco from '../../../Noco';
 import { genJwt } from './helpers';
 import { randomTokenString } from '../../helpers/stringHelpers';
+import { Workspace } from '../../../models/Workspace';
+import { WorkspaceUser } from '../../../models/WorkspaceUser';
+
+async function createDefaultWorkspace(user: User) {
+  const title = `${user.email?.split('@')?.[0]}'s workspace`;
+  // create new workspace for user
+  const workspace = await Workspace.insert({
+    title,
+    description: 'Default workspace',
+    fk_user_id: user.id,
+  });
+
+  await WorkspaceUser.insert({
+    fk_user_id: user.id,
+    fk_workspace_id: workspace.id,
+    roles: WorkspaceUserRoles.OWNER,
+  });
+
+  return workspace;
+}
 
 export async function signup(req: Request, res: Response<TableType>) {
   const {
@@ -126,6 +146,8 @@ export async function signup(req: Request, res: Response<TableType>) {
   }
 
   user = await User.getByEmail(email);
+
+  await createDefaultWorkspace(user);
 
   try {
     const template = (await import('./ui/emailTemplates/verify')).default;

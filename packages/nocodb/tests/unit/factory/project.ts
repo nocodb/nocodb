@@ -1,3 +1,4 @@
+import { ProjectType } from 'nocodb-sdk';
 import request from 'supertest';
 import Project from '../../../src/lib/models/Project';
 
@@ -66,7 +67,7 @@ const createSakilaProject = async (context) => {
   return (await Project.getByTitleOrId(response.body.id)) as Project;
 };
 
-const createProject = async (context, args = {}) => {
+const createProject = async (context, args: Partial<ProjectType> = {}) => {
   const projectArgs = {
     ...defaultProjectValue,
     ...args,

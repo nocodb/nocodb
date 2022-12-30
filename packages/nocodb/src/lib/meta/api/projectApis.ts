@@ -170,14 +170,18 @@ async function projectCreate(req: Request<any, any>, res) {
     NcError.badRequest('Project title exceeds 50 characters');
   }
 
-  if (await Project.getByTitle(projectBody?.title)) {
-    NcError.badRequest('Project title already in use');
-  }
+  // todo: check if project with same title exists
+  // if (await Project.getByTitle(projectBody?.title)) {
+  //   NcError.badRequest('Project title already in use');
+  // }
 
   projectBody.title = DOMPurify.sanitize(projectBody.title);
   projectBody.slug = projectBody.title;
 
-  const project = await Project.createProject(projectBody);
+  const project = await Project.createProject({
+    ...projectBody,
+    user: (req as any).user,
+  });
   await ProjectUser.insert({
     fk_user_id: (req as any).user.id,
     project_id: project.id,
@@ -468,7 +472,7 @@ export async function projectInfoGet(_req, res) {
 export async function projectCost(req, res) {
   let cost = 0;
   const project = await Project.getWithInfo(req.params.projectId);
-  
+
   for (const base of project.bases) {
     const sqlClient = NcConnectionMgrv2.getSqlClient(base);
     const userCount = await ProjectUser.getUsersCount(req.query);

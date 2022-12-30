@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
-import { stringToColour, useWorkspaceStoreOrThrow } from '#imports'
+import { stringToColour, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 
 const rolesLabel = {
   [WorkspaceUserRoles.CREATOR]: 'Creator',
@@ -9,7 +9,12 @@ const rolesLabel = {
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
 }
 
-const { collaborators, removeCollaborator, updateCollaborator: _updateCollaborator } = useWorkspaceStoreOrThrow()
+const {
+  collaborators,
+  removeCollaborator,
+  updateCollaborator: _updateCollaborator,
+  isWorkspaceOwner,
+} = useWorkspaceStoreOrThrow()
 
 const getRolesLabel = (roles?: string) => {
   return (
@@ -37,7 +42,7 @@ const updateCollaborator = async (collab) => {
       <div class="text-gray-500 text-xs">Manage who has access to this workspace</div>
     </div>
 
-    <WorkspaceInviteSection />
+    <WorkspaceInviteSection v-if="isWorkspaceOwner" />
     <table v-if="collaborators?.length" class="nc-project-list-table">
       <thead>
         <tr>
@@ -57,15 +62,17 @@ const updateCollaborator = async (collab) => {
               {{ collab.email }}
             </div>
           </td>
-          <td>{{ (i + 3) % 20 }} hours ago</td>
+          <td class="text-gray-500 text-xs">
+            {{ timeAgo(collab.created_at) }}
+          </td>
           <td>
-            <space v-if="collab.roles === WorkspaceUserRoles.OWNER">
+            <span class="text-xs text-gray-500" v-if="collab.roles === WorkspaceUserRoles.OWNER">
               {{ getRolesLabel(collab.roles) }}
-            </space>
+            </span>
 
             <a-select v-else v-model:value="collab.roles" class="w-30" @change="updateCollaborator(collab)">
-              <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator </a-select-option>
-              <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer </a-select-option>
+              <a-select-option :value="WorkspaceUserRoles.CREATOR"> Creator</a-select-option>
+              <a-select-option :value="WorkspaceUserRoles.VIEWER"> Viewer</a-select-option>
             </a-select>
           </td>
           <td>

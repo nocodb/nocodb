@@ -36,7 +36,7 @@ import cacheApis from './cacheApis';
 import apiTokenApis from './apiTokenApis';
 import hookFilterApis from './hookFilterApis';
 import testApis from './testApis';
-import { docsProjectApis } from './docsApis';
+import { docsBookApis, docsPageApis } from './docsApis';
 import {
   bulkDataAliasApis,
   dataAliasApis,
@@ -48,6 +48,8 @@ import {
 import {
   publicDataApis,
   publicDataExportApis,
+  publicDocsBooksApis,
+  publicDocsPagesApis,
   publicMetaApis,
 } from './publicApis';
 import { Server, Socket } from 'socket.io';
@@ -86,6 +88,8 @@ export default function (router: Router, server) {
   router.use(publicDataApis);
   router.use(publicDataExportApis);
   router.use(publicMetaApis);
+  router.use(publicDocsBooksApis);
+  router.use(publicDocsPagesApis);
   router.use(gridViewColumnApis);
   router.use(tableApis);
   router.use(galleryViewApis);
@@ -108,7 +112,8 @@ export default function (router: Router, server) {
   router.use(swaggerApis);
   router.use(syncSourceApis);
   router.use(kanbanViewApis);
-  router.use(docsProjectApis);
+  router.use(docsBookApis);
+  router.use(docsPageApis);
   router.use(workspaceApis);
   router.use(cowriterApis);
 

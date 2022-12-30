@@ -110,7 +110,6 @@ const onDragEnter = () => {
 }
 
 const onDrop = async (info: AntTreeNodeDropEvent) => {
-  console.log(info)
   if (info.dropPosition < 0) info.dropPosition = 0
 
   // Since `info.node.dataRef.parent_page_id` can be `null`, make `undefined` is converted to `null`
@@ -137,7 +136,6 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
 const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any }) => {
   if (e.selected) {
     const id = e.node.dataRef!.id
-    console.log(e.node.dataRef, nestedUrl(id))
 
     navigateTo(nestedUrl(id))
   }

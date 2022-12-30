@@ -831,6 +831,61 @@ function docTests() {
       })
       .expect(400)
   })
+
+  it('Drafts', async () => {
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test1',
+        content: 'test1',
+      },
+      user: context.user,
+    });
+    const parentPublishedPage = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'parent test',
+        is_published: true,
+      },
+      user: context.user,
+    });
+    const page2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test2',
+        content: 'test2',
+        published_content: 'test2',
+        is_published: true,
+        parent_page_id: parentPublishedPage.id,
+      },
+      user: context.user,
+    });
+    const page3 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test3',
+        content: 'test3',
+        published_content: 'old test3',
+        is_published: true,
+        parent_page_id: parentPublishedPage.id,
+      },
+      user: context.user,
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/docs/page-drafts`)
+      .set('xc-auth', context.token)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+      })
+      .expect(200)
+    expect(response.body.length).to.equal(2)
+  })
 }
 
 export default function() {

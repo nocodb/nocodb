@@ -22,7 +22,15 @@ export default class Page {
 
   public static async create(
     {
-      attributes: { title, description, content, parent_page_id, order },
+      attributes: {
+        title,
+        description,
+        content,
+        parent_page_id,
+        order,
+        published_content,
+        is_published,
+      },
       bookId,
       projectId,
       user,
@@ -33,6 +41,8 @@ export default class Page {
         content: string;
         parent_page_id: string;
         order?: number;
+        published_content?: string;
+        is_published?: boolean;
       };
       bookId: string;
       projectId: string;
@@ -58,6 +68,8 @@ export default class Page {
           },
           ncMeta
         ),
+        published_content,
+        is_published,
         order: order,
         book_id: bookId,
         created_by_id: user.id,
@@ -508,6 +520,27 @@ export default class Page {
         table.timestamps(true, true);
       }
     );
+  }
+
+  static async drafts({
+    projectId,
+    bookId,
+  }: {
+    projectId: string;
+    bookId: string;
+  }) {
+    const knex = Noco.ncMeta.knex;
+    const pages = await knex(Page.tableName({ projectId, bookId })).orderBy(
+      'updated_at',
+      'asc'
+    );
+
+    return pages.filter((p) => {
+      return (
+        (p.parent_page_id && p.content !== p.published_content) ||
+        (!p.parent_page_id && !p.is_published)
+      );
+    });
   }
 
   static async dropPageTable(

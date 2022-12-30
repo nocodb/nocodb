@@ -1014,6 +1014,32 @@ export class Api<
      * @description Get public book
      *
      * @tags Noco docs
+     * @name ListDraftPages
+     * @summary list draft pages
+     * @request GET:/api/v1/docs/page-drafts
+     * @response `200` `(DocsPageType)[]` OK
+     */
+    listDraftPages: (
+      query: {
+        /** Project id */
+        projectId: string;
+        /** book id */
+        bookId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType[], any>({
+        path: `/api/v1/docs/page-drafts`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get public book
+     *
+     * @tags Noco docs
      * @name ListPublicPages
      * @summary list public pages
      * @request GET:/api/v1/public/docs/pages

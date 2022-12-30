@@ -103,11 +103,36 @@ async function deletePage(
   }
 }
 
+async function drafts(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const drafts = await Page.drafts({
+      bookId: req.query?.bookId as string,
+      projectId: req.query?.projectId as string,
+    });
+
+    res // todo: pagination
+      .json(drafts);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis
 router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
 router.get('/api/v1/docs/pages', apiMetrics, ncMetaAclMw(list, 'pageList'));
+router.get(
+  '/api/v1/docs/page-drafts',
+  apiMetrics,
+  ncMetaAclMw(drafts, 'pageDraftsList')
+);
+
 router.post('/api/v1/docs/page', apiMetrics, ncMetaAclMw(create, 'pageCreate'));
 router.put(
   '/api/v1/docs/page/:id',

@@ -70,6 +70,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     currentVersion: null,
     latestRelease: null,
     hiddenRelease: null,
+    isMobileMode: null,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
@@ -114,8 +115,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** our local user object */
   const user = ref<User | null>(null)
 
-  const isMobileMode = ref<boolean>(false)
-
   return {
     ...toRefs(storage.value),
     storage,
@@ -126,6 +125,5 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     error,
     user,
     appInfo,
-    isMobileMode,
   }
 }

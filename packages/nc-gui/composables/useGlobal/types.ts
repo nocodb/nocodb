@@ -39,6 +39,7 @@ export interface StoredState {
   currentVersion: string | null
   latestRelease: string | null
   hiddenRelease: string | null
+  isMobileMode: boolean | null
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
@@ -50,7 +51,6 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>
   appInfo: Ref<AppInfo>
-  isMobileMode: Ref<boolean>
 }
 
 export interface Getters {

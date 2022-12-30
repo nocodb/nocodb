@@ -38,7 +38,7 @@ export default class XcMigrationSourcev2 {
       'nc_022_qr_code_column_type',
       'nc_023_multiple_source',
       'nc_024_barcode_column_type',
-      'nc_024_add_type_to_project',
+      'nc_025_add_type_to_project',
       'nc_025_create_books',
       'nc_026_workspace',
     ]);

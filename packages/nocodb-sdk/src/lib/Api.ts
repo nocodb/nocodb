@@ -12,23 +12,27 @@
 export interface UserType {
   /** Unique identifier for the given user. */
   id: string;
-  firstname: string;
-  lastname: string;
   /** @format email */
   email: string;
   roles?: string;
-  /**
-   * @format date
-   * @example 1997-10-31
-   */
-  date_of_birth?: string;
   /** Set to true if the user's email has been verified. */
   email_verified: boolean;
   /**
    * The date that the user was created.
    * @format date
    */
-  createDate?: string;
+  created_at?: string;
+  /**
+   * The date that the user was created.
+   * @format date
+   */
+  updated_at?: string;
+  display_name?: string;
+  user_name?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  avatar?: string;
 }
 
 export interface WorkspaceUserType {
@@ -789,9 +793,13 @@ export interface UserInfoType {
   id?: string;
   email?: string;
   email_verified?: string;
-  firstname?: string;
-  lastname?: string;
+  user_name?: string;
+  display_name?: string;
   roles?: any;
+}
+
+export interface FollowerType {
+  fk_follower_id?: string;
 }
 
 /**
@@ -1934,6 +1942,23 @@ export class Api<
       }),
 
     /**
+     * @description Organisation User GetByUsername
+     *
+     * @tags Org users
+     * @name GetByUsername
+     * @summary Organisation User GetByUsername
+     * @request GET:/api/v1/users/{username}
+     * @response `200` `UserType` OK
+     */
+    getByUsername: (username: string, params: RequestParams = {}) =>
+      this.request<UserType, any>({
+        path: `/api/v1/users/${username}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags Org users
@@ -1946,6 +1971,167 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/users/${userId}/resend-invite`,
         method: 'POST',
+        ...params,
+      }),
+
+    /**
+     * @description Create Organisation User Profile
+     *
+     * @tags Org users
+     * @name ProfileCreate
+     * @summary Organisation User Profile - Create
+     * @request POST:/api/v1/users/{userId}/profile
+     * @response `200` `void` OK
+     */
+    profileCreate: (
+      userId: string,
+      data: UserType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/profile`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Get Organisation User Profile
+     *
+     * @tags Org users
+     * @name ProfileGet
+     * @summary Organisation User Profile - Get
+     * @request GET:/api/v1/users/{userId}/profile
+     * @response `200` `void` OK
+     */
+    profileGet: (userId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/profile`,
+        method: 'GET',
+        ...params,
+      }),
+
+    /**
+     * @description Update Organisation User Profile
+     *
+     * @tags Org users
+     * @name ProfileUpdate
+     * @request PATCH:/api/v1/users/{userId}/profile
+     * @response `200` `void` OK
+     */
+    profileUpdate: (
+      userId: string,
+      data: UserType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/profile`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Create Organisation User Follower Relationship (Follow)
+     *
+     * @tags Org users
+     * @name FollowerCreate
+     * @summary Organisation User Follower - Create
+     * @request POST:/api/v1/users/{userId}/follower
+     * @response `200` `void` OK
+     */
+    followerCreate: (
+      userId: string,
+      data: FollowerType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/follower`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description List Organisation User Followers
+     *
+     * @tags Org users
+     * @name FollowerList
+     * @summary Organisation User Follower - List
+     * @request GET:/api/v1/users/{userId}/follower
+     * @response `200` `void` OK
+     */
+    followerList: (
+      userId: string,
+      data: FollowerType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/follower`,
+        method: 'GET',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete Organisation User Follower Relationship (Unfollow)
+     *
+     * @tags Org users
+     * @name FollowerDelete
+     * @summary Organisation User Follower - Delete
+     * @request DELETE:/api/v1/users/{userId}/follower
+     * @response `200` `void` OK
+     */
+    followerDelete: (
+      userId: string,
+      data: FollowerType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/follower`,
+        method: 'DELETE',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description List Organisation User Following
+     *
+     * @tags Org users
+     * @name FollowingList
+     * @summary Organisation User Following - List
+     * @request GET:/api/v1/users/{userId}/following
+     * @response `200` `void` OK
+     */
+    followingList: (userId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/following`,
+        method: 'GET',
+        ...params,
+      }),
+
+    /**
+     * @description Check if Organisation User is following someone
+     *
+     * @tags Org users
+     * @name IsFollowing
+     * @summary Organisation User IsFollowing
+     * @request GET:/api/v1/users/{userId}/isFollowing/{followerId}
+     * @response `200` `void` OK
+     */
+    isFollowing: (
+      userId: string,
+      followerId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/isFollowing/${followerId}`,
+        method: 'GET',
         ...params,
       }),
 

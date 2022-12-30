@@ -43,6 +43,7 @@ export enum MetaTable {
   BOOK = 'nc_books',
   WORKSPACE = 'workspace',
   WORKSPACE_USER = 'workspace_user',
+  FOLLOWER = 'nc_follower',
   COWRITER = 'cowriter',
 }
 
@@ -83,6 +84,7 @@ export const orderedMetaTables = [
   MetaTable.BOOK,
   MetaTable.WORKSPACE,
   MetaTable.COWRITER,
+  MetaTable.FOLLOWER,
 ];
 
 export const sakilaTableNames = [
@@ -149,6 +151,7 @@ export enum CacheScope {
   API_TOKEN = 'apiToken',
   INSTANCE_META = 'instanceMeta',
   USER_PROJECT = 'userProject',
+  FOLLOWER = 'follower',
   DOCS_PAGE = 'page',
   BOOK = 'book',
   COWRITER = 'cowriter',

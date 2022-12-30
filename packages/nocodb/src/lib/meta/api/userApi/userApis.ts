@@ -46,6 +46,7 @@ async function createDefaultWorkspace(user: User) {
 }
 
 export async function registerNewUserIfAllowed({
+  avatar,
   firstname,
   lastname,
   email,
@@ -53,6 +54,7 @@ export async function registerNewUserIfAllowed({
   password,
   email_verification_token,
 }: {
+  avatar;
   firstname;
   lastname;
   email: string;
@@ -86,6 +88,7 @@ export async function registerNewUserIfAllowed({
   const token_version = randomTokenString();
 
   return await User.insert({
+    avatar,
     firstname,
     lastname,
     email,
@@ -100,8 +103,12 @@ export async function registerNewUserIfAllowed({
 export async function signup(req: Request, res: Response<TableType>) {
   const {
     email: _email,
-    firstname,
-    lastname,
+    avatar,
+    display_name,
+    user_name,
+    bio,
+    location,
+    website,
     token,
     ignore_subscribe,
   } = req.body;
@@ -147,8 +154,12 @@ export async function signup(req: Request, res: Response<TableType>) {
   if (user) {
     if (token) {
       await User.update(user.id, {
-        firstname,
-        lastname,
+        avatar,
+        display_name,
+        user_name,
+        bio,
+        location,
+        website,
         salt,
         password,
         email_verification_token,
@@ -161,6 +172,7 @@ export async function signup(req: Request, res: Response<TableType>) {
     }
   } else {
     await registerNewUserIfAllowed({
+      avatar,
       firstname,
       lastname,
       email,
@@ -196,7 +208,6 @@ export async function signup(req: Request, res: Response<TableType>) {
   const refreshToken = randomTokenString();
   await User.update(user.id, {
     refresh_token: refreshToken,
-    email: user.email,
   });
 
   setTokenCookie(res, refreshToken);
@@ -244,7 +255,6 @@ async function successfulSignIn({
 
     await User.update(user.id, {
       refresh_token: refreshToken,
-      email: user.email,
       token_version: user.token_version,
     });
     setTokenCookie(res, refreshToken);

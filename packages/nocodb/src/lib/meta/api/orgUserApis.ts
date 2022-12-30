@@ -24,6 +24,16 @@ import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { randomTokenString } from '../helpers/stringHelpers';
 import { sendInviteEmail } from './projectUserApis';
 
+async function userGetByUsername(req, res) {
+  const user = await User.getByUsername(req.params.username);
+
+  if (!user) {
+    NcError.notFound(`User with username '${req.params.username}' not found`);
+  }
+
+  res.json(user);
+}
+
 async function userList(req, res) {
   res.json(
     new PagedResponseImpl(await User.list(req.query), {
@@ -254,6 +264,80 @@ async function appSettingsSet(req, res) {
   res.json({ msg: 'Settings saved' });
 }
 
+async function userProfileGet(req, res) {
+  const user = await User.getUserProfile(req.params.userId);
+
+  if (!user) {
+    NcError.notFound(`User with id '${req.params.userId}' not found`);
+  }
+
+  res.json(user);
+}
+
+async function userProfileUpdate(req, res) {
+  const updateBody = extractProps(req.body, [
+    'email',
+    'display_name',
+    'avatar',
+    'user_name',
+    'bio',
+    'location',
+    'website',
+  ]);
+  res.json(
+    await User.update(req.params.userId, {
+      ...updateBody,
+    })
+  );
+}
+
+async function userFollowingList(req, res) {
+  const list = await User.getFollowingList(req.params.userId, req.query);
+  res.json(
+    new PagedResponseImpl(list, {
+      ...req.query,
+      count: list.length,
+    })
+  );
+}
+
+async function userFollowerList(req, res) {
+  const list = await User.getFollowerList(req.params.userId, req.query);
+  res.json(
+    new PagedResponseImpl(list, {
+      ...req.query,
+      count: list.length,
+    })
+  );
+}
+
+async function userFollowerCreate(req, res) {
+  res.json(
+    await User.createFollower({
+      fk_user_id: req.params.userId,
+      fk_follower_id: req.body.fk_follower_id,
+    })
+  );
+}
+
+async function userFollowerDelete(req, res) {
+  res.json(
+    await User.deleteFollower({
+      fk_user_id: req.params.userId,
+      fk_follower_id: req.body.fk_follower_id,
+    })
+  );
+}
+
+async function isFollowing(req, res) {
+  res.json(
+    await User.isFollowing({
+      fk_user_id: req.params.userId,
+      fk_follower_id: req.params.followerId,
+    })
+  );
+}
+
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/users',
@@ -263,6 +347,13 @@ router.get(
     blockApiTokenAccess: true,
   })
 );
+
+router.get(
+  '/api/v1/users/:username',
+  metaApiMetrics,
+  ncMetaAclMw(userGetByUsername, 'userGetByUsername')
+);
+
 router.patch(
   '/api/v1/users/:userId',
   metaApiMetrics,
@@ -331,4 +422,45 @@ router.post(
   })
 );
 
+router.get(
+  '/api/v1/users/:userId/profile',
+  metaApiMetrics,
+  ncMetaAclMw(userProfileGet, 'userProfileGet')
+);
+
+router.patch(
+  '/api/v1/users/:userId/profile',
+  metaApiMetrics,
+  ncMetaAclMw(userProfileUpdate, 'userProfileUpdate')
+);
+
+router.get(
+  '/api/v1/users/:userId/isFollowing/:followerId',
+  metaApiMetrics,
+  ncMetaAclMw(isFollowing, 'isFollowing')
+);
+
+router.get(
+  '/api/v1/users/:userId/following',
+  metaApiMetrics,
+  ncMetaAclMw(userFollowingList, 'userFollowingList')
+);
+
+router.get(
+  '/api/v1/users/:userId/follower',
+  metaApiMetrics,
+  ncMetaAclMw(userFollowerList, 'userFollowerList')
+);
+
+router.post(
+  '/api/v1/users/:userId/follower',
+  metaApiMetrics,
+  ncMetaAclMw(userFollowerCreate, 'userFollowerCreate')
+);
+
+router.delete(
+  '/api/v1/users/:userId/follower',
+  metaApiMetrics,
+  ncMetaAclMw(userFollowerDelete, 'userFollowerDelete')
+);
 export default router;

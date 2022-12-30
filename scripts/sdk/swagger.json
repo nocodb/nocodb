@@ -1323,6 +1323,38 @@
         "description": ""
       }
     },
+    "/api/v1/users/{username}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "username",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Organisation User GetByUsername",
+        "operationId": "org-users-get-by-username",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "Organisation User GetByUsername"
+      }
+    },
     "/api/v1/users/{userId}/resend-invite": {
       "parameters": [
         {
@@ -1342,6 +1374,212 @@
             "description": "OK"
           }
         },
+        "tags": [
+          "Org users"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/profile": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Organisation User Profile - Create",
+        "operationId": "org-users-profile-create",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "Create Organisation User Profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Organisation User Profile - Get",
+        "operationId": "org-users-profile-get",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Get Organisation User Profile",
+        "tags": [
+          "Org users"
+        ]
+      },
+      "patch": {
+        "summary": "",
+        "operationId": "org-users-profile-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Update Organisation User Profile\n",
+        "tags": [
+          "Org users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{userId}/follower": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Organisation User Follower - Create",
+        "operationId": "org-users-follower-create",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "Create Organisation User Follower Relationship (Follow)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Follower"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Organisation User Follower - List",
+        "operationId": "org-users-follower-list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "List Organisation User Followers",
+        "tags": [
+          "Org users"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Follower"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Organisation User Follower - Delete",
+        "operationId": "org-users-follower-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ],
+        "description": "Delete Organisation User Follower Relationship (Unfollow)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Follower"
+              }
+            }
+          },
+          "description": ""
+        }
+      }
+    },
+    "/api/v1/users/{userId}/following": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Organisation User Following - List",
+        "operationId": "org-users-following-list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "List Organisation User Following",
+        "tags": [
+          "Org users"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/isFollowing/{followerId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "followerId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Organisation User IsFollowing",
+        "operationId": "org-users-is-following",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Check if Organisation User is following someone",
         "tags": [
           "Org users"
         ]
@@ -8217,16 +8455,18 @@
       "User": {
         "title": "User",
         "type": "object",
-        "description": "",
         "examples": [
           {
             "id": "142",
-            "firstName": "Alice",
-            "lastName": "Smith",
-            "email": "alice.smith@gmail.com",
-            "dateOfBirth": "1997-10-31",
+            "user_name": "jaysmith",
+            "display_name": "Jay Smith",
+            "email": "jay.smith@gmail.com",
             "emailVerified": true,
-            "signUpDate": "2019-08-24"
+            "roles": "org-level-creator,super",
+            "bio": "foo",
+            "location": "Istanbul",
+            "created_at": "2019-08-24",
+            "avatar": "https://dummyimage.com/300.png"
           }
         ],
         "x-internal": false,
@@ -8235,12 +8475,6 @@
             "type": "string",
             "description": "Unique identifier for the given user."
           },
-          "firstname": {
-            "type": "string"
-          },
-          "lastname": {
-            "type": "string"
-          },
           "email": {
             "type": "string",
             "format": "email"
@@ -8248,25 +8482,41 @@
           "roles": {
             "type": "string"
           },
-          "date_of_birth": {
-            "type": "string",
-            "format": "date",
-            "example": "1997-10-31"
-          },
           "email_verified": {
             "type": "boolean",
             "description": "Set to true if the user's email has been verified."
           },
-          "createDate": {
+          "created_at": {
             "type": "string",
             "format": "date",
             "description": "The date that the user was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date",
+            "description": "The date that the user was created."
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
           }
         },
         "required": [
           "id",
-          "firstname",
-          "lastname",
           "email",
           "email_verified"
         ]
@@ -8380,7 +8630,10 @@
             "type": "string"
           },
           "metaJson": {
-            "type": ["string", "object"]
+            "type": [
+              "string",
+              "object"
+            ]
           }
         }
       },
@@ -11085,13 +11338,25 @@
           "email_verified": {
             "type": "string"
           },
-          "firstname": {
+          "user_name": {
             "type": "string"
           },
-          "lastname": {
+          "display_name": {
             "type": "string"
           },
           "roles": {}
+        }
+      },
+      "Follower": {
+        "title": "Follower",
+        "x-stoplight": {
+          "id": "a3aza5b3wavkv"
+        },
+        "type": "object",
+        "properties": {
+          "fk_follower_id": {
+            "type": "string"
+          }
         }
       },
       "Cowriter": {

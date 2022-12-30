@@ -8,13 +8,17 @@ import Project from '../../../models/Project';
 
 export async function syncSourceList(req: Request, res: Response) {
   // todo: pagination
-  res.json(new PagedResponseImpl(await SyncSource.list(req.params.projectId, req.params.baseId)));
+  res.json(
+    new PagedResponseImpl(
+      await SyncSource.list(req.params.projectId, req.params.baseId)
+    )
+  );
 }
 
 export async function syncCreate(req: Request, res: Response) {
   Tele.emit('evt', { evt_type: 'webhooks:created' });
   const project = await Project.getWithInfo(req.params.projectId);
-  
+
   const sync = await SyncSource.insert({
     ...req.body,
     fk_user_id: (req as any).user.id,

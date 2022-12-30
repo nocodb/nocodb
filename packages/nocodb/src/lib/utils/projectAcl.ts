@@ -1,4 +1,4 @@
-import {OrgUserRoles, WorkspaceUserRoles} from 'nocodb-sdk';
+import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 
 const rolePermissions = {
   owner: {
@@ -362,7 +362,7 @@ const rolePermissions = {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
-    }
+    },
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
@@ -378,12 +378,14 @@ const rolePermissions = {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
-    }
+    },
   },
 };
 
 // include viewer project role permissions
-Object.assign(rolePermissions[WorkspaceUserRoles.VIEWER].include, rolePermissions["viewer"].include)
-
+Object.assign(
+  rolePermissions[WorkspaceUserRoles.VIEWER].include,
+  rolePermissions['viewer'].include
+);
 
 export default rolePermissions;

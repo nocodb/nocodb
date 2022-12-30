@@ -108,7 +108,7 @@ export default class Base implements BaseType {
       'order',
       'enabled',
     ]);
-    
+
     if (updateObj.config) {
       updateObj.config = CryptoJS.AES.encrypt(
         JSON.stringify(base.config),
@@ -164,9 +164,7 @@ export default class Base implements BaseType {
       await NocoCache.setList(CacheScope.BASE, [args.projectId], baseDataList);
     }
 
-    baseDataList.sort(
-      (a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity)
-    );
+    baseDataList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
     return baseDataList?.map((baseData) => {
       return new Base(baseData);
@@ -206,7 +204,6 @@ export default class Base implements BaseType {
 
     // update order for bases
     for (const [i, b] of Object.entries(bases)) {
-
       await NocoCache.deepDel(
         CacheScope.BASE,
         `${CacheScope.BASE}:${b.id}`,
@@ -220,11 +217,11 @@ export default class Base implements BaseType {
         null,
         MetaTable.BASES,
         {
-          order: b.order
+          order: b.order,
         },
         b.id
       );
-  
+
       await NocoCache.appendToList(
         CacheScope.BASE,
         [b.project_id],

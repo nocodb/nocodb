@@ -71,18 +71,21 @@ const customFormState = ref<ProjectCreateForm>({
 
 const validators = computed(() => {
   return {
-    'title': [
-      {
-        required: true,
-        message: 'Base name is required',
-      },
-      projectTitleValidator,
-    ],
+    'title': [projectTitleValidator],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
     ...(formState.value.dataSource.client === ClientType.SQLITE
       ? {
           'dataSource.connection.connection.filename': [fieldRequiredValidator()],
+        }
+      : formState.value.dataSource.client === ClientType.SNOWFLAKE
+      ? {
+          'dataSource.connection.account': [fieldRequiredValidator()],
+          'dataSource.connection.username': [fieldRequiredValidator()],
+          'dataSource.connection.password': [fieldRequiredValidator()],
+          'dataSource.connection.warehouse': [fieldRequiredValidator()],
+          'dataSource.connection.database': [fieldRequiredValidator()],
+          'dataSource.connection.schema': [fieldRequiredValidator()],
         }
       : {
           'dataSource.connection.host': [fieldRequiredValidator()],
@@ -375,6 +378,43 @@ onMounted(async () => {
       >
         <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
       </a-form-item>
+
+      <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
+        <!-- Account -->
+        <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
+          <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
+        </a-form-item>
+
+        <!-- Username -->
+        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
+          <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
+        </a-form-item>
+
+        <!-- Password -->
+        <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
+          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
+        </a-form-item>
+
+        <!-- Warehouse -->
+        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
+          <a-input v-model:value="formState.dataSource.connection.warehouse" />
+        </a-form-item>
+
+        <!-- Database -->
+        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+          <!-- Database : create if not exists -->
+          <a-input
+            v-model:value="formState.dataSource.connection.database"
+            :placeholder="$t('labels.dbCreateIfNotExists')"
+            class="nc-extdb-host-database"
+          />
+        </a-form-item>
+
+        <!-- Schema name -->
+        <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
+          <a-input v-model:value="formState.dataSource.connection.schema" />
+        </a-form-item>
+      </template>
 
       <template v-else>
         <!-- Host Address -->

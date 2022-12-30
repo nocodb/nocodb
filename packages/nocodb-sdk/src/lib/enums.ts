@@ -4,6 +4,14 @@ export enum OrgUserRoles {
   VIEWER = 'org-level-viewer',
 }
 
+export enum ProjectRoles {
+  OWNER = 'owner',
+  CREATOR = 'creator',
+  EDITOR = 'editor',
+  COMMENTER = 'commenter',
+  VIEWER = 'viewer',
+}
+
 export enum WorkspaceUserRoles {
   OWNER = 'workspace-level-owner',
   CREATOR = 'workspace-level-creator',

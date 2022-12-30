@@ -5,19 +5,21 @@ export const timeAgo = (date: any) => {
 }
 
 export const dateFormats = [
+  'YYYY-MM-DD',
+  'YYYY/MM/DD',
   'DD-MM-YYYY',
   'MM-DD-YYYY',
-  'YYYY-MM-DD',
   'DD/MM/YYYY',
   'MM/DD/YYYY',
-  'YYYY/MM/DD',
   'DD MM YYYY',
   'MM DD YYYY',
   'YYYY MM DD',
 ]
 
+export const timeFormats = ['HH:mm', 'HH:mm:ss']
+
 export const handleTZ = (val: any) => {
-  if (!val) {
+  if (val === undefined || val === null) {
     return
   }
   if (typeof val !== 'string') {
@@ -60,7 +62,7 @@ export function getDateFormat(v: string) {
 
 export function getDateTimeFormat(v: string) {
   for (const format of dateFormats) {
-    for (const timeFormat of ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS']) {
+    for (const timeFormat of timeFormats) {
       const dateTimeFormat = `${format} ${timeFormat}`
       if (dayjs(v, dateTimeFormat, true).isValid() as any) {
         return dateTimeFormat

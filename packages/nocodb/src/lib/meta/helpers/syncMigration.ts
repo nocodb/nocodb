@@ -21,7 +21,10 @@ export default async function syncMigration(project: Project): Promise<void> {
   }
 }
 
-export async function syncBaseMigration(project: Project, base: Base): Promise<void> {
+export async function syncBaseMigration(
+  project: Project,
+  base: Base
+): Promise<void> {
   try {
     /* create sql-migrator */
     const migrator = new Migrator(project);

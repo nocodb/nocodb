@@ -264,7 +264,7 @@ export function useViewData(
         project?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        id,
+        encodeURIComponent(id),
         {
           // if value is undefined treat it as null
           [property]: toUpdate.row[property] ?? null,
@@ -275,7 +275,7 @@ export function useViewData(
         // }
       )
       // audit
-      $api.utils.auditRowUpdate(id, {
+      $api.utils.auditRowUpdate(encodeURIComponent(id), {
         fk_model_id: metaValue?.id as string,
         column_name: property,
         row_id: id,
@@ -292,6 +292,7 @@ export function useViewData(
           if (
             col.uidt === UITypes.Formula ||
             col.uidt === UITypes.QrCode ||
+            col.uidt === UITypes.Barcode ||
             col.uidt === UITypes.Rollup ||
             col.au ||
             col.cdf?.includes(' on update ')

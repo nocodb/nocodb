@@ -41,6 +41,8 @@ const [setup, use] = useInjectionState(() => {
 
         tab.title = currentTable.title
 
+        tab.meta = currentTable.meta
+
         // append base alias to tab title if duplicate titles exist on other bases
         if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
           tab.title = `${tab.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
@@ -91,6 +93,8 @@ const [setup, use] = useInjectionState(() => {
     else {
       const currentTable = tables.value.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
       const currentBase = bases.value.find((b) => b.id === currentTable?.base_id)
+
+      tabMeta.meta = currentTable?.meta
 
       // append base alias to tab title if duplicate titles exist on other bases
       if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))

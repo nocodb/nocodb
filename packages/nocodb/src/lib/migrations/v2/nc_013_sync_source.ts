@@ -38,6 +38,7 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex) => {
+  await knex.schema.dropTable(MetaTable.SYNC_LOGS);
   await knex.schema.dropTable(MetaTable.SYNC_SOURCE);
 };
 

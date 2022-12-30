@@ -199,7 +199,7 @@ const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
             <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
             <a-menu v-else ref="menu" v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list">
-              <a-menu-item v-for="workspace of workspaces" :key="workspace.id">
+              <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
                 <div class="nc-workspace-list-item">
                   <a-dropdown :trigger="['click']" @click.stop>
                     <div

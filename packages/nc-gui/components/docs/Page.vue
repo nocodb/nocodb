@@ -15,13 +15,29 @@ import suggestion from './suggestion'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
-const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, bookUrl, createBook, selectBook, books } =
-  useDocs()
+const {
+  openedPage,
+  openedBook,
+  updatePage,
+  openedNestedPagesOfBook,
+  nestedUrl,
+  bookUrl,
+  createBook,
+  selectBook,
+  books,
+  drafts,
+  fetchDrafts,
+  findPage,
+} = useDocs()
+
+const isDraftsOpen = ref(false)
+const draftsFormData = ref<any[]>([])
 
 const isTitleInputRefLoaded = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
 
 const content = computed(() => openedPage.value?.content || '')
+const haveDrafts = computed(() => drafts.value.length > 0)
 
 const showCreateBookModal = ref(false)
 const bookFormModelData = ref({
@@ -85,20 +101,39 @@ const onCreateBook = async () => {
   showCreateBookModal.value = false
 }
 
-const publishPage = async () => {
-  if (!openedPage.value) return
+const openDrafts = async () => {
+  await fetchDrafts()
+  draftsFormData.value = drafts.value.map((draft) => ({ ...draft, selected: true }))
+  isDraftsOpen.value = true
+}
 
+const publishDrafts = async () => {
   isPagePublishing.value = true
 
   try {
-    await updatePage({ pageId: openedPage.value.id!, page: { is_published: true } as any })
+    await Promise.all(
+      draftsFormData.value
+        .filter((draft) => draft.selected)
+        .map(async (draft) => {
+          return await updatePage({ pageId: draft.id!, page: { is_published: true } as any })
+        }),
+    )
+    draftsFormData.value.forEach((draft) => {
+      const page = findPage(draft.id!)
+      if (page) {
+        page.is_published = true
+        page.published_content = page.content
+      }
+    })
+    drafts.value = draftsFormData.value.filter((draft) => !draft.selected)
+    console.log('Published drafts', drafts.value)
   } catch (e) {
     console.error(e)
   } finally {
     isPagePublishing.value = false
+    isDraftsOpen.value = false
   }
 }
-
 watch(
   () => content.value,
   () => {
@@ -139,11 +174,12 @@ watch(titleInputRef, (el) => {
 })
 
 watchDebounced(
-  content,
-  () =>
-    !isPublic.value &&
-    openedPage.value?.id &&
-    updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content } as any }),
+  () => [openedPage.value?.id, openedPage.value?.content],
+  ([newId, newContent], [oldId, oldContent]) => {
+    if (!isPublic.value && openedPage.value?.id && newId === oldId) {
+      updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content } as any })
+    }
+  },
   {
     debounce: 300,
     maxWait: 600,
@@ -194,15 +230,8 @@ watchDebounced(
           >
             Share
           </div>
-          <a-button
-            type="primary"
-            :disabled="
-              (openedPage.parent_page_id && openedPage.content === openedPage.published_content) ||
-              (!openedPage.parent_page_id && openedPage.is_published)
-            "
-            :loading="isPagePublishing"
-            @click="publishPage"
-            >Publish v{{ openedBook?.order }}</a-button
+          <a-button type="primary" :disabled="!haveDrafts" :loading="isPagePublishing" @click="openDrafts">
+            Publish v{{ openedBook?.order }}</a-button
           >
         </div>
       </div>
@@ -270,6 +299,20 @@ watchDebounced(
           <a-input v-model:value="bookFormModelData.title" />
         </a-form-item>
       </a-form>
+    </a-modal>
+    <a-modal
+      :visible="isDraftsOpen"
+      title="Publish drafts"
+      :mask-closable="false"
+      ok-text="Publish"
+      @cancel="isDraftsOpen = false"
+      @ok="publishDrafts"
+    >
+      <li v-for="draft in draftsFormData" :key="draft.id">
+        <a-checkbox v-model:checked="draft.selected" :value="draft.id">
+          {{ draft.title }}
+        </a-checkbox>
+      </li>
     </a-modal>
   </a-layout-content>
 </template>

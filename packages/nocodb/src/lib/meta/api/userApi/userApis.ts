@@ -45,6 +45,58 @@ async function createDefaultWorkspace(user: User) {
   return workspace;
 }
 
+export async function registerNewUserIfAllowed({
+  firstname,
+  lastname,
+  email,
+  salt,
+  password,
+  email_verification_token,
+}: {
+  firstname;
+  lastname;
+  email: string;
+  salt: any;
+  password;
+  email_verification_token;
+}) {
+  let roles: string = OrgUserRoles.CREATOR;
+
+  if (await User.isFirst()) {
+    roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
+    // todo: update in nc_store
+    // roles = 'owner,creator,editor'
+    Tele.emit('evt', {
+      evt_type: 'project:invite',
+      count: 1,
+    });
+  } else {
+    let settings: { invite_only_signup?: boolean } = {};
+    try {
+      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+    } catch {}
+
+    if (settings?.invite_only_signup) {
+      NcError.badRequest('Not allowed to signup, contact super admin.');
+    } else {
+      roles = OrgUserRoles.VIEWER;
+    }
+  }
+
+  const token_version = randomTokenString();
+
+  return await User.insert({
+    firstname,
+    lastname,
+    email,
+    salt,
+    password,
+    email_verification_token,
+    roles,
+    token_version,
+  });
+}
+
 export async function signup(req: Request, res: Response<TableType>) {
   const {
     email: _email,
@@ -108,40 +160,13 @@ export async function signup(req: Request, res: Response<TableType>) {
       NcError.badRequest('User already exist');
     }
   } else {
-    let roles: string = OrgUserRoles.CREATOR;
-
-    if (await User.isFirst()) {
-      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
-      // todo: update in nc_store
-      // roles = 'owner,creator,editor'
-      Tele.emit('evt', {
-        evt_type: 'project:invite',
-        count: 1,
-      });
-    } else {
-      let settings: { invite_only_signup?: boolean } = {};
-      try {
-        settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
-      } catch {}
-
-      if (settings?.invite_only_signup) {
-        NcError.badRequest('Not allowed to signup, contact super admin.');
-      } else {
-        roles = OrgUserRoles.VIEWER;
-      }
-    }
-
-    const token_version = randomTokenString();
-
-    await User.insert({
+    await registerNewUserIfAllowed({
       firstname,
       lastname,
       email,
       salt,
       password,
       email_verification_token,
-      roles,
-      token_version,
     });
   }
 

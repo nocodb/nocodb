@@ -129,6 +129,27 @@ export class TreeViewPage extends BasePage {
     await importMenu.locator(`.ant-dropdown-menu-title-content:has-text("${title}")`).click();
   }
 
+  async changeTableIcon({ title, icon }: { title: string; icon: string }) {
+    await this.get().locator(`.nc-project-tree-tbl-${title} .nc-table-icon`).click();
+
+    await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
+    await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
+
+    await this.rootPage.getByTestId('nc-emoji-container').isHidden();
+    await expect(
+      this.get().locator(`.nc-project-tree-tbl-${title} [data-testid="nc-icon-emojione:${icon}"]`)
+    ).toHaveCount(1);
+  }
+
+  async verifyTabIcon({ title, icon }: { title: string; icon: string }) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await expect(
+      this.rootPage.locator(
+        `[data-testid="nc-tab-title"]:has-text("${title}") [data-testid="nc-tab-icon-emojione:${icon}"]`
+      )
+    ).toBeVisible();
+  }
+
   // todo: Break this into smaller methods
   async validateRoleAccess(param: { role: string }) {
     // Add new table button

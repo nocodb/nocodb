@@ -30,11 +30,15 @@ export class ColumnPageObject extends BasePage {
     type = 'SingleLineText',
     formula = '',
     qrCodeValueColumnTitle = '',
+    barcodeValueColumnTitle = '',
+    barcodeFormat = '',
     childTable = '',
     childColumn = '',
     relationType = '',
     rollupType = '',
-    format,
+    format = '',
+    dateFormat = '',
+    timeFormat = '',
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
   }: {
@@ -42,11 +46,15 @@ export class ColumnPageObject extends BasePage {
     type?: string;
     formula?: string;
     qrCodeValueColumnTitle?: string;
+    barcodeValueColumnTitle?: string;
+    barcodeFormat?: string;
     childTable?: string;
     childColumn?: string;
     relationType?: string;
     rollupType?: string;
     format?: string;
+    dateFormat?: string;
+    timeFormat?: string;
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
   }) {
@@ -90,6 +98,14 @@ export class ColumnPageObject extends BasePage {
             .click();
         }
         break;
+      case 'DateTime':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        // Time Format
+        await this.get().locator('.nc-time-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
+        break;
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
         break;
@@ -98,6 +114,14 @@ export class ColumnPageObject extends BasePage {
         await this.rootPage
           .locator(`.ant-select-item`, {
             hasText: new RegExp(`^${qrCodeValueColumnTitle}$`),
+          })
+          .click();
+        break;
+      case 'Barcode':
+        await this.get().locator('.ant-select-single').nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: new RegExp(`^${barcodeValueColumnTitle}$`),
           })
           .click();
         break;
@@ -206,6 +230,28 @@ export class ColumnPageObject extends BasePage {
     await this.save();
   }
 
+  async changeReferencedColumnForBarcode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
+    await this.get().locator('.nc-barcode-value-column-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: titleOfReferencedColumn,
+      })
+      .click();
+
+    await this.save();
+  }
+
+  async changeBarcodeFormat({ barcodeFormatName }: { barcodeFormatName: string }) {
+    await this.get().locator('.nc-barcode-format-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: barcodeFormatName,
+      })
+      .click();
+
+    await this.save();
+  }
+
   async delete({ title }: { title: string }) {
     await this.getColumnHeader(title).locator('svg.ant-dropdown-trigger').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
@@ -222,11 +268,15 @@ export class ColumnPageObject extends BasePage {
     type = 'SingleLineText',
     formula = '',
     format,
+    dateFormat = '',
+    timeFormat = '',
   }: {
     title: string;
     type?: string;
     formula?: string;
     format?: string;
+    dateFormat?: string;
+    timeFormat?: string;
   }) {
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
@@ -244,6 +294,14 @@ export class ColumnPageObject extends BasePage {
             hasText: format,
           })
           .click();
+        break;
+      case 'DateTime':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        // Time Format
+        await this.get().locator('.nc-time-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
         break;
       default:
         break;

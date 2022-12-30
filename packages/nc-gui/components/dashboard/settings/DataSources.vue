@@ -200,6 +200,10 @@ watch(
         clientType = ClientType.MSSQL
         vState.value = DataSourcesSubTab.New
         break
+      case ClientType.SNOWFLAKE:
+        clientType = ClientType.SNOWFLAKE
+        vState.value = DataSourcesSubTab.New
+        break
       case DataSourcesSubTab.New:
         if (sources.length > 1 && !forceAwakened) {
           vState.value = ''

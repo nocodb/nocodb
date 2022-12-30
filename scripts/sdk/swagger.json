@@ -2648,7 +2648,8 @@
                   "project_id": {
                     "type": "string"
                   },
-                  "meta": {}
+                  "meta": {
+                  }
                 }
               }
             }
@@ -2869,7 +2870,8 @@
                   "order": {
                     "type": "number"
                   },
-                  "meta": {},
+                  "meta": {
+                  },
                   "title": {
                     "type": "string"
                   },
@@ -8928,7 +8930,8 @@
               "number"
             ]
           },
-          "meta": {}
+          "meta": {
+          }
         },
         "required": [
           "table_name",
@@ -9026,7 +9029,8 @@
           "uuid": {
             "type": "string"
           },
-          "meta": {},
+          "meta": {
+          },
           "show_system_fields": {
             "type": "boolean"
           },
@@ -9269,7 +9273,8 @@
               "$ref": "#/components/schemas/Column"
             }
           },
-          "meta": {}
+          "meta": {
+          }
         },
         "required": [
           "table_name",

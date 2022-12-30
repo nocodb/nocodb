@@ -1,6 +1,6 @@
 import UITypes from '../UITypes';
 
-export const AllowedColumnTypesForQrCode = [
+export const AllowedColumnTypesForQrAndBarcodes = [
   UITypes.Formula,
   UITypes.SingleLineText,
   UITypes.LongText,

@@ -248,7 +248,10 @@
     "sqlOutput": "Вывод SQL",
     "addOption": "Добавить настройку",
     "qrCodeValueColumn": "Столбец с QR-кодом",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Слишком много символов для QR-кода",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "Агрегатная функция",
     "dbCreateIfNotExists": "База данных: создать, если не существует",
     "clientKey": "Ключ клиента",
@@ -496,6 +499,9 @@
   },
   "msg": {
     "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Предупреждение: Вычисляемое поле - невозможно очистить текст",
         "qrFieldsCannotBeDirectlyChanged": "Внимание: QR-поля не могут быть изменены напрямую."

@@ -25,6 +25,7 @@ export enum ClientType {
   PG = 'pg',
   SQLITE = 'sqlite3',
   VITESS = 'vitess',
+  SNOWFLAKE = 'snowflake',
 }
 
 export enum Language {

@@ -17,7 +17,7 @@ import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
 import { feedbackForm } from 'nc-help';
-const { Configuration, OpenAIApi } = require("openai");
+const { Configuration, OpenAIApi } = require('openai');
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -62,6 +62,7 @@ export async function appInfo(req: Request, res: Response) {
     ncMin: !!process.env.NC_MIN,
     teleEnabled: !process.env.NC_DISABLE_TELE,
     ncSiteUrl: (req as any).ncSiteUrl,
+    ee: Noco.isEE(),
   };
 
   res.json(result);
@@ -378,7 +379,7 @@ const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
 
 export async function selectOptionsMagic(req: Request, res: Response) {
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `return select options for '${req.body.title}' column for '${req.body.table}' table in '${req.body.schema}' schema as Array<string> in json`,
     temperature: 0.7,
     max_tokens: 4000,
@@ -388,7 +389,7 @@ export async function selectOptionsMagic(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res.status(500).json({ error: "No options found" });
+    res.status(500).json({ error: 'No options found' });
     return;
   }
 

@@ -5,9 +5,9 @@ import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { NcProjectType, navigateTo, stringToColour, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 import { useNuxtApp } from '#app'
 
-const { projects, loadProjects,  } = useWorkspaceStoreOrThrow()
+const { projects, loadProjects } = useWorkspaceStoreOrThrow()
 
-const { $e ,$api} = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
 const openProject = async (project: ProjectType) => {
   switch (project.type) {

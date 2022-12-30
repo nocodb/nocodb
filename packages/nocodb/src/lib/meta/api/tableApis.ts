@@ -29,7 +29,7 @@ import getColumnUiType from '../helpers/getColumnUiType';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { baseMetaDiffFN } from './metaDiffApis';
-const { Configuration, OpenAIApi } = require("openai");
+const { Configuration, OpenAIApi } = require('openai');
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -236,9 +236,23 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 export async function tableUpdate(req: Request<any, any>, res) {
   const model = await Model.get(req.params.tableId);
 
-  const project = await Project.getWithInfo(req.body.project_id);
+  const project = await Project.getWithInfo(
+    req.body.project_id || (req as any).ncProjectId
+  );
   const base = project.bases.find((b) => b.id === model.base_id);
-  
+
+  if (model.project_id !== project.id) {
+    NcError.badRequest('Model does not belong to project');
+  }
+
+  // if meta present update meta and return
+  // todo: allow user to update meta  and other prop in single api call
+  if ('meta' in req.body) {
+    await Model.updateMeta(req.params.tableId, req.body.meta);
+
+    return res.json({ msg: 'success' });
+  }
+
   if (!req.body.table_name) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
@@ -379,7 +393,10 @@ export async function tableDelete(req: Request, res: Response) {
   res.json(await table.delete());
 }
 
-export async function tableCreateMagic(req: Request<any, any, TableReqType>, res) {
+export async function tableCreateMagic(
+  req: Request<any, any, TableReqType>,
+  res
+) {
   const project = await Project.getWithInfo(req.params.projectId);
   let base = project.bases[0];
 
@@ -456,7 +473,7 @@ export async function tableCreateMagic(req: Request<any, any, TableReqType>, res
   }
 
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `create best schema for '${req.body.title}' table without constraints using sqlite:`,
     temperature: 0.7,
     max_tokens: 2048,
@@ -487,7 +504,10 @@ export async function tableCreateMagic(req: Request<any, any, TableReqType>, res
   res.json(table);
 }
 
-export async function schemaMagic(req: Request<any, any, { title: string; schema_name: string }>, res) {
+export async function schemaMagic(
+  req: Request<any, any, { title: string; schema_name: string }>,
+  res
+) {
   const project = await Project.getWithInfo(req.params.projectId);
   let base = project.bases[0];
 
@@ -560,11 +580,13 @@ export async function schemaMagic(req: Request<any, any, { title: string; schema
   }
 
   if (req.body.schema_name.length > tableNameLengthLimit) {
-    NcError.badRequest(`Schema name exceeds ${tableNameLengthLimit} characters`);
+    NcError.badRequest(
+      `Schema name exceeds ${tableNameLengthLimit} characters`
+    );
   }
 
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `create best schema for '${req.body.title}' database using sqlite:`,
     temperature: 0.7,
     max_tokens: 4000,

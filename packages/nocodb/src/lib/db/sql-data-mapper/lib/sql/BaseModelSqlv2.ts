@@ -45,6 +45,7 @@ import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
 import QrCodeColumn from '../../../../models/QrCodeColumn';
+import BarcodeColumn from '../../../../models/BarcodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -100,10 +101,9 @@ class BaseModelSqlv2 {
 
     qb.where(_wherePk(this.model.primaryKeys, id));
 
-    let data = (await this.extractRawQueryAndExec(qb))?.[0];
+    const data = (await this.execAndParse(qb))?.[0];
 
     if (data) {
-      data = this.convertAttachmentType(data);
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
@@ -159,10 +159,9 @@ class BaseModelSqlv2 {
       qb.orderBy(this.model.primaryKey.column_name);
     }
 
-    let data = await qb.first();
+    const data = await qb.first();
 
     if (data) {
-      data = this.convertAttachmentType(data);
       const proto = await this.getProto();
       data.__proto__ = proto;
     }
@@ -254,8 +253,7 @@ class BaseModelSqlv2 {
 
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
-    data = this.convertAttachmentType(data);
+    const data = await this.execAndParse(qb);
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -323,7 +321,8 @@ class BaseModelSqlv2 {
       as: 'count',
     }).first();
     const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
-    return (this.isPg ? res.rows[0] : res[0][0] ?? res[0]).count;
+    return (this.isPg || this.isSnowflake ? res.rows[0] : res[0][0] ?? res[0])
+      .count;
   }
 
   // todo: add support for sortArrJson and filterArrJson
@@ -367,7 +366,7 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-    return this.convertAttachmentType(await qb);
+    return await qb;
   }
 
   async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
@@ -426,8 +425,7 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
-      let children = await this.extractRawQueryAndExec(childQb);
-      children = this.convertAttachmentType(children);
+      const children = await this.execAndParse(childQb, childTable);
       const proto = await (
         await Model.getBaseModelSQL({
           id: childTable.id,
@@ -554,8 +552,7 @@ class BaseModelSqlv2 {
 
       await childModel.selectObject({ qb });
 
-      let children = await this.extractRawQueryAndExec(qb);
-      children = this.convertAttachmentType(children);
+      const children = await this.execAndParse(qb, childTable);
 
       const proto = await (
         await Model.getBaseModelSQL({
@@ -672,11 +669,10 @@ class BaseModelSqlv2 {
       !this.isSqlite
     );
 
-    let children = await this.extractRawQueryAndExec(finalQb);
+    let children = await this.execAndParse(finalQb, childTable);
     if (this.isMySQL) {
       children = children[0];
     }
-    children = this.convertAttachmentType(children);
     const proto = await (
       await Model.getBaseModelSQL({
         id: rtnId,
@@ -741,8 +737,7 @@ class BaseModelSqlv2 {
     qb.limit(+rest?.limit || 25);
     qb.offset(+rest?.offset || 0);
 
-    let children = await this.extractRawQueryAndExec(qb);
-    children = this.convertAttachmentType(children);
+    const children = await this.execAndParse(qb, childTable);
     const proto = await (
       await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
@@ -968,8 +963,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await qb;
-    data = this.convertAttachmentType(data);
+    const data = await qb;
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -1083,8 +1077,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
-    data = this.convertAttachmentType(data);
+    const data = await this.execAndParse(qb, childTable);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1202,8 +1195,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
-    data = this.convertAttachmentType(data);
+    const data = await this.execAndParse(qb, childTable);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1470,6 +1462,40 @@ class BaseModelSqlv2 {
 
           break;
         }
+        case 'Barcode': {
+          const barcodeColumn = await column.getColOptions<BarcodeColumn>();
+          const barcodeValueColumn = await Column.get({
+            colId: barcodeColumn.fk_barcode_value_column_id,
+          });
+
+          // If the referenced value cannot be found: cancel current iteration
+          if (barcodeValueColumn == null) {
+            break;
+          }
+
+          switch (barcodeValueColumn.uidt) {
+            case UITypes.Formula:
+              try {
+                const selectQb = await this.getSelectQueryBuilderForFormula(
+                  barcodeValueColumn
+                );
+                qb.select({
+                  [column.column_name]: selectQb.builder,
+                });
+              } catch {
+                continue;
+              }
+              break;
+            default: {
+              qb.select({
+                [column.column_name]: barcodeValueColumn.column_name,
+              });
+              break;
+            }
+          }
+
+          break;
+        }
         case 'Formula':
           {
             try {
@@ -1535,7 +1561,7 @@ class BaseModelSqlv2 {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
         );
-        response = await this.extractRawQueryAndExec(query);
+        response = await this.execAndParse(query);
       }
 
       const ai = this.model.columns.find((c) => c.ai);
@@ -1545,7 +1571,7 @@ class BaseModelSqlv2 {
 
       // handle if autogenerated primary key is used
       if (ag) {
-        if (!response) await this.extractRawQueryAndExec(query);
+        if (!response) await this.execAndParse(query);
         response = await this.readByPk(data[ag.title]);
       } else if (
         !response ||
@@ -1555,7 +1581,7 @@ class BaseModelSqlv2 {
         if (response?.length) {
           id = response[0];
         } else {
-          const res = await this.extractRawQueryAndExec(query);
+          const res = await this.execAndParse(query);
           id = res?.id ?? res[0]?.insertId;
         }
 
@@ -1566,6 +1592,12 @@ class BaseModelSqlv2 {
               await this.dbDriver(this.tnPath)
                 .select(ai.column_name)
                 .max(ai.column_name, { as: 'id' })
+            )[0].id;
+          } else if (this.isSnowflake) {
+            id = (
+              (await this.dbDriver(this.tnPath).max(ai.column_name, {
+                as: 'id',
+              })) as any
             )[0].id;
           }
           response = await this.readByPk(id);
@@ -1660,7 +1692,7 @@ class BaseModelSqlv2 {
         .update(updateObj)
         .where(await this._wherePk(id));
 
-      await this.extractRawQueryAndExec(query);
+      await this.execAndParse(query);
 
       const response = await this.readByPk(id);
       await this.afterUpdate(response, trx, cookie);
@@ -1679,11 +1711,17 @@ class BaseModelSqlv2 {
 
   private getTnPath(tb: Model) {
     const schema = (this.dbDriver as any).searchPath?.();
-    const table =
-      this.isMssql && schema
-        ? this.dbDriver.raw('??.??', [schema, tb.table_name])
-        : tb.table_name;
-    return table;
+    if (this.isMssql && schema) {
+      return this.dbDriver.raw('??.??', [schema, tb.table_name]);
+    } else if (this.isSnowflake) {
+      return [
+        this.dbDriver.client.config.connection.database,
+        this.dbDriver.client.config.connection.schema,
+        tb.table_name,
+      ].join('.');
+    } else {
+      return tb.table_name;
+    }
   }
 
   public get tnPath() {
@@ -1704,6 +1742,10 @@ class BaseModelSqlv2 {
 
   get isMySQL() {
     return this.clientType === 'mysql2' || this.clientType === 'mysql';
+  }
+
+  get isSnowflake() {
+    return this.clientType === 'snowflake';
   }
 
   get clientType() {
@@ -1808,7 +1850,20 @@ class BaseModelSqlv2 {
         }
 
         if (ai) {
-          // response = await this.readByPk(id)
+          if (this.isSqlite) {
+            // sqlite doesnt return id after insert
+            id = (
+              await this.dbDriver(this.tnPath)
+                .select(ai.column_name)
+                .max(ai.column_name, { as: 'id' })
+            )[0].id;
+          } else if (this.isSnowflake) {
+            id = (
+              (await this.dbDriver(this.tnPath).max(ai.column_name, {
+                as: 'id',
+              })) as any
+            ).rows[0].id;
+          }
           response = await this.readByPk(id);
         } else {
           response = data;
@@ -1881,10 +1936,10 @@ class BaseModelSqlv2 {
       const response =
         this.isPg || this.isMssql
           ? await this.dbDriver
-              .batchInsert(this.model.table_name, insertDatas, chunkSize)
+              .batchInsert(this.tnPath, insertDatas, chunkSize)
               .returning(this.model.primaryKey?.column_name)
           : await this.dbDriver.batchInsert(
-              this.model.table_name,
+              this.tnPath,
               insertDatas,
               chunkSize
             );
@@ -1917,7 +1972,7 @@ class BaseModelSqlv2 {
           continue;
         }
         const wherePk = await this._wherePk(pkValues);
-        const response = await transaction(this.model.table_name)
+        const response = await transaction(this.tnPath)
           .update(d)
           .where(wherePk);
         res.push(response);
@@ -1997,9 +2052,7 @@ class BaseModelSqlv2 {
       const res = [];
       for (const d of deleteIds) {
         if (Object.keys(d).length) {
-          const response = await transaction(this.model.table_name)
-            .del()
-            .where(d);
+          const response = await transaction(this.tnPath).del().where(d);
           res.push(response);
         }
       }
@@ -2221,6 +2274,7 @@ class BaseModelSqlv2 {
               f.uidt !== UITypes.Lookup &&
               f.uidt !== UITypes.Formula &&
               f.uidt !== UITypes.QrCode &&
+              f.uidt !== UITypes.Barcode &&
               f.uidt !== UITypes.SpecificDBType
           )
           .sort(
@@ -2246,7 +2300,7 @@ class BaseModelSqlv2 {
             subject: 'NocoDB Form',
             html: ejs.render(formSubmissionEmailTemplate, {
               data: transformedData,
-              tn: this.model.table_name,
+              tn: this.tnPath,
               _tn: this.model.title,
             }),
           });
@@ -2368,16 +2422,33 @@ class BaseModelSqlv2 {
 
           const vTn = this.getTnPath(vTable);
 
-          await this.dbDriver(vTn).insert({
-            [vParentCol.column_name]: this.dbDriver(parentTn)
+          if (this.isSnowflake) {
+            const parentPK = this.dbDriver(parentTn)
               .select(parentColumn.column_name)
               .where(_wherePk(parentTable.primaryKeys, childId))
-              .first(),
-            [vChildCol.column_name]: this.dbDriver(childTn)
+              .first();
+
+            const childPK = this.dbDriver(childTn)
               .select(childColumn.column_name)
               .where(_wherePk(childTable.primaryKeys, rowId))
-              .first(),
-          });
+              .first();
+
+            await this.dbDriver.raw(
+              `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
+              [vTn, vParentCol.column_name, vChildCol.column_name]
+            );
+          } else {
+            await this.dbDriver(vTn).insert({
+              [vParentCol.column_name]: this.dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .where(_wherePk(parentTable.primaryKeys, childId))
+                .first(),
+              [vChildCol.column_name]: this.dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, rowId))
+                .first(),
+            });
+          }
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -2565,7 +2636,7 @@ class BaseModelSqlv2 {
       } else {
         groupingValues = new Set(
           (
-            await this.dbDriver(this.model.table_name)
+            await this.dbDriver(this.tnPath)
               .select(column.column_name)
               .distinct()
           ).map((row) => row[column.column_name])
@@ -2573,7 +2644,7 @@ class BaseModelSqlv2 {
         groupingValues.add(null);
       }
 
-      const qb = this.dbDriver(this.model.table_name);
+      const qb = this.dbDriver(this.tnPath);
       qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
@@ -2666,8 +2737,7 @@ class BaseModelSqlv2 {
 
       const proto = await this.getProto();
 
-      let data = await groupedQb;
-      data = this.convertAttachmentType(data);
+      const data = await groupedQb;
       const result = data?.map((d) => {
         d.__proto__ = proto;
         return d;
@@ -2712,7 +2782,7 @@ class BaseModelSqlv2 {
     if (isVirtualCol(column))
       NcError.notImplemented('Grouping for virtual columns not implemented');
 
-    const qb = this.dbDriver(this.model.table_name)
+    const qb = this.dbDriver(this.tnPath)
       .count('*', { as: 'count' })
       .groupBy(column.column_name);
 
@@ -2770,38 +2840,48 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  private async extractRawQueryAndExec(qb: Knex.QueryBuilder) {
+  private async execAndParse(qb: Knex.QueryBuilder, childTable?: Model) {
     let query = qb.toQuery();
-    if (!this.isPg && !this.isMssql) {
+    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
       query = unsanitize(qb.toQuery());
     } else {
       query = sanitize(query);
     }
-    return this.isPg
-      ? (await this.dbDriver.raw(query))?.rows
-      : query.slice(0, 6) === 'select' && !this.isMssql
-      ? await this.dbDriver.from(
-          this.dbDriver.raw(query).wrap('(', ') __nc_alias')
-        )
-      : await this.dbDriver.raw(query);
+    return this.convertAttachmentType(
+      this.isPg || this.isSnowflake
+        ? (await this.dbDriver.raw(query))?.rows
+        : query.slice(0, 6) === 'select' && !this.isMssql
+        ? await this.dbDriver.from(
+            this.dbDriver.raw(query).wrap('(', ') __nc_alias')
+          )
+        : await this.dbDriver.raw(query),
+      childTable
+    );
   }
 
-  private _convertAttachmentType(attachmentColumns, d) {
-    attachmentColumns.forEach((col) => {
-      if (d[col.title] && typeof d[col.title] === 'string') {
-        d[col.title] = JSON.parse(d[col.title]);
+  private _convertAttachmentType(
+    attachmentColumns: Record<string, any>[],
+    d: Record<string, any>
+  ) {
+    try {
+      if (d) {
+        attachmentColumns.forEach((col) => {
+          if (d[col.title] && typeof d[col.title] === 'string') {
+            d[col.title] = JSON.parse(d[col.title]);
+          }
+        });
       }
-    });
+    } catch {}
     return d;
   }
 
-  private convertAttachmentType(data) {
+  private convertAttachmentType(data: Record<string, any>, childTable?: Model) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
-      const attachmentColumns = this.model.columns.filter(
-        (c) => c.uidt === UITypes.Attachment
-      );
+      const attachmentColumns = (
+        childTable ? childTable.columns : this.model.columns
+      ).filter((c) => c.uidt === UITypes.Attachment);
       if (attachmentColumns.length) {
         if (Array.isArray(data)) {
           data = data.map((d) =>

@@ -17,7 +17,7 @@ export function useSharedView() {
 
   const { appInfo } = $(useGlobal())
 
-  const { loadProject } = useProject()
+  const { project } = useProject()
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
 
@@ -42,6 +42,7 @@ export function useSharedView() {
             f.uidt !== UITypes.Rollup &&
             f.uidt !== UITypes.Lookup &&
             f.uidt !== UITypes.Formula &&
+            f.uidt !== UITypes.Barcode &&
             f.uidt !== UITypes.QrCode,
         )
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
@@ -58,8 +59,11 @@ export function useSharedView() {
         'xc-password': localPassword ?? password.value,
       },
     })
-
-    allowCSVDownload.value = JSON.parse(viewMeta.meta)?.allowCSVDownload
+    try {
+      allowCSVDownload.value = (typeof viewMeta.meta === 'string' ? JSON.parse(viewMeta.meta) : viewMeta.meta)?.allowCSVDownload
+    } catch {
+      allowCSVDownload.value = false
+    }
 
     if (localPassword) password.value = localPassword
     sharedView.value = { title: '', ...viewMeta }
@@ -73,7 +77,16 @@ export function useSharedView() {
 
     await setMeta(viewMeta.model)
 
-    await loadProject(true, viewMeta.project_id)
+    // if project is not defined then set it with an object containing base
+    if (!project.value?.bases)
+      project.value = {
+        bases: [
+          {
+            id: viewMeta.base_id,
+            type: viewMeta.client,
+          },
+        ],
+      }
 
     const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))

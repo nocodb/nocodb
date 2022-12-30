@@ -11,7 +11,13 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
+const { formState, setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
+
+const { project } = useProject()
+
+const { $api } = useNuxtApp()
+
+const loadMagic = ref(false)
 
 let options = $ref<any[]>([])
 
@@ -111,6 +117,25 @@ const addNewOption = () => {
   options.push(tempOption)
 }
 
+const optionsMagic = async () => {
+  loadMagic.value = true
+  const res: Array<string> = await $api.utils.selectMagic({
+    schema: project.value?.title,
+    title: formState.value?.title,
+    table: formState.value?.table_name,
+  })
+
+  if (res.length) {
+    for (const op of res) {
+      options.push({
+        title: op,
+        color: getNextColor(),
+      })
+    }
+  }
+  loadMagic.value = false
+}
+
 const removeOption = (index: number) => {
   const optionId = options[index]?.id
   options.splice(index, 1)
@@ -184,5 +209,8 @@ watch(inputs, () => {
         <span class="flex-auto">Add option</span>
       </div>
     </a-button>
+    <div class="w-full cursor-pointer" @click="optionsMagic()">
+      <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
+    </div>
   </div>
 </template>

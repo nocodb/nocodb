@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TableType, validatePassword } from 'nocodb-sdk';
+import { TableType, validatePassword, WorkspaceUserRoles } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '../../../constants';
 import Store from '../../../models/Store';
@@ -18,12 +18,87 @@ import Audit from '../../../models/Audit';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 
 import passport from 'passport';
-import extractProjectIdAndAuthenticate from '../../helpers/extractProjectIdAndAuthenticate';
+import extractProjectIdAndAuthenticate from '../../helpers/extractWorkspaceProjectAndAuthenticate';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { MetaTable } from '../../../utils/globals';
 import Noco from '../../../Noco';
 import { genJwt } from './helpers';
 import { randomTokenString } from '../../helpers/stringHelpers';
+import { Workspace } from '../../../models/Workspace';
+import { WorkspaceUser } from '../../../models/WorkspaceUser';
+
+async function createDefaultWorkspace(user: User) {
+  const title = `${user.email?.split('@')?.[0]}'s workspace`;
+  // create new workspace for user
+  const workspace = await Workspace.insert({
+    title,
+    description: 'Default workspace',
+    fk_user_id: user.id,
+  });
+
+  await WorkspaceUser.insert({
+    fk_user_id: user.id,
+    fk_workspace_id: workspace.id,
+    roles: WorkspaceUserRoles.OWNER,
+  });
+
+  return workspace;
+}
+
+export async function registerNewUserIfAllowed({
+  avatar,
+  firstname,
+  lastname,
+  email,
+  salt,
+  password,
+  email_verification_token,
+}: {
+  avatar;
+  firstname;
+  lastname;
+  email: string;
+  salt: any;
+  password;
+  email_verification_token;
+}) {
+  let roles: string = OrgUserRoles.CREATOR;
+
+  if (await User.isFirst()) {
+    roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
+    // todo: update in nc_store
+    // roles = 'owner,creator,editor'
+    Tele.emit('evt', {
+      evt_type: 'project:invite',
+      count: 1,
+    });
+  } else {
+    let settings: { invite_only_signup?: boolean } = {};
+    try {
+      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+    } catch {}
+
+    if (settings?.invite_only_signup) {
+      NcError.badRequest('Not allowed to signup, contact super admin.');
+    } else {
+      roles = OrgUserRoles.VIEWER;
+    }
+  }
+
+  const token_version = randomTokenString();
+
+  return await User.insert({
+    avatar,
+    firstname,
+    lastname,
+    email,
+    salt,
+    password,
+    email_verification_token,
+    roles,
+    token_version,
+  });
+}
 
 export async function signup(req: Request, res: Response<TableType>) {
   const {
@@ -96,47 +171,20 @@ export async function signup(req: Request, res: Response<TableType>) {
       NcError.badRequest('User already exist');
     }
   } else {
-    let roles: string = OrgUserRoles.CREATOR;
-
-    if (await User.isFirst()) {
-      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
-      // todo: update in nc_store
-      // roles = 'owner,creator,editor'
-      Tele.emit('evt', {
-        evt_type: 'project:invite',
-        count: 1,
-      });
-    } else {
-      let settings: { invite_only_signup?: boolean } = {};
-      try {
-        settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
-      } catch {}
-
-      if (settings?.invite_only_signup) {
-        NcError.badRequest('Not allowed to signup, contact super admin.');
-      } else {
-        roles = OrgUserRoles.VIEWER;
-      }
-    }
-
-    const token_version = randomTokenString();
-
-    await User.insert({
+    await registerNewUserIfAllowed({
       avatar,
-      display_name,
-      user_name,
-      bio,
-      location,
-      website,
+      firstname,
+      lastname,
       email,
       salt,
       password,
       email_verification_token,
-      roles,
-      token_version,
     });
   }
+
   user = await User.getByEmail(email);
+
+  await createDefaultWorkspace(user);
 
   try {
     const template = (await import('./ui/emailTemplates/verify')).default;

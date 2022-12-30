@@ -13,7 +13,7 @@ on:
 
 jobs:
   playwright:
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     timeout-minutes: 30
     steps:
       # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml

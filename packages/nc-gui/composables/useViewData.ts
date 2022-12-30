@@ -264,7 +264,7 @@ export function useViewData(
         project?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        id,
+        encodeURIComponent(id),
         {
           // if value is undefined treat it as null
           [property]: toUpdate.row[property] ?? null,
@@ -275,7 +275,7 @@ export function useViewData(
         // }
       )
       // audit
-      $api.utils.auditRowUpdate(id, {
+      $api.utils.auditRowUpdate(encodeURIComponent(id), {
         fk_model_id: metaValue?.id as string,
         column_name: property,
         row_id: id,
@@ -292,6 +292,7 @@ export function useViewData(
           if (
             col.uidt === UITypes.Formula ||
             col.uidt === UITypes.QrCode ||
+            col.uidt === UITypes.Barcode ||
             col.uidt === UITypes.Rollup ||
             col.au ||
             col.cdf?.includes(' on update ')
@@ -433,15 +434,15 @@ export function useViewData(
       formViewData.value = view
 
       formColumnData.value = meta?.value?.columns
-        ?.map((c: Record<string, any>) => ({
+        ?.map((c: ColumnType) => ({
           ...c,
           fk_column_id: c.id,
           fk_view_id: viewMeta.value?.id,
-          ...(fieldById[c.id] ? fieldById[c.id] : {}),
-          order: (fieldById[c.id] && fieldById[c.id].order) || order++,
-          id: fieldById[c.id] && fieldById[c.id].id,
+          ...(fieldById[c.id!] ? fieldById[c.id!] : {}),
+          order: (fieldById[c.id!] && fieldById[c.id!].order) || order++,
+          id: fieldById[c.id!] && fieldById[c.id!].id,
         }))
-        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>
+        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
     } catch (e: any) {
       return message.error(`${t('msg.error.setFormDataFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }

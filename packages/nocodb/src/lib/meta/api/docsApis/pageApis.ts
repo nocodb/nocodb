@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import apiMetrics from '../../helpers/apiMetrics';
-import DocsPage from '../../../models/DocsPage';
+import Page from '../../../models/Page';
 import { UserType } from 'nocodb-sdk';
 
 async function get(
@@ -10,8 +10,11 @@ async function get(
   next
 ) {
   try {
-    console.log(req.params);
-    const page = await DocsPage.get(req.params.id);
+    const page = await Page.get({
+      id: req.params.id,
+      projectId: req.query?.projectId as string,
+      bookId: req.query?.bookId as string,
+    });
 
     res.json(page);
   } catch (e) {
@@ -26,9 +29,10 @@ async function list(
   next
 ) {
   try {
-    const pages = await DocsPage.listPages({
-      projectId: req.query?.projectId,
-      parent_page_id: req.query?.parent_page_id,
+    const pages = await Page.list({
+      bookId: req.query?.bookId as string,
+      projectId: req.query?.projectId as string,
+      parent_page_id: req.query?.parent_page_id as string,
     });
 
     res // todo: pagination
@@ -45,9 +49,10 @@ async function create(
   next
 ) {
   try {
-    const page = await DocsPage.createPage({
+    const page = await Page.create({
       attributes: req.body.attributes,
-      projectId: req.body.projectId,
+      bookId: req.body.bookId,
+      projectId: req.body.projectId as string,
       user: (req as any)?.session?.passport?.user as UserType,
     });
 
@@ -64,11 +69,12 @@ async function update(
   next
 ) {
   try {
-    const page = await DocsPage.updatePage({
+    const page = await Page.update({
       pageId: req.params.id,
       attributes: req.body.attributes,
+      projectId: req.body.projectId as string,
       user: (req as any)?.session?.passport?.user as UserType,
-      projectId: req.body.projectId,
+      bookId: req.body.bookId,
     });
 
     res.json(page);
@@ -84,8 +90,10 @@ async function deletePage(
   next
 ) {
   try {
-    await DocsPage.deletePage({
+    await Page.delete({
       id: req.params.id,
+      projectId: req.query?.projectId as string,
+      bookId: req.query?.bookId,
     });
 
     res.json({});

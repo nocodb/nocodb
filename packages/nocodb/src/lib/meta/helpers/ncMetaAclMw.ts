@@ -1,8 +1,8 @@
-import { OrgUserRoles } from 'nocodb-sdk';
+import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import projectAcl from '../../utils/projectAcl';
 import { NextFunction, Request, Response } from 'express';
 import catchError, { NcError } from './catchError';
-import extractProjectIdAndAuthenticate from './extractProjectIdAndAuthenticate';
+import extractWorkspaceProjectAndAuthenticate from './extractWorkspaceProjectAndAuthenticate';
 
 export default function (
   handlerFn,
@@ -16,7 +16,7 @@ export default function (
   } = {}
 ) {
   return [
-    extractProjectIdAndAuthenticate,
+    extractWorkspaceProjectAndAuthenticate,
     catchError(async function authMiddleware(req, _res, next) {
       const roles = req?.session?.passport?.user?.roles;
       if (req?.session?.passport?.user?.is_api_token && blockApiTokenAccess) {
@@ -32,7 +32,10 @@ export default function (
           roles?.commenter ||
           roles?.[OrgUserRoles.SUPER_ADMIN] ||
           roles?.[OrgUserRoles.CREATOR] ||
-          roles?.[OrgUserRoles.VIEWER]
+          roles?.[OrgUserRoles.VIEWER] ||
+          roles?.[WorkspaceUserRoles.OWNER] ||
+          roles?.[WorkspaceUserRoles.VIEWER] ||
+          roles?.[WorkspaceUserRoles.CREATOR]
         )
       ) {
         NcError.unauthorized('Unauthorized access');

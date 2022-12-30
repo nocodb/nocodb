@@ -10,6 +10,377 @@
     }
   ],
   "paths": {
+    "/api/v1/public/docs/books/{slug}": {
+      "get": {
+        "summary": "get public book",
+        "operationId": "get-public-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get public book"
+      }
+    },
+    "/api/v1/public/docs/pages": {
+      "get": {
+        "summary": "list public pages",
+        "operationId": "list-public-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "parent_page_id",
+            "in": "query",
+            "description": "parent_page_id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get public book"
+      }
+    },
+    "/api/v1/docs/books": {
+      "get": {
+        "summary": "List books",
+        "operationId": "list-books",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Book"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Book id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "List books"
+      }
+    },
+    "/api/v1/docs/book/{id}": {
+      "delete": {
+        "summary": "Delete book",
+        "operationId": "delete-book",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Delete book"
+      },
+      "put": {
+        "summary": "Update book",
+        "operationId": "update-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Update book"
+      }
+    },
+    "/api/v1/docs/book": {
+      "post": {
+        "summary": "Create book",
+        "operationId": "create-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create book"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/book/magic": {
+      "post": {
+        "summary": "Create magic",
+        "operationId": "create-book-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Title",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create book"
+      },
+      "parameters": []
+    },
+    "/api/v1/docs/book/import": {
+      "post": {
+        "summary": "Import book",
+        "operationId": "import-book",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type":"object",
+                "properties": {
+                  "attributes": {
+                    "$ref": "#/components/schemas/Book"
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "repo": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "branch": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "from": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Create book"
+      },
+      "parameters": []
+    },
     "/api/v1/docs/pages": {
       "get": {
         "summary": "List pages",
@@ -37,7 +408,16 @@
             "name": "projectId",
             "in": "query",
             "description": "Page number",
-            "required": false,
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "book id",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -57,6 +437,39 @@
       "parameters": []
     },
     "/api/v1/docs/page/{id}": {
+      "delete": {
+        "summary": "Delete page",
+        "operationId": "delete-page",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Delete page"
+      },
       "put": {
         "summary": "Update page",
         "operationId": "update-page",
@@ -87,7 +500,12 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required": true
+                    "required":true
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Book id",
+                    "required":true
                   }
                 }
               }
@@ -129,7 +547,12 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required": true
+                    "required":true
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Book id",
+                    "required":true
                   }
                 }
               }
@@ -2190,6 +2613,128 @@
         ]
       }
     },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "table-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "table-seed",
+                "type": "object",
+                "properties": {
+                  "table_name": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "table_name",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "schema-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "schema-seed",
+                "type": "object",
+                "properties": {
+                  "schema_name": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "schema_name",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
     "/api/v1/db/meta/tables/{tableId}": {
       "parameters": [
         {
@@ -2340,6 +2885,8 @@
                   },
                   "project_id": {
                     "type": "string"
+                  },
+                  "meta": {
                   }
                 }
               }
@@ -2560,6 +3107,8 @@
                 "properties": {
                   "order": {
                     "type": "number"
+                  },
+                  "meta": {
                   },
                   "title": {
                     "type": "string"
@@ -6436,6 +6985,210 @@
         ]
       }
     },
+    "/api/v1/cowriter/meta/tables/{tableId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Create",
+        "operationId": "cowriter-table-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Cowriter List",
+        "operationId": "cowriter-table-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CowriterList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ]
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "cowriterId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Cowriter Get",
+        "operationId": "cowriter-table-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CowriterList"
+                }
+              }
+            }
+          },
+          "": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ]
+      },
+      "patch": {
+        "summary": "Cowriter Patch",
+        "operationId": "cowriter-table-patch",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cowriter"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/generate-columns": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Generate Columns",
+        "operationId": "cowriter-table-generate-columns",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Generate Columns using AI",
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cowriter/meta/tables/{tableId}/bulk": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Cowriter Create Bulk",
+        "operationId": "cowriter-table-create-bulk",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "",
+        "tags": [
+          "Cowriter Table"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Cowriter"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/plugins": {
       "parameters": [],
       "get": {
@@ -6650,6 +7403,54 @@
           }
         },
         "description": ""
+      }
+    },
+    "/api/v1/db/meta/select/magic": {
+      "parameters": [],
+      "post": {
+        "summary": "Get select options using NocoAI",
+        "operationId": "utils-select-magic",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "table": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Get select options using NocoAI"
       }
     },
     "/api/v1/url_to_config": {
@@ -7345,6 +8146,308 @@
         ],
         "description": "Resend Invitation to a specific user"
       }
+    },
+    "/api/v1/workspaces": {
+      "get": {
+        "summary": "List workspaces",
+        "operationId": "workspace-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "List workspaces"
+      },
+      "post": {
+        "summary": "List workspaces",
+        "operationId": "workspace-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Workspace"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "List workspaces"
+      },
+      "parameters": []
+    },
+    "/api/v1/workspaces/{workspaceId}": {
+      "get": {
+        "summary": "Read workspace",
+        "operationId": "workspace-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Read workspace"
+      },
+      "patch": {
+        "summary": "Update workspace",
+        "operationId": "workspace-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Workspace"
+              }
+            }
+          }
+        },
+        "description": "Update workspace"
+      },
+      "delete": {
+        "summary": "Delete workspace",
+        "operationId": "workspace-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Delete workspace"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users": {
+      "get": {
+        "summary": "Workspace users list",
+        "operationId": "workspace-user-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUserList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace users list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/projects": {
+      "get": {
+        "summary": "Workspace projects list",
+        "operationId": "workspace-project-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace project"
+        ],
+        "description": "Workspace projects list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/invitations": {
+      "post": {
+        "summary": "Workspace user invite",
+        "operationId": "workspace-user-invite",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceUserInvite"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user invite"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users/{userId}": {
+      "get": {
+        "summary": "Workspace user read",
+        "operationId": "workspace-user-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUser"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user read"
+      },
+      "patch": {
+        "summary": "Update workspace user",
+        "operationId": "workspace-user-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update workspace user"
+      },
+      "delete": {
+        "summary": "Delete workspace user",
+        "operationId": "workspace-user-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace User"
+        ],
+        "description": "Delete workspace user"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {
@@ -7418,28 +8521,152 @@
           "email_verified"
         ]
       },
+      "WorkspaceUser": {
+        "title": "Workspace User",
+        "type": "object",
+        "description": "",
+        "x-internal": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "roles": {
+            "type": "string"
+          },
+          "fk_user_id": {
+            "type": "string"
+          },
+          "invite_token": {
+            "type": "string"
+          },
+          "invite_accepted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WorkspaceUserInvite": {
+        "title": "Workspace User Invite",
+        "type": "object",
+        "description": "",
+        "x-internal": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "roles": {
+            "type": "string"
+          }
+        }
+      },
+      "Book": {
+        "title": "Book",
+        "type": "object",
+        "description": "Book of Noco docs",
+        "x-internal": false,
+        "examples": [
+          {
+            "id": "142",
+            "project_id": "sample_project_id",
+            "pages_table_name": "sample_pages_table_name"
+          }
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the given book."
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "pages_table_name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "create_by_id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "is_published": {
+            "type": "boolean"
+          },
+          "last_published_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "last_published_by_id": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "last_updated_by_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "created_by_id": {
+            "type": "string"
+          },
+          "archived_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "archived_by_id": {
+            "type": "string"
+          },
+          "metaJson": {
+            "type": [
+              "string",
+              "object"
+            ]
+          }
+        }
+      },
       "DocsPage": {
         "title": "DocsPage",
         "type": "object",
-        "description": "Page of noco docs",
+        "description": "Page of Noco docs",
         "examples": [
           {
             "id": "142",
             "title": "Alice",
-            "content": "Smith"
+            "description": "Example description",
+            "content": "Smith",
+            "order": 1
           }
         ],
         "x-internal": false,
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique identifier for the given user."
+            "description": "Unique identifier for the given page."
           },
           "title": {
             "type": "string"
           },
+          "description": {
+            "type": "string"
+          },
           "content": {
             "type": "string"
+          },
+          "order": {
+            "type": "number"
           },
           "published_content": {
             "type": "string"
@@ -7452,8 +8679,8 @@
           },
           "is_parent": {
             "type": "boolean"
-          },
-          "project_id": {
+          }, 
+          "book_id": {
             "type": "string"
           },
           "is_published": {
@@ -7589,6 +8816,9 @@
           "color": {
             "type": "string"
           },
+          "fk_workspace_id": {
+            "type": "string"
+          },
           "bases": {
             "type": "array",
             "items": {
@@ -7649,6 +8879,9 @@
           "created_at": {},
           "updated_at": {},
           "slug": {
+            "type": "string"
+          },
+          "fk_workspace_id": {
             "type": "string"
           }
         }
@@ -7949,6 +9182,8 @@
               "boolean",
               "number"
             ]
+          },
+          "meta": {
           }
         },
         "required": [
@@ -8046,6 +9281,8 @@
           },
           "uuid": {
             "type": "string"
+          },
+          "meta": {
           },
           "show_system_fields": {
             "type": "boolean"
@@ -8288,6 +9525,8 @@
             "items": {
               "$ref": "#/components/schemas/Column"
             }
+          },
+          "meta": {
           }
         },
         "required": [
@@ -9435,6 +10674,54 @@
         ],
         "title": ""
       },
+      "WorkspaceList": {
+        "description": "",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Workspace"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        }
+      },
+      "CowriterList": {
+        "type": "object",
+        "x-stoplight": {
+          "id": "24eab7d1ead43"
+        },
+        "title": "Cowriter List",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Cowriter"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        }
+      },
+      "WorkspaceUserList": {
+        "description": "",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceUser"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        }
+      },
       "Attachment": {
         "title": "Attachment",
         "type": "object",
@@ -9454,6 +10741,34 @@
           "icon": {
             "type": "string"
           }
+        }
+      },
+      "Workspace": {
+        "title": "Workspace",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "meta": {},
+          "fk_user_id": {
+            "type": "string"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "number"
+          },
+          "deleted_at": {},
+          "created_at": {},
+          "updated_at": {}
         }
       },
       "Webhook": {
@@ -10040,6 +11355,46 @@
         "type": "object",
         "properties": {
           "fk_follower_id": {
+            "type": "string"
+          }
+        }
+      },
+      "Cowriter": {
+        "title": "Cowriter",
+        "x-stoplight": {
+          "id": "9oec4p6dooeyw"
+        },
+        "type": "object",
+        "description": "Cowriter Model",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "prompt_statement": {
+            "type": "string"
+          },
+          "prompt_statement_template": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          },
+          "is_read": {
+            "type": "boolean"
+          },
+          "time_taken": {
+            "type": "integer"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
             "type": "string"
           }
         }

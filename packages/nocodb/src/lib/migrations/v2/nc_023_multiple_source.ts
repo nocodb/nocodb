@@ -21,7 +21,7 @@ const down = async (knex) => {
   await knex.schema.alterTable(MetaTable.SYNC_SOURCE, (table) => {
     table.dropColumn('base_id');
   });
-  
+
   await knex.schema.alterTable(MetaTable.BASES, (table) => {
     table.dropColumn('enabled');
     table.dropColumn('order');

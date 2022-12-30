@@ -3,6 +3,11 @@ export enum Role {
   Admin = 'admin',
   OrgLevelCreator = 'org-level-creator',
   OrgLevelViewer = 'org-level-viewer',
+
+  WorkspaceLevelCreator = 'workspace-level-creator',
+  WorkspaceLevelViewer = 'workspace-level-viewer',
+  WorkspaceLevelOwner = 'workspace-level-owner',
+
   Guest = 'guest',
 }
 
@@ -20,6 +25,7 @@ export enum ClientType {
   PG = 'pg',
   SQLITE = 'sqlite3',
   VITESS = 'vitess',
+  SNOWFLAKE = 'snowflake',
 }
 
 export enum Language {

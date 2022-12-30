@@ -35,19 +35,65 @@ export interface UserType {
   avatar?: string;
 }
 
+export interface WorkspaceUserType {
+  /** @format email */
+  email?: string;
+  roles?: string;
+  fk_user_id?: string;
+  invite_token?: string;
+  invite_accepted?: boolean;
+}
+
+export interface WorkspaceUserInviteType {
+  /** @format email */
+  email?: string;
+  roles?: string;
+}
+
 /**
- * Page of noco docs
+ * Book of Noco docs
+ */
+export interface BookType {
+  /** Unique identifier for the given book. */
+  id?: string;
+  project_id?: string;
+  pages_table_name?: string;
+  title?: string;
+  description?: string;
+  create_by_id?: string;
+  order?: number;
+  slug?: string;
+  is_published?: boolean;
+  /** @format date */
+  last_published_date?: string;
+  last_published_by_id?: string;
+  /** @format date */
+  updated_at?: string;
+  last_updated_by_id?: string;
+  /** @format date */
+  created_at?: string;
+  created_by_id?: string;
+  /** @format date */
+  archived_date?: string;
+  archived_by_id?: string;
+  metaJson?: string | object;
+}
+
+/**
+ * Page of Noco docs
  */
 export interface DocsPageType {
-  /** Unique identifier for the given user. */
+  /** Unique identifier for the given page. */
   id?: string;
   title: string;
+  description?: string;
   content: string;
+  order?: number;
   published_content?: string;
   slug?: string;
   parent_page_id?: string;
   is_parent?: boolean;
-  project_id?: string;
+  book_id?: string;
   is_published?: boolean;
   /** @format date */
   last_published_date?: string;
@@ -81,6 +127,7 @@ export interface ProjectReqType {
   title?: string;
   description?: string;
   color?: string;
+  fk_workspace_id?: string;
   bases?: BaseReqType[];
 }
 
@@ -100,6 +147,7 @@ export interface ProjectType {
   created_at?: any;
   updated_at?: any;
   slug?: string;
+  fk_workspace_id?: string;
 }
 
 export interface ProjectListType {
@@ -158,6 +206,7 @@ export interface TableType {
   columnsById?: object;
   slug?: string;
   mm?: boolean | number;
+  meta?: any;
 }
 
 export interface ViewType {
@@ -168,6 +217,7 @@ export interface ViewType {
   fk_model_id?: string;
   slug?: string;
   uuid?: string;
+  meta?: any;
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
@@ -209,6 +259,7 @@ export interface TableReqType {
   order?: number;
   mm?: boolean;
   columns: ColumnType[];
+  meta?: any;
 }
 
 export interface TableListType {
@@ -494,12 +545,40 @@ export interface ViewListType {
   pageInfo?: PaginatedType;
 }
 
+export interface WorkspaceListType {
+  list?: WorkspaceType[];
+  pageInfo?: PaginatedType;
+}
+
+export interface CowriterListType {
+  list?: CowriterType[];
+  pageInfo?: PaginatedType;
+}
+
+export interface WorkspaceUserListType {
+  list?: WorkspaceUserType[];
+  pageInfo?: PaginatedType;
+}
+
 export interface AttachmentType {
   url?: string;
   title?: string;
   mimetype?: string;
   size?: string;
   icon?: string;
+}
+
+export interface WorkspaceType {
+  id?: string;
+  title?: string;
+  description?: string;
+  meta?: any;
+  fk_user_id?: string;
+  deleted?: boolean;
+  order?: number;
+  deleted_at?: any;
+  created_at?: any;
+  updated_at?: any;
 }
 
 export interface WebhookType {
@@ -723,6 +802,22 @@ export interface FollowerType {
   fk_follower_id?: string;
 }
 
+/**
+ * Cowriter Model
+ */
+export interface CowriterType {
+  id?: string;
+  fk_model_id?: string;
+  prompt_statement?: string;
+  prompt_statement_template?: string;
+  output?: string;
+  is_read?: boolean;
+  time_taken?: number;
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
@@ -891,6 +986,236 @@ export class Api<
 > extends HttpClient<SecurityDataType> {
   nocoDocs = {
     /**
+     * @description Get public book
+     *
+     * @tags Noco docs
+     * @name GetPublicBook
+     * @summary get public book
+     * @request GET:/api/v1/public/docs/books/{slug}
+     * @response `200` `BookType` OK
+     */
+    getPublicBook: (
+      slug: string,
+      query: {
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BookType, any>({
+        path: `/api/v1/public/docs/books/${slug}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get public book
+     *
+     * @tags Noco docs
+     * @name ListPublicPages
+     * @summary list public pages
+     * @request GET:/api/v1/public/docs/pages
+     * @response `200` `(DocsPageType)[]` OK
+     */
+    listPublicPages: (
+      query: {
+        /** Project id */
+        projectId: string;
+        /** book id */
+        bookId: string;
+        /** parent_page_id */
+        parent_page_id?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType[], any>({
+        path: `/api/v1/public/docs/pages`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description List books
+     *
+     * @tags Noco docs
+     * @name ListBooks
+     * @summary List books
+     * @request GET:/api/v1/docs/books
+     * @response `200` `(BookType)[]` OK
+     */
+    listBooks: (
+      query?: {
+        /** Book id */
+        id?: string;
+        /** Project id */
+        projectId?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BookType[], any>({
+        path: `/api/v1/docs/books`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete book
+     *
+     * @tags Noco docs
+     * @name DeleteBook
+     * @summary Delete book
+     * @request DELETE:/api/v1/docs/book/{id}
+     * @response `200` `void` OK
+     */
+    deleteBook: (
+      id: string,
+      query: {
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/book/${id}`,
+        method: 'DELETE',
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * @description Update book
+     *
+     * @tags Noco docs
+     * @name UpdateBook
+     * @summary Update book
+     * @request PUT:/api/v1/docs/book/{id}
+     * @response `200` `BookType` OK
+     */
+    updateBook: (
+      id: string,
+      data: {
+        /** Book of Noco docs */
+        attributes?: BookType;
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BookType, any>({
+        path: `/api/v1/docs/book/${id}`,
+        method: 'PUT',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create book
+     *
+     * @tags Noco docs
+     * @name CreateBook
+     * @summary Create book
+     * @request POST:/api/v1/docs/book
+     * @response `200` `BookType` OK
+     */
+    createBook: (
+      data: {
+        /** Book of Noco docs */
+        attributes?: BookType;
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BookType, any>({
+        path: `/api/v1/docs/book`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create book
+     *
+     * @tags Noco docs
+     * @name CreateBookMagic
+     * @summary Create magic
+     * @request POST:/api/v1/docs/book/magic
+     * @response `200` `BookType` OK
+     */
+    createBookMagic: (
+      data: {
+        /** Book of Noco docs */
+        attributes?: BookType;
+        /** Project id */
+        projectId: string;
+        /** Project id */
+        bookId: string;
+        /** Title */
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BookType, any>({
+        path: `/api/v1/docs/book/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create book
+     *
+     * @tags Noco docs
+     * @name ImportBook
+     * @summary Import book
+     * @request POST:/api/v1/docs/book/import
+     * @response `200` `BookType` OK
+     */
+    importBook: (
+      data: {
+        /** Book of Noco docs */
+        attributes?: BookType;
+        /** Project id */
+        bookId: string;
+        /** Project id */
+        user: string;
+        /** Project id */
+        repo: string;
+        /** Project id */
+        branch: string;
+        /** Project id */
+        path: string;
+        /** Project id */
+        projectId: string;
+        /** Project id */
+        type: string;
+        /** Project id */
+        from: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<BookType, any>({
+        path: `/api/v1/docs/book/import`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description List pages
      *
      * @tags Noco docs
@@ -900,9 +1225,11 @@ export class Api<
      * @response `200` `(DocsPageType)[]` OK
      */
     listPages: (
-      query?: {
+      query: {
         /** Page number */
-        projectId?: string;
+        projectId: string;
+        /** book id */
+        bookId: string;
         /** Parent page id */
         parent_page_id?: string;
       },
@@ -913,6 +1240,32 @@ export class Api<
         method: 'GET',
         query: query,
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete page
+     *
+     * @tags Noco docs
+     * @name DeletePage
+     * @summary Delete page
+     * @request DELETE:/api/v1/docs/page/{id}
+     * @response `200` `void` OK
+     */
+    deletePage: (
+      id: string,
+      query: {
+        /** Project id */
+        projectId: string;
+        /** Book id */
+        bookId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/page/${id}`,
+        method: 'DELETE',
+        query: query,
         ...params,
       }),
 
@@ -928,10 +1281,12 @@ export class Api<
     updatePage: (
       id: string,
       data: {
-        /** Page of noco docs */
+        /** Page of Noco docs */
         attributes?: DocsPageType;
         /** Project id */
         projectId: string;
+        /** Book id */
+        bookId: string;
       },
       params: RequestParams = {}
     ) =>
@@ -955,10 +1310,12 @@ export class Api<
      */
     createPage: (
       data: {
-        /** Page of noco docs */
+        /** Page of Noco docs */
         attributes?: DocsPageType;
         /** Project id */
         projectId: string;
+        /** Book id */
+        bookId: string;
       },
       params: RequestParams = {}
     ) =>
@@ -2343,6 +2700,58 @@ export class Api<
      * No description
      *
      * @tags Base
+     * @name TableMagic
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables/magic
+     * @response `200` `TableType` OK
+     */
+    tableMagic: (
+      projectId: string,
+      baseId: string,
+      data: {
+        table_name: string;
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name SchemaMagic
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/schema/magic
+     * @response `200` `TableType` OK
+     */
+    schemaMagic: (
+      projectId: string,
+      baseId: string,
+      data: {
+        schema_name: string;
+        title: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/schema/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
      * @name MetaDiffSync
      * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
      * @response `200` `any` OK
@@ -2457,6 +2866,7 @@ export class Api<
         table_name?: string;
         title?: string;
         project_id?: string;
+        meta?: any;
       },
       params: RequestParams = {}
     ) =>
@@ -2611,6 +3021,7 @@ export class Api<
       viewId: string,
       data: {
         order?: number;
+        meta?: any;
         title?: string;
         show_system_fields?: boolean;
         lock_type?: 'collaborative' | 'locked' | 'personal';
@@ -4452,6 +4863,32 @@ export class Api<
       }),
 
     /**
+     * @description Get select options using NocoAI
+     *
+     * @tags Utils
+     * @name SelectMagic
+     * @summary Get select options using NocoAI
+     * @request POST:/api/v1/db/meta/select/magic
+     * @response `200` `(string)[]` OK
+     */
+    selectMagic: (
+      data: {
+        title: string;
+        table: string;
+        schema?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<string[], any>({
+        path: `/api/v1/db/meta/select/magic`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags Utils
@@ -4790,6 +5227,130 @@ export class Api<
         ...params,
       }),
   };
+  cowriterTable = {
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name Create
+     * @summary Cowriter Create
+     * @request POST:/api/v1/cowriter/meta/tables/{tableId}
+     * @response `200` `CowriterType` OK
+     */
+    create: (tableId: string, data: object, params: RequestParams = {}) =>
+      this.request<CowriterType, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name List
+     * @summary Cowriter List
+     * @request GET:/api/v1/cowriter/meta/tables/{tableId}
+     * @response `200` `CowriterListType` OK
+     */
+    list: (tableId: string, params: RequestParams = {}) =>
+      this.request<CowriterListType, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name Get
+     * @summary Cowriter Get
+     * @request GET:/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}
+     * @response `200` `CowriterListType` OK
+     * @response `0` `CowriterType`
+     */
+    get: (tableId: string, cowriterId: string, params: RequestParams = {}) =>
+      this.request<CowriterListType, CowriterType>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/${cowriterId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name Patch
+     * @summary Cowriter Patch
+     * @request PATCH:/api/v1/cowriter/meta/tables/{tableId}/{cowriterId}
+     * @response `200` `void` OK
+     */
+    patch: (
+      tableId: string,
+      cowriterId: string,
+      data: CowriterType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/${cowriterId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Generate Columns using AI
+     *
+     * @tags Cowriter Table
+     * @name GenerateColumns
+     * @summary Cowriter Generate Columns
+     * @request POST:/api/v1/cowriter/meta/tables/{tableId}/generate-columns
+     * @response `200` `void` OK
+     */
+    generateColumns: (
+      tableId: string,
+      data: {
+        title?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/generate-columns`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Cowriter Table
+     * @name CreateBulk
+     * @summary Cowriter Create Bulk
+     * @request POST:/api/v1/cowriter/meta/tables/{tableId}/bulk
+     * @response `200` `void` OK
+     */
+    createBulk: (
+      tableId: string,
+      data: CowriterType[],
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/cowriter/meta/tables/${tableId}/bulk`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
   plugin = {
     /**
  * No description
@@ -5006,6 +5567,215 @@ export class Api<
         query: query,
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+  };
+  workspace = {
+    /**
+     * @description List workspaces
+     *
+     * @tags Workspace
+     * @name List
+     * @summary List workspaces
+     * @request GET:/api/v1/workspaces
+     * @response `200` `WorkspaceListType` OK
+     */
+    list: (params: RequestParams = {}) =>
+      this.request<WorkspaceListType, any>({
+        path: `/api/v1/workspaces`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description List workspaces
+     *
+     * @tags Workspace
+     * @name Create
+     * @summary List workspaces
+     * @request POST:/api/v1/workspaces
+     * @response `200` `WorkspaceType` OK
+     */
+    create: (data: WorkspaceType, params: RequestParams = {}) =>
+      this.request<WorkspaceType, any>({
+        path: `/api/v1/workspaces`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Read workspace
+     *
+     * @tags Workspace
+     * @name Read
+     * @summary Read workspace
+     * @request GET:/api/v1/workspaces/{workspaceId}
+     * @response `200` `WorkspaceType` OK
+     */
+    read: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<WorkspaceType, any>({
+        path: `/api/v1/workspaces/${workspaceId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update workspace
+     *
+     * @tags Workspace
+     * @name Update
+     * @summary Update workspace
+     * @request PATCH:/api/v1/workspaces/{workspaceId}
+     * @response `200` `void` OK
+     */
+    update: (
+      workspaceId: string,
+      data: WorkspaceType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete workspace
+     *
+     * @tags Workspace
+     * @name Delete
+     * @summary Delete workspace
+     * @request DELETE:/api/v1/workspaces/{workspaceId}
+     * @response `200` `void` OK
+     */
+    delete: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+  };
+  workspaceUser = {
+    /**
+     * @description Workspace users list
+     *
+     * @tags Workspace user
+     * @name List
+     * @summary Workspace users list
+     * @request GET:/api/v1/workspaces/{workspaceId}/users
+     * @response `200` `WorkspaceUserListType` OK
+     */
+    list: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<WorkspaceUserListType, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Workspace user invite
+     *
+     * @tags Workspace user
+     * @name Invite
+     * @summary Workspace user invite
+     * @request POST:/api/v1/workspaces/{workspaceId}/invitations
+     * @response `200` `any` OK
+     */
+    invite: (
+      workspaceId: string,
+      data: WorkspaceUserInviteType,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/workspaces/${workspaceId}/invitations`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Workspace user read
+     *
+     * @tags Workspace user
+     * @name Read
+     * @summary Workspace user read
+     * @request GET:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `WorkspaceUserType` OK
+     */
+    read: (workspaceId: string, userId: string, params: RequestParams = {}) =>
+      this.request<WorkspaceUserType, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update workspace user
+     *
+     * @tags Workspace user
+     * @name Update
+     * @summary Update workspace user
+     * @request PATCH:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `void` OK
+     */
+    update: (
+      workspaceId: string,
+      userId: string,
+      data: {
+        roles?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete workspace user
+     *
+     * @tags Workspace User
+     * @name Delete
+     * @summary Delete workspace user
+     * @request DELETE:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `void` OK
+     */
+    delete: (workspaceId: string, userId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+  };
+  workspaceProject = {
+    /**
+     * @description Workspace projects list
+     *
+     * @tags Workspace project
+     * @name List
+     * @summary Workspace projects list
+     * @request GET:/api/v1/workspaces/{workspaceId}/projects
+     * @response `200` `ProjectListType` OK
+     */
+    list: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<ProjectListType, any>({
+        path: `/api/v1/workspaces/${workspaceId}/projects`,
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
   };

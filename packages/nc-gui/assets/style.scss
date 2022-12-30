@@ -294,3 +294,19 @@ a {
 .ant-select-selection-search-input:focus {
   @apply !ring-0;
 }
+
+.nc-animation-pulse {
+  animation: pulse 2s linear infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}

@@ -19,7 +19,7 @@ test.describe('View', () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Film' });
-    
+
     if (isSqlite(context)) {
       await dashboard.treeView.deleteTable({ title: 'FilmList' });
     }
@@ -236,6 +236,11 @@ test.describe('View', () => {
         stackIndex: i,
         order: order2[i - 1],
       });
+
+    await dashboard.viewSidebar.changeViewIcon({
+      title: 'Kanban-1',
+      icon: 'american-football',
+    });
 
     await dashboard.viewSidebar.deleteView({ title: 'Kanban-1' });
     ///////////////////////////////////////////////

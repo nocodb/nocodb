@@ -856,6 +856,12 @@ export default class NcMetaIOImpl extends NcMetaIO {
       case MetaTable.API_TOKENS:
         prefix = 'tkn_';
         break;
+      case MetaTable.WORKSPACE:
+        prefix = 'ws_';
+        break;
+      case MetaTable.COWRITER:
+        prefix = 'cw_';
+        break;
       default:
         prefix = 'nc_';
         break;

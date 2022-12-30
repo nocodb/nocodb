@@ -7,7 +7,6 @@ import passport from 'passport';
 import passportJWT from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { randomTokenString } from '../../helpers/stringHelpers';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
 const ExtractJwt = passportJWT.ExtractJwt;
@@ -19,11 +18,13 @@ const jwtOptions = {
 
 import bcrypt from 'bcryptjs';
 import Project from '../../../models/Project';
-import NocoCache from '../../../cache/NocoCache';
-import { CacheGetType, CacheScope } from '../../../utils/globals';
+// import NocoCache from '../../../cache/NocoCache';
+// import { CacheScope } from '../../../utils/globals';
 import ApiToken from '../../../models/ApiToken';
 import Noco from '../../../Noco';
 import Plugin from '../../../models/Plugin';
+import { registerNewUserIfAllowed } from './userApis';
+import { WorkspaceUser } from '../../../models/WorkspaceUser';
 
 export function initStrategies(router): void {
   passport.use(
@@ -41,15 +42,28 @@ export function initStrategies(router): void {
             User.get(apiToken.fk_user_id)
               .then((user) => {
                 user['is_api_token'] = true;
+
+                if (req.ncWorkspaceId) {
+                  // extract workspace role
+                  WorkspaceUser.get(req.ncWorkspaceId, user.id)
+                    .then((workspaceUser) => {
+                      user.roles = user.roles + ',' + workspaceUser?.roles;
+
+                      done(null, user);
+                    })
+                    .catch((e) => done(e));
+                }
+
                 if (req.ncProjectId) {
                   ProjectUser.get(req.ncProjectId, user.id)
                     .then(async (projectUser) => {
-                      user.roles = projectUser?.roles || user.roles;
                       user.roles =
-                        user.roles === 'owner' ? 'owner,creator' : user.roles;
-                      // + (user.roles ? `,${user.roles}` : '');
-                      // todo : cache
-                      // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
+                        user.roles +
+                        ',' +
+                        (projectUser.roles === 'owner'
+                          ? 'owner,creator'
+                          : projectUser.roles);
+
                       done(null, user);
                     })
                     .catch((e) => done(e));
@@ -137,11 +151,13 @@ export function initStrategies(router): void {
         if (req.ncProjectId) {
           keyVals.push(req.ncProjectId);
         }
-        const key = keyVals.join('___');
-        const cachedVal = await NocoCache.get(
+        // const key = keyVals.join('___');
+        const cachedVal = null;
+        // todo: enable
+        /*await NocoCache.get(
           `${CacheScope.USER}:${key}`,
           CacheGetType.TYPE_OBJECT
-        );
+        );*/
 
         if (cachedVal) {
           if (
@@ -163,32 +179,84 @@ export function initStrategies(router): void {
             ) {
               return done(new Error('Token Expired. Please login again.'));
             }
-            if (req.ncProjectId) {
-              // this.xcMeta
-              //   .metaGet(req.ncProjectId, null, 'nc_projects_users', {
-              //     user_id: user?.id
-              //   })
 
-              ProjectUser.get(req.ncProjectId, user.id)
-                .then(async (projectUser) => {
-                  user.roles = projectUser?.roles || user.roles;
-                  user.roles =
-                    user.roles === 'owner' ? 'owner,creator' : user.roles;
-                  // + (user.roles ? `,${user.roles}` : '');
+            Promise.all([
+              // extract workspace evel roles
+              new Promise((resolve) => {
+                if (req.ncWorkspaceId) {
+                  // todo: cache
+                  // extract workspace role
+                  WorkspaceUser.get(req.ncWorkspaceId, user.id)
+                    .then((workspaceUser) => {
+                      resolve(workspaceUser?.roles);
+                    })
+                    .catch(() => resolve(null));
+                } else {
+                  resolve(null);
+                }
+              }),
+              // extract project level roles
+              new Promise((resolve) => {
+                if (req.ncProjectId) {
+                  ProjectUser.get(req.ncProjectId, user.id)
+                    .then(async (projectUser) => {
+                      let roles = projectUser?.roles;
+                      roles = roles === 'owner' ? 'owner,creator' : roles;
+                      // + (user.roles ? `,${user.roles}` : '');
+                      resolve(roles);
+                      // todo: cache
+                    })
+                    .catch((e) => done(e));
+                } else {
+                  resolve(null);
+                }
+              }),
+            ]).then(([workspaceRoles, projectRoles]) => {
+              done(null, {
+                ...user,
+                roles: [user.roles, workspaceRoles, projectRoles]
+                  .filter(Boolean)
+                  .join(','),
+              });
+            });
 
-                  await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-                  done(null, user);
-                })
-                .catch((e) => done(e));
-            } else {
-              // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
-              if (user) {
-                await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-                return done(null, user);
-              } else {
-                return done(new Error('User not found'));
-              }
-            }
+            // if (req.ncWorkspaceId) {
+            //   // todo: cache
+            //   // extract workspace role
+            //   return WorkspaceUser.get(req.ncWorkspaceId, user.id)
+            //     .then((workspaceUser) => {
+            //       user.roles = user.roles + ',' + workspaceUser?.roles;
+            //       done(null, user);
+            //     })
+            //     .catch((e) => done(e));
+            // }
+
+            // if (req.ncProjectId) {
+            //   // this.xcMeta
+            //   //   .metaGet(req.ncProjectId, null, 'nc_projects_users', {
+            //   //     user_id: user?.id
+            //   //   })
+            //
+            //   ProjectUser.get(req.ncProjectId, user.id)
+            //     .then(async (projectUser) => {
+            //       user.roles = projectUser?.roles || user.roles;
+            //       user.roles =
+            //         user.roles === 'owner' ? 'owner,creator' : user.roles;
+            //       // + (user.roles ? `,${user.roles}` : '');
+            //
+            //       await NocoCache.set(`${CacheScope.USER}:${key}`, user);
+            //       done(null, user);
+            //     })
+            //     .catch((e) => done(e));
+            // } else {
+            //   // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
+            //   if (user) {
+            //     await NocoCache.set(`${CacheScope.USER}:${key}`, user);
+            //     return done(null, user);
+            //   } else {
+            //     return done(new Error('User not found'));
+            //   }
+            // }
           })
           .catch((err) => {
             return done(err);
@@ -286,41 +354,35 @@ export function initStrategies(router): void {
 
           User.getByEmail(email)
             .then(async (user) => {
-              if (req.ncProjectId) {
-                ProjectUser.get(req.ncProjectId, user.id)
-                  .then(async (projectUser) => {
-                    user.roles = projectUser?.roles || user.roles;
-                    user.roles =
-                      user.roles === 'owner' ? 'owner,creator' : user.roles;
-                    // + (user.roles ? `,${user.roles}` : '');
+              if (user) {
+                // if project id defined extract project level roles
+                if (req.ncProjectId) {
+                  ProjectUser.get(req.ncProjectId, user.id)
+                    .then(async (projectUser) => {
+                      user.roles = projectUser?.roles || user.roles;
+                      user.roles =
+                        user.roles === 'owner' ? 'owner,creator' : user.roles;
+                      // + (user.roles ? `,${user.roles}` : '');
 
-                    done(null, user);
-                  })
-                  .catch((e) => done(e));
-              } else {
-                // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
-                if (user) {
-                  return done(null, user);
+                      done(null, user);
+                    })
+                    .catch((e) => done(e));
                 } else {
-                  let roles = 'editor';
-
-                  if (!(await User.isFirst())) {
-                    roles = 'owner';
-                  }
-                  if (roles === 'editor') {
-                    return done(new Error('User not found'));
-                  }
-                  const salt = await promisify(bcrypt.genSalt)(10);
-                  user = await await User.insert({
-                    email: profile.emails[0].value,
-                    password: '',
-                    salt,
-                    roles,
-                    email_verified: true,
-                    token_version: randomTokenString(),
-                  });
                   return done(null, user);
                 }
+                // if user not found create new user if allowed
+                // or return error
+              } else {
+                const salt = await promisify(bcrypt.genSalt)(10);
+                const user = await registerNewUserIfAllowed({
+                  firstname: null,
+                  lastname: null,
+                  email_verification_token: null,
+                  email: profile.emails[0].value,
+                  password: '',
+                  salt,
+                });
+                return done(null, user);
               }
             })
             .catch((err) => {

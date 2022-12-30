@@ -28,6 +28,14 @@ import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import getColumnUiType from '../helpers/getColumnUiType';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { baseMetaDiffFN } from './metaDiffApis';
+const { Configuration, OpenAIApi } = require('openai');
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const openai = new OpenAIApi(configuration);
 
 export async function tableGet(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
@@ -228,9 +236,23 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 export async function tableUpdate(req: Request<any, any>, res) {
   const model = await Model.get(req.params.tableId);
 
-  const project = await Project.getWithInfo(req.body.project_id);
+  const project = await Project.getWithInfo(
+    req.body.project_id || (req as any).ncProjectId
+  );
   const base = project.bases.find((b) => b.id === model.base_id);
-  
+
+  if (model.project_id !== project.id) {
+    NcError.badRequest('Model does not belong to project');
+  }
+
+  // if meta present update meta and return
+  // todo: allow user to update meta  and other prop in single api call
+  if ('meta' in req.body) {
+    await Model.updateMeta(req.params.tableId, req.body.meta);
+
+    return res.json({ msg: 'success' });
+  }
+
   if (!req.body.table_name) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
@@ -371,6 +393,229 @@ export async function tableDelete(req: Request, res: Response) {
   res.json(await table.delete());
 }
 
+export async function tableCreateMagic(
+  req: Request<any, any, TableReqType>,
+  res
+) {
+  const project = await Project.getWithInfo(req.params.projectId);
+  let base = project.bases[0];
+
+  if (req.params.baseId) {
+    base = project.bases.find((b) => b.id === req.params.baseId);
+  }
+
+  if (
+    !req.body.table_name ||
+    (project.prefix && project.prefix === req.body.table_name)
+  ) {
+    NcError.badRequest(
+      'Missing table name `table_name` property in request body'
+    );
+  }
+
+  if (base.is_meta && project.prefix) {
+    if (!req.body.table_name.startsWith(project.prefix)) {
+      req.body.table_name = `${project.prefix}_${req.body.table_name}`;
+    }
+  }
+
+  req.body.table_name = DOMPurify.sanitize(req.body.table_name);
+
+  // validate table name
+  if (/^\s+|\s+$/.test(req.body.table_name)) {
+    NcError.badRequest(
+      'Leading or trailing whitespace not allowed in table names'
+    );
+  }
+
+  if (
+    !(await Model.checkTitleAvailable({
+      table_name: req.body.table_name,
+      project_id: project.id,
+      base_id: base.id,
+    }))
+  ) {
+    NcError.badRequest('Duplicate table name');
+  }
+
+  if (!req.body.title) {
+    req.body.title = getTableNameAlias(
+      req.body.table_name,
+      project.prefix,
+      base
+    );
+  }
+
+  if (
+    !(await Model.checkAliasAvailable({
+      title: req.body.title,
+      project_id: project.id,
+      base_id: base.id,
+    }))
+  ) {
+    NcError.badRequest('Duplicate table alias');
+  }
+
+  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+
+  let tableNameLengthLimit = 255;
+  const sqlClientType = sqlClient.clientType;
+  if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+    tableNameLengthLimit = 64;
+  } else if (sqlClientType === 'pg') {
+    tableNameLengthLimit = 63;
+  } else if (sqlClientType === 'mssql') {
+    tableNameLengthLimit = 128;
+  }
+
+  if (req.body.table_name.length > tableNameLengthLimit) {
+    NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+  }
+
+  const response = await openai.createCompletion({
+    model: 'text-davinci-003',
+    prompt: `create best schema for '${req.body.title}' table without constraints using sqlite:`,
+    temperature: 0.7,
+    max_tokens: 2048,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    NcError.badRequest('Failed to generate schema');
+  }
+
+  const schema = response.data.choices[0].text;
+
+  for (const sql of schema.split(';')) {
+    if (sql.trim().length === 0) continue;
+    await sqlClient.raw(sql);
+  }
+
+  await baseMetaDiffFN(project.id, base.id);
+
+  const table = await Model.getByIdOrName({
+    project_id: project.id,
+    base_id: base.id,
+    table_name: req.body.table_name,
+  });
+
+  res.json(table);
+}
+
+export async function schemaMagic(
+  req: Request<any, any, { title: string; schema_name: string }>,
+  res
+) {
+  const project = await Project.getWithInfo(req.params.projectId);
+  let base = project.bases[0];
+
+  if (req.params.baseId) {
+    base = project.bases.find((b) => b.id === req.params.baseId);
+  }
+
+  /* if (
+    !req.body.schema_name ||
+    (project.prefix && project.prefix === req.body.schema_name)
+  ) {
+    NcError.badRequest(
+      'Missing table name `table_name` property in request body'
+    );
+  }
+
+  if (base.is_meta && project.prefix) {
+    if (!req.body.schema_name.startsWith(project.prefix)) {
+      req.body.schema_name = `${project.prefix}_${req.body.schema_name}`;
+    }
+  }
+
+  req.body.schema_name = DOMPurify.sanitize(req.body.schema_name);
+
+  // validate table name
+  if (/^\s+|\s+$/.test(req.body.schema_name)) {
+    NcError.badRequest(
+      'Leading or trailing whitespace not allowed in table names'
+    );
+  }
+
+  if (
+    !(await Model.checkTitleAvailable({
+      table_name: req.body.schema_name,
+      project_id: project.id,
+      base_id: base.id,
+    }))
+  ) {
+    NcError.badRequest('Duplicate table name');
+  }
+
+  if (!req.body.title) {
+    req.body.title = getTableNameAlias(
+      req.body.schema_name,
+      project.prefix,
+      base
+    );
+  }
+
+  if (
+    !(await Model.checkAliasAvailable({
+      title: req.body.title,
+      project_id: project.id,
+      base_id: base.id,
+    }))
+  ) {
+    NcError.badRequest('Duplicate table alias');
+  } */
+
+  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+
+  let tableNameLengthLimit = 255;
+  const sqlClientType = sqlClient.clientType;
+  if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+    tableNameLengthLimit = 64;
+  } else if (sqlClientType === 'pg') {
+    tableNameLengthLimit = 63;
+  } else if (sqlClientType === 'mssql') {
+    tableNameLengthLimit = 128;
+  }
+
+  if (req.body.schema_name.length > tableNameLengthLimit) {
+    NcError.badRequest(
+      `Schema name exceeds ${tableNameLengthLimit} characters`
+    );
+  }
+
+  const response = await openai.createCompletion({
+    model: 'text-davinci-003',
+    prompt: `create best schema for '${req.body.title}' database using sqlite:`,
+    temperature: 0.7,
+    max_tokens: 4000,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    NcError.badRequest('Failed to generate schema');
+  }
+
+  const schema = response.data.choices[0].text;
+
+  try {
+    for (const sql of schema.split(';')) {
+      if (sql.trim().length === 0) continue;
+      await sqlClient.raw(sql);
+    }
+
+    await baseMetaDiffFN(project.id, base.id);
+
+    res.json(true);
+  } catch (e) {
+    console.log(e);
+    res.json(false);
+  }
+}
+
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/projects/:projectId/tables',
@@ -386,6 +631,16 @@ router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
   metaApiMetrics,
   ncMetaAclMw(tableCreate, 'tableCreate')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/:baseId/tables/magic',
+  metaApiMetrics,
+  ncMetaAclMw(tableCreateMagic, 'tableCreateMagic')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/:baseId/schema/magic',
+  metaApiMetrics,
+  ncMetaAclMw(schemaMagic, 'schemaMagic')
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/:baseId/tables',

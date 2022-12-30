@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UITypes } from 'nocodb-sdk'
-import { AllowedColumnTypesForQrCode } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 import { useVModel } from '#imports'
 
@@ -25,7 +25,8 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
   return fields.value
     ?.filter(
-      (el) => el.fk_column_id && AllowedColumnTypesForQrCode.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
+      (el) =>
+        el.fk_column_id && AllowedColumnTypesForQrAndBarcodes.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
     )
     .map((field) => {
       return {

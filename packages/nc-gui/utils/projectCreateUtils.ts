@@ -1,10 +1,18 @@
 import { ClientType } from '~/lib'
 
+// todo: move to noco-sdk
+export enum NcProjectType {
+  DB = 'database',
+  DOCS = 'documentation',
+  AUTOMATION = 'automation',
+  COWRITER = 'cowriter',
+}
+
 interface ProjectCreateForm {
   title: string
   dataSource: {
     client: ClientType
-    connection: DefaultConnection | SQLiteConnection
+    connection: DefaultConnection | SQLiteConnection | SnowflakeConnection
     searchPath?: string[]
   }
   inflection: {
@@ -33,6 +41,15 @@ interface SQLiteConnection {
   useNullAsDefault?: boolean
 }
 
+export interface SnowflakeConnection {
+  account: string
+  username: string
+  password: string
+  warehouse: string
+  database: string
+  schema: string
+}
+
 const defaultHost = 'localhost'
 
 const testDataBaseNames = {
@@ -45,7 +62,7 @@ const testDataBaseNames = {
 }
 
 export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
-  if (db.client === ClientType.PG) return db.connection?.database
+  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE) return db.connection?.database
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames]
 }
 
@@ -66,12 +83,16 @@ export const clientTypes = [
     text: 'SQLite',
     value: ClientType.SQLITE,
   },
+  {
+    text: 'SnowFlake',
+    value: ClientType.SNOWFLAKE,
+  },
 ]
 
 const homeDir = ''
 
 type ConnectionClientType =
-  | Exclude<ClientType, ClientType.SQLITE>
+  | Exclude<ClientType, ClientType.SQLITE | ClientType.SNOWFLAKE>
   | 'tidb'
   | 'yugabyte'
   | 'citusdb'
@@ -79,7 +100,9 @@ type ConnectionClientType =
   | 'oracledb'
   | 'greenplum'
 
-const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection } & { [ClientType.SQLITE]: SQLiteConnection } = {
+const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection } & { [ClientType.SQLITE]: SQLiteConnection } & {
+  [ClientType.SNOWFLAKE]: SnowflakeConnection
+} = {
   [ClientType.PG]: {
     host: defaultHost,
     port: '5432',
@@ -115,6 +138,14 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
       filename: homeDir,
     },
     useNullAsDefault: true,
+  },
+  [ClientType.SNOWFLAKE]: {
+    account: 'account',
+    username: 'username',
+    password: 'password',
+    warehouse: 'warehouse',
+    database: 'database',
+    schema: 'schema',
   },
   tidb: {
     host: defaultHost,

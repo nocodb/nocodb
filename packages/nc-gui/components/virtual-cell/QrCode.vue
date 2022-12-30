@@ -9,6 +9,8 @@ const qrValue = computed(() => String(cellValue?.value))
 
 const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
+const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value)
+
 const qrCode = useQRCode(qrValue, {
   width: 150,
 })
@@ -40,12 +42,12 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     <template #footer>
       <div class="mr-4" data-testid="nc-qr-code-large-value-label">{{ qrValue }}</div>
     </template>
-    <img v-if="qrValue && !tooManyCharsForQrCode" :src="qrCodeLarge" alt="QR Code" />
+    <img v-if="showQrCode" :src="qrCodeLarge" alt="QR Code" />
   </a-modal>
   <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('labels.qrCodeValueTooLong') }}
   </div>
-  <img v-if="qrValue && !tooManyCharsForQrCode" :src="qrCode" alt="QR Code" @click="showQrModal" />
+  <img v-if="showQrCode" :src="qrCode" alt="QR Code" @click="showQrModal" />
   <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}
   </div>

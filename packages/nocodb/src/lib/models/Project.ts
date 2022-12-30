@@ -9,6 +9,7 @@ import {
 } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
+import Book from './Book';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -23,6 +24,7 @@ export default class Project implements ProjectType {
   public is_meta = false;
   public bases?: Base[];
   public type: string;
+  public fk_workspace_id?: string;
 
   created_at: any;
   updated_at: any;
@@ -40,6 +42,7 @@ export default class Project implements ProjectType {
     projectBody: ProjectType & {
       created_at?;
       updated_at?;
+      user?: any;
     },
     ncMeta = Noco.ncMeta
   ): Promise<Project> {
@@ -56,6 +59,8 @@ export default class Project implements ProjectType {
         created_at: projectBody.created_at,
         updated_at: projectBody.updated_at,
         type: projectBody.type,
+        fk_workspace_id: projectBody.fk_workspace_id,
+        meta: projectBody.meta,
       }
     );
 
@@ -74,6 +79,18 @@ export default class Project implements ProjectType {
         },
         ncMeta
       );
+    }
+
+    if (projectBody.type === 'documentation') {
+      console.log('projectBody.type', projectBody.type);
+      await Book.create({
+        attributes: {
+          title: 'Version 1',
+          description: 'Version 1',
+        },
+        projectId,
+        user: projectBody.user,
+      });
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
@@ -401,5 +418,57 @@ export default class Project implements ProjectType {
     if (project) await project.getBases(ncMeta);
 
     return project;
+  }
+
+  static async listByWorkspaceAndUser(
+    fk_workspace_id: string,
+    userId: string,
+    ncMeta = Noco.ncMeta
+  ) {
+    // Todo: caching , pagination, query optimisation
+
+    const projectListQb = ncMeta
+      .knex(MetaTable.PROJECT)
+      .select(`${MetaTable.PROJECT}.*`)
+      .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
+      .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
+      .leftJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          '=',
+          `${MetaTable.PROJECT}.fk_workspace_id`
+        ).andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId])
+        );
+      })
+      .leftJoin(MetaTable.PROJECT_USERS, function () {
+        this.on(
+          `${MetaTable.PROJECT_USERS}.project_id`,
+          '=',
+          `${MetaTable.PROJECT}.id`
+        ).andOn(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId])
+        );
+      })
+
+      .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
+
+      .where(function () {
+        this.where(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId])
+        ).orWhere(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [userId])
+        );
+      });
+
+    return await projectListQb;
   }
 }

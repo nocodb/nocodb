@@ -512,6 +512,12 @@ export async function columnAdd(
         fk_model_id: table.id,
       });
       break;
+    case UITypes.Barcode:
+      await Column.insert({
+        ...colBody,
+        fk_model_id: table.id,
+      });
+      break;
     case UITypes.Formula:
       colBody.formula = await substituteColumnAliasWithIdInFormula(
         colBody.formula_raw || colBody.formula,
@@ -738,11 +744,12 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       UITypes.LinkToAnotherRecord,
       UITypes.Formula,
       UITypes.QrCode,
+      UITypes.Barcode,
       UITypes.ForeignKey,
     ].includes(column.uidt)
   ) {
     if (column.uidt === colBody.uidt) {
-      if (column.uidt === UITypes.QrCode) {
+      if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
         await Column.update(column.id, {
           ...column,
           ...colBody,
@@ -774,6 +781,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       UITypes.LinkToAnotherRecord,
       UITypes.Formula,
       UITypes.QrCode,
+      UITypes.Barcode,
       UITypes.ForeignKey,
     ].includes(colBody.uidt)
   ) {
@@ -1460,6 +1468,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.QrCode:
+    case UITypes.Barcode:
     case UITypes.Formula:
       await Column.delete(req.params.columnId);
       break;

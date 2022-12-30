@@ -52,6 +52,7 @@ export function isVirtualCol(
     UITypes.LinkToAnotherRecord,
     UITypes.Formula,
     UITypes.QrCode,
+    UITypes.Barcode,
     UITypes.Rollup,
     UITypes.Lookup,
     // UITypes.Count,

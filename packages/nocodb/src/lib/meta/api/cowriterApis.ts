@@ -5,8 +5,11 @@ import { CowriterListType, CowriterType, UITypes } from 'nocodb-sdk';
 import Cowriter from '../../models/Cowriter';
 import Column from '../../models/Column';
 import Model from '../../models/Model';
+import Base from '../../models/Base';
 import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
+import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
+import { Altered } from './columnApis';
 
 const { Configuration, OpenAIApi } = require('openai');
 
@@ -82,11 +85,18 @@ export async function cowriterGenerateColumns(req, res) {
 
   console.log(output);
 
+  const base = await Base.get(table.base_id);
+
+  const sqlMgr = await ProjectMgrv2.getSqlMgr({
+    id: base.project_id,
+  });
+
+  const newColumns: Column[] = [];
   // TODO: check if column exists
-  Promise.all(
+  await Promise.all(
     output.map(async (o) => {
       const title = getUniqueColumnAliasName(columns, o);
-      await Column.insert({
+      const column = await Column.insert({
         title,
         column_name: o,
         fk_model_id: req.params.tableId,
@@ -111,8 +121,30 @@ export async function cowriterGenerateColumns(req, res) {
         uip: '',
         uicn: '',
       });
+      newColumns.push(column);
     })
   );
+
+  const originalColumns = columns.map((c) => ({
+    ...c,
+    cn: c.column_name,
+  }));
+
+  const tableUpdateBody = {
+    ...table,
+    tn: table.table_name,
+    originalColumns,
+    columns: [
+      ...originalColumns,
+      ...newColumns.map((c) => ({
+        ...c,
+        cn: c.column_name,
+        altered: Altered.NEW_COLUMN,
+      })),
+    ],
+  };
+
+  await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
   // TODO: return something meaningful
   res.json({ res: true });

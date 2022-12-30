@@ -36,7 +36,7 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const meta = inject(MetaInj, ref())
 
@@ -51,6 +51,8 @@ const advancedOptions = ref(false)
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
+
+const loadMagic = ref(false)
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
@@ -107,6 +109,23 @@ watchEffect(() => {
   advancedOptions.value = false
 })
 
+const predictColumnType = async () => {
+  if (loadMagic.value) return
+  loadMagic.value = true
+  const predictRes = await $api.utils.magic({
+    operation: 'predictColumnType',
+    data: {
+      title: formState.value.title,
+    },
+  })
+  const predictType = predictRes?.data
+  if (predictType && Object.values(UITypes).includes(predictType)) {
+    formState.value.uidt = predictType
+    onUidtOrIdTypeChange()
+  }
+  loadMagic.value = false
+}
+
 onMounted(() => {
   if (!isEdit.value) {
     generateNewColumnMeta()
@@ -148,26 +167,32 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           />
         </a-form-item>
 
-        <a-form-item
-          v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
-          :label="$t('labels.columnType')"
-        >
-          <a-select
-            v-model:value="formState.uidt"
-            show-search
-            class="nc-column-type-input"
-            :disabled="isKanban"
-            dropdown-class-name="nc-dropdown-column-type"
-            @change="onUidtOrIdTypeChange"
+        <div class="flex items-center gap-1">
+          <a-form-item
+            v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
+            class="flex-1"
+            :label="$t('labels.columnType')"
           >
-            <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
-              <div class="flex gap-1 items-center">
-                <component :is="opt.icon" class="text-grey" />
-                {{ opt.name }}
-              </div>
-            </a-select-option>
-          </a-select>
-        </a-form-item>
+            <a-select
+              v-model:value="formState.uidt"
+              show-search
+              class="nc-column-type-input"
+              :disabled="isKanban"
+              dropdown-class-name="nc-dropdown-column-type"
+              @change="onUidtOrIdTypeChange"
+            >
+              <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
+                <div class="flex gap-1 items-center">
+                  <component :is="opt.icon" class="text-grey" />
+                  {{ opt.name }}
+                </div>
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+          <div class="mt-2 cursor-pointer" @click="predictColumnType()">
+            <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
+          </div>
+        </div>
 
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />

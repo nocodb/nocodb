@@ -593,7 +593,7 @@ export async function schemaMagic(
     model: "text-davinci-003",
     prompt: `create best schema for '${req.body.title}' database using SQL (${sqlClientType})${prefixPrompt}:`,
     temperature: 0.7,
-    max_tokens: 4000,
+    max_tokens: 3000,
     top_p: 1,
     frequency_penalty: 0,
     presence_penalty: 0,

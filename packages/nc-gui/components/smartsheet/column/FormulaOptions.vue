@@ -30,7 +30,11 @@ const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
 
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
+const { formState, setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
+
+const { $api } = useNuxtApp()
+
+const loadMagic = ref(false)
 
 enum JSEPNode {
   COMPOUND = 'Compound',
@@ -680,11 +684,33 @@ setAdditionalValidations({
 onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
+
+const predictFunction = async () => {
+  loadMagic.value = true
+  const res: { data: string } = await $api.utils.magic({
+    operation: 'predictFormula',
+    data: {
+      title: formState.value?.title,
+      columns: supportedColumns.value.map((c) => c.title),
+      functions: suggestionsList.value.filter((f) => f.type === 'function').map((f) => f.text),
+    },
+  })
+
+  if (res.data) {
+    vModel.value.formula_raw = res.data
+  }
+  loadMagic.value = false
+}
 </script>
 
 <template>
   <div class="formula-wrapper">
     <a-form-item v-bind="validateInfos.formula_raw" label="Formula">
+      <PhSparkleFill
+        :class="{ 'nc-animation-pulse': loadMagic }"
+        class="text-orange-400 cursor-pointer absolute right-1 top-1 z-10"
+        @click="predictFunction()"
+      />
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"

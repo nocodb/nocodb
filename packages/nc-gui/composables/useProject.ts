@@ -1,6 +1,7 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
+import { useRoute } from 'vue-router'
 import {
   ClientType,
   computed,
@@ -11,7 +12,6 @@ import {
   useInjectionState,
   useNuxtApp,
   useRoles,
-  useRoute,
   useRouter,
   useTheme,
 } from '#imports'
@@ -42,9 +42,9 @@ const [setup, use] = useInjectionState(() => {
 
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
-  let forcedProjectId: string | undefined
+  const forcedProjectId = ref<string>()
 
-  const projectId = computed(() => forcedProjectId || (route.params.projectId as string))
+  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
 
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
@@ -107,7 +107,7 @@ const [setup, use] = useInjectionState(() => {
   }
 
   async function loadProject(withTheme = true, forcedId?: string) {
-    if (forcedId) forcedProjectId = forcedId
+    if (forcedId) forcedProjectId.value = forcedId
     if (projectType === 'base') {
       try {
         const baseData = await api.public.sharedBaseGet(route.params.projectId as string)

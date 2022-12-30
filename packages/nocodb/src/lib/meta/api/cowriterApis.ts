@@ -6,6 +6,7 @@ import Cowriter from '../../models/Cowriter';
 import Column from '../../models/Column';
 import Model from '../../models/Model';
 import Base from '../../models/Base';
+import Project from '../../models/Project';
 import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
@@ -23,9 +24,33 @@ export async function cowriterCreate(
   req: Request<any, CowriterType, CowriterType>,
   res: Response<CowriterType>
 ) {
+  const table = await Model.get(req.params.tableId);
+
+  await table.getColumns();
+
+  const project = await Project.get(table.project_id);
+
+  const formState = req.body;
+
+  const promptStatement =
+    (typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta)
+      .prompt_statement || '';
+
+  // translate prompt statment by replacing {{col}} in the given template
+  let translatedPromptStatement = promptStatement;
+
+  table.columns.forEach((c) => {
+    if (formState[c.title!]) {
+      translatedPromptStatement = translatedPromptStatement.replaceAll(
+        `{{${c.title}}}`,
+        formState[c.title!]
+      );
+    }
+  });
+
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: req.body.prompt_statement,
+    prompt: translatedPromptStatement,
     temperature: 0.7,
     max_tokens: 2048,
     top_p: 1,
@@ -41,6 +66,8 @@ export async function cowriterCreate(
 
   const cowriter = await Cowriter.insert({
     ...req.body,
+    prompt_statement: promptStatement,
+    prompt_statement_template: translatedPromptStatement,
     fk_model_id: req.params.tableId,
     created_by: (req as any).user.id,
     output,

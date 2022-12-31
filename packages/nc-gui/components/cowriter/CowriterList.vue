@@ -22,4 +22,12 @@ const cowriterRecords = computed(() =>
       </div>
     </div>
   </div>
+  <div v-else class="h-full w-full text-gray-600 flex items-center justify-center relative mt-[20px]">
+    <div class="flex flex-col gap-6 items-center justify-center mx-auto text-center text-gray-500 w-3/5 h-1/2 rounded-md">
+      <div class="prose-lg leading-8">
+        <span v-if="cowriterOutputActiveKey === 'cowriter-output'">No Output Generated</span>
+        <span v-else>No History</span>
+      </div>
+    </div>
+  </div>
 </template>

@@ -58,6 +58,7 @@ const { saveOrUpdate } = useViewColumns(cowriterFormView as Ref<ViewType>, cowri
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
+// TODO: move to composable
 const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
 
 const { isUIAllowed } = useUIPermission()

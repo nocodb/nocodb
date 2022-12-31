@@ -40,10 +40,10 @@ export default {
     </a-layout-header>
     <a-layout-content>
       <a-row>
-        <a-col :span="12">
+        <a-col class="border-r-1" :span="12">
           <slot name="left" />
         </a-col>
-        <a-col :span="12">
+        <a-col class="border-r-1" :span="12">
           <slot name="right" />
         </a-col>
         <a-col :span="24">

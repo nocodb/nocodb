@@ -6,6 +6,7 @@ import {
   FieldsInj,
   IsFormInj,
   IsKanbanInj,
+  IsMapInj,
   MetaInj,
   ReloadRowDataHookInj,
   computedInject,
@@ -23,7 +24,7 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 
-interface InitialGeoPositionData {
+export interface InitialGeoPositionData {
   lat?: number
   long?: number
   geoColId?: string
@@ -51,6 +52,8 @@ const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
 
+const newRow = row.value.row.geoColId
+
 // const initialGeoPositionData = toRef(props, 'initialGeoPositionData')
 const initialGeoPositionData = ref(props.initialGeoPositionData)
 
@@ -64,6 +67,8 @@ const fields = computedInject(FieldsInj, (_fields) => {
 })
 
 const isKanban = inject(IsKanbanInj, ref(false))
+
+const isMap = inject(IsMapInj, ref(false))
 
 provide(MetaInj, meta)
 
@@ -120,7 +125,6 @@ reloadHook.on(() => {
   if (isNew.value) return
   loadRow()
 })
-
 provide(ReloadRowDataHookInj, reloadHook)
 
 if (isKanban.value) {
@@ -132,10 +136,37 @@ if (isKanban.value) {
   }
 }
 
+// if (isMap.value) {
+//   console.log('fields', fields.value)
+//   for (const [k, v] of Object.entries(row.value.row)) {
+//     if (v) {
+//       console.log('value', v, 'key', k)
+//     }
+//   }
+//   if (initialGeoPositionData?.value?.lat) {
+//     // Filter the columns by their id
+//     const filteredColumns = meta?.value?.columns.filter((col) => col.id === initialGeoPositionData?.value?.geoColId)
+//     // If there are any columns that match the geoColId
+//     if (filteredColumns.length > 0) {
+//       // Get the first (and possibly only) column that matches the geoColId
+//       const geoColumn = filteredColumns[0]
+//       console.log('geoColumn', geoColumn.id )
+//       // Load the lat and long values for the geoColumn
+//       if (geoColumn.title) {
+
+//         const lat = initialGeoPositionData.value.lat
+//         const long = initialGeoPositionData.value.long
+//         row.value.row[geoColumn.title] = lat
+
+//         console.log('lat', lat)
+//         console.log('long', long)
+//       }
+//     }
+//   }
+// }
 const cellWrapperEl = ref<HTMLElement>()
 
 onMounted(() => {
-
   setTimeout(() => {
     ;(cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus()
   })
@@ -161,7 +192,7 @@ export default {
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
     <div class="!bg-gray-100 rounded flex-1">
-      FOO geodata: {{ JSON.stringify(initialGeoPositionData) }} BAR
+      FOO geodata: {{ JSON.stringify(initialGeoPositionData?.geoColId) }} BAR
 
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
@@ -190,6 +221,7 @@ export default {
                   :column="col"
                   :edit-enabled="true"
                   :active="true"
+                  :default-geo-position="initialGeoPositionData"
                   @update:model-value="changedColumns.add(col.title)"
                 />
               </div>

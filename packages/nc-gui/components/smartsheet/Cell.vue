@@ -19,9 +19,9 @@ import {
   isDateTime,
   isDecimal,
   isDuration,
-  isGeoData,
   isEmail,
   isFloat,
+  isGeoData,
   isInt,
   isJSON,
   isManualSaved,
@@ -46,6 +46,7 @@ import {
   useVModel,
 } from '#imports'
 import { NavigateDir } from '~/lib'
+import { InitialGeoPositionData } from './expanded-form/index.vue';
 
 interface Props {
   column: ColumnType
@@ -55,6 +56,10 @@ interface Props {
   rowIndex?: number
   active?: boolean
   virtual?: boolean
+  // TODO: check whether
+  // a) this is in general the right approach to pass in default values
+  // b) if yes: probably we want to make it generic (column type independent)
+  defaultGeoPosition?: InitialGeoPositionData
 }
 
 const props = defineProps<Props>()
@@ -139,7 +144,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   >
     <template v-if="column">
       <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
-      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
+      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" :default-geo-position="props.defaultGeoPosition" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />

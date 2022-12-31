@@ -4,6 +4,10 @@ import { useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
+  defaultGeoPosition?: {
+    lat: number
+    long: number
+  }
 }
 
 interface Emits {
@@ -15,6 +19,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
+
+const defaultGeoPosition = useVModel(props, 'defaultGeoPosition')
 
 let error = $ref<string | undefined>()
 
@@ -93,6 +99,7 @@ const onGetCurrentLocation = () => {
             @mousedown.stop
           />
         </a-form-item>
+        defaultGeoPosition: {{ JSON.stringify(defaultGeoPosition) }}
         <a-form-item class="inputLng" label="Lng">
           <a-input
             v-model:value="formState.longitude"

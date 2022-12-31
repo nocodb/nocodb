@@ -119,10 +119,13 @@ const addNewOption = () => {
 
 const optionsMagic = async () => {
   loadMagic.value = true
-  const res: Array<string> = await $api.utils.selectMagic({
-    schema: project.value?.title,
-    title: formState.value?.title,
-    table: formState.value?.table_name,
+  const res: Array<string> = await $api.utils.magic({
+    operation: 'selectOptions',
+    data: {
+      schema: project.value?.title,
+      title: formState.value?.title,
+      table: formState.value?.table_name,
+    },
   })
 
   if (res.length) {

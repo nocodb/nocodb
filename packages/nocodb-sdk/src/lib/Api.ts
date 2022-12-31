@@ -1014,6 +1014,32 @@ export class Api<
      * @description Get public book
      *
      * @tags Noco docs
+     * @name ListDraftPages
+     * @summary list draft pages
+     * @request GET:/api/v1/docs/page-drafts
+     * @response `200` `(DocsPageType)[]` OK
+     */
+    listDraftPages: (
+      query: {
+        /** Project id */
+        projectId: string;
+        /** book id */
+        bookId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType[], any>({
+        path: `/api/v1/docs/page-drafts`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get public book
+     *
+     * @tags Noco docs
      * @name ListPublicPages
      * @summary list public pages
      * @request GET:/api/v1/public/docs/pages
@@ -4866,21 +4892,20 @@ export class Api<
      * @description Get select options using NocoAI
      *
      * @tags Utils
-     * @name SelectMagic
-     * @summary Get select options using NocoAI
-     * @request POST:/api/v1/db/meta/select/magic
-     * @response `200` `(string)[]` OK
+     * @name Magic
+     * @summary Get generic response using NocoAI
+     * @request POST:/api/v1/db/meta/magic
+     * @response `200` `any` OK
      */
-    selectMagic: (
+    magic: (
       data: {
-        title: string;
-        table: string;
-        schema?: string;
+        operation: 'selectOptions' | 'predictColumnType' | 'predictFormula';
+        data?: object;
       },
       params: RequestParams = {}
     ) =>
-      this.request<string[], any>({
-        path: `/api/v1/db/meta/select/magic`,
+      this.request<any, any>({
+        path: `/api/v1/db/meta/magic`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

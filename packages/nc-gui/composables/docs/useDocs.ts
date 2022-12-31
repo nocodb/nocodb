@@ -24,6 +24,7 @@ export function useDocs() {
 
   const books = useState<BookType[]>('books', () => [])
   const pages = useState<PageSidebarNode[]>('pages', () => [])
+  const drafts = useState<PageSidebarNode[]>('drafts', () => [])
   const openedTabs = useState<string[]>('openedSidebarTabs', () => [])
 
   // First slug is book slug, rest are page slugs
@@ -130,6 +131,16 @@ export function useDocs() {
 
       return docs
     } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  const fetchDrafts = async () => {
+    try {
+      const response = await $api.nocoDocs.listDraftPages({ projectId: projectId!, bookId: openedBook.value!.id! })
+      drafts.value = response.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id }))
+    } catch (e) {
+      console.error(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
@@ -329,6 +340,7 @@ export function useDocs() {
         type,
         from,
       })
+      await fetchDrafts()
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
@@ -367,6 +379,10 @@ export function useDocs() {
       }
 
       await navigateTo(nestedUrl(updatedPage.id!))
+    }
+    if (!page.is_published && page.content) {
+      const inDrafts = drafts.value.find((p) => p.id === foundPage?.id)
+      if (!inDrafts) drafts.value.push(foundPage!)
     }
     if (page.is_published) {
       foundPage!.is_published = page.is_published
@@ -499,5 +515,8 @@ export function useDocs() {
     addNewPage,
     getChildrenOfPage,
     fetchAndOpenChildPageOfRootPages,
+    drafts,
+    fetchDrafts,
+    findPage,
   }
 }

@@ -14,6 +14,7 @@ const {
   books,
   navigateToFirstBook,
   fetchAndOpenChildPageOfRootPages,
+  fetchDrafts,
 } = useDocs()
 
 const onAdminMount = async () => {
@@ -29,6 +30,8 @@ const onAdminMount = async () => {
       book: openedBook.value!,
     })
   }
+
+  await fetchDrafts()
 }
 
 const onPublicMount = async () => {

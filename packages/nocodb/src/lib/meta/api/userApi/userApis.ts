@@ -81,7 +81,9 @@ export async function registerNewUserIfAllowed({
     if (settings?.invite_only_signup) {
       NcError.badRequest('Not allowed to signup, contact super admin.');
     } else {
-      roles = OrgUserRoles.VIEWER;
+      // roles = OrgUserRoles.VIEWER;
+      // todo: handle in self-hosted
+      roles = OrgUserRoles.CREATOR;
     }
   }
 

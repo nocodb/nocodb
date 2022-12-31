@@ -159,7 +159,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -306,7 +306,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -459,7 +459,7 @@ export async function tableCreateMagic(
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -473,8 +473,8 @@ export async function tableCreateMagic(
   }
 
   const response = await openai.createCompletion({
-    model: 'text-davinci-003',
-    prompt: `create best schema for '${req.body.title}' table without constraints using sqlite:`,
+    model: "text-davinci-003",
+    prompt: `create best schema for '${req.body.title}' table without foreign constraints using SQL (${sqlClientType}) and name table as '${req.body.table_name}':`,
     temperature: 0.7,
     max_tokens: 2048,
     top_p: 1,
@@ -483,7 +483,7 @@ export async function tableCreateMagic(
   });
 
   if (response.data.choices.length === 0) {
-    NcError.badRequest('Failed to generate schema');
+    NcError.badRequest('Failed to generate table schema');
   }
 
   const schema = response.data.choices[0].text;
@@ -510,11 +510,15 @@ export async function schemaMagic(
 ) {
   const project = await Project.getWithInfo(req.params.projectId);
   let base = project.bases[0];
+  let prefixPrompt = '';
 
   if (req.params.baseId) {
     base = project.bases.find((b) => b.id === req.params.baseId);
   }
 
+  if (base.is_meta && project.prefix) {
+    prefixPrompt = ` prefixing tables with '${project.prefix}_'`;
+  }
   /* if (
     !req.body.schema_name ||
     (project.prefix && project.prefix === req.body.schema_name)
@@ -570,7 +574,7 @@ export async function schemaMagic(
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -586,10 +590,10 @@ export async function schemaMagic(
   }
 
   const response = await openai.createCompletion({
-    model: 'text-davinci-003',
-    prompt: `create best schema for '${req.body.title}' database using sqlite:`,
+    model: "text-davinci-003",
+    prompt: `create best schema for '${req.body.title}' database using SQL (${sqlClientType})${prefixPrompt}:`,
     temperature: 0.7,
-    max_tokens: 4000,
+    max_tokens: 3000,
     top_p: 1,
     frequency_penalty: 0,
     presence_penalty: 0,

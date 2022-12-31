@@ -346,6 +346,7 @@ const rolePermissions = {
       workspaceList: true,
       workspaceGet: true,
       workspaceCreate: true,
+      genericGPT: true
     },
   },
 

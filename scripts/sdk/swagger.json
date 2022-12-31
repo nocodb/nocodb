@@ -43,6 +43,51 @@
         "description": "Get public book"
       }
     },
+    "/api/v1/docs/page-drafts": {
+      "get": {
+        "summary": "list draft pages",
+        "operationId": "list-draft-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get public book"
+      }
+    },
     "/api/v1/public/docs/pages": {
       "get": {
         "summary": "list public pages",
@@ -7405,22 +7450,17 @@
         "description": ""
       }
     },
-    "/api/v1/db/meta/select/magic": {
+    "/api/v1/db/meta/magic": {
       "parameters": [],
       "post": {
-        "summary": "Get select options using NocoAI",
-        "operationId": "utils-select-magic",
+        "summary": "Get generic response using NocoAI",
+        "operationId": "utils-magic",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
+                "schema": {}
               }
             }
           }
@@ -7434,16 +7474,17 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "title": {
+                  "operation": {
                     "type": "string",
-                    "required": true
+                    "required": true,
+                    "enum": [
+                      "selectOptions",
+                      "predictColumnType",
+                      "predictFormula"
+                    ]
                   },
-                  "table": {
-                    "type": "string",
-                    "required": true
-                  },
-                  "schema": {
-                    "type": "string"
+                  "data": {
+                    "type": "object"
                   }
                 }
               }

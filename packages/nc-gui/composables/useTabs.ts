@@ -1,5 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { computed, navigateTo, ref, useInjectionState, useProject, useRoute, useRouter, watch } from '#imports'
+import { useRoute } from 'vue-router'
+import { computed, navigateTo, ref, useInjectionState, useProject, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 

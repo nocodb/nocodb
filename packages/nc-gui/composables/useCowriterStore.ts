@@ -90,6 +90,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     }
     const cowriter = await $api.cowriterTable.create(cowriterTable.value!.id!, cowriterFormState)
     ;(cowriterOutputList.value as CowriterType[]).unshift(cowriter)
+    ;(cowriterHistoryList.value as CowriterType[]).unshift(cowriter)
     generateButtonLoading.value = false
   }
 

@@ -68,21 +68,43 @@ const acTree = computed(() => {
   return ref
 })
 
-function isCurlyBracketBalanced() {
-  // count number of opening curly brackets and closing curly brackets
-  const cntCurlyBrackets = (promptRef.value.$el.value.match(/\{|}/g) || []).reduce((acc: Record<number, number>, cur: number) => {
+function getCurlyBracket(isDouble = true) {
+  const arr = (isDouble ? promptRef.value.$el.value.match(/\{{|}}/g) : promptRef.value.$el.value.match(/\{|}/g)) || []
+  const cntCurlyBrackets = arr.reduce((acc: Record<number, number>, cur: number) => {
     acc[cur] = (acc[cur] || 0) + 1
     return acc
   }, {})
+  return cntCurlyBrackets
+}
+
+function isCurlyDoubleBracketBalanced() {
+  // count number of double opening curly brackets and closing curly brackets
+  const cntCurlyBrackets = getCurlyBracket()
+  return (cntCurlyBrackets['{{'] || 0) === (cntCurlyBrackets['}}'] || 0)
+}
+
+function isCurlyBracketBalanced() {
+  // count number of opening curly brackets and closing curly brackets
+  const cntCurlyBrackets = getCurlyBracket(false)
   return (cntCurlyBrackets['{'] || 0) === (cntCurlyBrackets['}'] || 0)
 }
 
 function appendText(item: Record<string, any>) {
   const text = item.text
   const len = wordToComplete.value?.length || 0
+  let offset = 0
+  if (!isCurlyBracketBalanced() || !isCurlyDoubleBracketBalanced()) {
+    const lastWord = promptRef.value.$el.value.split(' ').slice(-1).join(' ')
+    if (lastWord.includes('{{')) {
+      offset = 2
+    } else if (lastWord.includes('{')) {
+      offset = 1
+    }
+  } else {
+    offset = -len
+  }
 
-  // TODO: fix the position
-  vModel.value = insertAtCursor(promptRef.value.$el, `{{${text}}}`, len + +!isCurlyBracketBalanced() - 2)
+  vModel.value = insertAtCursor(promptRef.value.$el, `{{${text}}}`, len + offset)
 
   autocomplete.value = false
   wordToComplete.value = ''

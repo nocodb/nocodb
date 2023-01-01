@@ -572,8 +572,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </a-dropdown>
 
           <div
-            class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
+            class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
+            :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
           >
+          <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
             <MdiBackburger
               v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"

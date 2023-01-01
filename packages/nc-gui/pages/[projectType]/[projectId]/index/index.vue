@@ -10,6 +10,8 @@ const { isLoading, isMobileMode } = useGlobal()
 
 provide(TabMetaInj, activeTab)
 
+const mainArea = ref<HTMLDivElement>()
+
 const icon = (tab: TabItem) => {
   switch (tab.type) {
     case TabType.TABLE:
@@ -26,6 +28,35 @@ const { isOpen, toggle } = useSidebar('nc-left-sidebar')
 function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
   if (action === 'remove') closeTab(targetKey)
 }
+
+const hideSidebarOnClickOrTouchIfMobileMode = (event: Event) => {
+
+  if (isMobileMode.value && isOpen.value) {
+    // && !event.target?.matches('.show-sidebar-button')
+    // alert('now we will close the sidebar')
+    toggle(false)
+  }
+  // if (!event.target.matches('.show-sidebar-button')) {
+  //   this.sidebarVisible = false
+  // }
+
+  // console.log('event.target', event.target)
+  // console.log('toggleSideBarButton.value', toggleSideBarButton.value)
+  // console.log('inside of hideSidebarOnClickOrTouchIfMobileMode')
+  // console.log('isOpen.value', isOpen.value)
+  // console.log('event.target !== toggleSideBarButton.value', event.target !== toggleSideBarButton.value)
+  // console.log('------------')
+  // debugger
+  // if (isMobileMode.value && isOpen.value && !event.target?.matchesSelector('.show-sidebar-button')) {
+  // if (isMobileMode.value && isOpen.value && event.target !== toggleSideBarButton.value) {
+  //   toggle(false)
+  // }
+}
+
+onMounted(() => {
+  // if (isMobileMode.value) toggle(true)
+  mainArea.value?.addEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
+})
 </script>
 
 <template>
@@ -36,7 +67,8 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
         >
-          <MdiMenu
+        <!-- <div>INNER INDEX - isOpen: {{ isOpen }}</div> -->
+        <MdiMenu
             v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 text-white"
             :class="{ 'rotate-180': !isOpen }"
@@ -44,6 +76,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           />
         </div>
 
+        
         <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
           <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>
@@ -86,7 +119,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
         <LazyGeneralFullScreen v-if="!isMobileMode" class="nc-fullscreen-icon" />
       </div>
 
-      <div class="w-full min-h-[300px] flex-auto">
+      <div ref="mainArea" class="w-full min-h-[300px] flex-auto">
         <NuxtPage :page-key="`${$route.params.projectId}.${$route.name}`" />
       </div>
     </div>

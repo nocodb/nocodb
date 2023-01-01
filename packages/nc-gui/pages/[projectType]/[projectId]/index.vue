@@ -67,7 +67,6 @@ const dropdownOpen = ref(false)
 
 /** Sidebar ref */
 const sidebar = ref()
-const toggleSideBarButton = ref()
 
 const email = computed(() => user.value?.email ?? '---')
 
@@ -188,34 +187,9 @@ onBeforeMount(async () => {
   }
 })
 
-const hideSidebarOnClickOrTouchIfMobileMode = (event: Event) => {
-  // if (!event.target.matches('.show-sidebar-button')) {
-  //   this.sidebarVisible = false
-  // }
-
-  console.log('event.target', event.target)
-  console.log('toggleSideBarButton.value', toggleSideBarButton.value)
-  console.log('inside of hideSidebarOnClickOrTouchIfMobileMode')
-  console.log('isOpen.value', isOpen.value)
-  console.log('event.target !== toggleSideBarButton.value', event.target !== toggleSideBarButton.value)
-  console.log('------------')
-  // debugger
-  // if (isMobileMode.value && isOpen.value && !event.target?.matchesSelector('.show-sidebar-button')) {
-  // if (isMobileMode.value && isOpen.value && event.target !== toggleSideBarButton.value) {
-  //   toggle(false)
-  // }
-}
-
 onMounted(() => {
   toggle(true)
   toggleHasSidebar(true)
-  document.addEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
-  document.addEventListener('touchstart', hideSidebarOnClickOrTouchIfMobileMode)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
-  document.removeEventListener('touchstart', hideSidebarOnClickOrTouchIfMobileMode)
 })
 
 onBeforeUnmount(reset)
@@ -262,12 +236,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
-
-const FOO_ON_OPEN_CLICK = () => {
-  console.log('inside of FOO_ON_OPEN_CLICK')
-  toggle(!isOpen)
-}
-
 </script>
 
 <template>
@@ -604,16 +572,13 @@ const FOO_ON_OPEN_CLICK = () => {
           </a-dropdown>
 
           <div
-            class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
-            style="background-color: 'red'; color: 'green'"
-            :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
+            class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
           >
             <MdiBackburger
-              ref="toggleSideBarButton"
               v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"
-              @click.prevent.stop="FOO_ON_OPEN_CLICK"
+              @click="toggle(!isOpen)"
             />
           </div>
         </div>

@@ -47,6 +47,7 @@ export enum Language {
   pt = 'Português',
   pt_BR = 'Português (Brasil)',
   ru = 'Pусский',
+  sk = 'Slovenčina',
   sl = 'Slovenščina',
   sv = 'Svenska',
   th = 'ไทย',

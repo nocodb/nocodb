@@ -162,7 +162,6 @@ export default {
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
     <div class="!bg-gray-100 rounded flex-1">
-      FOO geodata: {{ JSON.stringify(initialGeoPositionData) }}
 
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">

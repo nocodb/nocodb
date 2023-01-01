@@ -223,8 +223,6 @@ const count = computed(() => paginationData.value.totalRows)
 
 <template>
   <div class="flex flex-col h-full w-full no-underline">
-    expandedFormDlgInitialGeoPositionData: {{ JSON.stringify(expandedFormDlgInitialGeoPositionData) }}
-
     <div id="mapContainer" ref="mapContainerRef">
       <a-tooltip placement="bottom" class="tooltip">
         <template #title>

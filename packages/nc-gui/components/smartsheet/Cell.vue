@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
+import type { InitialGeoPositionData } from './expanded-form/index.vue'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -46,7 +47,6 @@ import {
   useVModel,
 } from '#imports'
 import { NavigateDir } from '~/lib'
-import { InitialGeoPositionData } from './expanded-form/index.vue';
 
 interface Props {
   column: ColumnType
@@ -131,6 +131,16 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   if (!isForm.value) e.stopImmediatePropagation()
 }
 
+// TODO: probably wanna do this more generic / not column-type specific
+const defaultValues = computed(() =>
+  column.value.id === props.defaultGeoPosition?.geoColId
+    ? {
+        lat: props.defaultGeoPosition?.lat,
+        long: props.defaultGeoPosition?.long,
+      }
+    : null,
+)
+
 console.log('column.value in cell', column.value)
 </script>
 
@@ -146,7 +156,7 @@ console.log('column.value in cell', column.value)
   >
     <template v-if="column">
       <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
-      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" :default-geo-position="props.defaultGeoPosition" />
+      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" :default-values="defaultValues" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />

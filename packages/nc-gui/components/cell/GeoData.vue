@@ -5,6 +5,10 @@ import { useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
+  defaultValues?: {
+    lat?: number | null
+    long?: number | null
+  } | null
   // defaultGeoPosition?: InitialGeoPositionData
 }
 
@@ -26,12 +30,16 @@ let isExpanded = $ref(false)
 
 let isLoading = $ref(false)
 
-// const shouldSetDefaultGeoPosition = defaultGeoPosition.value?.geoColId === 
+// const shouldSetDefaultGeoPosition = defaultGeoPosition.value?.geoColId ===
 
-const [latitude, longitude] = (vModel.value || '').split(';')
+const [latitude, longitude] = vModel.value
+  ? (vModel.value || '').split(';')
+  : [props?.defaultValues?.lat || '', props?.defaultValues?.long || '']
 
 const latLongStr = computed(() => {
-  const [latitude, longitude] = (vModel.value || '').split(';')
+  const [latitude, longitude] = vModel.value
+    ? (vModel.value || '').split(';')
+    : [props?.defaultValues?.lat || '', props?.defaultValues?.long || '']
   return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
 })
 
@@ -99,7 +107,7 @@ const onGetCurrentLocation = () => {
             @mousedown.stop
           />
         </a-form-item>
-        defaultGeoPosition: {{ JSON.stringify(defaultGeoPosition) }}
+
         <a-form-item class="inputLng" label="Lng">
           <a-input
             v-model:value="formState.longitude"

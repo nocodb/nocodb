@@ -147,8 +147,7 @@ onMounted(async () => {
     if (geoDataFieldColumn.value?.title) {
       newRow.row[geoDataFieldColumn.value.title] = `${lat.toFixed(7)};${lng.toFixed(7)}`
     }
-    addMarker(lat, lng, newRow)
-    expandForm(newRow, undefined, [lat, lng])
+    expandForm(newRow, [lat, lng])
   })
 })
 

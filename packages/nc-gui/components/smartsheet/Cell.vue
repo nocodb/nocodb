@@ -130,6 +130,8 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
 
   if (!isForm.value) e.stopImmediatePropagation()
 }
+
+console.log('column.value in cell', column.value)
 </script>
 
 <template>

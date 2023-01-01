@@ -66,8 +66,8 @@ const dataSourcesState = ref<string>('')
 const dropdownOpen = ref(false)
 
 /** Sidebar ref */
-const sidebar = ref<HTMLElement | null>(null)
-const toggleSideBarButton = ref<HTMLElement>()
+const sidebar = ref()
+const toggleSideBarButton = ref()
 
 const email = computed(() => user.value?.email ?? '---')
 
@@ -188,45 +188,17 @@ onBeforeMount(async () => {
   }
 })
 
-const hideSidebarOnClickOrTouchIfMobileMode = (event: MouseEvent | TouchEvent) => {
+const hideSidebarOnClickOrTouchIfMobileMode = (event: Event) => {
   // if (!event.target.matches('.show-sidebar-button')) {
   //   this.sidebarVisible = false
   // }
 
-  // event.stopPropagation()
-  // event.preventDefault()
-
-  if (!isMobileMode.value) {
-    return
-  }
-
-  // alert('isMobileMode')
-
+  console.log('event.target', event.target)
+  console.log('toggleSideBarButton.value', toggleSideBarButton.value)
   console.log('inside of hideSidebarOnClickOrTouchIfMobileMode')
   console.log('isOpen.value', isOpen.value)
-  console.log('event.target')
-  console.log(event.target)
-  console.log('-------')
-  console.log('toggleSideBarButton.value')
-  console.log(toggleSideBarButton.value)
-  console.log('toggleSideBarButton.value?.contains(event.target as Node)')
-  console.log(toggleSideBarButton.value?.contains(event.target as Node))
   console.log('event.target !== toggleSideBarButton.value', event.target !== toggleSideBarButton.value)
   console.log('------------')
-
-  // console.log('sidebar.value')
-  // console.log(sidebar.value)
-  // debugger
-
-  // console.log('sidebar.value?.contains(event.target as Node)')
-  // console.log(sidebar.value?.contains(event.target as Node))
-
-  // debugger
-  if (event.target !== toggleSideBarButton.value && !toggleSideBarButton.value?.contains(event.target as Node)) {
-    // alert('now')
-    toggle(false)
-  }
-
   // debugger
   // if (isMobileMode.value && isOpen.value && !event.target?.matchesSelector('.show-sidebar-button')) {
   // if (isMobileMode.value && isOpen.value && event.target !== toggleSideBarButton.value) {
@@ -235,15 +207,15 @@ const hideSidebarOnClickOrTouchIfMobileMode = (event: MouseEvent | TouchEvent) =
 }
 
 onMounted(() => {
-  toggle(false)
+  toggle(true)
   toggleHasSidebar(true)
-  // TODO: use useEventListener instead of onMounted and onBeforeUnmount
-  // document.addEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
-  // document.addEventListener('touchstart', hideSidebarOnClickOrTouchIfMobileMode)
+  document.addEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
+  document.addEventListener('touchstart', hideSidebarOnClickOrTouchIfMobileMode)
 })
+
 onBeforeUnmount(() => {
-  // document.removeEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
-  // document.removeEventListener('touchstart', hideSidebarOnClickOrTouchIfMobileMode)
+  document.removeEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
+  document.removeEventListener('touchstart', hideSidebarOnClickOrTouchIfMobileMode)
 })
 
 onBeforeUnmount(reset)
@@ -293,8 +265,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 const FOO_ON_OPEN_CLICK = () => {
   console.log('inside of FOO_ON_OPEN_CLICK')
-  // toggle(!isOpen)
+  toggle(!isOpen)
 }
+
 </script>
 
 <template>
@@ -631,16 +604,16 @@ const FOO_ON_OPEN_CLICK = () => {
           </a-dropdown>
 
           <div
-            ref="toggleSideBarButton"
             class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
             style="background-color: 'red'; color: 'green'"
             :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
-            @click.prevent.stop="FOO_ON_OPEN_CLICK"
           >
             <MdiBackburger
+              ref="toggleSideBarButton"
               v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"
+              @click.prevent.stop="FOO_ON_OPEN_CLICK"
             />
           </div>
         </div>

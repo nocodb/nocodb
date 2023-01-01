@@ -35,6 +35,8 @@ const setLastOpenedViewId = (viewId?: string) => {
 
 const { isUIAllowed } = useUIPermission()
 
+const { isMobileMode } = useGlobal()
+
 const router = useRouter()
 
 const route = useRoute()
@@ -44,7 +46,7 @@ const { $e } = useNuxtApp()
 /** Sidebar visible */
 const { isOpen } = useSidebar('nc-right-sidebar')
 
-const sidebarCollapsed = computed(() => !isOpen.value)
+const sidebarCollapsed = computed(() => !isOpen.value || isMobileMode.value)
 
 /** Sidebar ref */
 const sidebar = ref()

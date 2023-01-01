@@ -44,9 +44,6 @@ const getMapCenterLocalStorageKey = (viewId: string) => `mapView.center.${viewId
 
 const expandForm = (row: RowType, state?: Record<string, any>, clickedLatLongForNewRow?: [number, number]) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-  console.log('state in expandForm', state)
-  console.log('row in expandForm', row)
-  console.log('clickedLatLongForNewRow', clickedLatLongForNewRow)
   if (rowId) {
     router.push({
       query: {
@@ -90,17 +87,13 @@ const addMarker = (lat: number, long: number, row: RowType) => {
     throw new Error('Map is null')
   }
   const newMarker = L.marker([lat, long]).on('click', () => {
-    console.log('OnNewMarker')
     expandForm(row)
   })
-  console.log('onaddMarker', lat, long)
   markersClusterGroupRef.value?.addLayer(newMarker)
 }
 
 const resetZoomAndCenterBasedOnLocalStorage = () => {
   if (mapMetaData?.value?.fk_view_id == null) {
-    console.error('Early leaving of resetZoomAndCenterBasedOnLocalStorage because "mapMetaData?.value?.fk_view_id == null"')
-    console.log('mapMetaData?.value', mapMetaData?.value)
     return
   }
   const initialZoomLevel = parseInt(localStorage.getItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id)) || '10')
@@ -147,22 +140,14 @@ onMounted(async () => {
     }
   })
 
-  // myMap.on('contextmenu', async function (e) {
-  // console.log('onContext')
-  // const newRow = await addEmptyRow()
-  // const lat = e.latlng.lat
-  // const lng = e.latlng.lng
-  // addMarker(lat, lng, newRow)
-  // expandForm(newRow)
-  // submitForm()
-  // })
-
   myMap.on('contextmenu', async function (e) {
-    const newRow = await addEmptyRow()
     const lat = e.latlng.lat
     const lng = e.latlng.lng
+    const newRow = await addEmptyRow()
+    if (geoDataFieldColumn.value?.title) {
+      newRow.row[geoDataFieldColumn.value.title] = `${lat.toFixed(7)};${lng.toFixed(7)}`
+    }
     addMarker(lat, lng, newRow)
-    console.log('oncontextClick', lat, lng, newRow)
     expandForm(newRow, undefined, [lat, lng])
   })
 })

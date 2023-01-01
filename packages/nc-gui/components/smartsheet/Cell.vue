@@ -104,7 +104,9 @@ const syncValue = useDebounceFn(
 )
 
 const vModel = computed({
-  get: () => props.modelValue,
+  get: () => {
+    return props.modelValue
+  },
   set: (val) => {
     if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
@@ -130,18 +132,6 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
 
   if (!isForm.value) e.stopImmediatePropagation()
 }
-
-// TODO: probably wanna do this more generic / not column-type specific
-const defaultValues = computed(() =>
-  column.value.id === props.defaultGeoPosition?.geoColId
-    ? {
-        lat: props.defaultGeoPosition?.lat,
-        long: props.defaultGeoPosition?.long,
-      }
-    : null,
-)
-
-console.log('column.value in cell', column.value)
 </script>
 
 <template>
@@ -156,7 +146,7 @@ console.log('column.value in cell', column.value)
   >
     <template v-if="column">
       <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
-      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" :default-values="defaultValues" />
+      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />

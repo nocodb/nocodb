@@ -1,15 +1,9 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
 import { useVModel } from '#imports'
-// import { InitialGeoPositionData } from '../smartsheet/expanded-form/index.vue';
 
 interface Props {
   modelValue?: string | null
-  defaultValues?: {
-    lat?: number | null
-    long?: number | null
-  } | null
-  // defaultGeoPosition?: InitialGeoPositionData
 }
 
 interface Emits {
@@ -22,24 +16,14 @@ const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-// const defaultGeoPosition = useVModel(props, 'defaultGeoPosition')
-
-// let error = $ref<string | undefined>()
-
 let isExpanded = $ref(false)
 
 let isLoading = $ref(false)
 
-// const shouldSetDefaultGeoPosition = defaultGeoPosition.value?.geoColId ===
-
-const [latitude, longitude] = vModel.value
-  ? (vModel.value || '').split(';')
-  : [props?.defaultValues?.lat || '', props?.defaultValues?.long || '']
+const [latitude, longitude] = (vModel.value || '').split(';')
 
 const latLongStr = computed(() => {
-  const [latitude, longitude] = vModel.value
-    ? (vModel.value || '').split(';')
-    : [props?.defaultValues?.lat || '', props?.defaultValues?.long || '']
+  const [latitude, longitude] = (vModel.value || '').split(';')
   return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
 })
 
@@ -54,7 +38,6 @@ const handleFinish = () => {
 }
 
 const clear = () => {
-  // error = undefined
 
   isExpanded = false
 

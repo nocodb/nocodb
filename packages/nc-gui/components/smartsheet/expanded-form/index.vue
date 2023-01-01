@@ -6,6 +6,7 @@ import {
   FieldsInj,
   IsFormInj,
   IsKanbanInj,
+  IsMapInj,
   MetaInj,
   ReloadRowDataHookInj,
   computedInject,
@@ -51,6 +52,9 @@ const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
 
+const newRow = row.value.row.geoColId
+
+// const initialGeoPositionData = toRef(props, 'initialGeoPositionData')
 const initialGeoPositionData = ref(props.initialGeoPositionData)
 
 const router = useRouter()
@@ -63,6 +67,8 @@ const fields = computedInject(FieldsInj, (_fields) => {
 })
 
 const isKanban = inject(IsKanbanInj, ref(false))
+
+const isMap = inject(IsMapInj, ref(false))
 
 provide(MetaInj, meta)
 

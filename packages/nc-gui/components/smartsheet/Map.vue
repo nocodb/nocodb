@@ -44,6 +44,9 @@ const getMapCenterLocalStorageKey = (viewId: string) => `mapView.center.${viewId
 
 const expandForm = (row: RowType, state?: Record<string, any>, clickedLatLongForNewRow?: [number, number]) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
+  console.log('state in expandForm', state)
+  console.log('row in expandForm', row)
+  console.log('clickedLatLongForNewRow', clickedLatLongForNewRow)
   if (rowId) {
     router.push({
       query: {
@@ -90,6 +93,7 @@ const addMarker = (lat: number, long: number, row: RowType) => {
     console.log('OnNewMarker')
     expandForm(row)
   })
+  console.log('onaddMarker', lat, long)
   markersClusterGroupRef.value?.addLayer(newMarker)
 }
 
@@ -143,11 +147,22 @@ onMounted(async () => {
     }
   })
 
+  // myMap.on('contextmenu', async function (e) {
+  // console.log('onContext')
+  // const newRow = await addEmptyRow()
+  // const lat = e.latlng.lat
+  // const lng = e.latlng.lng
+  // addMarker(lat, lng, newRow)
+  // expandForm(newRow)
+  // submitForm()
+  // })
+
   myMap.on('contextmenu', async function (e) {
     const newRow = await addEmptyRow()
     const lat = e.latlng.lat
     const lng = e.latlng.lng
     addMarker(lat, lng, newRow)
+    console.log('oncontextClick', lat, lng, newRow)
     expandForm(newRow, undefined, [lat, lng])
   })
 })

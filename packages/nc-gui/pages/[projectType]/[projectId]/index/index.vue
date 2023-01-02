@@ -58,15 +58,11 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
                   <component :is="icon(tab)" v-else class="text-sm" />
                 </div>
 
-                <a-tooltip v-if="tab.title?.length > 12" placement="bottom">
-                  <div class="truncate" :data-testid="`nc-root-tabs-${tab.title}`">{{ tab.title }}</div>
-
-                  <template #title>
-                    <div>{{ tab.title }}</div>
-                  </template>
-                </a-tooltip>
-
-                <div v-else :data-testid="`nc-root-tabs-${tab.title}`">{{ tab.title }}</div>
+                <div :data-testid="`nc-root-tabs-${tab.title}`">
+                  <GeneralTruncateText :key="tab.title" :length="12">
+                    {{ tab.title }}
+                  </GeneralTruncateText>
+                </div>
               </div>
             </template>
           </a-tab-pane>

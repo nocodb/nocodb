@@ -34,9 +34,9 @@ Below is an overview of how to make these builds and what happens behind the sce
 
 The naming convention would be following given the actual release tag is `0.100.0`
 
-- `0.100.0-beta.1` (first version of pre-release)
-- `0.100.0-beta.2` (include bug fix changes on top of the previous version)
-- `0.100.0-beta.3`(include bug fix changes on top of the previous version)
+- `0.100.0-beta.0` (first version of pre-release)
+- `0.100.0-beta.1` (include bug fix changes on top of the previous version)
+- `0.100.0-beta.2`(include bug fix changes on top of the previous version)
 -  and so on ...
 - `0.100.0` (actual release)
 - `0.100.1` (minor bug fix release)

@@ -17,7 +17,6 @@ import {
   useApi,
   useBreakpoints,
   useCopy,
-  useGlobal,
   useNuxtApp,
   useUIPermission,
 } from '#imports'
@@ -37,8 +36,6 @@ const { md } = useBreakpoints(breakpointsTailwind)
 const filterQuery = ref('')
 
 const projects = ref<ProjectType[]>()
-
-const { appInfo } = useGlobal()
 
 const loadProjects = async () => {
   const response = await api.project.list({})

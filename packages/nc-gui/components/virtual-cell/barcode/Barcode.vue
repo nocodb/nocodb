@@ -46,7 +46,6 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     v-if="showBarcode"
     :barcode-value="barcodeValue"
     :barcode-format="barcodeMeta.barcodeFormat"
-    class="nc-barcode-svg"
     @on-click-barcode="showBarcodeModal"
   >
     <template #barcodeRenderError>

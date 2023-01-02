@@ -465,7 +465,7 @@ export async function projectInfoGet(_req, res) {
 export async function projectCost(req, res) {
   let cost = 0;
   const project = await Project.getWithInfo(req.params.projectId);
-  
+
   for (const base of project.bases) {
     const sqlClient = NcConnectionMgrv2.getSqlClient(base);
     const userCount = await ProjectUser.getUsersCount(req.query);

@@ -1,31 +1,33 @@
 <script setup lang="ts">
-// import { Dropdown, Tooltip } from 'ant-design-vue'
+import { Dropdown, Tooltip } from 'ant-design-vue'
+import { Icon } from '@iconify/vue'
 import type { TableType } from 'nocodb-sdk'
+import type { ComputedRef, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
 // import { useUIPermission } from '#imports'
 
 const props = defineProps<{
   modelValue: TableType
-  //   setMenuContext:
-  // icon
-  // setIcon
-  // activeTable
-  // openRenameTableDialog
-  // deleteTable
+  setMenuContext: (type: 'table' | 'main', value?: any) => void
+  icon: (table: TableType) => FunctionalComponent<SVGAttributes, {}> | undefined
+  setIcon: (icon: string, table: TableType) => Promise<void>
+  activeTable: ComputedRef<string | null | undefined>
+  openRenameTableDialog: (table: TableType, baseId?: string | undefined, rightClick?: boolean) => void
 }>()
+
+const { deleteTable } = useTable()
 
 // const emits = defineEmits(['update:modelValue'])
 
-const table = useVModel(props, 'modelValue') //, emits)
+const table = useVModel(props, 'modelValue') // , emits)
 
 // const { bases, isSharedBase } = useProject()
-// const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useUIPermission()
 </script>
 
 <template>
   <GeneralTooltip class="pl-2 pr-3 py-2" modifier-key="Alt">
     <template #title>{{ table.table_name }}</template>
-    {{  table.table_name }}
-    <!-- <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+    <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
       <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
         <component
           :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
@@ -93,6 +95,6 @@ const table = useVModel(props, 'modelValue') //, emits)
           </a-menu>
         </template>
       </a-dropdown>
-    </div> -->
+    </div>
   </GeneralTooltip>
 </template>

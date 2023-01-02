@@ -593,7 +593,7 @@ const setIcon = async (icon: string, table: TableType) => {
                     :data-testid="`tree-view-table-${table.title}`"
                     @click="addTableTab(table)"
                   >
-                    <LazyDashboardTreeViewTableEntry v-model="tables[idx]" />
+                    <LazyDashboardTreeViewTableEntry v-model="tables[idx]" :set-menu-context="setMenuContext" :icon="icon" :set-icon="setIcon" :active-table="activeTable" :open-rename-table-dialog="openRenameTableDialog" />
                   </div>
                 </div>
               </div>

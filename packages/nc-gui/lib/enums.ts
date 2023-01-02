@@ -26,10 +26,12 @@ export enum ClientType {
 export enum Language {
   ar = 'العربية',
   bn_IN = 'বাংলা',
+  cs = 'Czech',
   da = 'Dansk',
   de = 'Deutsch',
   en = 'English',
   es = 'Español',
+  eu = 'Basque',
   fa = 'فارسی',
   fi = 'Suomalainen',
   fr = 'Français',

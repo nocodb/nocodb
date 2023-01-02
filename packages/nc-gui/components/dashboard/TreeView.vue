@@ -584,10 +584,6 @@ const setIcon = async (icon: string, table: TableType) => {
                     :key="table.id"
                     v-model="tables[idx]"
                     v-e="['a:table:open']"
-                    <!-- :class="[
-                      { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
-                      `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-                    ]" -->
                     :data-order="table.order"
                     :data-id="table.id"
                     :data-testid="`tree-view-table-${table.title}`"

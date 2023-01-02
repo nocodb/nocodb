@@ -579,22 +579,20 @@ const setIcon = async (icon: string, table: TableType) => {
                   :key="`sortable-${bases[0].id}-${bases[0].id && bases[0].id in keys ? keys[bases[0].id] : '0'}`"
                   :nc-base="bases[0].id"
                 >
-                  <div
+                  <LazyDashboardTreeViewTableEntry
                     v-for="(table, idx) of tables.filter((table) => table.base_id === bases[0].id)"
-                    :key="table.id"
-                    v-e="['a:table:open']"
+                    :key="idx"
+                    v-model="tables[idx]"
                     :class="[
                       { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
                       `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
                     ]"
-                    class="nc-tree-item text-sm cursor-pointer group"
-                    :data-order="table.order"
-                    :data-id="table.id"
-                    :data-testid="`tree-view-table-${table.title}`"
-                    @click="addTableTab(table)"
-                  >
-                    <LazyDashboardTreeViewTableEntry v-model="tables[idx]" :set-menu-context="setMenuContext" :icon="icon" :set-icon="setIcon" :active-table="activeTable" :open-rename-table-dialog="openRenameTableDialog" />
-                  </div>
+                    :set-menu-context="setMenuContext"
+                    :icon="icon"
+                    :set-icon="setIcon"
+                    :active-table="activeTable"
+                    :open-rename-table-dialog="openRenameTableDialog"
+                  />
                 </div>
               </div>
             </div>

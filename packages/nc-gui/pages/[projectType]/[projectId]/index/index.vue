@@ -47,7 +47,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
         <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
           <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>
-              <div class="flex items-center gap-2 max-w-[110px]" data-testid="nc-tab-title">
+              <div class="flex items-center gap-2" data-testid="nc-tab-title">
                 <div class="flex items-center">
                   <Icon
                     v-if="tab.meta?.icon"
@@ -146,6 +146,6 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 }
 
 :deep(.ant-tabs-tab-remove) {
-  @apply mt-[3px];
+  @apply flex mt-[2px];
 }
 </style>

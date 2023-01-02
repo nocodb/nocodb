@@ -581,17 +581,22 @@ const setIcon = async (icon: string, table: TableType) => {
                 >
                   <LazyDashboardTreeViewTableEntry
                     v-for="(table, idx) of tables.filter((table) => table.base_id === bases[0].id)"
-                    :key="idx"
+                    :key="table.id"
                     v-model="tables[idx]"
-                    :class="[
+                    v-e="['a:table:open']"
+                    <!-- :class="[
                       { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
                       `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-                    ]"
+                    ]" -->
+                    :data-order="table.order"
+                    :data-id="table.id"
+                    :data-testid="`tree-view-table-${table.title}`"
                     :set-menu-context="setMenuContext"
                     :icon="icon"
                     :set-icon="setIcon"
                     :active-table="activeTable"
                     :open-rename-table-dialog="openRenameTableDialog"
+                    :addTableTab="addTableTab"
                   />
                 </div>
               </div>

@@ -12,6 +12,7 @@ const props = defineProps<{
   setIcon: (icon: string, table: TableType) => Promise<void>
   activeTable: ComputedRef<string | null | undefined>
   openRenameTableDialog: (table: TableType, baseId?: string | undefined, rightClick?: boolean) => void
+  addTableTab: (table: TableType) => void
 }>()
 
 const table = useVModel(props, 'modelValue') // , emits)
@@ -35,19 +36,18 @@ const { isUIAllowed } = useUIPermission()
   <div
     :key="table.id"
     v-e="['a:table:open']"
-    :class="[
-      { hidden: !filteredTables?.includes(table), active: activeTable === table.id },
-      `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-    ]"
-    class="nc-tree-item text-sm cursor-pointer group"
+    class="nc-tree-item text-sm group"
     :data-order="table.order"
     :data-id="table.id"
     :data-testid="`tree-view-table-${table.title}`"
-    @click="addTableTab(table)"
   >
     <GeneralTooltip class="pl-2 pr-3 py-2" modifier-key="Alt">
       <template #title>{{ table.table_name }}</template>
-      <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+      <div
+        class="flex items-center gap-2 h-full cursor-pointer"
+        @contextmenu="setMenuContext('table', table)"
+        @click="addTableTab(table)"
+      >
         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
           <component
             :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"

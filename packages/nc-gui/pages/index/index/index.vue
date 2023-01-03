@@ -120,22 +120,21 @@ const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean }
   }
 }
 
-const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
+const handleWorkspaceColor = async (workspace: WorkspaceType, color: string) => {
   const tcolor = tinycolor(color)
 
   if (tcolor.isValid()) {
     const meta = workspace?.meta && typeof workspace.meta === 'string' ? JSON.parse(workspace.meta) : workspace.meta || {}
 
-    await updateWorkspace(workspace.id!, {
-      meta: {
-        ...(meta || {}),
-        color,
-      },
-    })
-
     // Update local workspace meta
-    workspace.meta = meta
-    workspaces.value = [...workspaces.value]
+    workspace.meta = {
+      ...(meta || {}),
+      color,
+    }
+
+    await updateWorkspace(workspace.id!, {
+      meta: workspace.meta,
+    })
   }
 }
 </script>
@@ -220,7 +219,7 @@ const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"
-                          @input="handleProjectColor(workspace, $event)"
+                          @input="handleWorkspaceColor(workspace, $event)"
                         />
                         <a-sub-menu key="pick-primary">
                           <template #title>
@@ -232,7 +231,7 @@ const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
 
                           <template #expandIcon></template>
 
-                          <LazyGeneralChromeWrapper @input="handleProjectColor(workspace, $event)" />
+                          <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace, $event)" />
                         </a-sub-menu>
                       </a-menu>
                     </template>

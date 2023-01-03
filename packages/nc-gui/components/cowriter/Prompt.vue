@@ -58,7 +58,7 @@ const suggestionsList = computed(() => {
 })
 
 // set default suggestion list
-const suggestion: Ref<Record<string, any>[]> = ref(suggestionsList.value)
+const suggestion = computed(() => suggestionsList.value)
 
 const acTree = computed(() => {
   const ref = new NcAutocompleteTree()

@@ -11,7 +11,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
 import CodeBlock from '@tiptap/extension-code-block'
 import Commands from './commands'
-import suggestion from './suggestion'
+import suggestion from './commands/suggestion'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
@@ -175,7 +175,7 @@ watch(titleInputRef, (el) => {
 
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.content],
-  ([newId, newContent], [oldId, oldContent]) => {
+  ([newId], [oldId]) => {
     if (!isPublic.value && openedPage.value?.id && newId === oldId) {
       updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content } as any })
     }
@@ -246,41 +246,10 @@ watchDebounced(
         auto-size
       />
 
-      <BubbleMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100 }">
-        <div class="flex flex-row gap-x-1 mb-1">
-          <button
-            :class="{ 'is-active': editor.isActive('bold') }"
-            class="px-1 border-black border bg-white"
-            @click="editor!.chain().focus().toggleBold().run()"
-          >
-            bold
-          </button>
-          <button
-            :class="{ 'is-active': editor.isActive('italic') }"
-            class="px-1 border-black border bg-white"
-            @click="editor!.chain().focus().toggleItalic().run()"
-          >
-            italic
-          </button>
-          <button
-            :class="{ 'is-active': editor.isActive('strike') }"
-            class="px-1 border-black border bg-white"
-            @click="editor!.chain().focus().toggleStrike().run()"
-          >
-            strike
-          </button>
-          <button
-            :class="{ 'is-active': editor.isActive('strike') }"
-            class="px-1 border-black border bg-white"
-            @click="editor!.chain().focus().toggleBulletList().run()"
-          >
-            bullet
-          </button>
-        </div>
-      </BubbleMenu>
+      <DocsSelectedBubbleMenu v-if="editor" :editor="editor" />
       <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
         <MdiPlus
-          class="hover:cursor-pointer hover:bg-gray-100 rounded-md mt-1.5"
+          class="hover:cursor-pointer hover:bg-gray-50 rounded-md"
           @click="editor!.chain().focus().insertContent('/').run()"
         />
       </FloatingMenu>

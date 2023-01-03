@@ -2,7 +2,7 @@ import type { Editor, Range } from '@tiptap/vue-3'
 import { VueRenderer } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 
-import CommandsList from './CommandsList.vue'
+import CommandsList from '../CommandsList.vue'
 
 export default {
   items: ({ query }: { query: any }) => {
@@ -28,29 +28,28 @@ export default {
       {
         title: 'Horizontal Rule',
         command: ({ editor, range }: { editor: Editor; range: Range }) => {
-          editor.chain().focus().deleteRange(range).setNode('horizontalRule').focus().setHorizontalRule().run()
+          ;(editor.chain().focus().deleteRange(range).setNode('horizontalRule').focus() as any).setHorizontalRule().run()
         },
       },
       {
         title: 'Bullet List',
         command: ({ editor, range }: { editor: Editor; range: Range }) => {
-          console.log('list', editor, range)
           editor.chain().focus().deleteRange(range).setNode('bulletList').run()
-          editor.chain().focus().toggleBulletList().run()
+          ;(editor.chain().focus() as any).toggleBulletList().run()
         },
       },
       {
         title: 'Numbered List',
         command: ({ editor, range }: { editor: Editor; range: Range }) => {
           editor.chain().focus().deleteRange(range).setNode('orderedList').run()
-          editor.chain().focus().toggleOrderedList().run()
+          ;(editor.chain().focus() as any).toggleOrderedList().run()
         },
       },
       {
         title: 'Task list',
         command: ({ editor, range }: { editor: Editor; range: Range }) => {
           editor.chain().focus().deleteRange(range).setNode('taskList').run()
-          editor.chain().focus().toggleTaskList().run()
+          ;(editor.chain().focus() as any).toggleTaskList().run()
         },
       },
     ]

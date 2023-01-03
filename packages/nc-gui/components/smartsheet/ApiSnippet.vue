@@ -7,7 +7,6 @@ import {
   message,
   ref,
   useCopy,
-  useCowriterStoreOrThrow,
   useGlobal,
   useI18n,
   useProject,
@@ -19,7 +18,6 @@ import {
 
 const props = defineProps<{
   modelValue: boolean
-  type?: 'cowriter' | null
 }>()
 
 const emits = defineEmits(['update:modelValue'])
@@ -81,16 +79,10 @@ let selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clien
 
 const selectedLangName = $ref(langs[0].name)
 
-const apiUrl = $computed(() => {
-  if (props.type === 'cowriter') {
-    return new URL(`/api/v1/cowriter/meta/tables/${meta?.id}`, (appInfo && appInfo.ncSiteUrl) || '/').href
-  } else {
-    return new URL(
-      `/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`,
-      (appInfo && appInfo.ncSiteUrl) || '/',
-    ).href
-  }
-})
+const apiUrl = $computed(
+  () =>
+    new URL(`/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
+)
 
 const snippet = $computed(
   () =>
@@ -111,7 +103,8 @@ const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLa
 
 const code = $computed(() => {
   if (activeLang?.name === 'nocodb-sdk') {
-    let content = `const api = new Api({
+    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
+const api = new Api({
   baseURL: "${(appInfo && appInfo.ncSiteUrl) || '/'}",
   headers: {
     "xc-auth": ${JSON.stringify(token as string)}
@@ -126,24 +119,7 @@ api.dbViewRow.list(
   console.log(data);
 }).catch(function (error) {
   console.error(error);
-});`
-    if (props.type === 'cowriter') {
-      const { cowriterTable } = useCowriterStoreOrThrow()
-      content = `const api = new Api({
-  baseURL: "${(appInfo && appInfo.ncSiteUrl) || '/'}",
-  headers: {
-    "xc-auth": ${JSON.stringify(token as string)}
-  }
-})
-
-api.cowriterTable.list('${cowriterTable.value!.id!}').then(function (data) {
-  console.log(data);
-}).catch(function (error) {
-  console.error(error);
-});`
-    }
-    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
-${content}
+});
     `
   }
 
@@ -175,12 +151,8 @@ watch($$(activeLang), (newLang) => {
     @after-visible-change="afterVisibleChange"
   >
     <div class="flex flex-col w-full h-full p-4">
-      <!-- Code Snippet -->
+      <!--      Code Snippet -->
       <a-typography-title :level="4" class="pb-1">{{ $t('title.codeSnippet') }}</a-typography-title>
-
-      <a-typography-paragraph v-if="props.type === 'cowriter'">
-        You can use following code to start integrating your current prompt and settings into your application.
-      </a-typography-paragraph>
 
       <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
         <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">

@@ -239,7 +239,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="bg-[#FAFAFA] h-full px-[30px] py-[15px]">
+  <div class="bg-[#FAFAFA] px-[30px] py-[15px] max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-scroll">
     <div class="flex items-center flex-wrap justify-end gap-2">
       <a-dropdown v-model:visble="showAddFieldDropdown">
         <template #overlay>

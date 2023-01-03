@@ -33,5 +33,5 @@ provide(MetaInj, cowriterTable)
       </div>
     </div>
   </div>
-  <LazySmartsheetApiSnippet v-model="showApiSnippetDrawer" type="cowriter" />
+  <LazyCowriterApiSnippet v-model="showApiSnippetDrawer" />
 </template>

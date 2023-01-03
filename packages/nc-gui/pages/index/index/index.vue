@@ -5,6 +5,7 @@ import type { WorkspaceType } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import Sortable from 'sortablejs'
 import {
   NcProjectType,
   computed,
@@ -39,6 +40,8 @@ const {
   updateWorkspace,
 } = useProvideWorkspaceStore()
 
+const { $e } = useNuxtApp()
+
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
     return [workspaces?.value?.indexOf(activeWorkspace.value!)]
@@ -56,8 +59,6 @@ const selectedWorkspaceIndex = computed<number[]>({
 const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar-workspace', { hasSidebar: true, isOpen: true })
 
 const isCreateDlgOpen = ref(false)
-
-const menu = ref<typeof Menu>()
 
 useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,
@@ -143,6 +144,63 @@ const handleWorkspaceColor = async (workspaceId: string, color: string) => {
 }
 
 const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
+
+// const sortables: Record<string, Sortable> = {}
+
+function getIdFromEl(previousEl: HTMLElement) {
+  return previousEl.querySelector('[data-id]')?.dataset?.id
+}
+
+// todo: replace with vuedraggable
+const initSortable = (el: Element) => {
+  Sortable.create(el as HTMLLIElement, {
+    onEnd: async (evt) => {
+      if (workspaces.value?.length < 2) return
+
+      const { newIndex = 0, oldIndex = 0 } = evt
+
+      if (newIndex === oldIndex) return
+
+      const children = evt.to.children as unknown as HTMLLIElement[]
+
+      const previousEl = children[newIndex - 1]
+      const nextEl = children[newIndex + 1]
+
+      const currentItem = workspaces.value.find((v) => v.id === getIdFromEl(evt.item))
+
+      if (!currentItem || !currentItem.id) return
+
+      const previousItem = (previousEl ? workspaces.value.find((v) => v.id === getIdFromEl(previousEl)) : {}) as WorkspaceType
+      const nextItem = (nextEl ? workspaces.value.find((v) => v.id === getIdFromEl(nextEl)) : {}) as WorkspaceType
+
+      let nextOrder: number
+
+      // set new order value based on the new order of the items
+      if (workspaces.value.length - 1 === newIndex) {
+        nextOrder = parseFloat(String(previousItem.order)) + 1
+      } else if (newIndex === 0) {
+        nextOrder = parseFloat(String(nextItem.order)) / 2
+      } else {
+        nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
+      }
+
+      const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+      currentItem.order = _nextOrder
+
+      await updateWorkspace(currentItem.id, { order: _nextOrder })
+
+      $e('a:workspace:reorder')
+    },
+    animation: 150,
+  })
+}
+
+const menu = (el?: typeof Menu) => {
+  if (el) {
+    initSortable(el.$el)
+  }
+}
 </script>
 
 <template>
@@ -205,13 +263,13 @@ const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color ||
 
             <a-menu
               v-else
-              ref="menu"
+              :ref="menu"
               v-model:selected-keys="selectedWorkspaceIndex"
               class="nc-workspace-list"
               trigger-sub-menu-action="click"
             >
               <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
-                <div class="nc-workspace-list-item">
+                <div class="nc-workspace-list-item" :data-id="workspace.id">
                   <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
                     <div
                       :key="workspace.meta?.color"

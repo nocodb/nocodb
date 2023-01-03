@@ -8,6 +8,7 @@ export class WorkspaceUser {
   roles?: string;
   invite_token?: string;
   invite_accepted?: boolean;
+  order?: number;
 
   constructor(data: WorkspaceUser) {
     Object.assign(this, data);
@@ -19,6 +20,9 @@ export class WorkspaceUser {
     >,
     ncMeta = Noco.ncMeta
   ) {
+    const order = await ncMeta.metaGetNextOrder(MetaTable.WORKSPACE_USER, {
+      fk_user_id: projectUser.fk_user_id,
+    });
     const { fk_workspace_id, fk_user_id } = await ncMeta.metaInsert2(
       null,
       null,
@@ -29,6 +33,7 @@ export class WorkspaceUser {
         roles: projectUser.roles,
         created_at: projectUser.created_at,
         updated_at: projectUser.updated_at,
+        order: projectUser.order ?? order,
       },
       true
     );
@@ -87,7 +92,7 @@ export class WorkspaceUser {
         `${MetaTable.WORKSPACE}.fk_user_id`,
         `${MetaTable.WORKSPACE}.deleted`,
         `${MetaTable.WORKSPACE}.deleted_at`,
-        `${MetaTable.WORKSPACE}.order`,
+        `${MetaTable.WORKSPACE_USER}.order`,
         `${MetaTable.WORKSPACE_USER}.invite_token`,
         `${MetaTable.WORKSPACE_USER}.invite_accepted`,
         `${MetaTable.WORKSPACE_USER}.roles as roles`
@@ -139,6 +144,8 @@ export class WorkspaceUser {
           })
       );
     });
+
+    queryBuilder.orderBy(`${MetaTable.WORKSPACE_USER}.order`, 'asc');
 
     const workspaceList = await queryBuilder;
 

@@ -82,7 +82,7 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-const addMarker = (lat: number, long: number, row: RowType, popupContent: string) => {
+const addMarker = (lat: number, long: number, row: RowType) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Map is null')
   }
@@ -90,10 +90,6 @@ const addMarker = (lat: number, long: number, row: RowType, popupContent: string
     expandForm(row)
   })
   markersClusterGroupRef.value?.addLayer(newMarker)
-
-  if (newMarker) {
-    newMarker.bindTooltip(popupContent)
-  }
 }
 
 const resetZoomAndCenterBasedOnLocalStorage = () => {
@@ -182,23 +178,13 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
     }
 
     const primaryGeoDataValue = row.row[primaryGeoDataColumnTitle]
-
     if (primaryGeoDataValue == null) {
       return
     }
 
-    const listItems = Object.entries(row.row)
-      .map(([key, val]) => {
-        const prettyVal = val !== null && (typeof val === 'object' || Array.isArray(val)) ? JSON.stringify(val) : val
-        return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
-      })
-      .join('')
-
-    const popupContent = `<ul>${listItems}</ul>`
-
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
 
-    addMarker(lat, long, row, popupContent)
+    addMarker(lat, long, row)
   })
   syncCount()
 })

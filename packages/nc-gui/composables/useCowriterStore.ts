@@ -27,7 +27,9 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const promptStatementTemplate = ref('')
 
-  const generateButtonLoading = ref(false)
+  const generateCowriterLoading = ref(false)
+
+  const generateColumnBtnLoading = ref(false)
 
   const { $api } = useNuxtApp()
 
@@ -76,12 +78,12 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   }
 
   async function generateCowriter() {
-    generateButtonLoading.value = true
+    generateCowriterLoading.value = true
     try {
       await cowriterFormRef.value?.validateFields()
     } catch (e: any) {
       e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
-      generateButtonLoading.value = false
+      generateCowriterLoading.value = false
       if (e.errorFields.length) return
     }
     if (!promptStatementTemplate.value) {
@@ -91,7 +93,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     const cowriter = await $api.cowriterTable.create(cowriterTable.value!.id!, cowriterFormState)
     ;(cowriterOutputList.value as CowriterType[]).unshift(cowriter)
     ;(cowriterHistoryList.value as CowriterType[]).unshift(cowriter)
-    generateButtonLoading.value = false
+    generateCowriterLoading.value = false
   }
 
   async function loadCowriterList() {
@@ -112,9 +114,9 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     })
   }
 
-  async function generateAIColumns() {
-    if (!cowriterTable.value || !cowriterProject.value) return
-    await $api.cowriterTable.generateColumns(cowriterTable.value!.id!, { title: cowriterProject.value.title })
+  async function generateAIColumns(title: string) {
+    if (!cowriterTable.value || !cowriterProject.value || !title) return
+    await $api.cowriterTable.generateColumns(cowriterTable.value!.id!, { title })
     await loadCowriterTable()
   }
 
@@ -148,7 +150,8 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     savePromptStatementTemplate,
     clearCowriterOutput,
     generateAIColumns,
-    generateButtonLoading,
+    generateCowriterLoading,
+    generateColumnBtnLoading,
     cowriterHistoryList,
     cowriterOutputList,
     cowriterInputActiveKey,

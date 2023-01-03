@@ -3,7 +3,7 @@ import type { Menu } from 'ant-design-vue'
 import { Empty, Modal } from 'ant-design-vue'
 import type { WorkspaceType } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
-import { ProjectType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import {
   NcProjectType,
@@ -137,6 +137,8 @@ const handleWorkspaceColor = async (workspace: WorkspaceType, color: string) => 
     })
   }
 }
+
+const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
 </script>
 
 <template>
@@ -204,18 +206,15 @@ const handleWorkspaceColor = async (workspace: WorkspaceType, color: string) => 
                     <div
                       :key="workspace.meta?.color"
                       class="nc-workspace-avatar"
-                      :style="{ backgroundColor: workspace.meta?.color || stringToColour(workspace.id) }"
+                      :style="{ backgroundColor: getWorkspaceColor(workspace) }"
                     >
-                      <span
-                        class="color-band"
-                        :style="{ backgroundColor: workspace.meta?.color || stringToColour(workspace.id) }"
-                      />
+                      <span class="color-band" :style="{ backgroundColor: getWorkspaceColor(workspace) }" />
                       {{ workspace.title?.slice(0, 2) }}
                     </div>
                     <template #overlay>
                       <a-menu>
                         <LazyGeneralColorPicker
-                          :model-value="workspace.meta?.color || stringToColour(workspace.id)"
+                          :model-value="getWorkspaceColor(workspace)"
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"
@@ -301,7 +300,7 @@ const handleWorkspaceColor = async (workspace: WorkspaceType, color: string) => 
         <div v-if="activeWorkspace">
           <div class="px-6 flex items-center">
             <div class="flex gap-2 items-center mb-4">
-              <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: stringToColour(activeWorkspace?.title) }">
+              <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
                 {{ activeWorkspace?.title?.slice(0, 2) }}
               </span>
               <h1 class="text-xl mb-0">{{ activeWorkspace?.title }}</h1>

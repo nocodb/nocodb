@@ -196,12 +196,6 @@ watch(view, async (nextView) => {
   }
 })
 
-const expandedFormDlgInitialGeoPositionData = computed(() => ({
-  lat: expandedFormClickedLatLongForNewRow.value?.[0],
-  long: expandedFormClickedLatLongForNewRow.value?.[1],
-  geoColId: geoDataFieldColumn.value?.id,
-}))
-
 const count = computed(() => paginationData.value.totalRows)
 </script>
 
@@ -231,7 +225,6 @@ const count = computed(() => paginationData.value.totalRows)
       :state="expandedFormRowState"
       :meta="meta"
       :view="view"
-      :initial-geo-position-data="expandedFormDlgInitialGeoPositionData"
     />
   </Suspense>
 

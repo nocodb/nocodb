@@ -23,11 +23,9 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 
-export interface InitialGeoPositionData {
-  lat?: number
-  long?: number
-  geoColId?: string
-}
+const props = defineProps<Props>()
+
+const emits = defineEmits(['update:modelValue', 'cancel'])
 
 interface Props {
   modelValue?: boolean
@@ -38,21 +36,13 @@ interface Props {
   useMetaFields?: boolean
   rowId?: string
   view?: ViewType
-  initialGeoPositionData?: InitialGeoPositionData
 }
-
-const props = defineProps<Props>()
-
-const emits = defineEmits(['update:modelValue', 'cancel'])
 
 const row = ref(props.row)
 
 const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
-
-// const initialGeoPositionData = toRef(props, 'initialGeoPositionData')
-const initialGeoPositionData = ref(props.initialGeoPositionData)
 
 const router = useRouter()
 
@@ -157,7 +147,6 @@ export default {
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
     <div class="!bg-gray-100 rounded flex-1">
-
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">
@@ -185,7 +174,6 @@ export default {
                   :column="col"
                   :edit-enabled="true"
                   :active="true"
-                  :default-geo-position="initialGeoPositionData"
                   @update:model-value="changedColumns.add(col.title)"
                 />
               </div>

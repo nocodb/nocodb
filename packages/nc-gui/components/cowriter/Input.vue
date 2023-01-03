@@ -17,7 +17,7 @@ async function generate() {
     </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-8">
-        <a-button class="!rounded-md" type="primary" @click="generate" :loading="generateButtonLoading">
+        <a-button class="!rounded-md" type="primary" :loading="generateButtonLoading" @click="generate">
           {{ $t('general.generate') }}
         </a-button>
       </div>

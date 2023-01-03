@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import type { ColumnType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
+import type { TableInfoType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import {

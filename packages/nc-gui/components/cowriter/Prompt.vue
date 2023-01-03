@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, getSystemColumns, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import { getWordUntilCaret, useCowriterStoreOrThrow, useDebounceFn } from '#imports'
@@ -22,7 +22,7 @@ const syncValue = useDebounceFn(async () => await savePromptStatementTemplate(),
 const suggestionListVisible = ref(false)
 
 // TODO: move to composable
-const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
+const hiddenColTypes: string[] = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
 
 const vModel = computed({
   get: () => promptStatementTemplate.value,
@@ -37,7 +37,7 @@ const vModel = computed({
 const supportedColumns = computed(
   () =>
     ((cowriterTable.value as TableType).columns || [])
-      .filter((c) => !hiddenColTypes.includes(c.uidt) && !isSystemColumn(c))
+      .filter((c: ColumnType) => !hiddenColTypes.includes(c.uidt) && !isSystemColumn(c))
       .sort((a, b) => a.order! - b.order!) || [],
 )
 
@@ -69,12 +69,11 @@ const acTree = computed(() => {
 })
 
 function getCurlyBracket(isDouble = true) {
-  const arr = (isDouble ? promptRef.value.$el.value.match(/\{{|}}/g) : promptRef.value.$el.value.match(/\{|}/g)) || []
-  const cntCurlyBrackets = arr.reduce((acc: Record<number, number>, cur: number) => {
+  const arr = (isDouble ? promptRef.value.$el.value.match(/{{|}}/g) : promptRef.value.$el.value.match(/{|}/g)) || []
+  return arr.reduce((acc: Record<number, number>, cur: number) => {
     acc[cur] = (acc[cur] || 0) + 1
     return acc
   }, {})
-  return cntCurlyBrackets
 }
 
 function isCurlyDoubleBracketBalanced() {

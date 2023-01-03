@@ -52,6 +52,15 @@ export default {
           ;(editor.chain().focus() as any).toggleTaskList().run()
         },
       },
+      {
+        title: 'Add Image',
+        command: ({ editor, range }: { editor: Editor; range: Range }) => {
+          // todo: open file picker in vue3
+          const url = 'https://picsum.photos/200/300'
+          // add image block node
+          ;(editor.chain().focus().deleteRange(range) as any).setImage({ src: url }).run()
+        },
+      },
     ]
       .filter((item) => item.title.toLowerCase().startsWith(query.toLowerCase()))
       .slice(0, 10)

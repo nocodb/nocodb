@@ -488,6 +488,21 @@ export function useDocs() {
     }
   }
 
+  const uploadFile = async (file: File) => {
+    // todo: use a better id
+    const randomId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    const data = await $api.storage.upload(
+      {
+        path: [NOCO, projectId, openedBook.value!.id, randomId].join('/'),
+      },
+      {
+        files: file,
+        json: '{}',
+      },
+    )
+    return data[0]
+  }
+
   return {
     fetchPages,
     fetchBooks,
@@ -518,5 +533,6 @@ export function useDocs() {
     drafts,
     fetchDrafts,
     findPage,
+    uploadFile,
   }
 }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { BubbleMenu, EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
+import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
 import BulletList from '@tiptap/extension-bullet-list'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import TaskItem from '@tiptap/extension-task-item'
@@ -8,10 +8,10 @@ import StarterKit from '@tiptap/starter-kit'
 import Strike from '@tiptap/extension-strike'
 import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
-import Image from '@tiptap/extension-image'
 import CodeBlock from '@tiptap/extension-code-block'
 import Commands from './commands'
 import suggestion from './commands/suggestion'
+import { createImageExtension } from './images/node'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
@@ -28,6 +28,7 @@ const {
   drafts,
   fetchDrafts,
   findPage,
+  uploadFile,
 } = useDocs()
 
 const isDraftsOpen = ref(false)
@@ -83,10 +84,11 @@ const editor = useEditor({
         class: 'nc-docs-horizontal-rule',
       },
     }),
-    Image.configure({
-      inline: true,
-    }),
     CodeBlock,
+    createImageExtension(async (image) => {
+      const { url } = await uploadFile(image)
+      return url
+    }),
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return

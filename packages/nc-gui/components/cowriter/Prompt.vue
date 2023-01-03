@@ -139,7 +139,13 @@ watch(suggestionsList, (v) => {
   <div class="h-min-[calc(100%_-_160px] w-full overflow-y-auto scrollbar-thin-dull nc-cowriter-prompt">
     <a-row>
       <a-col :span="16">
-        <a-textarea ref="promptRef" v-model:value="vModel" :auto-size="{ minRows: 20 }" @change="handleInputDeb" />
+        <a-textarea
+          ref="promptRef"
+          v-model:value="vModel"
+          :bordered="false"
+          :auto-size="{ minRows: 20 }"
+          @change="handleInputDeb"
+        />
       </a-col>
       <a-col :span="8" class="p-4">
         <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: 'No suggested column was found' }">
@@ -191,8 +197,8 @@ watch(suggestionsList, (v) => {
   </div>
 </template>
 
-<style>
+<style lang="scss">
 .nc-cowriter-prompt textarea {
-  @apply !px-[20px] !py-[30px];
+  @apply !m-[20px];
 }
 </style>

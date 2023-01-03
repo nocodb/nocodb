@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import { getWordUntilCaret, useCowriterStoreOrThrow, useDebounceFn } from '#imports'
 
@@ -58,7 +57,7 @@ const suggestionsList = computed(() => {
 })
 
 // set default suggestion list
-const suggestion = computed(() => suggestionsList.value)
+const suggestion: Record<string, any> = ref(suggestionsList.value)
 
 const acTree = computed(() => {
   const ref = new NcAutocompleteTree()
@@ -124,12 +123,16 @@ function handleInput() {
   suggestion.value = acTree.value.complete(wordToComplete.value)
   if (!isCurlyBracketBalanced()) {
     suggestionListVisible.value = true
-    suggestion.value = suggestion.value.filter((v) => v.type === 'column')
+    suggestion.value = suggestion.value.filter((v: Record<string, any>) => v.type === 'column')
   } else {
     suggestionListVisible.value = false
   }
   autocomplete.value = !!suggestion.value.length
 }
+
+watch(suggestionsList, (v) => {
+  suggestion.value = v
+})
 </script>
 
 <template>

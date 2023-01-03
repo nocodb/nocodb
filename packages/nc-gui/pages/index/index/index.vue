@@ -6,6 +6,7 @@ import { nextTick } from '@vue/runtime-core'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import Sortable from 'sortablejs'
+import { useRoute } from 'vue-router'
 import {
   NcProjectType,
   computed,
@@ -42,15 +43,18 @@ const {
 
 const { $e } = useNuxtApp()
 
+const route = useRoute()
+
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
-    return [workspaces?.value?.indexOf(activeWorkspace.value!)]
+    const index =workspaces?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
+    return [ index === -1 ? 0 : index ]
   },
   set(index: number[]) {
     if (index?.length) {
-      activeWorkspace.value = workspaces.value?.[index[0]]
+      router.push({ query: {  workspaceId: workspaces.value?.[index[0]]?.id } })
     } else {
-      activeWorkspace.value = null
+      router.push({ query: { } })
     }
   },
 })
@@ -201,6 +205,15 @@ const menu = (el?: typeof Menu) => {
     initSortable(el.$el)
   }
 }
+
+const tab = computed({
+  get() {
+    return route.query?.tab ?? 'projects'
+  },
+  set(tab: string) {
+    router.push({ query: { ...route.query,tab,  } })
+  },
+})
 </script>
 
 <template>
@@ -412,7 +425,7 @@ const menu = (el?: typeof Menu) => {
             </a-dropdown>
           </div>
 
-          <a-tabs>
+          <a-tabs v-model:activeKey="tab">
             <a-tab-pane key="projects" tab="All Projects" class="w-full">
               <WorkspaceProjectList />
             </a-tab-pane>

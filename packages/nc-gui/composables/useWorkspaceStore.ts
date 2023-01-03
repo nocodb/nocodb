@@ -2,17 +2,24 @@ import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg, useInjectionState, useNuxtApp } from '#imports'
+import { useRoute } from 'vue-router'
 
 const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   const workspaces = ref<WorkspaceType[]>([])
 
-  const activeWorkspace = ref<WorkspaceType | null>()
+  // const activeWorkspace = ref<WorkspaceType | null>()
 
   const projects = ref<ProjectType[] | null>()
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
+const route = useRoute()
+
   const { $api } = useNuxtApp()
+
+  const activeWorkspace = computed(() => {
+   return workspaces.value?.find(w => w.id === route.query.workspaceId) ?? workspaces.value?.[0]
+  })
 
   /** getters */
   const isWorkspaceCreator = computed(() => {

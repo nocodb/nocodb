@@ -31,6 +31,8 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const generateColumnBtnLoading = ref(false)
 
+  const maxCowriterGeneration = ref(1)
+
   const { $api } = useNuxtApp()
 
   async function loadCowriterProject() {
@@ -90,9 +92,15 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
       message.warn('No prompt statement is found.')
       return
     }
-    const cowriter = await $api.cowriterTable.create(cowriterTable.value!.id!, cowriterFormState)
-    ;(cowriterOutputList.value as CowriterType[]).unshift(cowriter)
-    ;(cowriterHistoryList.value as CowriterType[]).unshift(cowriter)
+    const generationTasks = []
+    for (let i = 0; i < maxCowriterGeneration.value; i++) {
+      generationTasks.push(await $api.cowriterTable.create(cowriterTable.value!.id!, cowriterFormState))
+    }
+    const generationResults = await Promise.all(generationTasks)
+    generationResults.forEach((cowriter: CowriterType) => {
+      ;(cowriterOutputList.value as CowriterType[]).unshift(cowriter)
+      ;(cowriterHistoryList.value as CowriterType[]).unshift(cowriter)
+    })
     generateCowriterLoading.value = false
   }
 
@@ -156,6 +164,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     cowriterOutputList,
     cowriterInputActiveKey,
     cowriterOutputActiveKey,
+    maxCowriterGeneration,
   }
 })
 

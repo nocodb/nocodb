@@ -2,22 +2,7 @@
 import HTTPSnippet from 'httpsnippet'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  MetaInj,
-  inject,
-  message,
-  ref,
-  useCopy,
-  useCowriterStoreOrThrow,
-  useGlobal,
-  useI18n,
-  useProject,
-  useSmartsheetStoreOrThrow,
-  useVModel,
-  useViewData,
-  watch,
-} from '#imports'
+import { MetaInj, inject, message, ref, useCopy, useCowriterStoreOrThrow, useGlobal, useI18n, useVModel, watch } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -27,19 +12,11 @@ const emits = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { project } = $(useProject())
-
 const { appInfo, token } = $(useGlobal())
 
 const meta = $(inject(MetaInj, ref()))
 
-const view = $(inject(ActiveViewInj, ref()))
-
-const { xWhere } = useSmartsheetStoreOrThrow()
-
 const { cowriterTable } = useCowriterStoreOrThrow()
-
-const { queryParams } = $(useViewData($$(meta), $$(view), xWhere))
 
 const { copy } = useCopy()
 
@@ -118,12 +95,6 @@ const snippet = $computed(
       method: 'POST',
       headers: [{ name: 'xc-auth', value: token, comment: 'JWT Auth token' }],
       url: apiUrl,
-      queryString: Object.entries(queryParams || {}).map(([name, value]) => {
-        return {
-          name,
-          value: String(value),
-        }
-      }),
       postData: {
         mimeType: 'application/x-www-form-urlencoded',
         params: cowriterData.value,

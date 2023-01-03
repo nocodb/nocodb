@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import type { ColumnType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
+import type { TableInfoType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import {
@@ -8,7 +8,9 @@ import {
   MetaInj,
   Modal,
   extractSdkResponseErrorMsg,
+  resolveComponent,
   useCowriterStoreOrThrow,
+  useDialog,
   useI18n,
   useProvideSmartsheetRowStore,
   useProvideSmartsheetStore,
@@ -16,15 +18,8 @@ import {
   useViewData,
 } from '#imports'
 
-const {
-  cowriterFormState,
-  cowriterFormRef,
-  cowriterTable,
-  cowriterFormView,
-  loadCowriterTable,
-  generateAIColumns,
-  deleteCowriterFormColumn,
-} = useCowriterStoreOrThrow()
+const { cowriterFormState, cowriterFormRef, cowriterTable, cowriterFormView, loadCowriterTable, deleteCowriterFormColumn } =
+  useCowriterStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -54,6 +49,8 @@ reloadEventHook.on(async () => {
 const { saveOrUpdate } = useViewColumns(cowriterFormView as Ref<ViewType>, cowriterTable as Ref<TableType>, async () =>
   reloadEventHook.trigger(),
 )
+
+const isCreateColumnUsingAIDlgOpen = ref(false)
 
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
@@ -123,6 +120,15 @@ function onMove(event: any) {
 
   $e('a:cowriter-form:reorder')
 }
+
+useDialog(resolveComponent('CowriterCreateColumnUsingAIDlg'), {
+  'modelValue': isCreateColumnUsingAIDlgOpen,
+  'onUpdate:modelValue': (isOpen: boolean) => (isCreateColumnUsingAIDlgOpen.value = isOpen),
+  'onSuccess': async () => {
+    isCreateColumnUsingAIDlgOpen.value = false
+    await loadCowriterTable()
+  },
+})
 
 function deleteColumn(ele: Record<string, any>) {
   console.log(ele.fk_column_id)
@@ -233,7 +239,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="bg-[#FAFAFA] h-full px-[30px] py-[15px]">
+  <div class="bg-[#FAFAFA] px-[30px] py-[15px] max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-scroll">
     <div class="flex items-center flex-wrap justify-end gap-2">
       <a-dropdown v-model:visble="showAddFieldDropdown">
         <template #overlay>
@@ -255,7 +261,7 @@ onMounted(async () => {
                 </template>
               </a-dropdown>
             </a-menu-item>
-            <a-menu-item key="add-column-using-ai" @click="generateAIColumns">
+            <a-menu-item key="add-column-using-ai" @click="isCreateColumnUsingAIDlgOpen = true">
               <div class="flex items-center py-3">
                 <PhSparkleFill class="mr-2 text-orange-400" />
                 Add New Column Using AI

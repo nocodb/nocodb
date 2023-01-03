@@ -38,12 +38,12 @@ export default {
     <a-layout-header class="!bg-white !p-2">
       <slot name="header" />
     </a-layout-header>
-    <a-layout-content>
+    <a-layout-content class="h-full overflow-hidden">
       <a-row>
-        <a-col :span="12">
+        <a-col class="border-r-1" :span="12">
           <slot name="left" />
         </a-col>
-        <a-col :span="12">
+        <a-col class="border-r-1" :span="12">
           <slot name="right" />
         </a-col>
         <a-col :span="24">

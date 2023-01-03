@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, getSystemColumns, isSystemColumn } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import { getWordUntilCaret, useCowriterStoreOrThrow, useDebounceFn } from '#imports'
 
@@ -22,7 +21,7 @@ const syncValue = useDebounceFn(async () => await savePromptStatementTemplate(),
 const suggestionListVisible = ref(false)
 
 // TODO: move to composable
-const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
+const hiddenColTypes: string[] = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
 
 const vModel = computed({
   get: () => promptStatementTemplate.value,
@@ -37,7 +36,7 @@ const vModel = computed({
 const supportedColumns = computed(
   () =>
     ((cowriterTable.value as TableType).columns || [])
-      .filter((c) => !hiddenColTypes.includes(c.uidt) && !isSystemColumn(c))
+      .filter((c: ColumnType) => !hiddenColTypes.includes(c.uidt) && !isSystemColumn(c))
       .sort((a, b) => a.order! - b.order!) || [],
 )
 
@@ -58,7 +57,7 @@ const suggestionsList = computed(() => {
 })
 
 // set default suggestion list
-const suggestion: Ref<Record<string, any>[]> = ref(suggestionsList.value)
+const suggestion: Record<string, any> = ref(suggestionsList.value)
 
 const acTree = computed(() => {
   const ref = new NcAutocompleteTree()
@@ -68,21 +67,42 @@ const acTree = computed(() => {
   return ref
 })
 
-function isCurlyBracketBalanced() {
-  // count number of opening curly brackets and closing curly brackets
-  const cntCurlyBrackets = (promptRef.value.$el.value.match(/\{|}/g) || []).reduce((acc: Record<number, number>, cur: number) => {
+function getCurlyBracket(isDouble = true) {
+  const arr = (isDouble ? promptRef.value.$el.value.match(/{{|}}/g) : promptRef.value.$el.value.match(/{|}/g)) || []
+  return arr.reduce((acc: Record<number, number>, cur: number) => {
     acc[cur] = (acc[cur] || 0) + 1
     return acc
   }, {})
+}
+
+function isCurlyDoubleBracketBalanced() {
+  // count number of double opening curly brackets and closing curly brackets
+  const cntCurlyBrackets = getCurlyBracket()
+  return (cntCurlyBrackets['{{'] || 0) === (cntCurlyBrackets['}}'] || 0)
+}
+
+function isCurlyBracketBalanced() {
+  // count number of opening curly brackets and closing curly brackets
+  const cntCurlyBrackets = getCurlyBracket(false)
   return (cntCurlyBrackets['{'] || 0) === (cntCurlyBrackets['}'] || 0)
 }
 
 function appendText(item: Record<string, any>) {
   const text = item.text
   const len = wordToComplete.value?.length || 0
+  let offset = 0
+  if (!isCurlyBracketBalanced() || !isCurlyDoubleBracketBalanced()) {
+    const lastWord = promptRef.value.$el.value.split(' ').slice(-1).join(' ')
+    if (lastWord.includes('{{')) {
+      offset = 2
+    } else if (lastWord.includes('{')) {
+      offset = 1
+    }
+  } else {
+    offset = -len
+  }
 
-  // TODO: fix the position
-  vModel.value = insertAtCursor(promptRef.value.$el, `{{${text}}}`, len + +!isCurlyBracketBalanced() - 2)
+  vModel.value = insertAtCursor(promptRef.value.$el, `{{${text}}}`, len + offset)
 
   autocomplete.value = false
   wordToComplete.value = ''
@@ -103,21 +123,34 @@ function handleInput() {
   suggestion.value = acTree.value.complete(wordToComplete.value)
   if (!isCurlyBracketBalanced()) {
     suggestionListVisible.value = true
-    suggestion.value = suggestion.value.filter((v) => v.type === 'column')
+    suggestion.value = suggestion.value.filter((v: Record<string, any>) => v.type === 'column')
   } else {
     suggestionListVisible.value = false
   }
   autocomplete.value = !!suggestion.value.length
 }
+
+watch(suggestionsList, (v) => {
+  suggestion.value = v
+})
 </script>
 
 <template>
-  <div class="h-min-[calc(100%_-_160px] w-full overflow-y-auto scrollbar-thin-dull nc-cowriter-prompt">
+  <div class="w-full nc-cowriter-prompt">
     <a-row>
-      <a-col :span="16">
-        <a-textarea ref="promptRef" v-model:value="vModel" :auto-size="{ minRows: 20 }" @change="handleInputDeb" />
+      <a-col :span="16" class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-hidden overflow-y-scroll scrollbar-thin-dull">
+        <a-textarea
+          ref="promptRef"
+          v-model:value="vModel"
+          :bordered="false"
+          :auto-size="{ minRows: 20 }"
+          @change="handleInputDeb"
+        />
       </a-col>
-      <a-col :span="8" class="p-4">
+      <a-col
+        :span="8"
+        class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-hidden overflow-y-scroll scrollbar-thin-dull p-4 border-l-1"
+      >
         <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: 'No suggested column was found' }">
           <template #renderItem="{ item, index }">
             <a-list-item
@@ -167,8 +200,8 @@ function handleInput() {
   </div>
 </template>
 
-<style>
+<style lang="scss">
 .nc-cowriter-prompt textarea {
-  @apply !px-[20px] !py-[30px];
+  @apply !m-[20px];
 }
 </style>

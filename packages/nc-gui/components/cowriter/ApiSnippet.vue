@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import HTTPSnippet from 'httpsnippet'
+import type { ColumnType, TableType } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
@@ -7,6 +9,7 @@ import {
   message,
   ref,
   useCopy,
+  useCowriterStoreOrThrow,
   useGlobal,
   useI18n,
   useProject,
@@ -33,6 +36,8 @@ const meta = $(inject(MetaInj, ref()))
 const view = $(inject(ActiveViewInj, ref()))
 
 const { xWhere } = useSmartsheetStoreOrThrow()
+
+const { cowriterTable } = useCowriterStoreOrThrow()
 
 const { queryParams } = $(useViewData($$(meta), $$(view), xWhere))
 
@@ -79,15 +84,38 @@ let selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clien
 
 const selectedLangName = $ref(langs[0].name)
 
-const apiUrl = $computed(
+const apiUrl = $computed(() => {
+  return new URL(`/api/v1/cowriter/meta/tables/${meta?.id}`, (appInfo && appInfo.ncSiteUrl) || '/').href
+})
+
+// TODO: move to composable
+const hiddenColTypes: string[] = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
+
+const supportedColumns = computed(
   () =>
-    new URL(`/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
+    ((cowriterTable.value as TableType)?.columns || [])
+      .filter((c: ColumnType) => !hiddenColTypes.includes(c.uidt) && !isSystemColumn(c))
+      .sort((a, b) => a.order! - b.order!) || [],
+)
+
+const cowriterData = computed(() =>
+  supportedColumns.value
+    ? supportedColumns.value.slice(0, 5).map((o: ColumnType) => ({
+        name: o.column_name,
+        value: o.uidt === UITypes.Number || o.uidt === UITypes.Decimal ? 1 : 'foo',
+      }))
+    : [
+        {
+          name: 'foo',
+          value: 'bar',
+        },
+      ],
 )
 
 const snippet = $computed(
   () =>
     new HTTPSnippet({
-      method: 'GET',
+      method: 'POST',
       headers: [{ name: 'xc-auth', value: token, comment: 'JWT Auth token' }],
       url: apiUrl,
       queryString: Object.entries(queryParams || {}).map(([name, value]) => {
@@ -96,6 +124,10 @@ const snippet = $computed(
           value: String(value),
         }
       }),
+      postData: {
+        mimeType: 'application/x-www-form-urlencoded',
+        params: cowriterData.value,
+      },
     }),
 )
 
@@ -103,23 +135,20 @@ const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLa
 
 const code = $computed(() => {
   if (activeLang?.name === 'nocodb-sdk') {
-    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
-const api = new Api({
+    const content = `const api = new Api({
   baseURL: "${(appInfo && appInfo.ncSiteUrl) || '/'}",
   headers: {
     "xc-auth": ${JSON.stringify(token as string)}
   }
 })
 
-api.dbViewRow.list(
-  "noco",
-  ${JSON.stringify(project.title)},
-  ${JSON.stringify(meta?.title)},
-  ${JSON.stringify(view?.title)}, ${JSON.stringify(queryParams, null, 4)}).then(function (data) {
+api.cowriterTable.create('${cowriterTable.value!.id!}', ${JSON.stringify(cowriterData.value[0])}).then(function (data) {
   console.log(data);
 }).catch(function (error) {
   console.error(error);
-});
+});`
+    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
+${content}
     `
   }
 
@@ -151,8 +180,12 @@ watch($$(activeLang), (newLang) => {
     @after-visible-change="afterVisibleChange"
   >
     <div class="flex flex-col w-full h-full p-4">
-      <!--      Code Snippet -->
+      <!-- Code Snippet -->
       <a-typography-title :level="4" class="pb-1">{{ $t('title.codeSnippet') }}</a-typography-title>
+
+      <a-typography-paragraph>
+        You can use following code to start integrating your current prompt and settings into your application.
+      </a-typography-paragraph>
 
       <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
         <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
@@ -173,7 +206,7 @@ watch($$(activeLang), (newLang) => {
           />
 
           <div v-if="activeLang?.clients" class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
-            <a-select v-model:value="selectedClient" style="width: 6rem" dropdown-class-name="nc-dropdown-snippet-active-lang">
+            <a-select v-model:value="selectedClient" style="width: 8rem" dropdown-class-name="nc-dropdown-snippet-active-lang">
               <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
                 {{ client }}
               </a-select-option>

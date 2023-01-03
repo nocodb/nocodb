@@ -38,7 +38,7 @@ export default {
     <a-layout-header class="!bg-white !p-2">
       <slot name="header" />
     </a-layout-header>
-    <a-layout-content>
+    <a-layout-content class="h-full overflow-hidden">
       <a-row>
         <a-col class="border-r-1" :span="12">
           <slot name="left" />

@@ -2,12 +2,15 @@
 import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
 import { NcProjectType, navigateTo, stringToColour, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 import { useNuxtApp } from '#app'
 
 const { projects, loadProjects } = useWorkspaceStoreOrThrow()
 
 const { $e, $api } = useNuxtApp()
+
+const { isUIAllowed } = useUIPermission()
 
 const openProject = async (project: ProjectType) => {
   switch (project.type) {
@@ -56,6 +59,52 @@ const deleteProject = (project: ProjectType) => {
     },
   })
 }
+
+const handleProjectColor = async (projectId: string, color: string) => {
+  const tcolor = tinycolor(color)
+
+  if (tcolor.isValid()) {
+    const complement = tcolor.complement()
+
+    const project: ProjectType = await $api.project.read(projectId)
+
+    const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+
+    await $api.project.update(projectId, {
+      color,
+      meta: JSON.stringify({
+        ...meta,
+        theme: {
+          primaryColor: color,
+          accentColor: complement.toHex8String(),
+        },
+      }),
+    })
+
+    // Update local project
+    const localProject = projects.value?.find((p) => p.id === projectId)
+
+    if (localProject) {
+      localProject.color = color
+
+      localProject.meta = JSON.stringify({
+        ...meta,
+        theme: {
+          primaryColor: color,
+          accentColor: complement.toHex8String(),
+        },
+      })
+    }
+  }
+}
+
+const getProjectPrimary = (project: ProjectType) => {
+  if (!project) return
+
+  const meta = project.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+
+  return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
+}
 </script>
 
 <template>
@@ -74,7 +123,38 @@ const deleteProject = (project: ProjectType) => {
         <tr v-for="(project, i) of projects" :key="i" class="cursor-pointer hover:bg-gray-50" @click="openProject(project)">
           <td class="!py-0">
             <div class="flex items-center nc-project-title gap-2">
-              <span class="color-band" :style="{ backgroundColor: stringToColour(project.title) }" />
+              <div @click.stop>
+                <a-dropdown :trigger="['click']" @click.stop>
+                  <!--                  todo: allow based on role -->
+                  <span class="block w-2 h-6 rounded-sm" :style="{ backgroundColor: getProjectPrimary(project) }" />
+                  <template #overlay>
+                    <a-menu>
+                      <a-menu-item>
+                        <LazyGeneralColorPicker
+                          :model-value="getProjectPrimary(project)"
+                          :colors="projectThemeColors"
+                          :row-size="9"
+                          :advanced="false"
+                          @input="handleProjectColor(project.id, $event)"
+                        />
+                      </a-menu-item>
+                      <a-sub-menu key="pick-primary">
+                        <template #title>
+                          <div class="nc-project-menu-item group !py-0">
+                            <ClarityColorPickerSolid class="group-hover:text-accent" />
+                            Custom Color
+                          </div>
+                        </template>
+
+                        <template #expandIcon></template>
+
+                        <LazyGeneralChromeWrapper @input="handleProjectColor(project.id, $event)" />
+                      </a-sub-menu>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
+
               {{ project.title }}
             </div>
           </td>
@@ -141,12 +221,6 @@ const deleteProject = (project: ProjectType) => {
   th:last-child,
   td:last-child {
     @apply pr-6;
-  }
-}
-
-.nc-project-title {
-  .color-band {
-    @apply w-6 h-6 left-0 top-[10px] rounded-md;
   }
 }
 </style>

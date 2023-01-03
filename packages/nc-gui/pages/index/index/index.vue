@@ -120,7 +120,11 @@ const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean }
   }
 }
 
-const handleWorkspaceColor = async (workspace: WorkspaceType, color: string) => {
+const handleWorkspaceColor = async (workspaceId: string, color: string) => {
+  const workspace = workspaces.value?.find((w) => w.id === workspaceId)
+
+  if (!workspace) return
+
   const tcolor = tinycolor(color)
 
   if (tcolor.isValid()) {
@@ -199,10 +203,16 @@ const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color ||
           <div class="overflow-auto flex-grow min-h-25" style="flex-basis: 0px">
             <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-            <a-menu v-else ref="menu" v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list">
+            <a-menu
+              v-else
+              ref="menu"
+              v-model:selected-keys="selectedWorkspaceIndex"
+              class="nc-workspace-list"
+              trigger-sub-menu-action="click"
+            >
               <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
                 <div class="nc-workspace-list-item">
-                  <a-dropdown :trigger="['click']" @click.stop>
+                  <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
                     <div
                       :key="workspace.meta?.color"
                       class="nc-workspace-avatar"
@@ -212,13 +222,13 @@ const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color ||
                       {{ workspace.title?.slice(0, 2) }}
                     </div>
                     <template #overlay>
-                      <a-menu>
+                      <a-menu trigger-sub-menu-action="click">
                         <LazyGeneralColorPicker
                           :model-value="getWorkspaceColor(workspace)"
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"
-                          @input="handleWorkspaceColor(workspace, $event)"
+                          @input="handleWorkspaceColor(workspace.id, $event)"
                         />
                         <a-sub-menu key="pick-primary">
                           <template #title>
@@ -230,7 +240,7 @@ const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color ||
 
                           <template #expandIcon></template>
 
-                          <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace, $event)" />
+                          <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id, $event)" />
                         </a-sub-menu>
                       </a-menu>
                     </template>

@@ -31,7 +31,7 @@ const onAdminMount = async () => {
     })
   }
 
-  await fetchDrafts()
+  await fetchDrafts(books.value[books.value.length - 1])
 }
 
 const onPublicMount = async () => {

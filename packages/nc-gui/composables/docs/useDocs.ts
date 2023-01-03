@@ -135,9 +135,9 @@ export function useDocs() {
     }
   }
 
-  const fetchDrafts = async () => {
+  const fetchDrafts = async (book?: BookType) => {
     try {
-      const response = await $api.nocoDocs.listDraftPages({ projectId: projectId!, bookId: openedBook.value!.id! })
+      const response = await $api.nocoDocs.listDraftPages({ projectId: projectId!, bookId: book?.id ?? openedBook.value!.id! })
       drafts.value = response.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id }))
     } catch (e) {
       console.error(e)

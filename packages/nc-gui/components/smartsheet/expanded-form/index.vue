@@ -23,6 +23,10 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 
+const props = defineProps<Props>()
+
+const emits = defineEmits(['update:modelValue', 'cancel'])
+
 export interface InitialGeoPositionData {
   lat?: number
   long?: number
@@ -40,10 +44,6 @@ interface Props {
   view?: ViewType
   initialGeoPositionData?: InitialGeoPositionData
 }
-
-const props = defineProps<Props>()
-
-const emits = defineEmits(['update:modelValue', 'cancel'])
 
 const row = ref(props.row)
 
@@ -157,7 +157,6 @@ export default {
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
     <div class="!bg-gray-100 rounded flex-1">
-
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">

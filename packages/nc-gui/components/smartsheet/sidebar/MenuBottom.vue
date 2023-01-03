@@ -1,18 +1,12 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { IsGeodataActiveInj, ReadonlyInj, ref, useGlobal, useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
+import { useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
 
-const isGeodataActive = inject(IsGeodataActiveInj, ref(false))
+const emits = defineEmits<Emits>()
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void
 }
-
-const emits = defineEmits<Emits>()
-
-const readOnly = inject(ReadonlyInj)
-
-const { includeM2M } = useGlobal()
 
 const { $e } = useNuxtApp()
 

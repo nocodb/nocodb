@@ -10,7 +10,7 @@ export default class MapView implements MapType {
   project_id?: string;
   base_id?: string;
   fk_geo_data_col_id?: string;
-  meta?: string | object;
+  meta?: string | Record<string, unknown>;
 
   // below fields are not in use at this moment
   // keep them for time being
@@ -41,9 +41,6 @@ export default class MapView implements MapType {
     return view && new MapView(view);
   }
 
-
-
-
   public static async IsColumnBeingUsedInMapView(
     columnId: string,
     ncMeta = Noco.ncMeta
@@ -59,8 +56,7 @@ export default class MapView implements MapType {
     );
   }
 
-   static async insert(view: Partial<MapView>, ncMeta = Noco.ncMeta) {
-
+  static async insert(view: Partial<MapView>, ncMeta = Noco.ncMeta) {
     const insertObj = {
       project_id: view.project_id,
       base_id: view.base_id,
@@ -75,13 +71,7 @@ export default class MapView implements MapType {
       insertObj.base_id = viewRef.base_id;
     }
 
-    await ncMeta.metaInsert2(
-      null,
-      null,
-      MetaTable.MAP_VIEW,
-      insertObj,
-      true
-    );
+    await ncMeta.metaInsert2(null, null, MetaTable.MAP_VIEW, insertObj, true);
 
     return this.get(view.fk_view_id, ncMeta);
   }
@@ -107,14 +97,8 @@ export default class MapView implements MapType {
       await NocoCache.set(key, o);
     }
     // update meta
-    return await ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.MAP_VIEW,
-      updateObj,
-      {
-        fk_view_id: mapId,
-      }
-    );
+    return await ncMeta.metaUpdate(null, null, MetaTable.MAP_VIEW, updateObj, {
+      fk_view_id: mapId,
+    });
   }
 }

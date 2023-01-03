@@ -38,7 +38,6 @@ const handleFinish = () => {
 }
 
 const clear = () => {
-
   isExpanded = false
 
   formState.latitude = latitude

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
 import { useVModel } from '#imports'
+import { latLongToJoinedString } from '~~/utils/geoDataUtils'
 
 interface Props {
   modelValue?: string | null
@@ -33,12 +34,11 @@ const formState = reactive({
 })
 
 const handleFinish = () => {
-  vModel.value = `${formState.latitude};${formState.longitude}`
+  vModel.value = latLongToJoinedString(parseFloat(formState.latitude), parseFloat(formState.longitude))
   isExpanded = false
 }
 
 const clear = () => {
-
   isExpanded = false
 
   formState.latitude = latitude

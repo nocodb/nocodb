@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useCowriterStoreOrThrow } from '#imports'
 
-const { cowriterOutputList, cowriterHistoryList, cowriterOutputActiveKey, generateButtonLoading } = useCowriterStoreOrThrow()
+const { cowriterOutputList, cowriterHistoryList, cowriterOutputActiveKey, generateCowriterLoading } = useCowriterStoreOrThrow()
 
 const cowriterRecords = computed(() =>
   cowriterOutputActiveKey.value === 'cowriter-output' ? cowriterOutputList.value : cowriterHistoryList.value,
@@ -9,7 +9,7 @@ const cowriterRecords = computed(() =>
 </script>
 
 <template>
-  <general-overlay :model-value="generateButtonLoading" inline transition class="!bg-opacity-15">
+  <general-overlay :model-value="generateCowriterLoading" inline transition class="!bg-opacity-15">
     <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
       <a-spin size="large" />
     </div>

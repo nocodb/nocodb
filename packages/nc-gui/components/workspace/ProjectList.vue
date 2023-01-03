@@ -114,7 +114,7 @@ const getProjectPrimary = (project: ProjectType) => {
         <tr>
           <th>Project Name</th>
           <th>Project Type</th>
-          <th>Last Modified</th>
+          <th>Last Accessed</th>
           <th>My Role</th>
           <th>Actions</th>
         </tr>
@@ -167,7 +167,7 @@ const getProjectPrimary = (project: ProjectType) => {
               <MdiDatabaseOutline v-else class="text-[#2824FB] text-xl" />
             </div>
           </td>
-          <td class="text-gray-500 text-xs">{{ timeAgo(project.created_at) }}</td>
+          <td class="text-gray-500 text-xs">{{ timeAgo(project.updated_at) }}</td>
           <td class="text-xs text-gray-500">
             {{ roleAlias[project.workspace_role || project.project_role] }}
           </td>

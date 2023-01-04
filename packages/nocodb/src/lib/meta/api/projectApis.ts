@@ -43,6 +43,9 @@ export async function projectGet(
     ['config'].forEach((k) => delete b[k]);
   });
 
+  // update updated_at whenever api is called
+  Project.update(project.id, {}).catch(() => {});
+
   res.json(project);
 }
 

@@ -1,18 +1,25 @@
 import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
+import { useRoute } from 'vue-router'
 import { extractSdkResponseErrorMsg, useInjectionState, useNuxtApp } from '#imports'
 
 const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
-  const workspaces = ref<WorkspaceType[]>([])
+  const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string })[]>([])
 
-  const activeWorkspace = ref<WorkspaceType | null>()
+  // const activeWorkspace = ref<WorkspaceType | null>()
 
   const projects = ref<ProjectType[] | null>()
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
+  const route = useRoute()
+
   const { $api } = useNuxtApp()
+
+  const activeWorkspace = computed(() => {
+    return workspaces.value?.find((w) => w.id === route.query.workspaceId) ?? workspaces.value?.[0]
+  })
 
   /** getters */
   const isWorkspaceCreator = computed(() => {
@@ -42,7 +49,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   const createWorkspace = async (workspace: Pick<WorkspaceType, 'title' | 'order' | 'description' | 'meta'>) => {
     try {
       // todo: pagination
-      const res = await $api.workspace.create(workspace)
+      await $api.workspace.create(workspace)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -154,7 +161,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     isWorkspaceCreator,
     isWorkspaceOwner,
   }
-})
+}, 'workspaceStore')
 
 export { useProvideWorkspaceStore }
 

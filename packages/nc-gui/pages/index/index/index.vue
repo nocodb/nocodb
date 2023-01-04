@@ -3,8 +3,10 @@ import type { Menu } from 'ant-design-vue'
 import { Empty, Modal } from 'ant-design-vue'
 import type { WorkspaceType } from 'nocodb-sdk'
 import { nextTick } from '@vue/runtime-core'
-import { ProjectType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import Sortable from 'sortablejs'
+import { useRoute } from 'vue-router'
 import {
   NcProjectType,
   computed,
@@ -21,6 +23,8 @@ import { extractSdkResponseErrorMsg } from '~/utils'
 definePageMeta({
   hideHeader: true,
 })
+
+const router = useRouter()
 
 const roleAlias = {
   [WorkspaceUserRoles.OWNER]: 'Owner',
@@ -39,15 +43,20 @@ const {
   updateWorkspace,
 } = useProvideWorkspaceStore()
 
+const { $e } = useNuxtApp()
+
+const route = useRoute()
+
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
-    return [workspaces?.value?.indexOf(activeWorkspace.value!)]
+    const index = workspaces?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
+    return [index === -1 ? 0 : index]
   },
   set(index: number[]) {
     if (index?.length) {
-      activeWorkspace.value = workspaces.value?.[index[0]]
+      router.push({ query: { workspaceId: workspaces.value?.[index[0]]?.id } })
     } else {
-      activeWorkspace.value = null
+      router.push({ query: {} })
     }
   },
 })
@@ -57,7 +66,14 @@ const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar-workspa
 
 const isCreateDlgOpen = ref(false)
 
-const menu = ref<typeof Menu>()
+const menuEl = ref<Menu | null>(null)
+
+const menu = (el?: typeof Menu) => {
+  if (el) {
+    menuEl.value = el
+    initSortable(el.$el)
+  }
+}
 
 useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,
@@ -66,7 +82,7 @@ useDialog(resolveComponent('WorkspaceCreateDlg'), {
     isCreateDlgOpen.value = false
     await loadWorkspaceList()
     await nextTick(() => {
-      ;[...menu.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
+      ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
         block: 'nearest',
         inline: 'nearest',
       })
@@ -95,8 +111,6 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
   })
 }
 
-const router = useRouter()
-
 const navigateToCreateProject = (type: NcProjectType) => {
   if (type === NcProjectType.AUTOMATION) {
     return message.info('Automation is not available at the moment')
@@ -111,32 +125,112 @@ const navigateToCreateProject = (type: NcProjectType) => {
   }
 }
 
-const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean }) => {
+const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; temp_title: string }) => {
   try {
-    await updateWorkspace(workspace.id!, { title: workspace.title })
+    await updateWorkspace(workspace.id!, { title: workspace.temp_title })
+    workspace.title = workspace.temp_title
     workspace.edit = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
+const handleWorkspaceColor = async (workspaceId: string, color: string) => {
+  const workspace = workspaces.value?.find((w) => w.id === workspaceId)
+
+  if (!workspace) return
+
   const tcolor = tinycolor(color)
 
   if (tcolor.isValid()) {
     const meta = workspace?.meta && typeof workspace.meta === 'string' ? JSON.parse(workspace.meta) : workspace.meta || {}
 
-    await updateWorkspace(workspace.id!, {
-      meta: {
-        ...(meta || {}),
-        color,
-      },
-    })
-
     // Update local workspace meta
-    workspace.meta = meta
-    workspaces.value = [...workspaces.value]
+    workspace.meta = {
+      ...(meta || {}),
+      color,
+    }
+
+    await updateWorkspace(workspace.id!, {
+      meta: workspace.meta,
+    })
   }
+}
+
+const getWorkspaceColor = (workspace: WorkspaceType) => workspace.meta?.color || stringToColour(workspace.id!)
+
+// const sortables: Record<string, Sortable> = {}
+
+function getIdFromEl(previousEl: HTMLElement) {
+  return previousEl.querySelector('[data-id]')?.dataset?.id
+}
+
+// todo: replace with vuedraggable
+function initSortable(el: Element) {
+  Sortable.create(el as HTMLLIElement, {
+    onEnd: async (evt) => {
+      if (workspaces.value?.length < 2) return
+
+      const { newIndex = 0, oldIndex = 0 } = evt
+
+      if (newIndex === oldIndex) return
+
+      const children = evt.to.children as unknown as HTMLLIElement[]
+
+      const previousEl = children[newIndex - 1]
+      const nextEl = children[newIndex + 1]
+
+      const currentItem = workspaces.value.find((v) => v.id === getIdFromEl(evt.item))
+
+      if (!currentItem || !currentItem.id) return
+
+      const previousItem = (previousEl ? workspaces.value.find((v) => v.id === getIdFromEl(previousEl)) : {}) as WorkspaceType
+      const nextItem = (nextEl ? workspaces.value.find((v) => v.id === getIdFromEl(nextEl)) : {}) as WorkspaceType
+
+      let nextOrder: number
+
+      // set new order value based on the new order of the items
+      if (workspaces.value.length - 1 === newIndex) {
+        nextOrder = parseFloat(String(previousItem.order)) + 1
+      } else if (newIndex === 0) {
+        nextOrder = parseFloat(String(nextItem.order)) / 2
+      } else {
+        nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
+      }
+
+      const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+      currentItem.order = _nextOrder
+
+      await updateWorkspace(currentItem.id, { order: _nextOrder })
+
+      $e('a:workspace:reorder')
+    },
+    animation: 150,
+  })
+}
+
+const tab = computed({
+  get() {
+    return route.query?.tab ?? 'projects'
+  },
+  set(tab: string) {
+    router.push({ query: { ...route.query, tab } })
+  },
+})
+
+const renameInput = ref<HTMLInputElement[]>()
+const enableEdit = (index: number) => {
+  workspaces.value[index].temp_title = workspaces.value[index].title
+  workspaces.value[index].edit = true
+  nextTick(() => {
+    renameInput.value?.[0]?.focus()
+    renameInput.value?.[0]?.select()
+  })
+}
+const disableEdit = (index: number) => {
+  workspaces.value[index].temp_title = null
+  workspaces.value[index].edit = false
 }
 </script>
 
@@ -198,29 +292,32 @@ const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
           <div class="overflow-auto flex-grow min-h-25" style="flex-basis: 0px">
             <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-            <a-menu v-else ref="menu" v-model:selected-keys="selectedWorkspaceIndex" class="nc-workspace-list">
+            <a-menu
+              v-else
+              :ref="menu"
+              v-model:selected-keys="selectedWorkspaceIndex"
+              class="nc-workspace-list"
+              trigger-sub-menu-action="click"
+            >
               <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
-                <div class="nc-workspace-list-item">
-                  <a-dropdown :trigger="['click']" @click.stop>
+                <div class="nc-workspace-list-item flex items-center h-full" :data-id="workspace.id">
+                  <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
                     <div
                       :key="workspace.meta?.color"
                       class="nc-workspace-avatar"
-                      :style="{ backgroundColor: workspace.meta?.color || stringToColour(workspace.id) }"
+                      :style="{ backgroundColor: getWorkspaceColor(workspace) }"
                     >
-                      <span
-                        class="color-band"
-                        :style="{ backgroundColor: workspace.meta?.color || stringToColour(workspace.id) }"
-                      />
+                      <span class="color-band" :style="{ backgroundColor: getWorkspaceColor(workspace) }" />
                       {{ workspace.title?.slice(0, 2) }}
                     </div>
                     <template #overlay>
-                      <a-menu>
+                      <a-menu trigger-sub-menu-action="click">
                         <LazyGeneralColorPicker
-                          :model-value="workspace.meta?.color || stringToColour(workspace.id)"
+                          :model-value="getWorkspaceColor(workspace)"
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"
-                          @input="handleProjectColor(workspace, $event)"
+                          @input="handleWorkspaceColor(workspace.id, $event)"
                         />
                         <a-sub-menu key="pick-primary">
                           <template #title>
@@ -232,21 +329,28 @@ const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
 
                           <template #expandIcon></template>
 
-                          <LazyGeneralChromeWrapper @input="handleProjectColor(workspace, $event)" />
+                          <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id, $event)" />
                         </a-sub-menu>
                       </a-menu>
                     </template>
                   </a-dropdown>
                   <input
                     v-if="workspace.edit"
-                    v-model="workspace.title"
+                    ref="renameInput"
+                    v-model="workspace.temp_title"
+                    class="!leading-none outline-none bg-transparent"
                     autofocus
+                    @blur="disableEdit(i)"
                     @keydown.enter="updateWorkspaceTitle(workspace)"
+                    @keydown.esc="disableEdit(i)"
                   />
                   <div v-else class="nc-workspace-title shrink min-w-4 flex items-center gap-1">
-                    <span class="shrink min-w-0 overflow-ellipsis overflow-hidden" :title="workspace.title">{{
-                      workspace.title
-                    }}</span>
+                    <span
+                      class="shrink min-w-0 overflow-ellipsis overflow-hidden"
+                      :title="workspace.title"
+                      @dblclick="enableEdit(i)"
+                      >{{ workspace.title }}</span
+                    >
                     <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500">({{ roleAlias[workspace.roles] }})</span>
                   </div>
                   <div class="flex-grow"></div>
@@ -255,7 +359,7 @@ const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
 
                     <template #overlay>
                       <a-menu>
-                        <a-menu-item @click="workspace.edit = true">
+                        <a-menu-item @click="enableEdit(i)">
                           <div class="flex flex-row items-center py-3 gap-2">
                             <MdiPencil />
                             Rename Workspace
@@ -302,7 +406,7 @@ const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
         <div v-if="activeWorkspace">
           <div class="px-6 flex items-center">
             <div class="flex gap-2 items-center mb-4">
-              <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: stringToColour(activeWorkspace?.title) }">
+              <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
                 {{ activeWorkspace?.title?.slice(0, 2) }}
               </span>
               <h1 class="text-xl mb-0">{{ activeWorkspace?.title }}</h1>
@@ -346,7 +450,7 @@ const handleProjectColor = async (workspace: WorkspaceType, color: string) => {
             </a-dropdown>
           </div>
 
-          <a-tabs>
+          <a-tabs v-model:activeKey="tab">
             <a-tab-pane key="projects" tab="All Projects" class="w-full">
               <WorkspaceProjectList />
             </a-tab-pane>

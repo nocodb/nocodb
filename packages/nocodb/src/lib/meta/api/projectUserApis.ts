@@ -83,6 +83,8 @@ async function userInvite(req, res, next): Promise<any> {
         );
       }
 
+      // todo:  add to workspace if missing
+
       await Audit.insert({
         project_id: req.params.projectId,
         op_type: 'AUTHENTICATION',
@@ -120,6 +122,9 @@ async function userInvite(req, res, next): Promise<any> {
           description: `invited ${email} to ${req.params.projectId} project `,
           ip: req.clientIp,
         });
+
+        // todo:  add to workspace if missing
+
         // in case of single user check for smtp failure
         // and send back token if failed
         if (
@@ -217,6 +222,8 @@ async function projectUserDelete(req, res): Promise<any> {
       NcError.forbidden('Insufficient privilege to delete a owner user.');
   }
 
+  // todo:  remove from workspace if user is not part of any other in the same org
+  //        or org level role is not defined
   await ProjectUser.delete(project_id, req.params.userId);
   res.json({
     msg: 'success',
@@ -299,6 +306,32 @@ export async function sendInviteEmail(
     );
     throw e;
   }
+}
+
+// @ts-ignore
+async function addUserToWorkspaceIfMissing() {
+  // const user = await User.get(req.params.userId);
+  // const workspace = await Workspace.get(req.params.workspaceId);
+  // if (!workspace) {
+  //   NcError.badRequest(`Workspace with id '${req.params.workspaceId}' not found`);
+  // }
+  // const workspaceUser = await WorkspaceUser.get(workspace.id, user.id);
+  // if (!workspaceUser) {
+  //   await WorkspaceUser.insert(workspace.id, user.id, user.roles);
+  // }
+}
+
+// @ts-ignore
+async function removeUserFromWorkspaceIfNotPartOfAnyOtherProjectOrRoleIsNotDefined() {
+  // const user = await User.get(req.params.userId);
+  // const workspace = await Workspace.get(req.params.workspaceId);
+  // if (!workspace) {
+  //   NcError.badRequest(`Workspace with id '${req.params.workspaceId}' not found`);
+  // }
+  // const workspaceUser = await WorkspaceUser.get(workspace.id, user.id);
+  // if (workspaceUser) {
+  //   await WorkspaceUser.delete(workspace.id, user.id);
+  // }
 }
 
 const router = Router({ mergeParams: true });

@@ -65,6 +65,15 @@ const workspaceUpdate = async (
   req: Request<{ workspaceId: string }, any, Partial<WorkspaceType>>,
   res: Response
 ) => {
+  // todo: allow order update for all user
+  //       and block rest of the options
+  if ('order' in req.body) {
+    await WorkspaceUser.update(req.params.workspaceId, req['user']?.id, {
+      order: req.body.order,
+    });
+    delete req.body.order;
+  }
+
   // todo: validate params
   // validateParams(['title', 'description'], req.body);
 
@@ -100,7 +109,7 @@ const workspaceUserGet = (_req, _res) => {
   // todo
 };
 const workspaceUserUpdate = async (req, res) => {
-  validateParams(['roles'], req.body);
+  // validateParams(['roles'], req.body);
 
   // todo
   const { workspaceId, userId } = req.params;

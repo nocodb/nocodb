@@ -3,8 +3,8 @@ import type { TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
-import GithubButton from 'vue-github-button'
-import { Icon } from '@iconify/vue'
+// import GithubButton from 'vue-github-button'
+import { Icon as IconifyIcon } from '@iconify/vue'
 import type { VNodeRef } from '#imports'
 import {
   ClientType,
@@ -664,12 +664,12 @@ const setIcon = async (icon: string, table: TableType) => {
                             <div class="flex items-center" @click.stop>
                               <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
                                 <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
-                                  <Icon
+                                  <IconifyIcon
                                     :key="table.meta?.icon"
                                     :data-testid="`nc-icon-${table.meta?.icon}`"
                                     class="text-xl"
                                     :icon="table.meta?.icon"
-                                  ></Icon>
+                                  ></IconifyIcon>
                                 </span>
                                 <component
                                   :is="icon(table)"
@@ -1011,12 +1011,12 @@ const setIcon = async (icon: string, table: TableType) => {
                               <div class="flex items-center" @click.stop>
                                 <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
                                   <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
-                                    <Icon
+                                    <IconifyIcon
                                       :key="table.meta?.icon"
                                       :data-testid="`nc-icon-${table.meta?.icon}`"
                                       class="text-xl"
                                       :icon="table.meta?.icon"
-                                    ></Icon>
+                                    ></IconifyIcon>
                                   </span>
                                   <component
                                     :is="icon(table)"

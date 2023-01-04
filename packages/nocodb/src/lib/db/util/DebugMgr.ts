@@ -91,6 +91,7 @@ export default class DebugMgr {
 
   static disableAll(namespace) {
     for (const key in levels) {
+      // @ts-ignore
       debug.disable(`${namespace}_${levels[key]}`);
       this.refreshNamespace(namespace);
     }

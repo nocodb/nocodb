@@ -28,7 +28,7 @@ import { Workspace } from '../../../models/Workspace';
 import { WorkspaceUser } from '../../../models/WorkspaceUser';
 
 async function createDefaultWorkspace(user: User) {
-  const title = `${user.email?.split('@')?.[0]}'s workspace`;
+  const title = `${user.email?.split('@')?.[0]}`;
   // create new workspace for user
   const workspace = await Workspace.insert({
     title,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCowriterStoreOrThrow } from '#imports'
-const { cowriterInputActiveKey, generateCowriter, generateCowriterLoading } = useCowriterStoreOrThrow()
+const { cowriterInputActiveKey, generateCowriter, generateCowriterLoading, maxCowriterGeneration } = useCowriterStoreOrThrow()
 
 async function generate() {
   await generateCowriter()
@@ -17,6 +17,7 @@ async function generate() {
     </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-8">
+        <a-input-number v-model:value="maxCowriterGeneration" type="number" :min="1" :max="10" />
         <a-button class="!rounded-md" type="primary" :loading="generateCowriterLoading" @click="generate">
           {{ $t('general.generate') }}
         </a-button>

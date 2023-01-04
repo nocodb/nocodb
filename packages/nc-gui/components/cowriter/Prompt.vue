@@ -202,6 +202,6 @@ watch(suggestionsList, (v) => {
 
 <style lang="scss">
 .nc-cowriter-prompt textarea {
-  @apply !m-[20px];
+  @apply !m-[40px];
 }
 </style>

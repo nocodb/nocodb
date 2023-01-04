@@ -161,7 +161,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     isWorkspaceCreator,
     isWorkspaceOwner,
   }
-})
+}, 'workspaceStore')
 
 export { useProvideWorkspaceStore }
 

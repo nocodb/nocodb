@@ -128,7 +128,7 @@ const getProjectPrimary = (project: ProjectType) => {
                   <!--                  todo: allow based on role -->
                   <span class="block w-2 h-6 rounded-sm" :style="{ backgroundColor: getProjectPrimary(project) }" />
                   <template #overlay>
-                    <a-menu>
+                    <a-menu trigger-sub-menu-action="click">
                       <a-menu-item>
                         <LazyGeneralColorPicker
                           :model-value="getProjectPrimary(project)"

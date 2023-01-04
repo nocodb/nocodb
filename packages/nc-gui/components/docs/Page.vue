@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { BubbleMenu, EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
+import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
 import BulletList from '@tiptap/extension-bullet-list'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import TaskItem from '@tiptap/extension-task-item'
@@ -8,10 +8,10 @@ import StarterKit from '@tiptap/starter-kit'
 import Strike from '@tiptap/extension-strike'
 import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
-import Image from '@tiptap/extension-image'
 import CodeBlock from '@tiptap/extension-code-block'
 import Commands from './commands'
-import suggestion from './suggestion'
+import suggestion from './commands/suggestion'
+import { createImageExtension } from './images/node'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
@@ -28,6 +28,7 @@ const {
   drafts,
   fetchDrafts,
   findPage,
+  uploadFile,
 } = useDocs()
 
 const isDraftsOpen = ref(false)
@@ -83,10 +84,11 @@ const editor = useEditor({
         class: 'nc-docs-horizontal-rule',
       },
     }),
-    Image.configure({
-      inline: true,
-    }),
     CodeBlock,
+    createImageExtension(async (image) => {
+      const { url } = await uploadFile(image)
+      return url
+    }),
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -175,7 +177,7 @@ watch(titleInputRef, (el) => {
 
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.content],
-  ([newId, newContent], [oldId, oldContent]) => {
+  ([newId], [oldId]) => {
     if (!isPublic.value && openedPage.value?.id && newId === oldId) {
       updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content } as any })
     }
@@ -246,41 +248,10 @@ watchDebounced(
         auto-size
       />
 
-      <BubbleMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100 }">
-        <div class="flex flex-row gap-x-1 mb-1">
-          <button
-            :class="{ 'is-active': editor.isActive('bold') }"
-            class="px-1 border-black border bg-white"
-            @click="editor!.chain().focus().toggleBold().run()"
-          >
-            bold
-          </button>
-          <button
-            :class="{ 'is-active': editor.isActive('italic') }"
-            class="px-1 border-black border bg-white"
-            @click="editor!.chain().focus().toggleItalic().run()"
-          >
-            italic
-          </button>
-          <button
-            :class="{ 'is-active': editor.isActive('strike') }"
-            class="px-1 border-black border bg-white"
-            @click="editor!.chain().focus().toggleStrike().run()"
-          >
-            strike
-          </button>
-          <button
-            :class="{ 'is-active': editor.isActive('strike') }"
-            class="px-1 border-black border bg-white"
-            @click="editor!.chain().focus().toggleBulletList().run()"
-          >
-            bullet
-          </button>
-        </div>
-      </BubbleMenu>
+      <DocsSelectedBubbleMenu v-if="editor" :editor="editor" />
       <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
         <MdiPlus
-          class="hover:cursor-pointer hover:bg-gray-100 rounded-md mt-1.5"
+          class="hover:cursor-pointer hover:bg-gray-50 rounded-md"
           @click="editor!.chain().focus().insertContent('/').run()"
         />
       </FloatingMenu>

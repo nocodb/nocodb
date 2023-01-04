@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useCowriterStoreOrThrow } from '#imports'
+import { timeAgo, useCowriterStoreOrThrow } from '#imports'
 
 const { cowriterOutputList, cowriterHistoryList, cowriterOutputActiveKey, generateCowriterLoading } = useCowriterStoreOrThrow()
 
@@ -19,7 +19,7 @@ const cowriterRecords = computed(() =>
       <div v-for="record of cowriterRecords" :key="record.id" class="border-b-1 border-gray-200">
         <div class="p-[24px] pb-0">{{ record.output }}</div>
         <div class="flex justify-end pr-3 pb-3">
-          {{ record.created_at }}
+          {{ timeAgo(record.created_at) }}
         </div>
       </div>
     </div>

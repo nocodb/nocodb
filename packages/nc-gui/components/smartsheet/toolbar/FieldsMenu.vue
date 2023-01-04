@@ -144,6 +144,8 @@ useMenuCloseOnEsc(open)
           <MdiEyeOffOutline />
 
           <!-- Fields -->
+          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
+
           <MdiMenuDown class="text-grey" />
 
           <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>

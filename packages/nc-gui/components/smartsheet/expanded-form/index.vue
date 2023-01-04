@@ -27,12 +27,6 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel'])
 
-export interface InitialGeoPositionData {
-  lat?: number
-  long?: number
-  geoColId?: string
-}
-
 interface Props {
   modelValue?: boolean
   row: Row
@@ -42,7 +36,6 @@ interface Props {
   useMetaFields?: boolean
   rowId?: string
   view?: ViewType
-  initialGeoPositionData?: InitialGeoPositionData
 }
 
 const row = ref(props.row)
@@ -50,9 +43,6 @@ const row = ref(props.row)
 const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
-
-// const initialGeoPositionData = toRef(props, 'initialGeoPositionData')
-const initialGeoPositionData = ref(props.initialGeoPositionData)
 
 const router = useRouter()
 
@@ -184,7 +174,6 @@ export default {
                   :column="col"
                   :edit-enabled="true"
                   :active="true"
-                  :default-geo-position="initialGeoPositionData"
                   @update:model-value="changedColumns.add(col.title)"
                 />
               </div>

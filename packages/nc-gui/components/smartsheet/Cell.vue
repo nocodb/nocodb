@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
-import type { InitialGeoPositionData } from './expanded-form/index.vue'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -56,10 +55,6 @@ interface Props {
   rowIndex?: number
   active?: boolean
   virtual?: boolean
-  // TODO: check whether
-  // a) this is in general the right approach to pass in default values
-  // b) if yes: probably we want to make it generic (column type independent)
-  defaultGeoPosition?: InitialGeoPositionData
 }
 
 const props = defineProps<Props>()

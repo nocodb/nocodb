@@ -8,6 +8,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import { IsGalleryInj, IsGridInj, IsMapInj, OpenNewRecordFormHookInj, onMounted, provide, ref } from '#imports'
 
 import type { Row as RowType } from '~/lib'
+import { latLongToJoinedString } from '~~/utils/geoDataUtils'
 
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
@@ -145,7 +146,7 @@ onMounted(async () => {
     const lng = e.latlng.lng
     const newRow = await addEmptyRow()
     if (geoDataFieldColumn.value?.title) {
-      newRow.row[geoDataFieldColumn.value.title] = `${lat.toFixed(7)};${lng.toFixed(7)}`
+      newRow.row[geoDataFieldColumn.value.title] = latLongToJoinedString(lat, lng)
     }
     expandForm(newRow, [lat, lng])
   })
@@ -196,12 +197,6 @@ watch(view, async (nextView) => {
   }
 })
 
-const expandedFormDlgInitialGeoPositionData = computed(() => ({
-  lat: expandedFormClickedLatLongForNewRow.value?.[0],
-  long: expandedFormClickedLatLongForNewRow.value?.[1],
-  geoColId: geoDataFieldColumn.value?.id,
-}))
-
 const count = computed(() => paginationData.value.totalRows)
 </script>
 
@@ -231,7 +226,6 @@ const count = computed(() => paginationData.value.totalRows)
       :state="expandedFormRowState"
       :meta="meta"
       :view="view"
-      :initial-geo-position-data="expandedFormDlgInitialGeoPositionData"
     />
   </Suspense>
 

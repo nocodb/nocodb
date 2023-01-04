@@ -80,6 +80,11 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   }
 
   async function generateCowriter() {
+    if (!promptStatementTemplate.value) {
+      message.warn('No prompt statement is found.')
+      return
+    }
+
     generateCowriterLoading.value = true
     try {
       await cowriterFormRef.value?.validateFields()
@@ -88,10 +93,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
       generateCowriterLoading.value = false
       if (e.errorFields.length) return
     }
-    if (!promptStatementTemplate.value) {
-      message.warn('No prompt statement is found.')
-      return
-    }
+
     const generationTasks = []
     for (let i = 0; i < maxCowriterGeneration.value; i++) {
       generationTasks.push(await $api.cowriterTable.create(cowriterTable.value!.id!, cowriterFormState))

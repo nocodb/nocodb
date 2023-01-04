@@ -346,12 +346,8 @@ const setIcon = async (icon: string, table: TableType) => {
               :placeholder="$t('placeholder.searchProjectTree')"
             />
 
-            <span v-else class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
-              {{ $t('objects.tables') }}
-
-              <template v-if="tables.filter((table) => table.base_id === bases[0].id)?.length">
-                ({{ tables.filter((table) => table.base_id === bases[0].id).length }})
-              </template>
+            <span v-else class="flex-1 text-bold nc-project-tree text-gray-500 font-weight-bold">
+              <MdiBackburger v-e="['c:grid:toggle-navdraw']" class="cursor-pointer transform transition-transform duration-500" />Products
             </span>
           </Transition>
 
@@ -682,7 +678,7 @@ const setIcon = async (icon: string, table: TableType) => {
         <div v-else class="transition-height duration-200">
           <div class="border-none sortable-list">
             <div v-for="[index, base] of Object.entries(bases)" :key="`base-${base.id}`">
-              <a-collapse
+              FOO<a-collapse
                 v-if="base && base.enabled"
                 v-model:activeKey="activeKey"
                 :class="[{ hidden: searchActive && !!filterQuery && !filteredTables?.find((el) => el.base_id === base.id) }]"
@@ -1016,7 +1012,10 @@ const setIcon = async (icon: string, table: TableType) => {
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <GeneralJoinCloud v-if="!isMobileMode" class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      <GeneralJoinCloud
+        v-if="!isMobileMode"
+        class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent"
+      />
 
       <GithubButton
         v-if="!isMobileMode"

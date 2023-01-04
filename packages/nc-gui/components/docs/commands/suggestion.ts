@@ -2,7 +2,7 @@ import type { Editor, Range } from '@tiptap/vue-3'
 import { VueRenderer } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 
-import CommandsList from '../CommandsList.vue'
+import CommandsList from './CommandsList.vue'
 
 export default {
   items: ({ query }: { query: any }) => {

@@ -16,7 +16,6 @@ const IMAGE_INPUT_REGEX = /!\[(.+|:?)\]\((\S+)(?:(?:\s+)["'](\S+)["'])?\)/
 export const createImageExtension = (uploadFn: UploadFn) => {
   return Node.create({
     name: 'image',
-    inline: false,
     group: 'block',
     draggable: true,
     addAttributes: () => ({

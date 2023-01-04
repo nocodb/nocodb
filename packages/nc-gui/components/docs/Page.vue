@@ -300,6 +300,20 @@ div[contenteditable='false'].ProseMirror {
   user-select: text !important;
 }
 
+.ProseMirror {
+  img {
+    max-width: 100%;
+    height: auto;
+
+    &.ProseMirror-selectednode {
+      // outline with rounded corners
+      outline: 2.5px solid #1890ff;
+      outline-offset: -2px;
+      border-radius: 4px;
+    }
+  }
+}
+
 .ProseMirror p.is-empty::before {
   content: attr(data-placeholder);
   float: left;

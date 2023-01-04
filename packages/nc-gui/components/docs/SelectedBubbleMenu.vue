@@ -9,10 +9,19 @@ interface Props {
 }
 
 const { editor } = defineProps<Props>()
+
+const isImageNode = computed(() => {
+  const { state } = editor
+  // active node of tiptap editor
+  const activeNode = state.selection.$from.nodeAfter
+
+  // check if active node is a text node
+  return activeNode?.type.name === 'image'
+})
 </script>
 
 <template>
-  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100 }">
+  <BubbleMenu v-if="!isImageNode" :editor="editor" :tippy-options="{ duration: 100 }">
     <div class="flex flex-row gap-x-1 mb-1">
       <button
         :class="{ 'is-active': editor.isActive('bold') }"

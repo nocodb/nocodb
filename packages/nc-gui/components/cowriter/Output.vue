@@ -12,10 +12,10 @@ const { cowriterOutputList, cowriterOutputActiveKey, clearCowriterOutput } = use
           {{ cowriterOutputList.length }}
         </span>
       </template>
-      <CowriterList />
+      <LazyCowriterList />
     </a-tab-pane>
     <a-tab-pane key="cowriter-history" tab="History">
-      <CowriterList />
+      <LazyCowriterList />
     </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-4">

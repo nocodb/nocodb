@@ -10,10 +10,10 @@ async function generate() {
 <template>
   <a-tabs v-model:activeKey="cowriterInputActiveKey" class="nc-cowriter-tabs">
     <a-tab-pane key="cowriter-form" tab="Fields">
-      <CowriterForm />
+      <LazyCowriterForm />
     </a-tab-pane>
     <a-tab-pane key="cowriter-prompt" tab="Prompt">
-      <CowriterPrompt />
+      <LazyCowriterPrompt />
     </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-8">

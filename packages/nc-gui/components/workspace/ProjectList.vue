@@ -3,14 +3,14 @@ import { Empty } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
-import { NcProjectType, navigateTo, stringToColour, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
+import { NcProjectType, navigateTo, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 import { useNuxtApp } from '#app'
 
-const { projects, loadProjects } = useWorkspaceStoreOrThrow()
+const { projects } = useWorkspaceStoreOrThrow()
 
 const { $e, $api } = useNuxtApp()
 
-const { isUIAllowed } = useUIPermission()
+// const { isUIAllowed } = useUIPermission()
 
 const openProject = async (project: ProjectType) => {
   switch (project.type) {

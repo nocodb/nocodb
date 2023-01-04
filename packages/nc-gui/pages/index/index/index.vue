@@ -24,6 +24,8 @@ definePageMeta({
   hideHeader: true,
 })
 
+const router = useRouter()
+
 const roleAlias = {
   [WorkspaceUserRoles.OWNER]: 'Owner',
   [WorkspaceUserRoles.VIEWER]: 'Viewer',
@@ -47,14 +49,14 @@ const route = useRoute()
 
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
-    const index =workspaces?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
-    return [ index === -1 ? 0 : index ]
+    const index = workspaces?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
+    return [index === -1 ? 0 : index]
   },
   set(index: number[]) {
     if (index?.length) {
-      router.push({ query: {  workspaceId: workspaces.value?.[index[0]]?.id } })
+      router.push({ query: { workspaceId: workspaces.value?.[index[0]]?.id } })
     } else {
-      router.push({ query: { } })
+      router.push({ query: {} })
     }
   },
 })
@@ -64,6 +66,15 @@ const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar-workspa
 
 const isCreateDlgOpen = ref(false)
 
+const menuEl = ref<Menu | null>(null)
+
+const menu = (el?: typeof Menu) => {
+  if (el) {
+    menuEl.value = el
+    initSortable(el.$el)
+  }
+}
+
 useDialog(resolveComponent('WorkspaceCreateDlg'), {
   'modelValue': isCreateDlgOpen,
   'onUpdate:modelValue': (isOpen: boolean) => (isCreateDlgOpen.value = isOpen),
@@ -71,7 +82,7 @@ useDialog(resolveComponent('WorkspaceCreateDlg'), {
     isCreateDlgOpen.value = false
     await loadWorkspaceList()
     await nextTick(() => {
-      ;[...menu.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
+      ;[...menuEl?.value?.$el?.querySelectorAll('li.ant-menu-item')]?.pop()?.scrollIntoView({
         block: 'nearest',
         inline: 'nearest',
       })
@@ -100,8 +111,6 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
   })
 }
 
-const router = useRouter()
-
 const navigateToCreateProject = (type: NcProjectType) => {
   if (type === NcProjectType.AUTOMATION) {
     return message.info('Automation is not available at the moment')
@@ -116,9 +125,10 @@ const navigateToCreateProject = (type: NcProjectType) => {
   }
 }
 
-const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean }) => {
+const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; temp_title: string }) => {
   try {
-    await updateWorkspace(workspace.id!, { title: workspace.title })
+    await updateWorkspace(workspace.id!, { title: workspace.temp_title })
+    workspace.title = workspace.temp_title
     workspace.edit = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -156,7 +166,7 @@ function getIdFromEl(previousEl: HTMLElement) {
 }
 
 // todo: replace with vuedraggable
-const initSortable = (el: Element) => {
+function initSortable(el: Element) {
   Sortable.create(el as HTMLLIElement, {
     onEnd: async (evt) => {
       if (workspaces.value?.length < 2) return
@@ -200,20 +210,28 @@ const initSortable = (el: Element) => {
   })
 }
 
-const menu = (el?: typeof Menu) => {
-  if (el) {
-    initSortable(el.$el)
-  }
-}
-
 const tab = computed({
   get() {
     return route.query?.tab ?? 'projects'
   },
   set(tab: string) {
-    router.push({ query: { ...route.query,tab,  } })
+    router.push({ query: { ...route.query, tab } })
   },
 })
+
+const renameInput = ref<HTMLInputElement[]>()
+const enableEdit = (index: number) => {
+  workspaces.value[index].temp_title = workspaces.value[index].title
+  workspaces.value[index].edit = true
+  nextTick(() => {
+    renameInput.value?.[0]?.focus()
+    renameInput.value?.[0]?.select()
+  })
+}
+const disableEdit = (index: number) => {
+  workspaces.value[index].temp_title = null
+  workspaces.value[index].edit = false
+}
 </script>
 
 <template>
@@ -282,7 +300,7 @@ const tab = computed({
               trigger-sub-menu-action="click"
             >
               <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
-                <div class="nc-workspace-list-item" :data-id="workspace.id">
+                <div class="nc-workspace-list-item flex items-center h-full" :data-id="workspace.id">
                   <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
                     <div
                       :key="workspace.meta?.color"
@@ -318,14 +336,21 @@ const tab = computed({
                   </a-dropdown>
                   <input
                     v-if="workspace.edit"
-                    v-model="workspace.title"
+                    ref="renameInput"
+                    v-model="workspace.temp_title"
+                    class="!leading-none outline-none bg-transparent"
                     autofocus
+                    @blur="disableEdit(i)"
                     @keydown.enter="updateWorkspaceTitle(workspace)"
+                    @keydown.esc="disableEdit(i)"
                   />
                   <div v-else class="nc-workspace-title shrink min-w-4 flex items-center gap-1">
-                    <span class="shrink min-w-0 overflow-ellipsis overflow-hidden" :title="workspace.title">{{
-                      workspace.title
-                    }}</span>
+                    <span
+                      class="shrink min-w-0 overflow-ellipsis overflow-hidden"
+                      :title="workspace.title"
+                      @dblclick="enableEdit(i)"
+                      >{{ workspace.title }}</span
+                    >
                     <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500">({{ roleAlias[workspace.roles] }})</span>
                   </div>
                   <div class="flex-grow"></div>
@@ -334,7 +359,7 @@ const tab = computed({
 
                     <template #overlay>
                       <a-menu>
-                        <a-menu-item @click="workspace.edit = true">
+                        <a-menu-item @click="enableEdit(i)">
                           <div class="flex flex-row items-center py-3 gap-2">
                             <MdiPencil />
                             Rename Workspace

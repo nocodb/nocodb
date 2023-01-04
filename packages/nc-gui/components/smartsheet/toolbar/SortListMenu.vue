@@ -24,6 +24,8 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
+const { isMobileMode } = useGlobal()
+
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.SORT_RELOAD) {
     loadSorts()
@@ -66,7 +68,7 @@ useMenuCloseOnEsc(open)
           <MdiSort />
 
           <!-- Sort -->
-          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
           <MdiMenuDown class="text-grey" />
 
           <span v-if="sorts?.length" class="nc-count-badge">{{ sorts.length }}</span>

@@ -29,6 +29,8 @@ const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
 
+const { isMobileMode } = useGlobal()
+
 // todo: avoid duplicate api call by keeping a filter store
 const { nonDeletedFilters, loadFilters } = useViewFilters(
   activeView!,
@@ -76,7 +78,7 @@ useMenuCloseOnEsc(open)
         <div class="flex items-center gap-1">
           <MdiFilterOutline />
           <!-- Filter -->
-          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.filter') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.filter') }}</span>
           <MdiMenuDown class="text-grey" />
 
           <span v-if="filtersLength" class="nc-count-badge">{{ filtersLength }}</span>

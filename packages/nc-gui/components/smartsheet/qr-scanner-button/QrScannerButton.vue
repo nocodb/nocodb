@@ -14,6 +14,8 @@ const router = useRouter()
 const { $api } = useNuxtApp()
 const { project } = useProject()
 
+const { isMobileMode } = useGlobal()
+
 const view = inject(ActiveViewInj, ref())
 
 const codeFieldOptions = computed<SelectProps['options']>(
@@ -94,7 +96,7 @@ const onDecode = async (codeValue: string) => {
     <a-button class="nc-btn-share-view nc-toolbar-btn" @click="showCodeScannerOverlay = true">
       <div class="flex items-center gap-1">
         <QrCodeScan />
-        <span class="!text-sm font-weight-normal"> {{ $t('activity.scanCode') }}</span>
+        <span v-if="!isMobileMode" class="!text-sm font-weight-normal"> {{ $t('activity.scanCode') }}</span>
       </div>
     </a-button>
     <a-modal

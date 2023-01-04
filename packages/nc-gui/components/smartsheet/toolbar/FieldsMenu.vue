@@ -31,6 +31,8 @@ const reloadViewMetaHook = inject(ReloadViewMetaHookInj)!
 
 const rootFields = inject(FieldsInj)
 
+const { isMobileMode } = useGlobal()
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -144,7 +146,7 @@ useMenuCloseOnEsc(open)
           <MdiEyeOffOutline />
 
           <!-- Fields -->
-          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
 

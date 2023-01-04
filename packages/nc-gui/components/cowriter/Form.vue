@@ -52,6 +52,8 @@ const { saveOrUpdate } = useViewColumns(cowriterFormView as Ref<ViewType>, cowri
 
 const isCreateColumnUsingAIDlgOpen = ref(false)
 
+const isLoadingForm = ref(true)
+
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
@@ -227,19 +229,17 @@ async function submitCallback() {
   showColumnDropdown.value = false
 }
 
-watch([cowriterTable, cowriterFormView], async () => {
+watch(cowriterFormView, async () => {
+  isLoadingForm.value = true
   await loadFormView()
   setFormData()
-})
-
-onMounted(async () => {
-  await loadFormView()
-  setFormData()
+  isLoadingForm.value = false
 })
 </script>
 
 <template>
-  <div class="bg-[#FAFAFA] px-[30px] py-[15px] max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-scroll">
+  <a-skeleton v-if="isLoadingForm" class="p-4" />
+  <div v-else class="bg-[#FAFAFA] px-[30px] py-[15px] max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-scroll">
     <div class="flex items-center flex-wrap justify-end gap-2">
       <a-dropdown v-model:visble="showAddFieldDropdown">
         <template #overlay>

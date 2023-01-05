@@ -672,8 +672,6 @@ if ((column.value?.colOptions as any)?.formula_raw) {
       meta?.value?.columns as ColumnType[],
       (column.value?.colOptions as any)?.formula_raw,
     ) || ''
-} else {
-  vModel.value.formula_raw = ''
 }
 
 // set additional validations
@@ -691,6 +689,7 @@ const predictFunction = async () => {
     operation: 'predictFormula',
     data: {
       title: formState.value?.title,
+      table: meta.value?.title,
       columns: supportedColumns.value.map((c) => c.title),
       functions: suggestionsList.value.filter((f) => f.type === 'function').map((f) => f.text),
     },

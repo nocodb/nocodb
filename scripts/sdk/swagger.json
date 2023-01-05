@@ -7481,7 +7481,9 @@
                     "enum": [
                       "selectOptions",
                       "predictColumnType",
-                      "predictFormula"
+                      "predictFormula",
+                      "predictNextColumn",
+                      "predictNextFormulas"
                     ]
                   },
                   "data": {

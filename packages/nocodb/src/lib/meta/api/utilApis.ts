@@ -424,7 +424,7 @@ async function predictFormula(req: Request, res: Response) {
   const colPrompt = req.body.data.columns.map((col) => `'${col}'`).join(', ');
   const response = await openai.createCompletion({
     model: "text-davinci-003",
-    prompt: `accounting table has ${colPrompt} columns
+    prompt: `'${req.body.data.table}' table has ${colPrompt} columns
     write formula for '${req.body.data.title}' using basic arithmetics and wrapping each column name with {}`,
     temperature: 0.7,
     max_tokens: 1000,
@@ -443,6 +443,53 @@ async function predictFormula(req: Request, res: Response) {
   res.json(resObject);
 }
 
+async function predictNextColumn(req: Request, res: Response) {
+  const colPrompt = req.body.data.columns.length ? req.body.data.columns.map((col) => `'${col}'`).join(', ') : 'no';
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: `Using types: SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry
+    Predict next 5 column for '${req.body.data.table}' table which have ${colPrompt} columns and return as json { title: string; type: string }[]`,
+    temperature: 0.7,
+    max_tokens: 200,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    return;
+  }
+
+  const resObject = { data: JSON5.parse(response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim()) };
+
+  res.json(resObject);
+}
+
+async function predictNextFormulas(req: Request, res: Response) {
+  const colPrompt = req.body.data.columns.length ? req.body.data.columns.map((col) => `'${col}'`).join(', ') : 'no';
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: `${req.body.data.table} table has ${colPrompt} columns
+    write possible formulas using basic arithmetic operators and wrapping each column name with {} and return as json { title: string, formula: string }[]
+    `,
+    temperature: 0.7,
+    max_tokens: 200,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    return;
+  }
+
+  const resObject = { data: JSON5.parse(response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim()) };
+
+  res.json(resObject);
+}
+
 export async function genericGPT(req: Request, res: Response) {
   // req.body.operation
   // req.body.data
@@ -456,8 +503,14 @@ export async function genericGPT(req: Request, res: Response) {
         // req.body.data.title
         return await predictColumnType(req, res);
       case "predictFormula":
-        // req.body.data.columns, req.body.data.title
+        // req.body.data.columns, req.body.table, req.body.data.title
         return await predictFormula(req, res);
+      case "predictNextColumn":
+        // req.body.data.columns, req.body.data.table
+        return await predictNextColumn(req, res);
+      case "predictNextFormulas":
+        // req.body.data.columns, req.body.data.table
+        return await predictNextFormulas(req, res);
       default:
         return res.status(500).json({ msg: "Unknown operation" });
     }

@@ -53,7 +53,7 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
@@ -451,9 +451,21 @@ function makeEditable(row: Row, col: ColumnType) {
   return (editEnabled = true)
 }
 
+const altModifier = ref(false)
+
+const persistMenu = ref(false)
+
+/** handle keypress events */
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  if (e.key === 'Alt') {
+    altModifier.value = true
+  }
+})
+
 /** handle keypress events */
 useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   if (e.key === 'Alt') {
+    altModifier.value = false
     disableUrlOverlay.value = false
   }
 })
@@ -549,7 +561,66 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
   }
 }
 
+const predictingNextColumn = ref(false)
+
+const predictedNextColumn = ref<Array<{ title: string; type: string }>>()
+
+const predictingNextFormulas = ref(false)
+
+const predictedNextFormulas = ref<Array<{ title: string; formula: string }>>()
+
+const preloadColumn = ref<Partial<any>>()
+
+const predictNextColumn = async () => {
+  predictingNextColumn.value = true
+  if (meta.value && meta.value.columns) {
+    const res: { data: Array<{ title: string; type: string }> } = await $api.utils.magic({
+      operation: 'predictNextColumn',
+      data: {
+        table: meta.value.title,
+        columns: meta.value.columns.map((col) => col.title),
+      },
+    })
+
+    predictedNextColumn.value = res.data
+  }
+  predictingNextColumn.value = false
+}
+
+const predictNextFormulas = async () => {
+  predictingNextFormulas.value = true
+  if (meta.value && meta.value.columns) {
+    const res: { data: Array<{ title: string; formula: string }> } = await $api.utils.magic({
+      operation: 'predictNextFormulas',
+      data: {
+        table: meta.value.title,
+        columns: meta.value.columns
+          .filter((c) => {
+            // skip system LTAR columns
+            if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
+            if ([UITypes.QrCode, UITypes.Barcode].includes(c.uidt as UITypes)) return false
+            return true
+          })
+          .map((col) => col.title),
+      },
+    })
+
+    predictedNextFormulas.value = res.data
+  }
+  predictingNextFormulas.value = false
+}
+
+const loadColumn = (title: string, tp: string, colOptions?: any) => {
+  preloadColumn.value = {
+    title,
+    uidt: tp,
+    colOptions,
+  }
+  persistMenu.value = false
+}
+
 async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
+  predictedNextColumn.value = undefined
   // set value if spinner should be hidden
   showLoading.value = !!shouldShowLoading
   await loadData()
@@ -705,19 +776,84 @@ const closeAddColumnDropdown = () => {
                   v-model:visible="addColumnDropdown"
                   :trigger="['click']"
                   overlay-class-name="nc-dropdown-grid-add-column"
+                  @visible-change="persistMenu = altModifier"
                 >
                   <div class="h-full w-[60px] flex items-center justify-center">
-                    <MdiPlus class="text-sm nc-column-add" />
+                    <PhSparkleFill v-if="altModifier || persistMenu" class="text-sm text-orange-400" />
+                    <MdiPlus v-else class="text-sm nc-column-add" />
                   </div>
 
-                  <template #overlay>
+                  <template v-if="persistMenu" #overlay>
+                    <a-menu>
+                      <a-sub-menu v-if="predictedNextColumn" key="predict-column">
+                        <template #title>
+                          <div class="flex flex-row items-center py-3">
+                            <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs pl-2">Predict Column</div>
+                            <MdiChevronRight class="text-gray-500 ml-2" />
+                          </div>
+                        </template>
+                        <template #expandIcon></template>
+                        <a-menu>
+                          <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
+                            <a-menu-item>
+                              <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
+                                <div class="text-xs pl-2">{{ col.title }}</div>
+                              </div>
+                            </a-menu-item>
+                          </template>
+                        </a-menu>
+                      </a-sub-menu>
+                      <a-menu-item v-else>
+                        <!-- Predict Column -->
+                        <div class="flex flex-row items-center py-3" @click="predictNextColumn">
+                          <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
+                          <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
+                          <div class="text-xs pl-2">Predict Column</div>
+                        </div>
+                      </a-menu-item>
+                      <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
+                        <template #title>
+                          <div class="flex flex-row items-center py-3">
+                            <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs pl-2">Predict Formula</div>
+                            <MdiChevronRight class="text-gray-500 ml-2" />
+                          </div>
+                        </template>
+                        <template #expandIcon></template>
+                        <a-menu>
+                          <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
+                            <a-menu-item>
+                              <div
+                                class="flex flex-row items-center py-3"
+                                @click="loadColumn(col.title, 'Formula', { formula_raw: col.formula })"
+                              >
+                                <div class="text-xs pl-2">{{ col.title }}</div>
+                              </div>
+                            </a-menu-item>
+                          </template>
+                        </a-menu>
+                      </a-sub-menu>
+                      <a-menu-item v-else>
+                        <!-- Predict Formula -->
+                        <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
+                          <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
+                          <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
+                          <div class="text-xs pl-2">Predict Formula</div>
+                        </div>
+                      </a-menu-item>
+                    </a-menu>
+                  </template>
+                  <template v-else #overlay>
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
+                      :preload="preloadColumn"
                       :column-position="columnOrder"
                       @submit="closeAddColumnDropdown"
                       @cancel="closeAddColumnDropdown"
                       @click.stop
                       @keydown.stop
+                      @mounted="preloadColumn = undefined"
                     />
                   </template>
                 </a-dropdown>

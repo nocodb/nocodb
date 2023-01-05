@@ -4900,7 +4900,12 @@ export class Api<
      */
     magic: (
       data: {
-        operation: 'selectOptions' | 'predictColumnType' | 'predictFormula';
+        operation:
+          | 'selectOptions'
+          | 'predictColumnType'
+          | 'predictFormula'
+          | 'predictNextColumn'
+          | 'predictNextFormulas';
         data?: object;
       },
       params: RequestParams = {}

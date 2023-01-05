@@ -6,19 +6,28 @@ import { MetaInj, inject, ref, toRef, useProvideColumnCreateStore } from '#impor
 interface Props {
   column?: ColumnType
   columnPosition?: Pick<ColumnReqType, 'column_order'>
+  preload?: Partial<ColumnType>
 }
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['submit', 'cancel'])
+const emit = defineEmits(['submit', 'cancel', 'mounted'])
 
 const meta = inject(MetaInj, ref())
 
 const column = toRef(props, 'column')
 
+const preload = toRef(props, 'preload')
+
 useProvideColumnCreateStore(meta, column)
 </script>
 
 <template>
-  <SmartsheetColumnEditOrAdd :column-position="props.columnPosition" @submit="emit('submit')" @cancel="emit('cancel')" />
+  <SmartsheetColumnEditOrAdd
+    :preload="preload"
+    :column-position="props.columnPosition"
+    @submit="emit('submit')"
+    @cancel="emit('cancel')"
+    @mounted="emit('mounted')"
+  />
 </template>

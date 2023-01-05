@@ -22,12 +22,14 @@ export default defineNuxtConfig({
           name: 'page',
           mode: 'out-in',
         },
-    layoutTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
-      ? false
-      : {
-          name: 'layout',
-          mode: 'out-in',
-        },
+    // layoutTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
+    //   ? false
+    //   : {
+    //       name: 'layout',
+    //       mode: 'out-in',
+    //     },
+    // todo: enable it back after fixing the issue with layout transition
+    layoutTransition: false,
 
     /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
     cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,

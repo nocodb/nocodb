@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CowriterType } from 'nocodb-sdk'
 import { timeAgo, useCowriterStoreOrThrow } from '#imports'
 
 const {
@@ -6,14 +7,24 @@ const {
   starCowriterOutput,
   cowriterOutputList,
   cowriterHistoryList,
+  cowriterStarredList,
   cowriterOutputActiveKey,
   generateCowriterLoading,
   getUpdatedStarredInMeta,
 } = useCowriterStoreOrThrow()
 
-const cowriterRecords = computed(() =>
-  cowriterOutputActiveKey.value === 'cowriter-output' ? cowriterOutputList.value : cowriterHistoryList.value,
-)
+const cowriterRecords = computed(() => {
+  switch (cowriterOutputActiveKey.value) {
+    case 'cowriter-output':
+      return cowriterOutputList.value
+    case 'cowriter-history':
+      return cowriterHistoryList.value
+    case 'cowriter-starred':
+      return cowriterStarredList.value
+    default:
+      return []
+  }
+})
 
 function copyOutput(output: string) {
   copyCowriterOutput(output)
@@ -22,7 +33,13 @@ function copyOutput(output: string) {
 function starOutput(recordIdx: number, recordId: string, meta: any) {
   starCowriterOutput(recordId, meta)
   // update local state
-  cowriterRecords.value[recordIdx].meta = JSON.stringify(getUpdatedStarredInMeta(meta))
+  meta = getUpdatedStarredInMeta(meta)
+  cowriterRecords.value[recordIdx].meta = JSON.stringify(meta)
+  if (meta.starred) {
+    ;(cowriterStarredList.value as CowriterType[]).unshift(cowriterRecords.value[recordIdx])
+  } else {
+    cowriterStarredList.value = cowriterStarredList.value.filter((o) => o.id !== recordId)
+  }
 }
 </script>
 
@@ -61,7 +78,8 @@ function starOutput(recordIdx: number, recordId: string, meta: any) {
       <div class="flex flex-col gap-6 items-center justify-center mx-auto text-center text-gray-500 w-3/5 h-1/2 rounded-md">
         <div class="prose-lg leading-8">
           <span v-if="cowriterOutputActiveKey === 'cowriter-output'">No Output Generated</span>
-          <span v-else>No History</span>
+          <span v-if="cowriterOutputActiveKey === 'cowriter-history'">No History</span>
+          <span v-else>No Starred Output</span>
         </div>
       </div>
     </div>

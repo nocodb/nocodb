@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { timeAgo, useCowriterStoreOrThrow } from '#imports'
 
-const { cowriterOutputList, cowriterHistoryList, cowriterOutputActiveKey, generateCowriterLoading } = useCowriterStoreOrThrow()
+const { copyCowriterOutput, cowriterOutputList, cowriterHistoryList, cowriterOutputActiveKey, generateCowriterLoading } =
+  useCowriterStoreOrThrow()
 
 const cowriterRecords = computed(() =>
   cowriterOutputActiveKey.value === 'cowriter-output' ? cowriterOutputList.value : cowriterHistoryList.value,
 )
+
+function copyOutput(output: string) {
+  copyCowriterOutput(output)
+  message.success('Copied to clipboard')
+}
 </script>
 
 <template>
@@ -18,8 +24,20 @@ const cowriterRecords = computed(() =>
     <div v-if="cowriterRecords.length" class="bg-[#EEF2FF]">
       <div v-for="record of cowriterRecords" :key="record.id" class="border-b-1 border-gray-200">
         <div class="p-[24px] pb-0">{{ record.output }}</div>
-        <div class="flex justify-end pr-3 pb-3">
-          {{ timeAgo(record.created_at) }}
+        <div class="flex w-full h-full items-center p-[24px]">
+          <div class="flex gap-1">
+            <a-button class="!rounded-md">
+              <MdiStarOutline />
+            </a-button>
+
+            <a-button class="!rounded-md">
+              <MdiContentCopy @click="copyOutput(record.output)" />
+            </a-button>
+          </div>
+
+          <div class="flex-1 min-w-0 flex justify-end">
+            {{ timeAgo(record.created_at) }}
+          </div>
         </div>
       </div>
     </div>

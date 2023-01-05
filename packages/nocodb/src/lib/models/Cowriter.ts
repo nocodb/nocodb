@@ -10,6 +10,7 @@ export default class Cowriter implements CowriterType {
   prompt_statement?: string;
   prompt_statement_template?: string;
   output?: string;
+  meta?: string | Record<string, any>;
   is_read?: boolean;
   time_taken?: number;
   created_by?: string;
@@ -39,10 +40,16 @@ export default class Cowriter implements CowriterType {
       'prompt_statement',
       'prompt_statement_template',
       'output',
+      'meta',
       'is_read',
       'time_taken',
       'created_by',
     ]);
+
+    // stringify meta if it is an object
+    if ('meta' in insertObject && typeof insertObject.meta === 'object') {
+      insertObject.meta = JSON.stringify(insertObject.meta);
+    }
 
     const { id } = await ncMeta.metaInsert2(
       null,
@@ -58,6 +65,13 @@ export default class Cowriter implements CowriterType {
     cowriterObj: Partial<CowriterType>,
     ncMeta = Noco.ncMeta
   ) {
+    const updateObject = extractProps(cowriterObj, ['meta', 'is_read']);
+
+    // stringify meta if it is an object
+    if ('meta' in updateObject && typeof updateObject.meta === 'object') {
+      updateObject.meta = JSON.stringify(updateObject.meta);
+    }
+
     await ncMeta.metaUpdate(
       null,
       null,

@@ -52,7 +52,9 @@ function starOutput(recordIdx: number, recordId: string, meta: any) {
   <div class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-scroll">
     <div v-if="cowriterRecords.length" class="bg-[#EEF2FF]">
       <div v-for="(record, idx) of cowriterRecords" :key="record.id" class="border-b-1 border-gray-200">
-        <div class="p-[24px] pb-0">{{ record.output }}</div>
+        <div class="p-[24px] pb-0">
+          <pre class="whitespace-pre-wrap text-[14px] nc-cowriter-output">{{ record.output }}</pre>
+        </div>
         <div class="flex w-full h-full items-center p-[24px]">
           <div class="flex gap-1">
             <a-button class="!rounded-md" @click="starOutput(idx, record.id, record.meta)">
@@ -85,3 +87,10 @@ function starOutput(recordIdx: number, recordId: string, meta: any) {
     </div>
   </div>
 </template>
+
+<style>
+.nc-cowriter-output {
+  font-family: unset;
+  line-height: unset;
+}
+</style>

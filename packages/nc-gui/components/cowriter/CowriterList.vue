@@ -81,7 +81,7 @@ function starOutput(recordIdx: number, recordId: string, meta: any) {
         <div class="prose-lg leading-8">
           <span v-if="cowriterOutputActiveKey === 'cowriter-output'">No Output Generated</span>
           <span v-if="cowriterOutputActiveKey === 'cowriter-history'">No History</span>
-          <span v-else>No Starred Output</span>
+          <span v-if="cowriterOutputActiveKey === 'cowriter-starred'">No Starred Output</span>
         </div>
       </div>
     </div>

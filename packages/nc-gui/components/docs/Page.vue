@@ -5,6 +5,7 @@ import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
 import Strike from '@tiptap/extension-strike'
 import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -89,6 +90,7 @@ const editor = useEditor({
       const { url } = await uploadFile(image)
       return url
     }),
+    Underline,
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -300,6 +302,21 @@ div[contenteditable='false'].ProseMirror {
   user-select: text !important;
 }
 
+.ProseMirror {
+  img {
+    max-width: 100%;
+    max-height: 30rem;
+    height: auto;
+
+    &.ProseMirror-selectednode {
+      // outline with rounded corners
+      outline: 2.5px solid #1890ff;
+      outline-offset: -2px;
+      border-radius: 4px;
+    }
+  }
+}
+
 .ProseMirror p.is-empty::before {
   content: attr(data-placeholder);
   float: left;
@@ -343,9 +360,7 @@ div[contenteditable='false'].ProseMirror {
   background: #0d0d0d;
   color: #fff;
   font-family: 'JetBrainsMono', monospace;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-top: 1rem;
+  padding: 1rem;
   border-radius: 0.5rem;
 
   code {

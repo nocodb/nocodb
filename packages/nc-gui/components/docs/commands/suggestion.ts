@@ -2,69 +2,9 @@ import type { Editor, Range } from '@tiptap/vue-3'
 import { VueRenderer } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 
-import CommandsList from '../CommandsList.vue'
+import CommandsList from './CommandsList.vue'
 
 export default {
-  items: ({ query }: { query: any }) => {
-    return [
-      {
-        title: 'Heading 1',
-        command: ({ editor, range }: { editor: Editor; range: Range }) => {
-          editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run()
-        },
-      },
-      {
-        title: 'Heading 2',
-        command: ({ editor, range }: { editor: Editor; range: Range }) => {
-          editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run()
-        },
-      },
-      {
-        title: 'Heading 3',
-        command: ({ editor, range }: { editor: Editor; range: Range }) => {
-          editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run()
-        },
-      },
-      {
-        title: 'Horizontal Rule',
-        command: ({ editor, range }: { editor: Editor; range: Range }) => {
-          ;(editor.chain().focus().deleteRange(range).setNode('horizontalRule').focus() as any).setHorizontalRule().run()
-        },
-      },
-      {
-        title: 'Bullet List',
-        command: ({ editor, range }: { editor: Editor; range: Range }) => {
-          editor.chain().focus().deleteRange(range).setNode('bulletList').run()
-          ;(editor.chain().focus() as any).toggleBulletList().run()
-        },
-      },
-      {
-        title: 'Numbered List',
-        command: ({ editor, range }: { editor: Editor; range: Range }) => {
-          editor.chain().focus().deleteRange(range).setNode('orderedList').run()
-          ;(editor.chain().focus() as any).toggleOrderedList().run()
-        },
-      },
-      {
-        title: 'Task list',
-        command: ({ editor, range }: { editor: Editor; range: Range }) => {
-          editor.chain().focus().deleteRange(range).setNode('taskList').run()
-          ;(editor.chain().focus() as any).toggleTaskList().run()
-        },
-      },
-      // {
-      //   title: 'Add Image',
-      //   command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      //     // todo: open file picker in vue3
-      //     const url = 'https://picsum.photos/200/300'
-      //     // add image block node
-      //     ;(editor.chain().focus().deleteRange(range) as any).setImage({ src: url }).run()
-      //   },
-      // },
-    ]
-      .filter((item) => item.title.toLowerCase().startsWith(query.toLowerCase()))
-      .slice(0, 10)
-  },
   startOfLine: true,
   render: () => {
     let component: any

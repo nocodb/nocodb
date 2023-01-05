@@ -61,7 +61,6 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   async function loadCowriterTable() {
     const firstTable = (await $api.dbTable.list(projectId)).list?.[0]
     cowriterTable.value = await $api.dbTable.read(firstTable!.id!)
-    console.log(cowriterTable.value)
     await loadCowriterView()
     await loadCowriterList()
   }
@@ -111,7 +110,6 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   async function loadCowriterList() {
     cowriterHistoryList.value = (await $api.cowriterTable.list(cowriterTable.value!.id!)).list as CowriterType[]
     cowriterOutputList.value = cowriterHistoryList.value.filter((o: CowriterType) => !!o.is_read! === false)
-    console.log(cowriterOutputList.value)
   }
 
   async function savePromptStatementTemplate() {
@@ -138,19 +136,34 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   }
 
   function copyCowriterOutput(output: string) {
-    copy(output)
+    try {
+      copy(output)
+      message.success('Copied to clipboard')
+    } catch (_) {
+      message.error('Failed to copy to clipboard')
+    }
+  }
+
+  function getUpdatedStarredInMeta(meta: any) {
+    if (!meta) meta = {}
+    if (typeof meta === 'string') meta = JSON.parse(meta)
+    if ('starred' in meta) {
+      meta.starred = !meta.starred
+    } else {
+      meta.starred = true
+    }
+    return meta
   }
 
   async function starCowriterOutput(recordId: string, recordMeta: any) {
-    if (!recordMeta) recordMeta = {}
-    if ('starred' in recordMeta) {
-      recordMeta.starred = !recordMeta.starred
-    } else {
-      recordMeta.starred = true
-    }
     try {
-      await $api.cowriterTable.patch(cowriterTable.value!.id!, recordId, { meta: recordMeta })
-      message.success('Starred Output')
+      const meta = getUpdatedStarredInMeta(recordMeta)
+      await $api.cowriterTable.patch(cowriterTable.value!.id!, recordId, { meta })
+      if (meta.starred) {
+        message.success('Starred Output')
+      } else {
+        message.success('Unstarred Output')
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -178,6 +191,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     loadCowriterList,
     deleteCowriterFormColumn,
     generateCowriter,
+    getUpdatedStarredInMeta,
     savePromptStatementTemplate,
     clearCowriterOutput,
     generateAIColumns,

@@ -91,15 +91,15 @@ function appendText(item: Record<string, any>) {
   const text = item.text
   const len = wordToComplete.value?.length || 0
   let offset = 0
+  const lastWord = promptRef.value.$el.value.split(' ').slice(-1).join(' ')
   if (!isCurlyBracketBalanced() || !isCurlyDoubleBracketBalanced()) {
-    const lastWord = promptRef.value.$el.value.split(' ').slice(-1).join(' ')
     if (lastWord.includes('{{')) {
       offset = 2
     } else if (lastWord.includes('{')) {
       offset = 1
     }
   } else {
-    offset = -len
+    offset = -len + lastWord.length
   }
 
   vModel.value = insertAtCursor(promptRef.value.$el, `{{${text}}}`, len + offset)

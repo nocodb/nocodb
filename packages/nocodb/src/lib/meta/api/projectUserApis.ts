@@ -17,6 +17,9 @@ import Noco from '../../Noco';
 import { PluginCategory } from 'nocodb-sdk';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { randomTokenString } from '../helpers/stringHelpers';
+import Project from '../../models/Project';
+import { Workspace } from '../../models/Workspace';
+import { WorkspaceUser } from '../../models/WorkspaceUser';
 
 async function userList(req, res) {
   res.json({
@@ -50,12 +53,14 @@ async function userInvite(req, res, next): Promise<any> {
 
   const invite_token = uuidv4();
   const error = [];
+  let userId: string;
 
   for (const email of emails) {
     // add user to project if user already exist
     const user = await User.getByEmail(email);
 
     if (user) {
+      userId = user.id;
       // check if this user has been added to this project
       const projectUser = await ProjectUser.get(req.params.projectId, user.id);
       if (projectUser) {
@@ -104,6 +109,8 @@ async function userInvite(req, res, next): Promise<any> {
           token_version: randomTokenString(),
         });
 
+        userId = id;
+
         // add user to project
         await ProjectUser.insert({
           project_id: req.params.projectId,
@@ -146,6 +153,8 @@ async function userInvite(req, res, next): Promise<any> {
     }
   }
 
+  await addUserToWorkspaceIfMissing(req.params.projectId, userId);
+
   if (emails.length === 1) {
     res.json({
       msg: 'success',
@@ -183,7 +192,7 @@ async function projectUserUpdate(req, res, next): Promise<any> {
       NcError.forbidden('Insufficient privilege to add super admin role.');
     }
 
-    await ProjectUser.update(
+    await ProjectUser.updateRoles(
       req.params.projectId,
       req.params.userId,
       req.body.roles
@@ -224,6 +233,12 @@ async function projectUserDelete(req, res): Promise<any> {
 
   // todo:  remove from workspace if user is not part of any other in the same org
   //        or org level role is not defined
+
+  await removeUserFromWorkspaceIfNotPartOfAnyOtherProjectOrRoleIsNotDefined(
+    project_id,
+    req.params.userId
+  );
+
   await ProjectUser.delete(project_id, req.params.userId);
   res.json({
     msg: 'success',
@@ -309,29 +324,43 @@ export async function sendInviteEmail(
 }
 
 // @ts-ignore
-async function addUserToWorkspaceIfMissing() {
-  // const user = await User.get(req.params.userId);
-  // const workspace = await Workspace.get(req.params.workspaceId);
+async function addUserToWorkspaceIfMissing(projectId: string, userId: string) {
+  const user = await User.get(userId);
+  const project = await Project.get(projectId);
+  const workspace = await Workspace.get(project.fk_workspace_id);
   // if (!workspace) {
   //   NcError.badRequest(`Workspace with id '${req.params.workspaceId}' not found`);
   // }
-  // const workspaceUser = await WorkspaceUser.get(workspace.id, user.id);
-  // if (!workspaceUser) {
-  //   await WorkspaceUser.insert(workspace.id, user.id, user.roles);
-  // }
+  const workspaceUser = await WorkspaceUser.get(workspace.id, user.id);
+  if (!workspaceUser) {
+    await WorkspaceUser.insert({
+      fk_workspace_id: workspace.id,
+      fk_user_id: user.id,
+    });
+  }
 }
 
 // @ts-ignore
-async function removeUserFromWorkspaceIfNotPartOfAnyOtherProjectOrRoleIsNotDefined() {
-  // const user = await User.get(req.params.userId);
-  // const workspace = await Workspace.get(req.params.workspaceId);
+async function removeUserFromWorkspaceIfNotPartOfAnyOtherProjectOrRoleIsNotDefined(
+  projectId: string,
+  userId: string
+) {
+  const user = await User.get(userId);
+  const project = await Project.get(projectId);
+  const workspace = await Workspace.get(project.fk_workspace_id);
   // if (!workspace) {
   //   NcError.badRequest(`Workspace with id '${req.params.workspaceId}' not found`);
   // }
-  // const workspaceUser = await WorkspaceUser.get(workspace.id, user.id);
-  // if (workspaceUser) {
-  //   await WorkspaceUser.delete(workspace.id, user.id);
-  // }
+  const workspaceUser = await WorkspaceUser.get(workspace.id, user.id);
+  if (
+    workspaceUser &&
+    !workspaceUser.roles &&
+    (await Project.listByWorkspaceAndUser(workspace.id, user.id).then(
+      (projects) => projects.length < 2
+    ))
+  ) {
+    await WorkspaceUser.delete(workspace.id, user.id);
+  }
 }
 
 const router = Router({ mergeParams: true });

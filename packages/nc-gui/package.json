@@ -43,6 +43,7 @@
     "@tiptap/extension-strike": "^2.0.0-beta.205",
     "@tiptap/extension-task-item": "^2.0.0-beta.207",
     "@tiptap/extension-task-list": "^2.0.0-beta.207",
+    "@tiptap/extension-underline": "^2.0.0-beta.209",
     "@tiptap/starter-kit": "^2.0.0-beta.205",
     "@tiptap/suggestion": "^2.0.0-beta.205",
     "@tiptap/vue-3": "^2.0.0-beta.205",

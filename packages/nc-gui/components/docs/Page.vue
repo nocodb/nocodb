@@ -5,6 +5,7 @@ import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
 import Strike from '@tiptap/extension-strike'
 import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -89,6 +90,7 @@ const editor = useEditor({
       const { url } = await uploadFile(image)
       return url
     }),
+    Underline,
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return

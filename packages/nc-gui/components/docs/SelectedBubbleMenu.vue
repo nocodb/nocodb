@@ -15,18 +15,36 @@ const { editor } = defineProps<Props>()
 const colorValue = ref('Black')
 
 const isImageNode = computed(() => {
-  const { state } = editor
   // active node of tiptap editor
-  const activeNode = state.selection.$from.nodeAfter
+  const activeNode = editor?.state?.selection?.$from?.nodeAfter
 
   // check if active node is a text node
-  return activeNode?.type.name === 'image'
+  return activeNode?.type?.name === 'image'
 })
+const isImageNodeDebounced = ref(isImageNode.value)
+
+watch(
+  () => isImageNode.value,
+  (value) => {
+    if (value) isImageNodeDebounced.value = value
+  },
+)
+
+watchDebounced(
+  () => isImageNode.value,
+  (value) => {
+    isImageNodeDebounced.value = value
+  },
+  {
+    debounce: 300,
+    maxWait: 600,
+  },
+)
 </script>
 
 <template>
-  <BubbleMenu v-if="!isImageNode" :editor="editor" :tippy-options="{ duration: 100, maxWidth: 500 }">
-    <div class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1">
+  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 500 }">
+    <div v-if="!isImageNodeDebounced" class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1">
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"

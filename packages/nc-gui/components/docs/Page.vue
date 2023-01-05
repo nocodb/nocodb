@@ -359,9 +359,7 @@ div[contenteditable='false'].ProseMirror {
   background: #0d0d0d;
   color: #fff;
   font-family: 'JetBrainsMono', monospace;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-top: 1rem;
+  padding: 1rem;
   border-radius: 0.5rem;
 
   code {

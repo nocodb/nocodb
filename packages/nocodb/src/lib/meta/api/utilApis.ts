@@ -17,6 +17,7 @@ import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
 import { feedbackForm } from 'nc-help';
+import JSON5 from 'json5';
 const { Configuration, OpenAIApi } = require('openai');
 
 const configuration = new Configuration({
@@ -393,7 +394,7 @@ async function selectOptionsMagic(req: Request, res: Response) {
     return;
   }
 
-  const options = JSON.parse(response.data.choices[0].text);
+  const options = JSON5.parse(response.data.choices[0].text);
 
   res.json(options);
 }

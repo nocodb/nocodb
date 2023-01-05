@@ -6,6 +6,7 @@ import { UserType } from 'nocodb-sdk';
 import Page from '../../../models/Page';
 import { NcError } from '../../helpers/catchError';
 import { fetchGHDocs } from '../../helpers/docImportHelpers';
+import JSON5 from 'json5';
 const { Configuration, OpenAIApi } = require('openai');
 
 const configuration = new Configuration({
@@ -138,7 +139,7 @@ async function magic(
         NcError.badRequest('Failed to parse schema');
       }
 
-      const pages = JSON.parse(response.data.choices[0].text);
+      const pages = JSON5.parse(response.data.choices[0].text);
 
       for (const page of pages.length ? pages : pages.data) {
         await handlePageJSON(

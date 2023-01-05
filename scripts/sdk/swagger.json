@@ -1,5 +1,8 @@
 {
   "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "qiz1rcfqd2jy6"
+  },
   "info": {
     "title": "nocodb",
     "version": "1.0"
@@ -233,7 +236,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/Book"
@@ -241,7 +244,7 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -275,7 +278,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/Book"
@@ -283,7 +286,7 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -318,7 +321,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/Book"
@@ -326,17 +329,17 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "bookId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "title": {
                     "type": "string",
                     "description": "Title",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -371,7 +374,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type":"object",
+                "type": "object",
                 "properties": {
                   "attributes": {
                     "$ref": "#/components/schemas/Book"
@@ -379,42 +382,42 @@
                   "bookId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "user": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "repo": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "branch": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "path": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "type": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "from": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -545,12 +548,12 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "bookId": {
                     "type": "string",
                     "description": "Book id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -592,12 +595,12 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "bookId": {
                     "type": "string",
                     "description": "Book id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -2931,8 +2934,7 @@
                   "project_id": {
                     "type": "string"
                   },
-                  "meta": {
-                  }
+                  "meta": {}
                 }
               }
             }
@@ -3153,8 +3155,7 @@
                   "order": {
                     "type": "number"
                   },
-                  "meta": {
-                  },
+                  "meta": {},
                   "title": {
                     "type": "string"
                   },
@@ -8720,7 +8721,7 @@
           },
           "is_parent": {
             "type": "boolean"
-          }, 
+          },
           "book_id": {
             "type": "string"
           },
@@ -9224,8 +9225,7 @@
               "number"
             ]
           },
-          "meta": {
-          }
+          "meta": {}
         },
         "required": [
           "table_name",
@@ -9323,8 +9323,7 @@
           "uuid": {
             "type": "string"
           },
-          "meta": {
-          },
+          "meta": {},
           "show_system_fields": {
             "type": "boolean"
           },
@@ -9567,8 +9566,7 @@
               "$ref": "#/components/schemas/Column"
             }
           },
-          "meta": {
-          }
+          "meta": {}
         },
         "required": [
           "table_name",
@@ -11423,6 +11421,7 @@
           "output": {
             "type": "string"
           },
+          "meta": {},
           "is_read": {
             "type": "boolean"
           },

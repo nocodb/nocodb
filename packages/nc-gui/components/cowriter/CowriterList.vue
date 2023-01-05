@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { timeAgo, useCowriterStoreOrThrow } from '#imports'
 
-const { copyCowriterOutput, cowriterOutputList, cowriterHistoryList, cowriterOutputActiveKey, generateCowriterLoading } =
-  useCowriterStoreOrThrow()
+const {
+  copyCowriterOutput,
+  starCowriterOutput,
+  cowriterOutputList,
+  cowriterHistoryList,
+  cowriterOutputActiveKey,
+  generateCowriterLoading,
+} = useCowriterStoreOrThrow()
 
 const cowriterRecords = computed(() =>
   cowriterOutputActiveKey.value === 'cowriter-output' ? cowriterOutputList.value : cowriterHistoryList.value,
@@ -11,6 +17,11 @@ const cowriterRecords = computed(() =>
 function copyOutput(output: string) {
   copyCowriterOutput(output)
   message.success('Copied to clipboard')
+}
+
+function starOutput(output: string) {
+  starCowriterOutput(output)
+  message.success('Starred Output')
 }
 </script>
 
@@ -26,12 +37,12 @@ function copyOutput(output: string) {
         <div class="p-[24px] pb-0">{{ record.output }}</div>
         <div class="flex w-full h-full items-center p-[24px]">
           <div class="flex gap-1">
-            <a-button class="!rounded-md">
+            <a-button class="!rounded-md" @click="starOutput(record.output)">
               <MdiStarOutline />
             </a-button>
 
-            <a-button class="!rounded-md">
-              <MdiContentCopy @click="copyOutput(record.output)" />
+            <a-button class="!rounded-md" @click="copyOutput(record.output)">
+              <MdiContentCopy />
             </a-button>
           </div>
 

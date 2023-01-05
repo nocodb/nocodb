@@ -564,6 +564,51 @@
         "description": "Update page"
       }
     },
+    "/api/v1/docs/page/batch-publish": {
+      "post": {
+        "summary": "Batch publish pages",
+        "operationId": "batch-publish-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {}
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pageIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Book id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Batch publish pages"
+      },
+      "parameters": []
+    },
     "/api/v1/docs/page": {
       "post": {
         "summary": "Create page",

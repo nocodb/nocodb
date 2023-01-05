@@ -122,6 +122,36 @@ async function drafts(
   }
 }
 
+async function batchPublish(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    if (!req.body?.pageIds) throw new Error('pageIds is required');
+    // verify pageIds are an array
+    if (!Array.isArray(req.body.pageIds)) {
+      throw new Error('pageIds must be an array');
+    }
+
+    const user = (req as any)?.session?.passport?.user as UserType;
+    const { projectId, bookId } = req.body;
+
+    for (const pageId of req.body.pageIds) {
+      await Page.update({
+        pageId: pageId,
+        attributes: { is_published: true },
+        user,
+        projectId,
+        bookId,
+      });
+    }
+    res.json({});
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
 const router = Router({ mergeParams: true });
 
 // table data crud apis
@@ -144,5 +174,9 @@ router.delete(
   apiMetrics,
   ncMetaAclMw(deletePage, 'pageDelete')
 );
-
+router.post(
+  '/api/v1/docs/page/batch-publish',
+  apiMetrics,
+  ncMetaAclMw(batchPublish, 'pageBatchPublish')
+);
 export default router;

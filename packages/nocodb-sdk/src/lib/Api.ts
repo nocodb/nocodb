@@ -1327,6 +1327,33 @@ export class Api<
       }),
 
     /**
+     * @description Batch publish pages
+     *
+     * @tags Noco docs
+     * @name BatchPublishPages
+     * @summary Batch publish pages
+     * @request POST:/api/v1/docs/page/batch-publish
+     * @response `200` `void` OK
+     */
+    batchPublishPages: (
+      data: {
+        pageIds?: string[];
+        /** Project id */
+        projectId: string;
+        /** Book id */
+        bookId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/docs/page/batch-publish`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
      * @description Create page
      *
      * @tags Noco docs

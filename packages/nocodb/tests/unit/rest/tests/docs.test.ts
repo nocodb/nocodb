@@ -886,6 +886,46 @@ function docTests() {
       .expect(200)
     expect(response.body.length).to.equal(2)
   })
+
+  it('Batch publish', async () => {
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test1',
+        content: 'test1',
+      },
+      user: context.user,
+    });
+    const page2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test2',
+        content: 'test2',
+      },
+      user: context.user,
+    });
+
+    await request(context.app)
+      .post(`/api/v1/docs/page/batch-publish`)
+      .set('xc-auth', context.token)
+      .send({
+        projectId: project.id,
+        bookId: book.id,
+        pageIds: [page1.id, page2.id],
+      })
+      .expect(200)
+    
+    const pages = await listPages({
+      project: project,
+      book: book,
+      user: context.user,
+    })
+    expect(pages.length).to.equal(2)
+    expect(pages[0].is_published).to.equal(1)
+    expect(pages[1].is_published).to.equal(1)
+  })
 }
 
 export default function() {

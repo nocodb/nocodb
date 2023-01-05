@@ -17,6 +17,8 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const cowriterOutputList = ref<CowriterType[] | []>([])
 
+  const cowriterStarredList = ref<CowriterType[] | []>([])
+
   const cowriterInputActiveKey = ref('cowriter-form')
 
   const cowriterOutputActiveKey = ref('cowriter-output')
@@ -110,6 +112,16 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   async function loadCowriterList() {
     cowriterHistoryList.value = (await $api.cowriterTable.list(cowriterTable.value!.id!)).list as CowriterType[]
     cowriterOutputList.value = cowriterHistoryList.value.filter((o: CowriterType) => !!o.is_read! === false)
+    cowriterStarredList.value = cowriterHistoryList.value.filter((o: CowriterType) => {
+      if (!o.meta) return false
+      let meta = o.meta
+      if (typeof o.meta === 'string') meta = JSON.parse(o.meta)
+      if ('starred' in meta) {
+        return meta.starred
+      } else {
+        return false
+      }
+    })
   }
 
   async function savePromptStatementTemplate() {
@@ -199,6 +211,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     generateColumnBtnLoading,
     cowriterHistoryList,
     cowriterOutputList,
+    cowriterStarredList,
     cowriterInputActiveKey,
     cowriterOutputActiveKey,
     copyCowriterOutput,

@@ -8,6 +8,7 @@ const {
   cowriterHistoryList,
   cowriterOutputActiveKey,
   generateCowriterLoading,
+  getUpdatedStarredInMeta,
 } = useCowriterStoreOrThrow()
 
 const cowriterRecords = computed(() =>
@@ -16,12 +17,12 @@ const cowriterRecords = computed(() =>
 
 function copyOutput(output: string) {
   copyCowriterOutput(output)
-  message.success('Copied to clipboard')
 }
 
-function starOutput(recordIdx: number, recordId: string, recordMeta: any) {
-  starCowriterOutput(recordId, recordMeta)
-  message.success('Starred Output')
+function starOutput(recordIdx: number, recordId: string, meta: any) {
+  starCowriterOutput(recordId, meta)
+  // update local state
+  cowriterRecords.value[recordIdx].meta = JSON.stringify(getUpdatedStarredInMeta(meta))
 }
 </script>
 

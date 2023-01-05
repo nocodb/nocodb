@@ -17,6 +17,9 @@ const { cowriterOutputList, cowriterOutputActiveKey, clearCowriterOutput } = use
     <a-tab-pane key="cowriter-history" tab="History">
       <LazyCowriterList />
     </a-tab-pane>
+    <a-tab-pane key="cowriter-starred" tab="Starred">
+      <LazyCowriterList />
+    </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-4">
         <a-button class="!rounded-md" @click="clearCowriterOutput"> Clear </a-button>

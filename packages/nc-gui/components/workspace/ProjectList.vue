@@ -6,7 +6,7 @@ import tinycolor from 'tinycolor2'
 import { NcProjectType, navigateTo, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 import { useNuxtApp } from '#app'
 
-const { projects } = useWorkspaceStoreOrThrow()
+const { projects , addToFavourite, removeFromFavourite} = useWorkspaceStoreOrThrow()
 
 const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -125,7 +125,7 @@ const getProjectPrimary = (project: ProjectType) => {
         <tr
           v-for="(project, i) of filteredProjects"
           :key="i"
-          class="cursor-pointer hover:bg-gray-50"
+          class="group cursor-pointer hover:bg-gray-50"
           @click="openProject(project)"
         >
           <td class="!py-0">
@@ -163,6 +163,10 @@ const getProjectPrimary = (project: ProjectType) => {
               </div>
 
               {{ project.title }}
+            <div @click.stop>
+              <MdiStar @click="removeFromFavourite(project.id)" v-if="project.starred" class="text-yellow-500" />
+              <MdiStarOutline class="opacity-0 group-hover:opacity-100 transition transition-opacity text-yellow-500" v-else @click="addToFavourite(project.id)" />
+            </div>
             </div>
           </td>
           <td>

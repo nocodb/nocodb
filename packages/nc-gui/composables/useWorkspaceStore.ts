@@ -144,6 +144,35 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     { immediate: true },
   )
 
+  const addToFavourite = async (projectId: string) => {
+    try {
+      await $api.project.update(projectId, {
+        starred: true,
+      })
+      const project = projects.value?.find(({id}) => id === projectId)
+      if(!project) return
+
+      // todo: update the type
+      project.starred = true
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+  const removeFromFavourite = async (projectId: string) => {
+    try {
+      const project = projects.value?.find(({id}) => id === projectId)
+      if(!project) return
+
+      project.starred = false
+
+      await $api.project.update(projectId, {
+        starred: false,
+      })
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   return {
     loadWorkspaceList,
     workspaces,
@@ -160,6 +189,8 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     collaborators,
     isWorkspaceCreator,
     isWorkspaceOwner,
+    addToFavourite,
+    removeFromFavourite,
   }
 }, 'workspaceStore')
 

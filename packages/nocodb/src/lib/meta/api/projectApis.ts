@@ -25,7 +25,7 @@ import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { extractAndGenerateManyToManyRelations } from './metaDiffApis';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { extractPropsAndSanitize } from '../helpers/extractProps';
+import { extractProps, extractPropsAndSanitize } from '../helpers/extractProps';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
@@ -55,7 +55,33 @@ export async function projectUpdate(
 ) {
   const project = await Project.getWithInfo(req.params.projectId);
 
-  const data: Partial<Project> = extractPropsAndSanitize(req?.body, [
+  // todo: allow update based on role
+  // update project user data if found
+  // todo: move to a separate api
+  const projectUserData = extractProps(req.body, [
+    'starred',
+    'order',
+    'hidden',
+  ]);
+
+  if (Object.keys(projectUserData).length) {
+    // create new project user if it doesn't exist
+    if (!(await ProjectUser.get(req['ncProjectId'], req['user']?.id))) {
+      await ProjectUser.insert({
+        ...projectUserData,
+        project_id: req['ncProjectId'],
+        fk_user_id: req['user']?.id,
+      });
+    } else {
+      await ProjectUser.update(
+        req['ncProjectId'],
+        req['user']?.id,
+        projectUserData
+      );
+    }
+  }
+
+  const data: Partial<Project> = extractPropsAndSanitize(req.body, [
     'title',
     'meta',
     'color',

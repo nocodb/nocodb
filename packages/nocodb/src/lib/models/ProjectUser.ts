@@ -8,6 +8,7 @@ import {
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
 import User from './User';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class ProjectUser {
   project_id: string;
@@ -22,17 +23,22 @@ export default class ProjectUser {
     projectUser: Partial<ProjectUser & { created_at?: any; updated_at?: any }>,
     ncMeta = Noco.ncMeta
   ) {
+
+    const insertObject =extractProps(projectUser, [
+      'fk_user_id',
+    'project_id',
+    'roles',
+    'created_at',
+    'updated_at',
+      'starred', 'order'
+      ,'hidden'
+      ])
+
     const { project_id, fk_user_id } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.PROJECT_USERS,
-      {
-        fk_user_id: projectUser.fk_user_id,
-        project_id: projectUser.project_id,
-        roles: projectUser.roles,
-        created_at: projectUser.created_at,
-        updated_at: projectUser.updated_at,
-      },
+      insertObject,
       true
     );
 
@@ -132,7 +138,12 @@ export default class ProjectUser {
     return (await qb.count('id', { as: 'count' }).first()).count;
   }
 
-  static async update(projectId, userId, roles: string, ncMeta = Noco.ncMeta) {
+  static async updateRoles(
+    projectId,
+    userId,
+    roles: string,
+    ncMeta = Noco.ncMeta
+  ) {
     // get existing cache
     const key = `${CacheScope.PROJECT_USER}:${projectId}:${userId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -165,6 +176,51 @@ export default class ProjectUser {
       {
         roles,
       },
+      {
+        fk_user_id: userId,
+        project_id: projectId,
+      }
+    );
+  }
+
+  static async update(
+    projectId,
+    userId,
+    projectUser: Partial<ProjectUser>,
+    ncMeta = Noco.ncMeta
+  ) {
+    const updateObj = extractProps(projectUser, ['starred', 'hidden', 'order']);
+
+    // get existing cache
+    const key = `${CacheScope.PROJECT_USER}:${projectId}:${userId}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      Object.assign(o, updateObj);
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    // update user cache
+    const user = await User.get(userId);
+    if (user) {
+      const email = user.email;
+      for (const key of [
+        `${CacheScope.USER}:${email}`,
+        `${CacheScope.USER}:${email}___${projectId}`,
+      ]) {
+        const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+        if (o) {
+          Object.assign(o, updateObj);
+          // set cache
+          await NocoCache.set(key, o);
+        }
+      }
+    }
+    // set meta
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.PROJECT_USERS,
+      updateObj,
       {
         fk_user_id: userId,
         project_id: projectId,

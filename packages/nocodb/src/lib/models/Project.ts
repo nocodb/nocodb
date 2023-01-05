@@ -431,6 +431,7 @@ export default class Project implements ProjectType {
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
       .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
+      .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
       .leftJoin(MetaTable.WORKSPACE_USER, function () {
         this.on(

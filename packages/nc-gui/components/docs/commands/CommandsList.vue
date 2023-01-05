@@ -17,7 +17,15 @@ interface Props {
   query: string
 }
 
-const { command, query } = defineProps<Props>()
+const { command, query, editor } = defineProps<Props>()
+
+const fileInput = ref()
+const onFilePicked = (event: any) => {
+  const files = event.target.files
+  const file = files[0]
+
+  ;(editor.chain().focus() as any).setImage({ src: file, clearCurrentNode: true }).run()
+}
 
 const items = [
   {
@@ -61,11 +69,8 @@ const items = [
   {
     title: 'Image',
     class: 'text-xs',
-    command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      //     // todo: open file picker in vue3
-      //     const url = 'https://picsum.photos/200/300'
-      //     // add image block node
-      //     ;(editor.chain().focus().deleteRange(range) as any).setImage({ src: url }).run()
+    command: () => {
+      fileInput.value?.[0]?.click()
     },
     icon: MdiImageMultipleOutline,
     iconClass: '',
@@ -187,8 +192,16 @@ defineExpose({
           @click="selectItem(index)"
           @mouseenter="() => onHover(index)"
         >
+          <input
+            v-if="item.title === 'Image'"
+            ref="fileInput"
+            type="file"
+            style="display: none"
+            accept="image/*"
+            @change="onFilePicked"
+          />
           <div class="flex flex-row items-center gap-x-1.5">
-            <component :is="item.icon" :class="item.iconClass" />
+            <component :is="item.icon" v-if="item.icon" :class="item.iconClass" />
             <div :class="item.class" :style="item.style">
               {{ item.title }}
             </div>

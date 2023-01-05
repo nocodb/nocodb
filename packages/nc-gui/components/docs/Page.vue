@@ -305,6 +305,7 @@ div[contenteditable='false'].ProseMirror {
 .ProseMirror {
   img {
     max-width: 100%;
+    max-height: 30rem;
     height: auto;
 
     &.ProseMirror-selectednode {

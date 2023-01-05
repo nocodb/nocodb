@@ -1,5 +1,4 @@
 import { Node, nodeInputRule } from '@tiptap/core'
-import { TextSelection } from 'prosemirror-state'
 import type { UploadFn } from './proseExtension'
 import { dropImagePlugin } from './proseExtension'
 
@@ -43,32 +42,32 @@ export const createImageExtension = (uploadFn: UploadFn) => {
     // @ts-expect-error todo: fix this
     addCommands() {
       return {
-        setImage:
-          (options: any) =>
-          ({ tr, dispatch, view, state }: any) => {
-            // todo: Similar code is in packages/nc-gui/components/docs/images/proseExtension.ts - createNewParagraph. Refactor this.
-            const { selection } = tr
-            const position = selection.$cursor ? selection.$cursor.pos : selection.$to.pos
-            const node = this.type.create(options)
-            const transaction = tr.insert(position - 1, node)
-            dispatch(transaction)
+        setImage: (options: { src: any; clearCurrentNode?: boolean }) => async () => {
+          if (options?.src instanceof File) {
+            const url = await uploadFn(options.src)
+            options.src = url
+          }
 
-            let currentCursorPos = view.state.selection.$anchor.pos
+          const view = this.editor.view
 
-            // verify if we are in the end of the document
-            if (currentCursorPos === state.doc.content.size) {
-              currentCursorPos = currentCursorPos + 1
-              const paragraphNode = view.state.schema.nodes.paragraph.create()
-              const insertParaTr = tr.insert(currentCursorPos, paragraphNode)
-              dispatch(insertParaTr)
+          const { selection } = view.state.tr
+          const position = selection.anchor - 2
+
+          if (options.clearCurrentNode) {
+            const lastNode = view.state.doc.nodeAt(position)
+            const childNode = lastNode?.firstChild
+            if (childNode?.text === '/') {
+              const transaction = view.state.tr.replaceWith(position, position + 1, view.state.schema.nodes.paragraph.create())
+              view.dispatch(transaction)
             }
+          }
 
-            const newSelection = tr.doc.resolve(currentCursorPos + 1)
-            const focusTransaction = tr.setSelection(new TextSelection(newSelection, newSelection))
-            dispatch(focusTransaction)
+          const node = this.editor.schema.nodes.image.create(options)
+          const transaction = view.state.tr.replaceWith(position, position + 1, node)
+          view.dispatch(transaction)
 
-            return true
-          },
+          return true
+        },
       }
     },
     addInputRules() {

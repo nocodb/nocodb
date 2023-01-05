@@ -76,7 +76,7 @@ export default class Cowriter implements CowriterType {
       null,
       null,
       MetaTable.COWRITER,
-      cowriterObj,
+      updateObject,
       cowriterId
     );
   }

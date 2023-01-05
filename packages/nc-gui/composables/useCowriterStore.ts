@@ -1,6 +1,6 @@
 import type { CowriterType, ProjectType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { useCopy, useNuxtApp, useViews } from '#imports'
+import { extractSdkResponseErrorMsg, useCopy, useNuxtApp, useViews } from '#imports'
 
 const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId: string) => {
   const cowriterLayout = ref<'form' | 'grid'>('form')
@@ -141,6 +141,21 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     copy(output)
   }
 
+  async function starCowriterOutput(recordId: string, recordMeta: any) {
+    if (!recordMeta) recordMeta = {}
+    if ('starred' in recordMeta) {
+      recordMeta.starred = !recordMeta.starred
+    } else {
+      recordMeta.starred = true
+    }
+    try {
+      await $api.cowriterTable.patch(cowriterTable.value!.id!, recordId, { meta: recordMeta })
+      message.success('Starred Output')
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   watch(
     cowriterProject,
     async (project) => {
@@ -173,6 +188,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     cowriterInputActiveKey,
     cowriterOutputActiveKey,
     copyCowriterOutput,
+    starCowriterOutput,
     maxCowriterGeneration,
   }
 })

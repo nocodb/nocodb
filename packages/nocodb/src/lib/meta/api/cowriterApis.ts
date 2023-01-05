@@ -62,7 +62,7 @@ export async function cowriterCreate(
     NcError.badRequest('Failed to generate output');
   }
 
-  const output = response.data.choices[0].text;
+  const output = response.data.choices[0].text.trim();
 
   const cowriter = await Cowriter.insert({
     ...req.body,

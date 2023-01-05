@@ -1,6 +1,6 @@
 import type { CowriterType, ProjectType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { useNuxtApp, useViews } from '#imports'
+import { useCopy, useNuxtApp, useViews } from '#imports'
 
 const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId: string) => {
   const cowriterLayout = ref<'form' | 'grid'>('form')
@@ -34,6 +34,8 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   const maxCowriterGeneration = ref(1)
 
   const { $api } = useNuxtApp()
+
+  const { copy } = useCopy()
 
   async function loadCowriterProject() {
     cowriterProject.value = await $api.project.read(projectId)
@@ -135,6 +137,10 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     await loadCowriterTable()
   }
 
+  function copyCowriterOutput(output: string) {
+    copy(output)
+  }
+
   watch(
     cowriterProject,
     async (project) => {
@@ -166,6 +172,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     cowriterOutputList,
     cowriterInputActiveKey,
     cowriterOutputActiveKey,
+    copyCowriterOutput,
     maxCowriterGeneration,
   }
 })

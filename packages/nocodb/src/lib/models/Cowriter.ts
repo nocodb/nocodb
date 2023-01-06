@@ -12,7 +12,6 @@ export default class Cowriter implements CowriterType {
   output?: string;
   meta?: string | Record<string, any>;
   is_read?: boolean;
-  time_taken?: number;
   created_by?: string;
 
   constructor(cowriter: Cowriter | CowriterType) {
@@ -42,7 +41,6 @@ export default class Cowriter implements CowriterType {
       'output',
       'meta',
       'is_read',
-      'time_taken',
       'created_by',
     ]);
 

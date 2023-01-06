@@ -10,7 +10,6 @@ const up = async (knex: Knex) => {
     table.text('prompt_statement_template');
     table.text('output');
     table.text('meta');
-    table.integer('time_taken');
     table.boolean('is_read').defaultTo(false);
     table.string('created_by', 20);
     table.foreign('created_by').references(`${MetaTable.USERS}.id`);

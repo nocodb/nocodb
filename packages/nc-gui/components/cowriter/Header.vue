@@ -26,9 +26,12 @@ provide(MetaInj, cowriterTable)
       </div>
     </div>
     <div class="flex-1 min-w-0 flex justify-end gap-3">
-      <div class="flex items-center">
-        <a-button class="!rounded-md" @click="showApiSnippetDrawer = true"> API Snippet </a-button>
-      </div>
+      <a-button class="!rounded-md" @click="showApiSnippetDrawer = true">
+        <div class="flex items-center">
+          <MdiXml class="mr-1" />
+          API Snippet
+        </div>
+      </a-button>
       <div class="flex items-center cursor-pointer">
         <MdiFormSelect @click="cowriterLayout = 'form'" />
       </div>

@@ -86,8 +86,10 @@ onMounted(() => {
   mainArea.value?.addEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
 })
 
-watch(meta, () => {
-  toggleMobileRightSidebar(true)
+watch(meta, (newMeta, oldMeta) => {
+  if (newMeta?.id !== oldMeta?.id) {
+    toggleMobileRightSidebar(true)
+  }
 })
 
 const FOO = (ev: GlobalEvents) => {

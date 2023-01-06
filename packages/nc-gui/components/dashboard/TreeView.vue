@@ -168,7 +168,9 @@ const reloadTables = async () => {
 }
 
 const addTableTab = (table: TableType) => {
-  $globalEventBus.emit(GlobalEvents.CLICKED_TABLE_LINK_IN_MOBILE_MODE)
+  if (isMobileMode) {
+    $globalEventBus.emit(GlobalEvents.CLICKED_TABLE_LINK_IN_MOBILE_MODE)
+  }
   addTab({ title: table.title, id: table.id, type: table.type as TabType })
 }
 

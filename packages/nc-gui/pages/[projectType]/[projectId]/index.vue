@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
+import type { GlobalEvents } from '~/lib'
 import {
   TabType,
   computed,
@@ -38,7 +39,7 @@ const { theme, defaultTheme } = useTheme()
 
 const { t } = useI18n()
 
-const { $e } = useNuxtApp()
+const { $e, $globalEventBus } = useNuxtApp()
 
 const route = useRoute()
 
@@ -187,7 +188,16 @@ onBeforeMount(async () => {
   }
 })
 
+const FOO = (ev: GlobalEvents) => {
+  console.log(ev)
+  // alert('event')
+  if (isMobileMode) {
+    toggle(false)
+  }
+}
+
 onMounted(() => {
+  $globalEventBus.on(FOO)
   toggle(true)
   toggleHasSidebar(true)
 })
@@ -575,7 +585,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
             :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
           >
-          <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
+            <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
             <MdiBackburger
               v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"

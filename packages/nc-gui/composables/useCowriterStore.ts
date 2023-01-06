@@ -287,6 +287,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     generateColumnBtnLoading,
     starCowriterOutput,
     savePromptStatementTemplate,
+    unsupportedColumnTypes,
     supportedColumns,
     maxCowriterGeneration,
   }

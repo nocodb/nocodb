@@ -35,7 +35,7 @@ const { isMobileMode } = useGlobal()
 
 const { addTab, updateTab } = useTabs()
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $globalEventBus } = useNuxtApp()
 
 const { bases, tables, loadTables, isSharedBase } = useProject()
 
@@ -168,6 +168,7 @@ const reloadTables = async () => {
 }
 
 const addTableTab = (table: TableType) => {
+  $globalEventBus.emit(GlobalEvents.CLICKED_TABLE_LINK_IN_MOBILE_MODE)
   addTab({ title: table.title, id: table.id, type: table.type as TabType })
 }
 

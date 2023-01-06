@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { GlobalEvents } from '~/lib'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -26,6 +27,8 @@ import type { TabItem } from '~/lib'
 const props = defineProps<{
   activeTab: TabItem
 }>()
+
+const { $globalEventBus } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -85,6 +88,17 @@ onMounted(() => {
 
 watch(meta, () => {
   toggleMobileRightSidebar(true)
+})
+
+const FOO = (ev: GlobalEvents) => {
+  console.log(ev)
+  // alert('event')
+  if (!isMobileRightSidebarOpen) {
+    toggleMobileRightSidebar(true)
+  }
+}
+onMounted(() => {
+  $globalEventBus.on(FOO)
 })
 
 </script>

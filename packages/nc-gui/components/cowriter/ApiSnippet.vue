@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import HTTPSnippet from 'httpsnippet'
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { MetaInj, inject, message, ref, useCopy, useCowriterStoreOrThrow, useGlobal, useI18n, useVModel, watch } from '#imports'
 
 const props = defineProps<{
@@ -16,7 +16,7 @@ const { appInfo, token } = $(useGlobal())
 
 const meta = $(inject(MetaInj, ref()))
 
-const { unsupportedColumnTypes, cowriterTable } = useCowriterStoreOrThrow()
+const { supportedColumns, cowriterTable } = useCowriterStoreOrThrow()
 
 const { copy } = useCopy()
 
@@ -64,13 +64,6 @@ const selectedLangName = $ref(langs[0].name)
 const apiUrl = $computed(() => {
   return new URL(`/api/v1/cowriter/meta/tables/${meta?.id}`, (appInfo && appInfo.ncSiteUrl) || '/').href
 })
-
-const supportedColumns = computed(
-  () =>
-    ((cowriterTable.value as TableType)?.columns || [])
-      .filter((c: ColumnType) => !unsupportedColumnTypes.includes(c.uidt) && !isSystemColumn(c))
-      .sort((a, b) => a.order! - b.order!) || [],
-)
 
 const cowriterData = computed(() =>
   supportedColumns.value

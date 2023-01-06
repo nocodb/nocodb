@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import { getWordUntilCaret, useCowriterStoreOrThrow, useDebounceFn } from '#imports'
 
-const { promptStatementTemplate, savePromptStatementTemplate, cowriterTable } = useCowriterStoreOrThrow()
+const { promptStatementTemplate, savePromptStatementTemplate, supportedColumns } = useCowriterStoreOrThrow()
 
 const promptRef = ref()
 
@@ -20,9 +20,6 @@ const syncValue = useDebounceFn(async () => await savePromptStatementTemplate(),
 
 const suggestionListVisible = ref(false)
 
-// TODO: move to composable
-const hiddenColTypes: string[] = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
-
 const vModel = computed({
   get: () => promptStatementTemplate.value,
   set: (val) => {
@@ -32,13 +29,6 @@ const vModel = computed({
     }
   },
 })
-
-const supportedColumns = computed(
-  () =>
-    ((cowriterTable.value as TableType).columns || [])
-      .filter((c: ColumnType) => !hiddenColTypes.includes(c.uidt) && !isSystemColumn(c))
-      .sort((a, b) => a.order! - b.order!) || [],
-)
 
 const suggestionsList = computed(() => {
   return [

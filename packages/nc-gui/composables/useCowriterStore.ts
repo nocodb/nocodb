@@ -1,5 +1,5 @@
-import type { CowriterType, ProjectType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, ViewTypes } from 'nocodb-sdk'
+import type { ColumnType, CowriterType, ProjectType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useCopy, useNuxtApp, useViews } from '#imports'
 
 const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId: string) => {
@@ -55,6 +55,13 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     UITypes.QrCode,
     UITypes.SpecificDBType,
   ]
+
+  const supportedColumns = computed(
+    () =>
+      ((cowriterTable.value as TableType)?.columns || [])
+        .filter((c: ColumnType) => !unsupportedColumnTypes.includes(c.uidt) && !isSystemColumn(c))
+        .sort((a, b) => a.order! - b.order!) || [],
+  )
 
   const { $api } = useNuxtApp()
 
@@ -280,7 +287,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     copyCowriterOutput,
     starCowriterOutput,
     maxCowriterGeneration,
-    unsupportedColumnTypes,
+    supportedColumns,
     COWRITER_TABS,
   }
 })

@@ -139,7 +139,7 @@ function onOpenModal({
 
 <template>
   <div>
-    FOO MOBILE
+    MOBILE
     <a-layout-sider
       ref="sidebar"
       :collapsed="sidebarCollapsed"

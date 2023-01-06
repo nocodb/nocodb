@@ -49,6 +49,8 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
 const openNewRecordFormHook = createEventHook<void>()
 
+const mainArea = ref<HTMLDivElement>()
+
 useProvideKanbanViewStore(meta, activeView)
 
 // todo: move to store
@@ -65,12 +67,32 @@ provide(
   ReadonlyInj,
   computed(() => !isUIAllowed('xcDatatableEditable')),
 )
+
+const { isOpen: isMobileRightSidebarOpen, toggle: toggleMobileRightSidebar } = useSidebar('nc-right-sidebar', { isOpen: true })
+
+// const { isOpen, toggle } = useSidebar('nc-right-sidebar')
+
+const hideSidebarOnClickOrTouchIfMobileMode = (_event: Event) => {
+  if (isMobileMode.value && isMobileRightSidebarOpen.value) {
+    toggleMobileRightSidebar(false)
+  }
+}
+
+onMounted(() => {
+  // if (isMobileMode.value) toggle(true)
+  mainArea.value?.addEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
+})
+
+watch(meta, () => {
+  toggleMobileRightSidebar(true)
+})
+
 </script>
 
 <template>
   <div class="nc-container flex h-full">
-    <SmartsheetSidebarMobile v-if="meta && isMobileMode" class="nc-left-sidebar-mobile" />
-    <div class="flex flex-col h-full flex-1 min-w-0">
+    <SmartsheetSidebarMobile v-if="meta && isMobileMode" v-show="isMobileRightSidebarOpen" class="nc-left-sidebar-mobile" />
+    <div class="flex flex-col h-full flex-1 min-w-0" ref="mainArea">
       <LazySmartsheetToolbar />
 
       <Transition name="layout" mode="out-in">

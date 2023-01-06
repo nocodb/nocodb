@@ -267,7 +267,7 @@ AND t.table_name=?;`,
       FROM
         information_schema.KEY_COLUMN_USAGE
       WHERE
-        table_schema = 'xcdb') AS kcu
+        table_schema = :databaseName) AS kcu
     INNER JOIN
               (
       SELECT
@@ -279,7 +279,7 @@ AND t.table_name=?;`,
       FROM
         information_schema.REFERENTIAL_CONSTRAINTS
       WHERE
-        constraint_schema = 'xcdb') AS rc ON
+        constraint_schema = :databaseName) AS rc ON
       kcu.constraint_name = rc.constraint_name
       AND kcu.table_schema = rc.constraint_schema
     INNER JOIN
@@ -291,14 +291,14 @@ AND t.table_name=?;`,
       FROM
         information_schema.COLUMNS
       WHERE
-        table_schema = 'xcdb'
+        table_schema = :databaseName
         AND table_name IN (
         SELECT
           table_name
         FROM
           information_schema.TABLES
         WHERE
-          table_schema = 'xcdb'
+          table_schema = :databaseName
           AND Lower(table_type) = 'base table')) AS col ON
       col.table_schema = kcu.table_schema
       AND col.table_name = kcu.table_name

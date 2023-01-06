@@ -75,6 +75,8 @@ export function useDocs() {
     prevOpenedPage = page
   })
 
+  const isPageDraft = (page: PageSidebarNode) => page.title !== page.published_title || page.content !== page.published_content
+
   const selectBook = async (book: BookType) => {
     await fetchPages({ book })
     navigateTo(bookUrl(book.slug!))
@@ -213,6 +215,9 @@ export function useDocs() {
       if (!openedTabs.value.includes(createdPageData.id!)) {
         openedTabs.value.push(createdPageData.id!)
       }
+
+      const createdPage = findPage(createdPageData.id!)
+      drafts.value.push(createdPage!)
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
@@ -371,22 +376,16 @@ export function useDocs() {
       projectId: projectId!,
       bookId: openedBook.value!.id!,
     })
-    const foundPage = findPage(pageId)
+    const foundPage = findPage(pageId)!
     if (page.title) {
-      if (foundPage) {
-        foundPage.slug = updatedPage.slug
-        if (foundPage.new) foundPage.new = false
-      }
+      foundPage.slug = updatedPage.slug
+      if (foundPage.new) foundPage.new = false
 
       await navigateTo(nestedUrl(updatedPage.id!))
     }
-    if (!page.is_published && page.content) {
+    if (isPageDraft(foundPage)) {
       const inDrafts = drafts.value.find((p) => p.id === foundPage?.id)
       if (!inDrafts) drafts.value.push(foundPage!)
-    }
-    if (page.is_published) {
-      foundPage!.is_published = page.is_published
-      foundPage!.published_content = foundPage!.content
     }
   }
 
@@ -503,6 +502,23 @@ export function useDocs() {
     return data[0]
   }
 
+  const bulkPublish = async (toBePublishedPages: Array<PageSidebarNode & { selected: boolean }>) => {
+    await $api.nocoDocs.batchPublishPages({
+      projectId: projectId!,
+      bookId: openedBook.value!.id!,
+      pageIds: toBePublishedPages.map((p) => p.id!),
+    })
+    toBePublishedPages.forEach((draft) => {
+      const page = findPage(draft.id!)
+      if (page) {
+        page.is_published = true
+        page.published_content = page.content
+        page.published_title = page.title
+      }
+    })
+    drafts.value = drafts.value.filter((draft) => !toBePublishedPages.find((p) => p.id === draft.id))
+  }
+
   return {
     fetchPages,
     fetchBooks,
@@ -534,5 +550,6 @@ export function useDocs() {
     fetchDrafts,
     findPage,
     uploadFile,
+    bulkPublish,
   }
 }

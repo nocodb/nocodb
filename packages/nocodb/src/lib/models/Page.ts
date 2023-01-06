@@ -473,6 +473,7 @@ export default class Page {
         table.foreign('book_id').references(`${MetaTable.BOOK}.id`);
 
         table.string('title', 150).notNullable();
+        table.string('published_title', 150);
         table.text('description', 'longtext').defaultTo('');
 
         table.text('content', 'longtext').defaultTo('');
@@ -530,17 +531,40 @@ export default class Page {
     bookId: string;
   }) {
     const knex = Noco.ncMeta.knex;
-    const pages = await knex(Page.tableName({ projectId, bookId })).orderBy(
-      'updated_at',
-      'asc'
-    );
+    const pages: DocsPageType[] = (await knex(
+      Page.tableName({ projectId, bookId })
+    ).orderBy('updated_at', 'asc')) as any;
 
     return pages.filter((p) => {
-      return (
-        (p.parent_page_id && p.content !== p.published_content) ||
-        (!p.parent_page_id && !p.is_published)
-      );
+      return p.content !== p.published_content || p.title !== p.published_title;
     });
+  }
+
+  static async publish({
+    projectId,
+    bookId,
+    pageId,
+    userId,
+  }: {
+    projectId: string;
+    bookId: string;
+    pageId: string;
+    userId: string;
+  }) {
+    const knex = Noco.ncMeta.knex;
+    const page = await this.get({ projectId, bookId, id: pageId });
+
+    if (!page) throw new Error('Page not found');
+
+    await knex(Page.tableName({ projectId, bookId }))
+      .where({ id: pageId })
+      .update({
+        published_content: page.content,
+        published_title: page.title,
+        is_published: true,
+        last_published_date: new Date(),
+        last_published_by_id: userId,
+      });
   }
 
   static async dropPageTable(

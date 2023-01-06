@@ -86,6 +86,7 @@ export interface DocsPageType {
   /** Unique identifier for the given page. */
   id?: string;
   title: string;
+  published_title?: string;
   description?: string;
   content: string;
   order?: number;

@@ -13,6 +13,7 @@ import CodeBlock from '@tiptap/extension-code-block'
 import Commands from './commands'
 import suggestion from './commands/suggestion'
 import { createImageExtension } from './images/node'
+import type { PageSidebarNode } from '~/composables/docs/useDocs'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
@@ -28,12 +29,12 @@ const {
   books,
   drafts,
   fetchDrafts,
-  findPage,
   uploadFile,
+  bulkPublish,
 } = useDocs()
 
 const isDraftsOpen = ref(false)
-const draftsFormData = ref<any[]>([])
+const draftsFormData = ref<Array<PageSidebarNode & { selected: boolean }>>([])
 
 const isTitleInputRefLoaded = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
@@ -115,22 +116,7 @@ const publishDrafts = async () => {
   isPagePublishing.value = true
 
   try {
-    await Promise.all(
-      draftsFormData.value
-        .filter((draft) => draft.selected)
-        .map(async (draft) => {
-          return await updatePage({ pageId: draft.id!, page: { is_published: true } as any })
-        }),
-    )
-    draftsFormData.value.forEach((draft) => {
-      const page = findPage(draft.id!)
-      if (page) {
-        page.is_published = true
-        page.published_content = page.content
-      }
-    })
-    drafts.value = draftsFormData.value.filter((draft) => !draft.selected)
-    console.log('Published drafts', drafts.value)
+    await bulkPublish(draftsFormData.value.filter((draft) => draft.selected))
   } catch (e) {
     console.error(e)
   } finally {
@@ -278,6 +264,7 @@ watchDebounced(
       title="Publish drafts"
       :mask-closable="false"
       ok-text="Publish"
+      :confirm-loading="isPagePublishing"
       @cancel="isDraftsOpen = false"
       @ok="publishDrafts"
     >

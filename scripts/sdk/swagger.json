@@ -8748,6 +8748,9 @@
           "title": {
             "type": "string"
           },
+          "published_title": {
+            "type": "string"
+          },
           "description": {
             "type": "string"
           },

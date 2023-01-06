@@ -138,12 +138,11 @@ async function batchPublish(
     const { projectId, bookId } = req.body;
 
     for (const pageId of req.body.pageIds) {
-      await Page.update({
-        pageId: pageId,
-        attributes: { is_published: true },
-        user,
+      await Page.publish({
+        pageId,
         projectId,
         bookId,
+        userId: user.id,
       });
     }
     res.json({});

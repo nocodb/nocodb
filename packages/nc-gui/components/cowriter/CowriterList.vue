@@ -47,7 +47,7 @@ function starOutput(recordIdx: number, recordId: string, meta: any) {
 <template>
   <general-overlay :model-value="generateCowriterLoading" inline transition class="!bg-opacity-15">
     <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
-      <a-spin size="large" />
+      <a-spin size="large" tip="Generating ..." />
     </div>
   </general-overlay>
   <div class="max-h-[max(calc(100vh_-_200px)_,300px)] overflow-y-scroll">

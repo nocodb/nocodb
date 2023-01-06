@@ -3,6 +3,7 @@ import type { CowriterType } from 'nocodb-sdk'
 import { timeAgo, useCowriterStoreOrThrow } from '#imports'
 
 const {
+  COWRITER_TABS,
   copyCowriterOutput,
   starCowriterOutput,
   cowriterOutputList,
@@ -15,11 +16,11 @@ const {
 
 const cowriterRecords = computed(() => {
   switch (cowriterOutputActiveKey.value) {
-    case 'cowriter-output':
+    case COWRITER_TABS.OUTPUT_RESULT_KEY:
       return cowriterOutputList.value
-    case 'cowriter-history':
+    case COWRITER_TABS.OUTPUT_HISTORY_KEY:
       return cowriterHistoryList.value
-    case 'cowriter-starred':
+    case COWRITER_TABS.OUTPUT_STARRED_KEY:
       return cowriterStarredList.value
     default:
       return []
@@ -79,7 +80,7 @@ function starOutput(recordIdx: number, recordId: string, meta: any) {
     <div v-else class="h-full w-full text-gray-600 flex items-center justify-center relative my-[40px]">
       <div class="flex flex-col gap-6 items-center justify-center mx-auto text-center text-gray-500 w-3/5 h-1/2 rounded-md">
         <div class="prose-lg leading-8">
-          <span v-if="cowriterOutputActiveKey === 'cowriter-output'">
+          <span v-if="cowriterOutputActiveKey === COWRITER_TABS.OUTPUT_RESULT_KEY">
             <a-empty>
               <template #description>
                 <div class="font-bold mb-3">No Output Generated</div>
@@ -87,7 +88,7 @@ function starOutput(recordIdx: number, recordId: string, meta: any) {
               </template>
             </a-empty>
           </span>
-          <span v-if="cowriterOutputActiveKey === 'cowriter-history'">
+          <span v-if="cowriterOutputActiveKey === COWRITER_TABS.OUTPUT_HISTORY_KEY">
             <a-empty>
               <template #description>
                 <div class="font-bold mb-3">No History Found</div>
@@ -95,7 +96,7 @@ function starOutput(recordIdx: number, recordId: string, meta: any) {
               </template>
             </a-empty>
           </span>
-          <span v-if="cowriterOutputActiveKey === 'cowriter-starred'">
+          <span v-if="cowriterOutputActiveKey === COWRITER_TABS.OUTPUT_STARRED_KEY">
             <a-empty>
               <template #description>
                 <div class="font-bold mb-3">No Starred Output Found</div>

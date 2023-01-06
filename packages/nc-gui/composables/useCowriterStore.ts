@@ -3,6 +3,19 @@ import { ViewTypes } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useCopy, useNuxtApp, useViews } from '#imports'
 
 const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId: string) => {
+  enum COWRITER_TABS {
+    INPUT_FIELDS_KEY = 'cowriter-form',
+    INPUT_PROMPT_KEY = 'cowriter-prompt',
+    OUTPUT_RESULT_KEY = 'cowriter-output',
+    OUTPUT_HISTORY_KEY = 'cowriter-history',
+    OUTPUT_STARRED_KEY = 'cowriter-starred',
+    INPUT_FIELDS_VALUE = 'Fields',
+    INPUT_PROMPT_VALUE = 'Prompt',
+    OUTPUT_RESULT_VALUE = 'Output',
+    OUTPUT_HISTORY_VALUE = 'History',
+    OUTPUT_STARRED_VALUE = 'Starred',
+  }
+
   const cowriterLayout = ref<'form' | 'grid'>('form')
 
   const cowriterProject = ref<ProjectType | null>()
@@ -19,9 +32,9 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
 
   const cowriterStarredList = ref<CowriterType[] | []>([])
 
-  const cowriterInputActiveKey = ref('cowriter-form')
+  const cowriterInputActiveKey = ref(COWRITER_TABS.INPUT_FIELDS_KEY)
 
-  const cowriterOutputActiveKey = ref('cowriter-output')
+  const cowriterOutputActiveKey = ref(COWRITER_TABS.OUTPUT_RESULT_KEY)
 
   const cowriterFormRef = ref()
 
@@ -223,6 +236,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     copyCowriterOutput,
     starCowriterOutput,
     maxCowriterGeneration,
+    COWRITER_TABS,
   }
 })
 

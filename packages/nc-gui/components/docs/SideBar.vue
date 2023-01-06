@@ -6,6 +6,7 @@ import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
+const { project } = useProject()
 const {
   fetchPages,
   pages,
@@ -162,21 +163,35 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
     collapsible
     theme="light"
   >
-    <div v-if="!isPublic" class="py-2.5 flex flex-row justify-between items-center ml-2 px-2 border-b-warm-gray-100 border-b-1">
-      <div class="flex">Pages</div>
+    <div v-if="!isPublic" class="flex text-xs font-semibold text-gray-600 px-2 ml-2 py-3">DOCUMENT PAGES</div>
+    <div v-if="!isPublic" class="flex px-3">
+      <a-input class="page-search" placeholder="Search">
+        <template #prefix>
+          <MdiMagnify />
+        </template>
+      </a-input>
+    </div>
+    <div
+      v-if="!isPublic"
+      class="py-1.5 mt-3 mb-2 flex flex-row justify-between items-center mx-3 pr-2 pl-3 rounded-md bg-violet-50"
+    >
+      <div class="flex text-xs font-semibold" style="color: #1c26b8">{{ project.title }}</div>
       <div class="flex flex-row justify-between items-center">
         <div
-          class="flex select-none p-1 border-gray-100 border-1 rounded-md mr-1"
+          class="flex select-none p-1 rounded-md"
           :class="{
             'cursor-not-allowed !bg-gray-50 text-gray-400': !openedBook,
-            'hover:(text-primary/100 !bg-blue-50) cursor-pointer': openedBook,
+            'hover:(text-primary/100 !bg-gray-200 !bg-opacity-60) cursor-pointer': openedBook,
           }"
           @click="() => openedBook && addNewPage()"
         >
           <MdiPlus />
         </div>
         <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
-          <div class="flex hover:(text-primary/100 !bg-blue-50 rounded-md) cursor-pointer select-none p-1" @click.prevent>
+          <div
+            class="flex hover:(text-primary/100 !bg-gray-200 !bg-opacity-60 rounded-md) cursor-pointer select-none p-1"
+            @click.prevent
+          >
             <MdiDotsVertical />
           </div>
           <template #overlay>
@@ -218,9 +233,9 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >
-      <template #title="{ title, id, parent_page_id }">
+      <template #title="{ title, id }">
         <div class="flex flex-row w-full items-center justify-between group pt-1">
-          <div class="flex" :class="{ 'font-semibold': !parent_page_id }">
+          <div class="flex">
             {{ title }}
           </div>
           <div v-if="!isPublic" class="flex flex-row justify-between items-center">
@@ -371,6 +386,17 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
 
   .nc-docs-menu .ant-dropdown-menu-item {
     @apply p-0 !important;
+  }
+
+  .page-search {
+    @apply !rounded-md !bg-gray-100;
+    input.ant-input {
+      @apply !bg-gray-100;
+      // placeholder
+      &::placeholder {
+        @apply !text-black text-xs pl-1;
+      }
+    }
   }
 }
 </style>

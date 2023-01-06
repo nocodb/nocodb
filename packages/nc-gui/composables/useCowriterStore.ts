@@ -56,7 +56,13 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
           async (record) => await $api.cowriterTable.patch(cowriterTable.value!.id!, record!.id!, { is_read: true }),
         ),
       )
-      await loadCowriterList()
+        .then(async () => {
+          await loadCowriterList()
+          message.success('Outputs have been cleared. They will be still available in History.')
+        })
+        .catch(async (e: any) => {
+          message.error(await extractSdkResponseErrorMsg(e))
+        })
     }
   }
 

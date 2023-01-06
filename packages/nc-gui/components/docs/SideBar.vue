@@ -33,14 +33,14 @@ const magicFormData = ref({
   content: '',
 })
 const magicParentPageId = ref()
-const loadMagic = ref(false)
+const isMagicLoading = ref(false)
 
 const importModalOpen = ref(false)
 const importFormData = ref({
   title: '',
   content: '',
 })
-const loadImport = ref(false)
+const isImporting = ref(false)
 const importType: Ref<'nuxt' | 'md' | 'docusaurus' | 'vitepress' | null> = ref(null)
 
 const onLoadData: TreeProps['loadData'] = async (treeNode) => {
@@ -65,21 +65,31 @@ const openPageTabKeys = computed({
 })
 
 const onMagic = async () => {
-  loadMagic.value = true
-  await createMagic(magicFormData.value.title)
-  await fetchBooks()
-  await navigateToLastBook()
-  magicModalOpen.value = false
-  loadMagic.value = false
+  isMagicLoading.value = true
+  try {
+    await createMagic(magicFormData.value.title)
+    await fetchBooks()
+    await navigateToLastBook()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    magicModalOpen.value = false
+    isMagicLoading.value = false
+  }
 }
 
 const onImport = async () => {
-  loadImport.value = true
-  await createImport(importFormData.value.title, 'nuxt')
-  await fetchBooks()
-  await navigateToLastBook()
-  importModalOpen.value = false
-  loadImport.value = false
+  isImporting.value = true
+  try {
+    await createImport(importFormData.value.title, 'nuxt')
+    await fetchBooks()
+    await navigateToLastBook()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    importModalOpen.value = false
+    isImporting.value = false
+  }
 }
 
 const openMagicModal = (parentId?: string | undefined) => {
@@ -242,11 +252,19 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
       </template>
     </a-tree>
   </a-layout-sider>
-  <a-modal :visible="magicModalOpen" :closable="false" :mask-closable="false" @cancel="magicModalOpen = false" @ok="onMagic">
+  <a-modal
+    :visible="magicModalOpen"
+    :closable="false"
+    :cancel-button-props="{ disabled: isMagicLoading }"
+    :mask-closable="false"
+    :confirm-loading="isMagicLoading"
+    @cancel="magicModalOpen = false"
+    @ok="onMagic"
+  >
     <template #title>
       <div class="flex items-center">
         Create
-        <PhSparkleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-orange-400" />
+        <PhSparkleFill :class="{ 'nc-animation-pulse': isMagicLoading }" class="ml-2 text-orange-400" />
       </div>
     </template>
     <a-form :model="magicFormData">
@@ -255,11 +273,19 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
       </a-form-item>
     </a-form>
   </a-modal>
-  <a-modal :visible="importModalOpen" :closable="false" :mask-closable="false" @cancel="importModalOpen = false" @ok="onImport">
+  <a-modal
+    :visible="importModalOpen"
+    :closable="false"
+    :mask-closable="false"
+    :cancel-button-props="{ disabled: isMagicLoading }"
+    :confirm-loading="isImporting"
+    @cancel="importModalOpen = false"
+    @ok="onImport"
+  >
     <template #title>
       <div class="flex items-center">
         Import documentation
-        <PhUploadSimpleFill :class="{ 'nc-animation-pulse': loadMagic }" class="ml-2 text-blue-400" />
+        <PhUploadSimpleFill :class="{ 'nc-animation-pulse': isImporting }" class="ml-2 text-blue-400" />
       </div>
     </template>
     <div v-if="importType === null">

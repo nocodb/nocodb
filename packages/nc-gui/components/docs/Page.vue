@@ -264,6 +264,7 @@ watchDebounced(
       title="Publish drafts"
       :mask-closable="false"
       ok-text="Publish"
+      :cancel-button-props="{ disabled: isPagePublishing }"
       :confirm-loading="isPagePublishing"
       @cancel="isDraftsOpen = false"
       @ok="publishDrafts"

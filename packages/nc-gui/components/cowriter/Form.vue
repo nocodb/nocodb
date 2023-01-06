@@ -18,8 +18,15 @@ import {
   useViewData,
 } from '#imports'
 
-const { cowriterFormState, cowriterFormRef, cowriterTable, cowriterFormView, loadCowriterTable, deleteCowriterFormColumn } =
-  useCowriterStoreOrThrow()
+const {
+  unsupportedColumnTypes,
+  cowriterFormState,
+  cowriterFormRef,
+  cowriterTable,
+  cowriterFormView,
+  loadCowriterTable,
+  deleteCowriterFormColumn,
+} = useCowriterStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -57,9 +64,6 @@ const isLoadingForm = ref(true)
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
-// TODO: move to composable
-const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
-
 const { isUIAllowed } = useUIPermission()
 
 const { row } = useProvideSmartsheetRowStore(
@@ -87,38 +91,21 @@ const showColumnDropdown = ref(false)
 
 const drag = ref(false)
 
-/** Block user from drag n drop required column to hidden fields */
-function onMoveCallback(event: any) {
-  if (event.from !== event.to && shouldSkipColumn(event.draggedContext.element)) {
-    return false
-  }
-}
-
 function onMove(event: any) {
-  const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
+  const { newIndex, element } = event.added || event.moved || event.removed
 
-  if (event.added) {
-    element.show = true
-  }
+  element.show = true
 
-  if (event.removed) {
-    if (shouldSkipColumn(element)) {
-      return
-    }
-    element.show = false
-    saveOrUpdate(element, oldIndex)
+  if (!localColumns.value.length || localColumns.value.length === 1) {
+    element.order = 1
+  } else if (localColumns.value.length - 1 === newIndex) {
+    element.order = (localColumns.value[newIndex - 1]?.order || 0) + 1
+  } else if (newIndex === 0) {
+    element.order = (localColumns.value[1]?.order || 0) / 2
   } else {
-    if (!localColumns.value.length || localColumns.value.length === 1) {
-      element.order = 1
-    } else if (localColumns.value.length - 1 === newIndex) {
-      element.order = (localColumns.value[newIndex - 1]?.order || 0) + 1
-    } else if (newIndex === 0) {
-      element.order = (localColumns.value[1]?.order || 0) / 2
-    } else {
-      element.order = ((localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0)) / 2
-    }
-    saveOrUpdate(element, newIndex)
+    element.order = ((localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0)) / 2
   }
+  saveOrUpdate(element, newIndex)
 
   $e('a:cowriter-form:reorder')
 }
@@ -150,44 +137,6 @@ function deleteColumn(ele: Record<string, any>) {
   })
 }
 
-function isDbRequired(column: Record<string, any>) {
-  if (hiddenCols.includes(column.fk_column_id)) {
-    return false
-  }
-
-  let isRequired =
-    // confirm column is not virtual
-    (!isVirtualCol(column) &&
-      // column required / not null
-      column.rqd &&
-      // column default value
-      !column.cdf &&
-      // confirm it's not foreign key
-      !columns.value.some(
-        (c: Record<string, any>) =>
-          c.uidt === UITypes.LinkToAnotherRecord &&
-          c?.colOptions?.type === RelationTypes.BELONGS_TO &&
-          column.fk_column_id === c.colOptions.fk_child_column_id,
-      )) ||
-    // primary column
-    (column.pk && !column.ai && !column.cdf)
-  if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions.type === RelationTypes.BELONGS_TO) {
-    const col = columns.value.find((c: Record<string, any>) => c.id === column.colOptions.fk_child_column_id) as Record<
-      string,
-      any
-    >
-    if (col.rqd && !col.default) {
-      isRequired = true
-    }
-  }
-
-  return isRequired
-}
-
-function shouldSkipColumn(col: Record<string, any>) {
-  return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf) || col.uidt === UITypes.QrCode
-}
-
 function setFormData() {
   const col = formColumnData?.value || []
 
@@ -200,29 +149,13 @@ function setFormData() {
   systemFieldsIds.value = getSystemColumns(col).map((c: any) => c.fk_column_id)
 
   localColumns.value = col
-    .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
+    .filter((f) => !unsupportedColumnTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
   hiddenColumns.value = col.filter(
-    (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !hiddenColTypes.includes(f.uidt),
+    (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !unsupportedColumnTypes.includes(f.uidt),
   )
-}
-
-function isRequired(_columnObj: Record<string, any>, required = false) {
-  let columnObj = _columnObj
-  if (
-    columnObj.uidt === UITypes.LinkToAnotherRecord &&
-    columnObj.colOptions &&
-    columnObj.colOptions.type === RelationTypes.BELONGS_TO
-  ) {
-    columnObj = columns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<
-      string,
-      any
-    >
-  }
-
-  return required || (columnObj && columnObj.rqd && !columnObj.cdf)
 }
 
 async function submitCallback() {
@@ -281,7 +214,6 @@ watch(cowriterFormView, async () => {
         draggable=".item"
         group="form-inputs"
         class="h-full"
-        :move="onMoveCallback"
         @change="onMove($event)"
         @start="drag = true"
         @end="drag = false"
@@ -292,7 +224,7 @@ watch(cowriterFormView, async () => {
             :class="[`nc-form-drag-${element.title.replaceAll(' ', '')}`]"
             data-testid="nc-form-fields"
           >
-            <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="absolute flex top-2 right-2">
+            <div v-if="isUIAllowed('editFormView')" class="absolute flex top-2 right-2">
               <MdiDeleteOutline class="opacity-0 nc-field-remove-icon" @click.stop="deleteColumn(element)" />
             </div>
 
@@ -300,7 +232,6 @@ watch(cowriterFormView, async () => {
               <LazySmartsheetHeaderVirtualCell
                 v-if="isVirtualCol(element)"
                 :column="{ ...element, title: element.label || element.title }"
-                :required="isRequired(element, element.required)"
                 :hide-menu="true"
                 data-testid="nc-form-input-label"
               />
@@ -308,18 +239,12 @@ watch(cowriterFormView, async () => {
               <LazySmartsheetHeaderCell
                 v-else
                 :column="{ ...element, title: element.label || element.title }"
-                :required="isRequired(element, element.required)"
                 :hide-menu="true"
                 data-testid="nc-form-input-label"
               />
             </div>
 
-            <a-form-item
-              v-if="isVirtualCol(element)"
-              :name="element.title"
-              class="!mb-0"
-              :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
-            >
+            <a-form-item v-if="isVirtualCol(element)" :name="element.title" class="!mb-0">
               <LazySmartsheetVirtualCell
                 v-model="cowriterFormState[element.title]"
                 :row="row"
@@ -331,12 +256,7 @@ watch(cowriterFormView, async () => {
               />
             </a-form-item>
 
-            <a-form-item
-              v-else
-              :name="element.title"
-              class="!mb-0"
-              :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
-            >
+            <a-form-item v-else :name="element.title" class="!mb-0">
               <LazySmartsheetCell
                 v-model="cowriterFormState[element.title]"
                 class="nc-input"

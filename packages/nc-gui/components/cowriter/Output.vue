@@ -22,7 +22,13 @@ const { cowriterOutputList, cowriterOutputActiveKey, clearCowriterOutput } = use
     </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-4">
-        <a-button class="!rounded-md" @click="clearCowriterOutput"> Clear </a-button>
+        <a-button
+          v-if="cowriterOutputActiveKey === 'cowriter-output' && cowriterOutputList.length > 0"
+          class="!rounded-md"
+          @click="clearCowriterOutput"
+        >
+          Clear
+        </a-button>
       </div>
     </template>
   </a-tabs>

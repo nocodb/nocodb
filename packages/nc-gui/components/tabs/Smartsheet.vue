@@ -69,6 +69,7 @@ provide(
 
 <template>
   <div class="nc-container flex h-full">
+    <SmartsheetSidebarMobile v-if="meta && isMobileMode" class="nc-left-sidebar-mobile" />
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
 
@@ -92,7 +93,7 @@ provide(
     <LazySmartsheetExpandedFormDetached />
 
     <!-- Lazy loading the sidebar causes issues when deleting elements, i.e. it appears as if multiple elements are removed when they are not -->
-    <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
+    <SmartsheetSidebar v-if="meta && !isMobileMode" class="nc-right-sidebar" />
   </div>
 </template>
 

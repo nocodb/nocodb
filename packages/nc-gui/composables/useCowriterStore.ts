@@ -1,5 +1,5 @@
 import type { CowriterType, ProjectType, TableInfoType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg, useCopy, useNuxtApp, useViews } from '#imports'
 
 const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId: string) => {
@@ -47,6 +47,14 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
   const generateColumnBtnLoading = ref(false)
 
   const maxCowriterGeneration = ref(1)
+
+  const unsupportedColumnTypes: string[] = [
+    UITypes.Rollup,
+    UITypes.Lookup,
+    UITypes.Formula,
+    UITypes.QrCode,
+    UITypes.SpecificDBType,
+  ]
 
   const { $api } = useNuxtApp()
 
@@ -272,6 +280,7 @@ const [useProvideCowriterStore, useCowriterStore] = useInjectionState((projectId
     copyCowriterOutput,
     starCowriterOutput,
     maxCowriterGeneration,
+    unsupportedColumnTypes,
     COWRITER_TABS,
   }
 })

@@ -16,7 +16,7 @@ const { appInfo, token } = $(useGlobal())
 
 const meta = $(inject(MetaInj, ref()))
 
-const { cowriterTable } = useCowriterStoreOrThrow()
+const { unsupportedColumnTypes, cowriterTable } = useCowriterStoreOrThrow()
 
 const { copy } = useCopy()
 
@@ -65,13 +65,10 @@ const apiUrl = $computed(() => {
   return new URL(`/api/v1/cowriter/meta/tables/${meta?.id}`, (appInfo && appInfo.ncSiteUrl) || '/').href
 })
 
-// TODO: move to composable
-const hiddenColTypes: string[] = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
-
 const supportedColumns = computed(
   () =>
     ((cowriterTable.value as TableType)?.columns || [])
-      .filter((c: ColumnType) => !hiddenColTypes.includes(c.uidt) && !isSystemColumn(c))
+      .filter((c: ColumnType) => !unsupportedColumnTypes.includes(c.uidt) && !isSystemColumn(c))
       .sort((a, b) => a.order! - b.order!) || [],
 )
 

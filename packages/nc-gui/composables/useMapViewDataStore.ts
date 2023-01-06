@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { ref, useInjectionState, useMetas } from '#imports'
+import { IsPublicInj, ref, useInjectionState, useMetas, useProject } from '#imports'
 import type { Row } from '~/lib'
 
 export const geodataToggleState = reactive({ show: false })
@@ -19,13 +19,25 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     viewMeta: Ref<ViewType | MapType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
     where?: ComputedRef<string | undefined>,
   ) => {
+    if (!meta) {
+      throw new Error('Table meta is not available')
+    }
+
     const formattedData = ref<Row[]>([])
 
     const { api } = useApi()
+
     const { project } = useProject()
+
     const { $api } = useNuxtApp()
 
     const { isUIAllowed } = useUIPermission()
+
+    const isPublic = inject(IsPublicInj, ref(false))
+
+    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+
+    const { fetchSharedViewData } = useSharedView()
 
     const mapMetaData = ref<MapType>({})
 
@@ -41,13 +53,15 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }))
 
     async function syncCount() {
-      const { count } = await $api.dbViewRow.count(
-        NOCO,
-        project?.value?.title as string,
-        meta?.value?.id as string,
-        viewMeta?.value?.id as string,
-      )
-      paginationData.value.totalRows = count
+      if (!isPublic) {
+        const { count } = await $api.dbViewRow.count(
+          NOCO,
+          project?.value?.title as string,
+          meta?.value?.id as string,
+          viewMeta?.value?.id as string,
+        )
+        paginationData.value.totalRows = count
+      }
     }
 
     async function loadMapMeta() {
@@ -58,14 +72,15 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }
 
     async function loadMapData() {
-      if (!viewMeta?.value?.id || !meta?.value?.columns) return
+      if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
 
-      const res = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-        ...queryParams.value,
-        where: where?.value,
-      })
-
-      // syncCount()
+      const res = !isPublic.value
+        ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+            ...queryParams.value,
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            where: where?.value,
+          })
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
       formattedData.value = formatData(res.list)
     }

@@ -109,6 +109,9 @@ const sharedViewUrl = computed(() => {
     case ViewTypes.GALLERY:
       viewType = 'gallery'
       break
+    case ViewTypes.MAP:
+      viewType = 'map'
+      break
     default:
       viewType = 'view'
   }
@@ -334,7 +337,11 @@ const copyIframeCode = async () => {
 
           <div
             v-if="
-              shared && (shared.type === ViewTypes.GRID || shared.type === ViewTypes.KANBAN || shared.type === ViewTypes.GALLERY)
+              shared &&
+              (shared.type === ViewTypes.GRID ||
+                shared.type === ViewTypes.KANBAN ||
+                shared.type === ViewTypes.GALLERY ||
+                shared.type === ViewTypes.MAP)
             "
           >
             <!-- Allow Download -->

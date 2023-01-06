@@ -35,9 +35,9 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-    <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+    <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-    <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban || isGallery) && !isPublic" />
+    <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
     <div class="flex-1" />

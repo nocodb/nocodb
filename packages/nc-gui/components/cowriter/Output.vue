@@ -22,13 +22,16 @@ const { COWRITER_TABS, cowriterOutputList, cowriterOutputActiveKey, clearCowrite
     </a-tab-pane>
     <template #rightExtra>
       <div class="flex items-center gap-1 px-4">
-        <a-button
-          v-if="cowriterOutputActiveKey === COWRITER_TABS.OUTPUT_RESULT_KEY && cowriterOutputList.length > 0"
-          class="!rounded-md"
-          @click="clearCowriterOutput"
-        >
-          Clear
-        </a-button>
+        <a-tooltip :mouse-enter-delay="0.25" :mouse-leave-delay="0" placement="left">
+          <template #title>Clear the recent outputs. They can be still available under History.</template>
+          <a-button
+            v-if="cowriterOutputActiveKey === COWRITER_TABS.OUTPUT_RESULT_KEY && cowriterOutputList.length > 0"
+            class="!rounded-md"
+            @click="clearCowriterOutput"
+          >
+            Clear
+          </a-button>
+        </a-tooltip>
       </div>
     </template>
   </a-tabs>

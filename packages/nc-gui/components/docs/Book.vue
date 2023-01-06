@@ -1,6 +1,9 @@
 <script lang="ts" setup>
+import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 import type { PageSidebarNode } from '~/composables/docs/useDocs'
+import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
+import MdiFileEditOutline from '~icons/mdi/file-edit-outline'
 
 const { project } = useProject()
 const {
@@ -26,6 +29,20 @@ const showCreateBookModal = ref(false)
 const bookFormModelData = ref({
   title: '',
 })
+
+const activeTabKey = ref('all')
+const tabInfo = [
+  {
+    title: 'All Pages',
+    key: 'all',
+    icon: () => MdiFileDocumentOutline,
+  },
+  {
+    title: 'Drafts',
+    key: 'drafts',
+    icon: () => MdiFileEditOutline,
+  },
+]
 
 const haveDrafts = computed(() => drafts.value.length > 0)
 
@@ -111,7 +128,7 @@ const onImport = async () => {
 <template>
   <a-layout-content>
     <div class="flex flex-col mx-20 mt-10.5 px-6">
-      <div class="flex flex-row justify-between">
+      <div class="flex flex-row justify-between items-center">
         <div class="flex flex-row gap-x-2 items-center ml-2">
           <div class="flex underline cursor-pointer">
             {{ openedBook?.title }}
@@ -142,7 +159,7 @@ const onImport = async () => {
           >
         </div>
       </div>
-      <div class="flex flex-row justify-between mt-10">
+      <div class="flex flex-row justify-between mt-8 items-center">
         <div class="flex flex-row gap-x-6 items-center">
           <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
           <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
@@ -178,6 +195,37 @@ const onImport = async () => {
             </div>
           </a-button>
         </div>
+      </div>
+      <div class="flex flex-row w-full mt-10">
+        <a-tabs v-model:activeKey="activeTabKey" class="!w-full">
+          <a-tab-pane v-for="tab of tabInfo" :key="tab.key">
+            <template #tab>
+              <div class="flex flex-row items-center text-xs px-2">
+                <component :is="tab.icon()" class="mr-2" />
+                <div>
+                  {{ tab.title }}
+                </div>
+              </div>
+            </template>
+            <div class="flex flex-col gap-y-4 mt-1 mb-6">
+              <div
+                v-for="(draft, index) of drafts"
+                :key="index"
+                class="flex cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
+              >
+                <div class="flex flex-col gap-y-2">
+                  <div style="font-weight: 450; font-size: 0.9rem">
+                    {{ draft?.title }}
+                  </div>
+
+                  <div class="flex text-gray-400" style="font-weight: 300; font-size: 0.7rem">
+                    Updated {{ dayjs(draft!.updated_at!).fromNow() }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a-tab-pane>
+        </a-tabs>
       </div>
     </div>
     <a-modal
@@ -227,7 +275,7 @@ const onImport = async () => {
         </div>
       </template>
       <a-form :model="magicFormData">
-        <div class="flex flex-col">
+        <div class="flex flex-col mx-2">
           <div class="ml-1 mb-2 text-sm">
             Title representing your need <span class="text-gray-500">(i.e Marketing handbook) </span>:
           </div>

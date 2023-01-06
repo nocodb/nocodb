@@ -18,6 +18,8 @@ const logout = () => {
   navigateTo('/signin')
 }
 
+const isPublic = route.meta.public
+
 const { hooks } = useNuxtApp()
 
 const { project } = useProject()
@@ -54,14 +56,18 @@ export default {
           <template #title>
             {{ currentVersion }}
           </template>
-          <div class="flex items-center gap-2">
-            <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+          <div class="flex items-center gap-2 ml-1">
+            <img width="100" alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" />
             <img v-show="!isDashboard" width="90" alt="NocoDB" src="~/assets/img/brand/text.png" />
           </div>
         </a-tooltip>
       </div>
 
-      <div class="ml-2 font-semibold">{{ project?.title }}</div>
+      <a-input class="!w-1/5 !ml-10 doc-search" placeholder="Search">
+        <template #prefix>
+          <MdiMagnify class="text-sm" />
+        </template>
+      </a-input>
 
       <div class="flex-1" />
 
@@ -75,11 +81,11 @@ export default {
         </div>
       </a-tooltip>
 
-      <template v-if="signedIn">
+      <template v-if="!isPublic && signedIn">
         <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
           <MdiDotsVertical
             data-testid="nc-menu-accounts"
-            class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white"
+            class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-black"
             @click.prevent
           />
 
@@ -153,6 +159,16 @@ export default {
 
   &:active::after {
     @apply ring ring-accent ring-opacity-100;
+  }
+}
+.doc-search {
+  @apply !rounded-md !bg-gray-100;
+  input.ant-input {
+    @apply !bg-gray-100;
+    // placeholder
+    &::placeholder {
+      @apply !text-gray-500 text-xs pl-1;
+    }
   }
 }
 </style>

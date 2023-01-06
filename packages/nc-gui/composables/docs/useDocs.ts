@@ -521,6 +521,11 @@ export function useDocs() {
     drafts.value = drafts.value.filter((draft) => !toBePublishedPages.find((p) => p.id === draft.id))
   }
 
+  const navigateToFirstPage = () => {
+    const page = pages.value[0]
+    navigateTo(nestedUrl(page.id!))
+  }
+
   return {
     fetchPages,
     fetchBooks,
@@ -554,5 +559,6 @@ export function useDocs() {
     uploadFile,
     bulkPublish,
     isOnlyBookOpened,
+    navigateToFirstPage,
   }
 }

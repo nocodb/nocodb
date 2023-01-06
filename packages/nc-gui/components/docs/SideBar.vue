@@ -104,7 +104,8 @@ const navigateToOpenedBook = () => {
     :collapsed="false"
     width="250"
     collapsed-width="50"
-    class="relative shadow-md h-full z-1 nc-docs-left-sidebar pb-12"
+    class="relative shadow-md h-full z-1 nc-docs-left-sidebar"
+    :class="{ 'pb-14': !isPublic }"
     :trigger="null"
     collapsible
     theme="light"
@@ -131,7 +132,7 @@ const navigateToOpenedBook = () => {
         </div>
       </div>
     </div>
-    <div v-else class="flex py-0.5"></div>
+    <div v-else class="flex"></div>
     <a-tree
       :key="openedBook?.id"
       v-model:expandedKeys="openedTabs"
@@ -192,6 +193,27 @@ const navigateToOpenedBook = () => {
 
 <style lang="scss">
 .nc-docs-left-sidebar {
+  .ant-tree {
+    // scrollbar reduce width and gray color
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    /* Track */
+    &::-webkit-scrollbar-track {
+      background: #f6f6f6 !important;
+    }
+
+    /* Handle */
+    &::-webkit-scrollbar-thumb {
+      background: rgb(210, 210, 210);
+    }
+
+    /* Handle on hover */
+    &::-webkit-scrollbar-thumb:hover {
+      background: rgb(194, 194, 194);
+    }
+  }
   .ant-tree-treenode {
     @apply w-full !important;
   }

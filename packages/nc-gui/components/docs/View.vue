@@ -16,7 +16,10 @@ const {
   fetchAndOpenChildPageOfRootPages,
   fetchDrafts,
   isOnlyBookOpened,
+  navigateToFirstPage,
 } = useDocs()
+
+const isLoading = ref(true)
 
 const onAdminMount = async () => {
   await loadBookProject()
@@ -36,23 +39,29 @@ const onAdminMount = async () => {
 }
 
 const onPublicMount = async () => {
-  if (!route.params.slugs || route.params.slugs?.length === 0) {
+  const slugs = route.params.slugs && (route.params.slugs as string[])?.filter((slug) => slug !== '')
+  if (!slugs || slugs?.length === 0) {
     navigateTo(bookUrl(openedBook.value!.slug!))
     await fetchPublicBook({
       projectId: route.params.projectId as string,
     })
-  } else if (route.params.slugs?.length === 1) {
+    await fetchPages({
+      book: openedBook.value!,
+    })
+    navigateToFirstPage()
+  } else if (slugs?.length === 1) {
     await fetchPublicBook({
       projectId: route.params.projectId as string,
-      slug: route.params.slugs[0],
+      slug: slugs[0],
     })
     await fetchPages({
       book: openedBook.value!,
     })
+    navigateToFirstPage()
   } else {
     await fetchPublicBook({
       projectId: route.params.projectId as string,
-      slug: route.params.slugs[0],
+      slug: slugs[0],
     })
     await fetchNestedChildPagesFromRoute()
   }
@@ -71,10 +80,15 @@ watch(
 )
 
 onMounted(async () => {
-  if (isPublic.value) {
-    await onPublicMount()
-  } else {
-    await onAdminMount()
+  isLoading.value = true
+  try {
+    if (isPublic.value) {
+      await onPublicMount()
+    } else {
+      await onAdminMount()
+    }
+  } finally {
+    isLoading.value = false
   }
 })
 </script>
@@ -84,7 +98,8 @@ onMounted(async () => {
     <template #sidebar>
       <DocsSideBar />
     </template>
-    <DocsBook v-if="isOnlyBookOpened" />
+    <div v-if="isLoading"></div>
+    <DocsBook v-else-if="isOnlyBookOpened" />
     <DocsPage v-else-if="openedPage" :key="openedPage?.id" />
   </NuxtLayout>
 </template>

@@ -814,7 +814,6 @@ export interface CowriterType {
   output?: string;
   meta?: any;
   is_read?: boolean;
-  time_taken?: number;
   created_by?: string;
   created_at?: string;
   updated_at?: string;

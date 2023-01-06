@@ -11475,9 +11475,6 @@
           "is_read": {
             "type": "boolean"
           },
-          "time_taken": {
-            "type": "integer"
-          },
           "created_by": {
             "type": "string"
           },

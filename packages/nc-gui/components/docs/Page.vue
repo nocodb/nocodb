@@ -13,41 +13,15 @@ import CodeBlock from '@tiptap/extension-code-block'
 import Commands from './commands'
 import suggestion from './commands/suggestion'
 import { createImageExtension } from './images/node'
-import type { PageSidebarNode } from '~/composables/docs/useDocs'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
-const {
-  openedPage,
-  openedBook,
-  updatePage,
-  openedNestedPagesOfBook,
-  nestedUrl,
-  bookUrl,
-  createBook,
-  selectBook,
-  books,
-  drafts,
-  fetchDrafts,
-  uploadFile,
-  bulkPublish,
-} = useDocs()
-
-const isDraftsOpen = ref(false)
-const draftsFormData = ref<Array<PageSidebarNode & { selected: boolean }>>([])
+const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, bookUrl, uploadFile } = useDocs()
 
 const isTitleInputRefLoaded = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
 
 const content = computed(() => openedPage.value?.content || '')
-const haveDrafts = computed(() => drafts.value.length > 0)
-
-const showCreateBookModal = ref(false)
-const bookFormModelData = ref({
-  title: '',
-})
-
-const isPagePublishing = ref(false)
 
 const breadCrumbs = computed(() => {
   const bookBreadcrumb = {
@@ -101,29 +75,6 @@ const editor = useEditor({
   editable: !isPublic.value,
 })
 
-const onCreateBook = async () => {
-  await createBook({ book: { ...bookFormModelData.value } })
-  showCreateBookModal.value = false
-}
-
-const openDrafts = async () => {
-  await fetchDrafts()
-  draftsFormData.value = drafts.value.map((draft) => ({ ...draft, selected: true }))
-  isDraftsOpen.value = true
-}
-
-const publishDrafts = async () => {
-  isPagePublishing.value = true
-
-  try {
-    await bulkPublish(draftsFormData.value.filter((draft) => draft.selected))
-  } catch (e) {
-    console.error(e)
-  } finally {
-    isPagePublishing.value = false
-    isDraftsOpen.value = false
-  }
-}
 watch(
   () => content.value,
   () => {
@@ -179,7 +130,7 @@ watchDebounced(
 
 <template>
   <a-layout-content>
-    <div v-if="openedPage" class="mx-20 px-6 mt-10 flex flex-col gap-y-4">
+    <div v-if="openedPage" class="mx-20 px-6 mt-12 flex flex-col gap-y-4">
       <div class="flex flex-row justify-between items-center">
         <a-breadcrumb v-if="breadCrumbs.length >= 0" class="!px-2">
           <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
@@ -196,34 +147,7 @@ watchDebounced(
           </a-breadcrumb-item>
         </a-breadcrumb>
         <div v-else class="flex"></div>
-        <div v-if="!isPublic" class="flex flex-row items-center">
-          <a-dropdown trigger="click">
-            <div
-              class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 py-1 rounded-md bg-gray-50 flex flex-row w-full mr-4 justify-between items-center"
-            >
-              <div class="flex font-semibold">
-                {{ openedBook?.title }}
-              </div>
-              <MdiMenuDown />
-            </div>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item class="!py-2" @click="showCreateBookModal = true"> Create new book </a-menu-item>
-                <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
-                  {{ book.title }}
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-          <div
-            class="hover:cursor-pointer hover:bg-gray-50 flex justify-center px-2.5 py-1.5 rounded-md !text-gray-400 !hover:text-gray-600 mr-2"
-          >
-            Share
-          </div>
-          <a-button type="primary" :disabled="!haveDrafts" :loading="isPagePublishing" @click="openDrafts">
-            Publish v{{ openedBook?.order }}</a-button
-          >
-        </div>
+        <div v-if="!isPublic" class="flex flex-row items-center"></div>
       </div>
 
       <a-textarea
@@ -245,36 +169,6 @@ watchDebounced(
       </FloatingMenu>
       <EditorContent :editor="editor" class="px-2" />
     </div>
-    <a-modal
-      :visible="showCreateBookModal"
-      title="Create book"
-      :closable="false"
-      :mask-closable="false"
-      @cancel="showCreateBookModal = false"
-      @ok="onCreateBook"
-    >
-      <a-form :model="bookFormModelData">
-        <a-form-item label="Title">
-          <a-input v-model:value="bookFormModelData.title" />
-        </a-form-item>
-      </a-form>
-    </a-modal>
-    <a-modal
-      :visible="isDraftsOpen"
-      title="Publish drafts"
-      :mask-closable="false"
-      ok-text="Publish"
-      :cancel-button-props="{ disabled: isPagePublishing }"
-      :confirm-loading="isPagePublishing"
-      @cancel="isDraftsOpen = false"
-      @ok="publishDrafts"
-    >
-      <li v-for="draft in draftsFormData" :key="draft.id">
-        <a-checkbox v-model:checked="draft.selected" :value="draft.id">
-          {{ draft.title }}
-        </a-checkbox>
-      </li>
-    </a-modal>
   </a-layout-content>
 </template>
 

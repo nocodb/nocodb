@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { Ref } from 'vue'
 import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
@@ -11,8 +10,6 @@ const {
   fetchPages,
   pages,
   books,
-  createMagic,
-  createImport,
   openedPage,
   openedTabs,
   nestedUrl,
@@ -20,29 +17,12 @@ const {
   reorderPages,
   openedBook,
   addNewPage,
-  fetchBooks,
-  navigateToLastBook,
   getChildrenOfPage,
+  isOnlyBookOpened,
 } = useDocs()
 
 const deleteModalOpen = ref(false)
 const selectedPageId = ref()
-
-const magicModalOpen = ref(false)
-const magicFormData = ref({
-  title: '',
-  content: '',
-})
-const magicParentPageId = ref()
-const isMagicLoading = ref(false)
-
-const importModalOpen = ref(false)
-const importFormData = ref({
-  title: '',
-  content: '',
-})
-const isImporting = ref(false)
-const importType: Ref<'nuxt' | 'md' | 'docusaurus' | 'vitepress' | null> = ref(null)
 
 const onLoadData: TreeProps['loadData'] = async (treeNode) => {
   return new Promise((resolve) => {
@@ -64,44 +44,6 @@ const openPageTabKeys = computed({
   get: () => [openedPage.value?.id],
   set: () => {},
 })
-
-const onMagic = async () => {
-  isMagicLoading.value = true
-  try {
-    await createMagic(magicFormData.value.title)
-    await fetchBooks()
-    await navigateToLastBook()
-  } catch (e) {
-    console.error(e)
-  } finally {
-    magicModalOpen.value = false
-    isMagicLoading.value = false
-  }
-}
-
-const onImport = async () => {
-  isImporting.value = true
-  try {
-    await createImport(importFormData.value.title, 'nuxt')
-    await fetchBooks()
-    await navigateToLastBook()
-  } catch (e) {
-    console.error(e)
-  } finally {
-    importModalOpen.value = false
-    isImporting.value = false
-  }
-}
-
-const openMagicModal = (parentId?: string | undefined) => {
-  magicParentPageId.value = parentId
-  magicModalOpen.value = true
-}
-
-const openImportModal = () => {
-  importType.value = null
-  importModalOpen.value = true
-}
 
 const openDeleteModal = ({ pageId }: { pageId: string }) => {
   selectedPageId.value = pageId
@@ -151,6 +93,10 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
     navigateTo(nestedUrl(id))
   }
 }
+
+const navigateToOpenedBook = () => {
+  navigateTo(nestedUrl(openedBook.value!.id!))
+}
 </script>
 
 <template>
@@ -163,19 +109,15 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
     collapsible
     theme="light"
   >
-    <div v-if="!isPublic" class="flex text-xs font-semibold text-gray-600 px-2 ml-2 py-3">DOCUMENT PAGES</div>
-    <div v-if="!isPublic" class="flex px-3">
-      <a-input class="page-search" placeholder="Search">
-        <template #prefix>
-          <MdiMagnify />
-        </template>
-      </a-input>
-    </div>
     <div
       v-if="!isPublic"
-      class="py-1.5 mt-3 mb-2 flex flex-row justify-between items-center mx-3 pr-2 pl-3 rounded-md bg-violet-50"
+      class="py-1.5 mt-3 mb-2 flex flex-row justify-between items-center mx-3 pr-2 pl-3 rounded-md hover:(bg-gray-100 cursor-pointer)"
+      :class="{ 'bg-violet-50 hover:(!bg-violet-50 bg-opacity-20)': isOnlyBookOpened, 'bg-gray-50': !isOnlyBookOpened }"
+      @click.self="navigateToOpenedBook"
     >
-      <div class="flex text-xs font-semibold" style="color: #1c26b8">{{ project.title }}</div>
+      <div class="flex text-xs font-semibold" :class="{ 'text-primary': isOnlyBookOpened }">
+        {{ project.title }}
+      </div>
       <div class="flex flex-row justify-between items-center">
         <div
           class="flex select-none p-1 rounded-md"
@@ -187,36 +129,6 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
         >
           <MdiPlus />
         </div>
-        <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
-          <div
-            class="flex hover:(text-primary/100 !bg-gray-200 !bg-opacity-60 rounded-md) cursor-pointer select-none p-1"
-            @click.prevent
-          >
-            <MdiDotsVertical />
-          </div>
-          <template #overlay>
-            <a-menu>
-              <a-menu-item>
-                <div
-                  class="flex items-center hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none px-4 py-2"
-                  @click="() => openImportModal()"
-                >
-                  <PhUploadSimpleFill class="text-blue-400 mr-2" />
-                  Import
-                </div>
-              </a-menu-item>
-              <a-menu-item>
-                <div
-                  class="flex items-center hover:(text-primary/100 !bg-blue-50) cursor-pointer select-none px-4 py-2"
-                  @click="() => openMagicModal()"
-                >
-                  <PhSparkleFill class="text-orange-400 mr-2" />
-                  Create Docs
-                </div>
-              </a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
       </div>
     </div>
     <div v-else class="flex py-0.5"></div>
@@ -240,14 +152,14 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
           </div>
           <div v-if="!isPublic" class="flex flex-row justify-between items-center">
             <div
-              class="flex hover:(text-primary/100) cursor-pointer select-none invisible group-hover:visible mr-2"
+              class="flex p-0.5 hover:(text-primary/100 !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none invisible group-hover:visible mr-2"
               @click="() => addNewPage(id)"
             >
               <MdiPlus />
             </div>
             <a-dropdown placement="bottomRight" trigger="click">
               <div
-                class="flex hover:(text-primary/100 !bg-blue-50 rounded-md) cursor-pointer select-none invisible group-hover:visible"
+                class="flex p-0.5 hover:(text-primary/100 !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none invisible group-hover:visible"
               >
                 <MdiDotsVertical />
               </div>
@@ -267,70 +179,6 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
       </template>
     </a-tree>
   </a-layout-sider>
-  <a-modal
-    :visible="magicModalOpen"
-    :closable="false"
-    :cancel-button-props="{ disabled: isMagicLoading }"
-    :mask-closable="false"
-    :confirm-loading="isMagicLoading"
-    @cancel="magicModalOpen = false"
-    @ok="onMagic"
-  >
-    <template #title>
-      <div class="flex items-center">
-        Create
-        <PhSparkleFill :class="{ 'nc-animation-pulse': isMagicLoading }" class="ml-2 text-orange-400" />
-      </div>
-    </template>
-    <a-form :model="magicFormData">
-      <a-form-item label="Title">
-        <a-input v-model:value="magicFormData.title" />
-      </a-form-item>
-    </a-form>
-  </a-modal>
-  <a-modal
-    :visible="importModalOpen"
-    :closable="false"
-    :mask-closable="false"
-    :cancel-button-props="{ disabled: isMagicLoading }"
-    :confirm-loading="isImporting"
-    @cancel="importModalOpen = false"
-    @ok="onImport"
-  >
-    <template #title>
-      <div class="flex items-center">
-        Import documentation
-        <PhUploadSimpleFill :class="{ 'nc-animation-pulse': isImporting }" class="ml-2 text-blue-400" />
-      </div>
-    </template>
-    <div v-if="importType === null">
-      <a-card :bordered="false">
-        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-          <LogosNuxtIcon class="text-5xl" />
-        </a-card-grid>
-        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-          <LogosDocusaurus class="text-5xl" />
-        </a-card-grid>
-        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-          <LogosVitejs class="text-5xl" />
-        </a-card-grid>
-        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-          <LogosConfluence class="text-5xl" />
-        </a-card-grid>
-        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-          <SimpleIconsGitbook class="text-5xl" />
-        </a-card-grid>
-        <a-card-grid style="width: 25%; text-align: center; margin: 5px 4%" @click="importType = 'nuxt'">
-          <SimpleIconsNotion class="text-5xl" />
-        </a-card-grid>
-      </a-card>
-    </div>
-    <a-form v-else :model="importFormData">
-      <a-form-item label="Url">
-        <a-input v-model:value="importFormData.title" />
-      </a-form-item>
-    </a-form>
-  </a-modal>
   <a-modal v-model:visible="deleteModalOpen" centered :closable="false" :footer="false">
     <div class="flex flex-col">
       <div class="flex">Are you sure you want to delete this page?</div>
@@ -388,15 +236,15 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
     @apply p-0 !important;
   }
 
-  .page-search {
-    @apply !rounded-md !bg-gray-100;
-    input.ant-input {
-      @apply !bg-gray-100;
-      // placeholder
-      &::placeholder {
-        @apply !text-black text-xs pl-1;
-      }
-    }
-  }
+  // .page-search {
+  //   @apply !rounded-md !bg-gray-100;
+  //   input.ant-input {
+  //     @apply !bg-gray-100;
+  //     // placeholder
+  //     &::placeholder {
+  //       @apply !text-black text-xs pl-1;
+  //     }
+  //   }
+  // }
 }
 </style>

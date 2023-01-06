@@ -63,6 +63,8 @@ export function useDocs() {
     return nestedPages.filter((p) => p)
   })
 
+  const isOnlyBookOpened = computed(() => openedBook.value && openedNestedPagesOfBook.value.length === 0)
+
   const openedPage = computed(() => {
     if (!openedPageSlug.value) return undefined
 
@@ -551,5 +553,6 @@ export function useDocs() {
     findPage,
     uploadFile,
     bulkPublish,
+    isOnlyBookOpened,
   }
 }

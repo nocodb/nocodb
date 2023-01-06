@@ -15,6 +15,7 @@ const {
   navigateToFirstBook,
   fetchAndOpenChildPageOfRootPages,
   fetchDrafts,
+  isOnlyBookOpened,
 } = useDocs()
 
 const onAdminMount = async () => {
@@ -83,13 +84,8 @@ onMounted(async () => {
     <template #sidebar>
       <DocsSideBar />
     </template>
-    <DocsPage v-if="openedPage" :key="openedPage?.id" />
-    <div v-else>
-      <div class="flex flex-col items-center justify-center h-full">
-        <a-icon type="file-text" class="text-4xl" />
-        <div class="text-2xl mt-4">No page selected</div>
-      </div>
-    </div>
+    <DocsBook v-if="isOnlyBookOpened" />
+    <DocsPage v-else-if="openedPage" :key="openedPage?.id" />
   </NuxtLayout>
 </template>
 

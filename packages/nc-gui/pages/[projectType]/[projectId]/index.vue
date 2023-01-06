@@ -589,6 +589,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </a-layout-sider>
     </template>
 
+    <SmartsheetSidebar v-if="isMobileMode" class="nc-right-sidebar" />
+
     <div>
       <LazyDashboardSettingsModal
         v-model:model-value="dialogOpen"

@@ -298,7 +298,6 @@ npm start
   <alert>
     If your service fails to start, you may check the logs in ECS console or in Cloudwatch. Generally it fails due to the connection between ECS container and NC_DB. Make sure the security groups have the correct inbound and outbound rules.  
   </alert>
-  ```
 
 </details>
 

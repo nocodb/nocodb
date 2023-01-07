@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
+import type { TableType } from 'nocodb-sdk'
 import {
   TabType,
   computed,
@@ -29,7 +30,6 @@ import {
   useTheme,
   useUIPermission,
 } from '#imports'
-import { TableType } from 'nocodb-sdk'
 
 definePageMeta({
   hideHeader: true,
@@ -66,9 +66,6 @@ const dataSourcesState = ref<string>('')
 
 const dropdownOpen = ref(false)
 
-
-
-
 const { activeTab } = useTabs()
 const { metas } = useMetas()
 // const { tables } = useProject()
@@ -76,8 +73,7 @@ const { metas } = useMetas()
 const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
 provide(MetaInj, meta)
 
-
-
+const showViewsMobileSidebar = ref(false)
 
 /** Sidebar ref */
 const sidebar = ref()
@@ -589,7 +585,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
             :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
           >
-          <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
+            <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
             <MdiBackburger
               v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
@@ -602,8 +598,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <!-- v-show="isMobileRightSidebarOpen"  -->
         <!-- meta: {{  JSON.stringify(meta) }} <br />
         isMobileMode: {{  JSON.stringify(isMobileMode) }} <br /> -->
-        <SmartsheetSidebarMobile v-if="meta && isMobileMode" class="nc-left-sidebar-mobile" />
-        <LazyDashboardTreeView @create-base-dlg="toggleDialog(true, 'dataSources')" />
+        <LazyDashboardTreeView
+          v-if="!(isMobileMode && showViewsMobileSidebar)"
+          @create-base-dlg="toggleDialog(true, 'dataSources')"
+        />
+        <SmartsheetSidebarMobile v-if="meta && isMobileMode && showViewsMobileSidebar" class="nc-left-sidebar-mobile" />
       </a-layout-sider>
     </template>
 

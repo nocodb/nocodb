@@ -87,10 +87,6 @@ export enum SmartsheetStoreEvents {
   FIELD_ADD = 'field-add',
 }
 
-export enum GlobalEvents {
-  CLICKED_TABLE_LINK_IN_MOBILE_MODE = 'clicked-table-link-in-mobile-mode',
-}
-
 export enum DataSourcesSubTab {
   New = 'New',
   Metadata = 'Metadata',

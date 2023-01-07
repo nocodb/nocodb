@@ -35,7 +35,7 @@ const { isMobileMode } = useGlobal()
 
 const { addTab, updateTab } = useTabs()
 
-const { $api, $e, $globalEventBus } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { bases, tables, loadTables, isSharedBase } = useProject()
 
@@ -168,9 +168,6 @@ const reloadTables = async () => {
 }
 
 const addTableTab = (table: TableType) => {
-  if (isMobileMode) {
-    $globalEventBus.emit(GlobalEvents.CLICKED_TABLE_LINK_IN_MOBILE_MODE)
-  }
   addTab({ title: table.title, id: table.id, type: table.type as TabType })
 }
 
@@ -582,7 +579,6 @@ const setIcon = async (icon: string, table: TableType) => {
                   :key="`sortable-${bases[0].id}-${bases[0].id && bases[0].id in keys ? keys[bases[0].id] : '0'}`"
                   :nc-base="bases[0].id"
                 >
-                MARKER TABLES IN LEFT SIDEBAR
                   <div
                     v-for="table of tables.filter((table) => table.base_id === bases[0].id)"
                     :key="table.id"
@@ -670,7 +666,6 @@ const setIcon = async (icon: string, table: TableType) => {
                       </div>
                     </GeneralTooltip>
                   </div>
-                  MARKER TABLES IN LEFT SIDEBAR END
                 </div>
               </div>
             </div>

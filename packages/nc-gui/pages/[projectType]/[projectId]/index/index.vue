@@ -32,8 +32,25 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 const hideSidebarOnClickOrTouchIfMobileMode = (event: Event) => {
 
   if (isMobileMode.value && isOpen.value) {
+    // && !event.target?.matches('.show-sidebar-button')
+    // alert('now we will close the sidebar')
     toggle(false)
   }
+  // if (!event.target.matches('.show-sidebar-button')) {
+  //   this.sidebarVisible = false
+  // }
+
+  // console.log('event.target', event.target)
+  // console.log('toggleSideBarButton.value', toggleSideBarButton.value)
+  // console.log('inside of hideSidebarOnClickOrTouchIfMobileMode')
+  // console.log('isOpen.value', isOpen.value)
+  // console.log('event.target !== toggleSideBarButton.value', event.target !== toggleSideBarButton.value)
+  // console.log('------------')
+  // debugger
+  // if (isMobileMode.value && isOpen.value && !event.target?.matchesSelector('.show-sidebar-button')) {
+  // if (isMobileMode.value && isOpen.value && event.target !== toggleSideBarButton.value) {
+  //   toggle(false)
+  // }
 }
 
 onMounted(() => {

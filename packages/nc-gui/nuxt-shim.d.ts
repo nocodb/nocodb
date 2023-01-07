@@ -1,13 +1,10 @@
-import type { UseEventBusReturn } from '@vueuse/core'
 import type { Api as BaseAPI } from 'nocodb-sdk'
 import type { UseGlobalReturn } from './composables/useGlobal/types'
 import type { NocoI18n } from './lib'
 import type { TabType } from './composables'
-import type { GlobalEvents } from './lib'
 
 declare module '#app/nuxt' {
   interface NuxtApp {
-    $globalEventBus: UseEventBusReturn<GlobalEvents, any>
     $api: BaseAPI<any>
     /** {@link import('./plugins/tele') Telemetry} */
     $tele: {

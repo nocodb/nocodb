@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import type { GlobalEvents } from '~/lib'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -28,8 +27,6 @@ const props = defineProps<{
   activeTab: TabItem
 }>()
 
-const { $globalEventBus } = useNuxtApp()
-
 const { isUIAllowed } = useUIPermission()
 
 const { metas } = useMetas()
@@ -52,8 +49,6 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
 const openNewRecordFormHook = createEventHook<void>()
 
-const mainArea = ref<HTMLDivElement>()
-
 useProvideKanbanViewStore(meta, activeView)
 
 // todo: move to store
@@ -70,47 +65,11 @@ provide(
   ReadonlyInj,
   computed(() => !isUIAllowed('xcDatatableEditable')),
 )
-
-const { isOpen: isMobileRightSidebarOpen, toggle: toggleMobileRightSidebar } = useSidebar('nc-right-sidebar', { isOpen: true })
-
-// const { isOpen, toggle } = useSidebar('nc-right-sidebar')
-
-const hideSidebarOnClickOrTouchIfMobileMode = (_event: Event) => {
-  if (isMobileMode.value && isMobileRightSidebarOpen.value) {
-    toggleMobileRightSidebar(false)
-  }
-}
-
-onMounted(() => {
-  // if (isMobileMode.value) toggle(true)
-  mainArea.value?.addEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
-})
-
-watch(meta, (newMeta, oldMeta) => {
-  if (newMeta?.id !== oldMeta?.id) {
-    toggleMobileRightSidebar(true)
-  }
-})
-
-const FOO = (ev: GlobalEvents) => {
-  console.log(ev)
-  // alert('event')
-  if (!isMobileRightSidebarOpen) {
-    toggleMobileRightSidebar(true)
-  }
-}
-onMounted(() => {
-  $globalEventBus.on(FOO)
-})
-
-// SmartsheetSidebarMobile MARKER
 </script>
 
 <template>
   <div class="nc-container flex h-full">
-    <!-- {{  JSON.stringify(metas) }} -->
-    <!-- <SmartsheetSidebarMobile v-if="meta && isMobileMode" v-show="isMobileRightSidebarOpen" class="nc-left-sidebar-mobile" /> -->
-    <div class="flex flex-col h-full flex-1 min-w-0" ref="mainArea">
+    <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar />
 
       <Transition name="layout" mode="out-in">
@@ -133,7 +92,7 @@ onMounted(() => {
     <LazySmartsheetExpandedFormDetached />
 
     <!-- Lazy loading the sidebar causes issues when deleting elements, i.e. it appears as if multiple elements are removed when they are not -->
-    <SmartsheetSidebar v-if="meta && !isMobileMode" class="nc-right-sidebar" />
+    <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
   </div>
 </template>
 

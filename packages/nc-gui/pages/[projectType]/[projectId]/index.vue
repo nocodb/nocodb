@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import type { TableType } from 'nocodb-sdk'
-import type { GlobalEvents } from '~/lib'
 import {
   TabType,
   computed,
@@ -40,9 +38,7 @@ const { theme, defaultTheme } = useTheme()
 
 const { t } = useI18n()
 
-const { $e, $globalEventBus } = useNuxtApp()
-
-const { activeTab } = useTabs()
+const { $e } = useNuxtApp()
 
 const route = useRoute()
 
@@ -191,20 +187,7 @@ onBeforeMount(async () => {
   }
 })
 
-const showViewsMenu = ref(false)
-
-const FOO = (ev: GlobalEvents) => {
-  // TODO: filter for event type
-  console.log(ev)
-  // alert('event')
-  showViewsMenu.value = true
-  if (isMobileMode) {
-    toggle(false)
-  }
-}
-
 onMounted(() => {
-  $globalEventBus.on(FOO)
   toggle(true)
   toggleHasSidebar(true)
 })
@@ -253,18 +236,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
-
-// const { bases, tables, loadTables } = useProject()
-const { metas } = useMetas()
-
-// const { tables } = useProject()
-
-// const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
-
-const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
-
-provide(MetaInj, meta)
-
 </script>
 
 <template>
@@ -604,8 +575,8 @@ provide(MetaInj, meta)
             class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
             :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
           >
-            <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
-            FOO<MdiBackburger
+          <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
+            <MdiBackburger
               v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"
@@ -614,13 +585,7 @@ provide(MetaInj, meta)
           </div>
         </div>
 
-        <LazyDashboardTreeView v-show="!showViewsMenu" @create-base-dlg="toggleDialog(true, 'dataSources')" />
-        <!-- v-show="isMobileRightSidebarOpen" -->
-        SmartsheetSidebarMobile IN INDEX<SmartsheetSidebarMobile
-          v-show="showViewsMenu" 
-          v-if="meta && isMobileMode"
-          class="nc-left-sidebar-mobile"
-        />SmartsheetSidebarMobile IN INDEX END
+        <LazyDashboardTreeView @create-base-dlg="toggleDialog(true, 'dataSources')" />
       </a-layout-sider>
     </template>
 

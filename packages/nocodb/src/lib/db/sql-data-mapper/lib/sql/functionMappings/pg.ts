@@ -148,6 +148,11 @@ const pg = {
       })${colAlias}`
     );
   },
+  MOD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const x = fn(pt.arguments[0]);
+    const y = fn(pt.arguments[1]);
+    return knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC) ${colAlias}`);
+  },
 };
 
 export default pg;

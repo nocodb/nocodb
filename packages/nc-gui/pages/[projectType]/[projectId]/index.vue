@@ -202,6 +202,12 @@ onMounted(() => {
   toggleHasSidebar(true)
 })
 
+const onClickedTableLink = () => {
+  if (isMobileMode) {
+    showViewsMobileSidebar.value = true
+  }
+}
+
 onBeforeUnmount(reset)
 
 function openKeyboardShortcutDialog() {
@@ -598,7 +604,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <!-- v-show="isMobileRightSidebarOpen"  -->
         <!-- meta: {{  JSON.stringify(meta) }} <br />
         isMobileMode: {{  JSON.stringify(isMobileMode) }} <br /> -->
-        <LazyDashboardTreeView v-if="!(isMobileMode && showViewsMobileSidebar)" />
+        <LazyDashboardTreeView v-if="!(isMobileMode && showViewsMobileSidebar)" @clicked-table-link="onClickedTableLink" />
         <SmartsheetSidebarMobile v-if="meta && isMobileMode && showViewsMobileSidebar" class="nc-left-sidebar-mobile" />
       </a-layout-sider>
     </template>

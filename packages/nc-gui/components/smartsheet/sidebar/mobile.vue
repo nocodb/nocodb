@@ -17,6 +17,8 @@ import {
   watch,
 } from '#imports'
 
+const emits = defineEmits(['closeMobileViewsSidebar'])
+
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
@@ -158,7 +160,19 @@ function onOpenModal({
     /> -->
 
     <div
-      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
+      class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2 inline"
+      :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
+    >
+      <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
+      <MdiBackburger
+        v-e="['c:grid:toggle-navdraw']"
+        class="cursor-pointer transform transition-transform duration-500"
+        @click="emits('closeMobileViewsSidebar')"
+      />
+    </div>
+
+    <div
+      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1 inline"
     >
       <!-- <div class="flex gap-2 justify-start">
       <div class="flex items-center gap-1 text-xs"> -->

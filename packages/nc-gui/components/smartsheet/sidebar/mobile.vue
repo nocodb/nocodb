@@ -157,11 +157,14 @@ function onOpenModal({
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     /> -->
 
-    <!-- <div class="flex gap-2 justify-start">
-      <div class="flex items-center gap-1 text-xs">
-        <!-- <div :class="{ 'nc-active-btn': isOpen }"> -->
-        {{ meta?.title }}
-        <!-- <a-button size="small" class="nc-toggle-right-navbar" @click="onClick">
+    <div
+      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
+    >
+      <!-- <div class="flex gap-2 justify-start">
+      <div class="flex items-center gap-1 text-xs"> -->
+      <!-- <div :class="{ 'nc-active-btn': isOpen }"> -->
+      {{ meta?.title }}
+      <!-- <a-button size="small" class="nc-toggle-right-navbar" @click="onClick">
           <div class="flex items-center gap-1 text-xs" :class="{ 'text-gray-500': !isOpen }">
             <AntDesignMenuUnfoldOutlined v-if="isOpen" />
 
@@ -170,8 +173,9 @@ function onOpenModal({
             {{ $t('objects.views') }}
           </div>
         </a-button> -->
-      </div>
+      <!-- </div>
     </div> -->
+    </div>
 
     <div class="flex-1 flex flex-col min-h-0">
       <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">

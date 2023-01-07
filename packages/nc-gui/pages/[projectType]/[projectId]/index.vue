@@ -598,10 +598,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <!-- v-show="isMobileRightSidebarOpen"  -->
         <!-- meta: {{  JSON.stringify(meta) }} <br />
         isMobileMode: {{  JSON.stringify(isMobileMode) }} <br /> -->
-        <LazyDashboardTreeView
-          v-if="!(isMobileMode && showViewsMobileSidebar)"
-          @create-base-dlg="toggleDialog(true, 'dataSources')"
-        />
+        <LazyDashboardTreeView v-if="!(isMobileMode && showViewsMobileSidebar)" />
         <SmartsheetSidebarMobile v-if="meta && isMobileMode && showViewsMobileSidebar" class="nc-left-sidebar-mobile" />
       </a-layout-sider>
     </template>

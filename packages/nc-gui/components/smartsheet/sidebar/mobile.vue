@@ -153,9 +153,25 @@ function onOpenModal({
     class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
     theme="light"
   >
-    <LazySmartsheetSidebarToolbar
+    <!-- <LazySmartsheetSidebarToolbar
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
-    />
+    /> -->
+
+    <!-- <div class="flex gap-2 justify-start">
+      <div class="flex items-center gap-1 text-xs">
+        <!-- <div :class="{ 'nc-active-btn': isOpen }"> -->
+        {{ meta?.title }}
+        <!-- <a-button size="small" class="nc-toggle-right-navbar" @click="onClick">
+          <div class="flex items-center gap-1 text-xs" :class="{ 'text-gray-500': !isOpen }">
+            <AntDesignMenuUnfoldOutlined v-if="isOpen" />
+
+            <AntDesignMenuFoldOutlined v-else />
+
+            {{ $t('objects.views') }}
+          </div>
+        </a-button> -->
+      </div>
+    </div> -->
 
     <div class="flex-1 flex flex-col min-h-0">
       <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">

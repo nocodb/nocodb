@@ -191,9 +191,13 @@ onBeforeMount(async () => {
   }
 })
 
+const showViewsMenu = ref(false)
+
 const FOO = (ev: GlobalEvents) => {
+  // TODO: filter for event type
   console.log(ev)
   // alert('event')
+  showViewsMenu.value = true
   if (isMobileMode) {
     toggle(false)
   }
@@ -610,9 +614,10 @@ provide(MetaInj, meta)
           </div>
         </div>
 
-        <LazyDashboardTreeView @create-base-dlg="toggleDialog(true, 'dataSources')" />
+        <LazyDashboardTreeView v-show="!showViewsMenu" @create-base-dlg="toggleDialog(true, 'dataSources')" />
         <!-- v-show="isMobileRightSidebarOpen" -->
         SmartsheetSidebarMobile IN INDEX<SmartsheetSidebarMobile
+          v-show="showViewsMenu" 
           v-if="meta && isMobileMode"
           class="nc-left-sidebar-mobile"
         />SmartsheetSidebarMobile IN INDEX END

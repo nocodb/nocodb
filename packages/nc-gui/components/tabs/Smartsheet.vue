@@ -111,7 +111,7 @@ onMounted(() => {
     <!-- {{  JSON.stringify(metas) }} -->
     <!-- <SmartsheetSidebarMobile v-if="meta && isMobileMode" v-show="isMobileRightSidebarOpen" class="nc-left-sidebar-mobile" /> -->
     <div class="flex flex-col h-full flex-1 min-w-0" ref="mainArea">
-      LazySmartsheetToolbar: <LazySmartsheetToolbar />
+      <LazySmartsheetToolbar />
 
       <Transition name="layout" mode="out-in">
         <template v-if="meta">

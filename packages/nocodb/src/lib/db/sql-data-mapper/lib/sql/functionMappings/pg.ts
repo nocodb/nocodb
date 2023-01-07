@@ -138,6 +138,16 @@ const pg = {
         .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
     );
   },
+  SUBSTR: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const str = fn(pt.arguments[0]);
+    const positionFrom = fn(pt.arguments[1] ?? 1);
+    const numberOfCharacters = fn(pt.arguments[2] ?? '');
+    return knex.raw(
+      `SUBSTR(${str}::TEXT, ${positionFrom}${
+        numberOfCharacters ? ', ' + numberOfCharacters : ''
+      })${colAlias}`
+    );
+  },
 };
 
 export default pg;

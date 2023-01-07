@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
+import type { TableType } from 'nocodb-sdk'
 import type { GlobalEvents } from '~/lib'
 import {
   TabType,
@@ -40,6 +41,8 @@ const { theme, defaultTheme } = useTheme()
 const { t } = useI18n()
 
 const { $e, $globalEventBus } = useNuxtApp()
+
+const { activeTab } = useTabs()
 
 const route = useRoute()
 
@@ -246,6 +249,18 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
+
+// const { bases, tables, loadTables } = useProject()
+const { metas } = useMetas()
+
+// const { tables } = useProject()
+
+// const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
+
+const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
+
+provide(MetaInj, meta)
+
 </script>
 
 <template>
@@ -586,7 +601,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
           >
             <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
-            <MdiBackburger
+            FOO<MdiBackburger
               v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"
@@ -596,6 +611,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </div>
 
         <LazyDashboardTreeView @create-base-dlg="toggleDialog(true, 'dataSources')" />
+        <!-- v-show="isMobileRightSidebarOpen" -->
+        SmartsheetSidebarMobile IN INDEX<SmartsheetSidebarMobile
+          v-if="meta && isMobileMode"
+          class="nc-left-sidebar-mobile"
+        />SmartsheetSidebarMobile IN INDEX END
       </a-layout-sider>
     </template>
 

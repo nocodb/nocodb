@@ -188,7 +188,7 @@ function onDropZoneClick(e: MouseEvent) {
         </div>
 
         <a-button type="primary" ghost class="create-table-btn">
-          <span class="prose text-[1rem] text-primary z-50" @click.stop="openCreateTable">{{ $t('tooltip.addTable') }}</span>
+          TEST<span class="prose text-[1rem] text-primary z-50" @click.stop="openCreateTable">{{ $t('tooltip.addTable') }}</span>
         </a-button>
       </div>
     </div>

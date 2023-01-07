@@ -135,11 +135,21 @@ function onOpenModal({
     close(1000)
   }
 }
+
+onMounted(async () => {
+  await loadViews()
+})
+
 </script>
 
 <template>
   <div>
     MOBILE
+    <!-- <br />
+    META: {{ JSON.stringify(meta) }} -->
+    <br />
+    VIEWS: {{ JSON.stringify(views.length) }}
+    <br />
     <a-layout-sider
       ref="sidebar"
       :collapsed="sidebarCollapsed"

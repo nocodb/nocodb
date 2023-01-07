@@ -103,13 +103,15 @@ onMounted(() => {
   $globalEventBus.on(FOO)
 })
 
+// SmartsheetSidebarMobile MARKER
 </script>
 
 <template>
   <div class="nc-container flex h-full">
-    <SmartsheetSidebarMobile v-if="meta && isMobileMode" v-show="isMobileRightSidebarOpen" class="nc-left-sidebar-mobile" />
+    <!-- {{  JSON.stringify(metas) }} -->
+    <!-- <SmartsheetSidebarMobile v-if="meta && isMobileMode" v-show="isMobileRightSidebarOpen" class="nc-left-sidebar-mobile" /> -->
     <div class="flex flex-col h-full flex-1 min-w-0" ref="mainArea">
-      <LazySmartsheetToolbar />
+      LazySmartsheetToolbar: <LazySmartsheetToolbar />
 
       <Transition name="layout" mode="out-in">
         <template v-if="meta">

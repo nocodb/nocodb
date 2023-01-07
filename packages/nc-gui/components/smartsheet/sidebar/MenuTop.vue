@@ -234,27 +234,30 @@ const setIcon = async (icon: string, view: ViewType) => {
 </script>
 
 <template>
-  <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
-    <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
-    <SmartsheetSidebarRenameableMenuItem
-      v-for="view of views"
-      :id="view.id"
-      :key="view.id"
-      :view="view"
-      :on-validate="validate"
-      class="nc-view-item transition-all ease-in duration-300"
-      :class="{
-        'bg-gray-100': isMarked === view.id,
-        'active': activeView?.id === view.id,
-        [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
-      }"
-      @change-view="changeView"
-      @open-modal="$emit('openModal', $event)"
-      @delete="openDeleteDialog"
-      @rename="onRename"
-      @select-icon="setIcon($event, view)"
-    />
-  </a-menu>
+  <div>
+    views in menutop: {{ JSON.stringify(views) }}
+    <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
+      <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
+      <SmartsheetSidebarRenameableMenuItem
+        v-for="view of views"
+        :id="view.id"
+        :key="view.id"
+        :view="view"
+        :on-validate="validate"
+        class="nc-view-item transition-all ease-in duration-300"
+        :class="{
+          'bg-gray-100': isMarked === view.id,
+          'active': activeView?.id === view.id,
+          [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
+        }"
+        @change-view="changeView"
+        @open-modal="$emit('openModal', $event)"
+        @delete="openDeleteDialog"
+        @rename="onRename"
+        @select-icon="setIcon($event, view)"
+      />
+    </a-menu>
+  </div>
 </template>
 
 <style lang="scss">

@@ -29,6 +29,7 @@ import {
   useTheme,
   useUIPermission,
 } from '#imports'
+import { TableType } from 'nocodb-sdk'
 
 definePageMeta({
   hideHeader: true,
@@ -64,6 +65,19 @@ const openDialogKey = ref<string>('')
 const dataSourcesState = ref<string>('')
 
 const dropdownOpen = ref(false)
+
+
+
+
+const { activeTab } = useTabs()
+const { metas } = useMetas()
+// const { tables } = useProject()
+// const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
+const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
+provide(MetaInj, meta)
+
+
+
 
 /** Sidebar ref */
 const sidebar = ref()
@@ -585,6 +599,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </div>
 
+        <!-- v-show="isMobileRightSidebarOpen"  -->
+        <!-- meta: {{  JSON.stringify(meta) }} <br />
+        isMobileMode: {{  JSON.stringify(isMobileMode) }} <br /> -->
+        <SmartsheetSidebarMobile v-if="meta && isMobileMode" class="nc-left-sidebar-mobile" />
         <LazyDashboardTreeView @create-base-dlg="toggleDialog(true, 'dataSources')" />
       </a-layout-sider>
     </template>

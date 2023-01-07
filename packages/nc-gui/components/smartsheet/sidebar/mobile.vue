@@ -135,50 +135,42 @@ function onOpenModal({
     close(1000)
   }
 }
-
-onMounted(async () => {
-  await loadViews()
-})
 </script>
 
 <template>
-  <!-- <div> -->
-  <!-- MOBILE -->
-  <!-- <br />
-    META: {{ JSON.stringify(meta) }} -->
-  <!-- <br />
-    VIEWS: {{ JSON.stringify(views.length) }}
-    <br /> -->
-  <a-layout-sider
-    ref="sidebar"
-    :collapsed="sidebarCollapsed"
-    collapsiple
-    collapsed-width="0"
-    width="0"
-    class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
-    theme="light"
-  >
-    <LazySmartsheetSidebarToolbar
-      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
-    />
+  <div>
+    Mobile Views Menu <br />
+    views: {{ views.length }}
+    <a-layout-sider
+      ref="sidebar"
+      :collapsed="sidebarCollapsed"
+      collapsiple
+      collapsed-width="0"
+      width="0"
+      class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
+      theme="light"
+    >
+      <LazySmartsheetSidebarToolbar
+        class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
+      />
 
-    <div class="flex-1 flex flex-col min-h-0">
-      <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">
-        <div class="w-full h-full flex items-center justify-center">
-          <a-spin />
-        </div>
-      </GeneralOverlay>
+      <div class="flex-1 flex flex-col min-h-0">
+        <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">
+          <div class="w-full h-full flex items-center justify-center">
+            <a-spin />
+          </div>
+        </GeneralOverlay>
 
-      <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
+        <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
 
-      <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="!my-3 w-full border-b-1" />
+        <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
+          <div class="!my-3 w-full border-b-1" />
 
-        <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
-      </template>
-    </div>
-  </a-layout-sider>
-  <!-- </div> -->
+          <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
+        </template>
+      </div>
+    </a-layout-sider>
+  </div>
 </template>
 
 <style scoped>

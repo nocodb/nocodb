@@ -19,10 +19,7 @@ export const jsepCurlyHook = {
           context.index += 1;
           env.node = {
             type: jsep.IDENTIFIER,
-            // column name with space would break it down to jsep.IDENTIFIER + jsep.LITERAL
-            // either take node.name for jsep.IDENTIFIER
-            // or take node.value for jsep.LITERAL
-            name: nodes.map((node) => node.name || node.value).join(' '),
+            name: nodes.map((node) => parseIdentifierName(node)).join(''),
           };
           return env.node;
         } else {
@@ -32,6 +29,23 @@ export const jsepCurlyHook = {
     });
   },
 } as jsep.IPlugin;
+
+function parseIdentifierName(node) {
+  if (node.type === 'Identifier') {
+    // e.g. col
+    return node.name;
+  } else if (node.type === 'BinaryExpression') {
+    // e.g. col-1 would be considered as col (left), - (operator), 1 (right)
+    return (
+      parseIdentifierName(node.left) +
+      node.operator +
+      parseIdentifierName(node.right)
+    );
+  } else if (node.type === 'Literal') {
+    // e.g col (identifier) + 123 (literal)
+    return node.value;
+  }
+}
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,

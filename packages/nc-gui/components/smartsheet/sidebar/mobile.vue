@@ -146,7 +146,7 @@ function onOpenModal({
   <!-- <div> -->
   <!-- Mobile Views Menu <br />
     views: {{ views.length }} -->
-  <a-layout-sider
+  <!-- <a-layout-sider
     ref="sidebar"
     :collapsed="sidebarCollapsed"
     collapsiple
@@ -154,7 +154,7 @@ function onOpenModal({
     width="0"
     class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
     theme="light"
-  >
+  > -->
     <!-- <LazySmartsheetSidebarToolbar
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     /> -->
@@ -206,7 +206,7 @@ function onOpenModal({
         <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
       </template>
     </div>
-  </a-layout-sider>
+  <!-- </a-layout-sider> -->
   <!-- </div> -->
 </template>
 

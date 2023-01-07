@@ -58,7 +58,7 @@ onMounted(() => {
           />
         </div>
 
-        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
+        <a-tabs v-if="!isMobileMode" v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
           <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>
               <div class="flex items-center gap-2 max-w-[110px]" data-testid="nc-tab-title">

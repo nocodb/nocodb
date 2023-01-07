@@ -30,27 +30,9 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 }
 
 const hideSidebarOnClickOrTouchIfMobileMode = (event: Event) => {
-
   if (isMobileMode.value && isOpen.value) {
-    // && !event.target?.matches('.show-sidebar-button')
-    // alert('now we will close the sidebar')
     toggle(false)
   }
-  // if (!event.target.matches('.show-sidebar-button')) {
-  //   this.sidebarVisible = false
-  // }
-
-  // console.log('event.target', event.target)
-  // console.log('toggleSideBarButton.value', toggleSideBarButton.value)
-  // console.log('inside of hideSidebarOnClickOrTouchIfMobileMode')
-  // console.log('isOpen.value', isOpen.value)
-  // console.log('event.target !== toggleSideBarButton.value', event.target !== toggleSideBarButton.value)
-  // console.log('------------')
-  // debugger
-  // if (isMobileMode.value && isOpen.value && !event.target?.matchesSelector('.show-sidebar-button')) {
-  // if (isMobileMode.value && isOpen.value && event.target !== toggleSideBarButton.value) {
-  //   toggle(false)
-  // }
 }
 
 onMounted(() => {
@@ -67,8 +49,8 @@ onMounted(() => {
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
         >
-        <!-- <div>INNER INDEX - isOpen: {{ isOpen }}</div> -->
-        <MdiMenu
+          <!-- <div>INNER INDEX - isOpen: {{ isOpen }}</div> -->
+          <MdiMenu
             v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 text-white"
             :class="{ 'rotate-180': !isOpen }"
@@ -76,7 +58,6 @@ onMounted(() => {
           />
         </div>
 
-        
         <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
           <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>

@@ -157,22 +157,21 @@ function onOpenModal({
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     /> -->
 
-  <div class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2 inline">
+  <div class="flex items-center inline m-4">
     <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
     <MdiBackburger
       v-e="['c:grid:toggle-navdraw']"
       class="cursor-pointer transform transition-transform duration-500"
       @click="emits('closeMobileViewsSidebar')"
     />
-  </div>
 
-  <div
-    class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1 inline"
-  >
+    <!-- <div
+      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1 inline"
+    > -->
     <!-- <div class="flex gap-2 justify-start">
       <div class="flex items-center gap-1 text-xs"> -->
     <!-- <div :class="{ 'nc-active-btn': isOpen }"> -->
-    {{ meta?.title }}
+    <span class="ml-2 text-bold uppercase text-gray-500 font-weight-bold">{{ meta?.title }}</span>
     <!-- <a-button size="small" class="nc-toggle-right-navbar" @click="onClick">
           <div class="flex items-center gap-1 text-xs" :class="{ 'text-gray-500': !isOpen }">
             <AntDesignMenuUnfoldOutlined v-if="isOpen" />
@@ -184,6 +183,7 @@ function onOpenModal({
         </a-button> -->
     <!-- </div>
     </div> -->
+    <!-- </div> -->
   </div>
 
   <div class="flex-1 flex flex-col min-h-0">

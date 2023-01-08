@@ -789,7 +789,7 @@ const closeAddColumnDropdown = () => {
                         <template #title>
                           <div class="flex flex-row items-center py-3">
                             <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                            <div class="text-xs pl-2">Predict Column</div>
+                            <div class="text-xs pl-2">Predict Columns</div>
                             <MdiChevronRight class="text-gray-500 ml-2" />
                           </div>
                         </template>
@@ -805,18 +805,18 @@ const closeAddColumnDropdown = () => {
                         </a-menu>
                       </a-sub-menu>
                       <a-menu-item v-else>
-                        <!-- Predict Column -->
+                        <!-- Predict Columns -->
                         <div class="flex flex-row items-center py-3" @click="predictNextColumn">
                           <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
                           <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                          <div class="text-xs pl-2">Predict Column</div>
+                          <div class="text-xs pl-2">Predict Columns</div>
                         </div>
                       </a-menu-item>
                       <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
                         <template #title>
                           <div class="flex flex-row items-center py-3">
                             <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                            <div class="text-xs pl-2">Predict Formula</div>
+                            <div class="text-xs pl-2">Predict Formulas</div>
                             <MdiChevronRight class="text-gray-500 ml-2" />
                           </div>
                         </template>
@@ -835,11 +835,11 @@ const closeAddColumnDropdown = () => {
                         </a-menu>
                       </a-sub-menu>
                       <a-menu-item v-else>
-                        <!-- Predict Formula -->
+                        <!-- Predict Formulas -->
                         <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
                           <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
                           <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                          <div class="text-xs pl-2">Predict Formula</div>
+                          <div class="text-xs pl-2">Predict Formulas</div>
                         </div>
                       </a-menu-item>
                     </a-menu>

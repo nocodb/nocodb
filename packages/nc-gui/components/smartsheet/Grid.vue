@@ -572,40 +572,50 @@ const predictedNextFormulas = ref<Array<{ title: string; formula: string }>>()
 const preloadColumn = ref<Partial<any>>()
 
 const predictNextColumn = async () => {
+  if (predictingNextColumn.value) return
   predictingNextColumn.value = true
-  if (meta.value && meta.value.columns) {
-    const res: { data: Array<{ title: string; type: string }> } = await $api.utils.magic({
-      operation: 'predictNextColumn',
-      data: {
-        table: meta.value.title,
-        columns: meta.value.columns.map((col) => col.title),
-      },
-    })
+  try {
+    if (meta.value && meta.value.columns) {
+      const res: { data: Array<{ title: string; type: string }> } = await $api.utils.magic({
+        operation: 'predictNextColumn',
+        data: {
+          table: meta.value.title,
+          columns: meta.value.columns.map((col) => col.title),
+        },
+      })
 
-    predictedNextColumn.value = res.data
+      predictedNextColumn.value = res.data
+    }
+  } catch (e) {
+    message.warning('NocoAI failed for the demo reasons. Please try again.')
   }
   predictingNextColumn.value = false
 }
 
 const predictNextFormulas = async () => {
+  if (predictingNextFormulas.value) return
   predictingNextFormulas.value = true
-  if (meta.value && meta.value.columns) {
-    const res: { data: Array<{ title: string; formula: string }> } = await $api.utils.magic({
-      operation: 'predictNextFormulas',
-      data: {
-        table: meta.value.title,
-        columns: meta.value.columns
-          .filter((c) => {
-            // skip system LTAR columns
-            if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
-            if ([UITypes.QrCode, UITypes.Barcode].includes(c.uidt as UITypes)) return false
-            return true
-          })
-          .map((col) => col.title),
-      },
-    })
+  try {
+    if (meta.value && meta.value.columns) {
+      const res: { data: Array<{ title: string; formula: string }> } = await $api.utils.magic({
+        operation: 'predictNextFormulas',
+        data: {
+          table: meta.value.title,
+          columns: meta.value.columns
+            .filter((c) => {
+              // skip system LTAR columns
+              if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
+              if ([UITypes.QrCode, UITypes.Barcode].includes(c.uidt as UITypes)) return false
+              return true
+            })
+            .map((col) => col.title),
+        },
+      })
 
-    predictedNextFormulas.value = res.data
+      predictedNextFormulas.value = res.data
+    }
+  } catch (e) {
+    message.warning('NocoAI failed for the demo reasons. Please try again.')
   }
   predictingNextFormulas.value = false
 }

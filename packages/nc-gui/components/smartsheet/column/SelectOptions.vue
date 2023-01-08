@@ -118,23 +118,28 @@ const addNewOption = () => {
 }
 
 const optionsMagic = async () => {
-  loadMagic.value = true
-  const res: Array<string> = await $api.utils.magic({
-    operation: 'selectOptions',
-    data: {
-      schema: project.value?.title,
-      title: formState.value?.title,
-      table: formState.value?.table_name,
-    },
-  })
+  if (loadMagic.value) return
+  try {
+    loadMagic.value = true
+    const res: Array<string> = await $api.utils.magic({
+      operation: 'selectOptions',
+      data: {
+        schema: project.value?.title,
+        title: formState.value?.title,
+        table: formState.value?.table_name,
+      },
+    })
 
-  if (res.length) {
-    for (const op of res) {
-      options.push({
-        title: op,
-        color: getNextColor(),
-      })
+    if (res.length) {
+      for (const op of res) {
+        options.push({
+          title: op,
+          color: getNextColor(),
+        })
+      }
     }
+  } catch (e) {
+    message.warning('NocoAI failed for the demo reasons. Please try again.')
   }
   loadMagic.value = false
 }

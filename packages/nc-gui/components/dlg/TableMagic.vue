@@ -83,6 +83,7 @@ const _createTable = async () => {
   }
   loadMagic.value = true
   await createTableMagic()
+  loadMagic.value = false
 }
 
 onMounted(() => {

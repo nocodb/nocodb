@@ -75,7 +75,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       $e('a:table:create')
       onTableCreate?.(tableMeta as TableType)
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.warning('NocoAI failed for the demo reasons. Please try again.')
     }
   }
 
@@ -91,7 +91,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       $e('a:table:create')
       onTableCreate?.(tableMeta as TableType)
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.warning('NocoAI failed for the demo reasons. Please try again.')
     }
   }
 

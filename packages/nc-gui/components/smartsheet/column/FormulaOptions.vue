@@ -684,19 +684,24 @@ onMounted(() => {
 })
 
 const predictFunction = async () => {
-  loadMagic.value = true
-  const res: { data: string } = await $api.utils.magic({
-    operation: 'predictFormula',
-    data: {
-      title: formState.value?.title,
-      table: meta.value?.title,
-      columns: supportedColumns.value.map((c) => c.title),
-      functions: suggestionsList.value.filter((f) => f.type === 'function').map((f) => f.text),
-    },
-  })
+  if (loadMagic.value) return
+  try {
+    loadMagic.value = true
+    const res: { data: string } = await $api.utils.magic({
+      operation: 'predictFormula',
+      data: {
+        title: formState.value?.title,
+        table: meta.value?.title,
+        columns: supportedColumns.value.map((c) => c.title),
+        functions: suggestionsList.value.filter((f) => f.type === 'function').map((f) => f.text),
+      },
+    })
 
-  if (res.data) {
-    vModel.value.formula_raw = res.data
+    if (res.data) {
+      vModel.value.formula_raw = res.data
+    }
+  } catch (e) {
+    message.warning('NocoAI failed for the demo reasons. Please try again.')
   }
   loadMagic.value = false
 }

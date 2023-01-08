@@ -73,6 +73,7 @@ const _createTable = async () => {
   }
   loadMagic.value = true
   await createSchemaMagic()
+  loadMagic.value = false
 }
 
 onMounted(() => {

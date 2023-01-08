@@ -330,7 +330,7 @@ export function useDocs() {
         title,
       })
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsg(e as any))
+      message.warning('NocoAI failed for the demo reasons. Please try again.')
     }
   }
 

@@ -112,17 +112,21 @@ watchEffect(() => {
 
 const predictColumnType = async () => {
   if (loadMagic.value) return
-  loadMagic.value = true
-  const predictRes = await $api.utils.magic({
-    operation: 'predictColumnType',
-    data: {
-      title: formState.value.title,
-    },
-  })
-  const predictType = predictRes?.data
-  if (predictType && Object.values(UITypes).includes(predictType)) {
-    formState.value.uidt = predictType
-    onUidtOrIdTypeChange()
+  try {
+    loadMagic.value = true
+    const predictRes = await $api.utils.magic({
+      operation: 'predictColumnType',
+      data: {
+        title: formState.value.title,
+      },
+    })
+    const predictType = predictRes?.data
+    if (predictType && Object.values(UITypes).includes(predictType)) {
+      formState.value.uidt = predictType
+      onUidtOrIdTypeChange()
+    }
+  } catch (e) {
+    message.warning('NocoAI failed for the demo reasons. Please try again.')
   }
   loadMagic.value = false
 }

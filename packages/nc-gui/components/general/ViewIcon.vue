@@ -10,7 +10,7 @@ const props = defineProps<{
 const viewMeta = toRef(props, 'meta')
 </script>
 
-<template>
+<template v-if="viewMeta">
   <IcIcon
     v-if="viewMeta?.meta?.icon"
     :data-testid="`nc-icon-${viewMeta?.meta?.icon}`"
@@ -19,7 +19,7 @@ const viewMeta = toRef(props, 'meta')
   />
   <component
     :is="viewIcons[viewMeta.type]?.icon"
-    v-else
+    v-else-if="viewMeta?.type"
     class="nc-view-icon group-hover"
     :style="{ color: viewIcons[viewMeta.type]?.color }"
   />

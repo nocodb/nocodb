@@ -40,7 +40,7 @@ const { addTab, updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
-const { bases, tables, loadTables, isSharedBase } = useProject()
+const { project, loadProject, bases, tables, loadTables, isSharedBase } = useProject()
 
 const { activeTab } = useTabs()
 
@@ -330,6 +330,12 @@ const setIcon = async (icon: string, table: TableType) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+onMounted(async () => {
+  if (!project.value?.id) {
+    await loadProject()
+  }
+})
 </script>
 
 <template>

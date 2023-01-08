@@ -21,7 +21,7 @@ jobs:
           TAG_NAME=${CURRENT_DATE}-${CURRENT_TIME}
           IS_DAILY='Y'
           # Get current version
-          CURRENT_VERSION=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/nocodb/nocodb/releases/latest))
+          CURRENT_VERSION=$(curl -fs https://docs.nocodb.com/releases | grep article | grep div | grep h2 | grep 'id\="[^"]*' -o | cut -c 5-)
           # Set the tag
           if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
             IS_DAILY='N'

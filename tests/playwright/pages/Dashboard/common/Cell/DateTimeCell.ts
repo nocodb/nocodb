@@ -33,7 +33,18 @@ export class DateTimeCellPageObject extends BasePage {
     date: string;
   }) {
     // title date format needs to be YYYY-MM-DD
-    await this.rootPage.locator(`td[title="${date}"]`).click();
+    const [year, month, day] = date.split('-');
+
+    // configure year
+    await this.rootPage.locator('.ant-picker-year-btn').click();
+    await this.rootPage.locator(`td[title="${year}"]`).click();
+
+    // configure month
+    await this.rootPage.locator('.ant-picker-month-btn').click();
+    await this.rootPage.locator(`td[title="${year}-${month}"]`).click();
+
+    // configure day
+    await this.rootPage.locator(`td[title="${year}-${month}-${day}"]`).click();
   }
 
   async selectTime({

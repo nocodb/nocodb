@@ -37,8 +37,6 @@ const setLastOpenedViewId = (viewId?: string) => {
 
 const { isUIAllowed } = useUIPermission()
 
-const { isMobileMode } = useGlobal()
-
 const router = useRouter()
 
 const route = useRoute()
@@ -51,10 +49,10 @@ const { $e } = useNuxtApp()
 // FOO.
 
 // const sidebarCollapsed = computed(() => !isOpen.value || isMobileMode.value)
-const sidebarCollapsed = false
+// const sidebarCollapsed = false
 
 /** Sidebar ref */
-const sidebar = ref()
+// const sidebar = ref()
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -155,30 +153,27 @@ function onOpenModal({
     class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
     theme="light"
   > -->
-    <!-- <LazySmartsheetSidebarToolbar
+  <!-- <LazySmartsheetSidebarToolbar
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     /> -->
 
-    <div
-      class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2 inline"
-      :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
-    >
-      <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
-      <MdiBackburger
-        v-e="['c:grid:toggle-navdraw']"
-        class="cursor-pointer transform transition-transform duration-500"
-        @click="emits('closeMobileViewsSidebar')"
-      />
-    </div>
+  <div class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2 inline">
+    <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
+    <MdiBackburger
+      v-e="['c:grid:toggle-navdraw']"
+      class="cursor-pointer transform transition-transform duration-500"
+      @click="emits('closeMobileViewsSidebar')"
+    />
+  </div>
 
-    <div
-      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1 inline"
-    >
-      <!-- <div class="flex gap-2 justify-start">
+  <div
+    class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1 inline"
+  >
+    <!-- <div class="flex gap-2 justify-start">
       <div class="flex items-center gap-1 text-xs"> -->
-      <!-- <div :class="{ 'nc-active-btn': isOpen }"> -->
-      {{ meta?.title }}
-      <!-- <a-button size="small" class="nc-toggle-right-navbar" @click="onClick">
+    <!-- <div :class="{ 'nc-active-btn': isOpen }"> -->
+    {{ meta?.title }}
+    <!-- <a-button size="small" class="nc-toggle-right-navbar" @click="onClick">
           <div class="flex items-center gap-1 text-xs" :class="{ 'text-gray-500': !isOpen }">
             <AntDesignMenuUnfoldOutlined v-if="isOpen" />
 
@@ -187,25 +182,25 @@ function onOpenModal({
             {{ $t('objects.views') }}
           </div>
         </a-button> -->
-      <!-- </div>
+    <!-- </div>
     </div> -->
-    </div>
+  </div>
 
-    <div class="flex-1 flex flex-col min-h-0">
-      <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">
-        <div class="w-full h-full flex items-center justify-center">
-          <a-spin />
-        </div>
-      </GeneralOverlay>
+  <div class="flex-1 flex flex-col min-h-0">
+    <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">
+      <div class="w-full h-full flex items-center justify-center">
+        <a-spin />
+      </div>
+    </GeneralOverlay>
 
-      <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
+    <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
 
-      <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="!my-3 w-full border-b-1" />
+    <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
+      <div class="!my-3 w-full border-b-1" />
 
-        <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
-      </template>
-    </div>
+      <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
+    </template>
+  </div>
   <!-- </a-layout-sider> -->
   <!-- </div> -->
 </template>

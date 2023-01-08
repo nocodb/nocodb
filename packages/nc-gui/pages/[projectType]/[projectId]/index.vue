@@ -66,11 +66,15 @@ const dataSourcesState = ref<string>('')
 
 const dropdownOpen = ref(false)
 
+const activeView = ref()
+
 const { activeTab } = useTabs()
 const { metas } = useMetas()
 // const { tables } = useProject()
 // const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
+
+provide(ActiveViewInj, activeView)
 provide(MetaInj, meta)
 
 const showViewsMobileSidebar = ref(false)
@@ -613,7 +617,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <LazyDashboardTreeView v-if="!(isMobileMode && showViewsMobileSidebar)" @clicked-table-link="onClickedTableLink" />
         <SmartsheetSidebarMobile
           v-if="meta && isMobileMode && showViewsMobileSidebar"
-          class="nc-left-sidebar-mobile"
           @close-mobile-views-sidebar="onCloseMobileViewsSidebar"
         />
       </a-layout-sider>

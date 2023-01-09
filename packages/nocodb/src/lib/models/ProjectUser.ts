@@ -272,7 +272,7 @@ export default class ProjectUser {
 
   static async getProjectsList(
     userId: string,
-    _params: any,
+    params: any,
     ncMeta = Noco.ncMeta
   ): Promise<ProjectType[]> {
     // todo: pagination
@@ -284,9 +284,10 @@ export default class ProjectUser {
       return projectList;
     }
 
-    projectList = await ncMeta
+    const qb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
+      .select(`${MetaTable.PROJECT_USERS}.starred`)
       .innerJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.project_id`,
@@ -303,10 +304,26 @@ export default class ProjectUser {
         );
       });
 
+    // filter starred projects
+    if(params.starred){
+      qb.where(`${MetaTable.PROJECT_USERS}.starred`, true);
+    }
+
+    // filter shared with me projects
+    if(params.shared){
+
+    }
+
+    // order based on recently accessed
+    if(params.recent){
+
+    }
+
+    projectList = await qb;
     if (projectList?.length) {
       await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);
     }
 
-    return projectList.filter((p) => !_params?.type || p.type === _params.type);
+    return projectList.filter((p) => !params?.type || p.type === params.type);
   }
 }

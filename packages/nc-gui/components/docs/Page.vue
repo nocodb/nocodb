@@ -11,6 +11,7 @@ import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
 import Commands from './commands'
+import { History } from './history'
 import suggestion from './commands/suggestion'
 import { createImageExtension } from './images/node'
 
@@ -37,7 +38,9 @@ const breadCrumbs = computed(() => {
 
 const editor = useEditor({
   extensions: [
-    StarterKit,
+    StarterKit.configure({
+      history: false,
+    }),
     Strike,
     Heading,
     Commands.configure({
@@ -66,6 +69,7 @@ const editor = useEditor({
       return url
     }),
     Underline,
+    History,
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -79,15 +83,18 @@ watch(
   () => content.value,
   () => {
     if (isPublic.value) return
+    if (!editor.value) return
 
     if (content.value !== editor.value?.getHTML()) {
-      editor.value?.commands.setContent(content.value)
+      editor.value.commands.setContent(content.value)
     }
   },
 )
 
 watch(editor, () => {
-  editor.value?.commands.setContent(isPublic.value ? openedPage.value!.published_content! : content.value)
+  if (!editor.value) return
+
+  editor.value.commands.setContent(isPublic.value ? openedPage.value!.published_content! : content.value)
 })
 
 watchDebounced(

@@ -244,13 +244,13 @@ div[contenteditable='false'].ProseMirror {
   font-size: 1.5rem;
 }
 .ProseMirror h3 {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
 }
 .ProseMirror h4 {
-  font-size: 2rem;
+  font-size: 1.2rem;
 }
 .ProseMirror h5 {
-  font-size: 1.5rem;
+  font-size: 1rem;
 }
 .ProseMirror h6 {
   font-size: 1rem;
@@ -272,6 +272,9 @@ div[contenteditable='false'].ProseMirror {
 
 ul {
   padding-left: 1rem;
+  // bullet color black
+  color: #000;
+  list-style: disc;
   li > p {
     margin-top: 0.25rem !important;
     margin-bottom: 0.25rem !important;

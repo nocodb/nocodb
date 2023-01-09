@@ -1,18 +1,22 @@
 <script lang="ts" setup>
-// props: {editor: {type: Object, required: true}}
 import { defineProps } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
+import { generateHTML, generateJSON } from '@tiptap/html'
+import showdown from 'showdown'
 import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
-import MdiFormatColor from '~icons/mdi/format-color'
+import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
+
+const { editor } = defineProps<Props>()
+
+const { magicExpand } = useDocs()
+
 interface Props {
   editor: Editor
 }
 
-const { editor } = defineProps<Props>()
-
 const colorValue = ref('Black')
+const isMagicExpandLoading = ref(false)
 
 const isImageNode = computed(() => {
   // active node of tiptap editor
@@ -22,6 +26,38 @@ const isImageNode = computed(() => {
   return activeNode?.type?.name === 'image'
 })
 const isImageNodeDebounced = ref(isImageNode.value)
+
+const expandText = async () => {
+  if (isMagicExpandLoading.value) return
+
+  isMagicExpandLoading.value = true
+  try {
+    const selectedContent = editor?.state?.selection?.content().content.toJSON()
+    const selectedHtml = generateHTML({ type: 'doc', content: selectedContent }, editor.extensionManager.extensions)
+
+    const converter = new showdown.Converter()
+    converter.setOption('noHeaderId', true)
+
+    const markdown = converter.makeMarkdown(selectedHtml)
+    const response: any = await magicExpand(markdown)
+
+    editor
+      ?.chain()
+      .deleteRange({
+        from: editor.state.selection.from,
+        to: editor.state.selection.to,
+      })
+      .run()
+
+    const html = converter.makeHtml(response.text).replace('>\n<', '><')
+    const tiptapNewNodeJSON = generateJSON(html, editor.extensionManager.extensions)
+    for (const node of tiptapNewNodeJSON.content) {
+      editor?.chain().focus().insertContent(node).run()
+    }
+  } finally {
+    isMagicExpandLoading.value = false
+  }
+}
 
 watch(
   () => isImageNode.value,
@@ -43,7 +79,7 @@ watchDebounced(
 </script>
 
 <template>
-  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 500 }">
+  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }">
     <div v-if="!isImageNodeDebounced" class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1">
       <a-button
         type="text"
@@ -103,17 +139,32 @@ watchDebounced(
 
       <div class="divider"></div>
 
-      <a-select v-model:value="colorValue" style="width: 6rem" size="small" class="flex !my-auto !mr-1">
+      <!-- <a-select v-model:value="colorValue" style="width: 6rem" size="small" class="flex !my-auto !mr-1">
         <a-select-option value="Black">
           <div class="flex flex-row items-center h-5 my-auto">
             <MdiFormatColor class="flex mt-0.5 mr-2.5" />
             <div class="flex my-auto">Black</div>
           </div>
         </a-select-option>
-        <!-- <a-select-option value="Red">Red</a-select-option>
-        <a-select-option value="Blue">Blue</a-select-option>
-        <a-select-option value="Yellow">Yellow</a-select-option> -->
-      </a-select>
+      </a-select> -->
+      <!-- <a-select-option value="Red">Red</a-select-option>
+      <a-select-option value="Blue">Blue</a-select-option>
+      <a-select-option value="Yellow">Yellow</a-select-option> -->
+
+      <a-button
+        type="text"
+        :loading="isMagicExpandLoading"
+        class="menu-button !flex !flex-row !items-center"
+        :class="{
+          '!hover:bg-inherit !cursor-not-allowed': isMagicExpandLoading,
+        }"
+        @click="expandText"
+      >
+        <div class="flex flex-row items-center pr-0.5">
+          <PhSparkleFill v-if="!isMagicExpandLoading" class="text-orange-400 h-3.5" />
+          <div class="!text-xs !ml-1">Expand</div>
+        </div>
+      </a-button>
     </div>
   </BubbleMenu>
 </template>
@@ -141,6 +192,9 @@ watchDebounced(
   }
   .ant-select-selector .ant-select-selection-item {
     @apply !text-xs;
+  }
+  .ant-btn-loading-icon {
+    @apply pb-0.5;
   }
 }
 </style>

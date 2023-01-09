@@ -3,6 +3,15 @@ import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import apiMetrics from '../../helpers/apiMetrics';
 import Page from '../../../models/Page';
 import { UserType } from 'nocodb-sdk';
+import { NcError } from '../../helpers/catchError';
+import Project from '../../../models/Project';
+const { Configuration, OpenAIApi } = require('openai');
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const openai = new OpenAIApi(configuration);
 
 async function get(
   req: Request<any> & { user: { id: string; roles: string } },
@@ -151,6 +160,64 @@ async function batchPublish(
     next(e);
   }
 }
+
+async function magicExpand(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    let response;
+
+    const project = await Project.getByTitleOrId(req.body.projectId);
+    if (!project) throw new Error('Project not found');
+
+    const parentPagesTitles = (
+      await Page.parents({
+        pageId: req.body.pageId,
+        projectId: req.body.projectId,
+        bookId: req.body.bookId,
+      })
+    ).map((p) => p.title);
+
+    const page = await Page.get({
+      id: req.body.pageId,
+      projectId: req.body.projectId,
+      bookId: req.body.bookId,
+    });
+
+    const markDownText = req.body.text;
+
+    try {
+      response = await openai.createCompletion({
+        model: 'text-davinci-003',
+        prompt: `On a page named '${page.title}', with categories as '${
+          project.title
+        }/${parentPagesTitles.join(
+          '/'
+        )}', expand on the following text(given in markdown) and output(should be in markdown): '${markDownText}'`,
+        temperature: 0.7,
+        max_tokens: 1500,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      });
+
+      if (response.data.choices.length === 0)
+        NcError.badRequest('Could not generate data');
+
+      res.json({ text: response.data?.choices[0]?.text });
+    } catch (e) {
+      console.log(response?.data?.choices[0]?.text);
+      console.log(e);
+      NcError.badRequest('Could not generate data');
+    }
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis
@@ -178,4 +245,10 @@ router.post(
   apiMetrics,
   ncMetaAclMw(batchPublish, 'pageBatchPublish')
 );
+router.post(
+  '/api/v1/docs/page/magic-expand',
+  apiMetrics,
+  ncMetaAclMw(magicExpand, 'pageMagicExpand')
+);
+
 export default router;

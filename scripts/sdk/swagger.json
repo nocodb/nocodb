@@ -429,6 +429,61 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/page/magic-expand": {
+      "post": {
+        "summary": "Magic expand text",
+        "operationId": "magic-expand-text",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pageId": {
+                    "type": "string",
+                    "description": "Page id",
+                    "required":true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Book id",
+                    "required":true
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Text",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Magic page content"
+      },
+      "parameters": []
+    },
     "/api/v1/docs/pages": {
       "get": {
         "summary": "List pages",

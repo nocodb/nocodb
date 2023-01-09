@@ -2,7 +2,6 @@
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
 const route = useRoute()
-const { loadBookProject } = useProject()
 const {
   fetchPublicBook,
   fetchPages,
@@ -22,7 +21,6 @@ const {
 const isLoading = ref(true)
 
 const onAdminMount = async () => {
-  await loadBookProject()
   await fetchBooks()
 
   await fetchNestedChildPagesFromRoute()
@@ -99,7 +97,7 @@ onMounted(async () => {
       <DocsSideBar />
     </template>
     <div v-if="isLoading"></div>
-    <DocsBook v-else-if="isOnlyBookOpened" />
+    <DocsBook v-else-if="isOnlyBookOpened" :key="openedBook?.id" />
     <DocsPage v-else-if="openedPage" :key="openedPage?.id" />
   </NuxtLayout>
 </template>

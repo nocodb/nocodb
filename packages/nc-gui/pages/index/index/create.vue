@@ -64,7 +64,12 @@ const createProject = async () => {
 
     switch (route.query.type) {
       case NcProjectType.DOCS:
+        await loadProject(true, result.id)
         await navigateTo(`/nc/doc/${result.id}`)
+        // todo: Hack. Remove
+        setTimeout(() => {
+          window.location.reload()
+        }, 10)
         break
       case NcProjectType.COWRITER: {
         // force load project so that baseId is available in useTable

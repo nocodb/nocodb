@@ -11,6 +11,7 @@ import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
 import Commands from './commands'
+import { History } from './history'
 import suggestion from './commands/suggestion'
 import { createImageExtension } from './images/node'
 
@@ -21,6 +22,13 @@ const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, 
 const isTitleInputRefLoaded = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
 
+const title = computed({
+  get: () => (openedPage.value!.new ? '' : openedPage.value?.title || ''),
+  set: (value) => {
+    openedPage.value!.new = false
+    openedPage.value!.title = value
+  },
+})
 const content = computed(() => openedPage.value?.content || '')
 
 const breadCrumbs = computed(() => {
@@ -37,7 +45,9 @@ const breadCrumbs = computed(() => {
 
 const editor = useEditor({
   extensions: [
-    StarterKit,
+    StarterKit.configure({
+      history: false,
+    }),
     Strike,
     Heading,
     Commands.configure({
@@ -66,6 +76,7 @@ const editor = useEditor({
       return url
     }),
     Underline,
+    History,
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -78,16 +89,18 @@ const editor = useEditor({
 watch(
   () => content.value,
   () => {
-    if (isPublic.value) return
+    if (!editor.value) return
 
     if (content.value !== editor.value?.getHTML()) {
-      editor.value?.commands.setContent(content.value)
+      editor.value.commands.setContent(content.value)
     }
   },
 )
 
 watch(editor, () => {
-  editor.value?.commands.setContent(isPublic.value ? openedPage.value!.published_content! : content.value)
+  if (!editor.value) return
+
+  editor.value.commands.setContent(isPublic.value ? openedPage.value!.published_content! : content.value)
 })
 
 watchDebounced(
@@ -152,11 +165,11 @@ watchDebounced(
 
       <a-textarea
         ref="titleInputRef"
-        v-model:value="openedPage.title"
+        v-model:value="title"
         class="!text-4xl font-semibold !px-1.5"
         :bordered="false"
         :readonly="isPublic"
-        placeholder="Type to add title"
+        :placeholder="openedPage.title"
         auto-size
       />
 
@@ -189,6 +202,10 @@ div[contenteditable='false'].ProseMirror {
     max-width: 100%;
     max-height: 30rem;
     height: auto;
+    // align center
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 
     &.ProseMirror-selectednode {
       // outline with rounded corners

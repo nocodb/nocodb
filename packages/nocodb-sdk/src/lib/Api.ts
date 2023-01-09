@@ -1243,6 +1243,37 @@ export class Api<
       }),
 
     /**
+     * @description Magic page content
+     *
+     * @tags Noco docs
+     * @name MagicExpandText
+     * @summary Magic expand text
+     * @request POST:/api/v1/docs/page/magic-expand
+     * @response `200` `object` OK
+     */
+    magicExpandText: (
+      data: {
+        /** Page id */
+        pageId: string;
+        /** Project id */
+        projectId: string;
+        /** Book id */
+        bookId: string;
+        /** Text */
+        text: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/docs/page/magic-expand`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description List pages
      *
      * @tags Noco docs

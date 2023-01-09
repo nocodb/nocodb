@@ -51,8 +51,11 @@ const expandText = async () => {
 
     const html = converter.makeHtml(response.text).replace('>\n<', '><')
     const tiptapNewNodeJSON = generateJSON(html, editor.extensionManager.extensions)
+
     for (const node of tiptapNewNodeJSON.content) {
-      editor?.chain().focus().insertContent(node).run()
+      const proseNode = editor.schema.nodeFromJSON(node)
+      const transaction = editor?.state.tr.insert(editor.state.selection.from - 1, proseNode)
+      editor?.view.dispatch(transaction)
     }
   } finally {
     isMagicExpandLoading.value = false

@@ -1,4 +1,4 @@
-import { ProjectType } from 'nocodb-sdk';
+import { ProjectRoles, ProjectType, WorkspaceUserRoles } from 'nocodb-sdk';
 import {
   // CacheDelDirection,
   CacheGetType,
@@ -23,16 +23,16 @@ export default class ProjectUser {
     projectUser: Partial<ProjectUser & { created_at?: any; updated_at?: any }>,
     ncMeta = Noco.ncMeta
   ) {
-
-    const insertObject =extractProps(projectUser, [
+    const insertObject = extractProps(projectUser, [
       'fk_user_id',
-    'project_id',
-    'roles',
-    'created_at',
-    'updated_at',
-      'starred', 'order'
-      ,'hidden'
-      ])
+      'project_id',
+      'roles',
+      'created_at',
+      'updated_at',
+      'starred',
+      'order',
+      'hidden',
+    ]);
 
     const { project_id, fk_user_id } = await ncMeta.metaInsert2(
       null,
@@ -275,25 +275,49 @@ export default class ProjectUser {
     params: any,
     ncMeta = Noco.ncMeta
   ): Promise<ProjectType[]> {
-    // todo: pagination
-    let projectList = await NocoCache.getList(CacheScope.USER_PROJECT, [
-      userId,
-    ]);
+    // let projectList: ProjectType[];
 
-    if (projectList.length) {
-      return projectList;
-    }
+    // todo: pagination
+    // todo: caching based on filter type
+    //   = await NocoCache.getList(CacheScope.USER_PROJECT, [
+    //   userId,
+    // ]);
+
+    // if (projectList.length) {
+    //   return projectList;
+    // }
 
     const qb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
+      .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)
-      .innerJoin(MetaTable.PROJECT_USERS, function () {
+      .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
+      .leftJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.project_id`,
           `${MetaTable.PROJECT}.id`
         );
         this.andOn(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId])
+        );
+      })
+      .leftJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          `${MetaTable.PROJECT}.fk_workspace_id`
+        );
+        this.andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId])
+        );
+      })
+      .where(function () {
+        this.where(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId])
+        ).orWhere(
           `${MetaTable.PROJECT_USERS}.fk_user_id`,
           ncMeta.knex.raw('?', [userId])
         );
@@ -305,21 +329,38 @@ export default class ProjectUser {
       });
 
     // filter starred projects
-    if(params.starred){
+    if (params.starred) {
       qb.where(`${MetaTable.PROJECT_USERS}.starred`, true);
     }
 
     // filter shared with me projects
-    if(params.shared){
-
+    if (params.shared) {
+      qb.where(function () {
+        // include projects belongs project_user in which user is not owner
+        qb.where(function () {
+          this.where(`${MetaTable.PROJECT_USERS}.starred`, userId)
+            .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.OWNER)
+            .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+        })
+          // include projects belongs workspace in which user is not owner
+          .orWhere(function () {
+            this.where(`${MetaTable.WORKSPACE_USER}.fk_user_id`, userId)
+              .whereNot(
+                `${MetaTable.WORKSPACE_USER}.roles`,
+                WorkspaceUserRoles.OWNER
+              )
+              .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`);
+          });
+      });
     }
 
+    console.log(qb.toQuery());
     // order based on recently accessed
-    if(params.recent){
-
+    if (params.recent) {
+      qb.orderBy(`${MetaTable.PROJECT}.updated_at`, 'desc');
     }
 
-    projectList = await qb;
+    const projectList = await qb;
     if (projectList?.length) {
       await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);
     }

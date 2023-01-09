@@ -41,6 +41,7 @@ const {
   activeWorkspace,
   isWorkspaceOwner,
   updateWorkspace,
+  activePage,
 } = useProvideWorkspaceStore()
 
 const { $e } = useNuxtApp()
@@ -50,7 +51,7 @@ const route = useRoute()
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
     const index = workspaces?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
-    return [index === -1 ? 0 : index]
+    return activePage?.value === 'workspace' ? [index === -1 ? 0 : index] : []
   },
   set(index: number[]) {
     if (index?.length) {
@@ -382,15 +383,45 @@ const disableEdit = (index: number) => {
           <a-divider class="!my-4" />
 
           <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
-            <div class="nc-workspace-group-item">
+            <div
+              class="nc-workspace-group-item"
+              :class="{ active: activePage === 'recent' }"
+              @click="
+                navigateTo({
+                  query: {
+                    page: 'recent',
+                  },
+                })
+              "
+            >
               <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
               <span>Recent</span>
             </div>
-            <div class="nc-workspace-group-item">
+            <div
+              class="nc-workspace-group-item"
+              :class="{ active: activePage === 'shared' }"
+              @click="
+                navigateTo({
+                  query: {
+                    page: 'shared',
+                  },
+                })
+              "
+            >
               <MaterialSymbolsGroupsOutline class="nc-icon" />
               <span>Shared with me</span>
             </div>
-            <div class="nc-workspace-group-item">
+            <div
+              class="nc-workspace-group-item"
+              :class="{ active: activePage === 'starred' }"
+              @click="
+                navigateTo({
+                  query: {
+                    page: 'starred',
+                  },
+                })
+              "
+            >
               <MaterialSymbolsStarOutline class="nc-icon" />
               <span>Favourites</span>
             </div>
@@ -463,6 +494,9 @@ const disableEdit = (index: number) => {
             </template>
           </a-tabs>
         </div>
+        <div v-else-if="activePage !== 'workspace'">
+          <WorkspaceProjectList />
+        </div>
       </div>
     </a-layout>
     <!--    </a-layout> -->
@@ -509,7 +543,15 @@ const disableEdit = (index: number) => {
 
 .nc-workspace-group {
   .nc-workspace-group-item {
-    @apply h-[40px] px-4 flex items-center gap-2;
+    &:hover {
+      @apply bg-primary bg-opacity-3 text-primary;
+    }
+
+    &.active {
+      @apply bg-primary bg-opacity-8 text-primary;
+    }
+
+    @apply h-[40px] px-4 flex items-center gap-2 cursor-pointer;
 
     .nc-icon {
       @apply w-6;

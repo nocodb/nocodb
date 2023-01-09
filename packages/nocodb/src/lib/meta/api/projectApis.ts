@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { OrgUserRoles, ProjectType } from 'nocodb-sdk';
+import { ProjectType } from 'nocodb-sdk';
 import Project from '../../models/Project';
 import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
@@ -55,9 +55,30 @@ export async function projectUpdate(
 ) {
   const project = await Project.getWithInfo(req.params.projectId);
 
-  // todo: allow update based on role
-  // update project user data if found
-  // todo: move to a separate api
+  const data: Partial<Project> = extractPropsAndSanitize(req.body, [
+    'title',
+    'meta',
+    'color',
+  ]);
+
+  if (
+    data?.title &&
+    project.title !== data.title &&
+    (await Project.getByTitle(data.title))
+  ) {
+    NcError.badRequest('Project title already in use');
+  }
+
+  const result = await Project.update(req.params.projectId, data);
+  Tele.emit('evt', { evt_type: 'project:update' });
+  res.json(result);
+}
+
+export async function projectUserMetaUpdate(
+  req: Request<any, any, any>,
+  res: Response
+) {
+  // update project user data
   const projectUserData = extractProps(req.body, [
     'starred',
     'order',
@@ -80,35 +101,20 @@ export async function projectUpdate(
       );
     }
   }
-
-  const data: Partial<Project> = extractPropsAndSanitize(req.body, [
-    'title',
-    'meta',
-    'color',
-  ]);
-
-  if (
-    data?.title &&
-    project.title !== data.title &&
-    (await Project.getByTitle(data.title))
-  ) {
-    NcError.badRequest('Project title already in use');
-  }
-
-  const result = await Project.update(req.params.projectId, data);
-  Tele.emit('evt', { evt_type: 'project:update' });
-  res.json(result);
+  res.json({ msg: 'success' });
 }
 
+// todo: limit return fields
 export async function projectList(
   req: Request<any> & { user: { id: string; roles: string } },
   res: Response<ProjectListType>,
   next
 ) {
   try {
-    const projects = req.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
-      ? await Project.list(req.query)
-      : await ProjectUser.getProjectsList(req.user.id, req.query);
+    // const projects = req.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
+    //   ? await Project.list(req.query)
+    //   : await ProjectUser.getProjectsList(req.user.id, req.query);
+    const projects = await ProjectUser.getProjectsList(req.user.id, req.query);
 
     res // todo: pagination
       .json(
@@ -542,6 +548,12 @@ export default (router) => {
     '/api/v1/db/meta/projects/:projectId',
     metaApiMetrics,
     ncMetaAclMw(projectGet, 'projectGet')
+  );
+  router.patch(
+    '/api/v1/db/meta/projects/:projectId/user',
+    metaApiMetrics,
+    // todo: refactor method name and path
+    ncMetaAclMw(projectUserMetaUpdate, 'projectUserMetaUpdate')
   );
   router.patch(
     '/api/v1/db/meta/projects/:projectId',

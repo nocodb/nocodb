@@ -17,8 +17,15 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   const { $api } = useNuxtApp()
 
+  const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(() => {
+    return route.query.page ?? 'workspace'
+  })
+
   const activeWorkspace = computed(() => {
-    return workspaces.value?.find((w) => w.id === route.query.workspaceId) ?? workspaces.value?.[0]
+    return (
+      workspaces.value?.find((w) => w.id === route.query.workspaceId) ??
+      (activePage.value === 'workspace' ? workspaces.value?.[0] : null)
+    )
   })
 
   /** getters */
@@ -72,14 +79,26 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     await $api.workspace.delete(workspaceId)
   }
 
-  const loadProjects = async () => {
-    if (!activeWorkspace.value?.id) {
+  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' |'workspace') => {
+    if ((!page || page === 'workspace') && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
-    const { list } = await $api.workspaceProject.list(activeWorkspace.value?.id)
-
-    projects.value = list
+    if(activeWorkspace.value?.id) {
+      const {list} = await $api.workspaceProject.list(
+        activeWorkspace.value?.id
+      )
+      projects.value = list
+    }else{
+      const {list} = await $api.project.list(
+        page
+          ? {
+            [page]: true,
+          }
+          : {},
+      )
+      projects.value = list
+    }
   }
 
   const loadCollaborators = async (params?: { offset?: number; limit?: number }) => {
@@ -144,28 +163,41 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     { immediate: true },
   )
 
+  // load projects and collaborators list on active workspace change
+  watch(
+    activePage,
+    async (page) => {
+      if (page === 'workspace') {
+        return
+      }
+      await loadProjects(page)
+    },
+    { immediate: true },
+  )
+
   const addToFavourite = async (projectId: string) => {
     try {
-      await $api.project.update(projectId, {
-        starred: true,
-      })
-      const project = projects.value?.find(({id}) => id === projectId)
-      if(!project) return
+      const project = projects.value?.find(({ id }) => id === projectId)
+      if (!project) return
 
       // todo: update the type
       project.starred = true
+
+      await $api.project.userMetaUpdate(projectId, {
+        starred: true,
+      })
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
   const removeFromFavourite = async (projectId: string) => {
     try {
-      const project = projects.value?.find(({id}) => id === projectId)
-      if(!project) return
+      const project = projects.value?.find(({ id }) => id === projectId)
+      if (!project) return
 
       project.starred = false
 
-      await $api.project.update(projectId, {
+      await $api.project.userMetaUpdate(projectId, {
         starred: false,
       })
     } catch (e: any) {
@@ -191,6 +223,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     isWorkspaceOwner,
     addToFavourite,
     removeFromFavourite,
+    activePage,
   }
 }, 'workspaceStore')
 

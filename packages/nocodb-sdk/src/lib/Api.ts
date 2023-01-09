@@ -2434,6 +2434,32 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Project
+     * @name UserMetaUpdate
+     * @summary Project user meta update
+     * @request PATCH:/api/v1/db/meta/projects/{projectId}/user
+     * @response `200` `void` OK
+     */
+    userMetaUpdate: (
+      projectId: string,
+      data: {
+        starred?: boolean;
+        order?: number;
+        hidden?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/user`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
  * @description Read project details
  * 
  * @tags Project

@@ -474,7 +474,7 @@ export async function tableCreateMagic(
 
   const response = await openai.createCompletion({
     model: "text-davinci-003",
-    prompt: `create best schema for '${req.body.title}' table without foreign constraints using SQL (${sqlClientType}) and name table as '${req.body.table_name}':`,
+    prompt: `create best schema for '${req.body.title}' table without foreign and not null constraints using SQL (${sqlClientType}) and name table as '${req.body.table_name}':`,
     temperature: 0.7,
     max_tokens: 2048,
     top_p: 1,
@@ -591,7 +591,7 @@ export async function schemaMagic(
 
   const response = await openai.createCompletion({
     model: "text-davinci-003",
-    prompt: `create best schema for '${req.body.title}' database using SQL (${sqlClientType})${prefixPrompt}:`,
+    prompt: `create best schema for '${req.body.title}' database with proper constraints using SQL (${sqlClientType})${prefixPrompt}:`,
     temperature: 0.7,
     max_tokens: 3000,
     top_p: 1,
@@ -603,7 +603,7 @@ export async function schemaMagic(
     NcError.badRequest('Failed to generate schema');
   }
 
-  const schema = response.data.choices[0].text;
+  const schema = response.data.choices[0].text.replace(/ NOT NULL/gi, ' ');
 
   try {
     for (const sql of schema.split(';')) {

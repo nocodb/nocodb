@@ -7583,7 +7583,8 @@
                       "predictColumnType",
                       "predictFormula",
                       "predictNextColumn",
-                      "predictNextFormulas"
+                      "predictNextFormulas",
+                      "generateSinglePrompt"
                     ]
                   },
                   "data": {

@@ -719,6 +719,27 @@ const closeAddColumnDropdown = () => {
   columnOrder.value = null
   addColumnDropdown.value = false
 }
+
+function openGenerateDialog(target: any) {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('SmartsheetDlgGenerate'), {
+    'modelValue': isOpen,
+    'target': target,
+    'meta': meta,
+    'view': view,
+    'fields': fields,
+    'data': data,
+    'xWhere': xWhere,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 </script>
 
 <template>
@@ -1034,6 +1055,15 @@ const closeAddColumnDropdown = () => {
                 {{ $t('general.copy') }}
               </div>
             </a-menu-item>
+
+            <a-sub-menu v-if="contextMenuTarget" title="NocoAI">
+              <a-menu-item @click="openGenerateDialog(contextMenuTarget)">
+                <div class="color-transition nc-project-menu-item group">
+                  <MdiMagicStaff class="group-hover:text-accent" />
+                  Generate
+                </div>
+              </a-menu-item>
+            </a-sub-menu>
           </a-menu>
         </template>
       </a-dropdown>

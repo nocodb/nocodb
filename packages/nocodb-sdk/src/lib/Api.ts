@@ -4963,7 +4963,8 @@ export class Api<
           | 'predictColumnType'
           | 'predictFormula'
           | 'predictNextColumn'
-          | 'predictNextFormulas';
+          | 'predictNextFormulas'
+          | 'generateSinglePrompt';
         data?: object;
       },
       params: RequestParams = {}

@@ -490,6 +490,27 @@ async function predictNextFormulas(req: Request, res: Response) {
   res.json(resObject);
 }
 
+async function generateSinglePrompt(req: Request, res: Response) {
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: `${req.body.data.prompt}`,
+    temperature: 0.7,
+    max_tokens: 1000,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    return;
+  }
+
+  const resObject = { data: response.data.choices[0].text };
+
+  res.json(resObject);
+}
+
 export async function genericGPT(req: Request, res: Response) {
   // req.body.operation
   // req.body.data
@@ -511,6 +532,9 @@ export async function genericGPT(req: Request, res: Response) {
       case "predictNextFormulas":
         // req.body.data.columns, req.body.data.table
         return await predictNextFormulas(req, res);
+      case "generateSinglePrompt":
+        // req.body.data.prompt
+        return await generateSinglePrompt(req, res);
       default:
         return res.status(500).json({ msg: "Unknown operation" });
     }

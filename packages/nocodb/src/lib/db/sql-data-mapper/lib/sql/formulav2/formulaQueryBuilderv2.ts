@@ -54,7 +54,10 @@ export default async function formulaQueryBuilderv2(
 ) {
   // register jsep curly hook
   jsep.plugins.register(jsepCurlyHook);
-  const tree = jsep(_tree);
+
+  // formula may include double curly brackets in previous version
+  // convert to single curly bracket here for compatibility
+  const tree = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
 
   const columnIdToUidt = {};
 

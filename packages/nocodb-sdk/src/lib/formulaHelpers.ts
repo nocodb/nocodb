@@ -8,19 +8,35 @@ export const jsepCurlyHook = {
     jsep.hooks.add('gobble-token', function gobbleCurlyLiteral(env) {
       const OCURLY_CODE = 123; // {
       const CCURLY_CODE = 125; // }
+      let start = -1;
+      let end = -1;
       const { context } = env;
       if (
         !jsep.isIdentifierStart(context.code) &&
         context.code === OCURLY_CODE
       ) {
+        if (start == -1) {
+          start = context.index;
+        }
         context.index += 1;
-        const nodes = context.gobbleExpressions(CCURLY_CODE);
+        context.gobbleExpressions(CCURLY_CODE);
         if (context.code === CCURLY_CODE) {
+          if (start != -1 && end == -1) {
+            end = context.index;
+          }
           context.index += 1;
-          env.node = {
-            type: jsep.IDENTIFIER,
-            name: nodes.map((node) => parseIdentifierName(node)).join(''),
-          };
+          if (start != -1 && end != -1) {
+            env.node = {
+              type: jsep.IDENTIFIER,
+              name: /{{(.*?)}}/.test(context.expr)
+                ? // start would be the position of the first curly bracket
+                  // add 2 to point to the first character for expressions like {{col1}}
+                  context.expr.slice(start + 2, end)
+                : // start would be the position of the first curly bracket
+                  // add 1 to point to the first character for expressions like {col1}
+                  context.expr.slice(start + 1, end),
+            };
+          }
           return env.node;
         } else {
           context.throwError('Unclosed }');
@@ -29,23 +45,6 @@ export const jsepCurlyHook = {
     });
   },
 } as jsep.IPlugin;
-
-function parseIdentifierName(node) {
-  if (node.type === 'Identifier') {
-    // e.g. col
-    return node.name;
-  } else if (node.type === 'BinaryExpression') {
-    // e.g. col-1 would be considered as col (left), - (operator), 1 (right)
-    return (
-      parseIdentifierName(node.left) +
-      node.operator +
-      parseIdentifierName(node.right)
-    );
-  } else if (node.type === 'Literal') {
-    // e.g col (identifier) + 123 (literal)
-    return node.value;
-  }
-}
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,
@@ -74,7 +73,11 @@ export async function substituteColumnAliasWithIdInFormula(
   };
   // register jsep curly hook
   jsep.plugins.register(jsepCurlyHook);
-  const parsedFormula = jsep(formula);
+  const parsedFormula = jsep(
+    // formula may include double curly brackets in previous version
+    // convert to single curly bracket here for compatibility
+    formula.replaceAll('{{', '{').replaceAll('}}', '}')
+  );
   await substituteId(parsedFormula);
   return jsepTreeToFormula(parsedFormula);
 }
@@ -109,7 +112,11 @@ export function substituteColumnIdWithAliasInFormula(
 
   // register jsep curly hook
   jsep.plugins.register(jsepCurlyHook);
-  const parsedFormula = jsep(formula);
+  const parsedFormula = jsep(
+    // formula may include double curly brackets in previous version
+    // convert to single curly bracket here for compatibility
+    formula.replaceAll('{{', '{').replaceAll('}}', '}')
+  );
   const parsedRawFormula = rawFormula && jsep(rawFormula);
   substituteId(parsedFormula, parsedRawFormula);
   return jsepTreeToFormula(parsedFormula);

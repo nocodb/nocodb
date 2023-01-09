@@ -28,7 +28,8 @@ export async function dataList(req: Request, res: Response) {
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY
+      view.type !== ViewTypes.GALLERY && 
+      view.type !== ViewTypes.MAP
     ) {
       NcError.notFound('Not found');
     }

@@ -17,6 +17,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
     meta: Ref<TableType | undefined>,
     viewMeta: Ref<ViewType | MapType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
+    shared = false,
     where?: ComputedRef<string | undefined>,
   ) => {
     if (!meta) {
@@ -33,7 +34,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { isUIAllowed } = useUIPermission()
 
-    const isPublic = inject(IsPublicInj, ref(false))
+    const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -72,7 +73,8 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }
 
     async function loadMapData() {
-      if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
+
+      if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
 
       const res = !isPublic.value
         ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {

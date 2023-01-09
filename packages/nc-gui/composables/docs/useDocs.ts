@@ -526,6 +526,17 @@ export function useDocs() {
     navigateTo(nestedUrl(page.id!))
   }
 
+  const magicExpand = async (text: string, pageId?: string) => {
+    const id = pageId || openedPage.value!.id!
+    const response = await $api.nocoDocs.magicExpandText({
+      projectId: projectId!,
+      bookId: openedBook.value!.id!,
+      pageId: id,
+      text,
+    })
+    return response
+  }
+
   return {
     fetchPages,
     fetchBooks,
@@ -560,5 +571,6 @@ export function useDocs() {
     bulkPublish,
     isOnlyBookOpened,
     navigateToFirstPage,
+    magicExpand,
   }
 }

@@ -567,6 +567,33 @@ export default class Page {
       });
   }
 
+  static async parents({
+    projectId,
+    bookId,
+    pageId,
+  }: {
+    projectId: string;
+    bookId: string;
+    pageId: string;
+  }) {
+    const page = await this.get({ projectId, bookId, id: pageId });
+
+    if (!page) throw new Error('Page not found');
+
+    const parents: DocsPageType[] = [];
+    let parent = page;
+    while (parent.parent_page_id) {
+      parent = await this.get({
+        projectId,
+        bookId,
+        id: parent.parent_page_id,
+      });
+      parents.push(parent);
+    }
+
+    return parents;
+  }
+
   static async dropPageTable(
     { projectId, bookId }: { projectId: string; bookId: string },
     ncMeta = Noco.ncMeta

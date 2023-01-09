@@ -29,8 +29,6 @@ const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, m
 
 const { loadMapData, loadMapMeta, updateMapMeta, mapMetaData, geoDataFieldColumn } = useMapViewStoreOrThrow()
 
-const stackedByDropdown = ref(false)
-
 watch(
   () => activeView.value?.id,
   async (newVal, oldVal) => {
@@ -66,24 +64,12 @@ const geoDataFieldOptions = computed<SelectProps['options']>(() => {
     })
 })
 
-const handleChange = () => {
-  stackedByDropdown.value = false
-}
 </script>
 
 <template>
-  <a-dropdown
-    v-if="!IsPublic"
-    v-model:visible="stackedByDropdown"
-    :trigger="['click']"
-    overlay-class-name="nc-dropdown-kanban-stacked-by-menu"
-  >
-    <div class="nc-kanban-btn">
-      <a-button
-        v-e="['c:kanban:change-grouping-field']"
-        class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn"
-        :disabled="isLocked"
-      >
+  <a-dropdown v-if="!IsPublic" :trigger="['click']">
+    <div>
+      <a-button class="nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <mdi-arrow-down-drop-circle-outline />
           <span class="text-capitalize !text-sm font-weight-normal">
@@ -96,7 +82,6 @@ const handleChange = () => {
     </div>
     <template #overlay>
       <div
-        v-if="stackedByDropdown"
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
         @click.stop
       >
@@ -108,10 +93,9 @@ const handleChange = () => {
           <div class="grouping-field">
             <a-select
               v-model:value="geoDataMappingFieldColumnId"
-              class="w-full nc-kanban-grouping-field-select"
+              class="w-full"
               :options="geoDataFieldOptions"
               placeholder="Select a Mapping Field"
-              @change="handleChange"
               @click.stop
             />
           </div>

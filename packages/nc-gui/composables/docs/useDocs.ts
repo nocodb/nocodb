@@ -154,7 +154,7 @@ export function useDocs() {
     if (!route.params.slugs || route.params.slugs.length <= 1) return
 
     let parentPage: DocsPageType | undefined = pages.value.find((page) => page.slug === route.params.slugs[1])
-    const pagesSlugs = route.params.slugs as string[]
+    const pagesSlugs = (route.params.slugs as string[])?.filter((_, i) => i > 0)
     const pagesIds = []
     for (const slug of pagesSlugs) {
       const childDocs = await fetchPages({ parentPageId: parentPage?.id, book: openedBook.value! })

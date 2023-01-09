@@ -5,11 +5,17 @@ definePageMeta({
   layout: 'docs',
 })
 
-const { project } = useProject()
+const { project, loadBookProject, isLoading } = useProject()
+
+onMounted(() => {
+  if (!project.value.id && !isLoading.value) {
+    loadBookProject()
+  }
+})
 </script>
 
 <template>
-  <DocsView :key="project.id" />
+  <DocsView v-if="project?.id" :key="project?.id" />
 </template>
 
 <style lang="scss" scoped>

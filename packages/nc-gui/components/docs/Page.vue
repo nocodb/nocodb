@@ -88,7 +88,6 @@ const editor = useEditor({
 watch(
   () => content.value,
   () => {
-    if (isPublic.value) return
     if (!editor.value) return
 
     if (content.value !== editor.value?.getHTML()) {
@@ -202,6 +201,10 @@ div[contenteditable='false'].ProseMirror {
     max-width: 100%;
     max-height: 30rem;
     height: auto;
+    // align center
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 
     &.ProseMirror-selectednode {
       // outline with rounded corners

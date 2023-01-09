@@ -42,6 +42,13 @@ export default {
 
 <template>
   <a-layout>
+    <div class="absolute mx-auto w-160 mt-3 right-0 left-0">
+      <a-input class="!ml-10 doc-search flex" placeholder="Search">
+        <template #prefix>
+          <MdiMagnify class="text-sm" />
+        </template>
+      </a-input>
+    </div>
     <a-layout-header class="flex !bg-white items-center text-white !pl-2 !pr-5 !py-7 border-b-1 border-gray-200">
       <Transition name="slide">
         <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
@@ -62,12 +69,6 @@ export default {
           </div>
         </a-tooltip>
       </div>
-
-      <a-input class="!w-1/5 !ml-10 doc-search" placeholder="Search">
-        <template #prefix>
-          <MdiMagnify class="text-sm" />
-        </template>
-      </a-input>
 
       <div class="flex-1" />
 

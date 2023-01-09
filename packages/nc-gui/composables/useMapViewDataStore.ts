@@ -6,7 +6,7 @@ import type { Row } from '~/lib'
 
 export const geodataToggleState = reactive({ show: false })
 
-const formatData = (list: Row[]) =>
+const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
     row: { ...row },
     oldRow: { ...row },
@@ -43,12 +43,12 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const geoDataFieldColumn = ref<ColumnType | undefined>()
 
-    const appInfoDefaultLimit = 1000
+    const defaultPageSize = 1000
 
-    const paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
+    const paginationData = ref<PaginatedType>({ page: 1, pageSize: defaultPageSize })
 
     const queryParams = computed(() => ({
-      limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
+      limit: paginationData.value.pageSize ?? defaultPageSize,
       where: where?.value ?? '',
     }))
 
@@ -97,7 +97,6 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     async function insertRow(
       currentRow: Row,
-      _rowIndex = formattedData.value?.length,
       ltarState: Record<string, any> = {},
       {
         metaValue = meta.value,

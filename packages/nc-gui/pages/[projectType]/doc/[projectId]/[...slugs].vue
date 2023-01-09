@@ -4,10 +4,12 @@ definePageMeta({
   hideHeader: true,
   layout: 'docs',
 })
+
+const { project } = useProject()
 </script>
 
 <template>
-  <DocsView />
+  <DocsView :key="project.id" />
 </template>
 
 <style lang="scss" scoped>

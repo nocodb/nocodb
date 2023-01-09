@@ -23,8 +23,9 @@ const isTitleInputRefLoaded = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
 
 const title = computed({
-  get: () => (openedPage.value?.new ? '' : openedPage.value?.title || ''),
+  get: () => (openedPage.value!.new ? '' : openedPage.value?.title || ''),
   set: (value) => {
+    openedPage.value!.new = false
     openedPage.value!.title = value
   },
 })

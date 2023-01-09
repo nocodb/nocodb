@@ -8,6 +8,8 @@ import { useNuxtApp } from '#app'
 
 const { projects } = useWorkspaceStoreOrThrow()
 
+const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
+
 const { $e, $api } = useNuxtApp()
 
 // const { isUIAllowed } = useUIPermission()
@@ -120,7 +122,12 @@ const getProjectPrimary = (project: ProjectType) => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(project, i) of projects" :key="i" class="cursor-pointer hover:bg-gray-50" @click="openProject(project)">
+        <tr
+          v-for="(project, i) of filteredProjects"
+          :key="i"
+          class="cursor-pointer hover:bg-gray-50"
+          @click="openProject(project)"
+        >
           <td class="!py-0">
             <div class="flex items-center nc-project-title gap-2">
               <div @click.stop>

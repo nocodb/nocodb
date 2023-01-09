@@ -45,7 +45,7 @@ const clear = () => {
   formState.longitude = longitude
 }
 
-const onGetCurrentLocation = () => {
+const onClickSetCurrentLocation = () => {
   isLoading = true
   const onSuccess = (position) => {
     const crd = position.coords
@@ -111,7 +111,7 @@ const onGetCurrentLocation = () => {
         <a-form-item>
           <div style="display: flex; align-items: center; margin-right: 0.5rem">
             <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
-            <a-button class="ml-2" @click="onGetCurrentLocation">Your Location</a-button>
+            <a-button class="ml-2" @click="onClickSetCurrentLocation">Your Location</a-button>
           </div>
         </a-form-item>
         <a-form-item class="buttons">

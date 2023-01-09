@@ -22,6 +22,12 @@ const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, 
 const isTitleInputRefLoaded = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
 
+const title = computed({
+  get: () => (openedPage.value?.new ? '' : openedPage.value?.title || ''),
+  set: (value) => {
+    openedPage.value!.title = value
+  },
+})
 const content = computed(() => openedPage.value?.content || '')
 
 const breadCrumbs = computed(() => {
@@ -159,11 +165,11 @@ watchDebounced(
 
       <a-textarea
         ref="titleInputRef"
-        v-model:value="openedPage.title"
+        v-model:value="title"
         class="!text-4xl font-semibold !px-1.5"
         :bordered="false"
         :readonly="isPublic"
-        placeholder="Type to add title"
+        :placeholder="openedPage.title"
         auto-size
       />
 

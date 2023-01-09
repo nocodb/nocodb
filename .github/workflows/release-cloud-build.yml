@@ -59,8 +59,11 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nocohub
           IMAGE_TAG: ${{ github.event.inputs.tag }}
+          CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
+          COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb &&
-          docker build -f Dockerfile-cloud -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -f Dockerfile-cloud $IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

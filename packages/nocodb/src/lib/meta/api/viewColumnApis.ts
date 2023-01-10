@@ -8,7 +8,6 @@ export async function columnList(req: Request, res: Response) {
   res.json(await View.getColumns(req.params.viewId));
 }
 export async function columnAdd(req: Request, res: Response) {
-  console.log('FOO - columnAdd');
   const viewColumn = await View.insertOrUpdateColumn(
     req.params.viewId,
     req.body.fk_column_id,

@@ -10,6 +10,7 @@ import {
 import View from './View';
 import { FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
+import { NcError } from '../meta/helpers/catchError';
 
 export default class Filter {
   id: string;
@@ -69,6 +70,9 @@ export default class Filter {
     filter: Partial<FilterType>,
     ncMeta = Noco.ncMeta
   ) {
+    if (!filter.fk_column_id) {
+      NcError.badRequest('fk_column_id is required');
+    }
     const insertObj = {
       id: filter.id,
       fk_view_id: filter.fk_view_id,

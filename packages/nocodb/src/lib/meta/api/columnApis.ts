@@ -40,6 +40,7 @@ import { metaApiMetrics } from '../helpers/apiMetrics';
 import FormulaColumn from '../../models/FormulaColumn';
 import KanbanView from '../../models/KanbanView';
 import { MetaTable } from '../../utils/globals';
+import formulaQueryBuilderv2 from '../../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 
@@ -523,6 +524,23 @@ export async function columnAdd(
         colBody.formula_raw || colBody.formula,
         table.columns
       );
+      try {
+        const dbDriver = NcConnectionMgrv2.get(base);
+        // retrieve the builder from formulaQueryBuilderv2
+        const builder = await formulaQueryBuilderv2(
+          colBody.formula,
+          null,
+          dbDriver,
+          table
+        );
+        // dry-run it to see if the query is valid
+        // if not, we show an error in UI to prevent from breaking the grid view
+        await dbDriver(table.table_name).select(builder).as('dry-run');
+      } catch (e) {
+        console.error(e);
+        NcError.badRequest('Invalid Formula');
+      }
+
       await Column.insert({
         ...colBody,
         fk_model_id: table.id,
@@ -759,6 +777,24 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           colBody.formula_raw || colBody.formula,
           table.columns
         );
+
+        try {
+          const dbDriver = NcConnectionMgrv2.get(base);
+          // retrieve the builder from formulaQueryBuilderv2
+          const builder = await formulaQueryBuilderv2(
+            colBody.formula,
+            null,
+            dbDriver,
+            table
+          );
+          // dry-run it to see if the query is valid
+          // if not, we show an error in UI to prevent from breaking the grid view
+          await dbDriver(table.table_name).select(builder).as('dry-run');
+        } catch (e) {
+          console.error(e);
+          NcError.badRequest('Invalid Formula');
+        }
+
         await Column.update(column.id, {
           // title: colBody.title,
           ...column,

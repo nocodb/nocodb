@@ -337,8 +337,8 @@ export default class ProjectUser {
     if (params.shared) {
       qb.where(function () {
         // include projects belongs project_user in which user is not owner
-        qb.where(function () {
-          this.where(`${MetaTable.PROJECT_USERS}.starred`, userId)
+        this.where(function () {
+          this.where(`${MetaTable.PROJECT_USERS}.fk_user_id`, userId)
             .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.OWNER)
             .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
         })
@@ -354,11 +354,12 @@ export default class ProjectUser {
       });
     }
 
-    console.log(qb.toQuery());
     // order based on recently accessed
     if (params.recent) {
       qb.orderBy(`${MetaTable.PROJECT}.updated_at`, 'desc');
     }
+
+    // console.log(qb.toQuery())
 
     const projectList = await qb;
     if (projectList?.length) {

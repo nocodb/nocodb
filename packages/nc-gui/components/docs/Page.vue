@@ -103,9 +103,25 @@ watch(editor, () => {
   editor.value.commands.setContent(isPublic.value ? openedPage.value!.published_content! : content.value)
 })
 
+const containsNewLine = (value: string) => (value.match(/\n/g) || []).length > 0
+
+watch(
+  () => openedPage.value?.title,
+  (newTitle) => {
+    if (newTitle && containsNewLine(newTitle)) {
+      openedPage.value!.title = newTitle!.replace(/\n/g, '')
+
+      // Focus on editor's first node
+      editor?.value?.commands.focus('start')
+    }
+  },
+)
+
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.title],
   async ([newId, newTitle], [oldId, oldTitle]) => {
+    if (newTitle && containsNewLine(newTitle)) return
+
     if (newId === oldId && newTitle && newTitle.length > 0 && newTitle !== oldTitle) {
       await updatePage({ pageId: newId!, page: { title: newTitle } as any })
     }

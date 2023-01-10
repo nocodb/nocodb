@@ -134,6 +134,7 @@ const items = [
     },
     icon: MdiMinus,
     iconClass: '',
+    hasDivider: true,
   },
   {
     title: 'Outline page',

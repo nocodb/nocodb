@@ -1,6 +1,7 @@
 import jsep from 'jsep';
 import mapFunctionName from '../mapFunctionName';
 import Model from '../../../../../models/Model';
+import Column from '../../../../../models/Column';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import RollupColumn from '../../../../../models/RollupColumn';
 import FormulaColumn from '../../../../../models/FormulaColumn';
@@ -45,16 +46,13 @@ const getAggregateFn: (fnName: string) => (args: { qb; knex?; cn }) => any = (
   }
 };
 
-export default async function formulaQueryBuilderv2(
+async function _formulaQueryBuilder(
   _tree,
   alias,
   knex: XKnex,
   model: Model,
   aliasToColumn = {}
 ) {
-  // register jsep curly hook
-  jsep.plugins.register(jsepCurlyHook);
-
   // formula may include double curly brackets in previous version
   // convert to single curly bracket here for compatibility
   const tree = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
@@ -69,7 +67,7 @@ export default async function formulaQueryBuilderv2(
       case UITypes.Formula:
         {
           const formulOption = await col.getColOptions<FormulaColumn>();
-          const { builder } = await formulaQueryBuilderv2(
+          const { builder } = await _formulaQueryBuilder(
             formulOption.formula,
             alias,
             knex,
@@ -343,7 +341,7 @@ export default async function formulaQueryBuilderv2(
                   const formulaOption =
                     await lookupColumn.getColOptions<FormulaColumn>();
                   const lookupModel = await lookupColumn.getModel();
-                  const { builder } = await formulaQueryBuilderv2(
+                  const { builder } = await _formulaQueryBuilder(
                     formulaOption.formula,
                     '',
                     knex,
@@ -773,4 +771,68 @@ export default async function formulaQueryBuilderv2(
     }
   };
   return { builder: fn(tree, alias) };
+}
+
+function getTnPath(tb: Model, knex) {
+  const schema = knex.searchPath?.();
+  if (knex.clientType() === 'mssql' && schema) {
+    return knex.raw('??.??', [schema, tb.table_name]);
+  } else if (knex.clientType() === 'snowflake') {
+    return [
+      knex.client.config.connection.database,
+      knex.client.config.connection.schema,
+      tb.table_name,
+    ].join('.');
+  } else {
+    return tb.table_name;
+  }
+}
+
+export default async function formulaQueryBuilderv2(
+  _tree,
+  alias,
+  knex: XKnex,
+  model: Model,
+  column?: Column,
+  aliasToColumn = {}
+) {
+  // register jsep curly hook once only
+  jsep.plugins.register(jsepCurlyHook);
+  // generate qb
+  const qb = await _formulaQueryBuilder(
+    _tree,
+    alias,
+    knex,
+    model,
+    aliasToColumn
+  );
+
+  let formula;
+
+  try {
+    // dry run qb.builder to see if it will break the grid view or not
+    // if so, set formula error and show empty selectQb instead
+    await knex(getTnPath(model, knex)).select(qb.builder).as('dry-run-only');
+
+    // if column is provided, i.e. formula has been created
+    if (column) {
+      const formula = await column.getColOptions<FormulaColumn>();
+      // clean the previous formula error if the formula works this time
+      if (formula.error) {
+        await FormulaColumn.update(formula.id, {
+          error: null,
+        });
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    if (column) {
+      // add formula error to show in UI
+      await FormulaColumn.update(formula.id, {
+        error: e.message,
+      });
+    }
+    throw new Error(`Formula error: ${e.message}`);
+  }
+  return qb;
 }

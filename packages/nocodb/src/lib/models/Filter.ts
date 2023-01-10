@@ -1,6 +1,7 @@
 import Noco from '../Noco';
 import Model from './Model';
 import Column from './Column';
+import Hook from './Hook';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -70,9 +71,6 @@ export default class Filter {
     filter: Partial<FilterType>,
     ncMeta = Noco.ncMeta
   ) {
-    if (!filter.fk_column_id) {
-      NcError.badRequest('fk_column_id is required');
-    }
     const insertObj = {
       id: filter.id,
       fk_view_id: filter.fk_view_id,
@@ -94,7 +92,16 @@ export default class Filter {
       }),
     };
     if (!(filter.project_id && filter.base_id)) {
-      const model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
+      let model: { project_id?: string; base_id?: string };
+      if (filter.fk_view_id) {
+        model = await View.get(filter.fk_view_id, ncMeta);
+      } else if (filter.fk_hook_id) {
+        model = await Hook.get(filter.fk_hook_id, ncMeta);
+      } else if (filter.fk_column_id) {
+        model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
+      } else {
+        NcError.badRequest('Invalid filter');
+      }
       insertObj.project_id = model.project_id;
       insertObj.base_id = model.base_id;
     }

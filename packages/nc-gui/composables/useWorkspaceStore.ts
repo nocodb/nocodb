@@ -79,22 +79,20 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     await $api.workspace.delete(workspaceId)
   }
 
-  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' |'workspace') => {
+  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
     if ((!page || page === 'workspace') && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
 
-    if(activeWorkspace.value?.id) {
-      const {list} = await $api.workspaceProject.list(
-        activeWorkspace.value?.id
-      )
+    if (activeWorkspace.value?.id) {
+      const { list } = await $api.workspaceProject.list(activeWorkspace.value?.id)
       projects.value = list
-    }else{
-      const {list} = await $api.project.list(
+    } else {
+      const { list } = await $api.project.list(
         page
           ? {
-            [page]: true,
-          }
+              [page]: true,
+            }
           : {},
       )
       projects.value = list
@@ -205,6 +203,16 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     }
   }
 
+  const updateProjectTitle = async (project: ProjectType & { edit: boolean; temp_title: string }) => {
+    try {
+      await $api.project.update(project.id!, { title: project.temp_title })
+      project.title = project.temp_title
+      project.edit = false
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   return {
     loadWorkspaceList,
     workspaces,
@@ -224,6 +232,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     addToFavourite,
     removeFromFavourite,
     activePage,
+    updateProjectTitle,
   }
 }, 'workspaceStore')
 

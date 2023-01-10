@@ -218,6 +218,63 @@ async function magicExpand(
   }
 }
 
+async function magicOutline(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    let response;
+
+    const project = await Project.getByTitleOrId(req.body.projectId);
+    if (!project) throw new Error('Project not found');
+
+    const parentPagesTitles = (
+      await Page.parents({
+        pageId: req.body.pageId,
+        projectId: req.body.projectId,
+        bookId: req.body.bookId,
+      })
+    ).map((p) => p.title);
+
+    const page = await Page.get({
+      id: req.body.pageId,
+      projectId: req.body.projectId,
+      bookId: req.body.bookId,
+    });
+
+    try {
+      response = await openai.createCompletion({
+        model: 'text-davinci-003',
+        prompt: `On a page named '${page.title}', with meta data as '${
+          project.title
+        }/${parentPagesTitles.join(
+          '/'
+        )}', give initial page structure in markdown format`,
+        temperature: 0.7,
+        max_tokens: 1500,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      });
+
+      if (response.data.choices.length === 0)
+        NcError.badRequest('Could not generate data');
+
+      console.log(response);
+
+      res.json({ text: response.data?.choices[0]?.text });
+    } catch (e) {
+      console.log(response?.data?.choices[0]?.text);
+      console.log(e);
+      NcError.badRequest('Could not generate data');
+    }
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis
@@ -249,6 +306,11 @@ router.post(
   '/api/v1/docs/page/magic-expand',
   apiMetrics,
   ncMetaAclMw(magicExpand, 'pageMagicExpand')
+);
+router.post(
+  '/api/v1/docs/page/magic-outline',
+  apiMetrics,
+  ncMetaAclMw(magicOutline, 'pageMagicOutline')
 );
 
 export default router;

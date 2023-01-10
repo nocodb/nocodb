@@ -537,6 +537,16 @@ export function useDocs() {
     return response
   }
 
+  const magicOutline = async (pageId?: string) => {
+    const id = pageId || openedPage.value!.id!
+    const response = await $api.nocoDocs.magicOutlinePage({
+      projectId: projectId!,
+      bookId: openedBook.value!.id!,
+      pageId: id,
+    })
+    return response
+  }
+
   return {
     fetchPages,
     fetchBooks,
@@ -572,5 +582,6 @@ export function useDocs() {
     isOnlyBookOpened,
     navigateToFirstPage,
     magicExpand,
+    magicOutline,
   }
 }

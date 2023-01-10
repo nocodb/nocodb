@@ -429,6 +429,56 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/page/magic-outline": {
+      "post": {
+        "summary": "Magic outline page",
+        "operationId": "magic-outline-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pageId": {
+                    "type": "string",
+                    "description": "Page id",
+                    "required":true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Project id",
+                    "required":true
+                  },
+                  "bookId": {
+                    "type": "string",
+                    "description": "Book id",
+                    "required":true
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "description": "Magic page content"
+      },
+      "parameters": []
+    },
     "/api/v1/docs/page/magic-expand": {
       "post": {
         "summary": "Magic expand text",

@@ -1246,6 +1246,35 @@ export class Api<
      * @description Magic page content
      *
      * @tags Noco docs
+     * @name MagicOutlinePage
+     * @summary Magic outline page
+     * @request POST:/api/v1/docs/page/magic-outline
+     * @response `200` `object` OK
+     */
+    magicOutlinePage: (
+      data: {
+        /** Page id */
+        pageId: string;
+        /** Project id */
+        projectId: string;
+        /** Book id */
+        bookId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/docs/page/magic-outline`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Magic page content
+     *
+     * @tags Noco docs
      * @name MagicExpandText
      * @summary Magic expand text
      * @request POST:/api/v1/docs/page/magic-expand

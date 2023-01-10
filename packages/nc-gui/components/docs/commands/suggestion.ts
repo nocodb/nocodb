@@ -34,7 +34,14 @@ export default {
           onHidden: () => {
             // todo: Not using the timeout removes the formating option of the node selected
             setTimeout(() => {
-              editor.chain().focus().deleteRange(props.range).run()
+              const nodeAtCursor = editor.state.doc.nodeAt(editor.state.selection.from - 1)
+              if (nodeAtCursor?.text !== '/') return
+
+              editor
+                .chain()
+                .focus()
+                .deleteRange({ from: editor.state.selection.from - 1, to: editor.state.selection.to })
+                .run()
             }, 50)
           },
         })

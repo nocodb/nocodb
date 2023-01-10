@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { Editor, Range } from '@tiptap/vue-3'
+import showdown from 'showdown'
+import { generateJSON } from '@tiptap/html'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'
@@ -10,6 +12,7 @@ import MdiMinus from '~icons/mdi/minus'
 import MdiCodeSnippet from '~icons/mdi/code-braces'
 import MdiImageMultipleOutline from '~icons/mdi/image-multiple-outline'
 import MdiFormatColorText from '~icons/mdi/format-color-text'
+import PhSparkleFill from '~icons/ph/sparkle-fill'
 
 interface Props {
   command: Function
@@ -19,7 +22,11 @@ interface Props {
 
 const { command, query, editor } = defineProps<Props>()
 
+const { magicOutline, openedPage } = useDocs()
+
 const fileInput = ref()
+const loadingOperationName = ref('')
+
 const onFilePicked = (event: any) => {
   const files = event.target.files
   const file = files[0]
@@ -30,31 +37,33 @@ const onFilePicked = (event: any) => {
 const items = [
   {
     title: 'Heading 1',
-    style: 'font-size: 1rem; font-weight: 500; margin-left: -0.3rem;',
+    class: 'text-xs',
+    style: 'font-weight: 800;',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run()
     },
     icon: MdiFormatHeader1,
-    iconClass: 'text-lg',
+    iconClass: 'pt-0.5',
   },
   {
     title: 'Heading 2',
-    style: 'font-size: 0.85rem; font-weight: 450; margin-left: -0.15rem;',
+    class: 'text-xs',
+    style: 'font-weight: 700;',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run()
     },
     icon: MdiFormatHeader2,
-    iconClass: 'text-base',
+    iconClass: 'pt-0.5',
   },
   {
     title: 'Heading 3',
     class: 'text-xs',
-    style: 'font-weight: 450;',
+    style: 'font-weight: 500;',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run()
     },
     icon: MdiFormatHeader3,
-    iconClass: '',
+    iconClass: 'pt-0.5',
     hasDivider: true,
   },
   {
@@ -126,6 +135,15 @@ const items = [
     icon: MdiMinus,
     iconClass: '',
   },
+  {
+    title: 'Outline page',
+    class: 'text-xs',
+    command: ({ editor }: { editor: Editor }) => {
+      outlinePage(editor)
+    },
+    icon: PhSparkleFill,
+    iconClass: 'text-orange-400 h-3.5',
+  },
 ]
 
 const filterItems = computed(() => {
@@ -173,6 +191,34 @@ function onKeyDown({ event }: { event: KeyboardEvent }) {
   return false
 }
 
+async function outlinePage(editor: Editor) {
+  if (loadingOperationName.value) return
+
+  loadingOperationName.value = 'Outline page'
+  try {
+    const converter = new showdown.Converter()
+    converter.setOption('noHeaderId', true)
+
+    const response: any = await magicOutline()
+
+    const html = converter.makeHtml(response.text).replace('>\n<', '><')
+    const tiptapNewNodeJSON = generateJSON(html, editor.extensionManager.extensions)
+
+    const transaction = editor?.state.tr
+    for (const node of tiptapNewNodeJSON.content.reverse()) {
+      if (node?.content?.[0]?.text === openedPage.value?.title) {
+        continue
+      }
+
+      const proseNode = editor.schema.nodeFromJSON(node)
+      transaction.insert(0, proseNode)
+    }
+    editor?.view.dispatch(transaction)
+  } finally {
+    loadingOperationName.value = ''
+  }
+}
+
 watch(items, () => {
   selectedIndex.value = 0
 })
@@ -186,9 +232,14 @@ defineExpose({
   <div class="items">
     <template v-if="filterItems.length">
       <template v-for="(item, index) in filterItems" :key="index">
-        <button
-          class="item"
-          :class="{ 'is-selected': index === selectedIndex }"
+        <a-button
+          class="item !flex !flex-row !items-center"
+          :class="{
+            'is-selected': index === selectedIndex,
+            '!hover:bg-inherit !cursor-not-allowed': loadingOperationName === item.title,
+          }"
+          type="text"
+          :loading="loadingOperationName === item.title"
           @click="selectItem(index)"
           @mouseenter="() => onHover(index)"
         >
@@ -201,12 +252,12 @@ defineExpose({
             @change="onFilePicked"
           />
           <div class="flex flex-row items-center gap-x-1.5">
-            <component :is="item.icon" v-if="item.icon" :class="item.iconClass" />
+            <component :is="item.icon" v-if="item.icon && loadingOperationName !== item.title" :class="item.iconClass" />
             <div :class="item.class" :style="item.style">
               {{ item.title }}
             </div>
           </div>
-        </button>
+        </a-button>
         <div v-if="item.hasDivider" class="divider"></div>
       </template>
     </template>

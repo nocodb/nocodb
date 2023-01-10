@@ -46,7 +46,9 @@ export function useViewFilters(
 
   const filters = computed<Filter[]>({
     get: () => {
-      return nestedMode.value ? currentFilters! : _filters.value
+      // FIXME: this id a temporary solution to hide broken filters (with wrong projectId)
+      const filters = nestedMode.value ? currentFilters! : _filters.value
+      return filters.filter((filter) => filter.project_id === view.value?.project_id)
     },
     set: (value: Filter[]) => {
       if (nestedMode.value) {

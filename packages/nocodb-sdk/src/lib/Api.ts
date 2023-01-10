@@ -137,6 +137,7 @@ export interface ViewType {
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
   view?: FormType | GridType | GalleryType | KanbanType;
+  project_id?: string;
 }
 
 export interface TableInfoType {
@@ -852,8 +853,8 @@ export class Api<
 > extends HttpClient<SecurityDataType> {
   auth = {
     /**
- * @description Create a new user with provided email and password and first user is marked as super admin. 
- * 
+ * @description Create a new user with provided email and password and first user is marked as super admin.
+ *
  * @tags Auth
  * @name Signup
  * @summary Signup
@@ -892,8 +893,8 @@ export class Api<
       }),
 
     /**
- * @description Authenticate existing user with their email and password. Successful login will return a JWT access-token. 
- * 
+ * @description Authenticate existing user with their email and password. Successful login will return a JWT access-token.
+ *
  * @tags Auth
  * @name Signin
  * @summary Signin
@@ -980,7 +981,7 @@ export class Api<
 
     /**
  * @description Change password of authenticated user with a new one.
- * 
+ *
  * @tags Auth
  * @name PasswordChange
  * @summary Password change
@@ -1091,7 +1092,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Auth
  * @name ProjectUserList
  * @summary Project users
@@ -1212,7 +1213,7 @@ export class Api<
   orgTokens = {
     /**
  * No description
- * 
+ *
  * @tags Org tokens
  * @name List
  * @summary Organisation API Tokens List
@@ -1282,7 +1283,7 @@ export class Api<
   orgLicense = {
     /**
  * No description
- * 
+ *
  * @tags Org license
  * @name Get
  * @summary App license get
@@ -1331,7 +1332,7 @@ export class Api<
   orgAppSettings = {
     /**
  * No description
- * 
+ *
  * @tags Org app settings
  * @name Get
  * @summary App settings get
@@ -1380,7 +1381,7 @@ export class Api<
   orgUsers = {
     /**
  * No description
- * 
+ *
  * @tags Org users
  * @name List
  * @summary Organisation Users
@@ -1481,7 +1482,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Org users
  * @name GeneratePasswordResetToken
  * @summary Organisation User Generate Password Reset Token
@@ -1509,7 +1510,7 @@ export class Api<
   project = {
     /**
  * No description
- * 
+ *
  * @tags Project
  * @name MetaGet
  * @summary Project info
@@ -1694,7 +1695,7 @@ export class Api<
 
     /**
  * @description Read project details
- * 
+ *
  * @tags Project
  * @name SharedBaseGet
  * @request GET:/api/v1/db/meta/projects/{projectId}/shared
@@ -1737,7 +1738,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Project
  * @name SharedBaseCreate
  * @request POST:/api/v1/db/meta/projects/{projectId}/shared
@@ -1774,7 +1775,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Project
  * @name SharedBaseUpdate
  * @request PATCH:/api/v1/db/meta/projects/{projectId}/shared
@@ -1860,7 +1861,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Project
  * @name AuditList
  * @request GET:/api/v1/db/meta/projects/{projectId}/audits
@@ -2464,7 +2465,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags DB view share
  * @name Create
  * @request POST:/api/v1/db/meta/views/{viewId}/share
@@ -2583,7 +2584,7 @@ export class Api<
   dbTableSort = {
     /**
  * No description
- * 
+ *
  * @tags DB table sort
  * @name List
  * @request GET:/api/v1/db/meta/views/{viewId}/sorts
@@ -3779,7 +3780,7 @@ export class Api<
 
     /**
  * @description Read project details
- * 
+ *
  * @tags Public
  * @name SharedBaseGet
  * @request GET:/api/v1/db/public/shared-base/{sharedBaseUuid}/meta
@@ -3803,7 +3804,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Public
  * @name SharedViewMetaGet
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
@@ -3938,7 +3939,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Utils
  * @name TestConnection
  * @request POST:/api/v1/db/meta/connection/test
@@ -4048,7 +4049,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Utils
  * @name AggregatedMetaInfo
  * @request GET:/api/v1/aggregated-meta-info
@@ -4165,7 +4166,7 @@ export class Api<
   dbTableWebhook = {
     /**
  * No description
- * 
+ *
  * @tags DB table webhook
  * @name List
  * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
@@ -4237,7 +4238,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags DB table webhook
  * @name SamplePayloadGet
  * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}
@@ -4306,7 +4307,7 @@ export class Api<
   plugin = {
     /**
  * No description
- * 
+ *
  * @tags Plugin
  * @name List
  * @request GET:/api/v1/db/meta/plugins

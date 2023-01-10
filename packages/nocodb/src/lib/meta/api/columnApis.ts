@@ -524,18 +524,11 @@ export async function columnAdd(
         colBody.formula_raw || colBody.formula,
         table.columns
       );
+
       try {
+        // test the query to see if it is valid in db level
         const dbDriver = NcConnectionMgrv2.get(base);
-        // retrieve the builder from formulaQueryBuilderv2
-        const builder = await formulaQueryBuilderv2(
-          colBody.formula,
-          null,
-          dbDriver,
-          table
-        );
-        // dry-run it to see if the query is valid
-        // if not, we show an error in UI to prevent from breaking the grid view
-        await dbDriver(table.table_name).select(builder).as('dry-run');
+        await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
       } catch (e) {
         console.error(e);
         NcError.badRequest('Invalid Formula');
@@ -779,17 +772,9 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         );
 
         try {
+          // test the query to see if it is valid in db level
           const dbDriver = NcConnectionMgrv2.get(base);
-          // retrieve the builder from formulaQueryBuilderv2
-          const builder = await formulaQueryBuilderv2(
-            colBody.formula,
-            null,
-            dbDriver,
-            table
-          );
-          // dry-run it to see if the query is valid
-          // if not, we show an error in UI to prevent from breaking the grid view
-          await dbDriver(table.table_name).select(builder).as('dry-run');
+          await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
         } catch (e) {
           console.error(e);
           NcError.badRequest('Invalid Formula');

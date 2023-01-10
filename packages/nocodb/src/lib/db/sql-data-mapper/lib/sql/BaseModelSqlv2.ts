@@ -1210,29 +1210,9 @@ class BaseModelSqlv2 {
       formula.formula,
       null,
       this.dbDriver,
-      this.model
+      this.model,
+      column
     );
-
-    try {
-      // dry run the existing qb.builder to see if it will break the grid view or not
-      // if so, set formula error and show empty selectQb instead
-      await this.dbDriver(this.tnPath)
-        .select(qb.builder)
-        .as(sanitize(column.title));
-      // clean the previous formula error if the formula works this time
-      if (formula.error) {
-        await FormulaColumn.update(formula.id, {
-          error: null,
-        });
-      }
-    } catch (e) {
-      console.error(e);
-      // add formula error to show in UI
-      await FormulaColumn.update(formula.id, {
-        error: e.message,
-      });
-      throw new Error(`Formula error: ${e.message}`);
-    }
     return qb;
   }
 

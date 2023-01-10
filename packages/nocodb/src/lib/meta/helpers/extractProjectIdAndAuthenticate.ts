@@ -73,7 +73,9 @@ export default async (req, res, next) => {
       const column = await Column.get({ colId: params.columnId });
       req.ncProjectId = column?.project_id;
     } else if (params.filterId) {
-      const filter = await Filter.get(params.filterId);
+      const filter = await Filter.get(params.filterId).then((f) =>
+        f?.getColumn()
+      );
       req.ncProjectId = filter?.project_id;
     } else if (params.filterParentId) {
       const filter = await Filter.get(params.filterParentId);

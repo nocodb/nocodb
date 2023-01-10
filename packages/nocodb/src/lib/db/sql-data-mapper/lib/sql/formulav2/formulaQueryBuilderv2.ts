@@ -10,6 +10,8 @@ import LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecord
 import LookupColumn from '../../../../../models/LookupColumn';
 import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
 import { validateDateWithUnknownFormat } from '../helpers/formulaFnHelper';
+import { CacheGetType, CacheScope } from '../../../../../utils/globals';
+import NocoCache from '../../../../../cache/NocoCache';
 
 // todo: switch function based on database
 
@@ -807,8 +809,6 @@ export default async function formulaQueryBuilderv2(
     aliasToColumn
   );
 
-  let formula;
-
   try {
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
@@ -827,10 +827,19 @@ export default async function formulaQueryBuilderv2(
   } catch (e) {
     console.error(e);
     if (column) {
+      const formula = await column.getColOptions<FormulaColumn>();
       // add formula error to show in UI
       await FormulaColumn.update(formula.id, {
         error: e.message,
       });
+      // update cache to reflect the error in UI
+      const key = `${CacheScope.COL_FORMULA}:${column.id}`;
+      let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        o = { ...o, error: e.message };
+        // set cache
+        await NocoCache.set(key, o);
+      }
     }
     throw new Error(`Formula error: ${e.message}`);
   }

@@ -73,9 +73,14 @@ export default async (req, res, next) => {
       const column = await Column.get({ colId: params.columnId });
       req.ncProjectId = column?.project_id;
     } else if (params.filterId) {
-      const filter = await Filter.get(params.filterId).then((f) =>
-        f?.getColumn()
-      );
+      const filter = await Filter.get(params.filterId).then(async (f) => {
+        if (f.fk_view_id) {
+          return await View.get(f.fk_view_id);
+        } else if (f.fk_hook_id) {
+          return await Hook.get(f.fk_hook_id);
+        }
+        return await Column.get({ colId: filter.fk_column_id });
+      });
       req.ncProjectId = filter?.project_id;
     } else if (params.filterParentId) {
       const filter = await Filter.get(params.filterParentId);

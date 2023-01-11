@@ -268,7 +268,7 @@ export function useMultiSelect(
               case 67:
                 // set clipboard context only if single cell selected
                 // or if selected range is empty
-                if ((selectedRange.isSingleCell() || selectedRange.isEmpty()) && rowObj.row[columnObj.title!]) {
+                if (selectedRange.isSingleCell() || (selectedRange.isEmpty() && rowObj && columnObj)) {
                   clipboardContext = {
                     value: rowObj.row[columnObj.title!],
                     uidt: columnObj.uidt as UITypes,

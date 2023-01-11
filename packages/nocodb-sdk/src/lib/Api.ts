@@ -1331,6 +1331,40 @@ export class Api<
       }),
 
     /**
+     * @description Paginate pages
+     *
+     * @tags Noco docs
+     * @name PaginatePages
+     * @summary Paginate pages
+     * @request GET:/api/v1/docs/pages/paginate
+     * @response `200` `(DocsPageType)[]` OK
+     */
+    paginatePages: (
+      query: {
+        /** Page number */
+        projectId: string;
+        /** book id */
+        bookId: string;
+        /** pageNumber */
+        pageNumber: number;
+        /** perPage */
+        perPage?: number;
+        /** filterField */
+        filterField?: string;
+        /** filterFieldValue */
+        filterFieldValue?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType[], any>({
+        path: `/api/v1/docs/pages/paginate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Delete page
      *
      * @tags Noco docs

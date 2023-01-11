@@ -926,6 +926,33 @@ function docTests() {
     expect(pages[0].is_published).to.equal(1)
     expect(pages[1].is_published).to.equal(1)
   })
+
+  it('Pagination', async () => {
+    // Create 10 pages
+    for (let i = 0; i < 10; i++) {      
+      await createPage({
+        project: project,
+        book: book,
+        attributes: {
+          title: 'test' + i,
+        },
+        user: context.user,
+      });
+    }
+
+    const response = await request(context.app)
+      .get(`/api/v1/docs/pages/paginate`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+        pageNumber: 1,
+        perPage: 5,
+      })
+      .set('xc-auth', context.token)
+      .expect(200)
+    
+    expect(response.body.pages.length).to.equal(5)
+  })
 }
 
 export default function() {

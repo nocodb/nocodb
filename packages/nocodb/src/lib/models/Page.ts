@@ -594,6 +594,41 @@ export default class Page {
     return parents;
   }
 
+  static async paginate({
+    projectId,
+    bookId,
+    pageNumber = 1,
+    perPage = 10,
+    orderBy = 'updated_at',
+    order = 'desc',
+    condition = {},
+  }: {
+    projectId: string;
+    bookId: string;
+    pageNumber?: number;
+    perPage?: number;
+    orderBy?: string;
+    order?: 'asc' | 'desc';
+    condition?: any;
+  }) {
+    const knex = Noco.ncMeta.knex;
+    const pages = await knex(Page.tableName({ projectId, bookId }))
+      .where(condition)
+      .orderBy(orderBy, order)
+      .offset((pageNumber - 1) * perPage)
+      .limit(perPage);
+
+    const total = await knex(Page.tableName({ projectId, bookId }))
+      .where(condition)
+      .count('id as total')
+      .first();
+
+    return {
+      pages,
+      total: total.total,
+    };
+  }
+
   static async dropPageTable(
     { projectId, bookId }: { projectId: string; bookId: string },
     ncMeta = Noco.ncMeta

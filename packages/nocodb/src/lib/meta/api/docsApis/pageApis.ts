@@ -275,6 +275,36 @@ async function magicOutline(
   }
 }
 
+async function paginate(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const {
+      projectId,
+      bookId,
+      pageNumber,
+      perPage,
+      filterField,
+      filterFieldValue,
+    } = req.query as Record<string, string>;
+
+    const data = await Page.paginate({
+      projectId,
+      bookId,
+      pageNumber: parseInt(pageNumber, 10),
+      perPage: parseInt(perPage, 10),
+      condition: filterField ? { [filterField]: filterFieldValue } : {},
+    });
+
+    res.json(data);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis
@@ -311,6 +341,11 @@ router.post(
   '/api/v1/docs/page/magic-outline',
   apiMetrics,
   ncMetaAclMw(magicOutline, 'pageMagicOutline')
+);
+router.get(
+  '/api/v1/docs/pages/paginate',
+  apiMetrics,
+  ncMetaAclMw(paginate, 'paginate')
 );
 
 export default router;

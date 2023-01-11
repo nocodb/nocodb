@@ -44,7 +44,7 @@ export async function projectGet(
   });
 
   // update updated_at whenever api is called
-  Project.update(project.id, {}).catch(() => {});
+  ProjectUser.updateOrInsert(project.id, req['user']?.id, {}).catch(() => {});
 
   res.json(project);
 }

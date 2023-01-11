@@ -433,6 +433,7 @@ export default class Project implements ProjectType {
       .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
+      .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
       .leftJoin(MetaTable.WORKSPACE_USER, function () {
         this.on(
           `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,

@@ -293,6 +293,7 @@ export default class ProjectUser {
       .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
+      .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
       .leftJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.project_id`,
@@ -356,7 +357,7 @@ export default class ProjectUser {
 
     // order based on recently accessed
     if (params.recent) {
-      qb.orderBy(`${MetaTable.PROJECT}.updated_at`, 'desc');
+      qb.orderBy(`${MetaTable.PROJECT_USERS}.updated_at`, 'desc');
     }
 
     // console.log(qb.toQuery())
@@ -367,5 +368,20 @@ export default class ProjectUser {
     }
 
     return projectList.filter((p) => !params?.type || p.type === params.type);
+  }
+
+  static async updateOrInsert(
+    projectId,
+    userId,
+    projectUser: Partial<ProjectUser>,
+    ncMeta = Noco.ncMeta
+  ) {
+    const existingProjectUser = await this.get(projectId, userId, ncMeta);
+
+    if (existingProjectUser) {
+      return await this.update(projectId, userId, projectUser, ncMeta);
+    } else {
+      return await this.insert({ project_id: projectId, fk_user_id: userId });
+    }
   }
 }

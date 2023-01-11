@@ -109,13 +109,13 @@ const getProjectPrimary = (project: ProjectType) => {
   return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
 
-const renameInput = ref<HTMLInputElement[]>()
+const renameInput = ref<HTMLInputElement>()
 const enableEdit = (index: number) => {
   projects.value![index]!.temp_title = projects.value![index].title
   projects.value![index]!.edit = true
   nextTick(() => {
-    renameInput.value?.[0]?.focus()
-    renameInput.value?.[0]?.select()
+    renameInput.value?.focus()
+    renameInput.value?.select()
   })
 }
 const disableEdit = (index: number) => {
@@ -155,9 +155,9 @@ const columns = [
   },
   {
     title: 'Last Accessed',
-    dataIndex: 'updated_at',
+    dataIndex: 'last_accessed',
     sorter: {
-      compare: (a, b) => new Date(b.updated_at) - new Date(a.updated_at),
+      compare: (a, b) => new Date(b.last_accessed) - new Date(a.last_accessed),
       multiple: 2,
     },
   },
@@ -178,6 +178,7 @@ const columns = [
 
 <template>
   <div>
+<!--
     <table v-if="projects?.length" class="nc-project-list-table">
       <thead>
         <tr class="!font-weight-[300]">
@@ -200,7 +201,7 @@ const columns = [
               <div class="flex items-center nc-project-title gap-2">
                 <div @click.stop>
                   <a-dropdown :trigger="['click']" @click.stop>
-                    <!--                  todo: allow based on role -->
+                    &lt;!&ndash;                  todo: allow based on role &ndash;&gt;
                     <span class="block w-2 h-6 rounded-sm" :style="{ backgroundColor: getProjectPrimary(project) }" />
                     <template #overlay>
                       <a-menu trigger-sub-menu-action="click">
@@ -229,13 +230,11 @@ const columns = [
                     </template>
                   </a-dropdown>
                 </div>
-                <div @click.stop>
+                <div @click.stop class="flex">
                   <input
                     v-if="project.edit"
-                    ref="renameInput"
                     v-model="project.temp_title"
                     class="!leading-none outline-none bg-transparent min-w-20 !w-auto"
-                    autofocus
                     @blur="disableEdit(i)"
                     @keydown.enter="updateProjectTitle(project)"
                     @keydown.esc="disableEdit(i)"
@@ -257,7 +256,7 @@ const columns = [
             </td>
             <td>
               <div class="flex items-center gap-2 text-center">
-                <!-- todo: replace with switch -->
+                &lt;!&ndash; todo: replace with switch &ndash;&gt;
                 <MaterialSymbolsDocs v-if="project.type === NcProjectType.DOCS" class="text-[#247727] text-sm" />
                 <MdiVectorTriangle v-else-if="project.type === NcProjectType.COWRITER" class="text-[#8626FF] text-sm" />
                 <MdiTransitConnectionVariant
@@ -292,13 +291,15 @@ const columns = [
     </table>
 
     <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="Project list is empty" />
+-->
 
     <a-table
       v-model:data-source="projects"
       :custom-row="customRow"
-      :pagination="{ position: ['bottomCenter'] }"
       :table-layout="md ? 'auto' : 'fixed'"
       :columns="columns"
+      :pagination="false"
+      :scroll="{ y: 'calc(100vh - 200px)' }"
     >
       <template #emptyText>
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
@@ -316,9 +317,9 @@ const columns = [
         title="Project Name"
         data-index="title"
       > -->
-      <template #bodyCell="{ column, text, record }">
+      <template #bodyCell="{ column, text, record, index: i }">
         <template v-if="column.dataIndex === 'title'">
-          <div class="flex items-center nc-project-title gap-2">
+          <div class="flex items-center nc-project-title gap-2 max-w-full">
             <div @click.stop>
               <a-dropdown :trigger="['click']" @click.stop>
                 <!--                  todo: allow based on role -->
@@ -350,19 +351,19 @@ const columns = [
                 </template>
               </a-dropdown>
             </div>
-            <div @click.stop>
+            <div @click.stop class="min-w-10">
               <input
                 v-if="record.edit"
                 ref="renameInput"
                 v-model="record.temp_title"
-                class="!leading-none outline-none bg-transparent min-w-20 !w-auto"
+                class="!leading-none p-1 bg-transparent max-w-full !w-auto"
                 autofocus
                 @blur="disableEdit(i)"
                 @keydown.enter="updateProjectTitle(record)"
                 @keydown.esc="disableEdit(i)"
               />
 
-              <div v-else @dblclick="enableEdit(i)">
+              <div :title="record.title" v-else @dblclick="enableEdit(i)" class="whitespace-nowrap overflow-hidden overflow-ellipsis">
                 {{ record.title }}
               </div>
             </div>
@@ -400,9 +401,9 @@ const columns = [
         title="Last Accessed"
         data-index="updated_at"
       > -->
-        <template v-if="column.dataIndex === 'updated_at'">
-          {{ timeAgo(text) }}
-        </template>
+        <div class="text-xs text-gray-500" v-if="column.dataIndex === 'last_accessed'">
+          {{ text ? timeAgo(text) : 'Not opened yet' }}
+        </div>
         <!--      </a-table-column>
       &lt;!&ndash; todo: i18n &ndash;&gt;
       <a-table-column
@@ -410,23 +411,41 @@ const columns = [
         title="My Role"
         data-index="id"
       > -->
-        <template v-if="column.dataIndex === 'id'">
+        <div class="text-xs text-gray-500" v-if="column.dataIndex === 'workspace_role'">
           {{ roleAlias[record.workspace_role || record.project_role] }}
-        </template>
+        </div >
         <!--      </a-table-column> -->
 
-        <template v-if="column.dataIndex === 'action'">
+        <template v-if="column.dataIndex === 'id'">
           <!--      &lt;!&ndash; Actions &ndash;&gt; -->
           <!--      <a-table-column key="id" :title="$t('labels.actions')" data-index="id"> -->
           <!--        <template #default="{ text, record }"> -->
           <div class="flex items-center gap-2">
-            <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
-
-            <MdiDeleteOutline
-              class="nc-action-btn"
-              :data-testid="`delete-project-${record.title}`"
-              @click.stop="deleteProject(record)"
-            />
+            <a-dropdown v-if="isUIAllowed('')">
+              <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item @click="enableEdit(i)">
+                    <div class="flex flex-row items-center py-3 gap-2">
+                      <MdiEdit />
+                      Rename Project
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item @click="enableEdit(i)">
+                    <div class="flex flex-row items-center py-3 gap-2">
+                      <MdiFolderMove/>
+                      Rename Workspace
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item @click="deleteProject(record)">
+                    <div class="flex flex-row items-center py-3 gap-2">
+                      <MdiDeleteOutline />
+                      Delete Project
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </div>
         </template>
       </template>
@@ -464,4 +483,16 @@ const columns = [
     @apply pr-6;
   }
 }
+
+:deep(.ant-table-cell:first-child){
+ @apply !pl-6
+}
+:deep(.ant-table-cell:lst-child){
+ @apply !plr6
+}
+
+:deep(th.ant-table-cell){
+  @apply font-weight-400
+}
+
 </style>

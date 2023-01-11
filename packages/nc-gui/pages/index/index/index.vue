@@ -55,7 +55,7 @@ const selectedWorkspaceIndex = computed<number[]>({
   },
   set(index: number[]) {
     if (index?.length) {
-      router.push({ query: { workspaceId: workspaces.value?.[index[0]]?.id } })
+      router.push({ query: { workspaceId: workspaces.value?.[index[0]]?.id, page: 'workspace' } })
     } else {
       router.push({ query: {} })
     }
@@ -233,6 +233,20 @@ const disableEdit = (index: number) => {
   workspaces.value[index].temp_title = null
   workspaces.value[index].edit = false
 }
+
+
+const projectListType = computed(() => {
+  switch (activePage.value){
+    case 'recent':
+      return 'Recent'
+    case 'shared':
+      return 'Shared'
+    case 'starred':
+      return 'Starred'
+    default:
+      return '='
+  }
+})
 </script>
 
 <template>
@@ -284,6 +298,54 @@ const disableEdit = (index: number) => {
         theme="light"
       >
         <div class="h-[calc(100vh_-_80px)] flex flex-col min-h-[400px] overflow-auto">
+
+
+          <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
+            <div
+                class="nc-workspace-group-item"
+                :class="{ active: activePage === 'recent' }"
+                @click="
+                navigateTo({
+                  query: {
+                    page: 'recent',
+                  },
+                })
+              "
+            >
+              <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
+              <span>Recent</span>
+            </div>
+            <div
+                class="nc-workspace-group-item"
+                :class="{ active: activePage === 'shared' }"
+                @click="
+                navigateTo({
+                  query: {
+                    page: 'shared',
+                  },
+                })
+              "
+            >
+              <MaterialSymbolsGroupsOutline class="nc-icon" />
+              <span>Shared with me</span>
+            </div>
+            <div
+                class="nc-workspace-group-item"
+                :class="{ active: activePage === 'starred' }"
+                @click="
+                navigateTo({
+                  query: {
+                    page: 'starred',
+                  },
+                })
+              "
+            >
+              <MaterialSymbolsStarOutline class="nc-icon" />
+              <span>Favourites</span>
+            </div>
+          </div>
+
+
           <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
             All workspaces
             <div class="flex-grow"></div>
@@ -363,7 +425,7 @@ const disableEdit = (index: number) => {
                         <a-menu-item @click="enableEdit(i)">
                           <div class="flex flex-row items-center py-3 gap-2">
                             <MdiPencil />
-                            Rename Workspace
+                            Move Workspace
                           </div>
                         </a-menu-item>
                         <a-menu-item @click="deleteWorkspace(workspace)">
@@ -380,53 +442,7 @@ const disableEdit = (index: number) => {
             </a-menu>
           </div>
 
-          <a-divider class="!my-4" />
-
-          <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
-            <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'recent' }"
-              @click="
-                navigateTo({
-                  query: {
-                    page: 'recent',
-                  },
-                })
-              "
-            >
-              <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
-              <span>Recent</span>
-            </div>
-            <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'shared' }"
-              @click="
-                navigateTo({
-                  query: {
-                    page: 'shared',
-                  },
-                })
-              "
-            >
-              <MaterialSymbolsGroupsOutline class="nc-icon" />
-              <span>Shared with me</span>
-            </div>
-            <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'starred' }"
-              @click="
-                navigateTo({
-                  query: {
-                    page: 'starred',
-                  },
-                })
-              "
-            >
-              <MaterialSymbolsStarOutline class="nc-icon" />
-              <span>Favourites</span>
-            </div>
-          </div>
-        </div>
+    </div>
       </a-layout-sider>
       <!--    </template> -->
 
@@ -495,6 +511,9 @@ const disableEdit = (index: number) => {
           </a-tabs>
         </div>
         <div v-else-if="activePage !== 'workspace'">
+
+          <h2 class="pl-6 text-xl">{{projectListType}} Projects</h2>
+
           <WorkspaceProjectList />
         </div>
       </div>
@@ -598,5 +617,10 @@ const disableEdit = (index: number) => {
   .nc-quick-action-shortcut {
     @apply text-gray-400 absolute right-4 top-0;
   }
+}
+
+
+:deep(.ant-tabs-tab:not(ant-tabs-tab-active)){
+  @apply !text-gray-500
 }
 </style>

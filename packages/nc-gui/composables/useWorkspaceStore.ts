@@ -9,7 +9,8 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   // const activeWorkspace = ref<WorkspaceType | null>()
 
-  const projects = ref<ProjectType[] | null>()
+  // todo: update type in swagger
+  const projects = ref<(ProjectType & { temp_title?: string; edit?: boolean; starred?: boolean })[] | null>()
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -17,9 +18,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   const { $api } = useNuxtApp()
 
-  const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(() => {
-    return route.query.page ?? 'recent'
-  })
+  const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(() => (route.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent')
 
   const activeWorkspace = computed(() => {
     return (

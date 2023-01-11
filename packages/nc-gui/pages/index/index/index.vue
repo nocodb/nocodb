@@ -449,8 +449,8 @@ const projectListType = computed(() => {
       <!--    <a-layout class="!flex-col"> -->
       <!--      <a-layout-header></a-layout-header> -->
 
-      <div class="w-full py-6 overflow-auto h-[calc(100vh_-_80px)] overflow-y-auto">
-        <div v-if="activeWorkspace">
+      <div class="w-full pt-6 h-[calc(100vh_-_80px)] overflow-y-auto">
+        <div v-if="activeWorkspace" class="h-full flex flex-col">
           <div class="px-6 flex items-center">
             <div class="flex gap-2 items-center mb-4">
               <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
@@ -499,22 +499,20 @@ const projectListType = computed(() => {
 
           <a-tabs v-model:activeKey="tab">
             <a-tab-pane key="projects" tab="All Projects" class="w-full">
-              <WorkspaceProjectList />
+              <WorkspaceProjectList class="h-full" />
             </a-tab-pane>
             <template v-if="isWorkspaceOwner">
               <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-                <WorkspaceCollaboratorsList />
+                <WorkspaceCollaboratorsList class="h-full overflow-auto"  />
               </a-tab-pane>
-
-              <a-tab-pane key="settings" tab="Settings"></a-tab-pane>
             </template>
           </a-tabs>
         </div>
-        <div v-else-if="activePage !== 'workspace'">
+        <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col">
 
           <h2 class="pl-6 text-xl">{{projectListType}} Projects</h2>
 
-          <WorkspaceProjectList />
+          <WorkspaceProjectList class="min-h-20 grow" />
         </div>
       </div>
     </a-layout>
@@ -622,5 +620,9 @@ const projectListType = computed(() => {
 
 :deep(.ant-tabs-tab:not(ant-tabs-tab-active)){
   @apply !text-gray-500
+}
+
+:deep(.ant-tabs-content){
+  @apply !min-h-25 !h-full
 }
 </style>

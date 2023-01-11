@@ -63,6 +63,7 @@ const rolePermissions = {
       projectGet: true,
       projectList: true,
       projectCost: true,
+      projectUserMetaUpdate: true,
       //table
       tableList: true,
       tableGet: true,
@@ -230,6 +231,7 @@ const rolePermissions = {
       xcVirtualTableList: true,
       projectList: true,
       projectCost: true,
+      projectUserMetaUpdate: true,
       PROJECT_READ_BY_WEB: true,
 
       tableXcModelGet: true,
@@ -274,6 +276,7 @@ const rolePermissions = {
       sortList: true,
       filterList: true,
       projectInfoGet: true,
+      projectUserMetaUpdate: true,
 
       galleryViewGet: true,
       kanbanViewGet: true,
@@ -346,7 +349,7 @@ const rolePermissions = {
       workspaceList: true,
       workspaceGet: true,
       workspaceCreate: true,
-      genericGPT: true
+      genericGPT: true,
     },
   },
 
@@ -368,6 +371,7 @@ const rolePermissions = {
   [WorkspaceUserRoles.VIEWER]: {
     include: {
       workspaceList: true,
+      projectUserMetaUpdate: true,
       workspaceGet: true,
       workspaceDelete: true,
     },

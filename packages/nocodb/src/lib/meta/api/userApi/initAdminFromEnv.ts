@@ -179,7 +179,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                   rolesLevel[userProject.roles] >
                   rolesLevel[existingUserProject.roles]
                 ) {
-                  await ProjectUser.update(
+                  await ProjectUser.updateRoles(
                     userProject.project_id,
                     superUser.id,
                     existingUserProject.roles,

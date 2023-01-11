@@ -2256,6 +2256,50 @@
         }
       }
     },
+    "/api/v1/db/meta/projects/{projectId}/user": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "Project user meta update",
+        "operationId": "project-user-meta-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Project"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "starred": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "number"
+                  },
+                  "hidden": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/bases/{baseId}": {
       "parameters": [
         {

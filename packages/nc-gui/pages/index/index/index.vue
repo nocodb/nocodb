@@ -41,6 +41,7 @@ const {
   activeWorkspace,
   isWorkspaceOwner,
   updateWorkspace,
+  activePage,
 } = useProvideWorkspaceStore()
 
 const { $e } = useNuxtApp()
@@ -50,11 +51,11 @@ const route = useRoute()
 const selectedWorkspaceIndex = computed<number[]>({
   get() {
     const index = workspaces?.value?.findIndex((workspace) => workspace.id === (route.query?.workspaceId as string))
-    return [index === -1 ? 0 : index]
+    return activePage?.value === 'workspace' ? [index === -1 ? 0 : index] : []
   },
   set(index: number[]) {
     if (index?.length) {
-      router.push({ query: { workspaceId: workspaces.value?.[index[0]]?.id } })
+      router.push({ query: { workspaceId: workspaces.value?.[index[0]]?.id, page: 'workspace' } })
     } else {
       router.push({ query: {} })
     }
@@ -232,6 +233,19 @@ const disableEdit = (index: number) => {
   workspaces.value[index].temp_title = null
   workspaces.value[index].edit = false
 }
+
+const projectListType = computed(() => {
+  switch (activePage.value) {
+    case 'recent':
+      return 'Recent'
+    case 'shared':
+      return 'Shared'
+    case 'starred':
+      return 'Starred'
+    default:
+      return '='
+  }
+})
 </script>
 
 <template>
@@ -283,6 +297,51 @@ const disableEdit = (index: number) => {
         theme="light"
       >
         <div class="h-[calc(100vh_-_80px)] flex flex-col min-h-[400px] overflow-auto">
+          <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
+            <div
+              class="nc-workspace-group-item"
+              :class="{ active: activePage === 'recent' }"
+              @click="
+                navigateTo({
+                  query: {
+                    page: 'recent',
+                  },
+                })
+              "
+            >
+              <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
+              <span>Recent</span>
+            </div>
+            <div
+              class="nc-workspace-group-item"
+              :class="{ active: activePage === 'shared' }"
+              @click="
+                navigateTo({
+                  query: {
+                    page: 'shared',
+                  },
+                })
+              "
+            >
+              <MaterialSymbolsGroupsOutline class="nc-icon" />
+              <span>Shared with me</span>
+            </div>
+            <div
+              class="nc-workspace-group-item"
+              :class="{ active: activePage === 'starred' }"
+              @click="
+                navigateTo({
+                  query: {
+                    page: 'starred',
+                  },
+                })
+              "
+            >
+              <MaterialSymbolsStarOutline class="nc-icon" />
+              <span>Favourites</span>
+            </div>
+          </div>
+
           <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
             All workspaces
             <div class="flex-grow"></div>
@@ -362,7 +421,7 @@ const disableEdit = (index: number) => {
                         <a-menu-item @click="enableEdit(i)">
                           <div class="flex flex-row items-center py-3 gap-2">
                             <MdiPencil />
-                            Rename Workspace
+                            Move Workspace
                           </div>
                         </a-menu-item>
                         <a-menu-item @click="deleteWorkspace(workspace)">
@@ -378,23 +437,6 @@ const disableEdit = (index: number) => {
               </a-menu-item>
             </a-menu>
           </div>
-
-          <a-divider class="!my-4" />
-
-          <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
-            <div class="nc-workspace-group-item">
-              <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
-              <span>Recent</span>
-            </div>
-            <div class="nc-workspace-group-item">
-              <MaterialSymbolsGroupsOutline class="nc-icon" />
-              <span>Shared with me</span>
-            </div>
-            <div class="nc-workspace-group-item">
-              <MaterialSymbolsStarOutline class="nc-icon" />
-              <span>Favourites</span>
-            </div>
-          </div>
         </div>
       </a-layout-sider>
       <!--    </template> -->
@@ -402,8 +444,8 @@ const disableEdit = (index: number) => {
       <!--    <a-layout class="!flex-col"> -->
       <!--      <a-layout-header></a-layout-header> -->
 
-      <div class="w-full py-6 overflow-auto h-[calc(100vh_-_80px)] overflow-y-auto">
-        <div v-if="activeWorkspace">
+      <div class="w-full pt-6 h-[calc(100vh_-_80px)] overflow-y-auto">
+        <div v-if="activeWorkspace" class="h-full flex flex-col">
           <div class="px-6 flex items-center">
             <div class="flex gap-2 items-center mb-4">
               <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
@@ -452,16 +494,19 @@ const disableEdit = (index: number) => {
 
           <a-tabs v-model:activeKey="tab">
             <a-tab-pane key="projects" tab="All Projects" class="w-full">
-              <WorkspaceProjectList />
+              <WorkspaceProjectList class="h-full" />
             </a-tab-pane>
             <template v-if="isWorkspaceOwner">
               <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-                <WorkspaceCollaboratorsList />
+                <WorkspaceCollaboratorsList class="h-full overflow-auto" />
               </a-tab-pane>
-
-              <a-tab-pane key="settings" tab="Settings"></a-tab-pane>
             </template>
           </a-tabs>
+        </div>
+        <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col">
+          <h2 class="pl-6 text-xl">{{ projectListType }} Projects</h2>
+
+          <WorkspaceProjectList class="min-h-20 grow" />
         </div>
       </div>
     </a-layout>
@@ -509,7 +554,15 @@ const disableEdit = (index: number) => {
 
 .nc-workspace-group {
   .nc-workspace-group-item {
-    @apply h-[40px] px-4 flex items-center gap-2;
+    &:hover {
+      @apply bg-primary bg-opacity-3 text-primary;
+    }
+
+    &.active {
+      @apply bg-primary bg-opacity-8 text-primary;
+    }
+
+    @apply h-[40px] px-4 flex items-center gap-2 cursor-pointer;
 
     .nc-icon {
       @apply w-6;
@@ -556,5 +609,13 @@ const disableEdit = (index: number) => {
   .nc-quick-action-shortcut {
     @apply text-gray-400 absolute right-4 top-0;
   }
+}
+
+:deep(.ant-tabs-tab:not(ant-tabs-tab-active)) {
+  @apply !text-gray-500;
+}
+
+:deep(.ant-tabs-content) {
+  @apply !min-h-25 !h-full;
 }
 </style>

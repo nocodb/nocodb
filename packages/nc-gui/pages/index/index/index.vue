@@ -444,8 +444,8 @@ const projectListType = computed(() => {
       <!--    <a-layout class="!flex-col"> -->
       <!--      <a-layout-header></a-layout-header> -->
 
-      <div class="w-full pt-6 h-[calc(100vh_-_80px)] overflow-y-auto">
-        <div v-if="activeWorkspace" class="h-full flex flex-col">
+      <div class="w-full h-[calc(100vh_-_80px)] overflow-auto">
+        <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
           <div class="px-6 flex items-center">
             <div class="flex gap-2 items-center mb-4">
               <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
@@ -504,7 +504,7 @@ const projectListType = computed(() => {
           </a-tabs>
         </div>
         <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col">
-          <h2 class="pl-6 text-xl">{{ projectListType }} Projects</h2>
+          <h2 class="px-6 my-3 text-xl">{{ projectListType }} Projects</h2>
 
           <WorkspaceProjectList class="min-h-20 grow" />
         </div>

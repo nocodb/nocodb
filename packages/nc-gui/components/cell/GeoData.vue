@@ -73,7 +73,7 @@ const onClickSetCurrentLocation = () => {
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
       <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
-        <a-form-item class="inputLat" label="Lat">
+        <a-form-item class="inputLat" :label="$t('labels.lat')">
           <a-input
             v-model:value="formState.latitude"
             type="number"
@@ -91,7 +91,7 @@ const onClickSetCurrentLocation = () => {
           />
         </a-form-item>
 
-        <a-form-item class="inputLng" label="Lng">
+        <a-form-item class="inputLng" :label="$t('labels.lng')">
           <a-input
             v-model:value="formState.longitude"
             type="number"
@@ -111,12 +111,12 @@ const onClickSetCurrentLocation = () => {
         <a-form-item>
           <div style="display: flex; align-items: center; margin-right: 0.5rem">
             <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
-            <a-button class="ml-2" @click="onClickSetCurrentLocation">Your Location</a-button>
+            <a-button class="ml-2" @click="onClickSetCurrentLocation">{{ $t('labels.yourLocation') }}</a-button>
           </div>
         </a-form-item>
         <a-form-item class="buttons">
-          <a-button type="text" @click="clear">Cancel</a-button>
-          <a-button type="primary" html-type="submit">Submit</a-button>
+          <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
+          <a-button type="primary" html-type="submit">{{ $t('general.submit') }}</a-button>
         </a-form-item>
       </a-form>
     </template>

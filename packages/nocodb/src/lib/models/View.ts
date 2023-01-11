@@ -433,7 +433,7 @@ export default class View implements ViewType {
             show = false;
           }
         }
-        // TODO: Check whether/what we need to do here for properly integrate MapView
+
         else if (view.type === ViewTypes.KANBAN && !copyFromView) {
           const kanbanView = await KanbanView.get(view_id, ncMeta);
           if (vCol.id === kanbanView?.fk_grp_col_id) {
@@ -452,6 +452,13 @@ export default class View implements ViewType {
             show = false;
           }
         }
+        
+        else if (view.type === ViewTypes.MAP && !copyFromView) {
+          const mapView = await MapView.get(view_id, ncMeta);
+          if (vCol.id === mapView?.fk_geo_data_col_id) {
+            show = true;
+        }
+      }
 
         // if columns is list of virtual columns then get the parent column
         const col = vCol.fk_column_id

@@ -7,11 +7,14 @@ import type { Row } from '~/lib'
 export const geodataToggleState = reactive({ show: false })
 
 const formatData = (list: Record<string, any>[]) =>
-  list.map((row) => ({
-    row: { ...row },
-    oldRow: { ...row },
-    rowMeta: {},
-  }))
+  list.map(
+    (row) =>
+      ({
+        row: { ...row },
+        oldRow: { ...row },
+        rowMeta: {},
+      } as Row),
+  )
 
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
@@ -73,7 +76,6 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }
 
     async function loadMapData() {
-
       if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return
 
       const res = !isPublic.value

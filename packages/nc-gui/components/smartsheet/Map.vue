@@ -3,35 +3,44 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
-// import contextmenu from 'vue3-contextmenu'
-// import 'vue3-contextmenu/dist/vue3-contextmenu.css'
 import { IsGalleryInj, IsGridInj, IsMapInj, OpenNewRecordFormHookInj, onMounted, provide, ref } from '#imports'
-
 import type { Row as RowType } from '~/lib'
 import { latLongToJoinedString } from '~~/utils/geoDataUtils'
 
 provide(IsGalleryInj, ref(false))
+
 provide(IsGridInj, ref(false))
+
 provide(IsMapInj, ref(true))
+
 const route = useRoute()
+
 const router = useRouter()
+
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
+
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
+
 const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, addEmptyRow, syncCount, paginationData } =
   useMapViewStoreOrThrow()
 
 const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
+
 const mapContainerRef = ref<HTMLElement>()
+
 const myMapRef = ref<L.Map>()
 
 const meta = inject(MetaInj, ref())
+
 const view = inject(ActiveViewInj, ref())
+
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const expandedFormDlg = ref(false)
+
 const expandedFormRow = ref<RowType>()
+
 const expandedFormRowState = ref<Record<string, any>>()
-const expandedFormClickedLatLongForNewRow = ref<[number, number]>()
 
 const fallBackCenterLocation = {
   lat: 51,
@@ -39,11 +48,11 @@ const fallBackCenterLocation = {
 }
 
 const getMapZoomLocalStorageKey = (viewId: string) => {
-  return `mapView.zoom.${viewId}`
+  return `mapView.${viewId}.zoom`
 }
-const getMapCenterLocalStorageKey = (viewId: string) => `mapView.center.${viewId}`
+const getMapCenterLocalStorageKey = (viewId: string) => `mapView.${viewId}.center`
 
-const expandForm = (row: RowType, state?: Record<string, any>, clickedLatLongForNewRow?: [number, number]) => {
+const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
   if (rowId) {
     router.push({
@@ -53,13 +62,9 @@ const expandForm = (row: RowType, state?: Record<string, any>, clickedLatLongFor
       },
     })
   } else {
-    expandedFormClickedLatLongForNewRow.value = clickedLatLongForNewRow
     expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
-
-    // const lat = state?.lat
-    // const lng = state?.lng
   }
 }
 
@@ -85,7 +90,7 @@ const expandedFormOnRowIdDlg = computed({
 
 const addMarker = (lat: number, long: number, row: RowType) => {
   if (markersClusterGroupRef.value == null) {
-    throw new Error('Map is null')
+    throw new Error('Marker cluster is null')
   }
   const newMarker = L.marker([lat, long]).on('click', () => {
     expandForm(row)
@@ -98,7 +103,6 @@ const resetZoomAndCenterBasedOnLocalStorage = () => {
     return
   }
   const initialZoomLevel = parseInt(localStorage.getItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id)) || '10')
-
   const initialCenterLocalStorageStr = localStorage.getItem(getMapCenterLocalStorageKey(mapMetaData.value.fk_view_id))
   const initialCenter = initialCenterLocalStorageStr ? JSON.parse(initialCenterLocalStorageStr) : fallBackCenterLocation
 
@@ -142,13 +146,12 @@ onMounted(async () => {
   })
 
   myMap.on('contextmenu', async function (e) {
-    const lat = e.latlng.lat
-    const lng = e.latlng.lng
+    const { lat, lng } = e.latlng
     const newRow = await addEmptyRow()
     if (geoDataFieldColumn.value?.title) {
       newRow.row[geoDataFieldColumn.value.title] = latLongToJoinedString(lat, lng)
     }
-    expandForm(newRow, [lat, lng])
+    expandForm(newRow)
   })
 })
 
@@ -205,13 +208,13 @@ const count = computed(() => paginationData.value.totalRows)
     <div id="mapContainer" ref="mapContainerRef">
       <a-tooltip placement="bottom" class="tooltip">
         <template #title>
-          <span v-if="count > 1000"> You're over the limit. </span>
-          <span v-else> You're getting close to the limit. </span>
-          <span> The limit of markers shown in a Map View is 1000 records. </span>
+          <span v-if="count > 1000"> {{ $t('msg.info.map.overLimit') }} </span>
+          <span v-else-if="count > 900"> {{ $t('msg.info.map.closeLimit') }} </span>
+          <span> {{ $t('msg.info.map.limitNumber') }} </span>
         </template>
 
         <div v-if="count > 900" class="nc-warning-info flex min-w-32px h-32px items-center gap-1 px-2 bg-white">
-          <div>{{ count }} records</div>
+          <div>{{ count }} {{ $t('objects.records') }}</div>
           <mdi-map-marker-alert />
         </div>
       </a-tooltip>

@@ -5,9 +5,7 @@ const up = async (knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
-    // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
     table.string('project_id', 128);
-    // table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
 
     table.string('fk_view_id', 20);
     table.foreign('fk_view_id').references(`${MetaTable.MAP_VIEW}.fk_view_id`);
@@ -16,7 +14,6 @@ const up = async (knex) => {
 
     table.string('uuid');
 
-    // todo:  type
     table.string('label');
     table.string('help');
 

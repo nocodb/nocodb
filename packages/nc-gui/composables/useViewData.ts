@@ -209,7 +209,6 @@ export function useViewData(
 
   async function insertRow(
     currentRow: Row,
-    _rowIndex = formattedData.value?.length,
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
@@ -323,7 +322,7 @@ export function useViewData(
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
 
     if (row.rowMeta.new) {
-      return await insertRow(row, formattedData.value.indexOf(row), ltarState, args)
+      return await insertRow(row, ltarState, args)
     } else {
       // if the field name is missing skip update
       if (property) {

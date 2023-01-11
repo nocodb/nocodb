@@ -83,15 +83,9 @@ const viewNameRules = [
   },
 ]
 
-const groupingFieldColumnRules = [
-  // name is required
-  { required: true, message: `${t('general.groupingField')} ${t('general.required')}` },
-]
+const groupingFieldColumnRules = [{ required: true, message: `${t('general.groupingField')} ${t('general.required')}` }]
 
-const geoDataFieldColumnRules = [
-  // name is required
-  { required: true, message: `${t('general.geoDataField')} ${t('general.required')}` },
-]
+const geoDataFieldColumnRules = [{ required: true, message: `${t('general.geoDataField')} ${t('general.required')}` }]
 
 const typeAlias = computed(
   () =>

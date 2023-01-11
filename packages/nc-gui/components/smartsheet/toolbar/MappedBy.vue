@@ -72,12 +72,7 @@ const handleChange = () => {
 </script>
 
 <template>
-  <a-dropdown
-    v-if="!IsPublic"
-    v-model:visible="stackedByDropdown"
-    :trigger="['click']"
-    overlay-class-name="nc-dropdown-kanban-stacked-by-menu"
-  >
+  <a-dropdown v-if="!IsPublic" v-model:visible="stackedByDropdown" :trigger="['click']">
     <div class="nc-kanban-btn">
       <a-button
         v-e="['c:kanban:change-grouping-field']"

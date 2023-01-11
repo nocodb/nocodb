@@ -26,7 +26,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         null,
         null,
         MetaTable.FILTER_EXP,
-        { project_id: model.project_id },
+        { base_id: model.base_id, project_id: model.project_id },
         filter.id
       );
     }

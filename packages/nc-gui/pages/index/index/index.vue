@@ -234,9 +234,8 @@ const disableEdit = (index: number) => {
   workspaces.value[index].edit = false
 }
 
-
 const projectListType = computed(() => {
-  switch (activePage.value){
+  switch (activePage.value) {
     case 'recent':
       return 'Recent'
     case 'shared':
@@ -298,13 +297,11 @@ const projectListType = computed(() => {
         theme="light"
       >
         <div class="h-[calc(100vh_-_80px)] flex flex-col min-h-[400px] overflow-auto">
-
-
           <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
             <div
-                class="nc-workspace-group-item"
-                :class="{ active: activePage === 'recent' }"
-                @click="
+              class="nc-workspace-group-item"
+              :class="{ active: activePage === 'recent' }"
+              @click="
                 navigateTo({
                   query: {
                     page: 'recent',
@@ -316,9 +313,9 @@ const projectListType = computed(() => {
               <span>Recent</span>
             </div>
             <div
-                class="nc-workspace-group-item"
-                :class="{ active: activePage === 'shared' }"
-                @click="
+              class="nc-workspace-group-item"
+              :class="{ active: activePage === 'shared' }"
+              @click="
                 navigateTo({
                   query: {
                     page: 'shared',
@@ -330,9 +327,9 @@ const projectListType = computed(() => {
               <span>Shared with me</span>
             </div>
             <div
-                class="nc-workspace-group-item"
-                :class="{ active: activePage === 'starred' }"
-                @click="
+              class="nc-workspace-group-item"
+              :class="{ active: activePage === 'starred' }"
+              @click="
                 navigateTo({
                   query: {
                     page: 'starred',
@@ -344,7 +341,6 @@ const projectListType = computed(() => {
               <span>Favourites</span>
             </div>
           </div>
-
 
           <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
             All workspaces
@@ -441,8 +437,7 @@ const projectListType = computed(() => {
               </a-menu-item>
             </a-menu>
           </div>
-
-    </div>
+        </div>
       </a-layout-sider>
       <!--    </template> -->
 
@@ -503,14 +498,13 @@ const projectListType = computed(() => {
             </a-tab-pane>
             <template v-if="isWorkspaceOwner">
               <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-                <WorkspaceCollaboratorsList class="h-full overflow-auto"  />
+                <WorkspaceCollaboratorsList class="h-full overflow-auto" />
               </a-tab-pane>
             </template>
           </a-tabs>
         </div>
         <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col">
-
-          <h2 class="pl-6 text-xl">{{projectListType}} Projects</h2>
+          <h2 class="pl-6 text-xl">{{ projectListType }} Projects</h2>
 
           <WorkspaceProjectList class="min-h-20 grow" />
         </div>
@@ -617,12 +611,11 @@ const projectListType = computed(() => {
   }
 }
 
-
-:deep(.ant-tabs-tab:not(ant-tabs-tab-active)){
-  @apply !text-gray-500
+:deep(.ant-tabs-tab:not(ant-tabs-tab-active)) {
+  @apply !text-gray-500;
 }
 
-:deep(.ant-tabs-content){
-  @apply !min-h-25 !h-full
+:deep(.ant-tabs-content) {
+  @apply !min-h-25 !h-full;
 }
 </style>

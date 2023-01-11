@@ -41,13 +41,10 @@ export const useUIPermission = createSharedComposable(() => {
       roles = (Array.isArray(userRoles) ? userRoles : userRoles.split(','))
         // filter out any empty-string/null/undefined values
         .filter(Boolean)
-        .reduce<Record<string, boolean>>(
-        (acc, role) => {
+        .reduce<Record<string, boolean>>((acc, role) => {
           acc[role] = true
           return acc
-        },
-        {},
-      )
+        }, {})
     } else if (userRoles && typeof userRoles === 'object') {
       roles = userRoles
     }

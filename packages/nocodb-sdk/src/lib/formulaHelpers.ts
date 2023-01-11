@@ -67,11 +67,7 @@ export async function substituteColumnAliasWithIdInFormula(
   };
   // register jsep curly hook
   jsep.plugins.register(jsepCurlyHook);
-  const parsedFormula = jsep(
-    // formula may include double curly brackets in previous version
-    // convert to single curly bracket here for compatibility
-    formula.replaceAll('{{', '{').replaceAll('}}', '}')
-  );
+  const parsedFormula = jsep(formula);
   await substituteId(parsedFormula);
   return jsepTreeToFormula(parsedFormula);
 }
@@ -106,11 +102,7 @@ export function substituteColumnIdWithAliasInFormula(
 
   // register jsep curly hook
   jsep.plugins.register(jsepCurlyHook);
-  const parsedFormula = jsep(
-    // formula may include double curly brackets in previous version
-    // convert to single curly bracket here for compatibility
-    formula.replaceAll('{{', '{').replaceAll('}}', '}')
-  );
+  const parsedFormula = jsep(formula);
   const parsedRawFormula = rawFormula && jsep(rawFormula);
   substituteId(parsedFormula, parsedRawFormula);
   return jsepTreeToFormula(parsedFormula);

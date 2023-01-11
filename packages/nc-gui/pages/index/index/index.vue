@@ -241,7 +241,7 @@ const projectListType = computed(() => {
     case 'shared':
       return 'Shared'
     case 'starred':
-      return 'Starred'
+      return 'Favourite'
     default:
       return '='
   }
@@ -410,7 +410,9 @@ const projectListType = computed(() => {
                       @dblclick="enableEdit(i)"
                       >{{ workspace.title }}</span
                     >
-                    <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline">({{ roleAlias[workspace.roles] }})</span>
+                    <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline"
+                      >({{ roleAlias[workspace.roles] }})</span
+                    >
                   </div>
                   <div class="flex-grow"></div>
                   <a-dropdown>

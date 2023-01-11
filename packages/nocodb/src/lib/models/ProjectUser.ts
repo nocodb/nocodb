@@ -291,6 +291,7 @@ export default class ProjectUser {
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
       .select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
+      .select(`${MetaTable.WORKSPACE}.title as workspace_title`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
       .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
@@ -312,6 +313,12 @@ export default class ProjectUser {
         this.andOn(
           `${MetaTable.WORKSPACE_USER}.fk_user_id`,
           ncMeta.knex.raw('?', [userId])
+        );
+      })
+      .leftJoin(MetaTable.WORKSPACE, function () {
+        this.on(
+          `${MetaTable.WORKSPACE}.id`,
+          `${MetaTable.PROJECT}.fk_workspace_id`
         );
       })
       .where(function () {
@@ -360,7 +367,7 @@ export default class ProjectUser {
       qb.orderBy(`${MetaTable.PROJECT_USERS}.updated_at`, 'desc');
     }
 
-    // console.log(qb.toQuery())
+    qb.whereNot(`${MetaTable.PROJECT}.deleted`, true);
 
     const projectList = await qb;
     if (projectList?.length) {

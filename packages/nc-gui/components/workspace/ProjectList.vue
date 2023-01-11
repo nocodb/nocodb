@@ -7,7 +7,7 @@ import { nextTick } from '@vue/runtime-core'
 import { NcProjectType, navigateTo, projectThemeColors, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 import { useNuxtApp } from '#app'
 
-const { projects, addToFavourite, removeFromFavourite, updateProjectTitle } = useWorkspaceStoreOrThrow()
+const { projects, addToFavourite, removeFromFavourite, updateProjectTitle, activePage } = useWorkspaceStoreOrThrow()
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -136,15 +136,27 @@ const customRow = (record: ProjectType) => ({
   class: ['group'],
 })
 
-const columns = [
+const columns = computed(() => [
   {
     title: 'Project Name',
     dataIndex: 'title',
     sorter: {
       compare: (a, b) => a.title?.localeCompare(b.title),
-      multiple: 4,
+      multiple: 5,
     },
   },
+  ...(activePage.value !== 'workspace'
+    ? [
+        {
+          title: 'Workspace Name',
+          dataIndex: 'workspace_title',
+          sorter: {
+            compare: (a, b) => a.workspace_title?.localeCompare(b.workspace_title),
+            multiple: 4,
+          },
+        },
+      ]
+    : []),
   {
     title: 'Project Type',
     dataIndex: 'type',
@@ -173,7 +185,7 @@ const columns = [
     title: 'Actions',
     dataIndex: 'id',
   },
-]
+])
 </script>
 
 <template>
@@ -246,6 +258,7 @@ const columns = [
                 {{ record.title }}
               </div>
             </div>
+
             <div @click.stop>
               <MdiStar v-if="record.starred" class="text-yellow-400 cursor-pointer" @click="removeFromFavourite(record.id)" />
               <MdiStarOutline
@@ -273,6 +286,21 @@ const columns = [
 
         <div v-if="column.dataIndex === 'workspace_role'" class="text-xs text-gray-500">
           {{ roleAlias[record.workspace_role || record.project_role] }}
+        </div>
+        <div v-if="column.dataIndex === 'workspace_title'" class="text-xs text-gray-500">
+          <span v-if="text" class="text-xs text-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis">
+            <nuxt-link
+              :to="{
+                query: {
+                  page: 'workspace',
+                  workspaceId: record.fk_workspace_id,
+                },
+              }"
+              @click.stop
+            >
+              {{ text }}
+            </nuxt-link>
+          </span>
         </div>
 
         <template v-if="column.dataIndex === 'id'">

@@ -29,7 +29,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
   if (action === 'remove') closeTab(targetKey)
 }
 
-const hideSidebarOnClickOrTouchIfMobileMode = (event: Event) => {
+const hideSidebarOnClickOrTouchIfMobileMode = () => {
   if (isMobileMode.value && isOpen.value) {
     toggle(false)
   }
@@ -58,7 +58,7 @@ onMounted(() => {
           />
         </div>
 
-        <a-tabs v-if="!isMobileMode" v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
+        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
           <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>
               <div class="flex items-center gap-2" data-testid="nc-tab-title">

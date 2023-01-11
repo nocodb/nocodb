@@ -33,7 +33,7 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(false))
 
 /** Is editing the view name enabled */
 let isEditing = $ref<boolean>(false)

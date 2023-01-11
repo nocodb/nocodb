@@ -58,11 +58,19 @@ const { $e } = useNuxtApp()
 watch(
   [views, () => route.params.viewTitle],
   ([nextViews, viewTitle]) => {
+    // debugger
+    // alert('mobile watcher')
     const lastOpenedViewId = activeTab.value?.id && lastOpenedViewMap.value[activeTab.value?.id]
+    console.log('lastOpenedViewId', lastOpenedViewId)
     const lastOpenedView = nextViews.find((v) => v.id === lastOpenedViewId)
+    console.log('lastOpenedView', lastOpenedView)
+
+    // debugger
+    console.log('viewTitle', viewTitle)
 
     if (viewTitle) {
       let view = nextViews.find((v) => v.title === viewTitle)
+      console.log('view', view)
       if (view) {
         activeView.value = view
         setLastOpenedViewId(activeView.value?.id)
@@ -77,7 +85,8 @@ watch(
           })
         }
       }
-    } else if (lastOpenedView) {
+    } 
+    else if (lastOpenedView) {
       /** if active view is not found, set it to last opened view */
       router.replace({
         params: {

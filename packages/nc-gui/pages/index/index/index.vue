@@ -359,7 +359,7 @@ const projectListType = computed(() => {
               trigger-sub-menu-action="click"
             >
               <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
-                <div class="nc-workspace-list-item flex items-center h-full" :data-id="workspace.id">
+                <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
                   <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
                     <div
                       :key="workspace.meta?.color"
@@ -410,7 +410,7 @@ const projectListType = computed(() => {
                       @dblclick="enableEdit(i)"
                       >{{ workspace.title }}</span
                     >
-                    <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500">({{ roleAlias[workspace.roles] }})</span>
+                    <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline">({{ roleAlias[workspace.roles] }})</span>
                   </div>
                   <div class="flex-grow"></div>
                   <a-dropdown>

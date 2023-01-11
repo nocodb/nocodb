@@ -14,7 +14,18 @@ const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
 
-const vModel = useVModel(props, 'modelValue', emit)
+const _vModel = useVModel(props, 'modelValue', emit)
+
+const vModel = computed({
+  get: () => _vModel.value,
+  set: (value: unknown) => {
+    if (value === '') {
+      _vModel.value = null
+    } else {
+      _vModel.value = value as number
+    }
+  },
+})
 
 const lastSaved = ref()
 

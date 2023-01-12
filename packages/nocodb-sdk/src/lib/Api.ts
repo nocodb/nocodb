@@ -1331,14 +1331,17 @@ export class Api<
       }),
 
     /**
-     * @description Paginate pages
-     *
-     * @tags Noco docs
-     * @name PaginatePages
-     * @summary Paginate pages
-     * @request GET:/api/v1/docs/pages/paginate
-     * @response `200` `(DocsPageType)[]` OK
-     */
+ * @description Paginate pages
+ * 
+ * @tags Noco docs
+ * @name PaginatePages
+ * @summary Paginate pages
+ * @request GET:/api/v1/docs/pages/paginate
+ * @response `200` `{
+  pages?: (DocsPageType)[],
+
+}` OK
+ */
     paginatePages: (
       query: {
         /** Page number */
@@ -1356,7 +1359,12 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<DocsPageType[], any>({
+      this.request<
+        {
+          pages?: DocsPageType[];
+        },
+        any
+      >({
         path: `/api/v1/docs/pages/paginate`,
         method: 'GET',
         query: query,

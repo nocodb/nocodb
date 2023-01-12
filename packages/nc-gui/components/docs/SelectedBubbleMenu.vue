@@ -15,7 +15,7 @@ interface Props {
   editor: Editor
 }
 
-const colorValue = ref('Black')
+// const colorValue = ref('Black')
 const isMagicExpandLoading = ref(false)
 
 const isImageNode = computed(() => {
@@ -132,7 +132,7 @@ watchDebounced(
         type="text"
         :class="{ 'is-active': editor.isActive('link') }"
         class="menu-button"
-        @click="editor!.chain().focus().toggleLink().run()"
+        @click=";(editor!.chain().focus() as any).toggleLink().run()"
       >
         <div class="flex flex-row items-center px-0.5">
           <MdiLink />

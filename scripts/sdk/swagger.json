@@ -599,9 +599,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DocsPage"
+                  "type": "object",
+                  "properties" : {
+                    "pages": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DocsPage"
+                      }
+                    }
+                  },
+                  "total": {
+                    "type": "number"
                   }
                 }
               }

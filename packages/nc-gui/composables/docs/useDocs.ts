@@ -148,7 +148,10 @@ export function useDocs() {
         bookId: openedBook.value!.id!,
         pageNumber,
       })
-      allPages.value = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
+      if (!allPages.value) allPages.value = []
+      const newPages = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
+      allPages.value = [...allPages.value, ...newPages]
+      return { pages: newPages, total: (docs as any).total }
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e as any))
     }

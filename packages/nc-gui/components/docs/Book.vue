@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { Ref } from 'vue'
+import InfiniteLoading from 'v3-infinite-loading'
 import type { PageSidebarNode } from '~/composables/docs/useDocs'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFileEditOutline from '~icons/mdi/file-edit-outline'
@@ -19,6 +20,9 @@ const {
   navigateToLastBook,
   addNewPage,
   createImport,
+  fetchAllPages,
+  allPages,
+  nestedUrl,
 } = useDocs()
 
 const isDraftsOpen = ref(false)
@@ -31,6 +35,7 @@ const bookFormModelData = ref({
 })
 
 const activeTabKey = ref('all')
+const activeTabPagination = ref(1)
 const tabInfo = [
   {
     title: 'All Pages',
@@ -123,81 +128,114 @@ const onImport = async () => {
     isImporting.value = false
   }
 }
+
+watch(
+  activeTabKey,
+  async (key) => {
+    if (key === 'all' && !allPages.value) {
+      await fetchAllPages({
+        pageNumber: activeTabPagination.value,
+      })
+      console.log(allPages.value)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+const loadListData = async ($state: any) => {
+  $state.loading()
+  const oldPagesCount = allPages.value?.length || 0
+
+  activeTabPagination.value += 1
+  await fetchAllPages({
+    pageNumber: activeTabPagination.value,
+  })
+
+  if (allPages.value?.length === oldPagesCount) {
+    $state.complete()
+    return
+  }
+  $state.loaded()
+}
 </script>
 
 <template>
   <a-layout-content>
     <div class="flex flex-col mx-20 mt-10.5 px-6">
-      <div class="flex flex-row justify-between items-center">
-        <div class="flex flex-row gap-x-2 items-center ml-2">
-          <div class="flex underline cursor-pointer">
-            {{ openedBook?.title }}
+      <div class="flex flex-col h-28">
+        <div class="flex flex-row justify-between items-center">
+          <div class="flex flex-row gap-x-2 items-center ml-2">
+            <div class="flex underline cursor-pointer">
+              {{ openedBook?.title }}
+            </div>
+            <div class="flex text-gray-400">/</div>
           </div>
-          <div class="flex text-gray-400">/</div>
-        </div>
-        <div class="flex flex-row items-center">
-          <a-dropdown trigger="click">
-            <div
-              class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 py-1.5 rounded-md bg-gray-50 flex flex-row w-full mr-4 justify-between items-center"
-            >
-              <div class="flex font-semibold">
-                {{ openedBook?.title }}
+          <div class="flex flex-row items-center">
+            <a-dropdown trigger="click">
+              <div
+                class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 py-1.5 rounded-md bg-gray-50 flex flex-row w-full mr-4 justify-between items-center"
+              >
+                <div class="flex font-semibold">
+                  {{ openedBook?.title }}
+                </div>
+                <MdiMenuDown />
               </div>
-              <MdiMenuDown />
-            </div>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item class="!py-2" @click="showCreateBookModal = true"> Create new book </a-menu-item>
-                <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
-                  {{ book.title }}
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-          <a-button type="primary" :disabled="!haveDrafts" :loading="isPagePublishing" @click="openDrafts">
-            Publish v{{ openedBook?.order }}</a-button
-          >
-        </div>
-      </div>
-      <div class="flex flex-row justify-between mt-8 items-center">
-        <div class="flex flex-row gap-x-6 items-center">
-          <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
-          <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
-            <div
-              class="flex !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 mt-1.5"
-              @click.prevent
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item class="!py-2" @click="showCreateBookModal = true"> Create new book </a-menu-item>
+                  <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
+                    {{ book.title }}
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+            <a-button type="primary" :disabled="!haveDrafts" :loading="isPagePublishing" @click="openDrafts">
+              Publish v{{ openedBook?.order }}</a-button
             >
-              <MdiDotsVertical />
-            </div>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item>
-                  <div class="flex items-center cursor-pointer select-none px-1.5 py-2" @click="() => openImportModal()">
-                    <PhUploadSimpleFill class="text-blue-400 mr-2" />
-                    Import
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
+          </div>
         </div>
-        <div class="flex flex-row gap-x-2">
-          <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => addNewPage()">
-            <div class="flex flex-row gap-x-1 items-center">
-              <div class="flex pl-1">New Page</div>
-              <MdiPlus />
-            </div>
-          </a-button>
-          <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
-            <div class="flex flex-row gap-x-1 items-center">
-              <div class="flex pl-1">Create Pages with</div>
-              <PhSparkleFill class="text-orange-400 h-3.5" />
-            </div>
-          </a-button>
+        <div class="flex flex-row justify-between mt-8 items-center">
+          <div class="flex flex-row gap-x-6 items-center">
+            <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
+            <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
+              <div
+                class="flex !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 mt-1.5"
+                @click.prevent
+              >
+                <MdiDotsVertical />
+              </div>
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item>
+                    <div class="flex items-center cursor-pointer select-none px-1.5 py-2" @click="() => openImportModal()">
+                      <PhUploadSimpleFill class="text-blue-400 mr-2" />
+                      Import
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </div>
+          <div class="flex flex-row gap-x-2">
+            <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => addNewPage()">
+              <div class="flex flex-row gap-x-1 items-center">
+                <div class="flex pl-1">New Page</div>
+                <MdiPlus />
+              </div>
+            </a-button>
+            <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
+              <div class="flex flex-row gap-x-1 items-center">
+                <div class="flex pl-1">Create Pages with</div>
+                <PhSparkleFill class="text-orange-400 h-3.5" />
+              </div>
+            </a-button>
+          </div>
         </div>
       </div>
-      <div class="flex flex-row w-full mt-10">
-        <a-tabs v-model:activeKey="activeTabKey" class="!w-full">
+      <div class="flex flex-row w-full mt-10 !overflow-y-hidden docs-book-list-container h-[calc(100vh-16rem)]">
+        <a-tabs v-model:activeKey="activeTabKey" class="!w-full !overflow-y-hidden">
           <a-tab-pane v-for="tab of tabInfo" :key="tab.key">
             <template #tab>
               <div class="flex flex-row items-center text-xs px-2">
@@ -207,21 +245,39 @@ const onImport = async () => {
                 </div>
               </div>
             </template>
-            <div class="flex flex-col gap-y-4 mt-1 mb-6">
-              <div
-                v-for="(draft, index) of drafts"
-                :key="index"
-                class="flex cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
-              >
-                <div class="flex flex-col gap-y-2">
-                  <div style="font-weight: 450; font-size: 0.9rem">
-                    {{ draft?.title }}
-                  </div>
+            <div v-if="!allPages">
+              <div class="flex flex-col mt-36">
+                <a-spin size="large" />
+              </div>
+            </div>
+            <div v-else class="h-full overflow-y-scroll docs-book-infinite-list">
+              <div class="flex flex-col gap-y-4 mt-6 mb-6 px-2">
+                <div
+                  v-for="(page, index) of allPages"
+                  :key="index"
+                  class="flex cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
+                  @click="() => navigateTo(nestedUrl(page.id))"
+                >
+                  <div class="flex flex-col gap-y-2">
+                    <div style="font-weight: 450; font-size: 0.9rem">
+                      {{ page?.title }}
+                    </div>
 
-                  <div class="flex text-gray-400" style="font-weight: 300; font-size: 0.7rem">
-                    Updated {{ dayjs(draft!.updated_at!).fromNow() }}
+                    <div class="flex text-gray-400" style="font-weight: 300; font-size: 0.7rem">
+                      Updated {{ dayjs(page!.updated_at!).fromNow() }}
+                    </div>
                   </div>
                 </div>
+                <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
+                  <template #spinner>
+                    <div class="flex flex-row w-full justify-center mt-2">
+                      <a-spin />
+                    </div>
+                  </template>
+                  <template #complete>
+                    <span></span>
+                  </template>
+                </InfiniteLoading>
               </div>
             </div>
           </a-tab-pane>
@@ -330,3 +386,32 @@ const onImport = async () => {
     </a-modal>
   </a-layout-content>
 </template>
+
+<style lang="scss">
+.docs-book-list-container > .ant-tabs > .ant-tabs-content-holder > .ant-tabs-content {
+  @apply h-full;
+}
+.docs-book-list-container .ant-tabs-nav {
+  @apply mb-0 !important;
+}
+.docs-book-infinite-list {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f6 !important;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: rgb(228, 228, 228);
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(194, 194, 194);
+  }
+}
+</style>

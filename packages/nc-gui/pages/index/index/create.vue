@@ -96,44 +96,48 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
-  <div
-    class="create relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
-  >
-    <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
+  <NuxtLayout name="new">
+    <div class="mt-20">
+      <div
+        class="min-w-2/4 xl:max-w-2/4 w-full mx-auto create relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
+      >
+        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
 
-    <div
-      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
-      @click="navigateTo('/')"
-    >
-      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
-    </div>
+        <div
+          class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
+          @click="navigateTo('/')"
+        >
+          <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
+        </div>
 
-    <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
+        <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
 
-    <a-form
-      ref="form"
-      :model="formState"
-      name="basic"
-      layout="vertical"
-      class="lg:max-w-3/4 w-full !mx-auto"
-      no-style
-      autocomplete="off"
-      @finish="createProject"
-    >
-      <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-        <a-input :ref="focus" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
-      </a-form-item>
+        <a-form
+          ref="form"
+          :model="formState"
+          name="basic"
+          layout="vertical"
+          class="lg:max-w-3/4 w-full !mx-auto"
+          no-style
+          autocomplete="off"
+          @finish="createProject"
+        >
+          <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
+            <a-input :ref="focus" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+          </a-form-item>
 
-      <div class="text-center">
-        <button class="scaling-btn bg-opacity-100" type="submit">
-          <span class="flex items-center gap-2">
-            <MaterialSymbolsRocketLaunchOutline />
-            {{ $t('general.create') }}
-          </span>
-        </button>
+          <div class="text-center">
+            <button class="scaling-btn bg-opacity-100" type="submit">
+              <span class="flex items-center gap-2">
+                <MaterialSymbolsRocketLaunchOutline />
+                {{ $t('general.create') }}
+              </span>
+            </button>
+          </div>
+        </a-form>
       </div>
-    </a-form>
-  </div>
+    </div>
+  </NuxtLayout>
 </template>
 
 <style lang="scss">

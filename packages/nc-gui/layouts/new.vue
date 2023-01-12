@@ -1,0 +1,235 @@
+<script lang="ts" setup>
+import { useTitle } from '@vueuse/core'
+import { useI18n, useRoute, useSidebar } from '#imports'
+
+const route = useRoute()
+
+const { te, t } = useI18n()
+
+const { hasSidebar, isOpen } = useSidebar('nc-left-sidebar')
+
+const refreshSidebar = ref(false)
+
+useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | NocoDB` : 'NocoDB')
+
+watch(hasSidebar, (val) => {
+  if (!val) {
+    refreshSidebar.value = true
+    nextTick(() => {
+      refreshSidebar.value = false
+    })
+  }
+})
+
+</script>
+
+<script lang="ts">
+export default {
+  name: 'DefaultLayout',
+}
+</script>
+
+<template>
+  <a-layout>
+    <a-layout-header class="h-20 !px-2">
+      <div class="flex w-full h-full items-center">
+        <div class="flex-1 min-w-0 w-50">
+          <nuxt-link to="/">
+            <img src="~/assets/img/brand/nocodb-full-color.png" class="h-12" />
+          </nuxt-link>
+        </div>
+
+        <div v-if="$route.name === 'index-index'" class="flex gap-1">
+          <a-button ghost class="!text-inherit"> Workspaces</a-button>
+          <a-button ghost class="!text-inherit"> Explore</a-button>
+          <a-button ghost class="!text-inherit"> Help</a-button>
+          <a-button ghost class="!text-inherit"> Community</a-button>
+        </div>
+        <div class="flex-1 min-w-0 flex justify-end gap-2">
+          <div class="nc-quick-action-wrapper">
+            <MaterialSymbolsSearch class="nc-quick-action-icon" />
+            <input class="" placeholder="Quick Actions" />
+
+            <span class="nc-quick-action-shortcut">⌘ K</span>
+          </div>
+
+          <div class="flex items-center">
+            <MdiBellOutline class="text-xl" />
+            <MaterialSymbolsKeyboardArrowDownRounded />
+          </div>
+
+          <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
+            <div class="flex items-center gap-1 cursor-pointer">
+              <div class="h-14 w-14 rounded-full bg-primary flex items-center justify-center font-weight-bold text-white">AB</div>
+              <MaterialSymbolsKeyboardArrowDownRounded />
+            </div>
+
+            <template #overlay>
+              <a-menu class="!py-0 leading-8 !rounded min-w-40">
+                <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
+                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
+                    <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
+                    <div class="prose group-hover:text-primary">
+                      <div>Account</div>
+                      <div class="text-xs text-gray-500">{{ email }}</div>
+                    </div>
+                  </nuxt-link>
+                </a-menu-item>
+
+                <a-menu-divider class="!m-0" />
+                <!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
+                  <nuxt-link
+                    v-e="['c:settings:appstore', { page: true }]"
+                    class="nc-project-menu-item group !no-underline"
+                    to="/admin/users"
+                  >
+                    <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
+
+                    &lt;!&ndash; todo: i18n &ndash;&gt;
+                    <span class="prose group-hover:text-primary">Account management</span>
+                  </nuxt-link>
+                </a-menu-item>
+
+                <a-menu-divider class="!m-0" /> -->
+
+                <a-menu-item key="1" class="!rounded-b group">
+                  <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                    <MdiLogout class="group-hover:text-accent" />&nbsp;
+
+                    <span class="prose group-hover:text-primary">
+                      {{ $t('general.signOut') }}
+                    </span>
+                  </div>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
+        </div>
+      </div>
+    </a-layout-header>
+
+    <!--    todo: change class name -->
+    <a-layout class="nc-root">
+      <a-layout-sider
+        v-if="hasSidebar"
+        ref="sidebar"
+        :collapsed="!isOpen"
+        width="250"
+        collapsed-width="50"
+        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_80px)] overflow-auto"
+        :trigger="null"
+        collapsible
+        theme="light"
+      >
+        <slot name="sidebar" />
+      </a-layout-sider>
+      <div class="w-full h-[calc(100vh_-_80px)] overflow-auto">
+        <slot></slot>
+      </div>
+    </a-layout>
+  </a-layout>
+</template>
+
+<style scoped lang="scss">
+.nc-workspace-avatar {
+  @apply min-w-6 h-6 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
+  font-size: 0.7rem;
+}
+
+.nc-workspace-list {
+  .nc-workspace-list-item {
+    @apply flex gap-2 items-center;
+  }
+
+  :deep(.ant-menu-item) {
+    @apply relative;
+
+    & .color-band {
+      @apply opacity-0 absolute w-2 h-7 -left-1 top-[6px] bg-[#4351E8] rounded-[99px] trasition-opacity;
+    }
+  }
+
+  :deep(.ant-menu-item-selected, .ant-menu-item-active) .color-band {
+    @apply opacity-100;
+  }
+
+  .nc-workspace-menu {
+    @apply opacity-0 transition-opactity;
+  }
+
+  :deep(.ant-menu-item:hover) .nc-workspace-menu {
+    @apply opacity-100;
+  }
+}
+
+:deep(.nc-workspace-list .ant-menu-item) {
+  @apply !my-0;
+}
+
+.nc-workspace-group {
+  .nc-workspace-group-item {
+    &:hover {
+      @apply bg-primary bg-opacity-3 text-primary;
+    }
+
+    &.active {
+      @apply bg-primary bg-opacity-8 text-primary;
+    }
+
+    @apply h-[40px] px-4 flex items-center gap-2 cursor-pointer;
+
+    .nc-icon {
+      @apply w-6;
+    }
+  }
+}
+
+// todo:  apply globally at windicss level
+.nc-root {
+  @apply text-[#4B5563];
+}
+
+.nc-collab-list {
+  .nc-collab-list-item {
+    @apply flex gap-2 py-2 px-4 items-center;
+
+    .nc-collab-avatar {
+      @apply w-6 h-6 rounded-full flex items-center justify-center text-white font-weight-bold uppercase;
+      font-size: 0.7rem;
+    }
+  }
+}
+
+:deep(.ant-tabs-nav-list) {
+  @apply ml-6;
+}
+
+.ant-layout-header {
+  @apply !h-20 bg-transparent;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.nc-quick-action-wrapper {
+  @apply relative;
+
+  input {
+    @apply h-10 w-60 bg-gray-100 rounded-md pl-9 pr-5 mr-2;
+  }
+
+  .nc-quick-action-icon {
+    @apply absolute left-2 top-6;
+  }
+
+  .nc-quick-action-shortcut {
+    @apply text-gray-400 absolute right-4 top-0;
+  }
+}
+
+:deep(.ant-tabs-tab:not(ant-tabs-tab-active)) {
+  @apply !text-gray-500;
+}
+
+:deep(.ant-tabs-content) {
+  @apply !min-h-25 !h-full;
+}
+</style>

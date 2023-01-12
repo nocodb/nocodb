@@ -10,7 +10,6 @@ import { useRoute } from 'vue-router'
 import {
   NcProjectType,
   computed,
-  definePageMeta,
   onMounted,
   projectThemeColors,
   stringToColour,
@@ -19,10 +18,6 @@ import {
   useSidebar,
 } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
-
-definePageMeta({
-  hideHeader: true,
-})
 
 const router = useRouter()
 
@@ -63,7 +58,7 @@ const selectedWorkspaceIndex = computed<number[]>({
 })
 
 // create a new sidebar state
-const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar-workspace', { hasSidebar: true, isOpen: true })
+const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
 const isCreateDlgOpen = ref(false)
 
@@ -249,273 +244,220 @@ const projectListType = computed(() => {
 </script>
 
 <template>
-  <a-layout>
-    <!--  <NuxtLayout> -->
-    <a-layout-header class="h-20 !px-2">
-      <div class="flex w-full h-full items-center">
-        <div class="flex-1 min-w-0 w-50">
-          <img src="~/assets/img/brand/nocodb-full-color.png" class="h-12" />
+  <NuxtLayout name="new">
+    <template #sidebar>
+      <div class="h-[calc(100vh_-_80px)] flex flex-col min-h-[400px] overflow-auto">
+        <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'recent' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'recent',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
+            <span>Recent</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'shared' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'shared',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsGroupsOutline class="nc-icon" />
+            <span>Shared with me</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'starred' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'starred',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsStarOutline class="nc-icon" />
+            <span>Favourites</span>
+          </div>
         </div>
 
-        <div class="flex gap-1">
-          <a-button ghost class="!text-inherit"> Workspaces</a-button>
-          <a-button ghost class="!text-inherit"> Explore</a-button>
-          <a-button ghost class="!text-inherit"> Help</a-button>
-          <a-button ghost class="!text-inherit"> Community</a-button>
+        <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
+          All workspaces
+          <div class="flex-grow"></div>
+          <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true" />
         </div>
-        <div class="flex-1 min-w-0 flex justify-end gap-2">
-          <div class="nc-quick-action-wrapper">
-            <MaterialSymbolsSearch class="nc-quick-action-icon" />
-            <input class="" placeholder="Quick Actions" />
 
-            <span class="nc-quick-action-shortcut">⌘ K</span>
-          </div>
+        <div class="overflow-auto flex-grow min-h-25" style="flex-basis: 0px">
+          <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-          <div class="flex items-center">
-            <MdiBellOutline class="text-xl" />
-            <MaterialSymbolsKeyboardArrowDownRounded />
-          </div>
-          <div class="flex items-center gap-1">
-            <div class="h-14 w-14 rounded-full bg-primary flex items-center justify-center font-weight-bold text-white">AB</div>
-            <MaterialSymbolsKeyboardArrowDownRounded />
-          </div>
-        </div>
-      </div>
-    </a-layout-header>
-
-    <!--    todo: change class name -->
-    <a-layout class="nc-root">
-      <!--    <template #sidebar v-if="isOpen"> -->
-      <a-layout-sider
-        ref="sidebar"
-        :collapsed="!isOpen"
-        width="250"
-        collapsed-width="50"
-        class="relative shadow-md h-full z-1 nc-left-sidebar"
-        :trigger="null"
-        collapsible
-        theme="light"
-      >
-        <div class="h-[calc(100vh_-_80px)] flex flex-col min-h-[400px] overflow-auto">
-          <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
-            <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'recent' }"
-              @click="
-                navigateTo({
-                  query: {
-                    page: 'recent',
-                  },
-                })
-              "
-            >
-              <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
-              <span>Recent</span>
-            </div>
-            <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'shared' }"
-              @click="
-                navigateTo({
-                  query: {
-                    page: 'shared',
-                  },
-                })
-              "
-            >
-              <MaterialSymbolsGroupsOutline class="nc-icon" />
-              <span>Shared with me</span>
-            </div>
-            <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'starred' }"
-              @click="
-                navigateTo({
-                  query: {
-                    page: 'starred',
-                  },
-                })
-              "
-            >
-              <MaterialSymbolsStarOutline class="nc-icon" />
-              <span>Favourites</span>
-            </div>
-          </div>
-
-          <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
-            All workspaces
-            <div class="flex-grow"></div>
-            <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true" />
-          </div>
-
-          <div class="overflow-auto flex-grow min-h-25" style="flex-basis: 0px">
-            <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
-
-            <a-menu
-              v-else
-              :ref="menu"
-              v-model:selected-keys="selectedWorkspaceIndex"
-              class="nc-workspace-list"
-              trigger-sub-menu-action="click"
-            >
-              <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
-                <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
-                  <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
-                    <div
-                      :key="workspace.meta?.color"
-                      class="nc-workspace-avatar"
-                      :style="{ backgroundColor: getWorkspaceColor(workspace) }"
-                    >
-                      <span class="color-band" :style="{ backgroundColor: getWorkspaceColor(workspace) }" />
-                      {{ workspace.title?.slice(0, 2) }}
-                    </div>
-                    <template #overlay>
-                      <a-menu trigger-sub-menu-action="click">
-                        <LazyGeneralColorPicker
-                          :model-value="getWorkspaceColor(workspace)"
-                          :colors="projectThemeColors"
-                          :row-size="9"
-                          :advanced="false"
-                          @input="handleWorkspaceColor(workspace.id, $event)"
-                        />
-                        <a-sub-menu key="pick-primary">
-                          <template #title>
-                            <div class="nc-project-menu-item group !py-0">
-                              <ClarityColorPickerSolid class="group-hover:text-accent" />
-                              Custom Color
-                            </div>
-                          </template>
-
-                          <template #expandIcon></template>
-
-                          <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id, $event)" />
-                        </a-sub-menu>
-                      </a-menu>
-                    </template>
-                  </a-dropdown>
-                  <input
-                    v-if="workspace.edit"
-                    ref="renameInput"
-                    v-model="workspace.temp_title"
-                    class="!leading-none outline-none bg-transparent"
-                    autofocus
-                    @blur="disableEdit(i)"
-                    @keydown.enter="updateWorkspaceTitle(workspace)"
-                    @keydown.esc="disableEdit(i)"
-                  />
-                  <div v-else class="nc-workspace-title shrink min-w-4 flex items-center gap-1">
-                    <span
-                      class="shrink min-w-0 overflow-ellipsis overflow-hidden"
-                      :title="workspace.title"
-                      @dblclick="enableEdit(i)"
-                      >{{ workspace.title }}</span
-                    >
-                    <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline"
-                      >({{ roleAlias[workspace.roles] }})</span
-                    >
+          <a-menu
+            v-else
+            :ref="menu"
+            v-model:selected-keys="selectedWorkspaceIndex"
+            class="nc-workspace-list"
+            trigger-sub-menu-action="click"
+          >
+            <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
+              <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
+                <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
+                  <div
+                    :key="workspace.meta?.color"
+                    class="nc-workspace-avatar"
+                    :style="{ backgroundColor: getWorkspaceColor(workspace) }"
+                  >
+                    <span class="color-band" :style="{ backgroundColor: getWorkspaceColor(workspace) }" />
+                    {{ workspace.title?.slice(0, 2) }}
                   </div>
-                  <div class="flex-grow"></div>
-                  <a-dropdown>
-                    <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu min-w-4" />
-
-                    <template #overlay>
-                      <a-menu>
-                        <a-menu-item @click="enableEdit(i)">
-                          <div class="flex flex-row items-center py-3 gap-2">
-                            <MdiPencil />
-                            Rename Workspace
+                  <template #overlay>
+                    <a-menu trigger-sub-menu-action="click">
+                      <LazyGeneralColorPicker
+                        :model-value="getWorkspaceColor(workspace)"
+                        :colors="projectThemeColors"
+                        :row-size="9"
+                        :advanced="false"
+                        @input="handleWorkspaceColor(workspace.id, $event)"
+                      />
+                      <a-sub-menu key="pick-primary">
+                        <template #title>
+                          <div class="nc-project-menu-item group !py-0">
+                            <ClarityColorPickerSolid class="group-hover:text-accent" />
+                            Custom Color
                           </div>
-                        </a-menu-item>
-                        <a-menu-item @click="deleteWorkspace(workspace)">
-                          <div class="flex flex-row items-center py-3 gap-2">
-                            <MdiDeleteOutline />
-                            Delete Workspace
-                          </div>
-                        </a-menu-item>
-                      </a-menu>
-                    </template>
-                  </a-dropdown>
+                        </template>
+
+                        <template #expandIcon></template>
+
+                        <LazyGeneralChromeWrapper @input="handleWorkspaceColor(workspace.id, $event)" />
+                      </a-sub-menu>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+                <input
+                  v-if="workspace.edit"
+                  ref="renameInput"
+                  v-model="workspace.temp_title"
+                  class="!leading-none outline-none bg-transparent"
+                  autofocus
+                  @blur="disableEdit(i)"
+                  @keydown.enter="updateWorkspaceTitle(workspace)"
+                  @keydown.esc="disableEdit(i)"
+                />
+                <div v-else class="nc-workspace-title shrink min-w-4 flex items-center gap-1">
+                  <span
+                    class="shrink min-w-0 overflow-ellipsis overflow-hidden"
+                    :title="workspace.title"
+                    @dblclick="enableEdit(i)"
+                    >{{ workspace.title }}</span
+                  >
+                  <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline"
+                    >({{ roleAlias[workspace.roles] }})</span
+                  >
                 </div>
-              </a-menu-item>
-            </a-menu>
-          </div>
-        </div>
-      </a-layout-sider>
-      <!--    </template> -->
+                <div class="flex-grow"></div>
+                <a-dropdown>
+                  <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu min-w-4" />
 
-      <!--    <a-layout class="!flex-col"> -->
-      <!--      <a-layout-header></a-layout-header> -->
-
-      <div class="w-full h-[calc(100vh_-_80px)] overflow-auto">
-        <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
-          <div class="px-6 flex items-center">
-            <div class="flex gap-2 items-center mb-4">
-              <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
-                {{ activeWorkspace?.title?.slice(0, 2) }}
-              </span>
-              <h1 class="text-xl mb-0">{{ activeWorkspace?.title }}</h1>
-            </div>
-            <div class="flex-grow"></div>
-            <a-dropdown v-if="isWorkspaceOwner">
-              <a-button type="primary">
-                <div class="flex items-center gap-2">
-                  New Project
-                  <MdiMenuDown />
-                </div>
-              </a-button>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
-                    <div class="py-4 px-1 flex items-center gap-4">
-                      <MdiDatabaseOutline class="text-[#2824FB] text-lg" />
-                      New Database
-                    </div>
-                  </a-menu-item>
-                  <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
-                    <div class="py-4 px-1 flex items-center gap-4">
-                      <MdiTransitConnectionVariant class="text-[#DDB00F] text-lg" />
-                      New Automation
-                    </div>
-                  </a-menu-item>
-                  <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
-                    <div class="py-4 px-1 flex items-center gap-4">
-                      <MaterialSymbolsDocs class="text-[#247727] text-lg" />
-                      New Documentation
-                    </div>
-                  </a-menu-item>
-                  <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
-                    <div class="py-4 px-1 flex items-center gap-4">
-                      <MdiVectorTriangle class="text-[#8626FF] text-lg" />
-                      New Cowriter
-                    </div>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
-          </div>
-
-          <a-tabs v-model:activeKey="tab">
-            <a-tab-pane key="projects" tab="All Projects" class="w-full">
-              <WorkspaceProjectList class="h-full" />
-            </a-tab-pane>
-            <template v-if="isWorkspaceOwner">
-              <a-tab-pane key="collab" tab="Collaborators" class="w-full">
-                <WorkspaceCollaboratorsList class="h-full overflow-auto" />
-              </a-tab-pane>
-            </template>
-          </a-tabs>
-        </div>
-        <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col">
-          <h2 class="px-6 my-3 text-xl">{{ projectListType }} Projects</h2>
-
-          <WorkspaceProjectList class="min-h-20 grow" />
+                  <template #overlay>
+                    <a-menu>
+                      <a-menu-item @click="enableEdit(i)">
+                        <div class="flex flex-row items-center py-3 gap-2">
+                          <MdiPencil />
+                          Rename Workspace
+                        </div>
+                      </a-menu-item>
+                      <a-menu-item @click="deleteWorkspace(workspace)">
+                        <div class="flex flex-row items-center py-3 gap-2">
+                          <MdiDeleteOutline />
+                          Delete Workspace
+                        </div>
+                      </a-menu-item>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </div>
+            </a-menu-item>
+          </a-menu>
         </div>
       </div>
-    </a-layout>
-    <!--    </a-layout> -->
-    <!--  </a-layout> -->
-    <!--  </NuxtLayout> -->
-  </a-layout>
+    </template>
+
+    <div class="w-full h-[calc(100vh_-_80px)] overflow-auto">
+      <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
+        <div class="px-6 flex items-center">
+          <div class="flex gap-2 items-center mb-4">
+            <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
+              {{ activeWorkspace?.title?.slice(0, 2) }}
+            </span>
+            <h1 class="text-xl mb-0">{{ activeWorkspace?.title }}</h1>
+          </div>
+          <div class="flex-grow"></div>
+          <a-dropdown v-if="isWorkspaceOwner">
+            <a-button type="primary">
+              <div class="flex items-center gap-2">
+                New Project
+                <MdiMenuDown />
+              </div>
+            </a-button>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
+                  <div class="py-4 px-1 flex items-center gap-4">
+                    <MdiDatabaseOutline class="text-[#2824FB] text-lg" />
+                    New Database
+                  </div>
+                </a-menu-item>
+                <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
+                  <div class="py-4 px-1 flex items-center gap-4">
+                    <MdiTransitConnectionVariant class="text-[#DDB00F] text-lg" />
+                    New Automation
+                  </div>
+                </a-menu-item>
+                <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
+                  <div class="py-4 px-1 flex items-center gap-4">
+                    <MaterialSymbolsDocs class="text-[#247727] text-lg" />
+                    New Documentation
+                  </div>
+                </a-menu-item>
+                <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
+                  <div class="py-4 px-1 flex items-center gap-4">
+                    <MdiVectorTriangle class="text-[#8626FF] text-lg" />
+                    New Cowriter
+                  </div>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
+        </div>
+
+        <a-tabs v-model:activeKey="tab">
+          <a-tab-pane key="projects" tab="All Projects" class="w-full">
+            <WorkspaceProjectList class="h-full" />
+          </a-tab-pane>
+          <template v-if="isWorkspaceOwner">
+            <a-tab-pane key="collab" tab="Collaborators" class="w-full">
+              <WorkspaceCollaboratorsList class="h-full overflow-auto" />
+            </a-tab-pane>
+          </template>
+        </a-tabs>
+      </div>
+      <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col">
+        <h2 class="px-6 my-3 text-xl">{{ projectListType }} Projects</h2>
+
+        <WorkspaceProjectList class="min-h-20 grow" />
+      </div>
+    </div>
+  </NuxtLayout>
 </template>
 
 <style scoped lang="scss">

@@ -213,7 +213,7 @@ function onProjectTitleClick(index: number) {
   clickCount++
   if (clickCount === 1) {
     timer = setTimeout(function () {
-      navigateTo(`/nc/${projects.value![index].id}`)
+      openProject(projects.value![index])
       clickCount = 0
     }, delay)
   } else {
@@ -230,7 +230,6 @@ function onProjectTitleClick(index: number) {
       v-model:data-source="projects"
       class="h-full"
       :custom-row="customRow"
-      :table-layout="md ? 'auto' : 'fixed'"
       :columns="columns"
       :pagination="false"
       :scroll="{ y: 'calc(100% - 54px)' }"
@@ -296,7 +295,7 @@ function onProjectTitleClick(index: number) {
               </div>
             </div>
 
-            <div @click.stop>
+            <div v-if="!record.edit" @click.stop>
               <MdiStar v-if="record.starred" class="text-yellow-400 cursor-pointer" @click="removeFromFavourite(record.id)" />
               <MdiStarOutline
                 v-else

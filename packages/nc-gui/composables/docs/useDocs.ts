@@ -15,6 +15,8 @@ export interface AntSidebarNode {
 
 export type PageSidebarNode = DocsPageType & AntSidebarNode
 
+export const PAGES_PER_PAGE_LIST = 10
+
 export function useDocs() {
   const { $api } = useNuxtApp()
   const route = useRoute()
@@ -24,9 +26,13 @@ export function useDocs() {
 
   const isFetchingPagesFromUrl = useState<boolean>('isFetchingPagesFromUrl', () => false)
   const books = useState<BookType[]>('books', () => [])
+
   const nestedPages = useState<PageSidebarNode[]>('nestedPages', () => [])
-  const drafts = useState<PageSidebarNode[]>('drafts', () => [])
   const allPages = useState<PageSidebarNode[] | undefined>('allPages', () => undefined)
+  const drafts = useState<PageSidebarNode[]>('drafts', () => [])
+  const publishedPages = useState<PageSidebarNode[]>('publishedPages', () => [])
+  const allByTitle = useState<PageSidebarNode[]>('allByTitle', () => [])
+
   const openedTabs = useState<string[]>('openedSidebarTabs', () => [])
 
   // First slug is book slug, rest are page slugs
@@ -95,6 +101,7 @@ export function useDocs() {
 
       return books
     } catch (e) {
+      console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
@@ -106,6 +113,7 @@ export function useDocs() {
 
       return books
     } catch (e) {
+      console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
@@ -140,23 +148,69 @@ export function useDocs() {
 
       return docs
     } catch (e) {
+      console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
 
-  const fetchAllPages = async ({ pageNumber }: { pageNumber: number }) => {
+  const fetchAllPages = async ({ pageNumber, clear }: { pageNumber: number; clear?: boolean }) => {
     try {
       const docs = await $api.nocoDocs.paginatePages({
         projectId: projectId!,
-        perPage: 10,
+        perPage: PAGES_PER_PAGE_LIST,
         bookId: openedBook.value!.id!,
         pageNumber,
       })
-      if (!allPages.value) allPages.value = []
+      if (!allPages.value || clear) allPages.value = []
+
       const newPages = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
       allPages.value = [...allPages.value, ...newPages]
       return { pages: newPages, total: (docs as any).total }
     } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  const fetchPublishedPages = async ({ pageNumber, clear }: { pageNumber: number; clear?: boolean }) => {
+    try {
+      const docs = await $api.nocoDocs.paginatePages({
+        projectId: projectId!,
+        perPage: PAGES_PER_PAGE_LIST,
+        bookId: openedBook.value!.id!,
+        pageNumber,
+        filterField: 'is_published',
+        filterFieldValue: '1',
+      })
+      if (clear) publishedPages.value = []
+
+      const newPages = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
+      publishedPages.value = [...publishedPages.value, ...newPages]
+      return { pages: newPages, total: (docs as any).total }
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+
+  const fetchAllPagesByTitle = async ({ pageNumber, clear }: { pageNumber: number; clear?: boolean }) => {
+    try {
+      const docs = await $api.nocoDocs.paginatePages({
+        projectId: projectId!,
+        perPage: PAGES_PER_PAGE_LIST,
+        bookId: openedBook.value!.id!,
+        pageNumber,
+        sortField: 'title',
+        sortOrder: 'asc',
+      })
+      if (clear) allByTitle.value = []
+
+      const newPages = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
+      allByTitle.value = [...allByTitle.value, ...newPages]
+
+      return { pages: newPages, total: (docs as any).total }
+    } catch (e) {
+      console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
@@ -249,6 +303,7 @@ export function useDocs() {
       const createdPage = findPage(createdPageData.id!)
       drafts.value.push(createdPage!)
     } catch (e) {
+      console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
@@ -265,6 +320,7 @@ export function useDocs() {
       navigateTo(bookUrl(createdBook.slug!))
       nestedPages.value = []
     } catch (e) {
+      console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
@@ -277,6 +333,7 @@ export function useDocs() {
 
       books.value = books.value.filter((book) => book.id !== id)
     } catch (e) {
+      console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
@@ -323,6 +380,7 @@ export function useDocs() {
 
       navigateTo(page?.parent_page_id ? nestedUrl(page.parent_page_id) : bookUrl(book.slug!))
     } catch (e) {
+      console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
@@ -379,6 +437,7 @@ export function useDocs() {
       })
       await fetchDrafts()
     } catch (e) {
+      console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
@@ -424,7 +483,7 @@ export function useDocs() {
   const navigateToFirstBook = async () => {
     const book = books.value[0]
     await fetchPages({ book })
-    navigateTo(bookUrl(book.slug!))
+    await navigateTo(bookUrl(book.slug!))
   }
 
   const navigateToLastBook = async () => {
@@ -506,15 +565,10 @@ export function useDocs() {
   const fetchAndOpenChildPageOfRootPages = async () => {
     for (const page of nestedPages.value) {
       if (!page.is_parent) continue
-      const childPages = await fetchPages({ book: openedBook.value!, parentPageId: page.id! })
+      await fetchPages({ book: openedBook.value!, parentPageId: page.id! })
 
       if (!openedTabs.value.includes(page.id!)) {
         openedTabs.value.push(page.id!)
-      }
-      for (const childPage of childPages!) {
-        if (openedTabs.value.includes(childPage.id!)) continue
-
-        openedTabs.value.push(childPage.id!)
       }
     }
   }
@@ -564,9 +618,9 @@ export function useDocs() {
     drafts.value = drafts.value.filter((draft) => !toBePublishedPages.find((p) => p.id === draft.id))
   }
 
-  const navigateToFirstPage = () => {
+  const navigateToFirstPage = async () => {
     const page = nestedPages.value[0]
-    navigateTo(nestedUrl(page.id!))
+    await navigateTo(nestedUrl(page.id!))
   }
 
   const magicExpand = async (text: string, pageId?: string) => {
@@ -627,6 +681,10 @@ export function useDocs() {
     magicExpand,
     magicOutline,
     allPages,
+    publishedPages,
+    allByTitle,
+    fetchPublishedPages,
+    fetchAllPagesByTitle,
     fetchAllPages,
     openPage,
   }

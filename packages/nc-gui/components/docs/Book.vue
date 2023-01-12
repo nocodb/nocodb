@@ -5,7 +5,8 @@ import InfiniteLoading from 'v3-infinite-loading'
 import type { PageSidebarNode } from '~/composables/docs/useDocs'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFileEditOutline from '~icons/mdi/file-edit-outline'
-
+import MdiPublish from '~icons/mdi/publish'
+import MdiFilterVariant from '~icons/mdi/filter-variant'
 const { project } = useProject()
 const {
   openedBook,
@@ -22,7 +23,12 @@ const {
   createImport,
   fetchAllPages,
   allPages,
+  allByTitle,
+  publishedPages,
   openPage,
+  fetchPublishedPages,
+  fetchAllPagesByTitle,
+  isOnlyBookOpened,
 } = useDocs()
 
 const isDraftsOpen = ref(false)
@@ -43,12 +49,37 @@ const tabInfo = [
     icon: () => MdiFileDocumentOutline,
   },
   {
-    title: 'Drafts',
-    key: 'drafts',
+    title: 'Published',
+    key: 'published',
+    icon: () => MdiPublish,
+  },
+  {
+    title: 'Unpublished',
+    key: 'unpublished',
     icon: () => MdiFileEditOutline,
+  },
+  {
+    title: 'All Pages by Title',
+    key: 'allByTitle',
+    icon: () => MdiFilterVariant,
   },
 ]
 
+const isPagesFetching = ref(false)
+const pages = computed(() => {
+  switch (activeTabKey.value) {
+    case 'all':
+      return allPages.value
+    case 'allByTitle':
+      return allByTitle.value
+    case 'published':
+      return publishedPages.value
+    case 'unpublished':
+      return drafts.value
+    default:
+      return allPages.value
+  }
+})
 const haveDrafts = computed(() => drafts.value.length > 0)
 
 const magicModalOpen = ref(false)
@@ -129,14 +160,43 @@ const onImport = async () => {
   }
 }
 
+watch(isOnlyBookOpened, async () => {
+  isPagesFetching.value = true
+  activeTabPagination.value = 1
+  activeTabKey.value = 'all'
+
+  await fetchAllPages({
+    pageNumber: activeTabPagination.value,
+    clear: true,
+  })
+})
+
 watch(
   activeTabKey,
   async (key) => {
-    if (key === 'all' && !allPages.value) {
-      await fetchAllPages({
-        pageNumber: activeTabPagination.value,
-      })
-      console.log(allPages.value)
+    isPagesFetching.value = true
+    activeTabPagination.value = 1
+    try {
+      if (key === 'all') {
+        await fetchAllPages({
+          pageNumber: activeTabPagination.value,
+          clear: true,
+        })
+      } else if (key === 'allByTitle') {
+        await fetchAllPagesByTitle({
+          pageNumber: activeTabPagination.value,
+          clear: true,
+        })
+      } else if (key === 'published') {
+        await fetchPublishedPages({
+          pageNumber: activeTabPagination.value,
+          clear: true,
+        })
+      } else if (key === 'unpublished') {
+        await fetchDrafts()
+      }
+    } finally {
+      isPagesFetching.value = false
     }
   },
   {
@@ -145,15 +205,36 @@ watch(
 )
 
 const loadListData = async ($state: any) => {
+  if (activeTabKey.value === 'unpublished') {
+    $state.complete()
+    return
+  }
+
   $state.loading()
-  const oldPagesCount = allPages.value?.length || 0
+  const oldPagesCount = pages.value?.length || 0
 
   activeTabPagination.value += 1
-  await fetchAllPages({
-    pageNumber: activeTabPagination.value,
-  })
+  switch (activeTabKey.value) {
+    case 'all':
+      await fetchAllPages({
+        pageNumber: activeTabPagination.value,
+      })
+      break
+    case 'allByTitle':
+      await fetchAllPagesByTitle({
+        pageNumber: activeTabPagination.value,
+      })
+      break
+    case 'published':
+      await fetchPublishedPages({
+        pageNumber: activeTabPagination.value,
+      })
+      break
+    default:
+      break
+  }
 
-  if (allPages.value?.length === oldPagesCount) {
+  if (pages.value?.length === oldPagesCount) {
     $state.complete()
     return
   }
@@ -245,15 +326,15 @@ const loadListData = async ($state: any) => {
                 </div>
               </div>
             </template>
-            <div v-if="!allPages">
+            <div v-if="isPagesFetching">
               <div class="flex flex-col mt-36">
                 <a-spin size="large" />
               </div>
             </div>
-            <div v-else class="h-full overflow-y-scroll docs-book-infinite-list">
+            <div v-else class="h-full overflow-y-auto docs-book-infinite-list">
               <div class="flex flex-col gap-y-4 mt-6 mb-6 px-2">
                 <div
-                  v-for="(page, index) of allPages"
+                  v-for="(page, index) of pages"
                   :key="index"
                   class="flex cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
                   @click="() => openPage(page)"

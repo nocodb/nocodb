@@ -728,6 +728,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "sortField",
+            "in": "query",
+            "description": "sortField",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "description": "sortOrder",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "description": "Paginate pages"

@@ -999,6 +999,51 @@ function docTests() {
     expect(response.body[0].id).to.equal(parentPage2.id)
     expect(response.body[1].id).to.equal(parentPage.id)
   })
+
+  it('Sort by title', async () => {
+    const pageC = await createPage({
+      project: project,
+      book: book,
+      user: context.user,
+      attributes: {
+        title: 'testC',
+      },
+    })
+    const pageA = await createPage({
+      project: project,
+      book: book,
+      user: context.user,
+      attributes: {
+        title: 'testA',
+      }
+    })
+    const pageB = await createPage({
+      project: project,
+      book: book,
+      user: context.user,
+      attributes: {
+        title: 'testB',
+      }
+    })
+
+    const response = await request(context.app)
+      .get(`/api/v1/docs/pages/paginate`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+        pageNumber: 1,
+        perPage: 5,
+        sortField: 'title',
+        sortOrder: 'asc',
+      })
+      .set('xc-auth', context.token)
+      .expect(200)
+    
+    expect(response.body.pages.length).to.equal(3)
+    expect(response.body.pages[0].id).to.equal(pageA.id)
+    expect(response.body.pages[1].id).to.equal(pageB.id)
+    expect(response.body.pages[2].id).to.equal(pageC.id)
+  })
 }
 
 export default function() {

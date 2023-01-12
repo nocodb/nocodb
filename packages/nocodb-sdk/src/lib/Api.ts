@@ -1384,6 +1384,10 @@ export class Api<
         filterField?: string;
         /** filterFieldValue */
         filterFieldValue?: string;
+        /** sortField */
+        sortField?: string;
+        /** sortOrder */
+        sortOrder?: string;
       },
       params: RequestParams = {}
     ) =>

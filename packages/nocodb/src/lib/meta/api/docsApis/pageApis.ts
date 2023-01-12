@@ -288,7 +288,12 @@ async function paginate(
       perPage,
       filterField,
       filterFieldValue,
-    } = req.query as Record<string, string>;
+      sortField,
+      sortOrder,
+    } = req.query as Record<string, string | undefined>;
+
+    if (sortOrder && sortOrder !== 'asc' && sortOrder !== 'desc')
+      throw new Error('sortOrder must be asc or desc');
 
     const data = await Page.paginate({
       projectId,
@@ -296,6 +301,8 @@ async function paginate(
       pageNumber: parseInt(pageNumber, 10),
       perPage: parseInt(perPage, 10),
       condition: filterField ? { [filterField]: filterFieldValue } : {},
+      order: sortOrder as any,
+      orderBy: sortField,
     });
 
     res.json(data);

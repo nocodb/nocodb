@@ -76,7 +76,7 @@ const columns = $computed(() => {
 <template>
   <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
     <div class="w-full flex flex-row space-x-2">
-      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.childTable')" v-bind="validateInfos.fk_relation_column_id">
+      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.linkToAnotherRecord')" v-bind="validateInfos.fk_relation_column_id">
         <a-select
           v-model:value="vModel.fk_relation_column_id"
           dropdown-class-name="!w-64 nc-dropdown-relation-table"

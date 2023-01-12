@@ -139,6 +139,9 @@ export default defineNuxtConfig({
       }),
       monacoEditorPlugin({
         languageWorkers: ['json'],
+        customDistPath: (root: string, buildOutDir: string) => {
+          return `${buildOutDir}/` + `monacoeditorwork`
+        },
       }),
       PurgeIcons({
         /* PurgeIcons Options */

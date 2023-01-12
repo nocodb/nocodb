@@ -123,8 +123,8 @@ useSelectedCellKeyupListener(active, (e) => {
 
 <template>
   <component :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
-    <div v-if="editEnabled && !readonly" class="flex flex-col w-full">
-      <div class="flex flex-row justify-between pt-1 pb-2">
+    <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
+      <div class="flex flex-row justify-between pt-1 pb-2" @mousedown.stop>
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">
           <CilFullscreenExit v-if="isExpanded" class="h-2.5" />
 
@@ -134,8 +134,8 @@ useSelectedCellKeyupListener(active, (e) => {
         <div v-if="!isForm || isExpanded" class="flex flex-row">
           <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
 
-          <a-button type="primary" size="small" :disabled="!!error || localValue === vModel">
-            <div class="text-xs" @click="onSave">Save</div>
+          <a-button type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">
+            <div class="text-xs">Save</div>
           </a-button>
         </div>
       </div>

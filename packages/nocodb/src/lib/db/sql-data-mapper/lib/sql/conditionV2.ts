@@ -246,7 +246,7 @@ const parseConditionV2 = async (
       const model = await column.getModel();
       const formula = await column.getColOptions<FormulaColumn>();
       const builder = (
-        await formulaQueryBuilderv2(formula.formula, null, knex, model)
+        await formulaQueryBuilderv2(formula.formula, null, knex, model, column)
       ).builder;
       return parseConditionV2(
         new Filter({ ...filter, value: knex.raw('?', [filter.value]) } as any),

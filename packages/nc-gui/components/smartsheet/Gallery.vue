@@ -17,6 +17,7 @@ import {
   createEventHook,
   extractPkFromRow,
   inject,
+  isLTAR,
   nextTick,
   onMounted,
   provide,
@@ -210,7 +211,10 @@ watch(view, async (nextView) => {
             </template>
 
             <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
-              <div v-if="!isRowEmpty(record, col)" class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full">
+              <div
+                v-if="!isRowEmpty(record, col) || isLTAR(col.uidt)"
+                class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
+              >
                 <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
                   <div class="w-full text-gray-600">
                     <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />

@@ -236,7 +236,7 @@ defineExpose({
               :key="`${i}_7`"
               v-model:value="filter.value"
               class="nc-filter-value-select"
-              :disabled="filter.readOnly"
+              :disabled="filter.readOnly || !filter.fk_column_id"
               @click.stop
               @input="saveOrUpdate(filter, i)"
             />

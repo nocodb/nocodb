@@ -423,7 +423,7 @@ const projectListType = computed(() => {
                         <a-menu-item @click="enableEdit(i)">
                           <div class="flex flex-row items-center py-3 gap-2">
                             <MdiPencil />
-                            Move Workspace
+                            Rename Workspace
                           </div>
                         </a-menu-item>
                         <a-menu-item @click="deleteWorkspace(workspace)">

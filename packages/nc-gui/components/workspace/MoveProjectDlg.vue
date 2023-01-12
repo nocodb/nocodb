@@ -1,0 +1,78 @@
+<script setup lang="ts">
+import type { ProjectType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
+import { ref, useVModel } from '#imports'
+import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
+
+const props = defineProps<{
+  modelValue: boolean
+  project: ProjectType
+}>()
+
+const emit = defineEmits(['update:modelValue', 'success'])
+
+const dialogShow = useVModel(props, 'modelValue', emit)
+
+const { workspaces, moveWorkspace } = useWorkspaceStoreOrThrow()
+
+const workspaceId = ref()
+
+const _moveWorkspace = async () => {
+  await moveWorkspace(workspaceId.value, props.project.id!)
+  emit('success')
+}
+
+watch(dialogShow, (val) => {
+  if (!val) {
+    workspaceId.value = null
+  }
+})
+
+const ownedWorkspaces = computed(() => {
+  return workspaces.value.filter((w) => w.roles === WorkspaceUserRoles.OWNER)
+})
+</script>
+
+<template>
+  <a-modal
+    v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
+    width="max(30vw, 600px)"
+    centered
+    wrap-class-name="nc-modal-workspace-create"
+    @keydown.esc="dialogShow = false"
+  >
+    <template #footer>
+      <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+
+      <a-button key="submit" :disabled="!workspaceId" size="large" type="primary" @click="_moveWorkspace">{{
+        $t('general.move')
+      }}</a-button>
+    </template>
+
+    <div class="pl-10 pr-10 pt-5">
+      <!-- Create A New Table -->
+      <div class="prose-xl font-bold self-center my-4">{{ $t('activity.moveProject') }}</div>
+
+      <!-- todo: i18n -->
+      <div class="mb-2">Workspace Name</div>
+      <a-select v-model:value="workspaceId" class="w-full" show-search>
+        <a-select-option v-for="workspace of ownedWorkspaces" :key="workspace.id" :value="workspace.id">
+          {{ workspace.title }}
+        </a-select-option>
+      </a-select>
+    </div>
+  </a-modal>
+</template>
+
+<style scoped lang="scss">
+.nc-workspace-advanced-options {
+  max-height: 0;
+  transition: 0.3s max-height;
+  overflow: hidden;
+
+  &.active {
+    max-height: 200px;
+  }
+}
+</style>

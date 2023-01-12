@@ -8569,6 +8569,42 @@
         }
       ]
     },
+    "/api/v1/workspaces/{toWorkspaceId}/projects/{projectId}/move": {
+      "post": {
+        "summary": "Workspace project move",
+        "operationId": "workspace-project-move",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "tags": [
+          "Workspace project"
+        ],
+        "description": "Workspace projects list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "toWorkspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
     "/api/v1/workspaces/{workspaceId}/invitations": {
       "post": {
         "summary": "Workspace user invite",

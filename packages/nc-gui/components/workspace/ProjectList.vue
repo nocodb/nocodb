@@ -7,7 +7,7 @@ import { nextTick } from '@vue/runtime-core'
 import { NcProjectType, navigateTo, projectThemeColors, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 import { useNuxtApp } from '#app'
 
-const { projects, addToFavourite, removeFromFavourite, updateProjectTitle, activePage } = useWorkspaceStoreOrThrow()
+const { projects, addToFavourite, removeFromFavourite, updateProjectTitle, activePage, loadProjects } = useWorkspaceStoreOrThrow()
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -186,6 +186,41 @@ const columns = computed(() => [
     dataIndex: 'id',
   },
 ])
+
+const isMoveDlgOpen = ref(false)
+const selectedProjectToMove = ref()
+
+useDialog(resolveComponent('WorkspaceMoveProjectDlg'), {
+  'modelValue': isMoveDlgOpen,
+  'project': selectedProjectToMove,
+  'onUpdate:modelValue': (isOpen: boolean) => (isMoveDlgOpen.value = isOpen),
+  'onSuccess': async () => {
+    isMoveDlgOpen.value = false
+    await loadProjects(activePage.value)
+  },
+})
+
+const moveProject = (project: ProjectType) => {
+  selectedProjectToMove.value = project
+  isMoveDlgOpen.value = true
+}
+
+let clickCount = 0
+let timer: any = null
+const delay = 250
+function onProjectTitleClick(index: number) {
+  clickCount++
+  if (clickCount === 1) {
+    timer = setTimeout(function () {
+      navigateTo(`/nc/${projects.value![index].id}`)
+      clickCount = 0
+    }, delay)
+  } else {
+    clearTimeout(timer)
+    enableEdit(index)
+    clickCount = 0
+  }
+}
 </script>
 
 <template>
@@ -237,13 +272,14 @@ const columns = computed(() => [
                 </template>
               </a-dropdown>
             </div>
-            <div class="min-w-10" @click.stop>
+            <div class="min-w-10">
               <input
                 v-if="record.edit"
                 ref="renameInput"
                 v-model="record.temp_title"
                 class="!leading-none p-1 bg-transparent max-w-full !w-auto"
                 autofocus
+                @click.stop
                 @blur="disableEdit(i)"
                 @keydown.enter="updateProjectTitle(record)"
                 @keydown.esc="disableEdit(i)"
@@ -253,7 +289,7 @@ const columns = computed(() => [
                 v-else
                 :title="record.title"
                 class="whitespace-nowrap overflow-hidden overflow-ellipsis cursor-pointer"
-                @dblclick="enableEdit(i)"
+                @click.stop="onProjectTitleClick(i)"
               >
                 {{ record.title }}
               </div>
@@ -315,7 +351,7 @@ const columns = computed(() => [
                       Rename Project
                     </div>
                   </a-menu-item>
-                  <a-menu-item @click="enableEdit(i)">
+                  <a-menu-item @click="moveProject(record)">
                     <div class="flex flex-row items-center py-3 gap-2">
                       <MdiFolderMove />
                       Move Project

@@ -255,6 +255,7 @@ export default class Project implements ProjectType {
       'uuid',
       'password',
       'roles',
+      'fk_workspace_id',
     ]);
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;

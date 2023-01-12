@@ -214,6 +214,15 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     }
   }
 
+  const moveWorkspace = async (workspaceId: string, projectId: string) => {
+    try {
+      await $api.workspaceProject.move(workspaceId, projectId)
+      message.success('Project moved successfully')
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   return {
     loadWorkspaceList,
     workspaces,
@@ -234,6 +243,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     removeFromFavourite,
     activePage,
     updateProjectTitle,
+    moveWorkspace,
   }
 }, 'workspaceStore')
 

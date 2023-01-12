@@ -953,6 +953,52 @@ function docTests() {
     
     expect(response.body.pages.length).to.equal(5)
   })
+
+  it('Parents', async () => {
+    const parentPage = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test1',
+        content: 'test1',
+      },
+      user: context.user,
+    });
+    const parentPage2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test2',
+        content: 'test2',
+        parent_page_id: parentPage.id,
+      },
+      user: context.user,
+    });
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test3',
+        content: 'test3',
+        parent_page_id: parentPage2.id,
+      },
+      user: context.user,
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/docs/page-parents`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+        pageId: page1.id,
+      })
+      .set('xc-auth', context.token)
+      .expect(200)
+    
+    expect(response.body.length).to.equal(2)
+    expect(response.body[0].id).to.equal(parentPage2.id)
+    expect(response.body[1].id).to.equal(parentPage.id)
+  })
 }
 
 export default function() {

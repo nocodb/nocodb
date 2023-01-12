@@ -305,10 +305,36 @@ async function paginate(
   }
 }
 
+async function pageParents(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const { pageId, projectId, bookId } = req.query as Record<string, string>;
+
+    const data = await Page.parents({
+      pageId,
+      projectId,
+      bookId,
+    });
+
+    res.json(data);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis
 router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
+router.get(
+  '/api/v1/docs/page-parents',
+  apiMetrics,
+  ncMetaAclMw(pageParents, 'pageParents')
+);
 router.get('/api/v1/docs/pages', apiMetrics, ncMetaAclMw(list, 'pageList'));
 router.get(
   '/api/v1/docs/page-drafts',

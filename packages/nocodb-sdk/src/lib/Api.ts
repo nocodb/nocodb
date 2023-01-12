@@ -1331,6 +1331,34 @@ export class Api<
       }),
 
     /**
+     * @description Paginate pages
+     *
+     * @tags Noco docs
+     * @name ParentPages
+     * @summary Parent pages
+     * @request GET:/api/v1/docs/page-parents
+     * @response `200` `(DocsPageType)[]` OK
+     */
+    parentPages: (
+      query: {
+        /** Page number */
+        projectId: string;
+        /** book id */
+        bookId: string;
+        /** pageId */
+        pageId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType[], any>({
+        path: `/api/v1/docs/page-parents`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Paginate pages
  * 
  * @tags Noco docs

@@ -21,14 +21,6 @@ jobs:
   build-executables:
     runs-on: ubuntu-latest
     steps:
-      # Get the latest draft release for asset upload url
-      - uses: cardinalby/git-get-release-action@v1
-        id: get_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
-        with:
-          latest: 1
-          draft: true
       - uses: actions/checkout@v3
       - name: Cache node modules
         id: cache-npm
@@ -124,8 +116,6 @@ jobs:
           name: ${{ github.event.inputs.tag || inputs.tag }}
           path: scripts/pkg-executable/mac-dist
           retention-days: 1
-    outputs:
-      upload_url: ${{ steps.get_release.outputs.upload_url }}
   sign-mac-executables:
     runs-on: macos-latest
     needs: build-executables

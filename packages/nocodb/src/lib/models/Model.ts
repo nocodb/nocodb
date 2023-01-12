@@ -392,11 +392,16 @@ export default class Model implements TableType {
     }
 
     if (force) {
-      const leftOverColumns = await ncMeta.metaList2(null, null, MetaTable.COL_RELATIONS, {
-        condition: {
-          fk_related_model_id: this.id,
-        },
-      });
+      const leftOverColumns = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_related_model_id: this.id,
+          },
+        }
+      );
 
       for (const col of leftOverColumns) {
         await NocoCache.deepDel(
@@ -410,7 +415,7 @@ export default class Model implements TableType {
         fk_related_model_id: this.id,
       });
     }
-    
+
     await NocoCache.deepDel(
       CacheScope.COLUMN,
       `${CacheScope.COLUMN}:${this.id}`,

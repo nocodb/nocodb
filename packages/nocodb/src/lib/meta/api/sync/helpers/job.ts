@@ -1468,7 +1468,7 @@ export default async (
             rec[key] = JSON.stringify(tempArr);
           }
           break;
-        
+
         case UITypes.SingleLineText:
           // Barcode data
           if (value?.text) {

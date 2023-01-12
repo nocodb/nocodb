@@ -71,7 +71,7 @@ const formulaDataByDbType = (context: NcContext) => [
     result: ['0', '0', '0', '0', '0'],
   },
   {
-    formula: `DATETIME_DIFF("2022/10/14", NOW(), "y")`,
+    formula: `DATETIME_DIFF("2023/10/14", NOW(), "y")`,
     result: ['0', '0', '0', '0', '0'],
   },
   {

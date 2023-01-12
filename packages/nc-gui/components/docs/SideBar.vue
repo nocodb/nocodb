@@ -8,7 +8,7 @@ const isPublic = inject(IsDocsPublicInj, ref(false))
 const { project } = useProject()
 const {
   fetchPages,
-  pages,
+  nestedPages,
   books,
   openedPage,
   openedTabs,
@@ -138,7 +138,7 @@ const navigateToOpenedBook = () => {
       v-model:expandedKeys="openedTabs"
       v-model:selectedKeys="openPageTabKeys"
       :load-data="onLoadData"
-      :tree-data="pages"
+      :tree-data="nestedPages"
       :draggable="!isPublic"
       :on-drop="onDrop"
       show-icon

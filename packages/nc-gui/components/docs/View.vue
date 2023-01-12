@@ -33,20 +33,21 @@ const onAdminMount = async () => {
     })
   }
 
+  await fetchAndOpenChildPageOfRootPages()
   await fetchDrafts(books.value[books.value.length - 1])
 }
 
 const onPublicMount = async () => {
   const slugs = route.params.slugs && (route.params.slugs as string[])?.filter((slug) => slug !== '')
   if (!slugs || slugs?.length === 0) {
-    navigateTo(bookUrl(openedBook.value!.slug!))
+    await navigateTo(bookUrl(openedBook.value!.slug!))
     await fetchPublicBook({
       projectId: route.params.projectId as string,
     })
     await fetchPages({
       book: openedBook.value!,
     })
-    navigateToFirstPage()
+    await navigateToFirstPage()
   } else if (slugs?.length === 1) {
     await fetchPublicBook({
       projectId: route.params.projectId as string,
@@ -55,7 +56,7 @@ const onPublicMount = async () => {
     await fetchPages({
       book: openedBook.value!,
     })
-    navigateToFirstPage()
+    await navigateToFirstPage()
   } else {
     await fetchPublicBook({
       projectId: route.params.projectId as string,

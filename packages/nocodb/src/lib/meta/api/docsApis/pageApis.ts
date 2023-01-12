@@ -275,10 +275,73 @@ async function magicOutline(
   }
 }
 
+async function paginate(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const {
+      projectId,
+      bookId,
+      pageNumber,
+      perPage,
+      filterField,
+      filterFieldValue,
+      sortField,
+      sortOrder,
+    } = req.query as Record<string, string | undefined>;
+
+    if (sortOrder && sortOrder !== 'asc' && sortOrder !== 'desc')
+      throw new Error('sortOrder must be asc or desc');
+
+    const data = await Page.paginate({
+      projectId,
+      bookId,
+      pageNumber: parseInt(pageNumber, 10),
+      perPage: parseInt(perPage, 10),
+      condition: filterField ? { [filterField]: filterFieldValue } : {},
+      order: sortOrder as any,
+      orderBy: sortField,
+    });
+
+    res.json(data);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
+async function pageParents(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const { pageId, projectId, bookId } = req.query as Record<string, string>;
+
+    const data = await Page.parents({
+      pageId,
+      projectId,
+      bookId,
+    });
+
+    res.json(data);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis
 router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
+router.get(
+  '/api/v1/docs/page-parents',
+  apiMetrics,
+  ncMetaAclMw(pageParents, 'pageParents')
+);
 router.get('/api/v1/docs/pages', apiMetrics, ncMetaAclMw(list, 'pageList'));
 router.get(
   '/api/v1/docs/page-drafts',
@@ -311,6 +374,11 @@ router.post(
   '/api/v1/docs/page/magic-outline',
   apiMetrics,
   ncMetaAclMw(magicOutline, 'pageMagicOutline')
+);
+router.get(
+  '/api/v1/docs/pages/paginate',
+  apiMetrics,
+  ncMetaAclMw(paginate, 'paginate')
 );
 
 export default router;

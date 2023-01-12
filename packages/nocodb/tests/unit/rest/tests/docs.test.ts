@@ -926,6 +926,124 @@ function docTests() {
     expect(pages[0].is_published).to.equal(1)
     expect(pages[1].is_published).to.equal(1)
   })
+
+  it('Pagination', async () => {
+    // Create 10 pages
+    for (let i = 0; i < 10; i++) {      
+      await createPage({
+        project: project,
+        book: book,
+        attributes: {
+          title: 'test' + i,
+        },
+        user: context.user,
+      });
+    }
+
+    const response = await request(context.app)
+      .get(`/api/v1/docs/pages/paginate`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+        pageNumber: 1,
+        perPage: 5,
+      })
+      .set('xc-auth', context.token)
+      .expect(200)
+    
+    expect(response.body.pages.length).to.equal(5)
+  })
+
+  it('Parents', async () => {
+    const parentPage = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test1',
+        content: 'test1',
+      },
+      user: context.user,
+    });
+    const parentPage2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test2',
+        content: 'test2',
+        parent_page_id: parentPage.id,
+      },
+      user: context.user,
+    });
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test3',
+        content: 'test3',
+        parent_page_id: parentPage2.id,
+      },
+      user: context.user,
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/docs/page-parents`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+        pageId: page1.id,
+      })
+      .set('xc-auth', context.token)
+      .expect(200)
+    
+    expect(response.body.length).to.equal(2)
+    expect(response.body[0].id).to.equal(parentPage2.id)
+    expect(response.body[1].id).to.equal(parentPage.id)
+  })
+
+  it('Sort by title', async () => {
+    const pageC = await createPage({
+      project: project,
+      book: book,
+      user: context.user,
+      attributes: {
+        title: 'testC',
+      },
+    })
+    const pageA = await createPage({
+      project: project,
+      book: book,
+      user: context.user,
+      attributes: {
+        title: 'testA',
+      }
+    })
+    const pageB = await createPage({
+      project: project,
+      book: book,
+      user: context.user,
+      attributes: {
+        title: 'testB',
+      }
+    })
+
+    const response = await request(context.app)
+      .get(`/api/v1/docs/pages/paginate`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+        pageNumber: 1,
+        perPage: 5,
+        sortField: 'title',
+        sortOrder: 'asc',
+      })
+      .set('xc-auth', context.token)
+      .expect(200)
+    
+    expect(response.body.pages.length).to.equal(3)
+    expect(response.body.pages[0].id).to.equal(pageA.id)
+    expect(response.body.pages[1].id).to.equal(pageB.id)
+    expect(response.body.pages[2].id).to.equal(pageC.id)
+  })
 }
 
 export default function() {

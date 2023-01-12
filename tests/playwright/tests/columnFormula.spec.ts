@@ -67,8 +67,20 @@ const formulaDataByDbType = (context: NcContext) => [
     result: ['-1', '-1', '-1', '-1', '-1'],
   },
   {
+    formula: `DATETIME_DIFF(NOW(), "2023/10/14", "y")`,
+    result: ['-1', '-1', '-1', '-1', '-1'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", NOW(), "y")`,
+    result: ['0', '0', '0', '0', '0'],
+  },
+  {
     formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "d")`,
     result: ['-365', '-365', '-365', '-365', '-365'],
+  },
+  {
+    formula: `DATETIME_DIFF("2022/10/14", NOW(), "d")`,
+    result: ['-90', '-90', '-90', '-90', '-90'],
   },
   {
     formula: `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`,

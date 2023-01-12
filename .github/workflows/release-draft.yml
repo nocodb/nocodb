@@ -56,7 +56,7 @@ jobs:
           echo "TARGET_SHA=${TARGET_SHA}" >> $GITHUB_OUTPUT
           echo "Setting TARGET_SHA: ${TARGET_SHA}"
       - name: Create tag
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           # need workflows permission but it's not in GITHUB_TOKEN scope
           # need a custom PAT with workflows permission here

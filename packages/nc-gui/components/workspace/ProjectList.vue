@@ -333,6 +333,7 @@ function onProjectTitleClick(index: number) {
                   workspaceId: record.fk_workspace_id,
                 },
               }"
+              class="!text-gray-500 !no-underline !hover:underline !hover:text-gray-500"
               @click.stop
             >
               {{ text }}

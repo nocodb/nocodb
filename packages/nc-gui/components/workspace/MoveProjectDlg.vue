@@ -19,7 +19,7 @@ const workspaceId = ref()
 
 const _moveWorkspace = async () => {
   await moveWorkspace(workspaceId.value, props.project.id!)
-  emit('success')
+  emit('success', workspaceId.value)
 }
 
 watch(dialogShow, (val) => {
@@ -55,7 +55,7 @@ const ownedWorkspaces = computed(() => {
       <div class="prose-xl font-bold self-center my-4">{{ $t('activity.moveProject') }}</div>
 
       <!-- todo: i18n -->
-      <div class="mb-2">Workspace Name</div>
+      <div class="mb-2">Workspace</div>
       <a-select v-model:value="workspaceId" class="w-full" show-search>
         <a-select-option v-for="workspace of ownedWorkspaces" :key="workspace.id" :value="workspace.id">
           {{ workspace.title }}

@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router'
 import { extractSdkResponseErrorMsg, useInjectionState, useNuxtApp } from '#imports'
 
 const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
-  const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string })[]>([])
+  const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string;roles?:string })[]>([])
 
   // const activeWorkspace = ref<WorkspaceType | null>()
 
@@ -48,7 +48,6 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspace.list()
       workspaces.value = list ?? []
-      activeWorkspace.value = workspaces.value?.[0]
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -191,10 +190,17 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   }
   const removeFromFavourite = async (projectId: string) => {
     try {
-      const project = projects.value?.find(({ id }) => id === projectId)
-      if (!project) return
+      const projectIndex = projects.value?.findIndex(({ id }) => id === projectId)
+      if (projectIndex === -1) return
+
+      const project = projects.value![projectIndex!]
 
       project.starred = false
+
+      // if active page is starred then remove the project from the list
+      if (activePage.value === 'starred') {
+        projects.value!.splice(projectIndex!, 1)
+      }
 
       await $api.project.userMetaUpdate(projectId, {
         starred: false,

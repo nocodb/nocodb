@@ -194,9 +194,14 @@ useDialog(resolveComponent('WorkspaceMoveProjectDlg'), {
   'modelValue': isMoveDlgOpen,
   'project': selectedProjectToMove,
   'onUpdate:modelValue': (isOpen: boolean) => (isMoveDlgOpen.value = isOpen),
-  'onSuccess': async () => {
+  'onSuccess': async (workspaceId:string) => {
     isMoveDlgOpen.value = false
-    await loadProjects(activePage.value)
+    navigateTo({
+      query: {
+        workspaceId,
+        page: 'workspace',
+      },
+    })
   },
 })
 

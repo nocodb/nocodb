@@ -241,7 +241,7 @@ const projectListType = computed(() => {
     case 'shared':
       return 'Shared'
     case 'starred':
-      return 'Starred'
+      return 'Favourite'
     default:
       return '='
   }
@@ -359,7 +359,7 @@ const projectListType = computed(() => {
               trigger-sub-menu-action="click"
             >
               <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
-                <div class="nc-workspace-list-item flex items-center h-full" :data-id="workspace.id">
+                <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
                   <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
                     <div
                       :key="workspace.meta?.color"
@@ -410,7 +410,9 @@ const projectListType = computed(() => {
                       @dblclick="enableEdit(i)"
                       >{{ workspace.title }}</span
                     >
-                    <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500">({{ roleAlias[workspace.roles] }})</span>
+                    <span v-if="workspace.roles" class="text-[0.7rem] text-gray-500 hidden group-hover:inline"
+                      >({{ roleAlias[workspace.roles] }})</span
+                    >
                   </div>
                   <div class="flex-grow"></div>
                   <a-dropdown>
@@ -421,7 +423,7 @@ const projectListType = computed(() => {
                         <a-menu-item @click="enableEdit(i)">
                           <div class="flex flex-row items-center py-3 gap-2">
                             <MdiPencil />
-                            Move Workspace
+                            Rename Workspace
                           </div>
                         </a-menu-item>
                         <a-menu-item @click="deleteWorkspace(workspace)">
@@ -444,8 +446,8 @@ const projectListType = computed(() => {
       <!--    <a-layout class="!flex-col"> -->
       <!--      <a-layout-header></a-layout-header> -->
 
-      <div class="w-full pt-6 h-[calc(100vh_-_80px)] overflow-y-auto">
-        <div v-if="activeWorkspace" class="h-full flex flex-col">
+      <div class="w-full h-[calc(100vh_-_80px)] overflow-auto">
+        <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
           <div class="px-6 flex items-center">
             <div class="flex gap-2 items-center mb-4">
               <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
@@ -504,7 +506,7 @@ const projectListType = computed(() => {
           </a-tabs>
         </div>
         <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col">
-          <h2 class="pl-6 text-xl">{{ projectListType }} Projects</h2>
+          <h2 class="px-6 my-3 text-xl">{{ projectListType }} Projects</h2>
 
           <WorkspaceProjectList class="min-h-20 grow" />
         </div>

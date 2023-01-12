@@ -7,7 +7,7 @@ import { nextTick } from '@vue/runtime-core'
 import { NcProjectType, navigateTo, projectThemeColors, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 import { useNuxtApp } from '#app'
 
-const { projects, addToFavourite, removeFromFavourite, updateProjectTitle } = useWorkspaceStoreOrThrow()
+const { projects, addToFavourite, removeFromFavourite, updateProjectTitle, activePage } = useWorkspaceStoreOrThrow()
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -125,26 +125,34 @@ const disableEdit = (index: number) => {
 
 const customRow = (record: ProjectType) => ({
   onClick: async () => {
-    if (record.type === 'docs') {
-      await navigateTo(`/nc/doc/${record.id}`)
-    } else {
-      await navigateTo(`/nc/${record.id}`)
-    }
+    openProject(record)
 
     $e('a:project:open')
   },
   class: ['group'],
 })
 
-const columns = [
+const columns = computed(() => [
   {
     title: 'Project Name',
     dataIndex: 'title',
     sorter: {
       compare: (a, b) => a.title?.localeCompare(b.title),
-      multiple: 4,
+      multiple: 5,
     },
   },
+  ...(activePage.value !== 'workspace'
+    ? [
+        {
+          title: 'Workspace Name',
+          dataIndex: 'workspace_title',
+          sorter: {
+            compare: (a, b) => a.workspace_title?.localeCompare(b.workspace_title),
+            multiple: 4,
+          },
+        },
+      ]
+    : []),
   {
     title: 'Project Type',
     dataIndex: 'type',
@@ -173,7 +181,47 @@ const columns = [
     title: 'Actions',
     dataIndex: 'id',
   },
-]
+])
+
+const isMoveDlgOpen = ref(false)
+const selectedProjectToMove = ref()
+
+useDialog(resolveComponent('WorkspaceMoveProjectDlg'), {
+  'modelValue': isMoveDlgOpen,
+  'project': selectedProjectToMove,
+  'onUpdate:modelValue': (isOpen: boolean) => (isMoveDlgOpen.value = isOpen),
+  'onSuccess': async (workspaceId: string) => {
+    isMoveDlgOpen.value = false
+    navigateTo({
+      query: {
+        workspaceId,
+        page: 'workspace',
+      },
+    })
+  },
+})
+
+const moveProject = (project: ProjectType) => {
+  selectedProjectToMove.value = project
+  isMoveDlgOpen.value = true
+}
+
+let clickCount = 0
+let timer: any = null
+const delay = 250
+function onProjectTitleClick(index: number) {
+  clickCount++
+  if (clickCount === 1) {
+    timer = setTimeout(function () {
+      navigateTo(`/nc/${projects.value![index].id}`)
+      clickCount = 0
+    }, delay)
+  } else {
+    clearTimeout(timer)
+    enableEdit(index)
+    clickCount = 0
+  }
+}
 </script>
 
 <template>
@@ -225,13 +273,14 @@ const columns = [
                 </template>
               </a-dropdown>
             </div>
-            <div class="min-w-10" @click.stop>
+            <div class="min-w-10">
               <input
                 v-if="record.edit"
                 ref="renameInput"
                 v-model="record.temp_title"
                 class="!leading-none p-1 bg-transparent max-w-full !w-auto"
                 autofocus
+                @click.stop
                 @blur="disableEdit(i)"
                 @keydown.enter="updateProjectTitle(record)"
                 @keydown.esc="disableEdit(i)"
@@ -241,11 +290,12 @@ const columns = [
                 v-else
                 :title="record.title"
                 class="whitespace-nowrap overflow-hidden overflow-ellipsis cursor-pointer"
-                @dblclick="enableEdit(i)"
+                @click.stop="onProjectTitleClick(i)"
               >
                 {{ record.title }}
               </div>
             </div>
+
             <div @click.stop>
               <MdiStar v-if="record.starred" class="text-yellow-400 cursor-pointer" @click="removeFromFavourite(record.id)" />
               <MdiStarOutline
@@ -274,10 +324,25 @@ const columns = [
         <div v-if="column.dataIndex === 'workspace_role'" class="text-xs text-gray-500">
           {{ roleAlias[record.workspace_role || record.project_role] }}
         </div>
+        <div v-if="column.dataIndex === 'workspace_title'" class="text-xs text-gray-500">
+          <span v-if="text" class="text-xs text-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis">
+            <nuxt-link
+              :to="{
+                query: {
+                  page: 'workspace',
+                  workspaceId: record.fk_workspace_id,
+                },
+              }"
+              @click.stop
+            >
+              {{ text }}
+            </nuxt-link>
+          </span>
+        </div>
 
         <template v-if="column.dataIndex === 'id'">
           <div class="flex items-center gap-2">
-            <a-dropdown v-if="isUIAllowed('')">
+            <a-dropdown v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())">
               <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
               <template #overlay>
                 <a-menu>
@@ -287,7 +352,10 @@ const columns = [
                       Rename Project
                     </div>
                   </a-menu-item>
-                  <a-menu-item @click="enableEdit(i)">
+                  <a-menu-item
+                    v-if="isUIAllowed('moveProject', true, [record.workspace_role, record.project_role].join())"
+                    @click="moveProject(record)"
+                  >
                     <div class="flex flex-row items-center py-3 gap-2">
                       <MdiFolderMove />
                       Move Project

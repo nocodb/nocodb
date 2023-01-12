@@ -74,7 +74,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "move": "Move"
   },
   "objects": {
     "project": "Project",
@@ -314,6 +315,7 @@
     "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
+    "moveProject": "Move Project",
     "createProject": "Create Project",
     "importProject": "Import Project",
     "searchProject": "Search Project",

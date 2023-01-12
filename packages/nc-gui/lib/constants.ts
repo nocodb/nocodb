@@ -34,6 +34,7 @@ const rolePermissions = {
       superAdminUserManagement: true,
       superAdminAppSettings: true,
       appLicense: true,
+      moveProject: true,
     },
   },
   [ProjectRole.Owner]: {

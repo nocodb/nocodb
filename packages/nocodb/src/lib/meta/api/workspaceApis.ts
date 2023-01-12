@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { Workspace } from '../../models/Workspace';
-import { WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk';
+import { ProjectRoles, WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { WorkspaceUser } from '../../models/WorkspaceUser';
@@ -11,6 +11,7 @@ import User from '../../models/User';
 import { v4 as uuidv4 } from 'uuid';
 import Project from '../../models/Project';
 import validateParams from '../helpers/validateParams';
+import ProjectUser from '../../models/ProjectUser';
 
 const workspaceCreate = async (
   req: Request<any, WorkspaceType, WorkspaceType>,
@@ -328,6 +329,47 @@ const workspaceInvitationReject = async (req, res) => {
     )
   );
 };
+
+const moveProjectToWorkspace = async (req, res) => {
+  // verify user is current project owner or workspace owner
+
+  const project = await Project.get(req.params.projectId);
+
+  const projectUser = await ProjectUser.get(
+    req.params.projectId,
+    req['user']?.id
+  );
+  const currentWorkspaceUser = await WorkspaceUser.get(
+    project.fk_workspace_id,
+    req['user']?.id
+  );
+
+  if (
+    projectUser?.roles !== ProjectRoles.OWNER &&
+    currentWorkspaceUser?.roles !== WorkspaceUserRoles.OWNER
+  ) {
+    NcError.forbidden('You are not the project owner');
+  }
+
+  // verify user is workaggerspace owner
+
+  const destWorkspaceUser = await WorkspaceUser.get(
+    req.params.workspaceId,
+    req['user']?.id
+  );
+
+  if (destWorkspaceUser?.roles !== WorkspaceUserRoles.OWNER) {
+    NcError.forbidden('You are not the workspace owner');
+  }
+
+  // update the project workspace id
+  await Project.update(req.params.projectId, {
+    fk_workspace_id: req.params.workspaceId,
+  });
+
+  res.json({ msg: 'success' });
+};
+
 /*const workspaceInvitationTokenRead = (_req, _res) => {
   // todo
 };*/
@@ -348,6 +390,11 @@ router.get(
 router.patch(
   '/api/v1/workspaces/:workspaceId',
   ncMetaAclMw(workspaceUpdate, 'workspaceUpdate')
+);
+
+router.post(
+  '/api/v1/workspaces/:workspaceId/projects/:projectId/move',
+  ncMetaAclMw(moveProjectToWorkspace, 'moveProjectToWorkspace')
 );
 
 //

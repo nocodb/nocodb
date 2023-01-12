@@ -104,12 +104,14 @@ export class Workspace implements WorkspaceType {
     });
 
     // todo: reset project workspace mapping
+    // and mark it as deleted
     await ncMeta.metaUpdate(
       null,
       null,
       MetaTable.PROJECT,
       {
         fk_workspace_id: null,
+        deleted: true,
       },
       {
         fk_workspace_id: id,

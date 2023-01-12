@@ -5923,5 +5923,26 @@ export class Api<
         format: 'json',
         ...params,
       }),
+
+    /**
+     * @description Workspace projects list
+     *
+     * @tags Workspace project
+     * @name Move
+     * @summary Workspace project move
+     * @request POST:/api/v1/workspaces/{toWorkspaceId}/projects/{projectId}/move
+     * @response `200` `void` OK
+     */
+    move: (
+      toWorkspaceId: string,
+      projectId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${toWorkspaceId}/projects/${projectId}/move`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
   };
 }

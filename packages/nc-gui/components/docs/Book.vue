@@ -22,7 +22,7 @@ const {
   createImport,
   fetchAllPages,
   allPages,
-  nestedUrl,
+  openPage,
 } = useDocs()
 
 const isDraftsOpen = ref(false)
@@ -256,7 +256,7 @@ const loadListData = async ($state: any) => {
                   v-for="(page, index) of allPages"
                   :key="index"
                   class="flex cursor-pointer px-5 mx-1 py-3 rounded-md border-gray-50 border-1 hover:bg-gray-50 shadow-gray-50 shadow-sm"
-                  @click="() => navigateTo(nestedUrl(page.id))"
+                  @click="() => openPage(page)"
                 >
                   <div class="flex flex-col gap-y-2">
                     <div style="font-weight: 450; font-size: 0.9rem">
@@ -264,7 +264,7 @@ const loadListData = async ($state: any) => {
                     </div>
 
                     <div class="flex text-gray-400" style="font-weight: 300; font-size: 0.7rem">
-                      Updated {{ dayjs(page!.updated_at!).fromNow() }}
+                      Updated {{ dayjs(page!.updated_at!).local().fromNow() }}
                     </div>
                   </div>
                 </div>

@@ -22,6 +22,7 @@ export function useDocs() {
 
   const isPublic = inject(IsDocsPublicInj, ref(false))
 
+  const isFetchingPagesFromUrl = useState<boolean>('isFetchingPagesFromUrl', () => false)
   const books = useState<BookType[]>('books', () => [])
   const nestedPages = useState<PageSidebarNode[]>('nestedPages', () => [])
   const drafts = useState<PageSidebarNode[]>('drafts', () => [])
@@ -47,6 +48,8 @@ export function useDocs() {
 
   const openedNestedPagesOfBook = computed(() => {
     if (route.params.slugs?.length < 1 || !openedBook.value || nestedPages.value.length === 0) return []
+    if (isFetchingPagesFromUrl.value) return []
+
     const pageSlugs = (route.params.slugs as string[]).filter((_, i) => i !== 0)
 
     let currentPages = nestedPages.value
@@ -68,6 +71,7 @@ export function useDocs() {
 
   const openedPage = computed(() => {
     if (!openedPageSlug.value) return undefined
+    if (isFetchingPagesFromUrl.value) return undefined
 
     return openedNestedPagesOfBook.value.length > 0
       ? openedNestedPagesOfBook.value[openedNestedPagesOfBook.value.length - 1]
@@ -171,22 +175,28 @@ export function useDocs() {
     // Since slug will `book-slug/page-slug`, we need to skip if there is no page slug
     if (!route.params.slugs || route.params.slugs.length <= 1) return
 
-    let parentPage: DocsPageType | undefined = nestedPages.value.find((page) => page.slug === route.params.slugs[1])
-    const pagesSlugs = (route.params.slugs as string[])?.filter((_, i) => i > 0)
-    const pagesIds = []
-    for (const slug of pagesSlugs) {
-      const childDocs = await fetchPages({ parentPageId: parentPage?.id, book: openedBook.value! })
+    isFetchingPagesFromUrl.value = true
 
-      if (parentPage) pagesIds.push(parentPage.id!)
+    try {
+      let parentPage: PageSidebarNode | undefined = nestedPages.value.find((page) => page.slug === route.params.slugs[1])
+      const pagesSlugs = (route.params.slugs as string[])?.filter((_, i) => i > 0)
+      const pagesIds = []
+      for (const slug of pagesSlugs) {
+        const childDocs = await fetchPages({ parentPageId: parentPage?.id, book: openedBook.value! })
 
-      if (!childDocs) throw new Error(`Nested Child Page not found:${parentPage?.id}`)
-      parentPage = childDocs.find((page) => page.slug === slug)
-    }
+        if (parentPage) pagesIds.push(parentPage.id!)
 
-    for (const id of pagesIds) {
-      if (!openedTabs.value.includes(id)) {
-        openedTabs.value.push(id)
+        if (!childDocs) throw new Error(`Nested Child Page not found:${parentPage?.id}`)
+        parentPage = { ...parentPage, ...childDocs.find((page) => page.slug === slug), children: parentPage?.children } as any
       }
+
+      for (const id of pagesIds) {
+        if (!openedTabs.value.includes(id)) {
+          openedTabs.value.push(id)
+        }
+      }
+    } finally {
+      isFetchingPagesFromUrl.value = false
     }
   }
 
@@ -331,12 +341,14 @@ export function useDocs() {
       parentPage = findPage(parentPage.parentNodeId)!
     }
 
-    // slugs.unshift(openedBook.value!.slug!)
+    return urlFromPageSlugs(slugs)
+  }
+
+  function urlFromPageSlugs(pageSlugs: string[]) {
     const publicBookSlug = route.params.slugs?.length > 0 ? route.params.slugs[0] : openedBook.value!.slug!
     const url = isPublic.value
-      ? `/nc/doc/${projectId!}/public/${publicBookSlug}/${slugs.join('/')}`
-      : `/nc/doc/${projectId!}/${openedBook.value!.slug!}/${slugs.join('/')}`
-    // Will include book slug, as we use `parentNodeId` which is book slug for root nestedPages
+      ? `/nc/doc/${projectId!}/public/${publicBookSlug}/${pageSlugs.join('/')}`
+      : `/nc/doc/${projectId!}/${openedBook.value!.slug!}/${pageSlugs.join('/')}`
     return url
   }
 
@@ -507,6 +519,19 @@ export function useDocs() {
     }
   }
 
+  // The page/its parents might not be in nestedPage list
+  const openPage = async (page: PageSidebarNode) => {
+    const parents = await $api.nocoDocs.parentPages({
+      bookId: openedBook.value!.id!,
+      pageId: page.id!,
+      projectId: projectId!,
+    })
+
+    const url = urlFromPageSlugs([...parents.map((p) => p.slug!).reverse(), page.slug!])
+    await navigateTo(url)
+    fetchNestedChildPagesFromRoute()
+  }
+
   const uploadFile = async (file: File) => {
     // todo: use a better id
     const randomId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
@@ -603,5 +628,6 @@ export function useDocs() {
     magicOutline,
     allPages,
     fetchAllPages,
+    openPage,
   }
 }

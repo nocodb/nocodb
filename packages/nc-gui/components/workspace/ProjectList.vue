@@ -7,7 +7,7 @@ import { nextTick } from '@vue/runtime-core'
 import { NcProjectType, navigateTo, projectThemeColors, timeAgo, useWorkspaceStoreOrThrow } from '#imports'
 import { useNuxtApp } from '#app'
 
-const { projects, addToFavourite, removeFromFavourite, updateProjectTitle, activePage, loadProjects } = useWorkspaceStoreOrThrow()
+const { projects, addToFavourite, removeFromFavourite, updateProjectTitle, activePage } = useWorkspaceStoreOrThrow()
 
 // const filteredProjects = computed(() => projects.value?.filter((p) => !p.deleted) || [])
 
@@ -125,11 +125,7 @@ const disableEdit = (index: number) => {
 
 const customRow = (record: ProjectType) => ({
   onClick: async () => {
-    if (record.type === 'docs') {
-      await navigateTo(`/nc/doc/${record.id}`)
-    } else {
-      await navigateTo(`/nc/${record.id}`)
-    }
+    openProject(record)
 
     $e('a:project:open')
   },
@@ -194,7 +190,7 @@ useDialog(resolveComponent('WorkspaceMoveProjectDlg'), {
   'modelValue': isMoveDlgOpen,
   'project': selectedProjectToMove,
   'onUpdate:modelValue': (isOpen: boolean) => (isMoveDlgOpen.value = isOpen),
-  'onSuccess': async (workspaceId:string) => {
+  'onSuccess': async (workspaceId: string) => {
     isMoveDlgOpen.value = false
     navigateTo({
       query: {
@@ -346,7 +342,7 @@ function onProjectTitleClick(index: number) {
 
         <template v-if="column.dataIndex === 'id'">
           <div class="flex items-center gap-2">
-            <a-dropdown v-if="isUIAllowed('')">
+            <a-dropdown v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())">
               <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
               <template #overlay>
                 <a-menu>
@@ -356,7 +352,10 @@ function onProjectTitleClick(index: number) {
                       Rename Project
                     </div>
                   </a-menu-item>
-                  <a-menu-item @click="moveProject(record)">
+                  <a-menu-item
+                    v-if="isUIAllowed('moveProject', true, [record.workspace_role, record.project_role].join())"
+                    @click="moveProject(record)"
+                  >
                     <div class="flex flex-row items-center py-3 gap-2">
                       <MdiFolderMove />
                       Move Project

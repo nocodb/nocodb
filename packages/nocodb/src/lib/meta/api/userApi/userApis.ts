@@ -383,7 +383,6 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
   if (user) {
     const token = uuidv4();
     await User.update(user.id, {
-      email: user.email,
       reset_password_token: token,
       reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
       token_version: null,

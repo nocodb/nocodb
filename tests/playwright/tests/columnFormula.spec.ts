@@ -3,6 +3,14 @@ import { DashboardPage } from '../pages/Dashboard';
 import setup, { NcContext } from '../setup';
 import { isPg, isSqlite } from '../setup/db';
 
+// find date diff between 2023/10/14 and today
+const dateDiff = (date: Date) => {
+  const today = new Date();
+  const diff = date.getTime() - today.getTime() - 1;
+  return Math.ceil(diff / (1000 * 3600 * 24));
+};
+const dateDiffDays = dateDiff(new Date('2022/10/14'));
+
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
 /**
@@ -80,7 +88,7 @@ const formulaDataByDbType = (context: NcContext) => [
   },
   {
     formula: `DATETIME_DIFF("2022/10/14", NOW(), "d")`,
-    result: ['-90', '-90', '-90', '-90', '-90'],
+    result: [`${dateDiffDays}`, `${dateDiffDays}`, `${dateDiffDays}`, `${dateDiffDays}`, `${dateDiffDays}`],
   },
   {
     formula: `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`,

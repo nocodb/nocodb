@@ -133,7 +133,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 <template>
   <div
     class="w-[400px] bg-gray-50 shadow p-4 overflow-auto border"
-    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
+    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula, '!w-[500px]': formState.uidt === UITypes.Attachment }"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
@@ -169,6 +169,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           </a-select>
         </a-form-item>
 
+        <LazySmartsheetColumnAttachmentOptions v-if="formState.uidt === UITypes.Attachment" v-model:value="formState" />
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />

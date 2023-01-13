@@ -73,7 +73,10 @@ const onClickSetCurrentLocation = () => {
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
       <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
-        <a-form-item class="inputLat" :label="$t('labels.lat')">
+        <a-form-item class="inputLat">
+          <template #label>
+            <div class="fixed-width">{{ $t('labels.lat') }}</div>
+          </template>
           <a-input
             v-model:value="formState.latitude"
             type="number"
@@ -91,7 +94,10 @@ const onClickSetCurrentLocation = () => {
           />
         </a-form-item>
 
-        <a-form-item class="inputLng" :label="$t('labels.lng')">
+        <a-form-item class="inputLng">
+          <template #label>
+            <div>{{ $t('labels.lng') }}</div>
+          </template>
           <a-input
             v-model:value="formState.longitude"
             type="number"
@@ -133,11 +139,14 @@ input[type='number']:focus {
   margin-top: 1rem;
   margin-bottom: 0.5rem;
   margin-right: 0.5rem;
-  margin-left: 0.5rem;
 }
 .inputLng {
   width: 180px;
   margin-right: 0.5rem;
+}
+
+.fixed-width {
+  width: 24px;
 }
 .buttons {
   margin-left: auto;

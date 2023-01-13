@@ -118,6 +118,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       const newAttachments = []
 
       for (let file of selectedFiles) {
+        // verify mime type
+        const meta = typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta
+        if (meta.unsupportedAttachmentMimeTypes.includes(file.type)) {
+          message.error(`${file.name} has the mime type ${file.type} which is not allowed in this column.`)
+          continue
+        }
+
         file = await renameFile(file)
         try {
           const data = await api.storage.upload(

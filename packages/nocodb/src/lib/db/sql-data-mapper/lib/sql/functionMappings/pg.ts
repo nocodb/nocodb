@@ -91,7 +91,7 @@ const pg = {
                     DATE_PART('year', AGE(${datetime_expr2}, '1900/01/01')) * 4) - 1)`;
         break;
       case 'year':
-        sql = `DATE_PART('year', ${datetime_expr1}::TIMESTAMP) - DATE_PART('year', ${datetime_expr2}::TIMESTAMP)`;
+        sql = `DATE_PART('year', age(${datetime_expr1}, ${datetime_expr2}))`;
         break;
       case 'day':
         sql = `DATE_PART('day', ${datetime_expr1}::TIMESTAMP - ${datetime_expr2}::TIMESTAMP)`;

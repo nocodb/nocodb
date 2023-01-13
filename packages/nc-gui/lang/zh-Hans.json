@@ -277,6 +277,7 @@
     "selectUserRole": "选择用户角色",
     "childTable": "子表",
     "childColumn": "子列",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "更新",
     "onDelete": "删除",
     "account": "帐户",

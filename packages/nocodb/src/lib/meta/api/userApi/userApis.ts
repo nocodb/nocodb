@@ -167,7 +167,6 @@ export async function signup(req: Request, res: Response<TableType>) {
         email_verification_token,
         invite_token: null,
         invite_token_expires: null,
-        email: user.email,
       });
     } else {
       NcError.badRequest('User already exist');
@@ -356,7 +355,6 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
   await User.update(user.id, {
     salt,
     password,
-    email: user.email,
     token_version: null,
   });
 
@@ -467,7 +465,6 @@ async function passwordReset(req, res): Promise<any> {
   await User.update(user.id, {
     salt,
     password,
-    email: user.email,
     reset_password_expires: null,
     reset_password_token: '',
     token_version: null,
@@ -496,7 +493,6 @@ async function emailVerification(req, res): Promise<any> {
   }
 
   await User.update(user.id, {
-    email: user.email,
     email_verification_token: '',
     email_verified: true,
   });
@@ -527,7 +523,6 @@ async function refreshToken(req, res): Promise<any> {
     const refreshToken = randomTokenString();
 
     await User.update(user.id, {
-      email: user.email,
       refresh_token: refreshToken,
     });
 

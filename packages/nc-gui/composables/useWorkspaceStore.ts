@@ -19,7 +19,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   const { $api } = useNuxtApp()
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
-    () => (route.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent',
+    () => (route.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
   )
 
   const activeWorkspace = computed(() => {

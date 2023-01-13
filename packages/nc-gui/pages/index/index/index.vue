@@ -247,58 +247,13 @@ const projectListType = computed(() => {
   <NuxtLayout name="new">
     <template #sidebar>
       <div class="h-[calc(100vh_-_80px)] flex flex-col min-h-[400px] overflow-auto">
-        <div class="nc-workspace-group overflow-auto flex-shrink scrollbar-thin-dull">
-          <div
-            class="nc-workspace-group-item"
-            :class="{ active: activePage === 'recent' }"
-            @click="
-              navigateTo({
-                query: {
-                  page: 'recent',
-                },
-              })
-            "
-          >
-            <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
-            <span>Recent</span>
-          </div>
-          <div
-            class="nc-workspace-group-item"
-            :class="{ active: activePage === 'shared' }"
-            @click="
-              navigateTo({
-                query: {
-                  page: 'shared',
-                },
-              })
-            "
-          >
-            <MaterialSymbolsGroupsOutline class="nc-icon" />
-            <span>Shared with me</span>
-          </div>
-          <div
-            class="nc-workspace-group-item"
-            :class="{ active: activePage === 'starred' }"
-            @click="
-              navigateTo({
-                query: {
-                  page: 'starred',
-                },
-              })
-            "
-          >
-            <MaterialSymbolsStarOutline class="nc-icon" />
-            <span>Favourites</span>
-          </div>
-        </div>
-
         <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
           All workspaces
           <div class="flex-grow"></div>
           <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true" />
         </div>
 
-        <div class="overflow-auto flex-grow min-h-25" style="flex-basis: 0px">
+        <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0; max">
           <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
           <a-menu
@@ -365,8 +320,10 @@ const projectListType = computed(() => {
                   >
                 </div>
                 <div class="flex-grow"></div>
-                <a-dropdown>
-                  <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu min-w-4" />
+                <a-dropdown :trigger="['click']">
+                  <MdiDotsHorizontal
+                    class="!text-gray-400 nc-workspace-menu min-w-4 transform transition-transform hover:(scale-130)"
+                  />
 
                   <template #overlay>
                     <a-menu>
@@ -388,6 +345,51 @@ const projectListType = computed(() => {
               </div>
             </a-menu-item>
           </a-menu>
+        </div>
+        <a-divider class="!py-0 !my-0" />
+        <div class="nc-workspace-group overflow-auto flex-grow" style="flex-basis: 0">
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'recent' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'recent',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
+            <span>Recent</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'shared' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'shared',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsGroupsOutline class="nc-icon" />
+            <span>Shared with me</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'starred' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'starred',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsStarOutline class="nc-icon" />
+            <span>Favourites</span>
+          </div>
         </div>
       </div>
     </template>

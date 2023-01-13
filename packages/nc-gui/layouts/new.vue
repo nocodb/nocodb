@@ -20,7 +20,6 @@ watch(hasSidebar, (val) => {
     })
   }
 })
-
 </script>
 
 <script lang="ts">

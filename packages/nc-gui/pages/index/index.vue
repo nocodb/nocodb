@@ -7,5 +7,5 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 </script>
 
 <template>
-  <NuxtPage :transition="false"/>
+  <NuxtPage :transition="false" />
 </template>

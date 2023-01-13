@@ -1,28 +1,28 @@
-import {Router} from 'express';
+import { Router } from 'express';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
   PluginCategory,
 } from 'nocodb-sdk';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-import {OrgUserRoles} from 'nocodb-sdk';
-import {NC_APP_SETTINGS} from '../../constants';
+import { OrgUserRoles } from 'nocodb-sdk';
+import { NC_APP_SETTINGS } from '../../constants';
 import Audit from '../../models/Audit';
 import ProjectUser from '../../models/ProjectUser';
 import Store from '../../models/Store';
 import SyncSource from '../../models/SyncSource';
 import User from '../../models/User';
 import Noco from '../../Noco';
-import {MetaTable} from '../../utils/globals';
-import {Tele} from 'nc-help';
-import {metaApiMetrics} from '../helpers/apiMetrics';
-import {NcError} from '../helpers/catchError';
-import {extractProps} from '../helpers/extractProps';
+import { MetaTable } from '../../utils/globals';
+import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
+import { NcError } from '../helpers/catchError';
+import { extractProps } from '../helpers/extractProps';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import {PagedResponseImpl} from '../helpers/PagedResponse';
-import {randomTokenString} from '../helpers/stringHelpers';
-import {sendInviteEmail} from './projectUserApis';
+import { PagedResponseImpl } from '../helpers/PagedResponse';
+import { randomTokenString } from '../helpers/stringHelpers';
+import { sendInviteEmail } from './projectUserApis';
 
 async function userGetByUsername(req, res) {
   const user = await User.getByUsername(req.params.username);
@@ -97,7 +97,7 @@ async function userDelete(req, res) {
     throw e;
   }
 
-  res.json({msg: 'success'});
+  res.json({ msg: 'success' });
 }
 
 async function userAdd(req, res, next) {
@@ -146,7 +146,7 @@ async function userAdd(req, res, next) {
         });
 
         const count = await User.count();
-        Tele.emit('evt', {evt_type: 'org:user:invite', count});
+        Tele.emit('evt', { evt_type: 'org:user:invite', count });
 
         await Audit.insert({
           op_type: AuditOperationTypes.ORG_USER,
@@ -161,7 +161,7 @@ async function userAdd(req, res, next) {
           emails.length === 1 &&
           !(await sendInviteEmail(email, invite_token, req))
         ) {
-          return res.json({invite_token, email});
+          return res.json({ invite_token, email });
         } else {
           sendInviteEmail(email, invite_token, req);
         }
@@ -170,7 +170,7 @@ async function userAdd(req, res, next) {
         if (emails.length === 1) {
           return next(e);
         } else {
-          error.push({email, error: e.message});
+          error.push({ email, error: e.message });
         }
       }
     }
@@ -181,7 +181,7 @@ async function userAdd(req, res, next) {
       msg: 'success',
     });
   } else {
-    return res.json({invite_token, emails, error});
+    return res.json({ invite_token, emails, error });
   }
 }
 
@@ -224,7 +224,7 @@ async function userInviteResend(req, res): Promise<any> {
     ip: req.clientIp,
   });
 
-  res.json({msg: 'success'});
+  res.json({ msg: 'success' });
 }
 
 async function generateResetUrl(req, res) {
@@ -250,8 +250,7 @@ async function appSettingsGet(_req, res) {
   let settings = {};
   try {
     settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
-  } catch {
-  }
+  } catch {}
   res.json(settings);
 }
 
@@ -261,7 +260,7 @@ async function appSettingsSet(req, res) {
     key: NC_APP_SETTINGS,
   });
 
-  res.json({msg: 'Settings saved'});
+  res.json({ msg: 'Settings saved' });
 }
 
 async function userProfileGet(req, res) {
@@ -338,7 +337,7 @@ async function isFollowing(req, res) {
   );
 }
 
-const router = Router({mergeParams: true});
+const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/users',
   metaApiMetrics,

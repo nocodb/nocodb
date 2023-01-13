@@ -342,8 +342,14 @@ function onProjectTitleClick(index: number) {
 
         <template v-if="column.dataIndex === 'id'">
           <div class="flex items-center gap-2">
-            <a-dropdown v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())">
-              <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
+            <a-dropdown
+              v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())"
+              :trigger="['click']"
+            >
+              <MdiDotsHorizontal
+                class="!text-gray-400 nc-workspace-menu transform transition-transform hover:(scale-130)"
+                @click.stop
+              />
               <template #overlay>
                 <a-menu>
                   <a-menu-item @click="enableEdit(i)">
@@ -397,5 +403,9 @@ function onProjectTitleClick(index: number) {
   .ant-table-container {
     @apply h-full;
   }
+}
+
+:deep(.ant-table-row) {
+  @apply cursor-pointer;
 }
 </style>

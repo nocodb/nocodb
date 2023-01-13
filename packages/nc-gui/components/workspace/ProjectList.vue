@@ -347,7 +347,7 @@ function onProjectTitleClick(index: number) {
               :trigger="['click']"
             >
               <MdiDotsHorizontal
-                class="!text-gray-400 nc-workspace-menu transform transition-transform hover:(scale-130)"
+                class="outline-0 nc-workspace-menu transform transition-transform !text-gray-400 hover:(scale-130 !text-gray-500)"
                 @click.stop
               />
               <template #overlay>

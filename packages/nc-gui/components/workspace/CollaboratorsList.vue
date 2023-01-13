@@ -36,7 +36,7 @@ const updateCollaborator = async (collab) => {
 </script>
 
 <template>
-  <div>
+  <div class="mt-4">
     <div class="px-6 pb-2">
       <div class="text-xl mb-2">Members</div>
       <div class="text-gray-500 text-xs">Manage who has access to this workspace</div>
@@ -77,7 +77,9 @@ const updateCollaborator = async (collab) => {
           </td>
           <td>
             <a-dropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
-              <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu transform transition-transform hover:(scale-130)" />
+              <MdiDotsHorizontal
+                class="outline-0 nc-workspace-menu transform transition-transform !text-gray-400 hover:(scale-130 !text-gray-500)"
+              />
               <template #overlay>
                 <a-menu>
                   <a-menu-item @click="removeCollaborator(collab.id)">

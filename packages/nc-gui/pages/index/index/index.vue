@@ -322,7 +322,7 @@ const projectListType = computed(() => {
                 <div class="flex-grow"></div>
                 <a-dropdown :trigger="['click']">
                   <MdiDotsHorizontal
-                    class="!text-gray-400 nc-workspace-menu min-w-4 transform transition-transform hover:(scale-130)"
+                    class="outline-0 nc-workspace-menu min-w-4 transform transition-transform !text-gray-400 hover:(scale-130 !text-gray-500)"
                   />
 
                   <template #overlay>
@@ -454,7 +454,12 @@ const projectListType = computed(() => {
         </a-tabs>
       </div>
       <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col">
-        <h2 class="px-6 my-3 text-xl">{{ projectListType }} Projects</h2>
+        <h2 class="px-6 my-3 text-xl flex items-center gap-2 mb-4 mt-6 h-8">
+          <MaterialSymbolsNestClockFarsightAnalogOutlineRounded v-if="activePage === 'recent'" class="h-8" />
+          <MaterialSymbolsGroupsOutline v-else-if="activePage === 'shared'" />
+          <MaterialSymbolsStarOutline v-else-if="activePage === 'starred'" />
+          {{ projectListType }} Projects
+        </h2>
 
         <WorkspaceProjectList class="min-h-20 grow" />
       </div>
@@ -563,5 +568,9 @@ const projectListType = computed(() => {
 
 :deep(.ant-tabs-content) {
   @apply !min-h-25 !h-full;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !mb-0;
 }
 </style>

@@ -12,7 +12,18 @@ const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject(EditModeInj)
 
-const vModel = useVModel(props, 'modelValue', emits)
+const _vModel = useVModel(props, 'modelValue', emits)
+
+const vModel = computed({
+  get: () => _vModel.value,
+  set: (value) => {
+    if (value === '') {
+      _vModel.value = null
+    } else {
+      _vModel.value = value
+    }
+  },
+})
 
 const focus: VNodeRef = (el) => {
   ;(el as HTMLInputElement)?.focus()

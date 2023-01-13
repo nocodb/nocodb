@@ -278,7 +278,7 @@ export default class Base implements BaseType {
       ncMeta
     );
     for (const model of models) {
-      await model.delete(ncMeta);
+      await model.delete(ncMeta, true);
     }
     await NocoCache.deepDel(
       CacheScope.BASE,

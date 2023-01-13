@@ -345,7 +345,7 @@ export default class Model implements TableType {
     });
   }
 
-  async delete(ncMeta = Noco.ncMeta): Promise<boolean> {
+  async delete(ncMeta = Noco.ncMeta, force = false): Promise<boolean> {
     await Audit.deleteRowComments(this.id);
 
     for (const view of await this.getViews(true)) {
@@ -389,6 +389,31 @@ export default class Model implements TableType {
           CacheDelDirection.CHILD_TO_PARENT
         );
       }
+    }
+
+    if (force) {
+      const leftOverColumns = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_related_model_id: this.id,
+          },
+        }
+      );
+
+      for (const col of leftOverColumns) {
+        await NocoCache.deepDel(
+          CacheScope.COL_RELATION,
+          `${CacheScope.COL_RELATION}:${col.fk_column_id}`,
+          CacheDelDirection.CHILD_TO_PARENT
+        );
+      }
+
+      await ncMeta.metaDelete(null, null, MetaTable.COL_RELATIONS, {
+        fk_related_model_id: this.id,
+      });
     }
 
     await NocoCache.deepDel(

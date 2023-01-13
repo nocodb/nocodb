@@ -16,9 +16,7 @@ import {
 
 const route = useRoute()
 
-const { loadProject, updateProject, isLoading } = useProject()
-
-loadProject(false)
+const { project, loadProject, updateProject, isLoading } = useProject()
 
 const nameValidationRules = [
   {
@@ -43,6 +41,12 @@ const renameProject = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+onBeforeMount(async () => {
+  await loadProject(false)
+
+  formState.title = project.value?.title
+})
 
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>

@@ -15,7 +15,7 @@ Enter your work email and your password.
 <img width="1492" alt="image" src="https://user-images.githubusercontent.com/35857179/194793294-fa027496-c3c3-44eb-a613-2ba3e3bd26c1.png">
 
 <alert id="password-conditions">
-  Your password has at least 8 letters with one uppercase, one number and one special letter
+  Your password has at least 8 letters. No other constraints on case, numbers or special characters.
 </alert>
 
 ## Initialize Your First Project

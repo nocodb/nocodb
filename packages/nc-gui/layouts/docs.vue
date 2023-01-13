@@ -41,107 +41,111 @@ export default {
 </script>
 
 <template>
-  <a-layout>
-    <div class="absolute mx-auto w-160 mt-3 right-0 left-0">
-      <a-input class="!ml-10 doc-search flex" placeholder="Search">
-        <template #prefix>
-          <MdiMagnify class="text-sm" />
-        </template>
-      </a-input>
-    </div>
-    <a-layout-header class="flex !bg-white items-center text-white !pl-2 !pr-5 !py-7 border-b-1 border-gray-200">
-      <Transition name="slide">
-        <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
-      </Transition>
-      <div
-        v-e="['c:navbar:home']"
-        data-testid="nc-noco-brand-icon"
-        class="transition-all duration-200 py-2 pr-2 pl-4 cursor-pointer transform scale-135 hover:scale-145 nc-noco-brand-icon"
-        @click="navigateTo('/')"
-      >
-        <a-tooltip placement="bottom">
-          <template #title>
-            {{ currentVersion }}
-          </template>
-          <div class="flex items-center gap-2 ml-1">
-            <img width="100" alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" />
-            <img v-show="!isDashboard" width="90" alt="NocoDB" src="~/assets/img/brand/text.png" />
-          </div>
-        </a-tooltip>
-      </div>
-
-      <div class="flex-1" />
-
-      <LazyGeneralReleaseInfo />
-
-      <a-tooltip placement="bottom" :mouse-enter-delay="1">
-        <template #title> Switch language</template>
-
-        <div class="flex pr-4 items-center text-white">
-          <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
-        </div>
-      </a-tooltip>
-
-      <template v-if="!isPublic && signedIn">
-        <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
-          <MdiDotsVertical
-            data-testid="nc-menu-accounts"
-            class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-black"
-            @click.prevent
-          />
-
-          <template #overlay>
-            <a-menu class="!py-0 leading-8 !rounded">
-              <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
-                  <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
-                  <div class="prose group-hover:text-primary">
-                    <div>Account</div>
-                    <div class="text-xs text-gray-500">{{ email }}</div>
-                  </div>
-                </nuxt-link>
-              </a-menu-item>
-
-              <a-menu-divider class="!m-0" />
-              <!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
-                  <nuxt-link
-                    v-e="['c:settings:appstore', { page: true }]"
-                    class="nc-project-menu-item group !no-underline"
-                    to="/admin/users"
-                  >
-                    <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
-
-                    &lt;!&ndash; todo: i18n &ndash;&gt;
-                    <span class="prose group-hover:text-primary">Account management</span>
-                  </nuxt-link>
-                </a-menu-item>
-
-                <a-menu-divider class="!m-0" /> -->
-
-              <a-menu-item key="1" class="!rounded-b group">
-                <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
-                  <MdiLogout class="group-hover:text-accent" />&nbsp;
-
-                  <span class="prose group-hover:text-primary">
-                    {{ $t('general.signOut') }}
-                  </span>
+  <NuxtLayout name="new">
+    <!--    <a-layout> -->
+    <!--    <div class="absolute mx-auto w-160 mt-3 right-0 left-0">
+            <a-input class="!ml-10 doc-search flex" placeholder="Search">
+              <template #prefix>
+                <MdiMagnify class="text-sm" />
+              </template>
+            </a-input>
+          </div> -->
+    <!--    <a-layout-header class="flex !bg-white items-center text-white !pl-2 !pr-5 !py-7 border-b-1 border-gray-200">
+            <Transition name="slide">
+              <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
+            </Transition>
+            <div
+              v-e="['c:navbar:home']"
+              data-testid="nc-noco-brand-icon"
+              class="transition-all duration-200 py-2 pr-2 pl-4 cursor-pointer transform scale-135 hover:scale-145 nc-noco-brand-icon"
+              @click="navigateTo('/')"
+            >
+              <a-tooltip placement="bottom">
+                <template #title>
+                  {{ currentVersion }}
+                </template>
+                <div class="flex items-center gap-2 ml-1">
+                  <img width="100" alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" />
+                  <img v-show="!isDashboard" width="90" alt="NocoDB" src="~/assets/img/brand/text.png" />
                 </div>
-              </a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
-      </template>
-    </a-layout-header>
+              </a-tooltip>
+            </div>
+
+            <div class="flex-1" />
+
+            <LazyGeneralReleaseInfo />
+
+            <a-tooltip placement="bottom" :mouse-enter-delay="1">
+              <template #title> Switch language</template>
+
+              <div class="flex pr-4 items-center text-white">
+                <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
+              </div>
+            </a-tooltip>
+
+            <template v-if="!isPublic && signedIn">
+              <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
+                <MdiDotsVertical
+                  data-testid="nc-menu-accounts"
+                  class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-black"
+                  @click.prevent
+                />
+
+                <template #overlay>
+                  <a-menu class="!py-0 leading-8 !rounded">
+                    <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
+                      <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
+                        <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
+                        <div class="prose group-hover:text-primary">
+                          <div>Account</div>
+                          <div class="text-xs text-gray-500">{{ email }}</div>
+                        </div>
+                      </nuxt-link>
+                    </a-menu-item>
+
+                    <a-menu-divider class="!m-0" />
+                    &lt;!&ndash;                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
+                        <nuxt-link
+                          v-e="['c:settings:appstore', { page: true }]"
+                          class="nc-project-menu-item group !no-underline"
+                          to="/admin/users"
+                        >
+                          <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
+
+                          &lt;!&ndash; todo: i18n &ndash;&gt;
+                          <span class="prose group-hover:text-primary">Account management</span>
+                        </nuxt-link>
+                      </a-menu-item>
+
+                      <a-menu-divider class="!m-0" /> &ndash;&gt;
+
+                    <a-menu-item key="1" class="!rounded-b group">
+                      <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                        <MdiLogout class="group-hover:text-accent" />&nbsp;
+
+                        <span class="prose group-hover:text-primary">
+                          {{ $t('general.signOut') }}
+                        </span>
+                      </div>
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+            </template>
+          </a-layout-header> -->
     <a-layout>
       <a-layout-sider>
         <slot name="sidebar" />
       </a-layout-sider>
-      <a-layout-content> <slot /></a-layout-content>
+      <a-layout-content>
+        <slot />
+      </a-layout-content>
     </a-layout>
-  </a-layout>
-  <!-- <a-layout id="nc-app"> -->
+    <!--  </a-layout> -->
+    <!-- <a-layout id="nc-app"> -->
 
-  <!-- </a-layout> -->
+    <!-- </a-layout> -->
+  </NuxtLayout>
 </template>
 
 <style lang="scss">
@@ -162,6 +166,7 @@ export default {
     @apply ring ring-accent ring-opacity-100;
   }
 }
+
 .doc-search {
   @apply !rounded-md !bg-gray-100;
   input.ant-input {

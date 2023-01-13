@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useProject, useProvideCowriterStore, useRoute } from '#imports'
 
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 const route = useRoute()
 
 const { loadProject } = useProject()

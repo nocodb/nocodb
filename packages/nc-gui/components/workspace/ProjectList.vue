@@ -213,7 +213,7 @@ function onProjectTitleClick(index: number) {
   clickCount++
   if (clickCount === 1) {
     timer = setTimeout(function () {
-      navigateTo(`/nc/${projects.value![index].id}`)
+      openProject(projects.value![index])
       clickCount = 0
     }, delay)
   } else {
@@ -230,7 +230,6 @@ function onProjectTitleClick(index: number) {
       v-model:data-source="projects"
       class="h-full"
       :custom-row="customRow"
-      :table-layout="md ? 'auto' : 'fixed'"
       :columns="columns"
       :pagination="false"
       :scroll="{ y: 'calc(100% - 54px)' }"
@@ -296,7 +295,7 @@ function onProjectTitleClick(index: number) {
               </div>
             </div>
 
-            <div @click.stop>
+            <div v-if="!record.edit" @click.stop>
               <MdiStar v-if="record.starred" class="text-yellow-400 cursor-pointer" @click="removeFromFavourite(record.id)" />
               <MdiStarOutline
                 v-else
@@ -333,6 +332,7 @@ function onProjectTitleClick(index: number) {
                   workspaceId: record.fk_workspace_id,
                 },
               }"
+              class="!text-gray-500 !no-underline !hover:underline !hover:text-gray-500"
               @click.stop
             >
               {{ text }}
@@ -342,8 +342,14 @@ function onProjectTitleClick(index: number) {
 
         <template v-if="column.dataIndex === 'id'">
           <div class="flex items-center gap-2">
-            <a-dropdown v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())">
-              <MdiDotsHorizontal class="!text-gray-400 nc-workspace-menu" @click.stop />
+            <a-dropdown
+              v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())"
+              :trigger="['click']"
+            >
+              <MdiDotsHorizontal
+                class="!text-gray-400 nc-workspace-menu transform transition-transform hover:(scale-130)"
+                @click.stop
+              />
               <template #overlay>
                 <a-menu>
                   <a-menu-item @click="enableEdit(i)">
@@ -397,5 +403,9 @@ function onProjectTitleClick(index: number) {
   .ant-table-container {
     @apply h-full;
   }
+}
+
+:deep(.ant-table-row) {
+  @apply cursor-pointer;
 }
 </style>

@@ -53,6 +53,23 @@ function onClick(item: Record<string, any>) {
     }
   })
 }
+
+function onRemoveFileClick(title: any, i: number) {
+  Modal.confirm({
+    title: `Do you want to delete '${title}'?`,
+    wrapClassName: 'nc-modal-attachment-delete',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    async onOk() {
+      try {
+        removeFile(i)
+      } catch (e: any) {
+        message.error(e.message)
+      }
+    },
+  })
+}
 </script>
 
 <template>
@@ -103,7 +120,7 @@ function onClick(item: Record<string, any>) {
               <MdiCloseCircle
                 v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
                 class="nc-attachment-remove"
-                @click.stop="removeFile(i)"
+                @click.stop="onRemoveFileClick(item.title, i)"
               />
             </a-tooltip>
 

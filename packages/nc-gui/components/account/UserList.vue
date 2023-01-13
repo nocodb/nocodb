@@ -72,7 +72,7 @@ const deleteUser = async (userId: string) => {
     title: 'Are you sure you want to delete this user?',
     type: 'warn',
     content:
-      'Upon deletion, the user will be removed from the organization and any sync sources (such as Airtable) created by the user will also be removed.',
+      'Upon deletion, the user will be removed from the installation.',
     onOk: async () => {
       try {
         await api.orgUsers.delete(userId)

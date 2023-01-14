@@ -139,6 +139,7 @@ const sqlite3 = {
                   AND strftime('%d', ${datetime_expr1}) < strftime('%d', ${datetime_expr2})))
                 )
                 WHEN (${datetime_expr2} > ${datetime_expr1}) THEN 
+                -1 * (
                   (strftime('%Y', ${datetime_expr2}) - strftime('%Y', ${datetime_expr1}))
                   - (strftime('%m', ${datetime_expr2}) < strftime('%m', ${datetime_expr1})
                   OR (strftime('%m', ${datetime_expr2}) = strftime('%m', ${datetime_expr1})

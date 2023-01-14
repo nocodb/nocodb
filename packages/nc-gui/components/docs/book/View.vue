@@ -2,7 +2,6 @@
 import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 import InfiniteLoading from 'v3-infinite-loading'
-import type { PageSidebarNode } from '~/composables/docs/useDocs'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFileEditOutline from '~icons/mdi/file-edit-outline'
 import MdiPublish from '~icons/mdi/publish'
@@ -10,7 +9,7 @@ import MdiFilterVariant from '~icons/mdi/filter-variant'
 const { project } = useProject()
 const {
   openedBook,
-  bulkPublish,
+  isBulkPublishing,
   books,
   selectBook,
   drafts,
@@ -31,9 +30,7 @@ const {
   isOnlyBookOpened,
 } = useDocs()
 
-const isDraftsOpen = ref(false)
-const draftsFormData = ref<Array<PageSidebarNode & { selected: boolean }>>([])
-const isPagePublishing = ref(false)
+const showPublishModal = ref(false)
 
 const showCreateBookModal = ref(false)
 const bookFormModelData = ref({
@@ -97,25 +94,6 @@ const importFormData = ref({
 })
 const isImporting = ref(false)
 const importType: Ref<'nuxt' | 'md' | 'docusaurus' | 'vitepress' | null> = ref(null)
-
-const publishDrafts = async () => {
-  isPagePublishing.value = true
-
-  try {
-    await bulkPublish(draftsFormData.value.filter((draft) => draft.selected))
-  } catch (e) {
-    console.error(e)
-  } finally {
-    isPagePublishing.value = false
-    isDraftsOpen.value = false
-  }
-}
-
-const openDrafts = async () => {
-  await fetchDrafts()
-  draftsFormData.value = drafts.value.map((draft) => ({ ...draft, selected: true }))
-  isDraftsOpen.value = true
-}
 
 const onCreateBook = async () => {
   await createBook({ book: { ...bookFormModelData.value } })
@@ -272,7 +250,7 @@ const loadListData = async ($state: any) => {
                 </a-menu>
               </template>
             </a-dropdown>
-            <a-button type="primary" :disabled="!haveDrafts" :loading="isPagePublishing" @click="openDrafts">
+            <a-button type="primary" :disabled="!haveDrafts" :loading="isBulkPublishing" @click="showPublishModal = true">
               Publish v{{ openedBook?.order }}</a-button
             >
           </div>
@@ -365,22 +343,7 @@ const loadListData = async ($state: any) => {
         </a-tabs>
       </div>
     </div>
-    <a-modal
-      :visible="isDraftsOpen"
-      title="Publish drafts"
-      :mask-closable="false"
-      ok-text="Publish"
-      :cancel-button-props="{ disabled: isPagePublishing }"
-      :confirm-loading="isPagePublishing"
-      @cancel="isDraftsOpen = false"
-      @ok="publishDrafts"
-    >
-      <li v-for="draft in draftsFormData" :key="draft.id">
-        <a-checkbox v-model:checked="draft.selected" :value="draft.id">
-          {{ draft.title }}
-        </a-checkbox>
-      </li>
-    </a-modal>
+    <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" />
     <a-modal
       :visible="showCreateBookModal"
       title="Create book"

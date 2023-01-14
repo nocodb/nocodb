@@ -98,7 +98,7 @@ onMounted(async () => {
       <DocsSideBar />
     </template>
     <div v-if="isLoading"></div>
-    <DocsBook v-else-if="isOnlyBookOpened" :key="openedBook?.id" />
+    <DocsBookView v-else-if="isOnlyBookOpened" :key="openedBook?.id" />
     <DocsPage v-else-if="openedPage" :key="openedPage?.id" />
   </NuxtLayout>
 </template>

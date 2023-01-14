@@ -127,6 +127,61 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </div>
     </a-button>
 
+    <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
+        <div class="flex gap-2 items-center">
+          <GeneralViewIcon :meta="selectedView"></GeneralViewIcon>
+
+          <span class="!text-sm font-weight-normal">
+            <GeneralTruncateText :key="selectedView?.title">{{ selectedView?.title }}</GeneralTruncateText>
+          </span>
+
+          <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
+
+          <MdiMenuDown class="text-grey" />
+        </div>
+      </a-button>
+
+      <template #overlay>
+        <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded" data-testid="toolbar-actions" @click="open = false">
+          <a-menu-item-group>
+            <a-sub-menu
+              v-if="isUIAllowed('view-type')"
+              key="lock-type"
+              class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0"
+            >
+              <template #title>
+                <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
+                  <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
+
+                  <MaterialSymbolsChevronRightRounded
+                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                  />
+                </div>
+              </template>
+
+              <template #expandIcon></template>
+              <a-menu-item @click="changeLockType(LockType.Collaborative)">
+                <LazySmartsheetToolbarLockType :type="LockType.Collaborative" />
+              </a-menu-item>
+
+              <a-menu-item @click="changeLockType(LockType.Locked)">
+                <LazySmartsheetToolbarLockType :type="LockType.Locked" />
+              </a-menu-item>
+
+              <a-menu-item @click="changeLockType(LockType.Personal)">
+                <LazySmartsheetToolbarLockType :type="LockType.Personal" />
+              </a-menu-item>
+            </a-sub-menu>
+
+            <a-menu-divider />
+          </a-menu-item-group>
+        </a-menu>
+      </template>
+    </a-dropdown>
+
+    
+
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
       <template #overlay>
         <a-menu class="nc-expand-form-save-dropdown-menu">

@@ -277,6 +277,7 @@
     "selectUserRole": "Выберите роль пользователя",
     "childTable": "Дочерняя таблица",
     "childColumn": "Дочерний столбец",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "При обновлении",
     "onDelete": "При удалении",
     "account": "Учётная запись",

@@ -46,3 +46,9 @@ Signup without an invitation is disabled by default and can be managed from UI b
 You can also manage the app store plugins here.
 
 ![image](https://user-images.githubusercontent.com/35857179/203267619-24a8f5f5-1c8c-4419-a7a1-be4377fe6216.png)
+
+## License
+
+You can configure NocoDB Enterprise `License key` here
+
+![Screenshot 2023-01-12 at 2 30 57 PM](https://user-images.githubusercontent.com/86527202/212023989-0129af0a-689d-465e-bdda-3d54399ea6b7.png)

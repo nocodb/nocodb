@@ -277,6 +277,7 @@
     "selectUserRole": "حدد دور المستخدم",
     "childTable": "جدول فرعي",
     "childColumn": "عمود فرعي",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "عند التحديث",
     "onDelete": "عند الحذف",
     "account": "حساب",

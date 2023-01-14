@@ -277,6 +277,7 @@
     "selectUserRole": "Sélectionner le rôle d'utilisateur",
     "childTable": "Table enfant",
     "childColumn": "Colonne enfant",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Mise à jour en cours",
     "onDelete": "Suppression en cours",
     "account": "Compte",

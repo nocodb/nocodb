@@ -130,7 +130,23 @@ const sqlite3 = {
         sql = `(strftime('%Y', ${datetime_expr1}) - strftime('%Y', ${datetime_expr2})) * 4 + (strftime('%m', ${datetime_expr1}) - strftime('%m', ${datetime_expr2})) / 3`;
         break;
       case 'years':
-        sql = `strftime('%Y', ${datetime_expr1}) - strftime('%Y', ${datetime_expr2})`;
+        sql = `CASE 
+                WHEN (${datetime_expr2} < ${datetime_expr1}) THEN 
+                (
+                  (strftime('%Y', ${datetime_expr1}) - strftime('%Y', ${datetime_expr2}))
+                  - (strftime('%m', ${datetime_expr1}) < strftime('%m', ${datetime_expr2})
+                  OR (strftime('%m', ${datetime_expr1}) = strftime('%m', ${datetime_expr2})
+                  AND strftime('%d', ${datetime_expr1}) < strftime('%d', ${datetime_expr2})))
+                )
+                WHEN (${datetime_expr2} > ${datetime_expr1}) THEN 
+                -1 * (
+                  (strftime('%Y', ${datetime_expr2}) - strftime('%Y', ${datetime_expr1}))
+                  - (strftime('%m', ${datetime_expr2}) < strftime('%m', ${datetime_expr1})
+                  OR (strftime('%m', ${datetime_expr2}) = strftime('%m', ${datetime_expr1})
+                  AND strftime('%d', ${datetime_expr2}) < strftime('%d', ${datetime_expr1})))
+                )
+                ELSE 0
+              END`;
         break;
       case 'days':
         sql = `JULIANDAY(${datetime_expr1}) - JULIANDAY(${datetime_expr2})`;

@@ -277,6 +277,7 @@
     "selectUserRole": "Odaberite korisničku ulogu",
     "childTable": "Dječji stol",
     "childColumn": "Dječji stupac",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Na ažuriranje",
     "onDelete": "Na brisanje",
     "account": "Account",

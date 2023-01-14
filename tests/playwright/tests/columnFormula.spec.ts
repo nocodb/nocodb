@@ -39,6 +39,10 @@ const formulaDataByDbType = (context: NcContext) => [
     result: ['-1440', '-1440', '-1440', '-1440', '-1440'],
   },
   {
+    formula: `DATETIME_DIFF("2023/10/14", "2023/01/13", "minutes")`,
+    result: ['394560', '394560', '394560', '394560', '394560'],
+  },
+  {
     formula: `DATETIME_DIFF("2022/10/14", "2022/10/15", "seconds")`,
     result: ['-86400', '-86400', '-86400', '-86400', '-86400'],
   },
@@ -67,19 +71,31 @@ const formulaDataByDbType = (context: NcContext) => [
     result: ['-1', '-1', '-1', '-1', '-1'],
   },
   {
-    formula: `DATETIME_DIFF(NOW(), "2023/10/14", "y")`,
+    formula: `DATETIME_DIFF("2023/01/12", "2023/10/14", "y")`,
     result: ['0', '0', '0', '0', '0'],
   },
   {
-    formula: `DATETIME_DIFF("2023/10/14", NOW(), "y")`,
+    formula: `DATETIME_DIFF("2023/10/14", "2023/01/12", "y")`,
     result: ['0', '0', '0', '0', '0'],
+  },
+  {
+    formula: `DATETIME_DIFF("2023-01-12", "2021-08-29", "y")`,
+    result: ['1', '1', '1', '1', '1'],
+  },
+  {
+    formula: `DATETIME_DIFF("2021-01-12", "2026-01-29", "y")`,
+    result: ['-5', '-5', '-5', '-5', '-5'],
+  },
+  {
+    formula: `DATETIME_DIFF("1990-01-12", "2046-12-29", "y")`,
+    result: ['-56', '-56', '-56', '-56', '-56'],
   },
   {
     formula: `DATETIME_DIFF("2022/10/14", "2023/10/14", "d")`,
     result: ['-365', '-365', '-365', '-365', '-365'],
   },
   {
-    formula: `DATETIME_DIFF("2022/10/14", NOW(), "d")`,
+    formula: `DATETIME_DIFF("2022/10/14", "2023/01/12", "d")`,
     result: ['-90', '-90', '-90', '-90', '-90'],
   },
   {

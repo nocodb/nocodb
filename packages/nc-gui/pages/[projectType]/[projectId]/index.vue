@@ -77,6 +77,8 @@ const meta = computed<TableType | undefined>(() => activeTab.value && metas.valu
 provide(ActiveViewInj, activeView)
 provide(MetaInj, meta)
 
+useProvideViewsStore(meta)
+
 const showViewsMobileSidebar = ref(false)
 
 /** Sidebar ref */

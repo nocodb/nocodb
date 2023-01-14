@@ -13,7 +13,7 @@ import {
   useRouter,
   useSidebar,
   useUIPermission,
-  useViews,
+  useViewsStoreOrThrow,
   watch,
 } from '#imports'
 
@@ -25,7 +25,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { activeTab } = useTabs()
 
-const { views, loadViews, isLoading } = useViews(meta)
+const { views, loadViews, isLoading } = useViewsStoreOrThrow()
 
 const { lastOpenedViewMap } = useProject()
 

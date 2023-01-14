@@ -33,6 +33,7 @@ const formatData = (list: Row[]) =>
 
 export function useViewData(
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
+  // meta: Ref<Omit<TableType, 'table_name'> | undefined> | ComputedRef<Omit<TableType, 'table_name'> | undefined>,
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   where?: ComputedRef<string | undefined>,
 ) {
@@ -339,6 +340,28 @@ export function useViewData(
     } as any)
     $e('a:grid:pagination')
   }
+
+
+  // async function deleteRow(row: Row) {
+  //   try {
+  //     if (!row.rowMeta.new) {
+  //       const id = (meta?.value?.columns as ColumnType[])
+  //         ?.filter((c) => c.pk)
+  //         .map((c) => row.row[c.title!])
+  //         .join('___')
+
+  //       const deleted = await deleteRowById(id as string)
+  //       if (!deleted) {
+  //         return
+  //       }
+  //     }
+
+  //     // remove deleted row from state
+  //     removeRowFromTargetStack(row)
+  //   } catch (e: any) {
+  //     message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+  //   }
+  // }
 
   async function deleteRowById(id: string) {
     if (!id) {

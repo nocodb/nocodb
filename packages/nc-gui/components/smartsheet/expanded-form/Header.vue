@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
-import type { ViewType } from 'nocodb-sdk'
+import type { KanbanType, ViewType } from 'nocodb-sdk'
 import {
   ReloadRowDataHookInj,
   isMac,
@@ -42,6 +42,8 @@ const save = async () => {
   }
 }
 
+// const FOO: KanbanType
+
 // todo: accept as a prop / inject
 const iconColor = '#1890ff'
 
@@ -72,6 +74,26 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
+
+const { deleteRowById } = useViewData(meta, props.view)
+
+const duplicateRow = () => alert('duplicateRow')
+
+const onDeleteRowClick = async () => {
+  // alert('deleteRow')
+  await deleteRowById(primaryKey.value)
+  reloadTrigger.trigger()
+  // loadData()
+  // deleteRow
+}
+
+// const { deleteRowById, loadData } = useViewData(meta, view)
+
+// const onClickDelete = async () => {
+//   await deleteRowById(primaryKey)
+//   loadData()
+// }
+
 </script>
 
 <template>
@@ -127,7 +149,37 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </div>
     </a-button>
 
-    <SmartsheetExpandedFormMoreActions :meta="meta" :view="view" :primaryKey="primaryKey" />
+    <!-- <SmartsheetExpandedFormMoreActions :meta="meta" :view="view" :primaryKey="primaryKey" /> -->
+
+    <a-dropdown>
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
+        <div class="flex gap-1 items-center">
+          <MdiFlashOutline />
+
+          <!-- More -->
+          <span class="!text-sm font-weight-medium">{{ $t('general.more') }}</span>
+
+          <MdiMenuDown class="text-grey" />
+        </div>
+      </a-button>
+
+      <template #overlay>
+        <div class="bg-gray-50 py-2 shadow-lg !border">
+          <div>
+            <div v-e="['a:actions:download-csv']" class="nc-menu-item" @click="duplicateRow">
+              <MdiContentCopy class="text-gray-500" />
+              {{ $t('activity.duplicateRow') }}
+            </div>
+
+            <div v-e="['a:actions:download-excel']" class="nc-menu-item" @click="onDeleteRowClick">
+              <MdiDelete class="text-gray-500" />
+              {{ $t('activity.deleteRow') }}
+            </div>
+          </div>
+        </div>
+      </template>
+    </a-dropdown>
+    <!-- <SmartsheetExpandedFormMoreActions @onClickDelete="onClickDelete" /> -->
 
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
       <template #overlay>

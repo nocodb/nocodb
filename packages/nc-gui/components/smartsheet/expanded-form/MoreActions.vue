@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 // import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, inject, ref, useI18n, useNuxtApp, useProject } from '#imports'
 
-import { TableType, ViewType } from "nocodb-sdk"
-import { Ref } from "vue";
+import type { TableType, ViewType } from "nocodb-sdk"
+
 
 // const { t } = useI18n()
 
@@ -29,13 +29,17 @@ const { meta, view, primaryKey } = defineProps<{
   primaryKey: string
 }>()
 
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
 const { deleteRowById } = useViewData(ref(meta), ref(view))
 
 const duplicateRow = () => alert('duplicateRow')
 
-const onDeleteRowClick = () => {
-  alert('deleteRow')
-  deleteRowById(primaryKey)
+const onDeleteRowClick = async () => {
+  // alert('deleteRow')
+  await deleteRowById(primaryKey)
+  reloadTrigger.trigger()
+  // loadData()
   // deleteRow
 }
 </script>

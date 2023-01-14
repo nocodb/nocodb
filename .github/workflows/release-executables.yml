@@ -102,10 +102,10 @@ jobs:
       - name: Upload executables to asset
         id: upload-release-asset
         uses: softprops/action-gh-release@v1
-        tag_name: ${{ github.event.inputs.tag || inputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
           files: |
              ./scripts/pkg-executable/dist/Noco-win-arm64.exe
              ./scripts/pkg-executable/dist/Noco-win-x64.exe
@@ -171,8 +171,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        tag_name: ${{ github.event.inputs.tag || inputs.tag }}
         with:
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
           files: |
             ./scripts/pkg-executable/mac-dist/Noco-macos-x64
             ./scripts/pkg-executable/mac-dist/Noco-macos-arm64

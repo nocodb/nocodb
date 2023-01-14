@@ -383,6 +383,7 @@
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "Insert New Row",
+    "duplicateRow": "Duplicate Row",
     "deleteRow": "Delete Row",
     "deleteSelectedRow": "Delete Selected Rows",
     "importExcel": "Import Excel",

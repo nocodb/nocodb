@@ -45,7 +45,7 @@ jobs:
           ref: ${{ github.ref }}
       - name: Get SHA
         id: get-sha
-        # If it's triggered by release-nocodb.yml, 
+        # If it's triggered by release-nocodb.yml,
         # the SHA from the third commit (i.e. Auto PR from master to develop) will be taken
         # else HEAD will be taken
         run: |
@@ -62,7 +62,7 @@ jobs:
           # need a custom PAT with workflows permission here
           github-token: ${{ secrets.NC_GITHUB_TOKEN }}
           script: |
-            github.git.createRef({
+            github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: "refs/tags/${{ github.event.inputs.tag || inputs.tag }}",

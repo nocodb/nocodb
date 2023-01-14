@@ -131,8 +131,20 @@ const sqlite3 = {
         break;
       case 'years':
         sql = `CASE 
-                WHEN (JULIANDAY(${datetime_expr1}) - JULIANDAY(${datetime_expr2})) >= 0 THEN FLOOR(((JULIANDAY(${datetime_expr1}) - JULIANDAY(${datetime_expr2})) / 365.25))
-                ELSE CEILING(((JULIANDAY(${datetime_expr1}) - JULIANDAY(${datetime_expr2})) / 365.25))
+                WHEN (${datetime_expr2} < ${datetime_expr1}) THEN 
+                (
+                  (strftime('%Y', ${datetime_expr1}) - strftime('%Y', ${datetime_expr2}))
+                  - (strftime('%m', ${datetime_expr1}) < strftime('%m', ${datetime_expr2})
+                  OR (strftime('%m', ${datetime_expr1}) = strftime('%m', ${datetime_expr2})
+                  AND strftime('%d', ${datetime_expr1}) < strftime('%d', ${datetime_expr2})))
+                )
+                WHEN (${datetime_expr2} > ${datetime_expr1}) THEN 
+                  (strftime('%Y', ${datetime_expr2}) - strftime('%Y', ${datetime_expr1}))
+                  - (strftime('%m', ${datetime_expr2}) < strftime('%m', ${datetime_expr1})
+                  OR (strftime('%m', ${datetime_expr2}) = strftime('%m', ${datetime_expr1})
+                  AND strftime('%d', ${datetime_expr2}) < strftime('%d', ${datetime_expr1})))
+                )
+                ELSE 0
               END`;
         break;
       case 'days':

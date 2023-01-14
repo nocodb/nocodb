@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 // import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, inject, ref, useI18n, useNuxtApp, useProject } from '#imports'
 
+import { TableType, ViewType } from "nocodb-sdk"
+import { Ref } from "vue";
+
 // const { t } = useI18n()
 
 // const sharedViewListDlg = ref(false)
@@ -19,9 +22,22 @@
 
 // const selectedView = inject(ActiveViewInj, ref())
 
+
+const { meta, view, primaryKey } = defineProps<{
+  meta: TableType
+  view: ViewType
+  primaryKey: string
+}>()
+
+const { deleteRowById } = useViewData(ref(meta), ref(view))
+
 const duplicateRow = () => alert('duplicateRow')
 
-const deleteRow = () => alert('deleteRow')
+const onDeleteRowClick = () => {
+  alert('deleteRow')
+  deleteRowById(primaryKey)
+  // deleteRow
+}
 </script>
 
 <template>
@@ -46,7 +62,7 @@ const deleteRow = () => alert('deleteRow')
               {{ $t('activity.duplicateRow') }}
             </div>
 
-            <div v-e="['a:actions:download-excel']" class="nc-menu-item" @click="deleteRow">
+            <div v-e="['a:actions:download-excel']" class="nc-menu-item" @click="onDeleteRowClick">
               <MdiDelete class="text-gray-500" />
               {{ $t('activity.deleteRow') }}
             </div>
@@ -55,7 +71,7 @@ const deleteRow = () => alert('deleteRow')
       </template>
     </a-dropdown>
 
-    <a-modal
+    <!-- <a-modal
       v-model:visible="sharedViewListDlg"
       :class="{ active: sharedViewListDlg }"
       :title="$t('activity.listSharedView')"
@@ -64,6 +80,6 @@ const deleteRow = () => alert('deleteRow')
       wrap-class-name="nc-modal-shared-view-list"
     >
       <LazySmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
-    </a-modal>
+    </a-modal> -->
   </div>
 </template>

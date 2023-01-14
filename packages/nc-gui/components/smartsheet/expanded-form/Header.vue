@@ -127,7 +127,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </div>
     </a-button>
 
-    <SmartsheetExpandedFormMoreActions />
+    <SmartsheetExpandedFormMoreActions :meta="meta" :view="view" :primaryKey="primaryKey" />
 
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
       <template #overlay>

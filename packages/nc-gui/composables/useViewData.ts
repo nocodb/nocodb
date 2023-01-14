@@ -477,6 +477,7 @@ export function useViewData(
     changePage,
     addEmptyRow,
     deleteRow,
+    deleteRowById,
     deleteSelectedRows,
     updateOrSaveRow,
     selectedAllRecords,

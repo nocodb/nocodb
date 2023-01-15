@@ -28,7 +28,7 @@
     "hide": "Cacher",
     "showAll": "Afficher tout",
     "hideAll": "Cacher tout",
-    "showMore": "Montrer plus",
+    "showMore": "Afficher davantage",
     "showOptions": "Afficher les options",
     "hideOptions": "Masquer les options",
     "showMenu": "Afficher le menu",
@@ -205,7 +205,7 @@
     "quickImport": "Importation rapide",
     "advancedSettings": "Paramètres avancés",
     "codeSnippet": "Code Snippet",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Raccourcis clavier"
   },
   "labels": {
     "createdBy": "Créé par",
@@ -264,7 +264,7 @@
       "columnName": "Inflexion - Nom de la colonne"
     },
     "community": {
-      "starUs1": "Étoile",
+      "starUs1": "Mettre en favoris",
       "starUs2": "sur Github",
       "bookDemo": "Planifier une démonstration gratuite",
       "getAnswered": "Obtenir des réponses à vos questions",
@@ -575,7 +575,7 @@
       },
       "sponsor": {
         "header": "Vous pouvez nous aider !",
-        "message": "Nous sommes une petite équipe travaillant à plein temps pour rendre Nocodb Open-Source. Nous croyons qu'un outil comme Nocodb devrait être disponible librement à chaque solveur de problèmes sur Internet."
+        "message": "Nous sommes une petite équipe travaillant à plein temps pour rendre NocoDB open-Source. Nous croyons qu'un outil comme NocoDB devrait être disponible librement à chaque solutionneur de problème sur Internet."
       },
       "loginMsg": "Se connecter à NocoDB",
       "passwordRecovery": {
@@ -705,7 +705,7 @@
       "projInfo": "Informations de projet copiées dans le presse-papier",
       "inviteUrlCopy": "URL d'invitation copiée dans le presse-papier",
       "createView": "Vue créée avec succès",
-      "formEmailSMTP": "Veuillez activer le plugin SMTP dans l'App Store pour permettre la notification par courrier électronique",
+      "formEmailSMTP": "Veuillez activer le plugin SMTP dans le magasin d'applications pour permettre la notification par courriel",
       "collabView": "Vous êtes bien dans la vue collaborative",
       "lockedView": "Vous êtes bien dans la vue vérouillée",
       "futureRelease": "Bientôt disponible !"

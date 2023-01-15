@@ -139,10 +139,12 @@ input[type='number']:focus {
   margin-top: 1rem;
   margin-bottom: 0.5rem;
   margin-right: 0.5rem;
+  margin-left: 0.5rem;
 }
 .inputLng {
   width: 180px;
   margin-right: 0.5rem;
+  margin-left: 0.5rem;
 }
 
 .fixed-width {

@@ -3593,6 +3593,7 @@ export class Api<
         where?: string;
         /** Query params for nested data */
         nested?: any;
+        offset?: number;
       },
       params: RequestParams = {}
     ) =>

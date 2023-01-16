@@ -3887,6 +3887,13 @@
             "in": "query",
             "name": "nested",
             "description": "Query params for nested data"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
           }
         ],
         "responses": {

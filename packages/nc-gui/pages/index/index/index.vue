@@ -234,7 +234,7 @@ const projectListType = computed(() => {
     case 'recent':
       return 'Recent'
     case 'shared':
-      return 'Shared'
+      return 'Shared With Me'
     case 'starred':
       return 'Favourite'
     default:
@@ -311,6 +311,7 @@ const projectListType = computed(() => {
                 <div v-else class="nc-workspace-title shrink min-w-4 flex items-center gap-1">
                   <span
                     class="shrink min-w-0 overflow-ellipsis overflow-hidden"
+                    :class="{ '!font-weight-bold': selectedWorkspaceIndex[0] === i }"
                     :title="workspace.title"
                     @dblclick="enableEdit(i)"
                     >{{ workspace.title }}</span
@@ -401,7 +402,7 @@ const projectListType = computed(() => {
             <span class="nc-workspace-avatar !w-8 !h-8" :style="{ backgroundColor: getWorkspaceColor(activeWorkspace) }">
               {{ activeWorkspace?.title?.slice(0, 2) }}
             </span>
-            <h1 class="text-xl mb-0">{{ activeWorkspace?.title }}</h1>
+            <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">{{ activeWorkspace?.title }}</h1>
           </div>
           <div class="flex-grow"></div>
           <a-dropdown v-if="isWorkspaceOwner">
@@ -453,13 +454,15 @@ const projectListType = computed(() => {
           </template>
         </a-tabs>
       </div>
-      <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col">
-        <h2 class="px-6 my-3 text-xl flex items-center gap-2 mb-4 mt-6 h-8">
+      <div v-else-if="activePage !== 'workspace'" class="h-full flex flex-col px-6 my-3">
+        <div class="flex items-center gap-2 mb-6 mt-3 text-xl">
           <MaterialSymbolsNestClockFarsightAnalogOutlineRounded v-if="activePage === 'recent'" class="h-8" />
           <MaterialSymbolsGroupsOutline v-else-if="activePage === 'shared'" />
           <MaterialSymbolsStarOutline v-else-if="activePage === 'starred'" />
-          {{ projectListType }} Projects
-        </h2>
+          <h2 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">
+            {{ projectListType }}
+          </h2>
+        </div>
 
         <WorkspaceProjectList class="min-h-20 grow" />
       </div>
@@ -510,7 +513,7 @@ const projectListType = computed(() => {
     }
 
     &.active {
-      @apply bg-primary bg-opacity-8 text-primary;
+      @apply bg-primary bg-opacity-8 text-primary font-weight-bold;
     }
 
     @apply h-[40px] px-4 flex items-center gap-2 cursor-pointer;

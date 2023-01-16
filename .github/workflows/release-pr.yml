@@ -72,14 +72,14 @@ jobs:
       DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
 
   # Build executables and publish to GitHub
-  release-executables:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-    needs: [set-tag, release-npm]
-    uses: ./.github/workflows/release-timely-executables.yml
-    with:
-      tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
-    secrets:
-      NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
+  # release-executables:
+  #   if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
+  #   needs: [set-tag, release-npm]
+  #   uses: ./.github/workflows/release-timely-executables.yml
+  #   with:
+  #     tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+  #   secrets:
+  #     NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
   # Add a comment for PR docker build
   leave-comment:
@@ -132,40 +132,40 @@ jobs:
           retention-days: 2
     
   # Add a comment for PR executable build
-  leave-executable-comment:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-    runs-on: 'ubuntu-latest'
-    needs: [release-executables, set-tag]
-    steps:
-      - uses: peter-evans/commit-comment@v2
-        with:
-          body: |
-            ### Run Executables
+  # leave-executable-comment:
+  #   if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
+  #   runs-on: 'ubuntu-latest'
+  #   needs: [release-executables, set-tag]
+  #   steps:
+  #     - uses: peter-evans/commit-comment@v2
+  #       with:
+  #         body: |
+  #           ### Run Executables
 
-            #### MacOS
+  #           #### MacOS
 
-            ```bash
-            mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} && cd "$_" \
-                && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-macos-arm64 -o noco -L \
-                && chmod +x noco \
-                && ./noco
-            ```
-            #### Linux
+  #           ```bash
+  #           mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} && cd "$_" \
+  #               && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-macos-arm64 -o noco -L \
+  #               && chmod +x noco \
+  #               && ./noco
+  #           ```
+  #           #### Linux
 
-            ```bash
-            mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} && cd "$_" \
-               && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-linux-x64 -o noco -L \
-               && chmod +x noco \
-               && ./noco
-            ```
-            #### Windows
+  #           ```bash
+  #           mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} && cd "$_" \
+  #              && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-linux-x64 -o noco -L \
+  #              && chmod +x noco \
+  #              && ./noco
+  #           ```
+  #           #### Windows
 
-            ```bash
-            iwr http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-win-arm64.exe
-            .\Noco-win-arm64.exe
-            ```
+  #           ```bash
+  #           iwr http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-win-arm64.exe
+  #           .\Noco-win-arm64.exe
+  #           ```
 
-            For executables visit [here](https://github.com/nocodb/nocodb-timely/releases/tag/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }})
+  #           For executables visit [here](https://github.com/nocodb/nocodb-timely/releases/tag/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }})
 
   # delete the uffizzi preview created off of this PR
   delete-uffizzi-preview:

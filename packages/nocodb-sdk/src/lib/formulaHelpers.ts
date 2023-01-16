@@ -8,21 +8,28 @@ export const jsepCurlyHook = {
     jsep.hooks.add('gobble-token', function gobbleCurlyLiteral(env) {
       const OCURLY_CODE = 123; // {
       const CCURLY_CODE = 125; // }
+      let start = -1;
       const { context } = env;
       if (
         !jsep.isIdentifierStart(context.code) &&
         context.code === OCURLY_CODE
       ) {
+        if (start == -1) {
+          start = context.index;
+        }
         context.index += 1;
-        const nodes = context.gobbleExpressions(CCURLY_CODE);
+        context.gobbleExpressions(CCURLY_CODE);
         if (context.code === CCURLY_CODE) {
           context.index += 1;
           env.node = {
             type: jsep.IDENTIFIER,
-            // column name with space would break it down to jsep.IDENTIFIER + jsep.LITERAL
-            // either take node.name for jsep.IDENTIFIER
-            // or take node.value for jsep.LITERAL
-            name: nodes.map((node) => node.name || node.value).join(' '),
+            name: /{{(.*?)}}/.test(context.expr)
+              ? // start would be the position of the first curly bracket
+                // add 2 to point to the first character for expressions like {{col1}}
+                context.expr.slice(start + 2, context.index - 1)
+              : // start would be the position of the first curly bracket
+                // add 1 to point to the first character for expressions like {col1}
+                context.expr.slice(start + 1, context.index - 1),
           };
           return env.node;
         } else {

@@ -277,6 +277,7 @@
     "selectUserRole": "Velg Brukerrolle",
     "childTable": "Barnbord",
     "childColumn": "Barn kolonne",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "På oppdatering",
     "onDelete": "På slette",
     "account": "Account",

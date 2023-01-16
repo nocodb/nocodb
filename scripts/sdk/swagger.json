@@ -5622,6 +5622,9 @@
                         "client": {
                           "type": "string"
                         },
+                        "base_id": {
+                          "type": "string"
+                        },
                         "columns": {
                           "allOf": [
                             {

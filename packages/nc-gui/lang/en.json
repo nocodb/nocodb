@@ -278,6 +278,7 @@
     "selectUserRole": "Select User Role",
     "childTable": "Child table",
     "childColumn": "Child column",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "On Update",
     "onDelete": "On Delete",
     "account": "Account",

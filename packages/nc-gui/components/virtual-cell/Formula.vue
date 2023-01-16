@@ -24,11 +24,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>
       </template>
-
       <span>ERR!</span>
     </a-tooltip>
 
-    <div class="p-2" @dblclick="activateShowEditNonEditableFieldWarning">
+    <div v-else class="p-2" @dblclick="activateShowEditNonEditableFieldWarning">
       <div v-if="urls" v-html="urls" />
 
       <div v-else>{{ result }}</div>

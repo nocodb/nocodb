@@ -1,3 +1,3 @@
-const latLongToJoinedString = (lat: number, long: number) => `${lat.toFixed(7)};${long.toFixed(7)}`
+const latLongToJoinedString = (lat: number, long: number) => `${lat.toFixed(2).replace('.', ',')};${long.toFixed(2).replace('.', ',')}`
 
 export { latLongToJoinedString }

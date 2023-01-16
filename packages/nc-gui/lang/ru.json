@@ -307,8 +307,8 @@
     "commentsOnly": "Comments only",
     "documentation": "Документация",
     "subscribeNewsletter": "Подпишитесь на нашу еженедельную рассылку",
-    "signUpWithGoogle": "Зарегистрируйтесь с помощью Google",
-    "signInWithGoogle": "Войти при помощи Google",
+    "signUpWithProvider": "Зарегистрируйтесь с помощью {provider}",
+    "signInWithProvider": "Войти при помощи {provider}",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Добро пожаловать в NocoDB!",
     "inviteOnlySignup": "Разрешить регистрацию только по ссылке"

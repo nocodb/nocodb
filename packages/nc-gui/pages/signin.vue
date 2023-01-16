@@ -127,9 +127,24 @@ function resetError() {
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />
 
-                {{ $t('labels.signInWithGoogle') }}
+                {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
               </span>
             </a>
+
+            <div
+              v-if="appInfo.oidcAuthEnabled"
+              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+            >
+              <a :href="`${appInfo.ncSiteUrl}/auth/oidc`" class="!text-primary !no-underline">
+                <button type="button" class="scaling-btn bg-opacity-100">
+                  <span class="flex items-center gap-2">
+                    <MdiLogin />
+
+                    {{ $t('labels.signInWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+                  </span>
+                </button>
+              </a>
+            </div>
 
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.dontHaveAccount') }}

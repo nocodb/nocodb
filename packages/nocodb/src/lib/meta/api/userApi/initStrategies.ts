@@ -7,6 +7,7 @@ import passport from 'passport';
 import passportJWT from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as OidcStrategy } from '@techpass/passport-openidconnect';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
 const ExtractJwt = passportJWT.ExtractJwt;
@@ -23,8 +24,11 @@ import Project from '../../../models/Project';
 import ApiToken from '../../../models/ApiToken';
 import Noco from '../../../Noco';
 import Plugin from '../../../models/Plugin';
-import { registerNewUserIfAllowed } from './userApis';
 import { WorkspaceUser } from '../../../models/WorkspaceUser';
+import NocoCache from '../../../cache/NocoCache';
+import { CacheGetType } from '../../../utils/globals';
+import { v4 as uuidv4 } from 'uuid';
+import { registerNewUserIfAllowed } from './helpers';
 
 export function initStrategies(router): void {
   passport.use(
@@ -147,28 +151,30 @@ export function initStrategies(router): void {
           });
         }
 
-        const keyVals = [jwtPayload?.email];
-        if (req.ncProjectId) {
-          keyVals.push(req.ncProjectId);
-        }
-        // const key = keyVals.join('___');
-        const cachedVal = null;
-        // todo: enable
-        /*await NocoCache.get(
-          `${CacheScope.USER}:${key}`,
-          CacheGetType.TYPE_OBJECT
-        );*/
+        /*
+                const keyVals = [jwtPayload?.email];
+                if (req.ncProjectId) {
+                  keyVals.push(req.ncProjectId);
+                }
+                // const key = keyVals.join('___');
+                const cachedVal = null;
+                // todo: enable
+                /!*await NocoCache.get(
+                  `${CacheScope.USER}:${key}`,
+                  CacheGetType.TYPE_OBJECT
+                );*!/
 
-        if (cachedVal) {
-          if (
-            !cachedVal.token_version ||
-            !jwtPayload.token_version ||
-            cachedVal.token_version !== jwtPayload.token_version
-          ) {
-            return done(new Error('Token Expired. Please login again.'));
-          }
-          return done(null, cachedVal);
-        }
+                if (cachedVal) {
+                  if (
+                    !cachedVal.token_version ||
+                    !jwtPayload.token_version ||
+                    cachedVal.token_version !== jwtPayload.token_version
+                  ) {
+                    return done(new Error('Token Expired. Please login again.'));
+                  }
+                  return done(null, cachedVal);
+                }
+        */
 
         User.getByEmail(jwtPayload?.email)
           .then(async (user) => {
@@ -219,44 +225,6 @@ export function initStrategies(router): void {
                   .join(','),
               });
             });
-
-            // if (req.ncWorkspaceId) {
-            //   // todo: cache
-            //   // extract workspace role
-            //   return WorkspaceUser.get(req.ncWorkspaceId, user.id)
-            //     .then((workspaceUser) => {
-            //       user.roles = user.roles + ',' + workspaceUser?.roles;
-            //       done(null, user);
-            //     })
-            //     .catch((e) => done(e));
-            // }
-
-            // if (req.ncProjectId) {
-            //   // this.xcMeta
-            //   //   .metaGet(req.ncProjectId, null, 'nc_projects_users', {
-            //   //     user_id: user?.id
-            //   //   })
-            //
-            //   ProjectUser.get(req.ncProjectId, user.id)
-            //     .then(async (projectUser) => {
-            //       user.roles = projectUser?.roles || user.roles;
-            //       user.roles =
-            //         user.roles === 'owner' ? 'owner,creator' : user.roles;
-            //       // + (user.roles ? `,${user.roles}` : '');
-            //
-            //       await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-            //       done(null, user);
-            //     })
-            //     .catch((e) => done(e));
-            // } else {
-            //   // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
-            //   if (user) {
-            //     await NocoCache.set(`${CacheScope.USER}:${key}`, user);
-            //     return done(null, user);
-            //   } else {
-            //     return done(new Error('User not found'));
-            //   }
-            // }
           })
           .catch((err) => {
             return done(err);
@@ -344,32 +312,17 @@ export function initStrategies(router): void {
         clientSecret: process.env.NC_GOOGLE_CLIENT_SECRET,
         // todo: update url
         callbackURL: 'http://localhost:3000',
-        passReqToCallback: true,
       };
 
       const googleStrategy = new GoogleStrategy(
         clientConfig,
-        async (req, _accessToken, _refreshToken, profile, done) => {
+        async (_accessToken, _refreshToken, profile, done) => {
           const email = profile.emails[0].value;
 
           User.getByEmail(email)
             .then(async (user) => {
               if (user) {
-                // if project id defined extract project level roles
-                if (req.ncProjectId) {
-                  ProjectUser.get(req.ncProjectId, user.id)
-                    .then(async (projectUser) => {
-                      user.roles = projectUser?.roles || user.roles;
-                      user.roles =
-                        user.roles === 'owner' ? 'owner,creator' : user.roles;
-                      // + (user.roles ? `,${user.roles}` : '');
-
-                      done(null, user);
-                    })
-                    .catch((e) => done(e));
-                } else {
-                  return done(null, user);
-                }
+                return done(null, user);
                 // if user not found create new user if allowed
                 // or return error
               } else {
@@ -395,6 +348,97 @@ export function initStrategies(router): void {
       passport.use(googleStrategy);
     }
   });
+
+  // OpenID Connect
+  if (
+    process.env.NC_OIDC_ISSUER &&
+    process.env.NC_OIDC_AUTHORIZATION_URL &&
+    process.env.NC_OIDC_TOKEN_URL &&
+    process.env.NC_OIDC_USERINFO_URL &&
+    process.env.NC_OIDC_CLIENT_ID &&
+    process.env.NC_OIDC_CLIENT_SECRET
+  ) {
+    const clientConfig = {
+      issuer: process.env.NC_OIDC_ISSUER,
+      authorizationURL: process.env.NC_OIDC_AUTHORIZATION_URL,
+      tokenURL: process.env.NC_OIDC_TOKEN_URL,
+      userInfoURL: process.env.NC_OIDC_USERINFO_URL,
+      clientID: process.env.NC_OIDC_CLIENT_ID,
+      clientSecret: process.env.NC_OIDC_CLIENT_SECRET,
+      scope: ['profile', 'email'],
+
+      // cache based store for managing the state of the authorization request
+      store: {
+        store: async (_req, meta, callback) => {
+          const handle = `oidc_${uuidv4()}`;
+
+          const state = { handle };
+          for (const key in meta) {
+            state[key] = meta[key];
+          }
+
+          NocoCache.set(`oidc:${handle}`, state)
+            .then(() => callback(null, handle))
+            .catch((err) => callback(err));
+        },
+        verify: (_req, providedState, callback) => {
+          const key = `oidc:${providedState}`;
+          NocoCache.get(key, CacheGetType.TYPE_OBJECT)
+            .then(async (state) => {
+              if (!state) {
+                return callback(null, false, {
+                  message: 'Unable to verify authorization request state.',
+                });
+              }
+
+              await NocoCache.del(key);
+              return callback(null, true, state);
+            })
+            .catch((err) => callback(err));
+        },
+      },
+    };
+
+    const oidcStrategy = new OidcStrategy(
+      clientConfig,
+      (_issuer, _subject, profile, done) => {
+        const email = profile.email || profile?._json?.email;
+
+        if (!email) {
+          return done({ msg: `User account is missing email id` });
+        }
+
+        // get user by email
+        User.getByEmail(email)
+          .then(async (user) => {
+            if (user) {
+              return done(null, { ...user, provider: 'openid' });
+            } else {
+              // if user not found create new user
+              const salt = await promisify(bcrypt.genSalt)(10);
+              registerNewUserIfAllowed({
+                email,
+                password: '',
+                email_verification_token: null,
+                avatar: null,
+                user_name: null,
+                display_name: profile._json?.name,
+                salt,
+              })
+                .then((user) => {
+                  done(null, { ...user, provider: 'openid' });
+                })
+                .catch((e) => done(e));
+            }
+          })
+          .catch((err) => {
+            return done(err);
+          });
+      }
+    );
+
+    passport.use(oidcStrategy);
+  }
 
   router.use(passport.initialize());
 }

@@ -307,8 +307,8 @@
     "commentsOnly": "Comments only",
     "documentation": "Documentation",
     "subscribeNewsletter": "Subscribe to our weekly newsletter",
-    "signUpWithGoogle": "S’enregistrer avec Google",
-    "signInWithGoogle": "Se connecter avec Google",
+    "signUpWithProvider": "S’enregistrer avec {provider}",
+    "signInWithProvider": "Se connecter avec {provider}",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "Allow signup only using invite url"

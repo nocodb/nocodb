@@ -473,6 +473,13 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 | NC_DASHBOARD_URL                   | No        | Custom dashboard url path                                                                                               | `/dashboard`                                                                                   |   |
 | NC_GOOGLE_CLIENT_ID                | No        | Google client id to enable google authentication                                                                        |                                                                                                |   |
 | NC_GOOGLE_CLIENT_SECRET            | No        | Google client secret to enable google authentication                                                                    |                                                                                                |   |
+| NC_OIDC_ISSUER                     | No        | OIDC Issuer URL to enable OpenID Connect authentication | | |
+| NC_OIDC_AUTHORIZATION_URL          | No        | OIDC Authorization endpoint to enable OpenID Connect authentication | | |
+| NC_OIDC_TOKEN_URL                  | No        | OIDC Token endpoint to enable OpenID Connect authentication | | |
+| NC_OIDC_USERINFO_URL               | No        | OIDC User info URL to enable OpenID Connect authentication | | |
+| NC_OIDC_CLIENT_ID                  | No        | OIDC client ID to enable OpenID Connect authentication | | |
+| NC_OIDC_CLIENT_SECRET              | No        | OIDC client secret to enable OpenID Connect authentication | | |
+| NC_OIDC_PROVIDER_NAME              | No        | OIDC provider name to display in GUI | `OpenID Connect` | |
 | NC_MIGRATIONS_DISABLED             | No        | Disable NocoDB migration                                                                                                |                                                                                                |   |
 | NC_MIN                             | No        | If set to any non-empty string the default splash screen(initial welcome animation) and matrix screensaver will disable |                                                                                                |   |
 | NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                                   |                                                                                                |   |

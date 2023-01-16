@@ -91,11 +91,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
   if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
     try {
+      let authProvider = 'google'
+      if (window.location.search.includes('state=github')) {
+        authProvider = 'github'
+      } else if (window.location.search.includes('state=oidc')) {
+        authProvider = 'oidc'
+      }
       const {
         data: { token },
-      } = await api.instance.post(
-        `/auth/${window.location.search.includes('state=github') ? 'github' : 'google'}/genTokenByCode${window.location.search}`,
-      )
+      } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
 
       signIn(token)
     } catch (e) {

@@ -93,16 +93,27 @@ export function useSharedView() {
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
   }
 
-  const fetchSharedViewData = async ({ sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] }) => {
+  const fetchSharedViewData = async ({
+    sortsArr,
+    filtersArr,
+    offset,
+  }: {
+    sortsArr: SortType[]
+    filtersArr: FilterType[]
+    offset?: number
+  }) => {
     if (!sharedView.value) return
 
-    const page = paginationData.value.page || 1
-    const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
+    if (!offset) {
+      const page = paginationData.value.page || 1
+      const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
+      offset = (page - 1) * pageSize
+    }
 
     const { data } = await $api.public.dataList(
       sharedView.value.uuid!,
       {
-        offset: (page - 1) * pageSize,
+        offset,
         filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       } as any,

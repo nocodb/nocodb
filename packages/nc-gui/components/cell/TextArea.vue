@@ -53,14 +53,7 @@ const rowHeight = computed(() => {
     @mousedown.stop
   />
 
-  <a-textarea
-    v-else-if="rowHeight"
-    :key="rowHeight"
-    v-model:value="vModel"
-    class="w-full h-full"
-    :auto-size="{ minRows: rowHeight, maxRows: rowHeight }"
-    :bordered="false"
-  />
+  <CellClampedText v-else-if="rowHeight" :value="vModel" :lines="rowHeight" />
 
   <span v-else>{{ vModel }}</span>
 </template>

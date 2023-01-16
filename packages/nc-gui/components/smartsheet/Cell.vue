@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, GridType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
+  ActiveViewInj,
   ColumnInj,
   EditModeInj,
   IsFormInj,
@@ -59,6 +60,8 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled'])
+
+const view = inject(ActiveViewInj, ref())
 
 const column = toRef(props, 'column')
 
@@ -124,6 +127,21 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
 
   if (!isForm.value) e.stopImmediatePropagation()
 }
+
+const rowHeight = computed(() => {
+  if ((view.value?.view as GridType)?.row_height !== undefined) {
+    switch ((view.value?.view as GridType)?.row_height) {
+      case 0:
+        return 1
+      case 1:
+        return 2
+      case 2:
+        return 4
+      case 3:
+        return 6
+    }
+  }
+})
 </script>
 
 <template>
@@ -132,6 +150,8 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
+      { '!h-auto': !rowHeight || rowHeight === 1 },
+      { '!h-full': rowHeight && rowHeight !== 1 },
     ]"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"

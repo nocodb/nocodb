@@ -38,5 +38,5 @@ const focus: VNodeRef = (el) => {
     @mousedown.stop
   />
 
-  <span v-else>{{ vModel }}</span>
+  <CellClampedText v-else :value="vModel" :lines="1" />
 </template>

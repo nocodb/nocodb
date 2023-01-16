@@ -25,6 +25,11 @@ export default {
 
 <template>
   <NuxtLayout name="new">
+    <template #navbar>
+      <div class="flex flex-row justify-end w-full">
+        <GeneralShareProject />
+      </div>
+    </template>
     <a-layout>
       <a-layout-sider>
         <slot name="sidebar" />

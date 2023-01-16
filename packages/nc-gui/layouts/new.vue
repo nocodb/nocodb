@@ -12,6 +12,8 @@ const refreshSidebar = ref(false)
 
 useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | NocoDB` : 'NocoDB')
 
+const isHomeScreen = computed(() => route.name === 'index-index')
+
 watch(hasSidebar, (val) => {
   if (!val) {
     refreshSidebar.value = true
@@ -45,7 +47,10 @@ export default {
           <a-button ghost class="!text-inherit"> Community</a-button>
         </div>
         <div class="flex-1 min-w-0 flex justify-end gap-2">
-          <div class="nc-quick-action-wrapper">
+          <div class="flex flex-row flex-grow">
+            <slot name="navbar" />
+          </div>
+          <div v-if="isHomeScreen" class="nc-quick-action-wrapper">
             <MaterialSymbolsSearch class="nc-quick-action-icon" />
             <input class="" placeholder="Quick Actions" />
 

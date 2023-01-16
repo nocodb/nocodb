@@ -43,7 +43,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
-  const { loadProject } = useProject()
+  const { project } = useProject()
 
   const { t } = useI18n()
 
@@ -86,7 +86,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       await setMeta(viewMeta.model)
 
-      await loadProject(true, viewMeta.project_id)
+      // if project is not defined then set it with an object containing base
+      if (!project.value?.bases)
+        project.value = {
+          bases: [
+            {
+              id: viewMeta.base_id,
+              type: viewMeta.client,
+            },
+          ],
+        }
 
       const relatedMetas = { ...viewMeta.relatedMetas }
 

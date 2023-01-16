@@ -277,6 +277,7 @@
     "selectUserRole": "ユーザーのロールを選択してください",
     "childTable": "子テーブル",
     "childColumn": "子カラム",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "更新中",
     "onDelete": "削除中",
     "account": "アカウント",

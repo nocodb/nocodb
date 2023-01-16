@@ -277,6 +277,7 @@
     "selectUserRole": "ব্যবহারকারীর ভূমিকা নির্বাচন করুন",
     "childTable": "Child table",
     "childColumn": "Child column",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "আপডেটে",
     "onDelete": "ডিলিটএ",
     "account": "Account",

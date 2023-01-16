@@ -277,6 +277,7 @@
     "selectUserRole": "Selecteer de rol van de gebruiker",
     "childTable": "Child Tabel",
     "childColumn": "Child Kolom",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Bij update",
     "onDelete": "Bij verwijdering",
     "account": "Account",

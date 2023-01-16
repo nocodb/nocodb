@@ -277,6 +277,7 @@
     "selectUserRole": "Izvēlēties lietotāja lomu",
     "childTable": "Apakštabula",
     "childColumn": "Apakškolonna",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Atjaunojot",
     "onDelete": "Dzēšot",
     "account": "Account",

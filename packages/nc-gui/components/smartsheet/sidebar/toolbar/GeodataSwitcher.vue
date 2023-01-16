@@ -1,6 +1,7 @@
 <script setup lang="ts">
-async function toggleGeodataFeature() {
+function toggleGeodataFeature() {
   geodataToggleState.show = !geodataToggleState.show
+  localStorage.setItem('geodataToggleState', JSON.stringify(geodataToggleState.show))
 }
 </script>
 

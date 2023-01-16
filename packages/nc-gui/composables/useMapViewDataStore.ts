@@ -4,7 +4,11 @@ import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'no
 import { IsPublicInj, ref, useInjectionState, useMetas, useProject } from '#imports'
 import type { Row } from '~/lib'
 
-export const geodataToggleState = reactive({ show: false })
+const storedValue = localStorage.getItem('geodataToggleState')
+
+const initialState = storedValue ? JSON.parse(storedValue) : false
+
+export const geodataToggleState = reactive({ show: initialState })
 
 const formatData = (list: Record<string, any>[]) =>
   list.map(

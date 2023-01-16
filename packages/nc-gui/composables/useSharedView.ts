@@ -9,7 +9,7 @@ import type {
   TableType,
   ViewType,
 } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
@@ -70,8 +70,17 @@ export function useSharedView() {
     meta.value = { ...viewMeta.model }
 
     let order = 1
+
+    // include kanban grouping field column to share view
+    // even it is unselected in Fields
+    // so that it won't break kanban share view
+    let kanbanGroupingFieldId = ''
+    if (viewMeta.type === ViewTypes.KANBAN) {
+      kanbanGroupingFieldId = (await $api.dbView.kanbanRead(viewMeta.id)).fk_grp_col_id!
+    }
+
     meta.value!.columns = [...viewMeta.model.columns]
-      .filter((c) => c.show)
+      .filter((c) => c.show || (viewMeta.type === ViewTypes.KANBAN && c.id === kanbanGroupingFieldId))
       .map((c) => ({ ...c, order: order++ }))
       .sort((a, b) => a.order - b.order)
 

@@ -77,7 +77,7 @@ onMounted(() => {
         </a-form-item>
         <div class="flex items-center justify-center gap-6 w-full mt-4">
           <button class="scaling-btn bg-opacity-100" type="submit">
-            <span>{{ $t('general.rename') }}</span>
+            <span>{{ $t('general.confirm') }}</span>
           </button>
           <button class="scaling-btn bg-opacity-100" type="button" @click="useRandomName">
             <span>{{ $t('title.generateRandomName') }}</span>

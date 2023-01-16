@@ -71,7 +71,7 @@ const deleteUser = async (userId: string) => {
   Modal.confirm({
     title: 'Are you sure you want to delete this user?',
     type: 'warn',
-    content: 'On deleting, user will remove from organization and any sync source(Airtable) created by user will get removed',
+    content: 'On deleting, user will be removed from organization and any sync source(Airtable) created by user will get removed',
     onOk: async () => {
       try {
         await api.orgUsers.delete(userId)

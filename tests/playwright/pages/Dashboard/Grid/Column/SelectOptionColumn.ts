@@ -1,5 +1,6 @@
 import { ColumnPageObject } from '.';
 import BasePage from '../../../Base';
+import { expect } from '@playwright/test';
 
 export class SelectOptionColumnPageObject extends BasePage {
   readonly column: ColumnPageObject;
@@ -48,6 +49,22 @@ export class SelectOptionColumnPageObject extends BasePage {
     await this.column.openEdit({ title: columnTitle });
 
     await this.column.get().locator(`svg[data-testid="select-column-option-remove-${index}"]`).click();
+
+    await expect(this.column.get().getByTestId(`select-column-option-${index}`)).toHaveClass(/removed/);
+
+    await this.column.save({ isUpdated: true });
+  }
+
+  async deleteOptionWithUndo({ columnTitle, index }: { index: number; columnTitle: string }) {
+    await this.column.openEdit({ title: columnTitle });
+
+    await this.column.get().locator(`svg[data-testid="select-column-option-remove-${index}"]`).click();
+
+    await expect(this.column.get().getByTestId(`select-column-option-${index}`)).toHaveClass(/removed/);
+
+    await this.column.get().locator(`svg[data-testid="select-column-option-remove-undo-${index}"]`).click();
+
+    await expect(this.column.get().getByTestId(`select-column-option-${index}`)).not.toHaveClass(/removed/);
 
     await this.column.save({ isUpdated: true });
   }

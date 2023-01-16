@@ -7,11 +7,9 @@ import {
   LinkToAnotherRecordType,
   RelationTypes,
   UITypes,
-  ViewTypes,
 } from 'nocodb-sdk';
 import Column from '../../../models/Column';
 import Base from '../../../models/Base';
-import KanbanView from '../../../models/KanbanView';
 import Project from '../../../models/Project';
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 
@@ -41,21 +39,11 @@ export async function viewMetaGet(req: Request, res: Response) {
   // todo: return only required props
   delete view['password'];
 
-  // include kanban grouping field column to share view
-  // even it is unselected in Fields
-  // so that it won't break kanban share view
-  let kanbanGroupingFieldId;
-  if (view.type === ViewTypes.KANBAN) {
-    kanbanGroupingFieldId = (await KanbanView.get(view.id)).fk_grp_col_id;
-  }
-
   view.model.columns = view.columns
     .filter((c) => {
       const column = view.model.columnsById[c.fk_column_id];
       return (
         c.show ||
-        (view.type === ViewTypes.KANBAN &&
-          c.fk_column_id === kanbanGroupingFieldId) ||
         (column.rqd && !column.cdf && !column.ai) ||
         column.pk ||
         view.model.columns.some(

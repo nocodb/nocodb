@@ -42,6 +42,7 @@ Permissions within NocoDB are divided into two levels: Organisation level and Pr
 - `Commenter`: Can neither modify data nor schema, can only see data and can mark row-level comments.
 - `Viewer`: Can only see data.
 
+Additional access details for project level permissions can be found [here](https://docs.nocodb.com/setup-and-usages/team-and-auth#advanced-options--configurations).
 Please note that the above-mentioned Project Level Permissions are additional to the already defined Organisation Level Permissions.
 In addition to the previously defined permissions, NocoDB also includes the role of "Super Admin." The "Super Admin" is the first user to sign up on this NocoDB installation. An organisation can have only one "Super Admin" and this role is non-transferable. The "Super Admin" will have the equivalent permissions of an "Org Level Creator" and "Owner" for all projects within the organisation.
 

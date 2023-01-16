@@ -20,6 +20,7 @@ const {
   downloadFile,
   updateModelValue,
   selectedImage,
+  renameFile,
 } = useAttachmentCell()!
 
 // todo: replace placeholder var
@@ -125,10 +126,18 @@ function onRemoveFileClick(title: any, i: number) {
             </a-tooltip>
 
             <a-tooltip placement="bottom">
-              <template #title> Download file </template>
+              <template #title> Download File </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100)">
                 <MdiDownload @click.stop="downloadFile(item)" />
+              </div>
+            </a-tooltip>
+
+            <a-tooltip placement="bottom">
+              <template #title> Rename File </template>
+
+              <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">
+                <MdiEditOutline @click.stop="renameFile(item)" />
               </div>
             </a-tooltip>
 

@@ -88,24 +88,23 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               new Promise<AttachmentProps>((resolve) => {
                 const res: AttachmentProps = { ...file, file, title: file.name, mimetype: file.type }
 
-                renameFile(file).then((renamedFile) => {
-                  if (isImage(renamedFile.name, (<any>renamedFile).mimetype ?? renamedFile.type)) {
-                    const reader = new FileReader()
+                if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
+                  const reader = new FileReader()
 
-                    reader.onload = (e) => {
-                      res.data = e.target?.result
-                      resolve(res)
-                    }
+                  reader.onload = (e) => {
+                    res.data = e.target?.result
 
-                    reader.onerror = () => {
-                      resolve(res)
-                    }
-
-                    reader.readAsDataURL(file)
-                  } else {
                     resolve(res)
                   }
-                })
+
+                  reader.onerror = () => {
+                    resolve(res)
+                  }
+
+                  reader.readAsDataURL(file)
+                } else {
+                  resolve(res)
+                }
               }),
           ),
         )
@@ -117,7 +116,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       const newAttachments = []
 
-      for (let file of selectedFiles) {
+      for (const file of selectedFiles) {
         // verify mime type
         const meta = typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta
         if (meta.unsupportedAttachmentMimeTypes.includes(file.type)) {
@@ -125,7 +124,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           continue
         }
 
-        file = await renameFile(file)
+        // file = await renameFile(file)
         try {
           const data = await api.storage.upload(
             {
@@ -146,23 +145,19 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
     }
 
-    async function renameFile(file: File) {
-      return new Promise<File>((resolve) => {
+    async function renameFile(file: Record<string, any>) {
+      return new Promise((resolve) => {
         const { close } = useDialog(RenameFile, {
-          fileName: file.name,
+          fileName: file.title,
           fileNames: [...attachments.value.map((file) => file.title), ...storedFiles.value.map((file) => file.title)],
           onRename: (newName: string) => {
             close()
-            resolve(
-              new File([file], newName, {
-                type: file.type,
-                lastModified: file.lastModified,
-              }),
-            )
+            // TODO: update name
+            resolve(true)
           },
           onCancel: () => {
             close()
-            resolve(file)
+            resolve(true)
           },
         })
       })
@@ -217,6 +212,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       modalVisible,
       FileIcon,
       removeFile,
+      renameFile,
       downloadFile,
       updateModelValue,
       selectedImage,

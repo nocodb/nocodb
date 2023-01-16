@@ -145,7 +145,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where,
           })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
+        : // TODO: add range
+          await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
       formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response.list)])
     }
@@ -155,9 +156,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       kanbanMetaData.value = isPublic.value
         ? (sharedView.value?.view as KanbanType)
         : await $api.dbView.kanbanRead(viewMeta.value.id)
+
       // set groupingField
-      groupingFieldColumn.value =
-        (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.fk_grp_col_id)[0] || {}
+      // avoid getting from meta.value.columns
+      // it would be undefiend as grouping field can be unselected before passing to share view
+      groupingFieldColumn.value = (await $api.dbTableColumn.get(kanbanMetaData.value.fk_grp_col_id!))! as ColumnType
 
       groupingField.value = groupingFieldColumn.value.title!
 

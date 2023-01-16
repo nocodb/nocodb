@@ -37,7 +37,7 @@ useMenuCloseOnEsc(open)
     <div>
       <a-button v-e="['c:row-height']" class="nc-height-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
-          <MdiTableRowHeight />
+          <RiLineHeight />
 
           <!-- Row Height -->
           <span class="text-capitalize !text-sm font-weight-normal">Row Height</span>
@@ -49,18 +49,10 @@ useMenuCloseOnEsc(open)
       <div class="w-full bg-gray-50 shadow-lg menu-filter-dropdown !border" data-testid="nc-height-menu">
         <div class="text-gray-500 !text-xs px-4 py-2">Select a row height</div>
         <div class="flex flex-col w-full text-sm" @click.stop>
-          <div class="flex items-center py-1 px-2 hover:bg-gray-200" @click="updateRowHeight(0)">
-            <MdiSizeS class="text-xl mr-3" />Short
-          </div>
-          <div class="flex items-center py-1 px-2 hover:bg-gray-200" @click="updateRowHeight(1)">
-            <MdiSizeM class="text-xl mr-3" />Medium
-          </div>
-          <div class="flex items-center py-1 px-2 hover:bg-gray-200" @click="updateRowHeight(2)">
-            <MdiSizeL class="text-xl mr-3" />Tall
-          </div>
-          <div class="flex items-center py-1 px-2 hover:bg-gray-200" @click="updateRowHeight(3)">
-            <MdiSizeXl class="text-xl mr-3" />Extra
-          </div>
+          <div class="flex items-center py-1 px-2 justify-center hover:bg-gray-200" @click="updateRowHeight(0)">Short</div>
+          <div class="flex items-center py-1 px-2 justify-center hover:bg-gray-200" @click="updateRowHeight(1)">Medium</div>
+          <div class="flex items-center py-1 px-2 justify-center hover:bg-gray-200" @click="updateRowHeight(2)">Tall</div>
+          <div class="flex items-center py-1 px-2 justify-center hover:bg-gray-200" @click="updateRowHeight(3)">Extra</div>
         </div>
       </div>
     </template>

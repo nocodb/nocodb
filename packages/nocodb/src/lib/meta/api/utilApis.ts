@@ -17,6 +17,7 @@ import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
 import { feedbackForm } from 'nc-help';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const versionCache = {
   releaseVersion: null,
@@ -56,6 +57,8 @@ export async function appInfo(req: Request, res: Response) {
     teleEnabled: !process.env.NC_DISABLE_TELE,
     ncSiteUrl: (req as any).ncSiteUrl,
     ee: Noco.isEE(),
+    ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
+    ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10)
   };
 
   res.json(result);

@@ -41,7 +41,6 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
   NcError.badRequest('Upload not allowed');
 };
 
-// const storageAdapter = new Local();
 export async function upload(req: Request, res: Response) {
   const filePath = sanitizeUrlPath(
     req.query?.path?.toString()?.split('/') || ['']
@@ -49,6 +48,7 @@ export async function upload(req: Request, res: Response) {
   const destPath = path.join('nc', 'uploads', ...filePath);
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
   const attachments = await Promise.all(
     (req as any).files?.map(async (file) => {
       const fileName = `${nanoid(6)}${path.extname(file.originalname)}`;
@@ -86,9 +86,11 @@ export async function uploadViaURL(req: Request, res: Response) {
   const destPath = path.join('nc', 'uploads', ...filePath);
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
   const attachments = await Promise.all(
     req.body?.map?.(async (urlMeta) => {
       const { url, fileName: _fileName } = urlMeta;
+
       const fileName = `${nanoid(6)}${_fileName || url.split('/').pop()}`;
 
       let attachmentUrl = await (storageAdapter as any).fileCreateByUrl(

@@ -14,7 +14,7 @@ const [setup, use] = useInjectionState(() => {
   const lastFetchedUsers = ref<null | User[]>(null)
   const totalUsers = ref(0)
   const isBatchUpdating = ref(false)
-  const formStatus = ref<'collaborate' | 'collaborateSaving' | 'collaborateSaved' | 'manageCollaborators' | 'public'>(
+  const formStatus = ref<'collaborate' | 'collaborateSaving' | 'collaborateSaved' | 'manageCollaborators' | 'share'>(
     'collaborate',
   )
   // todo: Only tracks roles updates

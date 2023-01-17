@@ -38,7 +38,7 @@ export function useDocs() {
   const drafts = useState<PageSidebarNode[]>('drafts', () => [])
   const publishedPages = useState<PageSidebarNode[]>('publishedPages', () => [])
   const allByTitle = useState<PageSidebarNode[]>('allByTitle', () => [])
-
+  const isBookUpdating = useState<boolean>('isBookUpdating', () => false)
   const openedTabs = useState<string[]>('openedSidebarTabs', () => [])
 
   // First slug is book slug, rest are page slugs
@@ -418,9 +418,10 @@ export function useDocs() {
     }
   }
 
-  function bookUrl(bookSlug: string) {
+  function bookUrl(bookSlug: string, completeUrl?: boolean) {
     const publicSlug = route.params.slugs?.length > 0 ? route.params.slugs[0] : bookSlug
-    return isPublic.value ? `/nc/doc/${projectId!}/public/${publicSlug}` : `/nc/doc/${projectId!}/${bookSlug}`
+    const path = isPublic.value ? `/nc/doc/${projectId!}/public/${publicSlug}` : `/nc/doc/${projectId!}/${bookSlug}`
+    return completeUrl ? `${window.location.origin}/#${path}` : path
   }
 
   function nestedUrl(id: string) {
@@ -682,6 +683,23 @@ export function useDocs() {
     return response
   }
 
+  const updateBook = async (bookId: string, attributes: Partial<BookType>) => {
+    isBookUpdating.value = true
+    try {
+      const response = await $api.nocoDocs.updateBook(bookId, {
+        projectId: projectId!,
+        attributes,
+      })
+      const index = books.value.findIndex((b) => b.id === bookId)
+      books.value[index] = response
+    } catch (e) {
+      console.error(e)
+      message.error('Failed to update book')
+    } finally {
+      isBookUpdating.value = false
+    }
+  }
+
   return {
     fetchPages,
     fetchBooks,
@@ -727,5 +745,7 @@ export function useDocs() {
     openPage,
     nestedDrafts,
     isBulkPublishing,
+    isBookUpdating,
+    updateBook,
   }
 }

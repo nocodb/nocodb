@@ -2,6 +2,7 @@
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import Collaborate from './share-and-collaborate/Collaborate.vue'
 import ManageUsers from './share-and-collaborate/ManageUsers.vue'
+import Share from './share-and-collaborate/Share.vue'
 
 interface Props {
   modelValue: boolean
@@ -58,11 +59,11 @@ watch(formStatus, (val) => {
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
     <div v-if="formStatus === 'collaborateSaving'" class="flex flex-row w-full px-5 justify-between">
-      <div class="flex" :style="{ fontWeight: 500 }">Adding Collaborators</div>
+      <div class="flex text-lg" :style="{ fontWeight: 500 }">Adding Collaborators</div>
       <a-spin :indicator="indicator" />
     </div>
     <div v-else-if="formStatus === 'collaborateSaved'" class="flex flex-row w-full px-5 justify-between items-center">
-      <div class="flex" :style="{ fontWeight: 500 }">Collaborators added</div>
+      <div class="flex text-lg" :style="{ fontWeight: 500 }">Collaborators added</div>
       <div class="flex"><MdiCheck /></div>
     </div>
     <div v-else class="flex flex-col">
@@ -70,16 +71,16 @@ watch(formStatus, (val) => {
         class="flex flex-row justify-between items-center pb-1.5 mx-4"
         :class="{ 'border-b-1 border-gray-100': formStatus === 'manageCollaborators' }"
       >
-        <div class="flex text-md py-1" style="font-weight: 500">
+        <div class="flex text-lg py-1" style="font-weight: 500">
           <template v-if="formStatus === 'manageCollaborators'"> Manage Collaborators </template>
-          <template v-if="formStatus === 'collaborate'"> Share </template>
+          <template v-if="formStatus === 'collaborate' || formStatus === 'share'"> Share </template>
         </div>
-        <div class="flex hover:bg-gray-50 p-1 rounded-md cursor-pointer" @click="vModel = false">
+        <div class="flex hover:bg-gray-50 -ml-1 p-1 rounded-md cursor-pointer" @click="vModel = false">
           <MdiClose class="my-auto" />
         </div>
       </div>
       <ManageUsers v-if="formStatus === 'manageCollaborators'" @close="formStatus = 'collaborate'" />
-      <div v-else class="flex flex-col mx-4">
+      <div v-else class="flex flex-col mx-4 h-80">
         <a-tabs v-model:activeKey="formStatus">
           <a-tab-pane key="collaborate">
             <template #tab>
@@ -90,13 +91,14 @@ watch(formStatus, (val) => {
             </template>
             <Collaborate />
           </a-tab-pane>
-          <a-tab-pane key="public">
+          <a-tab-pane key="share">
             <template #tab>
               <div class="flex flex-row items-center text-xs px-2">
                 <MdiEarth class="mr-1" />
                 <div>Share Public Viewing</div>
               </div>
             </template>
+            <Share @close="vModel = false" />
           </a-tab-pane>
         </a-tabs>
       </div>
@@ -107,10 +109,10 @@ watch(formStatus, (val) => {
 <style lang="scss">
 .nc-modal-share-collaborate {
   .ant-modal-content {
-    @apply !rounded-lg;
+    @apply !rounded-2xl;
   }
   .ant-modal-body {
-    @apply !py-2.5 !px-0;
+    @apply !py-2.5 !px-1;
   }
   .ant-select-selector {
     @apply !rounded-md !border-gray-200 !border-1;

@@ -55,45 +55,47 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col h-68">
     <a-form ref="formRef" :validate-on-rule-change="false" :model="usersData" validate-trigger="onBlur" @finish="saveUser">
-      <div class="flex flex-row space-x-4 mx-2 border-1 border-gray-200 bg-gray-100 rounded-md mb-6">
-        <div class="flex flex-col w-3/4 relative mt-0.5">
-          <a-form-item
-            v-bind="validateInfos.emails"
-            validate-trigger="onBlur"
-            name="emails"
-            :rules="[{ required: true, message: 'Please input email' }]"
-          >
-            <a-input
-              v-model:value="usersData.emails"
-              :bordered="false"
-              type="text"
+      <div class="flex flex-col mb-6 h-38">
+        <div class="flex flex-row space-x-4 mx-2 border-1 border-gray-200 bg-gray-100 rounded-md">
+          <div class="flex flex-col w-3/4 relative mt-0.5">
+            <a-form-item
+              v-bind="validateInfos.emails"
               validate-trigger="onBlur"
-              placeholder="Add people by email..."
-            />
-          </a-form-item>
-        </div>
-
-        <div class="flex flex-col w-1/4">
-          <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
-            <a-select
-              v-model:value="usersData.role"
-              class="!rounded-md p-0.5 !bg-gray-200"
-              dropdown-class-name="nc-dropdown-user-role !rounded-md"
+              name="emails"
+              :rules="[{ required: true, message: 'Please input email' }]"
             >
-              <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
-                <div class="flex flex-row h-full justify-start items-center">
-                  <div
-                    class="px-2 py-1 flex rounded-full text-xs capitalize"
-                    :style="{ backgroundColor: projectRoleTagColors[role] }"
-                  >
-                    {{ role }}
+              <a-input
+                v-model:value="usersData.emails"
+                :bordered="false"
+                type="text"
+                validate-trigger="onBlur"
+                placeholder="Add people by email..."
+              />
+            </a-form-item>
+          </div>
+
+          <div class="flex flex-col w-1/4">
+            <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
+              <a-select
+                v-model:value="usersData.role"
+                class="!rounded-md p-0.5 !bg-gray-200"
+                dropdown-class-name="nc-dropdown-user-role !rounded-md"
+              >
+                <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
+                  <div class="flex flex-row h-full justify-start items-center">
+                    <div
+                      class="px-2 py-1 flex rounded-full text-xs capitalize"
+                      :style="{ backgroundColor: projectRoleTagColors[role] }"
+                    >
+                      {{ role }}
+                    </div>
                   </div>
-                </div>
-              </a-select-option>
-            </a-select>
-          </a-form-item>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </div>
         </div>
       </div>
 

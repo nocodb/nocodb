@@ -23,7 +23,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div
-    class="my-auto h-8 flex flex-row items-center gap-x-1.5 bg-gray-100 py-1 px-2.5 rounded-md border-gray-200 border-1 mr-2 cursor-pointer hover:bg-gray-200"
+    class="my-auto h-8 flex flex-row items-center gap-x-1.5 bg-gray-50 hover:bg-gray-100 py-1 px-2.5 rounded-md border-gray-200 border-1 mr-2 cursor-pointer"
     @click="showUserModal = true"
   >
     <MaterialSymbolsSendOutlineRounded />

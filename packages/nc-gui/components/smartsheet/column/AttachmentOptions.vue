@@ -186,13 +186,23 @@ const filterOption = (val: string, option: Option) => {
   <a-row gutter="8">
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.maxNumberOfAttachments']" label="Max Number of Attachments">
-        <a-input-number v-model:value="vModel.meta.maxNumberOfAttachments" class="!w-full nc-extdb-host-port" />
+        <a-input-number
+          v-model:value="vModel.meta.maxNumberOfAttachments"
+          :min="0"
+          :max="appInfo.ncMaxAttachmentsAllowed || 10"
+          class="!w-full nc-extdb-host-port"
+        />
       </a-form-item>
     </a-col>
 
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.maxAttachmentSize']" label="Max Attachment Size (MB)">
-        <a-input-number v-model:value="vModel.meta.maxAttachmentSize" class="!w-full nc-extdb-host-port" />
+        <a-input-number
+          v-model:value="vModel.meta.maxAttachmentSize"
+          :min="1"
+          :max="appInfo.ncAttachmentFieldSize / 1024 / 1024 || 20"
+          class="!w-full nc-extdb-host-port"
+        />
       </a-form-item>
     </a-col>
 

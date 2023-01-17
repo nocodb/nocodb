@@ -45,18 +45,18 @@ const tabInfo = [
     key: 'all',
     icon: () => MdiFileDocumentOutline,
   },
+  // {
+  //   title: 'Published',
+  //   key: 'published',
+  //   icon: () => MdiPublish,
+  // },
+  // {
+  //   title: 'Unpublished',
+  //   key: 'unpublished',
+  //   icon: () => MdiFileEditOutline,
+  // },
   {
-    title: 'Published',
-    key: 'published',
-    icon: () => MdiPublish,
-  },
-  {
-    title: 'Unpublished',
-    key: 'unpublished',
-    icon: () => MdiFileEditOutline,
-  },
-  {
-    title: 'All Pages by Title',
+    title: 'A-Z',
     key: 'allByTitle',
     icon: () => MdiFilterVariant,
   },
@@ -250,9 +250,9 @@ const loadListData = async ($state: any) => {
                 </a-menu>
               </template>
             </a-dropdown>
-            <a-button type="primary" :disabled="!haveDrafts" :loading="isBulkPublishing" @click="showPublishModal = true">
+            <!-- <a-button type="primary" :disabled="!haveDrafts" :loading="isBulkPublishing" @click="showPublishModal = true">
               Publish v{{ openedBook?.order }}</a-button
-            >
+            > -->
           </div>
         </div>
         <div class="flex flex-row justify-between mt-8 items-center">

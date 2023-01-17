@@ -25,6 +25,11 @@ export default {
 
 <template>
   <NuxtLayout name="new">
+    <template #navbar>
+      <div class="flex flex-row justify-end w-full">
+        <GeneralShareProject />
+      </div>
+    </template>
     <a-layout>
       <a-layout-sider>
         <slot name="sidebar" />
@@ -37,6 +42,12 @@ export default {
 </template>
 
 <style lang="scss">
+.ant-layout {
+  @apply !overflow-y-hidden;
+}
+.ant-layout-content {
+  @apply !overflow-y-hidden;
+}
 .nc-lang-btn {
   @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white ring-opacity-100 active:(ring ring-accent) hover:(ring ring-accent);
 

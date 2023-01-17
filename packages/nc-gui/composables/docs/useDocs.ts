@@ -1,7 +1,9 @@
 import { message } from 'ant-design-vue'
 import type { BookType, DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
+import { arrayToTree } from 'performant-array-to-tree'
 import { extractSdkResponseErrorMsg, useNuxtApp, useState } from '#imports'
+
 export interface AntSidebarNode {
   parentNodeId?: string
   isLeaf: boolean
@@ -11,9 +13,12 @@ export interface AntSidebarNode {
   new?: boolean
   isBook?: boolean
   children?: PageSidebarNode[]
+  level?: number
+  isSelected?: boolean
 }
 
 export type PageSidebarNode = DocsPageType & AntSidebarNode
+export type PublishTreeNode = PageSidebarNode & { isSelected: boolean; key: string }
 
 export const PAGES_PER_PAGE_LIST = 10
 
@@ -25,6 +30,7 @@ export function useDocs() {
   const isPublic = inject(IsDocsPublicInj, ref(false))
 
   const isFetchingPagesFromUrl = useState<boolean>('isFetchingPagesFromUrl', () => false)
+  const isBulkPublishing = useState<boolean>('isBulkPublishing', () => false)
   const books = useState<BookType[]>('books', () => [])
 
   const nestedPages = useState<PageSidebarNode[]>('nestedPages', () => [])
@@ -32,7 +38,7 @@ export function useDocs() {
   const drafts = useState<PageSidebarNode[]>('drafts', () => [])
   const publishedPages = useState<PageSidebarNode[]>('publishedPages', () => [])
   const allByTitle = useState<PageSidebarNode[]>('allByTitle', () => [])
-
+  const isBookUpdating = useState<boolean>('isBookUpdating', () => false)
   const openedTabs = useState<string[]>('openedSidebarTabs', () => [])
 
   // First slug is book slug, rest are page slugs
@@ -82,6 +88,33 @@ export function useDocs() {
     return openedNestedPagesOfBook.value.length > 0
       ? openedNestedPagesOfBook.value[openedNestedPagesOfBook.value.length - 1]
       : prevOpenedPage
+  })
+
+  const nestedDrafts = computed({
+    get: () => {
+      if (drafts.value.length === 0) return []
+
+      const tree = arrayToTree(drafts.value, {
+        parentId: 'parent_page_id',
+        id: 'id',
+        dataField: null,
+      }) as PageSidebarNode[]
+
+      // traverse tree and set level
+      const traverse = (pages: PageSidebarNode[], level = 0) => {
+        pages.forEach((p) => {
+          p.level = level
+          if (p.children) traverse(p.children, level + 1)
+        })
+      }
+
+      traverse(tree)
+
+      return tree
+    },
+    set: (val) => {
+      console.log('setter', val)
+    },
   })
 
   watch(openedPage, (page) => {
@@ -385,9 +418,10 @@ export function useDocs() {
     }
   }
 
-  function bookUrl(bookSlug: string) {
+  function bookUrl(bookSlug: string, completeUrl?: boolean) {
     const publicSlug = route.params.slugs?.length > 0 ? route.params.slugs[0] : bookSlug
-    return isPublic.value ? `/nc/doc/${projectId!}/public/${publicSlug}` : `/nc/doc/${projectId!}/${bookSlug}`
+    const path = isPublic.value ? `/nc/doc/${projectId!}/public/${publicSlug}` : `/nc/doc/${projectId!}/${bookSlug}`
+    return completeUrl ? `${window.location.origin}/#${path}` : path
   }
 
   function nestedUrl(id: string) {
@@ -601,21 +635,26 @@ export function useDocs() {
     return data[0]
   }
 
-  const bulkPublish = async (toBePublishedPages: Array<PageSidebarNode & { selected: boolean }>) => {
-    await $api.nocoDocs.batchPublishPages({
-      projectId: projectId!,
-      bookId: openedBook.value!.id!,
-      pageIds: toBePublishedPages.map((p) => p.id!),
-    })
-    toBePublishedPages.forEach((draft) => {
-      const page = findPage(draft.id!)
-      if (page) {
-        page.is_published = true
-        page.published_content = page.content
-        page.published_title = page.title
-      }
-    })
-    drafts.value = drafts.value.filter((draft) => !toBePublishedPages.find((p) => p.id === draft.id))
+  const bulkPublish = async (toBePublishedPages: Array<PageSidebarNode & { isSelected: boolean }>) => {
+    isBulkPublishing.value = true
+    try {
+      await $api.nocoDocs.batchPublishPages({
+        projectId: projectId!,
+        bookId: openedBook.value!.id!,
+        pageIds: toBePublishedPages.map((p) => p.id!),
+      })
+      toBePublishedPages.forEach((draft) => {
+        const page = findPage(draft.id!)
+        if (page) {
+          page.is_published = true
+          page.published_content = page.content
+          page.published_title = page.title
+        }
+      })
+      drafts.value = drafts.value.filter((draft) => !toBePublishedPages.find((p) => p.id === draft.id))
+    } finally {
+      isBulkPublishing.value = false
+    }
   }
 
   const navigateToFirstPage = async () => {
@@ -642,6 +681,23 @@ export function useDocs() {
       pageId: id,
     })
     return response
+  }
+
+  const updateBook = async (bookId: string, attributes: Partial<BookType>) => {
+    isBookUpdating.value = true
+    try {
+      const response = await $api.nocoDocs.updateBook(bookId, {
+        projectId: projectId!,
+        attributes,
+      })
+      const index = books.value.findIndex((b) => b.id === bookId)
+      books.value[index] = response
+    } catch (e) {
+      console.error(e)
+      message.error('Failed to update book')
+    } finally {
+      isBookUpdating.value = false
+    }
   }
 
   return {
@@ -687,5 +743,9 @@ export function useDocs() {
     fetchAllPagesByTitle,
     fetchAllPages,
     openPage,
+    nestedDrafts,
+    isBulkPublishing,
+    isBookUpdating,
+    updateBook,
   }
 }

@@ -1,4 +1,11 @@
-export const comparisonOpList = [
+import { UITypes } from 'nocodb-sdk'
+
+export const comparisonOpList: {
+  text: string
+  value: string
+  ignoreVal?: boolean
+  allowedTypes?: string[]
+}[] = [
   {
     text: 'is equal',
     value: 'eq',
@@ -34,6 +41,18 @@ export const comparisonOpList = [
     text: 'is not null',
     value: 'notnull',
     ignoreVal: true,
+  },
+  {
+    text: 'is checked',
+    value: 'checked',
+    ignoreVal: true,
+    allowedTypes: ['boolean'],
+  },
+  {
+    text: 'is not checked',
+    value: 'notchecked',
+    ignoreVal: true,
+    allowedTypes: ['boolean'],
   },
   {
     text: 'contains all of',

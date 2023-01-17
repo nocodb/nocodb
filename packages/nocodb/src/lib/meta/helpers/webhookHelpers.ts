@@ -66,6 +66,12 @@ export async function validateCondition(filters: Filter[], data: any) {
           data[field] === undefined
         );
         break;
+      case 'checked':
+        res = !!data[field];
+        break;
+      case 'notchecked':
+        res = !data[field];
+        break;
       case 'null':
         res = res = data[field] === null;
         break;

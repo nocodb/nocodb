@@ -118,9 +118,26 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       const newAttachments = []
 
+      const attachmentMeta = typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta
+
       for (let file of selectedFiles) {
+        // verify number of files
+        if (selectedFiles.length > attachmentMeta.maxNumberOfAttachments) {
+          message.error(
+            `You can only upload at most ${attachmentMeta.maxNumberOfAttachments} file${
+              attachmentMeta.maxNumberOfAttachments > 1 ? 's' : ''
+            } at a time`,
+          )
+          return
+        }
+
+        // verify file size
+        if (file.size > attachmentMeta.maxAttachmentSize * 1024 * 1024) {
+          message.error(`The size of ${file.name} exceeds the maximum file size ${attachmentMeta.maxAttachmentSize} MB.`)
+          continue
+        }
+
         // verify mime type
-        const attachmentMeta = typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta
         if (attachmentMeta.unsupportedAttachmentMimeTypes.includes(file.type)) {
           message.error(`${file.name} has the mime type ${file.type} which is not allowed in this column.`)
           continue

@@ -118,13 +118,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       for (const file of selectedFiles) {
         // verify mime type
-        const meta = typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta
-        if (meta.unsupportedAttachmentMimeTypes.includes(file.type)) {
+        const attachmentMeta = typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta
+        if (attachmentMeta.unsupportedAttachmentMimeTypes.includes(file.type)) {
           message.error(`${file.name} has the mime type ${file.type} which is not allowed in this column.`)
           continue
         }
 
-        // file = await renameFile(file)
         try {
           const data = await api.storage.upload(
             {
@@ -135,7 +134,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               json: '{}',
             },
           )
-
           newAttachments.push(...data)
         } catch (e: any) {
           message.error(e.message || t('msg.error.internalError'))

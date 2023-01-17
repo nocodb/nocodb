@@ -51,7 +51,7 @@ export async function upload(req: Request, res: Response) {
 
   const attachments = await Promise.all(
     (req as any).files?.map(async (file) => {
-      const fileName = `${nanoid(6)}${path.extname(file.originalname)}`;
+      const fileName = `${nanoid(6)}_${file.originalname}`;
 
       let url = await storageAdapter.fileCreate(
         slash(path.join(destPath, fileName)),

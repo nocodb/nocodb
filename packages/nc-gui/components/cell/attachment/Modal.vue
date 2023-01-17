@@ -20,7 +20,7 @@ const {
   downloadFile,
   updateModelValue,
   selectedImage,
-  selectedImages,
+  selectedVisibleItems,
   bulkDownloadFiles,
 } = useAttachmentCell()!
 
@@ -100,7 +100,7 @@ function onRemoveFileClick(title: any, i: number) {
           <div class="font-semibold underline">{{ column?.title }}</div>
         </div>
 
-        <div v-if="selectedImages.includes(true)" class="flex flex-1 items-center gap-3 justify-end mr-[30px]">
+        <div v-if="selectedVisibleItems.includes(true)" class="flex flex-1 items-center gap-3 justify-end mr-[30px]">
           <a-button type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles"> Bulk Download </a-button>
         </div>
       </div>
@@ -122,9 +122,9 @@ function onRemoveFileClick(title: any, i: number) {
         <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col gap-1">
           <a-card class="nc-attachment-item group">
             <a-checkbox
-              v-model:checked="selectedImages[i]"
+              v-model:checked="selectedVisibleItems[i]"
               class="nc-attachment-checkbox group-hover:(opacity-100)"
-              :class="{ '!opacity-100': selectedImages[i] }"
+              :class="{ '!opacity-100': selectedVisibleItems[i] }"
             />
 
             <a-tooltip v-if="!readOnly">

@@ -56,9 +56,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** for image carousel */
     const selectedImage = ref()
 
-    /** for bulk download */
-    const selectedVisibleItems = ref<boolean[]>([])
-
     const { project } = useProject()
 
     const { api, isLoading } = useApi()
@@ -68,11 +65,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const { t } = useI18n()
 
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublic & isForm status */
-    const visibleItems = computed<any[]>(() => {
-      const items = isPublic.value && isForm.value ? storedFiles.value : attachments.value
-      selectedVisibleItems.value = Array.from({ length: items.length }, () => false)
-      return items
-    })
+    const visibleItems = computed<any[]>(() => (isPublic.value && isForm.value ? storedFiles.value : attachments.value))
+
+    /** for bulk download */
+    const selectedVisibleItems = ref<boolean[]>(Array.from({ length: visibleItems.value.length }, () => false))
 
     /** remove a file from our stored attachments (either locally stored or saved ones) */
     function removeFile(i: number) {
@@ -212,6 +208,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** bulk download selected files */
     async function bulkDownloadFiles() {
       await Promise.all(selectedVisibleItems.value.map(async (v, i) => v && (await downloadFile(visibleItems.value[i]))))
+      selectedVisibleItems.value = Array.from({ length: visibleItems.value.length }, () => false)
     }
 
     /** download a file */

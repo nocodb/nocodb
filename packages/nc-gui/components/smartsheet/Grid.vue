@@ -806,6 +806,7 @@ const closeAddColumnDropdown = () => {
                         :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                         :row="row"
                         @navigate="onNavigate"
+                        :read-only="readOnly"
                       />
 
                       <LazySmartsheetCell
@@ -821,6 +822,7 @@ const closeAddColumnDropdown = () => {
                         @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"
                         @cancel="editEnabled = false"
+                        :read-only="readOnly"
                       />
                     </div>
                   </SmartsheetTableDataCell>

@@ -157,9 +157,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         : await $api.dbView.kanbanRead(viewMeta.value.id)
 
       // set groupingField
-      // avoid getting from meta.value.columns
-      // it would be undefiend as grouping field can be unselected before passing to share view
-      groupingFieldColumn.value = (await $api.dbTableColumn.get(kanbanMetaData.value.fk_grp_col_id!))! as ColumnType
+      groupingFieldColumn.value = !isPublic.value
+        ? (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.fk_grp_col_id)[0] || {}
+        : ((typeof sharedView.value?.meta === 'string' ? JSON.parse(sharedView.value?.meta) : sharedView.value?.meta)
+            .groupingFieldColumn! as ColumnType)
 
       groupingField.value = groupingFieldColumn.value.title!
 

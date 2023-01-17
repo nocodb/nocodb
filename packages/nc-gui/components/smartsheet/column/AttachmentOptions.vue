@@ -25,7 +25,8 @@ setAdditionalValidations({
 // set default value
 vModel.value.meta = {
   maxNumberOfAttachments: 10,
-  maxAttachmentSize: 5000, // 5GB
+  // TODO: take care of NC_ATTACHMENT_FIELD_SIZE
+  maxAttachmentSize: 20, // 20 MB
   unsupportedAttachmentMimeTypes: [],
   ...vModel.value.meta,
 }
@@ -189,7 +190,7 @@ const filterOption = (val: string, option: Option) => {
     </a-col>
 
     <a-col :span="12">
-      <a-form-item v-bind="validateInfos['meta.maxAttachmentSize']" label="Max Attachment Size">
+      <a-form-item v-bind="validateInfos['meta.maxAttachmentSize']" label="Max Attachment Size (MB)">
         <a-input-number v-model:value="vModel.meta.maxAttachmentSize" class="!w-full nc-extdb-host-port" />
       </a-form-item>
     </a-col>

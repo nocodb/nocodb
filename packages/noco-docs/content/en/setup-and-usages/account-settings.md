@@ -27,13 +27,24 @@ If you are a super admin, you can also manage all user roles in organization lev
 
 ## User Management 
 
-Super-admin has new privelege to do user management at root-level.
+Permissions within NocoDB are divided into two levels: Organisation level and Project level.
 
-- `org-level-creator` - this user can create a new project and access any invited project.
-
-- `org-level-viewer` - this user can't create a new project but they can access any invited project.
+### Organisation Level Permissions:
+- `Org Level Creator`: Allows users to create new projects and access invited projects.
+- `Org Level Viewer`: Allows users to access invited projects but does not permit the creation of new projects.
 
 ![image](https://user-images.githubusercontent.com/35857179/203261168-5ba75f9c-476e-4fe7-ace4-f81051f42773.png)
+
+### Project Level Permissions:
+- `Owner`: The user who created the project. A project can have only one owner. The owner persists until the project exists and the role is non-transferable. The owner has access to carry out any operations within the project, including deleting it.
+- `Creator`: Has access to carry out any operations within the project except deleting the project and removing the "Owner."
+- `Editor`: Can modify data but cannot modify the schema (add/remove columns, tables, users, and such).
+- `Commenter`: Can neither modify data nor schema, can only see data and can mark row-level comments.
+- `Viewer`: Can only see data.
+
+Additional access details for project level permissions can be found [here](https://docs.nocodb.com/setup-and-usages/team-and-auth#advanced-options--configurations).
+Please note that the above-mentioned Project Level Permissions are additional to the already defined Organisation Level Permissions.
+In addition to the previously defined permissions, NocoDB also includes the role of "Super Admin." The "Super Admin" is the first user to sign up on this NocoDB installation. An organisation can have only one "Super Admin" and this role is non-transferable. The "Super Admin" will have the equivalent permissions of an "Org Level Creator" and "Owner" for all projects within the organisation.
 
 ## Enable / Disable Signup
 

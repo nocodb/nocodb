@@ -19,3 +19,4 @@ If you wish to combine the frontend and backend together in your local developme
 ```
 
 In this case, whenever there are any changes made in the frontend, you need to run ``npm run build:copy`` under ``packages/nc-gui/``.
+

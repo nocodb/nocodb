@@ -105,6 +105,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          draft: true
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
           files: |
              ./scripts/pkg-executable/dist/Noco-win-arm64.exe
              ./scripts/pkg-executable/dist/Noco-win-x64.exe
@@ -171,6 +173,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          draft: true
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
           files: |
             ./scripts/pkg-executable/mac-dist/Noco-macos-x64
             ./scripts/pkg-executable/mac-dist/Noco-macos-arm64

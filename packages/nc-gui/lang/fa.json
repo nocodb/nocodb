@@ -277,6 +277,7 @@
     "selectUserRole": "نقش کاربر را انتخاب کنید",
     "childTable": "جدول فرزند",
     "childColumn": "ستون فرزند",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "هنگام به روز رسانی",
     "onDelete": "هنگام حذف",
     "account": "Account",

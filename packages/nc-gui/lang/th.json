@@ -277,6 +277,7 @@
     "selectUserRole": "เลือกบทบาทผู้ใช้",
     "childTable": "โต๊ะเด็ก",
     "childColumn": "คอลัมน์เด็ก",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "เมื่ออัปเดต",
     "onDelete": "ในการลบ",
     "account": "Account",

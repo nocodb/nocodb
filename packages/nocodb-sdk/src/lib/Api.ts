@@ -4004,6 +4004,7 @@ export class Api<
  * @response `200` `(ViewType & {
   relatedMetas?: any,
   client?: string,
+  base_id?: string,
   columns?: ((GridColumnType | FormColumnType | GalleryColumnType) & ColumnType),
   model?: TableType,
 
@@ -4017,6 +4018,7 @@ export class Api<
         ViewType & {
           relatedMetas?: any;
           client?: string;
+          base_id?: string;
           columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
             ColumnType;
           model?: TableType;

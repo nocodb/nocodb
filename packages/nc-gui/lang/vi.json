@@ -277,6 +277,7 @@
     "selectUserRole": "Chọn vai trò người dùng",
     "childTable": "Bảng con",
     "childColumn": "Cột trẻ con.",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Trên bản cập nhật",
     "onDelete": "Trên xóa",
     "account": "Tài khoản",

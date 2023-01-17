@@ -277,6 +277,7 @@
     "selectUserRole": "Vybrat uživatelskou roli",
     "childTable": "Podřízená tabulka",
     "childColumn": "Podřízený sloupec",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Při aktualizaci",
     "onDelete": "Při odstranění",
     "account": "Účet",

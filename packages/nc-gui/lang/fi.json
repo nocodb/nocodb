@@ -277,6 +277,7 @@
     "selectUserRole": "Valitse käyttäjän rooli",
     "childTable": "Lapsipöytä",
     "childColumn": "Lapsipylväs",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Päivitys",
     "onDelete": "Poista",
     "account": "Account",

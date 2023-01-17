@@ -277,6 +277,7 @@
     "selectUserRole": "Benutzerrolle auswählen",
     "childTable": "Child-Tabelle",
     "childColumn": "Child-Spalte",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Update",
     "onDelete": "Löschen",
     "account": "Benutzerkonto",
@@ -504,8 +505,7 @@
       },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
-        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed.",
-        "barcodeFieldsCannotBeDirectlyChanged": "Warning: Barcode fields cannot be directly changed."
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
       }
     },
     "info": {

@@ -26,9 +26,9 @@
     "install": "Installer",
     "show": "Montrer",
     "hide": "Cacher",
-    "showAll": "Afficher tout",
-    "hideAll": "Cacher tout",
-    "showMore": "Montrer plus",
+    "showAll": "Tout afficher",
+    "hideAll": "Tout cacher",
+    "showMore": "Afficher davantage",
     "showOptions": "Afficher les options",
     "hideOptions": "Masquer les options",
     "showMenu": "Afficher le menu",
@@ -59,7 +59,7 @@
     "confirm": "Confirmer",
     "generate": "Générer",
     "copy": "Copier",
-    "misc": "Miscellaneous",
+    "misc": "Divers",
     "lock": "Verrouiller",
     "unlock": "Déverrouiller",
     "credentials": "Identifiants",
@@ -68,10 +68,10 @@
     "reachOut": "Reach out here",
     "betaNote": "Cette fonctionnalité est encore en développement.",
     "moreInfo": "Plus d'informations peuvent être trouvées ici",
-    "logs": "Logs",
-    "groupingField": "Grouping Field",
-    "insertAfter": "Insert After",
-    "insertBefore": "Insert Before",
+    "logs": "Journaux",
+    "groupingField": "Champ de regroupement",
+    "insertAfter": "Insérer après",
+    "insertBefore": "Insérer avant",
     "hideField": "Masquer le champ",
     "sortAsc": "Trier par ordre croissant",
     "sortDesc": "Trier par ordre décroissant"
@@ -198,14 +198,14 @@
     "apiDocs": "Docs API",
     "importFromAirtable": "Importer depuis Airtable",
     "generateToken": "Générer un jeton",
-    "APIsAndSupport": "Les API et la prise en charge",
-    "helpCenter": "Help center",
-    "swaggerDocumentation": "Swagger Documentation",
+    "APIsAndSupport": "API & Assistance",
+    "helpCenter": "Centre d'aide",
+    "swaggerDocumentation": "Documentation de Swagger",
     "quickImportFrom": "Quick Import From",
     "quickImport": "Importation rapide",
     "advancedSettings": "Paramètres avancés",
-    "codeSnippet": "Code Snippet",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "codeSnippet": "Extrait de code",
+    "keyboardShortcut": "Raccourcis clavier"
   },
   "labels": {
     "createdBy": "Créé par",
@@ -241,17 +241,17 @@
     "chat": "Discussion",
     "email": "Courriel",
     "storage": "Stockage",
-    "uiAcl": "UI-ACL",
+    "uiAcl": "IU ACL",
     "models": "Modèles",
     "syncState": "État de synchronisation",
     "created": "Créé",
     "sqlOutput": "Sortie SQL",
     "addOption": "Ajouter une option",
-    "qrCodeValueColumn": "Column with QR code value",
-    "barcodeValueColumn": "Column with Barcode value",
-    "barcodeFormat": "Barcode format",
+    "qrCodeValueColumn": "Colonne avec une valeur code QR",
+    "barcodeValueColumn": "Colonne avec une valeur code-barres",
+    "barcodeFormat": "Format du code-barres",
     "qrCodeValueTooLong": "Trop de caractères pour un code QR",
-    "barcodeValueTooLong": "Too many characters for a barcode",
+    "barcodeValueTooLong": "Trop de caractères pour un code-barres",
     "aggregateFunction": "Fonction agrégée",
     "dbCreateIfNotExists": "Base de données : la créer si elle n'existe pas",
     "clientKey": "Clé client",
@@ -264,9 +264,9 @@
       "columnName": "Inflexion - Nom de la colonne"
     },
     "community": {
-      "starUs1": "Étoile",
+      "starUs1": "Mettre en favoris",
       "starUs2": "sur Github",
-      "bookDemo": "Planifier une démonstration gratuite",
+      "bookDemo": "Réserver une démonstration gratuite",
       "getAnswered": "Obtenir des réponses à vos questions",
       "joinDiscord": "Rejoindre le serveur Discord",
       "joinCommunity": "Rejoindre la communauté NocoDB",
@@ -277,6 +277,7 @@
     "selectUserRole": "Sélectionner le rôle d'utilisateur",
     "childTable": "Table enfant",
     "childColumn": "Colonne enfant",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Mise à jour en cours",
     "onDelete": "Suppression en cours",
     "account": "Compte",
@@ -339,7 +340,7 @@
     "translate": "Aider à la traduction",
     "account": {
       "authToken": "Copier le jeton d'authentification",
-      "swagger": "Swagger : les API REST",
+      "swagger": "Swagger : API REST",
       "projInfo": "Copier les informations du projet",
       "themes": "Thèmes"
     },
@@ -350,7 +351,7 @@
     "share": "Partager",
     "shareBase": {
       "disable": "Désactiver la base partagée",
-      "enable": "N'importe qui avec le lien",
+      "enable": "N'importe qui disposant du lien",
       "link": "Partager le lien de la base"
     },
     "invite": "Inviter",
@@ -431,7 +432,7 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw",
+    "toggleCommentsDraw": "Afficher ou masquer le panneau des commentaires",
     "expandRecord": "Expand Record",
     "deleteRecord": "Delete Record",
     "erd": {
@@ -445,7 +446,7 @@
       "collapseStack": "Collapse Stack",
       "deleteStack": "Delete Stack",
       "stackedBy": "Stacked By",
-      "chooseGroupingField": "Choose a Grouping Field",
+      "chooseGroupingField": "Choisir un champ de regroupement",
       "addOrEditStack": "Add / Edit Stack"
     }
   },
@@ -461,7 +462,7 @@
     },
     "addTable": "Ajouter un nouveau tableau",
     "inviteMore": "Inviter plus d'utilisateurs",
-    "toggleNavDraw": "Basculer le tiroir de navigation",
+    "toggleNavDraw": "Afficher ou masquer le panneau de navigation",
     "reloadApiToken": "Recharger les jetons API",
     "generateNewApiToken": "Générer de nouveaux jetons d'API",
     "addRole": "Ajouter un nouveau rôle",
@@ -500,7 +501,7 @@
   "msg": {
     "warning": {
       "barcode": {
-        "renderError": "Barcode error - please check compatibility between input and barcode type"
+        "renderError": "Erreur de code-barres - veuillez vérifier la compatibiltié entre la donnée d'entrée et le type de code-barres"
       },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
@@ -518,7 +519,7 @@
       "upload_sub": "ou glisser-déposer un fichier",
       "excelSupport": "Pris en charge: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Définir l'URL du fichier Excel",
-      "csvURL": "Définir l'URL du fichier CSV",
+      "csvURL": "URL vers le fichier CSV",
       "footMsg": "Nombre de lignes à analyser pour déduire le type de données",
       "excelImport": "Les tableaux sont disponibles pour l'import",
       "exportMetadata": "Voulez-vous exporter des métadonnées des méta-tables?",
@@ -536,19 +537,19 @@
       "formInput": "Entrer le libellé du formulaire",
       "formHelpText": "Ajouter un texte d'aide",
       "onlyCreator": "Visible uniquement pour les créateurs",
-      "formDesc": "Ajouter une description du formulaire",
+      "formDesc": "Ajouter une description au formulaire",
       "beforeEnablePwd": "Restreindre l’accès à l’aide d’un mot de passe",
       "afterEnablePwd": "L’accès est restreint par un mot de passe",
       "privateLink": "Cette vue est partagée avec un lien privé",
       "privateLinkAdditionalInfo": "Les personnes ayant le lien privé peuvent voir uniquement les cellules visibles de cette vue",
-      "afterFormSubmitted": "Après que le formulaire est soumis",
+      "afterFormSubmitted": "Après que le formulaire ait été soumis",
       "apiOptions": "Accéder au projet via",
       "submitAnotherForm": "Afficher le bouton \"Soumettre un autre formulaire\"",
       "showBlankForm": "Montrer un formulaire vierge après 5 secondes",
       "emailForm": "Écrivez-moi à",
       "showSysFields": "Afficher les champs système",
       "filterAutoApply": "Appliquer automatiquement",
-      "showMessage": "Montrer ce message",
+      "showMessage": "Montrer ce message ",
       "viewNotShared": "La vue actuelle n'est pas partagée!",
       "showAllViews": "Montrer toutes les vues partagées sur cette table",
       "collabView": "Les collaborateurs avec des autorisations d'édition ou plus peuvent modifier la configuration de la vue.",
@@ -574,7 +575,7 @@
       },
       "sponsor": {
         "header": "Vous pouvez nous aider !",
-        "message": "Nous sommes une petite équipe travaillant à plein temps pour rendre Nocodb Open-Source. Nous croyons qu'un outil comme Nocodb devrait être disponible librement à chaque solveur de problèmes sur Internet."
+        "message": "Nous sommes une petite équipe travaillant à plein temps pour rendre NocoDB open-Source. Nous croyons qu'un outil comme NocoDB devrait être disponible librement à chaque solutionneur de problème sur Internet."
       },
       "loginMsg": "Se connecter à NocoDB",
       "passwordRecovery": {
@@ -583,7 +584,7 @@
         "success": "Veuillez vérifier votre email pour réinitialiser le mot de passe"
       },
       "signUp": {
-        "superAdmin": "Vous serez le 'super admin'",
+        "superAdmin": "Vous serez le « super administrateur »",
         "alreadyHaveAccount": "Avez-vous déjà un compte ?",
         "workEmail": "Saisir votre adresse mail professionnelle",
         "enterPassword": "Saisir votre mot de passe",
@@ -606,7 +607,7 @@
         "credentials": "Où trouver ceci ?"
       },
       "import": {
-        "clickOrDrag": "Click or drag file to this area to upload"
+        "clickOrDrag": "Cliquez ou glissez un fichier dans cette zone pour téléverser"
       },
       "metaDataRecreated": "Table metadata recreated successfully",
       "invalidCredentials": "Identifiants invalides",
@@ -622,10 +623,10 @@
       "valueAlreadyInList": "This value is already in the list",
       "noColumnsToUpdate": "Aucune colonne à mettre à jour",
       "tableDeleted": "Tableau supprimé avec succès",
-      "generatePublicShareableReadonlyBase": "Generate publicly shareable readonly base",
+      "generatePublicShareableReadonlyBase": "Génère une base publique partagée en lecture seule",
       "deleteViewConfirmation": "Êtes-vous sûr de vouloir effacer cette vue ?",
       "deleteTableConfirmation": "Voulez-vous supprimer ce tableau",
-      "showM2mTables": "Show M2M Tables",
+      "showM2mTables": "Afficher les tables plusieurs à plusieurs",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
       "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
@@ -640,7 +641,7 @@
       "dbConnectionFailed": "Echec de connexion :",
       "signUpRules": {
         "emailReqd": "Adresse mail requise",
-        "emailInvalid": "L'adresse mail doit être valide",
+        "emailInvalid": "L'adresse électronique doit être valide",
         "passwdRequired": "Mot de passe requis",
         "passwdLength": "Votre mot de passe doit contenir au moins 8 caractères",
         "passwdMismatch": "Les mots de passe ne correspondent pas",
@@ -654,12 +655,12 @@
       "invalidURL": "URL invalide",
       "internalError": "Une erreur interne est survenue",
       "templateGeneratorNotFound": "Template Generator cannot be found!",
-      "fileUploadFailed": "Failed to upload file",
+      "fileUploadFailed": "Échec du téléversement du fichier",
       "primaryColumnUpdateFailed": "Failed to update primary column",
       "formDescriptionTooLong": "Data too long for Form Description",
       "columnsRequired": "Following columns are required",
-      "selectAtleastOneColumn": "At least one column has to be selected",
-      "columnDescriptionNotFound": "Cannot find the destination column for",
+      "selectAtleastOneColumn": "Au moins une colonne doit être sélectionnée",
+      "columnDescriptionNotFound": "Impossible de trouver la colonne de destination pour",
       "duplicateMappingFound": "Duplicate mapping found, please remove one of the mapping",
       "nullValueViolatesNotNull": "Null value violates not-null constraint",
       "sourceHasInvalidNumbers": "Source data contains some invalid numbers",
@@ -704,7 +705,7 @@
       "projInfo": "Informations de projet copiées dans le presse-papier",
       "inviteUrlCopy": "URL d'invitation copiée dans le presse-papier",
       "createView": "Vue créée avec succès",
-      "formEmailSMTP": "Veuillez activer le plugin SMTP dans l'App Store pour permettre la notification par courrier électronique",
+      "formEmailSMTP": "Veuillez activer le plugin SMTP dans le magasin d'applications pour permettre la notification par courriel",
       "collabView": "Vous êtes bien dans la vue collaborative",
       "lockedView": "Vous êtes bien dans la vue vérouillée",
       "futureRelease": "Bientôt disponible !"

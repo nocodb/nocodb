@@ -26,6 +26,8 @@ export interface AppInfo {
   type: string
   version: string
   ee?: boolean
+  ncAttachmentFieldSize: number
+  ncMaxAttachmentsAllowed: number
 }
 
 export interface StoredState {

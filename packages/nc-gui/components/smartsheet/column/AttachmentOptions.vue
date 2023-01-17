@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useVModel } from '#imports'
+import { useGlobal, useVModel } from '#imports'
 
 interface Option {
   key: string
@@ -18,15 +18,16 @@ const validators = {}
 
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
+const { appInfo } = useGlobal()
+
 setAdditionalValidations({
   ...validators,
 })
 
 // set default value
 vModel.value.meta = {
-  maxNumberOfAttachments: 10,
-  // TODO: take care of NC_ATTACHMENT_FIELD_SIZE
-  maxAttachmentSize: 20, // 20 MB
+  maxNumberOfAttachments: appInfo.value.ncMaxAttachmentsAllowed || 10,
+  maxAttachmentSize: appInfo.value.ncAttachmentFieldSize / 1024 / 1024 || 20, // MB
   unsupportedAttachmentMimeTypes: [],
   ...vModel.value.meta,
 }

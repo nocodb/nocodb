@@ -20,6 +20,8 @@ const {
   downloadFile,
   updateModelValue,
   selectedImage,
+  selectedImages,
+  bulkDownloadFiles,
 } = useAttachmentCell()!
 
 // todo: replace placeholder var
@@ -97,6 +99,10 @@ function onRemoveFileClick(title: any, i: number) {
           Viewing Attachments of
           <div class="font-semibold underline">{{ column?.title }}</div>
         </div>
+
+        <div v-if="selectedImages.includes(true)" class="flex flex-1 items-center gap-3 justify-end mr-[30px]">
+          <a-button type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles"> Bulk Download </a-button>
+        </div>
       </div>
     </template>
 
@@ -115,6 +121,12 @@ function onRemoveFileClick(title: any, i: number) {
       <div ref="sortableRef" :class="{ dragging }" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
         <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col gap-1">
           <a-card class="nc-attachment-item group">
+            <a-checkbox
+              v-model:checked="selectedImages[i]"
+              class="nc-attachment-checkbox group-hover:(opacity-100)"
+              :class="{ '!opacity-100': selectedImages[i] }"
+            />
+
             <a-tooltip v-if="!readOnly">
               <template #title> Remove File </template>
               <MdiCloseCircle
@@ -208,6 +220,11 @@ function onRemoveFileClick(title: any, i: number) {
     @apply transition-opacity duration-150 ease-in opacity-0 hover:ring;
     @apply cursor-pointer rounded shadow flex items-center p-1 border-1;
     @apply active:(ring border-0 ring-accent);
+  }
+
+  .nc-attachment-checkbox {
+    @apply absolute top-2 left-2;
+    @apply transition-opacity duration-150 ease-in opacity-0;
   }
 
   .nc-attachment-remove {

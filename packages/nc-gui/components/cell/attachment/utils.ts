@@ -120,6 +120,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       const attachmentMeta = typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta
 
+      const files: File[] = []
+
       for (let file of selectedFiles) {
         // verify number of files
         if (selectedFiles.length > attachmentMeta.maxNumberOfAttachments) {
@@ -145,20 +147,22 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         file = await renameFile(file)
 
-        try {
-          const data = await api.storage.upload(
-            {
-              path: [NOCO, project.value.title, meta.value?.title, column.value?.title].join('/'),
-            },
-            {
-              files: file,
-              json: '{}',
-            },
-          )
-          newAttachments.push(...data)
-        } catch (e: any) {
-          message.error(e.message || t('msg.error.internalError'))
-        }
+        files.push(file)
+      }
+
+      try {
+        const data = await api.storage.upload(
+          {
+            path: [NOCO, project.value.title, meta.value?.title, column.value?.title].join('/'),
+          },
+          {
+            files,
+            json: '{}',
+          },
+        )
+        newAttachments.push(...data)
+      } catch (e: any) {
+        message.error(e.message || t('msg.error.internalError'))
       }
 
       updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))

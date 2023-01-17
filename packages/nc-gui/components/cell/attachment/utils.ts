@@ -53,9 +53,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const modalVisible = ref(false)
 
+    /** for image carousel */
     const selectedImage = ref()
 
-    const selectedImages = ref<boolean[]>([])
+    /** for bulk download */
+    const selectedVisibleItems = ref<boolean[]>([])
 
     const { project } = useProject()
 
@@ -68,7 +70,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublic & isForm status */
     const visibleItems = computed<any[]>(() => {
       const items = isPublic.value && isForm.value ? storedFiles.value : attachments.value
-      selectedImages.value = Array.from({ length: items.length }, () => false)
+      selectedVisibleItems.value = Array.from({ length: items.length }, () => false)
       return items
     })
 
@@ -209,7 +211,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** bulk download selected files */
     async function bulkDownloadFiles() {
-      await Promise.all(selectedImages.value.map(async (v, i) => v && (await downloadFile(visibleItems.value[i]))))
+      await Promise.all(selectedVisibleItems.value.map(async (v, i) => v && (await downloadFile(visibleItems.value[i]))))
     }
 
     /** download a file */
@@ -254,7 +256,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       downloadFile,
       updateModelValue,
       selectedImage,
-      selectedImages,
+      selectedVisibleItems,
       storedFiles,
       bulkDownloadFiles,
     }

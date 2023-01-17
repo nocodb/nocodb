@@ -1,18 +1,13 @@
 <script lang="ts" setup>
 import { ProjectRole } from '~~/lib'
 
-interface Props {
-  openManageCollaborators: Function
-}
-
 interface Users {
   emails?: string
   role: ProjectRole
   invitationToken?: string
 }
 
-const { openManageCollaborators } = defineProps<Props>()
-const { loadUsers, users, inviteUser, totalUsers } = useManageUsers()
+const { loadUsers, users, inviteUser, totalUsers, formStatus } = useManageUsers()
 
 const formRef = ref()
 const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
@@ -41,8 +36,15 @@ const validators = computed(() => {
 
 const { validateInfos } = useForm(usersData, validators)
 
-const saveUser = () => {
-  console.log('saveUser')
+const saveUser = async () => {
+  await inviteUser({
+    email: usersData.emails!,
+    roles: usersData.role!,
+  })
+}
+
+const openManageCollaborators = () => {
+  formStatus.value = 'manageCollaborators'
 }
 
 onMounted(async () => {
@@ -100,12 +102,17 @@ onMounted(async () => {
         <div class="bg-gray-100 border-gray-200 border-1 py-0.5 px-1.5 rounded-md">{{ totalUsers }} users</div>
       </div>
       <div class="flex flex-row justify-between mt-3.5 mb-2">
-        <a-button type="text" class="!rounded-md !bg-gray-100" @click="() => openManageCollaborators()">
+        <a-button type="text" class="!rounded-md !bg-gray-100" @click="openManageCollaborators">
           <div class="flex flex-row justify-center items-center space-x-1.5">
             <div>Manage Collaborators</div>
           </div>
         </a-button>
-        <a-button type="primary" html-type="submit" class="!rounded-md">
+        <a-button
+          type="primary"
+          html-type="submit"
+          class="!rounded-md"
+          :disabled="validateInfos.emails.validateStatus !== 'success'"
+        >
           <div class="flex flex-row justify-center items-center space-x-1.5">
             <div>Add Collaborators</div>
           </div>

@@ -14,7 +14,9 @@ const [setup, use] = useInjectionState(() => {
   const lastFetchedUsers = ref<null | User[]>(null)
   const totalUsers = ref(0)
   const isBatchUpdating = ref(false)
-
+  const formStatus = ref<'collaborate' | 'collaborateSaving' | 'collaborateSaved' | 'manageCollaborators' | 'public'>(
+    'collaborate',
+  )
   // todo: Only tracks roles updates
   const editedUsers = computed(() => {
     if (!users.value || !lastFetchedUsers.value) return []
@@ -43,8 +45,10 @@ const [setup, use] = useInjectionState(() => {
 
       totalUsers.value = response.users.pageInfo.totalRows ?? 0
 
-      if (!users.value) users.value = []
-      users.value = [...users.value, ...(response.users.list as User[])]
+      if (!users.value) users.value = response.users.list as User[]
+      else {
+        users.value = [...users.value, ...(response.users.list as User[])]
+      }
 
       lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
     } catch (e: any) {
@@ -52,19 +56,25 @@ const [setup, use] = useInjectionState(() => {
     }
   }
 
-  const inviteUser = async (user: User) => {
+  const inviteUser = async (user: Partial<User>) => {
+    formStatus.value = 'collaborateSaving'
     try {
       if (!project.value?.id) return
 
-      await api.auth.projectUserAdd(project.value.id, user)
+      await api.auth.projectUserAdd(project.value.id, { ...user, project_id: project.value.id, projectName: project.value.title })
 
+      currentPage.value = 1
+      users.value = []
+      await loadUsers()
       // Successfully added user to project
       message.success(t('msg.success.userAddedToProject'))
-      await loadUsers()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
+      formStatus.value = 'collaborate'
+      return
     }
 
+    formStatus.value = 'collaborateSaved'
     $e('a:user:add')
   }
 
@@ -99,6 +109,7 @@ const [setup, use] = useInjectionState(() => {
     editedUsers,
     updateEditedUsers,
     isBatchUpdating,
+    formStatus,
   }
 }, 'useManageUsers')
 

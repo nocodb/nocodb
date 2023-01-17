@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { LoadingOutlined } from '@ant-design/icons-vue'
 import Collaborate from './share-and-collaborate/Collaborate.vue'
 import ManageUsers from './share-and-collaborate/ManageUsers.vue'
 
@@ -14,21 +15,30 @@ const { ...props } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-useManageUsers()
+const { formStatus } = useManageUsers()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const showManageCollaborators = ref(false)
-const tabKey = ref('collaborate')
-
-const openManageCollaborators = () => {
-  showManageCollaborators.value = true
-}
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '24px',
+  },
+  spin: true,
+})
 
 watch(vModel, (val) => {
   if (!val) {
-    showManageCollaborators.value = false
-    tabKey.value = 'collaborate'
+    setTimeout(() => {
+      formStatus.value = 'collaborate'
+    }, 500)
+  }
+})
+
+watch(formStatus, (val) => {
+  if (val === 'collaborateSaved') {
+    setTimeout(() => {
+      vModel.value = false
+    }, 1500)
   }
 })
 </script>
@@ -40,28 +50,37 @@ watch(vModel, (val) => {
     :class="{ active: vModel }"
     wrap-class-name="nc-modal-share-collaborate"
     :closable="false"
-    :ok-button-props="{ hidden: true }"
-    :cancel-button-props="{ hidden: true }"
+    :mask-closable="formStatus === 'collaborateSaved' ? true : false"
+    :ok-button-props="{ hidden: true } as any"
+    :cancel-button-props="{ hidden: true } as any"
     :footer="null"
     :centered="true"
-    :width="showManageCollaborators ? '60rem' : '40rem'"
+    :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
-    <div class="flex flex-col">
+    <div v-if="formStatus === 'collaborateSaving'" class="flex flex-row w-full px-5 justify-between">
+      <div class="flex" :style="{ fontWeight: 500 }">Adding Collaborators</div>
+      <a-spin :indicator="indicator" />
+    </div>
+    <div v-else-if="formStatus === 'collaborateSaved'" class="flex flex-row w-full px-5 justify-between items-center">
+      <div class="flex" :style="{ fontWeight: 500 }">Collaborators added</div>
+      <div class="flex"><MdiCheck /></div>
+    </div>
+    <div v-else class="flex flex-col">
       <div
         class="flex flex-row justify-between items-center pb-1.5 mx-4"
-        :class="{ 'border-b-1 border-gray-100': showManageCollaborators }"
+        :class="{ 'border-b-1 border-gray-100': formStatus === 'manageCollaborators' }"
       >
         <div class="flex text-md py-1" style="font-weight: 500">
-          <template v-if="showManageCollaborators"> Manage Collaborators </template>
-          <template v-if="tabKey === 'collaborate'"> Share </template>
+          <template v-if="formStatus === 'manageCollaborators'"> Manage Collaborators </template>
+          <template v-if="formStatus === 'collaborate'"> Share </template>
         </div>
         <div class="flex hover:bg-gray-50 p-1 rounded-md cursor-pointer" @click="vModel = false">
           <MdiClose class="my-auto" />
         </div>
       </div>
-      <ManageUsers v-if="showManageCollaborators" @close="showManageCollaborators = false" />
+      <ManageUsers v-if="formStatus === 'manageCollaborators'" @close="formStatus = 'collaborate'" />
       <div v-else class="flex flex-col mx-4">
-        <a-tabs v-model:activeKey="tabKey">
+        <a-tabs v-model:activeKey="formStatus">
           <a-tab-pane key="collaborate">
             <template #tab>
               <div class="flex flex-row items-center text-xs px-2">
@@ -69,7 +88,7 @@ watch(vModel, (val) => {
                 <div>Add Collaborators</div>
               </div>
             </template>
-            <Collaborate :open-manage-collaborators="openManageCollaborators" />
+            <Collaborate />
           </a-tab-pane>
           <a-tab-pane key="public">
             <template #tab>

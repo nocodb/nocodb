@@ -348,7 +348,7 @@ provide(IsFormInj, ref(false))
 
 provide(IsGalleryInj, ref(false))
 
-provide(IsGridInj, ref(true))
+// provide(IsGridInj, ref(true))
 
 provide(PaginationDataInj, paginationData)
 

@@ -3,15 +3,9 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
-import { IsGalleryInj, IsGridInj, IsMapInj, OpenNewRecordFormHookInj, onMounted, provide, ref } from '#imports'
+import { OpenNewRecordFormHookInj, onMounted, provide, ref } from '#imports'
 import type { Row as RowType } from '~/lib'
 import { latLongToJoinedString } from '~~/utils/geoDataUtils'
-
-provide(IsGalleryInj, ref(false))
-
-provide(IsGridInj, ref(false))
-
-provide(IsMapInj, ref(true))
 
 const route = useRoute()
 

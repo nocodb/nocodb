@@ -81,7 +81,7 @@ provide(IsFormInj, ref(false))
 
 provide(IsGalleryInj, ref(false))
 
-provide(IsGridInj, ref(false))
+// provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
 

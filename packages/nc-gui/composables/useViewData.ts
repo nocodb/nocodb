@@ -49,7 +49,9 @@ export function useViewData(
   const { getMeta } = useMetas()
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
+
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
+
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
 
   const galleryData = ref<GalleryType>()
@@ -64,7 +66,7 @@ export function useViewData(
 
   const { project, isSharedBase } = useProject()
 
-  const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
+  const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
   const { $api, $e } = useNuxtApp()
 
@@ -203,8 +205,10 @@ export function useViewData(
   }
 
   async function loadGalleryData() {
-    if (!viewMeta?.value?.id || isPublic.value) return
-    galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
+    if (!viewMeta?.value?.id) return
+    galleryData.value = isPublic.value
+      ? (sharedView.value?.view as GalleryType)
+      : await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
   async function insertRow(

@@ -212,7 +212,7 @@ const iframeCode = computed(() => {
   frameborder="0"
   width="100%"
   height="700"
-  style="background: transparent; border: 1px solid #ddd"/>`
+  style="background: transparent; border: 1px solid #ddd"></iframe>`
 })
 
 const copyIframeCode = async () => {

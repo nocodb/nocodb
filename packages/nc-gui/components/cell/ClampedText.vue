@@ -6,11 +6,11 @@ const props = defineProps<{
 
 const wrapper = ref()
 
-const rkey = ref(0)
+const key = ref(0)
 
 onMounted(() => {
   const observer = new ResizeObserver(() => {
-    rkey.value++
+    key.value++
   })
 
   observer.observe(wrapper.value)
@@ -19,6 +19,6 @@ onMounted(() => {
 
 <template>
   <div ref="wrapper">
-    <text-clamp :key="rkey" class="w-full h-full break-all" :text="props.value || ''" :max-lines="props.lines" />
+    <text-clamp :key="key" class="w-full h-full break-all" :text="props.value || ''" :max-lines="props.lines" />
   </div>
 </template>

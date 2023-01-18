@@ -155,5 +155,3 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     </a-dropdown-button>
   </div>
 </template>
-
-<style scoped></style>

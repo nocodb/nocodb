@@ -638,6 +638,50 @@ const closeAddColumnDropdown = () => {
   columnOrder.value = null
   addColumnDropdown.value = false
 }
+
+enum NavDir {
+  NEXT,
+  PREV,
+}
+
+const navigateToSiblingRow = async (dir: NavDir) => {
+  // get current expanded row index
+  const expandedRowIndex = data.value.findIndex(
+    (row) => routeQuery.rowId === extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+  )
+
+  // calculate next row index based on direction
+  let siblingRowIndex = expandedRowIndex + (dir === NavDir.NEXT ? 1 : -1)
+
+  const currentPage = paginationData?.value?.page || 1
+
+  // if next row index is less than 0, go to previous page and point to last element
+  if (siblingRowIndex < 0) {
+    // if first page, do nothing
+    if (currentPage === 1) return
+
+    await changePage(currentPage - 1)
+    siblingRowIndex = data.value.length - 1
+
+    // if next row index is greater than total rows in current view
+    // then load next page of data and set next row index to 0
+  } else if (siblingRowIndex >= data.value.length) {
+    siblingRowIndex = 0
+    await changePage(currentPage + 1)
+  }
+
+  // extract the row id of the sibling row
+  const rowId = extractPkFromRow(data.value[siblingRowIndex].row, meta.value?.columns as ColumnType[])
+
+  if (rowId) {
+    router.push({
+      query: {
+        ...routeQuery,
+        rowId,
+      },
+    })
+  }
+}
 </script>
 
 <template>
@@ -805,8 +849,8 @@ const closeAddColumnDropdown = () => {
                         :column="columnObj"
                         :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                         :row="row"
-                        @navigate="onNavigate"
                         :read-only="readOnly"
+                        @navigate="onNavigate"
                       />
 
                       <LazySmartsheetCell
@@ -818,11 +862,11 @@ const closeAddColumnDropdown = () => {
                         "
                         :row-index="rowIndex"
                         :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                        :read-only="readOnly"
                         @update:edit-enabled="editEnabled = $event"
                         @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"
                         @cancel="editEnabled = false"
-                        :read-only="readOnly"
                       />
                     </div>
                   </SmartsheetTableDataCell>
@@ -918,6 +962,8 @@ const closeAddColumnDropdown = () => {
         :meta="meta"
         :row-id="routeQuery.rowId"
         :view="view"
+        @next="navigateToSiblingRow(NavDir.NEXT)"
+        @prev="navigateToSiblingRow(NavDir.PREV)"
       />
     </Suspense>
   </div>

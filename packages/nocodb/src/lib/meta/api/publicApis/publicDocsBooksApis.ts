@@ -22,6 +22,10 @@ async function get(
       });
     }
 
+    if (!book || !book.is_published) {
+      throw new Error('Book not found');
+    }
+
     res.json(book);
   } catch (e) {
     console.log(e);

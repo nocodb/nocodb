@@ -2,7 +2,7 @@ import { message } from 'ant-design-vue'
 import type { BookType, DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
 import { arrayToTree } from 'performant-array-to-tree'
-import { extractSdkResponseErrorMsg, useNuxtApp, useState } from '#imports'
+import { extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 
 export interface AntSidebarNode {
   parentNodeId?: string
@@ -22,62 +22,85 @@ export type PublishTreeNode = PageSidebarNode & { isSelected: boolean; key: stri
 
 export const PAGES_PER_PAGE_LIST = 10
 
-export function useDocs() {
+const [setup, use] = useInjectionState(() => {
   const { $api } = useNuxtApp()
   const route = useRoute()
   const projectId = $(computed(() => route.params.projectId as string))
 
   const isPublic = inject(IsDocsPublicInj, ref(false))
+  const isErrored = ref<boolean>(false)
 
-  const isFetchingPagesFromUrl = useState<boolean>('isFetchingPagesFromUrl', () => false)
-  const isBulkPublishing = useState<boolean>('isBulkPublishing', () => false)
-  const books = useState<BookType[]>('books', () => [])
+  const isFetchingBooks = ref<boolean>(false)
+  const isFetchingPagesFromUrl = ref<boolean>(false)
+  const isBulkPublishing = ref<boolean>(false)
+  const books = ref<BookType[]>([])
 
-  const nestedPages = useState<PageSidebarNode[]>('nestedPages', () => [])
-  const allPages = useState<PageSidebarNode[] | undefined>('allPages', () => undefined)
-  const drafts = useState<PageSidebarNode[]>('drafts', () => [])
-  const publishedPages = useState<PageSidebarNode[]>('publishedPages', () => [])
-  const allByTitle = useState<PageSidebarNode[]>('allByTitle', () => [])
-  const isBookUpdating = useState<boolean>('isBookUpdating', () => false)
-  const openedTabs = useState<string[]>('openedSidebarTabs', () => [])
+  const nestedPages = ref<PageSidebarNode[]>([])
+  const allPages = ref<PageSidebarNode[] | undefined>(undefined)
+  const drafts = ref<PageSidebarNode[]>([])
+  const publishedPages = ref<PageSidebarNode[]>([])
+  const allByTitle = ref<PageSidebarNode[]>([])
+  const isBookUpdating = ref<boolean>(false)
+  const openedTabs = ref<string[]>([])
 
-  // First slug is book slug, rest are page slugs
+  const routeBookSlug = computed<string | undefined>(() => {
+    return route.params.slugs?.[0] as string
+  })
+  const routePageSlugs = computed<string[]>(() => {
+    const slugs = route.params.slugs
+
+    return Array.isArray(slugs) ? slugs.filter((slug, index) => slug !== '' && index !== 0) : []
+  })
+
   const openedPageSlug = computed<string | undefined>(() =>
-    Number(route.params.slugs?.length) >= 2 ? route.params.slugs[route.params.slugs.length - 1] : undefined,
+    routePageSlugs.value.length > 0 ? routePageSlugs.value[routePageSlugs.value.length - 1] : undefined,
   )
 
   const openedBook = computed<BookType | undefined>(() => {
     if (isPublic.value) return books.value?.length > 0 ? books.value[0] : undefined
 
-    if (route.params.slugs?.length === 0) return undefined
+    if (!routeBookSlug.value) return undefined
 
-    const bookSlug = route.params.slugs[0]
-    return books.value.find((b) => b.slug === bookSlug)
+    return books.value.find((b) => b.slug === routeBookSlug.value)
   })
 
-  // hack: Since openedPageSlug and nestedPages changes are not in sync, we need to use this
-  let prevOpenedPage: PageSidebarNode | undefined
+  const openedNestedPagesOfBook = ref([] as PageSidebarNode[])
+  // set openedNestedPagesOfBook when route changes, this is because there is delay between route changes and state changes
+  watch(
+    () => [routePageSlugs.value, openedBook.value, isFetchingPagesFromUrl.value],
+    async () => {
+      if (isFetchingBooks.value || !openedBook.value) return
+      isErrored.value = false
 
-  const openedNestedPagesOfBook = computed(() => {
-    if (route.params.slugs?.length < 1 || !openedBook.value || nestedPages.value.length === 0) return []
-    if (isFetchingPagesFromUrl.value) return []
+      if (isFetchingPagesFromUrl.value) return
 
-    const pageSlugs = (route.params.slugs as string[]).filter((_, i) => i !== 0)
+      if (routePageSlugs.value.length === 0) {
+        openedNestedPagesOfBook.value = []
+        return
+      }
 
-    let currentPages = nestedPages.value
-    const _nestedPages = pageSlugs.map((slug) => {
-      const rootPage = currentPages.find((p) => p.slug === slug)
-      currentPages = rootPage?.children || []
+      let currentPages = nestedPages.value
+      const _nestedPages = routePageSlugs.value
+        .map((slug) => {
+          const rootPage = currentPages.find((p) => p.slug === slug)
+          currentPages = rootPage?.children || []
 
-      return rootPage
-    }) as PageSidebarNode[]
+          return rootPage
+        })
+        .filter((p) => p !== undefined) as PageSidebarNode[]
 
-    // hack: Since openedPageSlug and nestedPages changes are not in sync, last page if its title/slug is editied, it will undefined for a moment
-    if (_nestedPages.length === _nestedPages.filter((p) => p).length + 1) {
-      _nestedPages[_nestedPages.length - 1] = prevOpenedPage!
-    }
-    return _nestedPages.filter((p) => p)
-  })
+      if (_nestedPages.length !== routePageSlugs.value.length) {
+        isErrored.value = true
+        return
+      }
+
+      openedNestedPagesOfBook.value = _nestedPages
+    },
+    {
+      deep: true,
+      immediate: true,
+    },
+  )
 
   const isOnlyBookOpened = computed(() => openedBook.value && openedNestedPagesOfBook.value.length === 0)
 
@@ -87,7 +110,7 @@ export function useDocs() {
 
     return openedNestedPagesOfBook.value.length > 0
       ? openedNestedPagesOfBook.value[openedNestedPagesOfBook.value.length - 1]
-      : prevOpenedPage
+      : undefined
   })
 
   const nestedDrafts = computed({
@@ -117,10 +140,6 @@ export function useDocs() {
     },
   })
 
-  watch(openedPage, (page) => {
-    prevOpenedPage = page
-  })
-
   const isPageDraft = (page: PageSidebarNode) => page.title !== page.published_title || page.content !== page.published_content
 
   const selectBook = async (book: BookType) => {
@@ -140,14 +159,15 @@ export function useDocs() {
   }
 
   const fetchPublicBook = async ({ projectId, slug }: { projectId: string; slug?: string }) => {
+    isErrored.value = false
     try {
       const book = await $api.nocoDocs.getPublicBook(slug ?? 'latest', { projectId })
       books.value = [book]
 
       return books
     } catch (e) {
+      isErrored.value = true
       console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
 
@@ -259,22 +279,34 @@ export function useDocs() {
   }
 
   async function fetchNestedChildPagesFromRoute() {
-    // Since slug will `book-slug/page-slug`, we need to skip if there is no page slug
-    if (!route.params.slugs || route.params.slugs.length <= 1) return
-
     isFetchingPagesFromUrl.value = true
+    await fetchPages({ book: openedBook.value ?? books.value[0] })
+    if (routePageSlugs.value.length === 0) {
+      isFetchingPagesFromUrl.value = false
+      return
+    }
 
     try {
-      let parentPage: PageSidebarNode | undefined = nestedPages.value.find((page) => page.slug === route.params.slugs[1])
-      const pagesSlugs = (route.params.slugs as string[])?.filter((_, i) => i > 0)
+      if (routePageSlugs.value[0] === '') return
+
+      let parentPage: PageSidebarNode | undefined = nestedPages.value.find((page) => page.slug === routePageSlugs.value[0])
+      if (!parentPage) {
+        isErrored.value = true
+        return
+      }
+
       const pagesIds = []
-      for (const slug of pagesSlugs) {
+      for (const slug of routePageSlugs.value) {
+        parentPage = findPage(slug)
+        if (!parentPage) {
+          isErrored.value = true
+          return
+        }
         const childDocs = await fetchPages({ parentPageId: parentPage?.id, book: openedBook.value! })
 
         if (parentPage) pagesIds.push(parentPage.id!)
 
         if (!childDocs) throw new Error(`Nested Child Page not found:${parentPage?.id}`)
-        parentPage = { ...parentPage, ...childDocs.find((page) => page.slug === slug), children: parentPage?.children } as any
       }
 
       for (const id of pagesIds) {
@@ -419,7 +451,7 @@ export function useDocs() {
   }
 
   function bookUrl(bookSlug: string, completeUrl?: boolean) {
-    const publicSlug = route.params.slugs?.length > 0 ? route.params.slugs[0] : bookSlug
+    const publicSlug = routeBookSlug.value ?? bookSlug
     const path = isPublic.value ? `/nc/doc/${projectId!}/public/${publicSlug}` : `/nc/doc/${projectId!}/${bookSlug}`
     return completeUrl ? `${window.location.origin}/#${path}` : path
   }
@@ -437,9 +469,8 @@ export function useDocs() {
   }
 
   function urlFromPageSlugs(pageSlugs: string[]) {
-    const publicBookSlug = route.params.slugs?.length > 0 ? route.params.slugs[0] : openedBook.value!.slug!
     const url = isPublic.value
-      ? `/nc/doc/${projectId!}/public/${publicBookSlug}/${pageSlugs.join('/')}`
+      ? `/nc/doc/${projectId!}/public/${routeBookSlug.value}/${pageSlugs.join('/')}`
       : `/nc/doc/${projectId!}/${openedBook.value!.slug!}/${pageSlugs.join('/')}`
     return url
   }
@@ -537,8 +568,6 @@ export function useDocs() {
   }) => {
     const sourceNode = findPage(sourceNodeId)!
     const targetNode = targetNodeId ? findPage(targetNodeId) : undefined
-
-    console.log('reorderPages', { sourceNode, targetNode, index })
 
     const shouldFetchParentChildren = targetNode && !targetNode.children
 
@@ -747,5 +776,18 @@ export function useDocs() {
     isBulkPublishing,
     isBookUpdating,
     updateBook,
+    isErrored,
   }
+}, 'useDocs')
+
+export const provideDocs = setup
+
+export function useDocs() {
+  const state = use()
+
+  if (!state) {
+    return setup()
+  }
+
+  return state
 }

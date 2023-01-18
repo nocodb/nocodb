@@ -20,13 +20,14 @@ export default class Book {
 
   public static async create(
     {
-      attributes: { title, description },
+      attributes: { title, description, is_published },
       projectId,
       user,
     }: {
       attributes: {
         title: string;
         description: string;
+        is_published?: boolean;
       };
       projectId: string;
       user: UserType;
@@ -46,6 +47,7 @@ export default class Book {
         order: order,
         created_by_id: user.id,
         project_id: projectId,
+        is_published: is_published,
         metaJson: '{}',
       } as Partial<BookType>
     );

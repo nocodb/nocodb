@@ -16,21 +16,17 @@ const {
   fetchDrafts,
   isOnlyBookOpened,
   navigateToFirstPage,
+  isErrored,
 } = useDocs()
 
 const isLoading = ref(true)
 
 const onAdminMount = async () => {
   await fetchBooks()
-
   await fetchNestedChildPagesFromRoute()
   // Navigate to the first page if there is no page selected and only one book exists
   if (route.params.slugs?.length < 1 && books.value.length > 0) {
     await navigateToFirstBook()
-  } else if (route.params.slugs?.length === 1) {
-    await fetchPages({
-      book: openedBook.value!,
-    })
   }
 
   await fetchAndOpenChildPageOfRootPages()
@@ -44,6 +40,8 @@ const onPublicMount = async () => {
     await fetchPublicBook({
       projectId: route.params.projectId as string,
     })
+
+    if (!openedBook.value) return
     await fetchPages({
       book: openedBook.value!,
     })
@@ -53,6 +51,8 @@ const onPublicMount = async () => {
       projectId: route.params.projectId as string,
       slug: slugs[0],
     })
+
+    if (!openedBook.value) return
     await fetchPages({
       book: openedBook.value!,
     })
@@ -62,6 +62,9 @@ const onPublicMount = async () => {
       projectId: route.params.projectId as string,
       slug: slugs[0],
     })
+
+    if (!openedBook.value) return
+
     await fetchNestedChildPagesFromRoute()
   }
   await fetchAndOpenChildPageOfRootPages()
@@ -75,6 +78,9 @@ watch(
     if (!slugs || slugs?.length === 0) {
       await navigateToFirstBook()
     }
+  },
+  {
+    deep: true,
   },
 )
 
@@ -95,9 +101,13 @@ onMounted(async () => {
 <template>
   <NuxtLayout id="content" class="flex">
     <template #sidebar>
-      <DocsSideBar />
+      <div v-if="isErrored" class="w-full bg-white h-full"></div>
+      <DocsSideBar v-else />
     </template>
-    <div v-if="isLoading"></div>
+    <div v-if="isErrored">
+      <DocsError />
+    </div>
+    <div v-else-if="isLoading"></div>
     <DocsBookView v-else-if="isOnlyBookOpened" :key="openedBook?.id" />
     <DocsPage v-else-if="openedPage" :key="openedPage?.id" />
   </NuxtLayout>

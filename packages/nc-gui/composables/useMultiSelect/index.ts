@@ -295,7 +295,7 @@ export function useMultiSelect(
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
 
@@ -327,7 +327,7 @@ export function useMultiSelect(
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
                     syncCellData?.(activeCell)

@@ -126,7 +126,10 @@ export function useSharedView() {
     return data
   }
 
-  const fetchSharedViewGroupedData = async (columnId: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
+  const fetchSharedViewGroupedData = async (
+    columnId: string,
+    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
+  ) => {
     if (!sharedView.value) return
 
     const page = paginationData.value.page || 1
@@ -137,9 +140,8 @@ export function useSharedView() {
       columnId,
       {
         offset: (page - 1) * pageSize,
-        filterArrJson: JSON.stringify(nestedFilters.value),
-        sortArrJson: JSON.stringify(sorts.value),
-        ...params,
+        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       } as any,
       {
         headers: {

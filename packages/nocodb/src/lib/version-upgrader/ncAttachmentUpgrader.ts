@@ -14,14 +14,15 @@ import { UITypes } from 'nocodb-sdk';
 //   "size": 6494
 // }]
 // in this way, if the base url is changed, the url will be broken
-// this upgrader is to convert the existing attachment object to the following format
+// this upgrader is to convert the existing local attachment object to the following format
 // [{
-//   "path": "download/noco/xcdb/Sheet-1/title5/39A410.jpeg",
+//   "url": "download/noco/xcdb/Sheet-1/title5/39A410.jpeg",
 //   "title": "foo.jpeg",
 //   "mimetype": "image/jpeg",
 //   "size": 6494
 // }]
-// the url will be constructed by `${ncSiteUrl}/${path}`.
+// the url will be constructed by `${ncSiteUrl}/${path}` in UI.
+// while other non-local attachments will remain unchanged
 
 function getTnPath(knex: XKnex, tb: Model) {
   const schema = (knex as any).searchPath?.();
@@ -40,24 +41,7 @@ function getTnPath(knex: XKnex, tb: Model) {
 }
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  // const attachmentColumns = await ncMeta.metaList2(
-  //   null,
-  //   null,
-  //   MetaTable.COLUMNS,
-  //   {
-  //     condition: {
-  //       uidt: UITypes.Attachment,
-  //     },
-  //   }
-  // );
-  // // groupByBase[base] = { base, table_name: [], column_name: [] };
-  // const groupByBase: Record<string, any>;
-  // for (const attachmentColumn of attachmentColumns) {
-  //   //
-  // }
-
   const bases = await ncMeta.metaList2(null, null, MetaTable.BASES);
-
   for (const base of bases) {
     const knex: XKnex = NcConnectionMgrv2.get(base);
     const models = await (await Base.get(base.id)).getModels();
@@ -83,16 +67,10 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
               ? JSON.parse(record[attachmentColumn])
               : record[attachmentColumn];
           if (attachmentMeta) {
+            // TODO: check if it is local attachment
             if ('url' in attachmentMeta) {
               const ncSiteUrl = 'TODO';
-              const path = attachmentMeta.url.split(ncSiteUrl)[1];
-              if (path) {
-                attachmentMeta = {
-                  path,
-                  ...attachmentMeta,
-                };
-              }
-              delete attachmentMeta['url'];
+              attachmentMeta.url = attachmentMeta.url.split(ncSiteUrl)[1];
               console.log(
                 'update',
                 knex(getTnPath(knex, model))

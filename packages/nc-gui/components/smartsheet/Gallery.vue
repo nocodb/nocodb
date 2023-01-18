@@ -52,7 +52,7 @@ const {
 
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
-// provide(IsGridInj, ref(false))
+provide(IsGridInj, ref(false))
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 

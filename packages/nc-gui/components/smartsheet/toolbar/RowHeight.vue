@@ -1,28 +1,31 @@
 <script setup lang="ts">
 import type { GridType } from 'nocodb-sdk'
-import { ActiveViewInj, IsLockedInj, ReloadViewDataHookInj, inject, ref, useMenuCloseOnEsc } from '#imports'
+import { ActiveViewInj, IsLockedInj, inject, ref, useMenuCloseOnEsc } from '#imports'
+
+const { isSharedBase } = useProject()
 
 const view = inject(ActiveViewInj, ref())
 
-const isLocked = inject(IsLockedInj, ref(false))
+const isPublic = inject(IsPublicInj, ref(false))
 
-const reloadDataHook = inject(ReloadViewDataHookInj)
+const isLocked = inject(IsLockedInj, ref(false))
 
 const { $api } = useNuxtApp()
 
 const open = ref(false)
 
-const updateRowHeight = (rh: number) => {
+const updateRowHeight = async (rh: number) => {
   if (view.value?.id) {
     try {
-      $api.dbView.gridUpdate(view.value.id, {
-        row_height: rh,
-      })
+      if (!isPublic.value && !isSharedBase.value) {
+        await $api.dbView.gridUpdate(view.value.id, {
+          row_height: rh,
+        })
+
+        message.success('View updated successfully!')
+      }
+
       ;(view.value.view as GridType).row_height = rh
-
-      message.success('View updated successfully!')
-
-      reloadDataHook?.trigger()
 
       open.value = false
     } catch (e) {

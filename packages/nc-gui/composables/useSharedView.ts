@@ -70,6 +70,7 @@ export function useSharedView() {
     meta.value = { ...viewMeta.model }
 
     let order = 1
+
     meta.value!.columns = [...viewMeta.model.columns]
       .filter((c) => c.show)
       .map((c) => ({ ...c, order: order++ }))
@@ -92,16 +93,27 @@ export function useSharedView() {
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
   }
 
-  const fetchSharedViewData = async ({ sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] }) => {
+  const fetchSharedViewData = async ({
+    sortsArr,
+    filtersArr,
+    offset,
+  }: {
+    sortsArr: SortType[]
+    filtersArr: FilterType[]
+    offset?: number
+  }) => {
     if (!sharedView.value) return
 
-    const page = paginationData.value.page || 1
-    const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
+    if (!offset) {
+      const page = paginationData.value.page || 1
+      const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
+      offset = (page - 1) * pageSize
+    }
 
     const { data } = await $api.public.dataList(
       sharedView.value.uuid!,
       {
-        offset: (page - 1) * pageSize,
+        offset,
         filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       } as any,
@@ -114,7 +126,10 @@ export function useSharedView() {
     return data
   }
 
-  const fetchSharedViewGroupedData = async (columnId: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
+  const fetchSharedViewGroupedData = async (
+    columnId: string,
+    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
+  ) => {
     if (!sharedView.value) return
 
     const page = paginationData.value.page || 1
@@ -125,9 +140,8 @@ export function useSharedView() {
       columnId,
       {
         offset: (page - 1) * pageSize,
-        filterArrJson: JSON.stringify(nestedFilters.value),
-        sortArrJson: JSON.stringify(sorts.value),
-        ...params,
+        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       } as any,
       {
         headers: {

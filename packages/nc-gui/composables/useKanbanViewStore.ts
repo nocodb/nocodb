@@ -112,7 +112,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       let res
 
       if (isPublic.value) {
-        res = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!)
+        res = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!, {
+          sortsArr: sorts.value,
+          filtersArr: nestedFilters.value,
+        })
       } else {
         res = await api.dbViewRow.groupedDataList(
           'noco',
@@ -138,6 +141,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       if (stackTitle === null) {
         where = `(${groupingField.value},is,null)`
       }
+
       const response = !isPublic.value
         ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
@@ -145,7 +149,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where,
           })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, offset: params.offset })
 
       formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response.list)])
     }
@@ -155,9 +159,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       kanbanMetaData.value = isPublic.value
         ? (sharedView.value?.view as KanbanType)
         : await $api.dbView.kanbanRead(viewMeta.value.id)
+
       // set groupingField
-      groupingFieldColumn.value =
-        (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.fk_grp_col_id)[0] || {}
+      groupingFieldColumn.value = !isPublic.value
+        ? (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.fk_grp_col_id)[0] || {}
+        : ((typeof sharedView.value?.meta === 'string' ? JSON.parse(sharedView.value?.meta) : sharedView.value?.meta)
+            .groupingFieldColumn! as ColumnType)
 
       groupingField.value = groupingFieldColumn.value.title!
 

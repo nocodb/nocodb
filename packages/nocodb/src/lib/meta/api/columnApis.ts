@@ -101,6 +101,10 @@ async function createHmAndBtColumn(
   }
 }
 
+export async function columnGet(req: Request, res: Response) {
+  res.json(await Column.get({ colId: req.params.columnId }));
+}
+
 export async function columnAdd(
   req: Request<any, any, ColumnReqType & { uidt: UITypes }>,
   res: Response<TableType>
@@ -1811,21 +1815,31 @@ async function createColumnIndex({
 }
 
 const router = Router({ mergeParams: true });
+
 router.post(
   '/api/v1/db/meta/tables/:tableId/columns/',
   metaApiMetrics,
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
+
 router.patch(
   '/api/v1/db/meta/columns/:columnId',
   metaApiMetrics,
   ncMetaAclMw(columnUpdate, 'columnUpdate')
 );
+
 router.delete(
   '/api/v1/db/meta/columns/:columnId',
   metaApiMetrics,
   ncMetaAclMw(columnDelete, 'columnDelete')
 );
+
+router.get(
+  '/api/v1/db/meta/columns/:columnId',
+  metaApiMetrics,
+  ncMetaAclMw(columnGet, 'columnGet')
+);
+
 router.post(
   '/api/v1/db/meta/columns/:columnId/primary',
   metaApiMetrics,

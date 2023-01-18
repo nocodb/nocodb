@@ -84,11 +84,31 @@ const onMove = (_event: { moved: { newIndex: number } }) => {
   $e('a:fields:reorder')
 }
 
+const coverOptions = computed<SelectProps['options']>(() => {
+  const filterFields =
+    fields.value
+      ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
+      .map((field) => {
+        return {
+          value: field.fk_column_id,
+          label: field.title,
+        }
+      }) ?? []
+  return [{ value: null, label: 'No Image' }, ...filterFields]
+})
+
 const coverImageColumnId = computed({
-  get: () =>
-    (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) && activeView.value?.view
-      ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
-      : undefined,
+  get: () => {
+    const fk_cover_image_col_id =
+      (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) && activeView.value?.view
+        ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
+        : undefined
+    // check if `fk_cover_image_col_id` is in `coverOptions`
+    // e.g. in share view, users may not share the cover image column
+    if (coverOptions.value?.find((o) => o.value === fk_cover_image_col_id)) return fk_cover_image_col_id
+    // set to `No Image`
+    return null
+  },
   set: async (val) => {
     if (
       (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
@@ -111,19 +131,6 @@ const coverImageColumnId = computed({
       reloadViewMetaHook.trigger()
     }
   },
-})
-
-const coverOptions = computed<SelectProps['options']>(() => {
-  const filterFields =
-    fields.value
-      ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
-      .map((field) => {
-        return {
-          value: field.fk_column_id,
-          label: field.title,
-        }
-      }) ?? []
-  return [{ value: null, label: 'No Image' }, ...filterFields]
 })
 
 const getIcon = (c: ColumnType) =>

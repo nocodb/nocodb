@@ -277,7 +277,11 @@ const parseConditionV2 = async (
             break;
           case 'neq':
           case 'not':
-            qb = qb.whereNot(field, val);
+            qb = qb.where((nestedQb) => {
+              nestedQb
+                .whereNot(field, val)
+                .orWhereNotNull(customWhereClause ? _val : _field);
+            });
             break;
           case 'like':
             if (column.uidt === UITypes.Formula) {

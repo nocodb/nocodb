@@ -125,6 +125,7 @@ declare module '@vue/runtime-core' {
     MdiArrowDownDropCircleOutline: typeof import('~icons/mdi/arrow-down-drop-circle-outline')['default']
     MdiArrowExpand: typeof import('~icons/mdi/arrow-expand')['default']
     MdiArrowLeftBold: typeof import('~icons/mdi/arrow-left-bold')['default']
+    MdiArrowULeftBottom: typeof import('~icons/mdi/arrow-u-left-bottom')['default']
     MdiAt: typeof import('~icons/mdi/at')['default']
     MdiBackburger: typeof import('~icons/mdi/backburger')['default']
     MdiBookOpenOutline: typeof import('~icons/mdi/book-open-outline')['default']

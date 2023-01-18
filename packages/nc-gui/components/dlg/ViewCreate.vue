@@ -246,11 +246,11 @@ async function onSubmit() {
       >
         <a-select
           v-model:value="form.fk_geo_data_col_id"
-          class="w-full nc-kanban-grouping-field-select"
+          class="w-full"
           :options="viewSelectFieldOptions"
           :disabled="geoDataFieldColumnId"
           placeholder="Select a GeoData Field"
-          not-found-content="No Geometry Field can be found. Please create one first."
+          not-found-content="No GeoData Field can be found. Please create one first."
         />
       </a-form-item>
     </a-form>

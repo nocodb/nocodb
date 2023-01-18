@@ -384,7 +384,7 @@ export class MssqlUi {
         return '';
 
       case 'varchar':
-        return '';
+        return 255;
 
       default:
         return '';
@@ -1098,7 +1098,7 @@ export class MssqlUi {
         colProp.dt = 'varchar';
         break;
       case 'Date':
-        colProp.dt = 'varchar';
+        colProp.dt = 'date';
 
         break;
       case 'Year':

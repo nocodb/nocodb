@@ -301,4 +301,30 @@ test.describe('View', () => {
       count: [1, 25, 25, 25, 25, 25],
     });
   });
+
+  test('Kanban shared view operations', async ({ page }) => {
+    test.slow();
+
+    await dashboard.viewSidebar.createKanbanView({
+      title: 'Film Kanban',
+    });
+    await dashboard.viewSidebar.verifyView({
+      title: 'Film Kanban',
+      index: 1,
+    });
+
+    // Share view
+    await toolbar.fields.toggle({ title: 'Rating' });
+    await toolbar.clickShareView();
+    const sharedLink = await toolbar.shareView.getShareLink();
+    await toolbar.shareView.close();
+
+    // sign-out
+    await dashboard.signOut();
+
+    // Open shared view & verify stack count
+    await page.goto(sharedLink);
+    const kanban = dashboard.kanban;
+    await kanban.verifyStackCount({ count: 6 });
+  });
 });

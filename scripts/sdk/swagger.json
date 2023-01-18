@@ -1972,8 +1972,7 @@
                   "project_id": {
                     "type": "string"
                   },
-                  "meta": {
-                  }
+                  "meta": {}
                 }
               }
             }
@@ -2105,7 +2104,7 @@
         ]
       },
       "delete": {
-        "summary": "",
+        "summary": "Column Delete",
         "operationId": "db-table-column-delete",
         "responses": {
           "200": {
@@ -2114,6 +2113,18 @@
         },
         "tags": [
           "DB table column"
+        ]
+      },
+      "get": {
+        "summary": "Column Get",
+        "operationId": "db-table-column-get",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB Table Column"
         ]
       }
     },
@@ -2194,8 +2205,7 @@
                   "order": {
                     "type": "number"
                   },
-                  "meta": {
-                  },
+                  "meta": {},
                   "title": {
                     "type": "string"
                   },
@@ -3970,6 +3980,13 @@
             "in": "query",
             "name": "nested",
             "description": "Query params for nested data"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
           }
         ],
         "responses": {
@@ -7585,8 +7602,7 @@
               "number"
             ]
           },
-          "meta": {
-          }
+          "meta": {}
         },
         "required": [
           "table_name",
@@ -7684,8 +7700,7 @@
           "uuid": {
             "type": "string"
           },
-          "meta": {
-          },
+          "meta": {},
           "show_system_fields": {
             "type": "boolean"
           },
@@ -7931,8 +7946,7 @@
               "$ref": "#/components/schemas/Column"
             }
           },
-          "meta": {
-          }
+          "meta": {}
         },
         "required": [
           "table_name",

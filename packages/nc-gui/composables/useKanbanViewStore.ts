@@ -112,7 +112,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       let res
 
       if (isPublic.value) {
-        res = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!)
+        res = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!, {
+          sortsArr: sorts.value,
+          filtersArr: nestedFilters.value,
+        })
       } else {
         res = await api.dbViewRow.groupedDataList(
           'noco',
@@ -138,6 +141,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       if (stackTitle === null) {
         where = `(${groupingField.value},is,null)`
       }
+
       const response = !isPublic.value
         ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,

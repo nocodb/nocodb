@@ -20,7 +20,7 @@ test.describe('Attachment column', () => {
     });
 
     for (let i = 4; i <= 6; i++) {
-      const filepath = `${process.cwd()}/fixtures/sampleFiles/${i}.json`;
+      const filepath = [`${process.cwd()}/fixtures/sampleFiles/${i}.json`];
       await dashboard.grid.cell.attachment.addFile({
         index: i,
         columnHeader: 'testAttach',
@@ -34,7 +34,7 @@ test.describe('Attachment column', () => {
     await dashboard.grid.cell.attachment.addFile({
       index: 7,
       columnHeader: 'testAttach',
-      filePath: `${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`,
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
     });
     await dashboard.grid.cell.attachment.verifyFile({
       index: 7,
@@ -60,7 +60,7 @@ test.describe('Attachment column', () => {
     });
     await sharedForm.cell.attachment.addFile({
       columnHeader: 'testAttach',
-      filePath: `${process.cwd()}/fixtures/sampleFiles/1.json`,
+      filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
     });
     await sharedForm.submit();
     await sharedForm.verifySuccessMessage();

@@ -49,7 +49,7 @@ export default abstract class BasePage {
     ]);
   }
 
-  async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string }) {
+  async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {
     const [fileChooser] = await Promise.all([
       // It is important to call waitForEvent before click to set up waiting.
       this.rootPage.waitForEvent('filechooser'),

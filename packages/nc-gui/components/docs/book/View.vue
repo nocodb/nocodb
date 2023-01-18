@@ -139,6 +139,7 @@ const onImport = async () => {
 }
 
 watch(isOnlyBookOpened, async () => {
+  if (!isOnlyBookOpened.value) return
   isPagesFetching.value = true
   activeTabPagination.value = 1
   activeTabKey.value = 'all'

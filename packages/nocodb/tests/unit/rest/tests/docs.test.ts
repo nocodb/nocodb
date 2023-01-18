@@ -755,13 +755,14 @@ function docTests() {
       .query({
         projectId: project.id,
       })
-      .expect(200)
-    expect(response.body.title).to.equal(book.title)
+      .expect(400)
+    expect(response.body.msg).to.equal('Book not found')
 
     const book2 = await createBook({
       project: project,
       attributes: {
         title: 'test2',
+        is_published: true,
       },
       user: context.user,
     });

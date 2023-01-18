@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import { useVModel } from '#imports'
+import { Modal as AModal, useVModel } from '#imports'
 import { latLongToJoinedString } from '~~/utils/geoDataUtils'
 
 interface Props {
@@ -49,6 +49,7 @@ const onClickSetCurrentLocation = () => {
   isLoading = true
   const onSuccess = (position) => {
     const crd = position.coords
+    console.log('crd', crd)
     formState.latitude = crd.latitude
     formState.longitude = crd.longitude
     isLoading = false
@@ -84,11 +85,7 @@ const onClickSetCurrentLocation = () => {
             :min="-90"
             required
             :max="90"
-            @keydown.down.stop
-            @keydown.left.stop
-            @keydown.right.stop
-            @keydown.up.stop
-            @keydown.delete.stop
+            @keydown.stop
             @selectstart.capture.stop
             @mousedown.stop
           />
@@ -105,11 +102,7 @@ const onClickSetCurrentLocation = () => {
             required
             :min="-180"
             :max="180"
-            @keydown.down.stop
-            @keydown.left.stop
-            @keydown.right.stop
-            @keydown.up.stop
-            @keydown.delete.stop
+            @keydown.stop
             @selectstart.capture.stop
             @mousedown.stop
           />

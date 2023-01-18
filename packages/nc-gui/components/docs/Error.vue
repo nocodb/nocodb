@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-screen gap-y-14">
+  <div class="flex flex-col h-screen gap-y-14 mx-52">
     <div class="text-4xl font-semibold h-1/4 flex flex-col justify-end">404: Page not found</div>
     <div class="flex flex-row items-center gap-x-10">
       <img src="~/assets/img/404.svg" class="flex" />

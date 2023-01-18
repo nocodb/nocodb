@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import apiMetrics from '../../helpers/apiMetrics';
 import Page from '../../../models/Page';
 import catchError from '../../helpers/catchError';
+import Book from '../../../models/Book';
 
 async function get(
   req: Request<any> & { user: { id: string; roles: string } },
@@ -9,6 +10,11 @@ async function get(
   next
 ) {
   try {
+    const book = await Book.get({
+      id: req.query.bookId as string,
+      projectId: req.query?.projectId as string,
+    });
+
     const page = await Page.get({
       id: req.params.id,
       projectId: req.query?.projectId as string,
@@ -17,7 +23,7 @@ async function get(
 
     if (!page) throw new Error('Page not found');
 
-    if (!page?.is_published) throw new Error('Unauthorized');
+    if (!book?.is_published) throw new Error('Unauthorized');
 
     res.json(page);
   } catch (e) {

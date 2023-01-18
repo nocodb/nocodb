@@ -7,9 +7,7 @@ const isPublic = inject(IsDocsPublicInj, ref(false))
 
 const { project } = useProject()
 const {
-  fetchPages,
   nestedPages,
-  books,
   openedPage,
   openedTabs,
   nestedUrl,
@@ -28,15 +26,7 @@ const onLoadData: TreeProps['loadData'] = async (treeNode) => {
   return new Promise((resolve) => {
     if (treeNode.dataRef?.children) {
       resolve()
-      return
     }
-
-    fetchPages({
-      parentPageId: treeNode.dataRef?.id,
-      book: books.value.find((book) => book.id === treeNode.dataRef?.book_id)!,
-    }).then(() => {
-      resolve()
-    })
   })
 }
 

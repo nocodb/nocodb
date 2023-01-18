@@ -306,6 +306,37 @@ export default class Page {
     return pageList;
   }
 
+  public static async nestedList({
+    bookId,
+    projectId,
+    parent_page_id,
+  }: {
+    bookId: string;
+    projectId: string;
+    parent_page_id?: string;
+  }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
+    const nestedList = await this.list({ bookId, projectId, parent_page_id });
+
+    if (!nestedList || nestedList.length === 0) return [];
+
+    const nestedListWithChildren = await Promise.all(
+      nestedList.map(async (page) => {
+        const children = await this.nestedList({
+          bookId,
+          parent_page_id: page.id,
+          projectId,
+        });
+        return {
+          ...page,
+          isLeaf: children.length === 0,
+          children,
+        };
+      })
+    );
+
+    return nestedListWithChildren;
+  }
+
   public static async count({
     bookId,
     projectId,

@@ -38,16 +38,21 @@ async function list(
   next
 ) {
   try {
-    const pages = await Page.list({
-      bookId: req.query?.bookId as string,
+    const book = await Book.get({
+      id: req.query.bookId as string,
       projectId: req.query?.projectId as string,
-      parent_page_id: req.query?.parent_page_id as string,
     });
 
-    const publishedPages = pages.filter((page) => page.is_published);
+    const pages = await Page.nestedList({
+      bookId: req.query?.bookId as string,
+      projectId: req.query?.projectId as string,
+    });
+
+    if (!book?.is_published) throw new Error('Unauthorized');
+    // const publishedPages = pages.filter((page) => page.is_published);
 
     res // todo: pagination
-      .json(publishedPages);
+      .json(pages);
   } catch (e) {
     console.log(e);
     next(e);

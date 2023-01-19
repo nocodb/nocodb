@@ -128,7 +128,7 @@ const navigateToOpenedBook = () => {
       v-model:expandedKeys="openedTabs"
       v-model:selectedKeys="openPageTabKeys"
       :load-data="onLoadData"
-      :tree-data="nestedPages"
+      :tree-data="(nestedPages as any)"
       :draggable="!isPublic"
       :on-drop="onDrop"
       show-icon

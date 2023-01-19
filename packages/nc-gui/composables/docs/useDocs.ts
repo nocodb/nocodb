@@ -1,7 +1,6 @@
 import { message } from 'ant-design-vue'
 import type { BookType, DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
-import { arrayToTree } from 'performant-array-to-tree'
 import { extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 
 export interface AntSidebarNode {
@@ -161,23 +160,21 @@ const [setup, use] = useInjectionState(() => {
     get: () => {
       if (nestedPages.value.length === 0) return []
 
-      const tree = arrayToTree(nestedPages.value, {
-        parentId: 'parent_page_id',
-        id: 'id',
-        dataField: null,
-      }) as PageSidebarNode[]
+      // nestedPagesTree to array
+      const flatten = (tree: PageSidebarNode[]): PageSidebarNode[] => {
+        const result: PageSidebarNode[] = []
 
-      // traverse tree and set level
-      const traverse = (pages: PageSidebarNode[], level = 0) => {
-        pages.forEach((p) => {
-          p.level = level
-          if (p.children) traverse(p.children, level + 1)
+        tree.forEach((node) => {
+          result.push(node)
+          if (node.children) {
+            result.push(...flatten(node.children))
+          }
         })
+
+        return result
       }
 
-      traverse(tree)
-
-      return tree
+      return flatten(nestedPages.value)
     },
     set: (val) => {
       console.log('setter', val)
@@ -255,6 +252,23 @@ const [setup, use] = useInjectionState(() => {
       message.error(await extractSdkResponseErrorMsg(e as any))
     } finally {
       isFetchingNestedPages.value = false
+    }
+  }
+
+  const fetchPage = async ({ page, book }: { page?: PageSidebarNode; book?: BookType }) => {
+    page = page ?? openedPage.value
+    book = book ?? openedBook.value
+
+    try {
+      const fetchedPage = await $api.nocoDocs.getPage(page!.id!, {
+        projectId: projectId!,
+        bookId: book!.id!,
+      })
+      return fetchedPage
+    } catch (e) {
+      console.log(e)
+      isPageErrored.value = true
+      return undefined
     }
   }
 
@@ -512,9 +526,9 @@ const [setup, use] = useInjectionState(() => {
     return findPageInTree(nestedPages.value, pageIdOrSlug)
   }
 
-  const updatePage = async ({ pageId, page }: { pageId: string; page: PageSidebarNode }) => {
+  const updatePage = async ({ pageId, page }: { pageId: string; page: Partial<PageSidebarNode> }) => {
     const updatedPage = await $api.nocoDocs.updatePage(pageId, {
-      attributes: page,
+      attributes: page as any,
       projectId: projectId!,
       bookId: openedBook.value!.id!,
     })
@@ -524,6 +538,19 @@ const [setup, use] = useInjectionState(() => {
       if (foundPage.new) foundPage.new = false
 
       await navigateTo(nestedUrl(updatedPage.id!))
+    }
+  }
+
+  const updateContent = async ({ pageId, content }: { pageId: string; content: string }) => {
+    try {
+      await $api.nocoDocs.updatePage(pageId, {
+        attributes: { content } as any,
+        projectId: projectId!,
+        bookId: openedBook.value!.id!,
+      })
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
 
@@ -747,6 +774,8 @@ const [setup, use] = useInjectionState(() => {
     isFetchingNestedPages,
     updateBook,
     isErrored,
+    fetchPage,
+    updateContent,
   }
 }, 'useDocs')
 

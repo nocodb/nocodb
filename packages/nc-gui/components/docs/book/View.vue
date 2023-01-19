@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { Ref } from 'vue'
-import InfiniteLoading from 'v3-infinite-loading'
+// import InfiniteLoading from 'v3-infinite-loading'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
 const { project } = useProject()
@@ -57,13 +57,20 @@ const tabInfo = [
   },
 ]
 
+const flattenedNestedPagesByUpdatedAt = computed(() =>
+  flattenedNestedPages.value.sort((a, b) => {
+    return dayjs(b.updated_at).unix() - dayjs(a.updated_at).unix()
+  }),
+)
+const flattenedNestedPagesByTitle = computed(() => flattenedNestedPages.value.sort((a, b) => a.title!.localeCompare(b.title!)))
+
 const isPagesFetching = ref(false)
 const pages = computed(() => {
   switch (activeTabKey.value) {
     case 'all':
-      return flattenedNestedPages.value
+      return flattenedNestedPagesByUpdatedAt.value
     case 'allByTitle':
-      return flattenedNestedPages.value
+      return flattenedNestedPagesByTitle.value
     // case 'published':
     //   return publishedPages.value
     // case 'unpublished':
@@ -306,7 +313,7 @@ const loadListData = async ($state: any) => {
               </div>
             </div>
             <div v-else class="h-full overflow-y-auto docs-book-infinite-list">
-              <div class="flex flex-col gap-y-4 mt-6 mb-6 px-2">
+              <div class="flex flex-col gap-y-4 mt-6 mb-12 px-2">
                 <div
                   v-for="(page, index) of pages"
                   :key="index"
@@ -323,7 +330,7 @@ const loadListData = async ($state: any) => {
                     </div>
                   </div>
                 </div>
-                <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
+                <!-- <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
                   <template #spinner>
                     <div class="flex flex-row w-full justify-center mt-2">
                       <a-spin />
@@ -332,7 +339,7 @@ const loadListData = async ($state: any) => {
                   <template #complete>
                     <span></span>
                   </template>
-                </InfiniteLoading>
+                </InfiniteLoading> -->
               </div>
             </div>
           </a-tab-pane>

@@ -1405,6 +1405,33 @@ export class Api<
       }),
 
     /**
+     * @description Get page
+     *
+     * @tags Noco docs
+     * @name GetPage
+     * @summary Get page
+     * @request GET:/api/v1/docs/page/{id}
+     * @response `200` `DocsPageType` OK
+     */
+    getPage: (
+      id: string,
+      query: {
+        /** Project id */
+        projectId: string;
+        /** Book id */
+        bookId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType, any>({
+        path: `/api/v1/docs/page/${id}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Delete page
      *
      * @tags Noco docs

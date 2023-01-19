@@ -298,6 +298,21 @@ export default class Page {
         condition: {
           parent_page_id: parent_page_id ?? null,
         },
+        fields: [
+          'id',
+          'title',
+          'slug',
+          'order',
+          'parent_page_id',
+          'is_parent',
+          'is_published',
+          'book_id',
+          'updated_at',
+          'created_at',
+          'last_updated_by_id',
+          'last_published_by_id',
+          'created_by_id',
+        ],
       }
     );
 

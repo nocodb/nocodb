@@ -312,7 +312,9 @@
     "signInWithGoogle": "Googleでログイン",
     "agreeToTos": "サインアップすることで、利用規約に同意するものとみなされます。",
     "welcomeToNc": "NocoDB へようこそ！",
-    "inviteOnlySignup": "招待URL からのサインアップのみ許可"
+    "inviteOnlySignup": "招待URL からのサインアップのみ許可",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "プロジェクトを作成",
@@ -629,7 +631,8 @@
       "showM2mTables": "Show M2M Tables",
       "deleteKanbanStackConfirmation": "スタックを削除すると、`{stackToBeDeleted}`から選択肢`{groupingField}`も削除されます。レコードは未分類スタックに移動します。",
       "computedFieldEditWarning": "計算フィールド: コンテンツは読み取り専用です。列編集メニューを使用して再設定してください。",
-      "computedFieldDeleteWarning": "計算フィールド: コンテンツは読み取り専用です。コンテンツを消去できません。"
+      "computedFieldDeleteWarning": "計算フィールド: コンテンツは読み取り専用です。コンテンツを消去できません。",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "{search} の検索結果が見つかりませんでした",

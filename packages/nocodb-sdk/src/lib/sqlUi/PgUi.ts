@@ -1596,6 +1596,7 @@ export class PgUi {
         break;
       case 'Checkbox':
         colProp.dt = 'bool';
+        colProp.cdf = 'false';
         break;
       case 'MultiSelect':
         colProp.dt = 'text';

@@ -36,6 +36,18 @@ export class SelectOptionColumnPageObject extends BasePage {
     if (!skipColumnModal && columnTitle) await this.column.save({ isUpdated: true });
   }
 
+  // add multiple options at once after column creation is completed
+  //
+  async addOptions({ columnTitle, options }: { columnTitle: string; options: string[] }) {
+    await this.column.openEdit({ title: columnTitle });
+    for (let i = 0; i < options.length; i++) {
+      await this.column.get().locator('button:has-text("Add option")').click();
+      await this.column.get().locator(`[data-testid="select-column-option-input-${i}"]`).click();
+      await this.column.get().locator(`[data-testid="select-column-option-input-${i}"]`).fill(options[i]);
+    }
+    await this.column.save({ isUpdated: true });
+  }
+
   async editOption({ columnTitle, index, newOption }: { index: number; columnTitle: string; newOption: string }) {
     await this.column.openEdit({ title: columnTitle });
 

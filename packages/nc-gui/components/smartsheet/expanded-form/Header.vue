@@ -162,8 +162,6 @@ const onConfirmDeleteRowClick = async () => {
     <a-dropdown>
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-1 items-center">
-          <MdiFlashOutline />
-
           <!-- More -->
           <span class="!text-sm font-weight-medium">{{ $t('general.more') }}</span>
 

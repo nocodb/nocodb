@@ -58,7 +58,7 @@ export async function appInfo(req: Request, res: Response) {
     ncSiteUrl: (req as any).ncSiteUrl,
     ee: Noco.isEE(),
     ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
-    ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10)
+    ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
   };
 
   res.json(result);

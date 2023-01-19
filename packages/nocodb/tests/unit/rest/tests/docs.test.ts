@@ -301,35 +301,46 @@ function docTests() {
         bookId: book.id,
         attributes: {
           parent_page_id: id,
-          title: 'nested test',
+          title: 'child test 1',
           content: 'test',
         }
       })
       .expect(200)
-
     expect(response.body.parent_page_id).to.equal(id)
 
-    // get nested page
     response = await request(context.app)
-      .get(`/api/v1/docs/pages`)
-      .query({ parent_page_id: id, projectId: project.id, bookId: book.id })
-      .set('xc-auth', context.token)
-      .send({})
-      .expect(200)
-    expect(response.body.length).to.equal(1)
-    expect(response.body[0].title).to.equal('nested test')
-    expect(response.body[0].is_parent).to.equal(0)
-    
-    // get top level pages
+    .post(`/api/v1/docs/page`)
+    .set('xc-auth', context.token)
+    .send({
+      projectId: project.id,
+      bookId: book.id,
+      attributes: {
+        parent_page_id: id,
+        title: 'child test 2',
+        content: 'test',
+      }
+    })
+    .expect(200)
+    expect(response.body.parent_page_id).to.equal(id)
+
     response = await request(context.app)
       .get(`/api/v1/docs/pages`)
       .set('xc-auth', context.token)
       .query({ projectId: project.id, bookId: book.id })
       .expect(200)
 
+
     expect(response.body.length).to.equal(1)
     expect(response.body[0].title).to.equal('test')
     expect(response.body[0].is_parent).to.equal(1)
+    expect(response.body[0].isLeaf).to.equal(false)
+    expect(response.body[0].children).to.be.an('array')
+    
+    expect(response.body[0].children.length).to.equal(2)
+    expect(response.body[0].children[0].title).to.equal('child test 1')
+    expect(response.body[0].children[0].isLeaf).to.equal(true)
+    expect(response.body[0].children[1].title).to.equal('child test 2')
+    expect(response.body[0].children[1].isLeaf).to.equal(true)
   })
 
   it('Update page', async () => {

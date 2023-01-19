@@ -38,10 +38,9 @@ async function list(
   next
 ) {
   try {
-    const pages = await Page.list({
+    const pages = await Page.nestedList({
       bookId: req.query?.bookId as string,
       projectId: req.query?.projectId as string,
-      parent_page_id: req.query?.parent_page_id as string,
     });
 
     res // todo: pagination

@@ -298,12 +298,58 @@ export default class Page {
         condition: {
           parent_page_id: parent_page_id ?? null,
         },
+        fields: [
+          'id',
+          'title',
+          'slug',
+          'order',
+          'parent_page_id',
+          'is_parent',
+          'is_published',
+          'book_id',
+          'updated_at',
+          'created_at',
+          'last_updated_by_id',
+          'last_published_by_id',
+          'created_by_id',
+        ],
       }
     );
 
     pageList.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 
     return pageList;
+  }
+
+  public static async nestedList({
+    bookId,
+    projectId,
+    parent_page_id,
+  }: {
+    bookId: string;
+    projectId: string;
+    parent_page_id?: string;
+  }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
+    const nestedList = await this.list({ bookId, projectId, parent_page_id });
+
+    if (!nestedList || nestedList.length === 0) return [];
+
+    const nestedListWithChildren = await Promise.all(
+      nestedList.map(async (page) => {
+        const children = await this.nestedList({
+          bookId,
+          parent_page_id: page.id,
+          projectId,
+        });
+        return {
+          ...page,
+          isLeaf: children.length === 0,
+          children,
+        };
+      })
+    );
+
+    return nestedListWithChildren;
   }
 
   public static async count({

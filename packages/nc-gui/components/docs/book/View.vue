@@ -1,32 +1,27 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { Ref } from 'vue'
-import InfiniteLoading from 'v3-infinite-loading'
+// import InfiniteLoading from 'v3-infinite-loading'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
-import MdiFileEditOutline from '~icons/mdi/file-edit-outline'
-import MdiPublish from '~icons/mdi/publish'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
 const { project } = useProject()
 const {
   openedBook,
-  isBulkPublishing,
   books,
   selectBook,
-  drafts,
-  fetchDrafts,
   createBook,
   createMagic,
   fetchBooks,
   navigateToLastBook,
   addNewPage,
   createImport,
-  fetchAllPages,
-  allPages,
-  allByTitle,
-  publishedPages,
+  flattenedNestedPages,
+  // fetchAllPages,
+  // allPages,
+  // allByTitle,
   openPage,
-  fetchPublishedPages,
-  fetchAllPagesByTitle,
+  // fetchPublishedPages,
+  // fetchAllPagesByTitle,
   isOnlyBookOpened,
 } = useDocs()
 
@@ -62,22 +57,28 @@ const tabInfo = [
   },
 ]
 
+const flattenedNestedPagesByUpdatedAt = computed(() =>
+  flattenedNestedPages.value.sort((a, b) => {
+    return dayjs(b.updated_at).unix() - dayjs(a.updated_at).unix()
+  }),
+)
+const flattenedNestedPagesByTitle = computed(() => flattenedNestedPages.value.sort((a, b) => a.title!.localeCompare(b.title!)))
+
 const isPagesFetching = ref(false)
 const pages = computed(() => {
   switch (activeTabKey.value) {
     case 'all':
-      return allPages.value
+      return flattenedNestedPagesByUpdatedAt.value
     case 'allByTitle':
-      return allByTitle.value
-    case 'published':
-      return publishedPages.value
-    case 'unpublished':
-      return drafts.value
+      return flattenedNestedPagesByTitle.value
+    // case 'published':
+    //   return publishedPages.value
+    // case 'unpublished':
+    //   return drafts.value
     default:
-      return allPages.value
+      return flattenedNestedPages.value
   }
 })
-const haveDrafts = computed(() => drafts.value.length > 0)
 
 const magicModalOpen = ref(false)
 const magicFormData = ref({
@@ -138,86 +139,87 @@ const onImport = async () => {
   }
 }
 
-watch(isOnlyBookOpened, async () => {
-  if (!isOnlyBookOpened.value) return
-  isPagesFetching.value = true
-  activeTabPagination.value = 1
-  activeTabKey.value = 'all'
+// watch(isOnlyBookOpened, async () => {
+//   if (!isOnlyBookOpened.value) return
+//   isPagesFetching.value = true
+//   activeTabPagination.value = 1
+//   activeTabKey.value = 'all'
 
-  await fetchAllPages({
-    pageNumber: activeTabPagination.value,
-    clear: true,
-  })
-})
+//   await fetchAllPages({
+//     pageNumber: activeTabPagination.value,
+//     clear: true,
+//   })
+// })
 
-watch(
-  activeTabKey,
-  async (key) => {
-    isPagesFetching.value = true
-    activeTabPagination.value = 1
-    try {
-      if (key === 'all') {
-        await fetchAllPages({
-          pageNumber: activeTabPagination.value,
-          clear: true,
-        })
-      } else if (key === 'allByTitle') {
-        await fetchAllPagesByTitle({
-          pageNumber: activeTabPagination.value,
-          clear: true,
-        })
-      } else if (key === 'published') {
-        await fetchPublishedPages({
-          pageNumber: activeTabPagination.value,
-          clear: true,
-        })
-      } else if (key === 'unpublished') {
-        await fetchDrafts()
-      }
-    } finally {
-      isPagesFetching.value = false
-    }
-  },
-  {
-    immediate: true,
-  },
-)
+// watch(
+//   activeTabKey,
+//   async (key) => {
+//     isPagesFetching.value = true
+//     activeTabPagination.value = 1
+//     try {
+//       if (key === 'all') {
+//         await fetchAllPages({
+//           pageNumber: activeTabPagination.value,
+//           clear: true,
+//         })
+//       } else if (key === 'allByTitle') {
+//         await fetchAllPagesByTitle({
+//           pageNumber: activeTabPagination.value,
+//           clear: true,
+//         })
+//       }
+//       else if (key === 'published') {
+//         await fetchPublishedPages({
+//           pageNumber: activeTabPagination.value,
+//           clear: true,
+//         })
+//       } else if (key === 'unpublished') {
+//         await fetchDrafts()
+//       }
+//     } finally {
+//       isPagesFetching.value = false
+//     }
+//   },
+//   {
+//     immediate: true,
+//   },
+// )
 
 const loadListData = async ($state: any) => {
-  if (activeTabKey.value === 'unpublished') {
-    $state.complete()
-    return
-  }
+  $state.complete()
+  // if (activeTabKey.value === 'unpublished') {
+  //   return
+  // }
 
-  $state.loading()
-  const oldPagesCount = pages.value?.length || 0
+  // $state.loading()
+  // const oldPagesCount = pages.value?.length || 0
 
-  activeTabPagination.value += 1
-  switch (activeTabKey.value) {
-    case 'all':
-      await fetchAllPages({
-        pageNumber: activeTabPagination.value,
-      })
-      break
-    case 'allByTitle':
-      await fetchAllPagesByTitle({
-        pageNumber: activeTabPagination.value,
-      })
-      break
-    case 'published':
-      await fetchPublishedPages({
-        pageNumber: activeTabPagination.value,
-      })
-      break
-    default:
-      break
-  }
+  // activeTabPagination.value += 1
+  // switch (activeTabKey.value) {
+  //   case 'all':
+  //     await fetchAllPages({
+  //       pageNumber: activeTabPagination.value,
+  //     })
+  //     break
+  //   case 'allByTitle':
+  //     await fetchAllPagesByTitle({
+  //       pageNumber: activeTabPagination.value,
+  //     })
+  //     break
+  //   case 'published':
+  //     await fetchPublishedPages({
+  //       pageNumber: activeTabPagination.value,
+  //     })
+  //     break
+  //   default:
+  //     break
+  // }
 
-  if (pages.value?.length === oldPagesCount) {
-    $state.complete()
-    return
-  }
-  $state.loaded()
+  // if (pages.value?.length === oldPagesCount) {
+  //   $state.complete()
+  //   return
+  // }
+  // $state.loaded()
 }
 </script>
 
@@ -311,7 +313,7 @@ const loadListData = async ($state: any) => {
               </div>
             </div>
             <div v-else class="h-full overflow-y-auto docs-book-infinite-list">
-              <div class="flex flex-col gap-y-4 mt-6 mb-6 px-2">
+              <div class="flex flex-col gap-y-4 mt-6 mb-12 px-2">
                 <div
                   v-for="(page, index) of pages"
                   :key="index"
@@ -328,7 +330,7 @@ const loadListData = async ($state: any) => {
                     </div>
                   </div>
                 </div>
-                <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
+                <!-- <InfiniteLoading v-bind="$attrs" @infinite="loadListData">
                   <template #spinner>
                     <div class="flex flex-row w-full justify-center mt-2">
                       <a-spin />
@@ -337,7 +339,7 @@ const loadListData = async ($state: any) => {
                   <template #complete>
                     <span></span>
                   </template>
-                </InfiniteLoading>
+                </InfiniteLoading> -->
               </div>
             </div>
           </a-tab-pane>

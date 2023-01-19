@@ -4,16 +4,14 @@ const isPublic = inject(IsDocsPublicInj, ref(false))
 const route = useRoute()
 const {
   fetchPublicBook,
-  fetchPages,
+  fetchNestedPages,
   bookUrl,
   openedBook,
   fetchBooks,
-  fetchNestedChildPagesFromRoute,
   openedPage,
   books,
   navigateToFirstBook,
-  fetchAndOpenChildPageOfRootPages,
-  fetchDrafts,
+  openChildPageOfRootPages,
   isOnlyBookOpened,
   navigateToFirstPage,
   isErrored,
@@ -23,27 +21,28 @@ const isLoading = ref(true)
 
 const onAdminMount = async () => {
   await fetchBooks()
-  await fetchNestedChildPagesFromRoute()
+  await fetchNestedPages({
+    book: books.value[0],
+  })
   // Navigate to the first page if there is no page selected and only one book exists
   if (route.params.slugs?.length < 1 && books.value.length > 0) {
     await navigateToFirstBook()
   }
 
-  await fetchAndOpenChildPageOfRootPages()
-  await fetchDrafts(books.value[books.value.length - 1])
+  await openChildPageOfRootPages()
 }
 
 const onPublicMount = async () => {
   const slugs = route.params.slugs && (route.params.slugs as string[])?.filter((slug) => slug !== '')
   if (!slugs || slugs?.length === 0) {
-    await navigateTo(bookUrl(openedBook.value!.slug!))
     await fetchPublicBook({
       projectId: route.params.projectId as string,
     })
+    await navigateTo(bookUrl(books.value[0].slug!))
 
-    if (!openedBook.value) return
-    await fetchPages({
-      book: openedBook.value!,
+    if (books.value.length === 0) return
+    await fetchNestedPages({
+      book: books.value[0],
     })
     await navigateToFirstPage()
   } else if (slugs?.length === 1) {
@@ -52,9 +51,9 @@ const onPublicMount = async () => {
       slug: slugs[0],
     })
 
-    if (!openedBook.value) return
-    await fetchPages({
-      book: openedBook.value!,
+    if (books.value.length === 0) return
+    await fetchNestedPages({
+      book: books.value[0],
     })
     await navigateToFirstPage()
   } else {
@@ -62,12 +61,12 @@ const onPublicMount = async () => {
       projectId: route.params.projectId as string,
       slug: slugs[0],
     })
-
-    if (!openedBook.value) return
-
-    await fetchNestedChildPagesFromRoute()
+    if (books.value.length === 0) return
+    await fetchNestedPages({
+      book: books.value[0],
+    })
   }
-  await fetchAndOpenChildPageOfRootPages()
+  await openChildPageOfRootPages()
 }
 
 watch(

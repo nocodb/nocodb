@@ -14,13 +14,37 @@ import Commands from './commands'
 import { History } from './history'
 import suggestion from './commands/suggestion'
 import { createImageExtension } from './images/node'
+import type { PageSidebarNode } from '~~/composables/docs/useDocs'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
-const { openedPage, openedBook, updatePage, openedNestedPagesOfBook, nestedUrl, bookUrl, uploadFile } = useDocs()
+const {
+  openedPage: openedPageInternal,
+  openedBook,
+  updatePage,
+  updateContent,
+  openedNestedPagesOfBook,
+  nestedUrl,
+  bookUrl,
+  uploadFile,
+  fetchPage,
+} = useDocs()
 
 const isTitleInputRefLoaded = ref(false)
+const isLoading = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
+const _openedPage = ref<PageSidebarNode | undefined>()
+const openedPage = computed<PageSidebarNode | undefined>({
+  get: () => _openedPage.value,
+  set: (value) => {
+    if (!value) return
+
+    _openedPage.value = value
+    if (openedPageInternal.value && value.title !== openedPageInternal.value?.title) {
+      openedPageInternal.value.title = value.title
+    }
+  },
+})
 
 const title = computed({
   get: () => (openedPage.value!.new ? '' : openedPage.value?.title || ''),
@@ -100,7 +124,7 @@ watch(
 watch(editor, () => {
   if (!editor.value) return
 
-  editor.value.commands.setContent(isPublic.value ? openedPage.value!.published_content! : content.value)
+  editor.value.commands.setContent(content.value)
 })
 
 const containsNewLine = (value: string) => (value.match(/\n/g) || []).length > 0
@@ -147,12 +171,25 @@ watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.content],
   ([newId], [oldId]) => {
     if (!isPublic.value && openedPage.value?.id && newId === oldId) {
-      updatePage({ pageId: openedPage.value?.id, page: { content: openedPage.value!.content } as any })
+      updateContent({ pageId: openedPage.value?.id, content: openedPage.value!.content })
     }
   },
   {
     debounce: 300,
     maxWait: 600,
+  },
+)
+
+watch(
+  () => openedPage.value?.id,
+  async () => {
+    isLoading.value = true
+    openedPage.value = (await fetchPage({ page: openedPage.value! })) as any
+    if (openedPageInternal.value?.new) openedPage.value!.new = true
+    isLoading.value = false
+  },
+  {
+    immediate: true,
   },
 )
 </script>
@@ -196,7 +233,7 @@ watchDebounced(
           @click="editor!.chain().focus().insertContent('/').run()"
         />
       </FloatingMenu>
-      <EditorContent :editor="editor" class="px-2" />
+      <EditorContent v-if="!isLoading" :editor="editor" class="px-2" />
     </div>
   </a-layout-content>
 </template>

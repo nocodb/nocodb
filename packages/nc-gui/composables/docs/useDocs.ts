@@ -1,7 +1,6 @@
 import { message } from 'ant-design-vue'
 import type { BookType, DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
-import { arrayToTree } from 'performant-array-to-tree'
 import { extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 
 export interface AntSidebarNode {
@@ -28,20 +27,22 @@ const [setup, use] = useInjectionState(() => {
   const projectId = $(computed(() => route.params.projectId as string))
 
   const isPublic = inject(IsDocsPublicInj, ref(false))
-  const isErrored = ref<boolean>(false)
+  const isPageErrored = ref<boolean>(false)
+  const isBookErrored = ref<boolean>(false)
 
-  const isFetchingBooks = ref<boolean>(false)
-  const isFetchingPagesFromUrl = ref<boolean>(false)
+  const isFetchingBooks = ref<boolean>(true)
+  const isFetchingNestedPages = ref<boolean>(true)
   const isBulkPublishing = ref<boolean>(false)
   const books = ref<BookType[]>([])
 
   const nestedPages = ref<PageSidebarNode[]>([])
-  const allPages = ref<PageSidebarNode[] | undefined>(undefined)
-  const drafts = ref<PageSidebarNode[]>([])
-  const publishedPages = ref<PageSidebarNode[]>([])
-  const allByTitle = ref<PageSidebarNode[]>([])
+  // const allPages = ref<PageSidebarNode[] | undefined>(undefined)
+  // const publishedPages = ref<PageSidebarNode[]>([])
+  // const allByTitle = ref<PageSidebarNode[]>([])
   const isBookUpdating = ref<boolean>(false)
   const openedTabs = ref<string[]>([])
+
+  const isErrored = computed<boolean>(() => isPageErrored.value || isBookErrored.value)
 
   const routeBookSlug = computed<string | undefined>(() => {
     return route.params.slugs?.[0] as string
@@ -64,15 +65,56 @@ const [setup, use] = useInjectionState(() => {
     return books.value.find((b) => b.slug === routeBookSlug.value)
   })
 
+  watch(
+    () => [routeBookSlug.value, isFetchingBooks.value],
+    () => {
+      if (isPublic.value) return
+      if (isFetchingBooks.value) return
+
+      if (routeBookSlug.value && !openedBook.value) {
+        isBookErrored.value = true
+        return
+      }
+
+      isBookErrored.value = false
+    },
+  )
+
+  watch(
+    () => [routeBookSlug.value, isFetchingBooks.value],
+    (val, oldVal) => {
+      if (!isPublic.value) return
+      if (isFetchingBooks.value) return
+      if (val[0] === oldVal[0]) return
+
+      window.location.reload()
+
+      isBookErrored.value = false
+    },
+  )
+
+  // Public
+  watch(
+    () => [isFetchingNestedPages.value, routePageSlugs.value],
+    async () => {
+      if (!isPublic.value) return
+      if (isFetchingNestedPages.value) return
+      if (isBookErrored.value) return
+
+      if (routePageSlugs.value.length === 0) {
+        await navigateToFirstPage()
+      }
+    },
+  )
   const openedNestedPagesOfBook = ref([] as PageSidebarNode[])
   // set openedNestedPagesOfBook when route changes, this is because there is delay between route changes and state changes
   watch(
-    () => [routePageSlugs.value, openedBook.value, isFetchingPagesFromUrl.value],
+    () => [routePageSlugs.value, openedBook.value, isFetchingNestedPages.value],
     async () => {
       if (isFetchingBooks.value || !openedBook.value) return
-      isErrored.value = false
+      isPageErrored.value = false
 
-      if (isFetchingPagesFromUrl.value) return
+      if (isFetchingNestedPages.value) return
 
       if (routePageSlugs.value.length === 0) {
         openedNestedPagesOfBook.value = []
@@ -90,11 +132,12 @@ const [setup, use] = useInjectionState(() => {
         .filter((p) => p !== undefined) as PageSidebarNode[]
 
       if (_nestedPages.length !== routePageSlugs.value.length) {
-        isErrored.value = true
+        isPageErrored.value = true
         return
       }
 
       openedNestedPagesOfBook.value = _nestedPages
+      openChildPagesFromRoute()
     },
     {
       deep: true,
@@ -106,48 +149,47 @@ const [setup, use] = useInjectionState(() => {
 
   const openedPage = computed(() => {
     if (!openedPageSlug.value) return undefined
-    if (isFetchingPagesFromUrl.value) return undefined
+    if (isFetchingNestedPages.value) return undefined
 
     return openedNestedPagesOfBook.value.length > 0
       ? openedNestedPagesOfBook.value[openedNestedPagesOfBook.value.length - 1]
       : undefined
   })
 
-  const nestedDrafts = computed({
+  const flattenedNestedPages = computed({
     get: () => {
-      if (drafts.value.length === 0) return []
+      if (nestedPages.value.length === 0) return []
 
-      const tree = arrayToTree(drafts.value, {
-        parentId: 'parent_page_id',
-        id: 'id',
-        dataField: null,
-      }) as PageSidebarNode[]
+      // nestedPagesTree to array
+      const flatten = (tree: PageSidebarNode[]): PageSidebarNode[] => {
+        const result: PageSidebarNode[] = []
 
-      // traverse tree and set level
-      const traverse = (pages: PageSidebarNode[], level = 0) => {
-        pages.forEach((p) => {
-          p.level = level
-          if (p.children) traverse(p.children, level + 1)
+        tree.forEach((node) => {
+          result.push(node)
+          if (node.children) {
+            result.push(...flatten(node.children))
+          }
         })
+
+        return result
       }
 
-      traverse(tree)
-
-      return tree
+      return flatten(nestedPages.value)
     },
     set: (val) => {
       console.log('setter', val)
     },
   })
 
-  const isPageDraft = (page: PageSidebarNode) => page.title !== page.published_title || page.content !== page.published_content
+  // const isPageDraft = (page: PageSidebarNode) => page.title !== page.published_title || page.content !== page.published_content
 
   const selectBook = async (book: BookType) => {
-    await fetchPages({ book })
+    await fetchNestedPages({ book })
     navigateTo(bookUrl(book.slug!))
   }
 
   const fetchBooks = async () => {
+    isFetchingBooks.value = true
     try {
       books.value = await $api.nocoDocs.listBooks({ projectId: projectId! })
 
@@ -155,167 +197,126 @@ const [setup, use] = useInjectionState(() => {
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
+    } finally {
+      isFetchingBooks.value = false
     }
   }
 
   const fetchPublicBook = async ({ projectId, slug }: { projectId: string; slug?: string }) => {
-    isErrored.value = false
+    isFetchingBooks.value = true
+    isBookErrored.value = false
     try {
       const book = await $api.nocoDocs.getPublicBook(slug ?? 'latest', { projectId })
       books.value = [book]
 
       return books
     } catch (e) {
-      isErrored.value = true
       console.log(e)
+      isBookErrored.value = true
+    } finally {
+      isFetchingBooks.value = false
     }
   }
 
-  async function fetchPages({ parentPageId, book }: { parentPageId?: string; book: BookType }) {
+  async function fetchNestedPages({ book }: { book: BookType }) {
+    isFetchingNestedPages.value = true
     try {
-      const docs = isPublic.value
+      const nestedDocTree = isPublic.value
         ? await $api.nocoDocs.listPublicPages({
             projectId: projectId!,
             bookId: book.id!,
-            parent_page_id: parentPageId,
           })
         : await $api.nocoDocs.listPages({
             projectId: projectId!,
-            parent_page_id: parentPageId,
             bookId: book.id!,
           })
 
-      if (parentPageId) {
-        const parentPage = findPage(parentPageId)
-        if (!parentPage) return
+      // traverse tree and add `isLeaf` and `key` properties
+      const traverse = (parentNode: any, pages: PageSidebarNode[]) => {
+        pages.forEach((p) => {
+          p.isLeaf = !p.is_parent
+          p.key = p.id!
+          p.parentNodeId = parentNode.id
 
-        parentPage.children = docs.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: parentPage.id }))
-      } else {
-        nestedPages.value = docs.map((d) => ({
-          ...d,
-          isLeaf: !d.is_parent,
-          key: d.id!,
-          parentNodeId: book.id,
-        }))
+          if (p.children) traverse(p, p.children)
+        })
       }
 
-      return docs
+      traverse(book, nestedDocTree as any)
+
+      nestedPages.value = nestedDocTree as any
+
+      return nestedDocTree
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
+    } finally {
+      isFetchingNestedPages.value = false
     }
   }
 
-  const fetchAllPages = async ({ pageNumber, clear }: { pageNumber: number; clear?: boolean }) => {
+  const fetchPage = async ({ page, book }: { page?: PageSidebarNode; book?: BookType }) => {
+    page = page ?? openedPage.value
+    book = book ?? openedBook.value
+
     try {
-      const docs = await $api.nocoDocs.paginatePages({
+      const fetchedPage = await $api.nocoDocs.getPage(page!.id!, {
         projectId: projectId!,
-        perPage: PAGES_PER_PAGE_LIST,
-        bookId: openedBook.value!.id!,
-        pageNumber,
+        bookId: book!.id!,
       })
-      if (!allPages.value || clear) allPages.value = []
-
-      const newPages = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
-      allPages.value = [...allPages.value, ...newPages]
-      return { pages: newPages, total: (docs as any).total }
+      return fetchedPage
     } catch (e) {
       console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
+      isPageErrored.value = true
+      return undefined
     }
   }
 
-  const fetchPublishedPages = async ({ pageNumber, clear }: { pageNumber: number; clear?: boolean }) => {
-    try {
-      const docs = await $api.nocoDocs.paginatePages({
-        projectId: projectId!,
-        perPage: PAGES_PER_PAGE_LIST,
-        bookId: openedBook.value!.id!,
-        pageNumber,
-        filterField: 'is_published',
-        filterFieldValue: '1',
-      })
-      if (clear) publishedPages.value = []
+  // const fetchPublishedPages = async ({ pageNumber, clear }: { pageNumber: number; clear?: boolean }) => {
+  //   try {
+  //     const docs = await $api.nocoDocs.paginatePages({
+  //       projectId: projectId!,
+  //       perPage: PAGES_PER_PAGE_LIST,
+  //       bookId: openedBook.value!.id!,
+  //       pageNumber,
+  //       filterField: 'is_published',
+  //       filterFieldValue: '1',
+  //     })
+  //     if (clear) publishedPages.value = []
 
-      const newPages = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
-      publishedPages.value = [...publishedPages.value, ...newPages]
-      return { pages: newPages, total: (docs as any).total }
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
-    }
-  }
+  //     const newPages = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
+  //     publishedPages.value = [...publishedPages.value, ...newPages]
+  //     return { pages: newPages, total: (docs as any).total }
+  //   } catch (e) {
+  //     console.log(e)
+  //     message.error(await extractSdkResponseErrorMsg(e as any))
+  //   }
+  // }
 
-  const fetchAllPagesByTitle = async ({ pageNumber, clear }: { pageNumber: number; clear?: boolean }) => {
-    try {
-      const docs = await $api.nocoDocs.paginatePages({
-        projectId: projectId!,
-        perPage: PAGES_PER_PAGE_LIST,
-        bookId: openedBook.value!.id!,
-        pageNumber,
-        sortField: 'title',
-        sortOrder: 'asc',
-      })
-      if (clear) allByTitle.value = []
+  async function openChildPagesFromRoute() {
+    if (routePageSlugs.value[0] === '') return
 
-      const newPages = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
-      allByTitle.value = [...allByTitle.value, ...newPages]
-
-      return { pages: newPages, total: (docs as any).total }
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
-    }
-  }
-
-  const fetchDrafts = async (book?: BookType) => {
-    try {
-      const response = await $api.nocoDocs.listDraftPages({ projectId: projectId!, bookId: book?.id ?? openedBook.value!.id! })
-      drafts.value = response.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id }))
-    } catch (e) {
-      console.error(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
-    }
-  }
-
-  async function fetchNestedChildPagesFromRoute() {
-    isFetchingPagesFromUrl.value = true
-    await fetchPages({ book: openedBook.value ?? books.value[0] })
-    if (routePageSlugs.value.length === 0) {
-      isFetchingPagesFromUrl.value = false
+    let parentPage: PageSidebarNode | undefined = nestedPages.value.find((page) => page.slug === routePageSlugs.value[0])
+    if (!parentPage) {
+      isPageErrored.value = true
       return
     }
 
-    try {
-      if (routePageSlugs.value[0] === '') return
-
-      let parentPage: PageSidebarNode | undefined = nestedPages.value.find((page) => page.slug === routePageSlugs.value[0])
+    const pagesIds = []
+    for (const slug of routePageSlugs.value) {
+      parentPage = findPage(slug)
       if (!parentPage) {
-        isErrored.value = true
+        isPageErrored.value = true
         return
       }
 
-      const pagesIds = []
-      for (const slug of routePageSlugs.value) {
-        parentPage = findPage(slug)
-        if (!parentPage) {
-          isErrored.value = true
-          return
-        }
-        const childDocs = await fetchPages({ parentPageId: parentPage?.id, book: openedBook.value! })
+      pagesIds.push(parentPage.id!)
+    }
 
-        if (parentPage) pagesIds.push(parentPage.id!)
-
-        if (!childDocs) throw new Error(`Nested Child Page not found:${parentPage?.id}`)
+    for (const id of pagesIds) {
+      if (!openedTabs.value.includes(id)) {
+        openedTabs.value.push(id)
       }
-
-      for (const id of pagesIds) {
-        if (!openedTabs.value.includes(id)) {
-          openedTabs.value.push(id)
-        }
-      }
-    } finally {
-      isFetchingPagesFromUrl.value = false
     }
   }
 
@@ -364,9 +365,6 @@ const [setup, use] = useInjectionState(() => {
       if (!openedTabs.value.includes(createdPageData.id!)) {
         openedTabs.value.push(createdPageData.id!)
       }
-
-      const createdPage = findPage(createdPageData.id!)
-      drafts.value.push(createdPage!)
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -450,9 +448,11 @@ const [setup, use] = useInjectionState(() => {
     }
   }
 
-  function bookUrl(bookSlug: string, completeUrl?: boolean) {
+  function bookUrl(bookSlug: string, { completeUrl, publicMode }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
     const publicSlug = routeBookSlug.value ?? bookSlug
-    const path = isPublic.value ? `/nc/doc/${projectId!}/public/${publicSlug}` : `/nc/doc/${projectId!}/${bookSlug}`
+    const showPublicUrl = publicMode ?? isPublic.value
+
+    const path: string = showPublicUrl ? `/nc/doc/${projectId!}/public/${publicSlug}` : `/nc/doc/${projectId!}/${bookSlug}`
     return completeUrl ? `${window.location.origin}/#${path}` : path
   }
 
@@ -469,8 +469,9 @@ const [setup, use] = useInjectionState(() => {
   }
 
   function urlFromPageSlugs(pageSlugs: string[]) {
+    const publicBookSlug = routeBookSlug.value ?? books.value[0].slug!
     const url = isPublic.value
-      ? `/nc/doc/${projectId!}/public/${routeBookSlug.value}/${pageSlugs.join('/')}`
+      ? `/nc/doc/${projectId!}/public/${publicBookSlug}/${pageSlugs.join('/')}`
       : `/nc/doc/${projectId!}/${openedBook.value!.slug!}/${pageSlugs.join('/')}`
     return url
   }
@@ -500,7 +501,6 @@ const [setup, use] = useInjectionState(() => {
         type,
         from,
       })
-      await fetchDrafts()
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
@@ -526,9 +526,9 @@ const [setup, use] = useInjectionState(() => {
     return findPageInTree(nestedPages.value, pageIdOrSlug)
   }
 
-  const updatePage = async ({ pageId, page }: { pageId: string; page: PageSidebarNode }) => {
+  const updatePage = async ({ pageId, page }: { pageId: string; page: Partial<PageSidebarNode> }) => {
     const updatedPage = await $api.nocoDocs.updatePage(pageId, {
-      attributes: page,
+      attributes: page as any,
       projectId: projectId!,
       bookId: openedBook.value!.id!,
     })
@@ -539,21 +539,30 @@ const [setup, use] = useInjectionState(() => {
 
       await navigateTo(nestedUrl(updatedPage.id!))
     }
-    if (isPageDraft(foundPage)) {
-      const inDrafts = drafts.value.find((p) => p.id === foundPage?.id)
-      if (!inDrafts) drafts.value.push(foundPage!)
+  }
+
+  const updateContent = async ({ pageId, content }: { pageId: string; content: string }) => {
+    try {
+      await $api.nocoDocs.updatePage(pageId, {
+        attributes: { content } as any,
+        projectId: projectId!,
+        bookId: openedBook.value!.id!,
+      })
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
 
   const navigateToFirstBook = async () => {
     const book = books.value[0]
-    await fetchPages({ book })
+    await fetchNestedPages({ book })
     await navigateTo(bookUrl(book.slug!))
   }
 
   const navigateToLastBook = async () => {
     const book = books.value[books.value.length - 1]
-    await fetchPages({ book })
+    await fetchNestedPages({ book })
     navigateTo(bookUrl(book.slug!))
   }
 
@@ -568,8 +577,6 @@ const [setup, use] = useInjectionState(() => {
   }) => {
     const sourceNode = findPage(sourceNodeId)!
     const targetNode = targetNodeId ? findPage(targetNodeId) : undefined
-
-    const shouldFetchParentChildren = targetNode && !targetNode.children
 
     const sourceParentNode = findPage(sourceNode.parent_page_id!)
     const sourceNodeSiblings = sourceParentNode ? sourceParentNode.children! : nestedPages.value
@@ -598,10 +605,6 @@ const [setup, use] = useInjectionState(() => {
         openedTabs.value.push(page.id!)
       }
     }
-
-    if (shouldFetchParentChildren) {
-      await fetchPages({ book: openedBook.value!, parentPageId: targetNode!.id! })
-    }
   }
 
   function getPageWithParents(page: PageSidebarNode) {
@@ -625,10 +628,9 @@ const [setup, use] = useInjectionState(() => {
     return page.children || []
   }
 
-  const fetchAndOpenChildPageOfRootPages = async () => {
+  const openChildPageOfRootPages = async () => {
     for (const page of nestedPages.value) {
       if (!page.is_parent) continue
-      await fetchPages({ book: openedBook.value!, parentPageId: page.id! })
 
       if (!openedTabs.value.includes(page.id!)) {
         openedTabs.value.push(page.id!)
@@ -646,7 +648,7 @@ const [setup, use] = useInjectionState(() => {
 
     const url = urlFromPageSlugs([...parents.map((p) => p.slug!).reverse(), page.slug!])
     await navigateTo(url)
-    fetchNestedChildPagesFromRoute()
+    openChildPagesFromRoute()
   }
 
   const uploadFile = async (file: File) => {
@@ -680,13 +682,12 @@ const [setup, use] = useInjectionState(() => {
           page.published_title = page.title
         }
       })
-      drafts.value = drafts.value.filter((draft) => !toBePublishedPages.find((p) => p.id === draft.id))
     } finally {
       isBulkPublishing.value = false
     }
   }
 
-  const navigateToFirstPage = async () => {
+  async function navigateToFirstPage() {
     const page = nestedPages.value[0]
     await navigateTo(nestedUrl(page.id!))
   }
@@ -730,7 +731,7 @@ const [setup, use] = useInjectionState(() => {
   }
 
   return {
-    fetchPages,
+    fetchNestedPages,
     fetchBooks,
     fetchPublicBook,
     books,
@@ -744,7 +745,7 @@ const [setup, use] = useInjectionState(() => {
     updatePage,
     openedTabs,
     openedNestedPagesOfBook,
-    fetchNestedChildPagesFromRoute,
+    openChildPagesFromRoute,
     bookUrl,
     nestedUrl,
     navigateToFirstBook,
@@ -755,9 +756,7 @@ const [setup, use] = useInjectionState(() => {
     selectBook,
     addNewPage,
     getChildrenOfPage,
-    fetchAndOpenChildPageOfRootPages,
-    drafts,
-    fetchDrafts,
+    openChildPageOfRootPages,
     findPage,
     uploadFile,
     bulkPublish,
@@ -765,18 +764,18 @@ const [setup, use] = useInjectionState(() => {
     navigateToFirstPage,
     magicExpand,
     magicOutline,
-    allPages,
-    publishedPages,
-    allByTitle,
-    fetchPublishedPages,
-    fetchAllPagesByTitle,
-    fetchAllPages,
+    // allPages,
+    // publishedPages,
+    // allByTitle,
     openPage,
-    nestedDrafts,
+    flattenedNestedPages,
     isBulkPublishing,
     isBookUpdating,
+    isFetchingNestedPages,
     updateBook,
     isErrored,
+    fetchPage,
+    updateContent,
   }
 }, 'useDocs')
 

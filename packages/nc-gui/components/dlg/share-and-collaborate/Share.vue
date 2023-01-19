@@ -21,16 +21,19 @@ const publishBook = async () => {
 }
 
 const copyPublicUrl = async () => {
-  await navigator.clipboard.writeText(bookUrl(openedBook.value!.slug!, true))
+  await navigator.clipboard.writeText(bookUrl(openedBook.value!.slug!, { completeUrl: true, publicMode: true }))
 }
 
 const openPublicUrl = async () => {
-  window.open(bookUrl(openedBook.value!.slug!, true), '_blank')
+  window.open(bookUrl(openedBook.value!.slug!, { completeUrl: true, publicMode: true }), '_blank')
 }
 
 const embedHtml = async () => {
   await navigator.clipboard.writeText(
-    `<iframe src="${bookUrl(openedBook.value!.slug!, true)}" width="100%" height="100%" style="border: none;"></iframe>`,
+    `<iframe src="${bookUrl(openedBook.value!.slug!, {
+      completeUrl: true,
+      publicMode: true,
+    })}" width="100%" height="100%" style="border: none;"></iframe>`,
   )
 }
 </script>

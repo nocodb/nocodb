@@ -1,14 +1,4 @@
-import type {
-  Api,
-  ExportTypes,
-  FilterType,
-  KanbanType,
-  PaginatedType,
-  RequestParams,
-  SortType,
-  TableType,
-  ViewType,
-} from 'nocodb-sdk'
+import type { ExportTypes, FilterType, KanbanType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 

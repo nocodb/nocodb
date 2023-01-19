@@ -117,6 +117,7 @@ const {
   deleteSelectedRows,
   selectedAllRecords,
   removeRowIfNew,
+  navigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -201,7 +202,7 @@ const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCell
       const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
       const altOrOptionKey = e.altKey
       if (e.key === ' ') {
-        if (activeCell.row != null && !editEnabled) {
+        if (activeCell.row != null && !editEnabled && hasEditPermission) {
           e.preventDefault()
           clearSelectedRange()
           const row = data.value[activeCell.row]
@@ -805,6 +806,7 @@ const closeAddColumnDropdown = () => {
                         :column="columnObj"
                         :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                         :row="row"
+                        :read-only="readOnly"
                         @navigate="onNavigate"
                       />
 
@@ -817,6 +819,7 @@ const closeAddColumnDropdown = () => {
                         "
                         :row-index="rowIndex"
                         :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                        :read-only="readOnly"
                         @update:edit-enabled="editEnabled = $event"
                         @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"
@@ -916,6 +919,9 @@ const closeAddColumnDropdown = () => {
         :meta="meta"
         :row-id="routeQuery.rowId"
         :view="view"
+        show-next-prev-icons
+        @next="navigateToSiblingRow(NavigateDir.NEXT)"
+        @prev="navigateToSiblingRow(NavigateDir.PREV)"
       />
     </Suspense>
   </div>

@@ -37,7 +37,7 @@ export class ToolbarFilterPage extends BasePage {
   }: {
     columnTitle: string;
     opType: string;
-    value: string;
+    value?: string;
     isLocallySaved: boolean;
   }) {
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
@@ -70,14 +70,17 @@ export class ToolbarFilterPage extends BasePage {
       await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
     }
 
-    const fillFilter = this.rootPage.locator('.nc-filter-value-select').last().fill(value);
-    await this.waitForResponse({
-      uiAction: fillFilter,
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
-    });
-    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
-    await this.toolbar.parent.waitLoading();
+    // if value field was provided, fill it
+    if (value) {
+      const fillFilter = this.rootPage.locator('.nc-filter-value-select').last().fill(value);
+      await this.waitForResponse({
+        uiAction: fillFilter,
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+      });
+      await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+      await this.toolbar.parent.waitLoading();
+    }
   }
 
   async resetFilter() {

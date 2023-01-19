@@ -32,6 +32,8 @@ export default class Filter {
     | 'notempty'
     | 'null'
     | 'notnull'
+    | 'checked'
+    | 'notchecked'
     | 'allof'
     | 'anyof'
     | 'nallof'

@@ -17,6 +17,7 @@ import {
   useI18n,
   useMetas,
   useNuxtApp,
+  useGlobal,
   watchEffect,
 } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
@@ -37,6 +38,8 @@ const { getMeta } = useMetas()
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
+
+const { appInfo } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 
@@ -212,11 +215,12 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             </span>
           </a-checkbox>
 
-
-          <LazySmartsheetColumnAttachmentOptions v-if="formState.uidt === UITypes.Attachment" v-model:value="formState" />
+          <LazySmartsheetColumnAttachmentOptions
+            v-if="appInfo.ee && formState.uidt === UITypes.Attachment"
+            v-model:value="formState"
+          />
 
           <LazySmartsheetColumnAdvancedOptions v-model:value="formState" />
-
         </div>
       </Transition>
 

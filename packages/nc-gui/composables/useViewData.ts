@@ -368,6 +368,20 @@ export function useViewData(
       throw new Error("Delete not allowed for table which doesn't have primary Key")
     }
 
+    const projetId = project.value.id
+    const metaId = meta.value.id
+    
+    console.log('FOOBAR viewMeta', viewMeta)
+    // console.log('FOOBAR viewMeta.id', viewMeta.id)
+    console.log('FOOBAR viewMeta.value', viewMeta.value)
+    console.log('FOOBAR viewMeta.value.id', viewMeta.value.id)
+    const viewMetaId = viewMeta?.value?.id
+
+    console.log('FOOBAR projetId', projetId)
+    console.log('FOOBAR metaId', metaId)
+    console.log('FOOBAR viewMetaId', viewMetaId)
+    console.log('FOOBAR id', id)
+
     const res: any = await $api.dbViewRow.delete(
       'noco',
       project.value.id as string,

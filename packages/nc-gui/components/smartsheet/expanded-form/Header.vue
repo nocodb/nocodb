@@ -75,7 +75,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const { deleteRowById } = useViewData(meta, props.view)
+const { deleteRowById } = useViewData(meta, ref(props.view))
 
 const duplicateRow = () => alert('duplicateRow')
 

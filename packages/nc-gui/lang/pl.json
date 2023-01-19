@@ -312,7 +312,9 @@
     "signInWithGoogle": "Zaloguj się przez Google",
     "agreeToTos": "Rejestrując się, akceptujesz warunki korzystania z usługi",
     "welcomeToNc": "Witaj w NocoDB!",
-    "inviteOnlySignup": "Allow signup only using invite url"
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "Utwórz projekt",
@@ -629,7 +631,8 @@
       "showM2mTables": "Pokaż tabele M2M",
       "deleteKanbanStackConfirmation": "Usunięcie tego stosu spowoduje również usunięcie wybranej opcji `{stackToBeDeleted}` z `{groupingField}`. Rekordy przeniosą się do nieskategoryzowanego stosu.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "Twoje wyszukiwanie dla {search}, nie znaleziono żadnych wyników",

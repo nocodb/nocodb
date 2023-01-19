@@ -98,11 +98,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
       isAscending: true,
       isLocallySaved: false,
     });
-    if (isPg(context)) {
-      await validateRowArray(['1b', '1a', '1c', '1f', '1d', '1e']);
-    } else {
-      await validateRowArray(['1d', '1e', '1b', '1a', '1c', '1f']);
-    }
+    await validateRowArray(['1d', '1e', '1b', '1a', '1c', '1f']);
     await toolbar.sort.reset();
 
     // sort descending & validate
@@ -111,11 +107,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
       isAscending: false,
       isLocallySaved: false,
     });
-    if (isPg(context)) {
-      await validateRowArray(['1d', '1e', '1a', '1c', '1f', '1b']);
-    } else {
-      await validateRowArray(['1a', '1c', '1f', '1b', '1d', '1e']);
-    }
+    await validateRowArray(['1a', '1c', '1f', '1b', '1d', '1e']);
     await toolbar.sort.reset();
 
     // wait for 10 seconds

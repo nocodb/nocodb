@@ -131,11 +131,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       for (let file of selectedFiles) {
         // verify number of files
-        if (selectedFiles.length > attachmentMeta.maxNumberOfAttachments) {
+        if (visibleItems.value.length + selectedFiles.length > attachmentMeta.maxNumberOfAttachments) {
           message.error(
             `You can only upload at most ${attachmentMeta.maxNumberOfAttachments} file${
               attachmentMeta.maxNumberOfAttachments > 1 ? 's' : ''
-            } at a time`,
+            } to this cell.`,
           )
           return
         }

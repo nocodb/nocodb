@@ -190,7 +190,7 @@ export class MssqlUi {
         return '';
 
       case 'decimal':
-        return '';
+        return '10';
 
       case 'float':
         return '';
@@ -278,9 +278,14 @@ export class MssqlUi {
   static getDefaultLengthIsDisabled(type) {
     switch (type) {
       case 'nvarchar':
+      case 'numeric':
+      case 'decimal':
+      case 'float':
+      case 'bigint':
+      case 'int':
+      case 'tinyint':
         return false;
 
-      case 'bigint':
       case 'binary':
       case 'bit':
       case 'char':
@@ -288,17 +293,13 @@ export class MssqlUi {
       case 'datetime':
       case 'datetime2':
       case 'datetimeoffset':
-      case 'decimal':
-      case 'float':
       case 'geography':
       case 'geometry':
       case 'heirarchyid':
       case 'image':
-      case 'int':
       case 'money':
       case 'nchar':
       case 'ntext':
-      case 'numeric':
       case 'real':
       case 'json':
       case 'smalldatetime':
@@ -309,7 +310,6 @@ export class MssqlUi {
       case 'text':
       case 'time':
       case 'timestamp':
-      case 'tinyint':
       case 'uniqueidentifier':
       case 'varbinary':
       case 'xml':
@@ -462,10 +462,10 @@ export class MssqlUi {
         return '';
 
       case 'decimal':
-        return '';
+        return '2';
 
       case 'float':
-        return '';
+        return '2';
 
       case 'geography':
         return '';
@@ -492,7 +492,7 @@ export class MssqlUi {
         return '';
 
       case 'numeric':
-        return '';
+        return '2';
 
       case 'nvarchar':
         return '';
@@ -598,8 +598,12 @@ export class MssqlUi {
     // }
   }
 
-  static showScale(_columnObj) {
-    return false;
+  static showScale(columnObj) {
+    return (
+      columnObj.dt === 'float' ||
+      columnObj.dt === 'decimal' ||
+      columnObj.dt === 'numeric'
+    );
   }
 
   static removeUnsigned(columns) {

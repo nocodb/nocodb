@@ -2580,11 +2580,15 @@ class MssqlClient extends KnexClient {
 
     const defaultValue = getDefaultValue(n);
     const shouldSanitize = true;
+    const scaleAndPrecision =
+      !getDefaultLengthIsDisabled(n.dt) && n.dtxp
+        ? `(${n.dtxp}${n.dtxs ? `,${n.dtxs}` : ''})`
+        : '';
 
     if (change === 0) {
       query = existingQuery ? ',' : '';
       query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
-      query += !getDefaultLengthIsDisabled(n.dt) && n.dtxp ? `(${n.dtxp})` : '';
+      query += scaleAndPrecision;
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
       query += defaultValue
@@ -2599,7 +2603,7 @@ class MssqlClient extends KnexClient {
       }
     } else if (change === 1) {
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
-      query += !getDefaultLengthIsDisabled(n.dt) && n.dtxp ? `(${n.dtxp})` : '';
+      query += scaleAndPrecision;
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
       query += defaultValue
@@ -2629,11 +2633,9 @@ class MssqlClient extends KnexClient {
         );
       }
 
-      if (n.dtxp !== o.dtxp || n.dt !== o.dt || n.rqd !== o.rqd) {
+      if (n.dtxp !== o.dtxp ||n.dtxs !== o.dtxs || n.dt !== o.dt || n.rqd !== o.rqd) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${
-            !getDefaultLengthIsDisabled(n.dt) && n.dtxp ? `(${n.dtxp})` : ''
-          }`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${scaleAndPrecision}`,
           [this.getTnPath(t), n.cn],
           shouldSanitize
         );
@@ -2758,35 +2760,32 @@ function getDefaultValue(n) {
 
 function getDefaultLengthIsDisabled(type) {
   switch (type) {
-    case 'bigint':
-    case 'bit':
     case 'datetimeoffset':
-    case 'decimal':
-    case 'float':
     case 'geography':
     case 'geometry':
     case 'heirarchyid':
     case 'image':
-    case 'int':
     case 'money':
-    case 'numeric':
     case 'real':
     case 'json':
     case 'smalldatetime':
-    case 'smallint':
     case 'smallmoney':
     case 'text':
     case 'time':
     case 'timestamp':
-    case 'tinyint':
     case 'uniqueidentifier':
     case 'xml':
       return true;
       break;
     default:
-    case 'date':
-    case 'datetime':
-    case 'datetime2':
+    case 'int':
+    case 'tinyint':
+    case 'bigint':
+    case 'bit':
+    case 'decimal':
+    case 'float':
+    case 'numeric':
+    case 'smallint':
     case 'varchar':
       return false;
       break;

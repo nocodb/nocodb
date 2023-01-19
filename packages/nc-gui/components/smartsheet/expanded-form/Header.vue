@@ -79,10 +79,19 @@ const { deleteRowById } = useViewData(meta, ref(props.view))
 
 const duplicateRow = () => alert('duplicateRow')
 
-const onDeleteRowClick = async () => {
+const showDeleteRowModal = ref(false)
+
+const onDeleteRowClick = () => {
   // alert('deleteRow')
+  showDeleteRowModal.value = true
+}
+
+const onConfirmDeleteRowClick = async () => {
+  showDeleteRowModal.value = false
   await deleteRowById(primaryKey.value)
   reloadTrigger.trigger()
+  emit('cancel')
+  message.success('Row deleted')
   // loadData()
   // deleteRow
 }
@@ -93,7 +102,6 @@ const onDeleteRowClick = async () => {
 //   await deleteRowById(primaryKey)
 //   loadData()
 // }
-
 </script>
 
 <template>
@@ -170,6 +178,10 @@ const onDeleteRowClick = async () => {
               <MdiContentCopy class="text-gray-500" />
               {{ $t('activity.duplicateRow') }}
             </div>
+
+            <a-modal v-model:visible="showDeleteRowModal" title="Delete row?" @ok="onConfirmDeleteRowClick">
+              <p>Are you sure you want to delete this row?</p>
+            </a-modal>
 
             <div v-e="['a:actions:download-excel']" class="nc-menu-item" @click="onDeleteRowClick">
               <MdiDelete class="text-gray-500" />

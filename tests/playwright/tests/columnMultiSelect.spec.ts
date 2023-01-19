@@ -192,7 +192,7 @@ test.describe('Multi select - filters', () => {
   let dashboard: DashboardPage, grid: GridPage, toolbar: ToolbarPage;
   let context: any;
 
-  test.beforeAll(async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;

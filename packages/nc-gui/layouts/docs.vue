@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { ref, useNuxtApp, useSidebar } from '#imports'
 
-useSidebar('nc-left-sidebar', { hasSidebar: false })
+const { isOpen } = useSidebar('nc-left-sidebar')
+
+const route = useRoute()
 
 const hasSider = ref(false)
 
@@ -30,14 +32,12 @@ export default {
         <GeneralShareProject />
       </div>
     </template>
-    <a-layout>
-      <a-layout-sider>
-        <slot name="sidebar" />
-      </a-layout-sider>
-      <a-layout-content>
-        <slot />
-      </a-layout-content>
-    </a-layout>
+    <template #sidebar>
+      <slot name="sidebar" />
+    </template>
+    <a-layout-content>
+      <slot />
+    </a-layout-content>
   </NuxtLayout>
 </template>
 

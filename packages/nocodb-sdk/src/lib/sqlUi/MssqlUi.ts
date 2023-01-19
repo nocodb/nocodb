@@ -280,12 +280,11 @@ export class MssqlUi {
       case 'nvarchar':
       case 'numeric':
       case 'decimal':
-      case 'float':
-      case 'bigint':
-      case 'int':
-      case 'tinyint':
         return false;
-
+      case 'tinyint':
+      case 'float':
+      case 'int':
+      case 'bigint':
       case 'binary':
       case 'bit':
       case 'char':
@@ -465,7 +464,7 @@ export class MssqlUi {
         return '2';
 
       case 'float':
-        return '2';
+        return '';
 
       case 'geography':
         return '';
@@ -599,11 +598,7 @@ export class MssqlUi {
   }
 
   static showScale(columnObj) {
-    return (
-      columnObj.dt === 'float' ||
-      columnObj.dt === 'decimal' ||
-      columnObj.dt === 'numeric'
-    );
+    return columnObj.dt === 'decimal' || columnObj.dt === 'numeric';
   }
 
   static removeUnsigned(columns) {

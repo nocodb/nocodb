@@ -2633,7 +2633,12 @@ class MssqlClient extends KnexClient {
         );
       }
 
-      if (n.dtxp !== o.dtxp ||n.dtxs !== o.dtxs || n.dt !== o.dt || n.rqd !== o.rqd) {
+      if (
+        n.dtxp !== o.dtxp ||
+        n.dtxs !== o.dtxs ||
+        n.dt !== o.dt ||
+        n.rqd !== o.rqd
+      ) {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${scaleAndPrecision}`,
           [this.getTnPath(t), n.cn],
@@ -2773,19 +2778,19 @@ function getDefaultLengthIsDisabled(type) {
     case 'text':
     case 'time':
     case 'timestamp':
+    case 'int':
+    case 'tinyint':
+    case 'bigint':
+    case 'bit':
+    case 'smallint':
+    case 'float':
     case 'uniqueidentifier':
     case 'xml':
       return true;
       break;
     default:
-    case 'int':
-    case 'tinyint':
-    case 'bigint':
-    case 'bit':
     case 'decimal':
-    case 'float':
     case 'numeric':
-    case 'smallint':
     case 'varchar':
       return false;
       break;

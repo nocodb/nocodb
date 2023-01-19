@@ -2,7 +2,8 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
-import { isPg, isSqlite } from '../setup/db';
+import { isPg } from '../setup/db';
+
 test.describe('Checkbox - cell, filter, sort', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
   let context: any;
@@ -97,7 +98,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
       isAscending: true,
       isLocallySaved: false,
     });
-    if (isPg(context.db)) {
+    if (isPg(context)) {
       await validateRowArray(['1b', '1a', '1c', '1f', '1d', '1e']);
     } else {
       await validateRowArray(['1d', '1e', '1b', '1a', '1c', '1f']);
@@ -110,7 +111,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
       isAscending: false,
       isLocallySaved: false,
     });
-    if (isPg(context.db)) {
+    if (isPg(context)) {
       await validateRowArray(['1d', '1e', '1a', '1c', '1f', '1b']);
     } else {
       await validateRowArray(['1a', '1c', '1f', '1b', '1d', '1e']);

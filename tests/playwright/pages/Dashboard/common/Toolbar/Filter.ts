@@ -28,8 +28,7 @@ export class ToolbarFilterPage extends BasePage {
     ).toBeChecked();
   }
 
-  // Todo: Handle the case of operator does not need a value
-  async addNew({
+  async add({
     columnTitle,
     opType,
     value,
@@ -83,7 +82,7 @@ export class ToolbarFilterPage extends BasePage {
     }
   }
 
-  async resetFilter() {
+  async reset() {
     await this.toolbar.clickFilter();
     await this.waitForResponse({
       uiAction: this.get().locator('.nc-filter-item-remove-btn').click(),

@@ -156,9 +156,17 @@ test.describe('Verify shortcuts', () => {
       title: 'SingleSelect',
       type: 'SingleSelect',
     });
+    await dashboard.grid.column.selectOption.addOptions({
+      columnTitle: 'SingleSelect',
+      options: ['Option 1', 'Option 2'],
+    });
     await dashboard.grid.column.create({
       title: 'MultiSelect',
       type: 'MultiSelect',
+    });
+    await dashboard.grid.column.selectOption.addOptions({
+      columnTitle: 'MultiSelect',
+      options: ['Option 1', 'Option 2'],
     });
     await dashboard.grid.column.create({
       title: 'Checkbox',

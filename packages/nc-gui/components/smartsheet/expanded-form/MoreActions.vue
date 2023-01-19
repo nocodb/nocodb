@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 // import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, inject, ref, useI18n, useNuxtApp, useProject } from '#imports'
 
-import type { TableType, ViewType } from "nocodb-sdk"
-
+import type { TableType, ViewType } from 'nocodb-sdk'
 
 // const { t } = useI18n()
 
@@ -21,7 +20,6 @@ import type { TableType, ViewType } from "nocodb-sdk"
 // const fields = inject(FieldsInj, ref([]))
 
 // const selectedView = inject(ActiveViewInj, ref())
-
 
 const { meta, view, primaryKey } = defineProps<{
   meta: TableType

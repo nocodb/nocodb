@@ -2629,43 +2629,14 @@ class MssqlClient extends KnexClient {
         );
       }
 
-      if (n.dtxp !== o.dtxp && !['text'].includes(n.dt)) {
+      if (n.dtxp !== o.dtxp || n.dt !== o.dt || n.rqd !== o.rqd) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${!getDefaultLengthIsDisabled(n.dt) && n.dtxp ? `(${n.dtxp})` : ''};\n`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${
+            !getDefaultLengthIsDisabled(n.dt) && n.dtxp ? `(${n.dtxp})` : ''
+          }`,
           [this.getTnPath(t), n.cn],
           shouldSanitize
         );
-      } else if (n.dt !== o.dt) {
-        query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${n.dt};\n`,
-          [this.getTnPath(t), n.cn],
-          shouldSanitize
-        );
-      }
-
-      if (n.rqd !== o.rqd) {
-        query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ??  ${n.dt}`,
-          [this.getTnPath(t), n.cn],
-          shouldSanitize
-        );
-        if (
-          ![
-            'int',
-            'bigint',
-            'bit',
-            'real',
-            'float',
-            'decimal',
-            'money',
-            'smallint',
-            'tinyint',
-            'geometry',
-            'datetime',
-            'text',
-          ].includes(n.dt)
-        )
-          query += n.dtxp && n.dtxp != -1 ? `(${n.dtxp})` : '';
         query += n.rqd ? ` NOT NULL;\n` : ` NULL;\n`;
       }
 
@@ -2787,14 +2758,6 @@ function getDefaultValue(n) {
 
 function getDefaultLengthIsDisabled(type) {
   switch (type) {
-    // case 'binary':
-    // case 'char':
-    // case 'sql_variant':
-    // case 'nvarchar':
-    // case 'nchar':
-    // case 'ntext':
-    // case 'varbinary':
-    // case 'sysname':
     case 'bigint':
     case 'bit':
     case 'datetimeoffset':

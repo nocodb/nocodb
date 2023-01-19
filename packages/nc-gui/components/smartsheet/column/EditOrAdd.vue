@@ -169,7 +169,6 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           </a-select>
         </a-form-item>
 
-        <LazySmartsheetColumnAttachmentOptions v-if="formState.uidt === UITypes.Attachment" v-model:value="formState" />
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
@@ -213,7 +212,11 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             </span>
           </a-checkbox>
 
+
+          <LazySmartsheetColumnAttachmentOptions v-if="formState.uidt === UITypes.Attachment" v-model:value="formState" />
+
           <LazySmartsheetColumnAdvancedOptions v-model:value="formState" />
+
         </div>
       </Transition>
 

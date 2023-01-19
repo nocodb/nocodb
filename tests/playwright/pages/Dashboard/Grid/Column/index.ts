@@ -269,7 +269,7 @@ export class ColumnPageObject extends BasePage {
     timeFormat?: string;
   }) {
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
 
     await this.get().waitFor({ state: 'visible' });
 

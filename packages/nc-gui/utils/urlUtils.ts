@@ -20,7 +20,7 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
 }
 
 export const isValidURL = (str: string) => {
-  return isURL(str)
+  return isURL(`${str}`)
 }
 
 export const openLink = (path: string, baseURL?: string, target = '_blank') => {

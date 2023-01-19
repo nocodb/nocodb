@@ -2631,7 +2631,7 @@ class MssqlClient extends KnexClient {
 
       if (n.dtxp !== o.dtxp && !['text'].includes(n.dt)) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}(${n.dtxp});\n`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${!getDefaultLengthIsDisabled(n.dt) && n.dtxp ? `(${n.dtxp})` : ''};\n`,
           [this.getTnPath(t), n.cn],
           shouldSanitize
         );
@@ -2797,9 +2797,6 @@ function getDefaultLengthIsDisabled(type) {
     // case 'sysname':
     case 'bigint':
     case 'bit':
-    case 'date':
-    case 'datetime':
-    case 'datetime2':
     case 'datetimeoffset':
     case 'decimal':
     case 'float':
@@ -2824,6 +2821,9 @@ function getDefaultLengthIsDisabled(type) {
       return true;
       break;
     default:
+    case 'date':
+    case 'datetime':
+    case 'datetime2':
     case 'varchar':
       return false;
       break;

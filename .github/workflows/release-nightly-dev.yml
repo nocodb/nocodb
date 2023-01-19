@@ -12,6 +12,11 @@ jobs:
   set-tag:
     runs-on: 'ubuntu-latest'
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          ref: ${{ github.ref }}
       - name: set-tag
         id: tag-step
         run: |
@@ -21,7 +26,7 @@ jobs:
           TAG_NAME=${CURRENT_DATE}-${CURRENT_TIME}
           IS_DAILY='Y'
           # Get current version
-          CURRENT_VERSION=$(curl -fs https://docs.nocodb.com/releases | grep article | grep div | grep h2 | grep 'id\="[^"]*' -o | cut -c 5-)
+          CURRENT_VERSION=$(cat ./packages/nocodb/package.json | jq -r ".version")
           # Set the tag
           if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
             IS_DAILY='N'

@@ -27,7 +27,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
-const reloadViewMetaHook = inject(ReloadViewMetaHookInj)!
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
 const rootFields = inject(FieldsInj)
 
@@ -128,7 +128,7 @@ const coverImageColumnId = computed({
         })
         ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
       }
-      reloadViewMetaHook.trigger()
+      reloadViewMetaHook?.trigger()
     }
   },
 })

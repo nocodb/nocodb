@@ -23,7 +23,7 @@ const { signedIn } = useGlobal()
 
 const { loadProject } = useProject()
 
-useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
+const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
 
 const reloadEventHook = createEventHook()
 
@@ -33,6 +33,7 @@ provide(MetaInj, meta)
 provide(ActiveViewInj, sharedView)
 provide(FieldsInj, ref(meta.value?.columns || []))
 provide(IsPublicInj, ref(true))
+provide(IsLockedInj, isLocked)
 
 if (signedIn.value) {
   try {

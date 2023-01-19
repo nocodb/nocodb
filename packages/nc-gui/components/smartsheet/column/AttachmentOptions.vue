@@ -25,35 +25,15 @@ setAdditionalValidations({
   ...validators,
 })
 
-// TBC
-const maxNumberOfAttachmentsLowerLimit = 1
-const maxNumberOfAttachmentsUpperLimit = 10000
-const maxNumberOfAttachmentsDefaultLimit = 10
-const maxNumberOfAttachmentsLimit = appInfo.value.ee
-  ? Math.min(
-      maxNumberOfAttachmentsUpperLimit,
-      Math.max(maxNumberOfAttachmentsLowerLimit, appInfo.value.ncMaxAttachmentsAllowed ?? maxNumberOfAttachmentsDefaultLimit),
-    )
-  : maxNumberOfAttachmentsDefaultLimit
-
-// TBC
-const maxAttachmentSizeDefaultLimit = 20
-const maxAttachmentSizeLowerLimit = 1
-const maxAttachmentSizeUpperLimit = 10000
-const maxAttachmentSizeLimit = appInfo.value.ee
-  ? Math.min(
-      maxAttachmentSizeUpperLimit,
-      Math.max(maxAttachmentSizeLowerLimit, appInfo.value.ncMaxAttachmentsAllowed ?? maxAttachmentSizeDefaultLimit),
-    )
-  : maxAttachmentSizeDefaultLimit
-
 // set default value
 vModel.value.meta = {
-  // Maximum Number of Attachments per cell
-  maxNumberOfAttachments: maxNumberOfAttachmentsDefaultLimit,
-  // Maximum File Size per file
-  maxAttachmentSize: maxAttachmentSizeDefaultLimit,
-  unsupportedAttachmentMimeTypes: [],
+  ...(appInfo.value.ee && {
+    // Maximum Number of Attachments per cell
+    maxNumberOfAttachments: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50,
+    // Maximum File Size per file
+    maxAttachmentSize: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 20) || 20,
+    unsupportedAttachmentMimeTypes: [],
+  }),
   ...vModel.value.meta,
 }
 
@@ -69,23 +49,13 @@ const filterOption = (val: string, option: Option) => {
   <a-row class="my-2" gutter="8">
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.maxNumberOfAttachments']" label="Max Number of Attachments">
-        <a-input-number
-          v-model:value="vModel.meta.maxNumberOfAttachments"
-          :min="maxNumberOfAttachmentsLowerLimit"
-          :max="maxNumberOfAttachmentsLimit"
-          class="!w-full nc-extdb-host-port"
-        />
+        <a-input-number v-model:value="vModel.meta.maxNumberOfAttachments" :min="1" class="!w-full nc-extdb-host-port" />
       </a-form-item>
     </a-col>
 
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.maxAttachmentSize']" label="Max Attachment Size (MB)">
-        <a-input-number
-          v-model:value="vModel.meta.maxAttachmentSize"
-          :min="maxAttachmentSizeLowerLimit"
-          :max="maxAttachmentSizeLimit"
-          class="!w-full nc-extdb-host-port"
-        />
+        <a-input-number v-model:value="vModel.meta.maxAttachmentSize" :min="1" class="!w-full nc-extdb-host-port" />
       </a-form-item>
     </a-col>
 

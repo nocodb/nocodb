@@ -12,6 +12,7 @@ import { Tele } from 'nc-help';
 import extractProjectIdAndAuthenticate from '../helpers/extractProjectIdAndAuthenticate';
 import catchError, { NcError } from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
+import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
@@ -121,12 +122,12 @@ export async function uploadViaURL(req: Request, res: Response) {
 
 export async function fileRead(req, res) {
   try {
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
-    // const type = mimetypes[path.extname(req.s.fileName).slice(1)] || 'text/plain';
+    // get the local storage adapter to display local attachments
+    const storageAdapter = new Local();
     const type =
       mimetypes[path.extname(req.params?.[0]).split('/').pop().slice(1)] ||
       'text/plain';
-    // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
+
     const img = await storageAdapter.fileRead(
       slash(
         path.join(
@@ -194,6 +195,7 @@ router.post(
     catchError(upload),
   ]
 );
+
 router.post(
   '/api/v1/db/storage/upload-by-url',
 
@@ -203,6 +205,7 @@ router.post(
     catchError(uploadViaURL),
   ]
 );
+
 router.get(/^\/download\/(.+)$/, catchError(fileRead));
 
 export default router;

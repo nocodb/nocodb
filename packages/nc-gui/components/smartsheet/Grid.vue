@@ -17,7 +17,6 @@ import {
   ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
-  RowNavDir,
   SmartsheetStoreEvents,
   computed,
   createEventHook,
@@ -921,8 +920,8 @@ const closeAddColumnDropdown = () => {
         :row-id="routeQuery.rowId"
         :view="view"
         show-next-prev-icons
-        @next="navigateToSiblingRow(RowNavDir.NEXT)"
-        @prev="navigateToSiblingRow(RowNavDir.PREV)"
+        @next="navigateToSiblingRow(NavigateDir.NEXT)"
+        @prev="navigateToSiblingRow(NavigateDir.PREV)"
       />
     </Suspense>
   </div>

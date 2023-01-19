@@ -192,7 +192,7 @@ defineExpose({
               @click.stop
               @change="filterUpdateCondition(filter, i)"
             >
-              <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
+              <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
                 {{ op.text }}
               </a-select-option>
             </a-select>
@@ -219,7 +219,7 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <template v-for="compOp in comparisonOpList" :key="compOp.value">
+              <template v-for="compOp of comparisonOpList" :key="compOp.value">
                 <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
                   {{ compOp.text }}
                 </a-select-option>

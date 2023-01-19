@@ -98,8 +98,3 @@ export enum DataSourcesSubTab {
   Misc = 'Misc',
   Edit = 'Edit',
 }
-
-export enum RowNavDir {
-  NEXT,
-  PREV,
-}

@@ -4,7 +4,7 @@ import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
   NOCO,
-  RowNavDir,
+  NavigateDir,
   computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
@@ -478,14 +478,14 @@ export function useViewData(
     }
   }
 
-  const navigateToSiblingRow = async (dir: RowNavDir) => {
+  const navigateToSiblingRow = async (dir: NavigateDir) => {
     // get current expanded row index
     const expandedRowIndex = formattedData.value.findIndex(
       (row: Row) => routeQuery.rowId === extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
     )
 
     // calculate next row index based on direction
-    let siblingRowIndex = expandedRowIndex + (dir === RowNavDir.NEXT ? 1 : -1)
+    let siblingRowIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
 
     const currentPage = paginationData?.value?.page || 1
 
@@ -500,7 +500,6 @@ export function useViewData(
       // if next row index is greater than total rows in current view
       // then load next page of formattedData and set next row index to 0
     } else if (siblingRowIndex >= formattedData.value.length) {
-      console.log(paginationData?.value)
       if (paginationData?.value?.isLastPage) return message.info(t('msg.info.noMoreRecords'))
 
       await changePage(currentPage + 1)

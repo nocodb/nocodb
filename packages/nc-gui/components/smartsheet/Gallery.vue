@@ -8,12 +8,12 @@ import {
   IsGalleryInj,
   IsGridInj,
   MetaInj,
+  NavigateDir,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
-  RowNavDir,
   computed,
   createEventHook,
   extractPkFromRow,
@@ -273,8 +273,8 @@ watch(view, async (nextView) => {
         :row-id="route.query.rowId"
         :view="view"
         show-next-prev-icons
-        @next="navigateToSiblingRow(RowNavDir.NEXT)"
-        @prev="navigateToSiblingRow(RowNavDir.PREV)"
+        @next="navigateToSiblingRow(NavigateDir.NEXT)"
+        @prev="navigateToSiblingRow(NavigateDir.PREV)"
       />
     </Suspense>
   </div>

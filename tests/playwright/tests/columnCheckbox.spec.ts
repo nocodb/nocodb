@@ -22,7 +22,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
 
   async function verifyFilter(param: { opType: string; value?: string; result: string[] }) {
     await toolbar.clickFilter();
-    await toolbar.filter.addNew({
+    await toolbar.filter.add({
       columnTitle: 'checkbox',
       opType: param.opType,
       value: param.value,
@@ -33,7 +33,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
     // verify filtered rows
     await validateRowArray(param.result);
     // Reset filter
-    await toolbar.filter.resetFilter();
+    await toolbar.filter.reset();
   }
 
   test.beforeEach(async ({ page }) => {
@@ -93,7 +93,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
     await verifyFilter({ opType: 'is not null', result: ['1a', '1b', '1c', '1f'] });
 
     // Sort column
-    await toolbar.sort.addSort({
+    await toolbar.sort.add({
       columnTitle: 'checkbox',
       isAscending: true,
       isLocallySaved: false,
@@ -103,10 +103,10 @@ test.describe('Checkbox - cell, filter, sort', () => {
     } else {
       await validateRowArray(['1d', '1e', '1b', '1a', '1c', '1f']);
     }
-    await toolbar.sort.resetSort();
+    await toolbar.sort.reset();
 
     // sort descending & validate
-    await toolbar.sort.addSort({
+    await toolbar.sort.add({
       columnTitle: 'checkbox',
       isAscending: false,
       isLocallySaved: false,
@@ -116,7 +116,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
     } else {
       await validateRowArray(['1a', '1c', '1f', '1b', '1d', '1e']);
     }
-    await toolbar.sort.resetSort();
+    await toolbar.sort.reset();
 
     // wait for 10 seconds
     await dashboard.rootPage.waitForTimeout(10000);

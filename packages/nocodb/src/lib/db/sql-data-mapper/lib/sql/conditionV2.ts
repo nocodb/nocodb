@@ -280,7 +280,7 @@ const parseConditionV2 = async (
             qb = qb.where((nestedQb) => {
               nestedQb
                 .whereNot(field, val)
-                .orWhereNotNull(customWhereClause ? _val : _field);
+                .orWhereNull(customWhereClause ? _val : _field);
             });
             break;
           case 'like':

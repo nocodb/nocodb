@@ -142,7 +142,7 @@ export default {
   <a-drawer
     v-model:visible="isExpanded"
     :footer="null"
-    width="min(90vw,1000px)"
+    width="min(90vw,800px)"
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"

@@ -32,11 +32,12 @@ interface Props {
   useMetaFields?: boolean
   rowId?: string
   view?: ViewType
+  showNextPrevIcons?: boolean
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
 const row = ref(props.row)
 
@@ -150,8 +151,20 @@ export default {
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
     <div class="!bg-gray-100 rounded flex-1 relative">
-      <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
-      <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
+      <template v-if="props.showNextPrevIcons">
+        <a-tooltip placement="bottom">
+          <template #title>
+            {{ $t('labels.nextRow') }}
+          </template>
+          <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
+        </a-tooltip>
+        <a-tooltip placement="bottom">
+          <template #title>
+            {{ $t('labels.prevRow') }}
+          </template>
+          <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
+        </a-tooltip>
+      </template>
 
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">

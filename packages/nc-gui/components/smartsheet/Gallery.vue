@@ -13,6 +13,7 @@ import {
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
+  RowNavDir,
   computed,
   createEventHook,
   extractPkFromRow,
@@ -48,6 +49,7 @@ const {
   galleryData,
   changePage,
   addEmptyRow,
+  navigateToSiblingRow,
 } = useViewData(meta, view)
 
 provide(IsFormInj, ref(false))
@@ -270,6 +272,9 @@ watch(view, async (nextView) => {
         :meta="meta"
         :row-id="route.query.rowId"
         :view="view"
+        show-next-prev-icons
+        @next="navigateToSiblingRow(RowNavDir.NEXT)"
+        @prev="navigateToSiblingRow(RowNavDir.PREV)"
       />
     </Suspense>
   </div>

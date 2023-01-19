@@ -36,6 +36,26 @@ export const comparisonOpList = [
     ignoreVal: true,
   },
   {
+    text: 'contains all of',
+    value: 'allof',
+    types: ['MultiSelect'],
+  },
+  {
+    text: 'contains any of',
+    value: 'anyof',
+    types: ['MultiSelect'],
+  },
+  {
+    text: 'does not contain all of',
+    value: 'nallof',
+    types: ['MultiSelect'],
+  },
+  {
+    text: 'does not contain any of',
+    value: 'nanyof',
+    types: ['MultiSelect'],
+  },
+  {
     text: '>',
     value: 'gt',
   },

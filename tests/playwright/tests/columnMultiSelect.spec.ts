@@ -259,5 +259,23 @@ test.describe('Multi select - filters', () => {
     await verifyFilter({ opType: 'is not null', result: ['2', '3', '4', '5', '6'] });
     await verifyFilter({ opType: 'is null', result: ['1'] });
     await verifyFilter({ opType: 'does not contain any of', value: 'baz', result: ['1', '2', '3', '5'] });
+
+    // Sort column
+    await toolbar.sort.add({
+      columnTitle: 'MultiSelect',
+      isAscending: true,
+      isLocallySaved: false,
+    });
+    await validateRowArray(['1', '3', '4', '2', '5', '6']);
+    await toolbar.sort.reset();
+
+    // sort descending & validate
+    await toolbar.sort.add({
+      columnTitle: 'MultiSelect',
+      isAscending: false,
+      isLocallySaved: false,
+    });
+    await validateRowArray(['6', '5', '2', '4', '3', '1']);
+    await toolbar.sort.reset();
   });
 });

@@ -95,29 +95,26 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               new Promise<AttachmentProps>((resolve) => {
                 const res: AttachmentProps = { ...file, file, title: file.name, mimetype: file.type }
 
-                renameFile(file).then((renamedFile) => {
-                  if (isImage(renamedFile.name, (<any>renamedFile).mimetype ?? renamedFile.type)) {
-                    const reader = new FileReader()
+                if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
+                  const reader = new FileReader()
 
-                    reader.onload = (e) => {
-                      res.data = e.target?.result
+                  reader.onload = (e) => {
+                    res.data = e.target?.result
 
-                      resolve(res)
-                    }
-
-                    reader.onerror = () => {
-                      resolve(res)
-                    }
-
-                    reader.readAsDataURL(file)
-                  } else {
                     resolve(res)
                   }
-                })
+
+                  reader.onerror = () => {
+                    resolve(res)
+                  }
+
+                  reader.readAsDataURL(file)
+                } else {
+                  resolve(res)
+                }
               }),
           ),
         )
-
         attachments.value = [...attachments.value, ...newFiles]
 
         return updateModelValue(attachments.value)
@@ -151,8 +148,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           message.error(`${file.name} has the mime type ${file.type} which is not allowed in this column.`)
           continue
         }
-
-        file = await renameFile(file)
 
         files.push(file)
       }

@@ -100,6 +100,7 @@ export function useViewData(
   }))
 
   function addEmptyRow(addAfter = formattedData.value.length) {
+    debugger
     formattedData.value.splice(addAfter, 0, {
       row: {},
       oldRow: {},
@@ -108,6 +109,19 @@ export function useViewData(
 
     return formattedData.value[addAfter]
   }
+
+  // // function createNewRowWithDuplicatedValues()
+  // function duplicateRowById(rowId: string) {
+  //   debugger
+  //   const row = formattedData.value.find((row) => row.row.id === rowId)
+
+  //   if (row) {
+  //     const newRow = addEmptyRow(formattedData.value.indexOf(row) + 1)
+
+  //     newRow.row = { ...row.row }
+  //     return newRow
+  //   }
+  // }
 
   function removeLastEmptyRow() {
     const lastRow = formattedData.value[formattedData.value.length - 1]
@@ -528,6 +542,7 @@ export function useViewData(
     updateFormView,
     aggCommentCount,
     loadAggCommentsCount,
+    // duplicateRowById,
     removeLastEmptyRow,
     removeRowIfNew,
   }

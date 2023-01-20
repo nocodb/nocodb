@@ -59,6 +59,8 @@ provide(MetaInj, meta)
 
 const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
 
+const duplicatingRowInProgress = ref(false)
+
 if (props.loadRow) {
   await loadRow()
 }
@@ -98,6 +100,27 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 const onClose = () => {
   if (row.value?.rowMeta?.new) emits('cancel')
   isExpanded.value = false
+}
+
+const onDuplicateRow = () => {
+  // isExpanded.value = false
+  duplicatingRowInProgress.value = true
+  const previousRow = Object.assign({}, row.value)
+  row.value = { row: {}, oldRow: {}, rowMeta: { new: true } }
+  setTimeout(async () => {
+    // await nextTick()
+    row.value = previousRow
+    // row.value = {
+    //   ...row.value,
+    //   rowMeta: {
+    //     ...row.value.rowMeta,
+    //     new: true,
+    //   },
+    // }
+    isExpanded.value = true
+    duplicatingRowInProgress.value = false
+    message.success('Prepared duplicated row (not saved yet)')
+  }, 500)
 }
 
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
@@ -147,13 +170,15 @@ export default {
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
+    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicateRow="onDuplicateRow" />
 
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">
+            <a-spin v-if="duplicatingRowInProgress" class="!flex items-center" />
             <div
+              v-if="!duplicatingRowInProgress"
               v-for="(col, i) of fields"
               v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
               :key="col.title"

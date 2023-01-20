@@ -12,7 +12,7 @@ import {
 
 const props = defineProps<{ view?: ViewType }>()
 
-const emit = defineEmits(['cancel'])
+const emit = defineEmits(['cancel', 'duplicateRow'])
 
 const route = useRoute()
 
@@ -75,9 +75,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const { deleteRowById } = useViewData(meta, ref(props.view))
+const { deleteRowById, addEmptyRow } = useViewData(meta, ref(props.view))
 
-const duplicateRow = () => alert('duplicateRow')
+// const onDuplicateRowClick = async () => {
+//   // const newRow = duplicateRowById(primaryKey.value)
+//   // console.log('newRow', newRow)
+//   const newRow = await addEmptyRow()
+//   // expandForm(newRow)
+// }
 
 const showDeleteRowModal = ref(false)
 
@@ -172,7 +177,7 @@ const onConfirmDeleteRowClick = async () => {
       <template #overlay>
         <div class="bg-gray-50 py-2 shadow-lg !border">
           <div>
-            <div v-e="['a:actions:download-csv']" class="nc-menu-item" @click="duplicateRow">
+            <div v-e="['a:actions:download-csv']" class="nc-menu-item" @click="emit('duplicateRow')">
               <MdiContentCopy class="text-gray-500" />
               {{ $t('activity.duplicateRow') }}
             </div>

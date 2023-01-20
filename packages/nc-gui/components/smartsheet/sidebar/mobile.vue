@@ -3,7 +3,6 @@ import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
-  computed,
   inject,
   ref,
   resolveComponent,
@@ -11,7 +10,6 @@ import {
   useNuxtApp,
   useRoute,
   useRouter,
-  useSidebar,
   useUIPermission,
   useViewsStoreOrThrow,
   watch,
@@ -43,34 +41,15 @@ const route = useRoute()
 
 const { $e } = useNuxtApp()
 
-/** Sidebar visible */
-// const { isOpen } = useSidebar('nc-right-sidebar')
-// const FOO = useSidebar('nc-right-sidebar')
-// FOO.
-
-// const sidebarCollapsed = computed(() => !isOpen.value || isMobileMode.value)
-// const sidebarCollapsed = false
-
-/** Sidebar ref */
-// const sidebar = ref()
-
 /** Watch route param and change active view based on `viewTitle` */
 watch(
   [views, () => route.params.viewTitle],
   ([nextViews, viewTitle]) => {
-    // debugger
-    // alert('mobile watcher')
     const lastOpenedViewId = activeTab.value?.id && lastOpenedViewMap.value[activeTab.value?.id]
-    console.log('lastOpenedViewId', lastOpenedViewId)
     const lastOpenedView = nextViews.find((v) => v.id === lastOpenedViewId)
-    console.log('lastOpenedView', lastOpenedView)
-
-    // debugger
-    console.log('viewTitle', viewTitle)
 
     if (viewTitle) {
       let view = nextViews.find((v) => v.title === viewTitle)
-      console.log('view', view)
       if (view) {
         activeView.value = view
         setLastOpenedViewId(activeView.value?.id)
@@ -85,8 +64,7 @@ watch(
           })
         }
       }
-    } 
-    else if (lastOpenedView) {
+    } else if (lastOpenedView) {
       /** if active view is not found, set it to last opened view */
       router.replace({
         params: {
@@ -150,49 +128,14 @@ function onOpenModal({
 </script>
 
 <template>
-  <!-- <div> -->
-  <!-- Mobile Views Menu <br />
-    views: {{ views.length }} -->
-  <!-- <a-layout-sider
-    ref="sidebar"
-    :collapsed="sidebarCollapsed"
-    collapsiple
-    collapsed-width="0"
-    width="0"
-    class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
-    theme="light"
-  > -->
-  <!-- <LazySmartsheetSidebarToolbar
-      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
-    /> -->
-
   <div class="flex items-center inline m-4">
-    <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
     <MdiBackburger
       v-e="['c:grid:toggle-navdraw']"
       class="cursor-pointer transform transition-transform duration-500"
       @click="emits('closeMobileViewsSidebar')"
     />
 
-    <!-- <div
-      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1 inline"
-    > -->
-    <!-- <div class="flex gap-2 justify-start">
-      <div class="flex items-center gap-1 text-xs"> -->
-    <!-- <div :class="{ 'nc-active-btn': isOpen }"> -->
     <span class="ml-2 text-bold uppercase text-gray-500 font-weight-bold">{{ meta?.title }}</span>
-    <!-- <a-button size="small" class="nc-toggle-right-navbar" @click="onClick">
-          <div class="flex items-center gap-1 text-xs" :class="{ 'text-gray-500': !isOpen }">
-            <AntDesignMenuUnfoldOutlined v-if="isOpen" />
-
-            <AntDesignMenuFoldOutlined v-else />
-
-            {{ $t('objects.views') }}
-          </div>
-        </a-button> -->
-    <!-- </div>
-    </div> -->
-    <!-- </div> -->
   </div>
 
   <div class="flex-1 flex flex-col min-h-0">
@@ -210,8 +153,6 @@ function onOpenModal({
       <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
     </template>
   </div>
-  <!-- </a-layout-sider> -->
-  <!-- </div> -->
 </template>
 
 <style scoped>

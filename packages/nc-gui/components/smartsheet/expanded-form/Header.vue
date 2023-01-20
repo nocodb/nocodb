@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
-import type { KanbanType, ViewType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 import {
   ReloadRowDataHookInj,
   isMac,
@@ -42,8 +42,6 @@ const save = async () => {
   }
 }
 
-// const FOO: KanbanType
-
 // todo: accept as a prop / inject
 const iconColor = '#1890ff'
 
@@ -75,19 +73,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const { deleteRowById, addEmptyRow } = useViewData(meta, ref(props.view))
-
-// const onDuplicateRowClick = async () => {
-//   // const newRow = duplicateRowById(primaryKey.value)
-//   // console.log('newRow', newRow)
-//   const newRow = await addEmptyRow()
-//   // expandForm(newRow)
-// }
 
 const showDeleteRowModal = ref(false)
 
+const { deleteRowById } = useViewData(meta, ref(props.view))
+
 const onDeleteRowClick = () => {
-  // alert('deleteRow')
   showDeleteRowModal.value = true
 }
 
@@ -97,16 +88,7 @@ const onConfirmDeleteRowClick = async () => {
   reloadTrigger.trigger()
   emit('cancel')
   message.success('Row deleted')
-  // loadData()
-  // deleteRow
 }
-
-// const { deleteRowById, loadData } = useViewData(meta, view)
-
-// const onClickDelete = async () => {
-//   await deleteRowById(primaryKey)
-//   loadData()
-// }
 </script>
 
 <template>
@@ -161,8 +143,6 @@ const onConfirmDeleteRowClick = async () => {
         {{ $t('general.close') }}
       </div>
     </a-button>
-
-    <!-- <SmartsheetExpandedFormMoreActions :meta="meta" :view="view" :primaryKey="primaryKey" /> -->
 
     <a-dropdown>
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">

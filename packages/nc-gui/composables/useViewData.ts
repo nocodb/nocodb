@@ -33,7 +33,6 @@ const formatData = (list: Row[]) =>
 
 export function useViewData(
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
-  // meta: Ref<Omit<TableType, 'table_name'> | undefined> | ComputedRef<Omit<TableType, 'table_name'> | undefined>,
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   where?: ComputedRef<string | undefined>,
 ) {
@@ -100,7 +99,6 @@ export function useViewData(
   }))
 
   function addEmptyRow(addAfter = formattedData.value.length) {
-    debugger
     formattedData.value.splice(addAfter, 0, {
       row: {},
       oldRow: {},
@@ -109,19 +107,6 @@ export function useViewData(
 
     return formattedData.value[addAfter]
   }
-
-  // // function createNewRowWithDuplicatedValues()
-  // function duplicateRowById(rowId: string) {
-  //   debugger
-  //   const row = formattedData.value.find((row) => row.row.id === rowId)
-
-  //   if (row) {
-  //     const newRow = addEmptyRow(formattedData.value.indexOf(row) + 1)
-
-  //     newRow.row = { ...row.row }
-  //     return newRow
-  //   }
-  // }
 
   function removeLastEmptyRow() {
     const lastRow = formattedData.value[formattedData.value.length - 1]
@@ -355,46 +340,10 @@ export function useViewData(
     $e('a:grid:pagination')
   }
 
-
-  // async function deleteRow(row: Row) {
-  //   try {
-  //     if (!row.rowMeta.new) {
-  //       const id = (meta?.value?.columns as ColumnType[])
-  //         ?.filter((c) => c.pk)
-  //         .map((c) => row.row[c.title!])
-  //         .join('___')
-
-  //       const deleted = await deleteRowById(id as string)
-  //       if (!deleted) {
-  //         return
-  //       }
-  //     }
-
-  //     // remove deleted row from state
-  //     removeRowFromTargetStack(row)
-  //   } catch (e: any) {
-  //     message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
-  //   }
-  // }
-
   async function deleteRowById(id: string) {
     if (!id) {
       throw new Error("Delete not allowed for table which doesn't have primary Key")
     }
-
-    const projetId = project.value.id
-    const metaId = meta.value.id
-    
-    console.log('FOOBAR viewMeta', viewMeta)
-    // console.log('FOOBAR viewMeta.id', viewMeta.id)
-    console.log('FOOBAR viewMeta.value', viewMeta.value)
-    console.log('FOOBAR viewMeta.value.id', viewMeta.value.id)
-    const viewMetaId = viewMeta?.value?.id
-
-    console.log('FOOBAR projetId', projetId)
-    console.log('FOOBAR metaId', metaId)
-    console.log('FOOBAR viewMetaId', viewMetaId)
-    console.log('FOOBAR id', id)
 
     const res: any = await $api.dbViewRow.delete(
       'noco',
@@ -542,7 +491,6 @@ export function useViewData(
     updateFormView,
     aggCommentCount,
     loadAggCommentsCount,
-    // duplicateRowById,
     removeLastEmptyRow,
     removeRowIfNew,
   }

@@ -3,16 +3,12 @@ import type { MaybeRef } from '@vueuse/core'
 import { ref, unref, useNuxtApp, watch } from '#imports'
 
 const [useProvideViewsStore, useViewsStore] = useInjectionState((meta: MaybeRef<TableType | undefined>) => {
-  // debugger
-  // console.log('--------------------useViews--------------------')
-  // console.trace()
   const views = ref<ViewType[]>([])
   const isLoading = ref(false)
 
   const { $api } = useNuxtApp()
 
   const loadViews = async () => {
-    // debugger
     isLoading.value = true
     const _meta = unref(meta)
 

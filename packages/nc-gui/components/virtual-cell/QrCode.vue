@@ -14,8 +14,6 @@ const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsFor
 
 const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
   errorCorrectionLevel: 'M',
-  // type: 'image/png',
-  // quality: 0.92,
   margin: 1,
   version: 4,
   rendererOpts: {

@@ -470,7 +470,8 @@ export default class Project implements ProjectType {
           '=',
           ncMeta.knex.raw('?', [userId])
         );
-      });
+      })
+      .where(`${MetaTable.PROJECT}.deleted`, false);
 
     return await projectListQb;
   }

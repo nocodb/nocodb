@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { fileMimeTypes } from './utils'
+import type { TreeProps } from 'ant-design-vue'
+import { fileMimeTypeList, fileMimeTypes } from './utils'
 import { useGlobal, useVModel } from '#imports'
-
-interface Option {
-  key: string
-  title: string
-}
 
 const props = defineProps<{
   value: any
@@ -20,6 +16,8 @@ const validators = {}
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
 const { appInfo } = useGlobal()
+
+const searchValue = ref<string>('')
 
 setAdditionalValidations({
   ...validators,
@@ -37,11 +35,38 @@ vModel.value.meta = {
   ...vModel.value.meta,
 }
 
-const filterOption = (val: string, option: Option) => {
-  return option.title.includes(val)
+const expandedKeys = ref<(string | number)[]>([])
+
+const autoExpandParent = ref<boolean>(true)
+
+const getParentKey = (key: string | number, tree: TreeProps['treeData']): string | null => {
+  if (!tree) return null
+  let parentKey
+  for (let i = 0; i < tree.length; i++) {
+    const node = tree[i]
+    if (node.children) {
+      if (node.children.some((item) => item.key === key)) {
+        parentKey = node.key as string
+      } else if (getParentKey(key, node.children)) {
+        parentKey = getParentKey(key, node.children) as string
+      }
+    }
+  }
+  return parentKey as string
 }
 
-const expandedKeys = ref<string[]>([])
+watch(searchValue, (value) => {
+  expandedKeys.value = fileMimeTypeList
+    ?.map((item: Record<string, any>) => {
+      if (item.title.includes(value)) {
+        return getParentKey(item.key, fileMimeTypes)
+      }
+      return null
+    })
+    .filter((item: any, i: number, self: any[]) => item && self.indexOf(item) === i) as string[]
+  searchValue.value = value
+  autoExpandParent.value = true
+})
 </script>
 
 <template>
@@ -59,17 +84,28 @@ const expandedKeys = ref<string[]>([])
     </a-col>
 
     <a-col class="mt-4" :span="24">
-      <a-form-item v-bind="validateInfos['meta.supportedAttachmentMimeTypes']" label="Allowed Mime Types">
+      <a-form-item
+        v-bind="validateInfos['meta.supportedAttachmentMimeTypes']"
+        label="Allowed Mime Types"
+        class="!p-[10px] border-2"
+      >
+        <a-input-search v-model:value="searchValue" class="mt-[5px] mb-[15px]" placeholder="Search" />
         <a-tree
-          v-model:expandedKeys="expandedKeys"
+          v-model:expanded-keys="expandedKeys"
           v-model:checkedKeys="vModel.meta.supportedAttachmentMimeTypes"
           checkable
           :height="250"
           :tree-data="fileMimeTypes"
-          class="!bg-gray-50 !py-[10px] !my-[10px] border-2"
+          :auto-expand-parent="autoExpandParent"
+          class="!bg-gray-50 my-[10px]"
         >
-          <template #title="{ title, key }">
-            {{ title }}
+          <template #title="{ title }">
+            <span v-if="title.indexOf(searchValue) > -1">
+              {{ title.substr(0, title.indexOf(searchValue)) }}
+              <span style="color: #f50">{{ searchValue }}</span>
+              {{ title.substr(title.indexOf(searchValue) + searchValue.length) }}
+            </span>
+            <span v-else>{{ title }}</span>
           </template>
         </a-tree>
       </a-form-item>

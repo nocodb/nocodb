@@ -9015,6 +9015,9 @@
           },
           "icon": {
             "type": "string"
+          },
+          "path": {
+            "type": "string"
           }
         }
       },

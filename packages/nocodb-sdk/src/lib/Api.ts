@@ -469,6 +469,7 @@ export interface AttachmentType {
   mimetype?: string;
   size?: string;
   icon?: string;
+  path?: string;
 }
 
 export interface WebhookType {

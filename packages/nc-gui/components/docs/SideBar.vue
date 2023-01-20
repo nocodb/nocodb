@@ -85,7 +85,6 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
 }
 
 const navigateToOpenedBook = () => {
-  console.log('navigateToOpenedBook')
   navigateTo(nestedUrl(openedBook.value!.id!))
 }
 </script>

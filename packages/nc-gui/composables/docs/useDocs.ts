@@ -534,7 +534,12 @@ const [setup, use] = useInjectionState(() => {
     })
     const foundPage = findPage(pageId)!
     if (page.title) {
+      // todo: Update the page in a better way
       foundPage.slug = updatedPage.slug
+      foundPage.title = updatedPage.title
+      foundPage.updated_at = updatedPage.updated_at
+      foundPage.last_updated_by_id = updatedPage.last_updated_by_id
+
       if (foundPage.new) foundPage.new = false
 
       await navigateTo(nestedUrl(updatedPage.id!))

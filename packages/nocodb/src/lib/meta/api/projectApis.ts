@@ -38,6 +38,10 @@ export async function projectGet(
 ) {
   const project = await Project.getWithInfo(req.params.projectId);
 
+  if (!project) {
+    NcError.notFound('Project not found');
+  }
+
   // delete datasource connection details
   project.bases?.forEach((b) => {
     ['config'].forEach((k) => delete b[k]);
@@ -55,19 +59,15 @@ export async function projectUpdate(
 ) {
   const project = await Project.getWithInfo(req.params.projectId);
 
+  if (!project) {
+    NcError.notFound('Project not found');
+  }
+
   const data: Partial<Project> = extractPropsAndSanitize(req.body, [
     'title',
     'meta',
     'color',
   ]);
-
-  if (
-    data?.title &&
-    project.title !== data.title &&
-    (await Project.getByTitle(data.title))
-  ) {
-    NcError.badRequest('Project title already in use');
-  }
 
   const result = await Project.update(req.params.projectId, data);
   Tele.emit('evt', { evt_type: 'project:update' });

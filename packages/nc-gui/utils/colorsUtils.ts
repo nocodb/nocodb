@@ -36,6 +36,7 @@ export const themeColors = {
   'background': '#FFFFFF',
   'surface': '#FFFFFF',
   'primary': '#4351e8',
+  'primary-selected': '#F0F1FF',
   'secondary': '#03DAC6',
   'secondary-darken-1': '#018786',
   'error': '#B00020',

@@ -87,13 +87,19 @@ watch(
   },
 )
 
-watch([isErrored, isLoading], () => {
-  if (isErrored.value && !isLoading.value) {
-    toggleSidebar(false)
-  } else {
-    toggleSidebar(true)
-  }
-})
+watch(
+  [isErrored, isLoading],
+  () => {
+    if (isErrored.value && !isLoading.value) {
+      toggleSidebar(false)
+    } else {
+      toggleSidebar(true)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 onMounted(async () => {
   isLoading.value = true

@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import { ref, useNuxtApp, useSidebar } from '#imports'
 
-const { isOpen } = useSidebar('nc-left-sidebar')
-
-const route = useRoute()
+useSidebar('nc-left-sidebar')
 
 const hasSider = ref(false)
 

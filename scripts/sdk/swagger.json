@@ -9018,7 +9018,8 @@
           },
           "path": {
             "type": "string"
-          }
+          },
+          "data": {}
         }
       },
       "Webhook": {

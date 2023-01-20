@@ -141,7 +141,7 @@ const navigateToOpenedBook = () => {
       :draggable="!isPublic"
       :on-drop="onDrop"
       show-icon
-      class="h-full overflow-y-scroll pb-20"
+      class="h-full overflow-y-scroll overflow-x-hidden pb-20"
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >

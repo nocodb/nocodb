@@ -20,7 +20,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 :global(.ant-layout-sider) {
-  @apply !overflow-y-hidden;
+  @apply !overflow-y-hidden !h-[calc(100vh_-_4.5rem)];
 }
 
 :global(#nc-sidebar-left .ant-layout-sider-collapsed) {

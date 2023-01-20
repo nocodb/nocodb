@@ -1,3 +1,5 @@
+import type { TreeProps } from 'ant-design-vue'
+
 const relationNames = {
   mm: 'Many To Many',
   hm: 'Has Many',
@@ -189,3 +191,5 @@ export const fileMimeTypes = [
     ],
   },
 ]
+
+export const fileMimeTypeList = fileMimeTypes.map((o) => o.children).flat(1)

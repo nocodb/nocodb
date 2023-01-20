@@ -284,27 +284,22 @@ const onImport = async () => {
                   <div :style="{ fontSize: '0.65rem' }">New pages created will be published</div>
                 </div>
               </template>
-              <div
-                class="flex px-2 py-1 border-1 rounded-md items-center gap-x-1.5"
-                :class="{
-                  'border-green-500 text-green-600 bg-green-50': openedBook?.is_published,
-                }"
-              >
+              <div class="flex px-2 py-1 border-1 rounded-md items-center gap-x-1.5 border-green-500 text-green-600 bg-green-50">
                 <div class="flex">Published</div>
                 <MdiInformationOutline class="flex h-3.5" />
               </div>
             </a-tooltip>
           </div>
-          <div class="flex flex-row gap-x-2 h-10">
+          <div class="flex flex-row gap-x-1 h-10 justify-end">
             <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => addNewPage()">
               <div class="flex flex-row gap-x-1 items-center">
                 <div class="flex pl-1">New Page</div>
                 <MdiPlus />
               </div>
             </a-button> -->
-            <a-dropdown trigger="click">
+            <a-dropdown trigger="click" placement="bottomLeft">
               <div
-                class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row w-full mr-4 justify-between items-center hover:cursor-pointer hover:bg-gray-100"
+                class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row max-w-28 mr-2 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-gray-100"
               >
                 <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">New Page</div>
                 <MdiMenuDown />
@@ -341,22 +336,51 @@ const onImport = async () => {
                 </div>
               </template>
             </a-dropdown>
-            <a-dropdown trigger="click">
+            <a-dropdown trigger="click" placement="bottomRight">
               <div
-                class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 rounded-md bg-gray-50 flex flex-row w-full mr-4 justify-between items-center"
+                class="my-1 pl-3 pr-1.5 rounded-md bg-primary-selected border-1 flex flex-row max-w-30 mr-4 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-opacity-75"
+                :style="{ borderColor: '#e9eaff' }"
               >
-                <div class="flex">
+                <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">
                   {{ openedBook?.title }}
                 </div>
                 <MdiMenuDown />
               </div>
               <template #overlay>
-                <a-menu>
+                <div class="flex flex-col bg-gray-100 shadow-gray-300 shadow-sm w-48 p-1 rounded-md gap-y-1">
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 py-2.5 px-1.5 pl-2 cursor-pointer rounded-md justify-between hover:bg-gray-200"
+                    :style="{ fontWeight: 500 }"
+                    @click="showCreateBookModal = true"
+                  >
+                    <div class="flex">Create new version</div>
+                    <MdiPlus class="flex" />
+                  </div>
+                  <div class="flex border-t-1 border-gray-200 mx-1"></div>
+                  <div
+                    v-for="book in books"
+                    :key="book.id"
+                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 pl-2 cursor-pointer rounded-md justify-between hover:bg-gray-200"
+                    :class="{ 'bg-gray-200': book.id === openedBook?.id }"
+                    @click="() => selectBook(book)"
+                  >
+                    <div class="flex">
+                      {{ book.title }}
+                    </div>
+                    <div
+                      v-if="book.is_published"
+                      class="flex px-1 border-1 rounded-md items-center gap-x-1.5 border-green-500 text-green-600 bg-green-50"
+                    >
+                      <div class="flex" :style="{ fontSize: '0.6rem' }">Published</div>
+                    </div>
+                  </div>
+                </div>
+                <!-- <a-menu>
                   <a-menu-item class="!py-2" @click="showCreateBookModal = true"> Create new version </a-menu-item>
                   <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
                     {{ book.title }}
                   </a-menu-item>
-                </a-menu>
+                </a-menu> -->
               </template>
             </a-dropdown>
             <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">

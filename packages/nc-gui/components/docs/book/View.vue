@@ -295,18 +295,57 @@ const onImport = async () => {
               </div>
             </a-tooltip>
           </div>
-          <div class="flex flex-row gap-x-2">
-            <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => addNewPage()">
+          <div class="flex flex-row gap-x-2 h-10">
+            <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => addNewPage()">
               <div class="flex flex-row gap-x-1 items-center">
                 <div class="flex pl-1">New Page</div>
                 <MdiPlus />
               </div>
-            </a-button>
+            </a-button> -->
             <a-dropdown trigger="click">
               <div
-                class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 py-1.5 rounded-md bg-gray-50 flex flex-row w-full mr-4 justify-between items-center"
+                class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row w-full mr-4 justify-between items-center hover:cursor-pointer hover:bg-gray-100"
               >
-                <div class="flex font-semibold">
+                <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">New Page</div>
+                <MdiMenuDown />
+              </div>
+              <template #overlay>
+                <div class="flex flex-col bg-gray-100 shadow-gray-300 shadow-sm w-70 p-1 rounded-md gap-y-1">
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                    @click="() => addNewPage()"
+                  >
+                    <MiDocumentAdd class="flex" />
+                    <div class="flex">New Blank Page</div>
+                  </div>
+                  <div
+                    class="flex flex-row items-start text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                    @click="() => openMagicModal()"
+                  >
+                    <PhSparkleFill class="flex text-orange-400 mt-0.5" />
+                    <div class="flex flex-col">
+                      <div class="flex">Create Pages with Prompt</div>
+                      <div class="flex text-gray-500" :style="{ fontSize: '0.6rem' }">
+                        Let AI create pages based on your keyword.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex border-t-1 border-gray-200 mx-1"></div>
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                    @click="() => openImportModal()"
+                  >
+                    <PhUploadSimpleFill class="flex" />
+                    <div class="flex">Import</div>
+                  </div>
+                </div>
+              </template>
+            </a-dropdown>
+            <a-dropdown trigger="click">
+              <div
+                class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 rounded-md bg-gray-50 flex flex-row w-full mr-4 justify-between items-center"
+              >
+                <div class="flex">
                   {{ openedBook?.title }}
                 </div>
                 <MdiMenuDown />
@@ -485,24 +524,47 @@ const onImport = async () => {
 .docs-book-list-container .ant-tabs-tab {
   @apply px-3 ml-0;
 }
+
 .docs-book-infinite-list {
+  // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
     width: 4px;
   }
 
   /* Track */
   &::-webkit-scrollbar-track {
-    background: #f6f6f6 !important;
+    background: #f6f6f600 !important;
   }
 
   /* Handle */
   &::-webkit-scrollbar-thumb {
-    background: rgb(228, 228, 228);
+    background: #f6f6f600;
   }
 
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
-    background: rgb(194, 194, 194);
+    background: #f6f6f600;
+  }
+}
+.docs-book-infinite-list:hover {
+  // scrollbar reduce width and gray color
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: rgb(234, 234, 234);
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
   }
 }
 </style>

@@ -102,7 +102,7 @@ const navigateToOpenedBook = () => {
   >
     <div
       v-if="!isPublic"
-      class="flex flex-row justify-between items-center pr-2 pl-3 pb-3 pt-2.5 border-b-gray-100 border-b-1 rounded-b-sm hover:(bg-gray-100 cursor-pointer)"
+      class="flex flex-row justify-between items-center pr-2 pl-3 pb-3 pt-2.5 border-b-gray-100 border-b-1 hover:(bg-gray-100 cursor-pointer)"
       :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': isOnlyBookOpened, '': !isOnlyBookOpened }"
       @click.self="navigateToOpenedBook"
     >
@@ -233,17 +233,17 @@ const navigateToOpenedBook = () => {
 
     /* Track */
     &::-webkit-scrollbar-track {
-      background: #f6f6f6 !important;
+      background: #f6f6f600 !important;
     }
 
     /* Handle */
     &::-webkit-scrollbar-thumb {
-      background: rgb(210, 210, 210);
+      background: rgb(234, 234, 234);
     }
 
     /* Handle on hover */
     &::-webkit-scrollbar-thumb:hover {
-      background: rgb(194, 194, 194);
+      background: rgb(203, 203, 203);
     }
   }
   .ant-tree-treenode {

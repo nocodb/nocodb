@@ -23,7 +23,7 @@ const {
   openPage,
   // fetchPublishedPages,
   // fetchAllPagesByTitle,
-  isOnlyBookOpened,
+  // isOnlyBookOpened,
 } = useDocs()
 
 const showPublishModal = ref(false)
@@ -34,7 +34,7 @@ const bookFormModelData = ref({
 })
 
 const activeTabKey = ref('all')
-const activeTabPagination = ref(1)
+// const activeTabPagination = ref(1)
 const tabInfo = [
   {
     title: 'All Pages',
@@ -86,7 +86,7 @@ watch(
   },
 )
 
-const isPagesFetching = ref(false)
+// const isPagesFetching = ref(false)
 const pages = computed(() => {
   switch (activeTabKey.value) {
     case 'all':
@@ -207,88 +207,57 @@ const onImport = async () => {
 //   },
 // )
 
-const loadListData = async ($state: any) => {
-  $state.complete()
-  // if (activeTabKey.value === 'unpublished') {
-  //   return
-  // }
+// const loadListData = async ($state: any) => {
+//   $state.complete()
+// if (activeTabKey.value === 'unpublished') {
+//   return
+// }
 
-  // $state.loading()
-  // const oldPagesCount = pages.value?.length || 0
+// $state.loading()
+// const oldPagesCount = pages.value?.length || 0
 
-  // activeTabPagination.value += 1
-  // switch (activeTabKey.value) {
-  //   case 'all':
-  //     await fetchAllPages({
-  //       pageNumber: activeTabPagination.value,
-  //     })
-  //     break
-  //   case 'allByTitle':
-  //     await fetchAllPagesByTitle({
-  //       pageNumber: activeTabPagination.value,
-  //     })
-  //     break
-  //   case 'published':
-  //     await fetchPublishedPages({
-  //       pageNumber: activeTabPagination.value,
-  //     })
-  //     break
-  //   default:
-  //     break
-  // }
+// activeTabPagination.value += 1
+// switch (activeTabKey.value) {
+//   case 'all':
+//     await fetchAllPages({
+//       pageNumber: activeTabPagination.value,
+//     })
+//     break
+//   case 'allByTitle':
+//     await fetchAllPagesByTitle({
+//       pageNumber: activeTabPagination.value,
+//     })
+//     break
+//   case 'published':
+//     await fetchPublishedPages({
+//       pageNumber: activeTabPagination.value,
+//     })
+//     break
+//   default:
+//     break
+// }
 
-  // if (pages.value?.length === oldPagesCount) {
-  //   $state.complete()
-  //   return
-  // }
-  // $state.loaded()
-}
+// if (pages.value?.length === oldPagesCount) {
+//   $state.complete()
+//   return
+// }
+// $state.loaded()
+// }
 </script>
 
 <template>
   <a-layout-content>
     <div class="flex flex-col mx-20 mt-10.5 px-6">
-      <div class="flex flex-col h-28">
-        <div class="flex flex-row justify-between items-center">
-          <div class="flex flex-row gap-x-2 items-center ml-2">
-            <div class="flex underline cursor-pointer">
-              {{ openedBook?.title }}
-            </div>
-            <div class="flex text-gray-400">/</div>
-          </div>
-          <div class="flex flex-row items-center">
-            <a-dropdown trigger="click">
-              <div
-                class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 py-1.5 rounded-md bg-gray-50 flex flex-row w-full mr-4 justify-between items-center"
-              >
-                <div class="flex font-semibold">
-                  {{ openedBook?.title }}
-                </div>
-                <MdiMenuDown />
-              </div>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item class="!py-2" @click="showCreateBookModal = true"> Create new book </a-menu-item>
-                  <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
-                    {{ book.title }}
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
-            <!-- <a-button type="primary" :disabled="!haveDrafts" :loading="isBulkPublishing" @click="showPublishModal = true">
-              Publish v{{ openedBook?.order }}</a-button
-            > -->
-          </div>
-        </div>
-        <div class="flex flex-row justify-between mt-8 items-center">
+      <div class="flex flex-col h-16">
+        <div class="flex flex-row justify-between mt-4 items-center">
           <div class="flex flex-row gap-x-6 items-center">
             <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
             <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
               <div
-                class="flex !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 mt-1.5"
+                class="flex flex-row !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 h-8 items-center"
                 @click.prevent
               >
-                <MdiDotsVertical />
+                <MdiDotsVertical class="flex" />
               </div>
               <template #overlay>
                 <a-menu>
@@ -301,6 +270,30 @@ const loadListData = async ($state: any) => {
                 </a-menu>
               </template>
             </a-dropdown>
+            <a-tooltip
+              v-if="openedBook?.is_published"
+              placement="bottom"
+              color="#F2F4F7"
+              overlay-class-name="version-publish-status-tootltip"
+            >
+              <template #title>
+                <div class="flex flex-col text-black px-1 py-0.5">
+                  <div :style="{ fontSize: '0.8rem' }" style="font-weight: 500">Page Edits</div>
+                  <div :style="{ fontSize: '0.65rem' }">Page edits will immediately be updated to public link</div>
+                  <div :style="{ fontSize: '0.8rem' }" class="pt-1" style="font-weight: 500">New Page</div>
+                  <div :style="{ fontSize: '0.65rem' }">New pages created will be published</div>
+                </div>
+              </template>
+              <div
+                class="flex px-2 py-1 border-1 rounded-md items-center gap-x-1.5"
+                :class="{
+                  'border-green-500 text-green-600 bg-green-50': openedBook?.is_published,
+                }"
+              >
+                <div class="flex">Published</div>
+                <MdiInformationOutline class="flex h-3.5" />
+              </div>
+            </a-tooltip>
           </div>
           <div class="flex flex-row gap-x-2">
             <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => addNewPage()">
@@ -309,16 +302,34 @@ const loadListData = async ($state: any) => {
                 <MdiPlus />
               </div>
             </a-button>
-            <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
+            <a-dropdown trigger="click">
+              <div
+                class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 py-1.5 rounded-md bg-gray-50 flex flex-row w-full mr-4 justify-between items-center"
+              >
+                <div class="flex font-semibold">
+                  {{ openedBook?.title }}
+                </div>
+                <MdiMenuDown />
+              </div>
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item class="!py-2" @click="showCreateBookModal = true"> Create new version </a-menu-item>
+                  <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
+                    {{ book.title }}
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+            <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
               <div class="flex flex-row gap-x-1 items-center">
                 <div class="flex pl-1">Create Pages with</div>
                 <PhSparkleFill class="text-orange-400 h-3.5" />
               </div>
-            </a-button>
+            </a-button> -->
           </div>
         </div>
       </div>
-      <div class="flex flex-row w-full mt-10 !overflow-y-hidden docs-book-list-container h-[calc(100vh-16rem)]">
+      <div class="flex flex-row w-full mt-8 !overflow-y-hidden docs-book-list-container h-[calc(100vh-12rem)]">
         <a-tabs v-model:activeKey="activeTabKey" class="!w-full !overflow-y-hidden">
           <a-tab-pane v-for="tab of tabInfo" :key="tab.key">
             <template #tab>
@@ -457,6 +468,11 @@ const loadListData = async ($state: any) => {
 </template>
 
 <style lang="scss">
+.version-publish-status-tootltip {
+  .ant-tooltip-inner {
+    @apply !rounded-md !border-1 !border-gray-200;
+  }
+}
 .docs-book-list-container > .ant-tabs > .ant-tabs-content-holder > .ant-tabs-content {
   @apply h-full;
 }

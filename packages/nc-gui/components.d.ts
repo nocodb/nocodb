@@ -224,6 +224,7 @@ declare module '@vue/runtime-core' {
     MdiHeart: typeof import('~icons/mdi/heart')['default']
     MdiHook: typeof import('~icons/mdi/hook')['default']
     MdiInformation: typeof import('~icons/mdi/information')['default']
+    MdiInformationOutline: typeof import('~icons/mdi/information-outline')['default']
     MdiJson: typeof import('~icons/mdi/json')['default']
     MdiKey: typeof import('~icons/mdi/key')['default']
     MdiKeyboard: typeof import('~icons/mdi/keyboard')['default']

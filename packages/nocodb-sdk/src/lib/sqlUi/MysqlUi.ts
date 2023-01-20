@@ -1049,6 +1049,7 @@ export class MysqlUi {
         break;
       case 'Rating':
         colProp.dt = 'int';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'varchar';

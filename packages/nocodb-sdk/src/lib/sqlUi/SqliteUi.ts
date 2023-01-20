@@ -856,6 +856,7 @@ export class SqliteUi {
         break;
       case 'Rating':
         colProp.dt = 'integer';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'varchar';

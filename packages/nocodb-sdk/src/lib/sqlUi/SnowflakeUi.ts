@@ -754,6 +754,7 @@ export class SnowflakeUi {
         break;
       case 'Rating':
         colProp.dt = 'SMALLINT';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'VARCHAR';

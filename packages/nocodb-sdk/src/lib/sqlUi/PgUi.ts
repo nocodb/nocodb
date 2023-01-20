@@ -1663,6 +1663,7 @@ export class PgUi {
         break;
       case 'Rating':
         colProp.dt = 'smallint';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'character varying';

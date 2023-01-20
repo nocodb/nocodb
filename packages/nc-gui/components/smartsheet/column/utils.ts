@@ -1,5 +1,3 @@
-import type { TreeProps } from 'ant-design-vue'
-
 const relationNames = {
   mm: 'Many To Many',
   hm: 'Has Many',

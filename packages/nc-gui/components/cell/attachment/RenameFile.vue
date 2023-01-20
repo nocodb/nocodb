@@ -2,8 +2,7 @@
 import { generateUniqueName, onKeyStroke, onMounted, reactive, ref } from '#imports'
 
 const props = defineProps<{
-  fileName: string
-  fileNames: string[]
+  title: string
 }>()
 
 const emit = defineEmits<{
@@ -15,9 +14,8 @@ const inputEl = ref()
 
 const visible = ref(true)
 
-const fileEnding = props.fileName.split('.').pop()
 const form = reactive({
-  name: props.fileName.replace(`.${fileEnding}`, ''),
+  title: props.title,
 })
 
 function renameFile(fileName: string) {
@@ -26,22 +24,11 @@ function renameFile(fileName: string) {
 }
 
 async function useRandomName() {
-  form.name = await generateUniqueName()
+  form.title = await generateUniqueName()
 }
 
 const rules = {
-  name: [
-    { required: true, message: 'Filename is required.' },
-    {
-      validator: (_: unknown, v: string) =>
-        new Promise((resolve, reject) => {
-          props.fileNames.every((fileName) => fileName.replace(`.${fileEnding}`, '') !== v)
-            ? resolve(true)
-            : reject(new Error(`File name should be unique.`))
-        }),
-      message: 'File name should be unique.',
-    },
-  ],
+  title: [{ required: true, message: 'title is required.' }],
 }
 
 function onCancel() {
@@ -71,9 +58,9 @@ onMounted(() => {
     @cancel="onCancel"
   >
     <div class="flex flex-col items-center justify-center h-full">
-      <a-form class="w-full h-full" no-style :model="form" @finish="renameFile(`${form.name}.${fileEnding}`)">
-        <a-form-item class="w-full" name="name" :rules="rules.name">
-          <a-input ref="inputEl" v-model:value="form.name" class="w-full" :placeholder="$t('general.rename')" />
+      <a-form class="w-full h-full" no-style :model="form" @finish="renameFile(form.title)">
+        <a-form-item class="w-full" name="title" :rules="rules.title">
+          <a-input ref="inputEl" v-model:value="form.title" class="w-full" :placeholder="$t('general.rename')" />
         </a-form-item>
         <div class="flex items-center justify-center gap-6 w-full mt-4">
           <button class="scaling-btn bg-opacity-100" type="submit">

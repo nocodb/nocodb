@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useGlobal, useVModel } from '#imports'
 import { fileMimeTypes } from './utils'
+import { useGlobal, useVModel } from '#imports'
 
 interface Option {
   key: string

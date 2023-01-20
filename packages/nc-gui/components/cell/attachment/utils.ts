@@ -1,3 +1,4 @@
+import type { AttachmentType } from 'nocodb-sdk'
 import RenameFile from './RenameFile.vue'
 import {
   ColumnInj,
@@ -126,7 +127,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       const files: File[] = []
 
-      for (let file of selectedFiles) {
+      for (const file of selectedFiles) {
         // verify number of files
         if (visibleItems.value.length + selectedFiles.length > attachmentMeta.maxNumberOfAttachments) {
           message.error(
@@ -170,23 +171,19 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
     }
 
-    async function renameFile(file: File) {
-      return new Promise<File>((resolve) => {
+    async function renameFile(attachment: AttachmentType, idx: number) {
+      return new Promise<boolean>((resolve) => {
         const { close } = useDialog(RenameFile, {
-          fileName: file.name,
-          fileNames: [...attachments.value.map((file) => file.title), ...storedFiles.value.map((file) => file.title)],
-          onRename: (newName: string) => {
+          title: attachment.title,
+          onRename: (newTitle: string) => {
+            attachments.value[idx].title = newTitle
+            updateModelValue(JSON.stringify(attachments.value))
             close()
-            resolve(
-              new File([file], newName, {
-                type: file.type,
-                lastModified: file.lastModified,
-              }),
-            )
+            resolve(true)
           },
           onCancel: () => {
             close()
-            resolve(file)
+            resolve(true)
           },
         })
       })

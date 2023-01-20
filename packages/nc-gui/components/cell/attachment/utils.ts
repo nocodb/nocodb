@@ -26,13 +26,6 @@ import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
 import MdiFileExcelOutline from '~icons/mdi/file-excel-outline'
 import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
-interface AttachmentProps extends File {
-  data?: any
-  file: File
-  title: string
-  mimetype: string
-}
-
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
     const isReadonly = inject(ReadonlyInj, ref(false))
@@ -48,9 +41,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const editEnabled = inject(EditModeInj, ref(false))
 
     /** keep user selected File object */
-    const storedFiles = ref<AttachmentProps[]>([])
+    const storedFiles = ref<AttachmentType[]>([])
 
-    const attachments = ref<AttachmentProps[]>([])
+    const attachments = ref<AttachmentType[]>([])
 
     const modalVisible = ref(false)
 
@@ -102,11 +95,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       if (!selectedFiles.length) return
 
       if (isPublic.value && isForm.value) {
-        const newFiles = await Promise.all<AttachmentProps>(
+        const newFiles = await Promise.all<AttachmentType>(
           Array.from(selectedFiles).map(
             (file) =>
-              new Promise<AttachmentProps>((resolve) => {
-                const res: AttachmentProps = { ...file, file, title: file.name, mimetype: file.type }
+              new Promise<AttachmentType>((resolve) => {
+                const res: AttachmentType & { file: File } = { ...file, file, title: file.name, mimetype: file.type }
 
                 if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
                   const reader = new FileReader()
@@ -224,8 +217,27 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** download a file */
-    async function downloadFile(item: Record<string, any>) {
+    async function downloadFile(item: AttachmentType) {
       ;(await import('file-saver')).saveAs(item.url || item.data, item.title)
+    }
+
+    /** construct the attachment url */
+    async function getAttachmentUrl(item: AttachmentType) {
+      const path = item?.path
+      // if path doesn't exist, use `url`
+      if (!path) return Promise.resolve(item.url)
+      // try ${appInfo.value.ncSiteUrl}/${item.path} first
+      const url = `${appInfo.value.ncSiteUrl}/${item.path}`
+      try {
+        const res = await fetch(url)
+        if (res.ok) {
+          return Promise.resolve(url)
+        }
+      } catch {
+        // do nothing
+      }
+      // if it fails, use the original url
+      return Promise.resolve(item.url)
     }
 
     const FileIcon = (icon: string) => {
@@ -269,6 +281,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       storedFiles,
       bulkDownloadFiles,
       defaultAttachmentMeta,
+      getAttachmentUrl,
     }
   },
   'useAttachmentCell',

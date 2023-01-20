@@ -16,12 +16,13 @@ import { UITypes } from 'nocodb-sdk';
 // in this way, if the base url is changed, the url will be broken
 // this upgrader is to convert the existing local attachment object to the following format
 // [{
-//   "url": "download/noco/xcdb/Sheet-1/title5/39A410.jpeg",
+//   "url": "http://localhost:8080/download/noco/xcdb/Sheet-1/title5/39A410.jpeg",
+//   "path": "download/noco/xcdb/Sheet-1/title5/39A410.jpeg",
 //   "title": "foo.jpeg",
 //   "mimetype": "image/jpeg",
 //   "size": 6494
 // }]
-// the url will be constructed by `${ncSiteUrl}/${path}` in UI.
+// the new url will be constructed by `${ncSiteUrl}/${path}` in UI. the old url will be used for fallback
 // while other non-local attachments will remain unchanged
 
 function getTnPath(knex: XKnex, tb: Model) {
@@ -60,30 +61,44 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         ...attachmentColumns,
       ]);
       for (const record of records) {
-        console.log(record);
         for (const attachmentColumn of attachmentColumns) {
           let attachmentMeta =
             typeof record[attachmentColumn] === 'string'
               ? JSON.parse(record[attachmentColumn])
               : record[attachmentColumn];
           if (attachmentMeta) {
-            // TODO: check if it is local attachment
-            if ('url' in attachmentMeta) {
-              const ncSiteUrl = 'TODO';
-              attachmentMeta.url = attachmentMeta.url.split(ncSiteUrl)[1];
-              console.log(
-                'update',
-                knex(getTnPath(knex, model))
-                  .update({ meta: attachmentMeta })
-                  .where(primaryKeys.map((pk) => ({ [pk]: record[pk] })))
-                  .toQuery()
-              );
-              updateRecords.push(
-                await knex(getTnPath(knex, model))
-                  .update({ meta: attachmentMeta })
-                  .where(primaryKeys.map((pk) => ({ [pk]: record[pk] })))
-              );
+            const newAttachmentMeta = [];
+            for (const attachment of attachmentMeta) {
+              if ('url' in attachment) {
+                const match = attachment.url.match(/^(.*)\/download\/(.*)$/);
+                if (match) {
+                  // e.g. http://localhost:8080/download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png
+                  // match[1] = http://localhost:8080
+                  // match[2] = download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png
+                  const path = `download/${match[2]}`;
+
+                  newAttachmentMeta.push({
+                    ...attachment,
+                    path,
+                  });
+                } else {
+                  // keep it as it is
+                  newAttachmentMeta.push(attachment);
+                }
+              }
             }
+            const where = primaryKeys
+              .map((key) => {
+                return { [key]: record[key] };
+              })
+              .reduce((acc, val) => Object.assign(acc, val), {});
+            updateRecords.push(
+              await knex(getTnPath(knex, model))
+                .update({
+                  [attachmentColumn]: JSON.stringify(newAttachmentMeta),
+                })
+                .where(where)
+            );
           }
         }
       }

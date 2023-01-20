@@ -4,6 +4,7 @@ import type { Ref } from 'vue'
 // import InfiniteLoading from 'v3-infinite-loading'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
+import type { PageSidebarNode } from '~~/composables/docs/useDocs'
 const { project } = useProject()
 const {
   openedBook,
@@ -57,12 +58,33 @@ const tabInfo = [
   },
 ]
 
-const flattenedNestedPagesByUpdatedAt = computed(() =>
-  flattenedNestedPages.value.sort((a, b) => {
-    return dayjs(b.updated_at).unix() - dayjs(a.updated_at).unix()
-  }),
+const flattenedNestedPagesByUpdatedAt = ref<PageSidebarNode[]>([])
+watch(
+  flattenedNestedPages,
+  () => {
+    flattenedNestedPagesByUpdatedAt.value = JSON.parse(JSON.stringify(flattenedNestedPages.value)).sort((a: any, b: any) => {
+      return dayjs(b.updated_at).unix() - dayjs(a.updated_at).unix()
+    })
+  },
+  {
+    deep: true,
+    immediate: true,
+  },
 )
-const flattenedNestedPagesByTitle = computed(() => flattenedNestedPages.value.sort((a, b) => a.title!.localeCompare(b.title!)))
+
+const flattenedNestedPagesByTitle = ref<PageSidebarNode[]>([])
+watch(
+  flattenedNestedPages,
+  () => {
+    flattenedNestedPagesByTitle.value = JSON.parse(JSON.stringify(flattenedNestedPages.value)).sort((a: any, b: any) =>
+      a.title!.localeCompare(b.title!),
+    )
+  },
+  {
+    deep: true,
+    immediate: true,
+  },
+)
 
 const isPagesFetching = ref(false)
 const pages = computed(() => {
@@ -307,12 +329,12 @@ const loadListData = async ($state: any) => {
                 </div>
               </div>
             </template>
-            <div v-if="isPagesFetching">
+            <!-- <div v-if="isPagesFetching">
               <div class="flex flex-col mt-36">
                 <a-spin size="large" />
               </div>
-            </div>
-            <div v-else class="h-full overflow-y-auto docs-book-infinite-list">
+            </div> -->
+            <div :key="activeTabKey" class="h-full overflow-y-auto docs-book-infinite-list">
               <div class="flex flex-col gap-y-4 mt-6 mb-12 px-2">
                 <div
                   v-for="(page, index) of pages"
@@ -440,6 +462,12 @@ const loadListData = async ($state: any) => {
 }
 .docs-book-list-container .ant-tabs-nav {
   @apply mb-0 !important;
+}
+.docs-book-list-container .ant-tabs-nav-list {
+  @apply ml-0 !important;
+}
+.docs-book-list-container .ant-tabs-tab {
+  @apply px-3 ml-0;
 }
 .docs-book-infinite-list {
   &::-webkit-scrollbar {

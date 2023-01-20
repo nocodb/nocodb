@@ -20,7 +20,7 @@ export default defineConfig({
   },
 
   darkMode: 'class',
-  safelist: ['text-yellow-500', 'text-sky-500', 'text-red-500'],
+  safelist: ['text-yellow-500', 'text-sky-500', 'text-red-500', 'bg-primary-selected'],
   plugins: [
     scrollbar,
     animations,

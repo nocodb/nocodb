@@ -14,6 +14,8 @@ useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | N
 
 const isHomeScreen = computed(() => route.name === 'index-index')
 
+const isPublic = computed(() => route.meta?.public)
+
 watch(hasSidebar, (val) => {
   if (!val) {
     refreshSidebar.value = true
@@ -35,7 +37,7 @@ export default {
     <a-layout-header class="h-20 !px-2">
       <div class="flex w-full h-full items-center">
         <div class="flex-1 min-w-0 w-50">
-          <nuxt-link to="/">
+          <nuxt-link :to="isPublic ? '' : '/'">
             <img src="~/assets/img/brand/nocodb-full-color.png" class="h-12" />
           </nuxt-link>
         </div>
@@ -57,12 +59,12 @@ export default {
             <span class="nc-quick-action-shortcut">⌘ K</span>
           </div>
 
-          <div class="flex items-center">
+          <div v-if="!isPublic" class="flex items-center">
             <MdiBellOutline class="text-xl" />
             <MaterialSymbolsKeyboardArrowDownRounded />
           </div>
 
-          <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
+          <a-dropdown v-if="!isPublic" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <div class="flex items-center gap-1 cursor-pointer">
               <div class="h-14 w-14 rounded-full bg-primary flex items-center justify-center font-weight-bold text-white">AB</div>
               <MaterialSymbolsKeyboardArrowDownRounded />

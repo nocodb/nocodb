@@ -17,6 +17,10 @@ const {
   isErrored,
 } = useDocs()
 
+const { isOpen: isSidebarOpen, toggleHasSidebar: toggleSidebar } = useSidebar('nc-left-sidebar', {
+  isOpen: true,
+})
+
 const isLoading = ref(true)
 
 const onAdminMount = async () => {
@@ -83,6 +87,20 @@ watch(
   },
 )
 
+watch(
+  [isErrored, isLoading],
+  () => {
+    if (isErrored.value && !isLoading.value) {
+      toggleSidebar(false)
+    } else {
+      toggleSidebar(true)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
 onMounted(async () => {
   isLoading.value = true
   try {
@@ -99,9 +117,8 @@ onMounted(async () => {
 
 <template>
   <NuxtLayout id="content" class="flex">
-    <template #sidebar>
-      <div v-if="isErrored" class="w-full bg-white h-full"></div>
-      <DocsSideBar v-else />
+    <template v-if="isSidebarOpen" #sidebar>
+      <DocsSideBar />
     </template>
     <div v-if="isErrored">
       <DocsError />

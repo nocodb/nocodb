@@ -102,12 +102,21 @@ const navigateToOpenedBook = () => {
   >
     <div
       v-if="!isPublic"
-      class="py-1.5 mt-3 mb-2 flex flex-row justify-between items-center mx-3 pr-2 pl-3 rounded-md hover:(bg-gray-100 cursor-pointer)"
-      :class="{ 'bg-violet-50 hover:(!bg-violet-50 bg-opacity-20)': isOnlyBookOpened, 'bg-gray-50': !isOnlyBookOpened }"
+      class="flex flex-row justify-between items-center pr-2 pl-3 pb-3 pt-2.5 border-b-gray-100 border-b-1 rounded-b-sm hover:(bg-gray-100 cursor-pointer)"
+      :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': isOnlyBookOpened, '': !isOnlyBookOpened }"
       @click.self="navigateToOpenedBook"
     >
-      <div class="flex text-xs font-semibold" :class="{ 'text-primary': isOnlyBookOpened }">
-        {{ project.title }}
+      <div
+        class="flex flex-row text-xs font-semibold items-center gap-x-3"
+        :class="{ 'text-primary': isOnlyBookOpened }"
+        @click="navigateToOpenedBook"
+      >
+        <div class="flex">
+          <MdiBookOpenOutline />
+        </div>
+        <div class="flex text-base">
+          {{ project.title }}
+        </div>
       </div>
       <div class="flex flex-row justify-between items-center">
         <div
@@ -132,27 +141,26 @@ const navigateToOpenedBook = () => {
       :draggable="!isPublic"
       :on-drop="onDrop"
       show-icon
-      class="h-full overflow-auto pb-20"
+      class="h-full overflow-y-scroll overflow-x-hidden pb-20"
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >
       <template #title="{ title, id }">
-        <div class="flex flex-row w-full items-center justify-between group pt-1">
-          <div class="flex">
-            {{ title }}
-          </div>
-          <div v-if="!isPublic" class="flex flex-row justify-between items-center">
-            <div
-              class="flex p-0.5 hover:(text-primary/100 !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none invisible group-hover:visible mr-2"
-              @click="() => addNewPage(id)"
+        <div class="flex flex-row items-center justify-between group pt-1">
+          <div class="text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out" :class="{}">
+            <span
+              class="text-ellipsis overflow-hidden"
+              :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             >
-              <MdiPlus />
-            </div>
-            <a-dropdown placement="bottomRight" trigger="click">
+              {{ title }}
+            </span>
+          </div>
+          <div v-if="!isPublic" class="flex flex-row justify-start items-center pl-2 gap-x-1">
+            <a-dropdown placement="bottom" trigger="click">
               <div
-                class="flex p-0.5 hover:(text-primary/100 !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none invisible group-hover:visible"
+                class="flex p-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
               >
-                <MdiDotsVertical />
+                <MdiDotsHorizontal />
               </div>
               <template #overlay>
                 <a-menu>
@@ -165,6 +173,12 @@ const navigateToOpenedBook = () => {
                 </a-menu>
               </template>
             </a-dropdown>
+            <div
+              class="flex p-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+              @click="() => addNewPage(id)"
+            >
+              <MdiPlus />
+            </div>
           </div>
         </div>
       </template>
@@ -183,7 +197,35 @@ const navigateToOpenedBook = () => {
 
 <style lang="scss">
 .nc-docs-left-sidebar {
+  .ant-tree-node-content-wrapper {
+    min-width: 0 !important;
+  }
+  .ant-tree-list-holder-inner {
+    @apply mx-2.5;
+  }
+
   .ant-tree {
+    // scrollbar reduce width and gray color
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    /* Track */
+    &::-webkit-scrollbar-track {
+      background: #f6f6f600 !important;
+    }
+
+    /* Handle */
+    &::-webkit-scrollbar-thumb {
+      background: #f6f6f600;
+    }
+
+    /* Handle on hover */
+    &::-webkit-scrollbar-thumb:hover {
+      background: #f6f6f600;
+    }
+  }
+  .ant-tree:hover {
     // scrollbar reduce width and gray color
     &::-webkit-scrollbar {
       width: 4px;
@@ -205,12 +247,13 @@ const navigateToOpenedBook = () => {
     }
   }
   .ant-tree-treenode {
-    @apply w-full !important;
+    @apply w-full rounded-md mt-0.5 !important;
   }
   .ant-tree-node-content-wrapper {
     @apply w-full mr-2 pl-0.5 !important;
   }
   .ant-tree-list {
+    @apply pt-0.5 last:pb-3;
     .ant-tree-switcher {
       @apply mt-1 !important;
     }
@@ -225,8 +268,8 @@ const navigateToOpenedBook = () => {
       transition-delay: 0s, 0s, 0s, 0s;
       transition-property: all, border, line-height, box-shadow;
     }
-    .ant-tree-treenode.ant-tree-treenode-selected {
-      @apply !bg-blue-50 !hover:bg-blue-50;
+    .ant-tree-treenode-selected {
+      @apply !bg-primary-selected !hover:bg-primary-selected;
       transition: all 0.3s, border 0s, line-height 0s, box-shadow 0s;
       transition-duration: 0.3s, 0s, 0s, 0s;
       transition-timing-function: ease, ease, ease, ease;
@@ -234,11 +277,11 @@ const navigateToOpenedBook = () => {
       transition-property: all, border, line-height, box-shadow;
     }
     .ant-tree-node-selected {
-      @apply !bg-blue-50 !hover:bg-blue-50;
+      @apply !bg-primary-selected !hover:bg-primary-selected;
     }
-    .ant-tree-treenode-selected {
-      @apply !bg-blue-50;
-    }
+    // .ant-tree-treenode-selected {
+    //   @apply !bg-primary-selected;
+    // }
     .ant-tree-indent-unit {
       @apply w-4 !important;
     }

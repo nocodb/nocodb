@@ -1,9 +1,13 @@
 <script lang="ts" setup>
-import { ref, useNuxtApp, useSidebar } from '#imports'
+import { ref, useNuxtApp, useRoute, useSidebar } from '#imports'
 
-useSidebar('nc-left-sidebar', { hasSidebar: false })
+const route = useRoute()
+
+useSidebar('nc-left-sidebar')
 
 const hasSider = ref(false)
+
+const isPublic = computed(() => route.meta?.public)
 
 const sidebar = ref<HTMLDivElement>()
 
@@ -26,18 +30,16 @@ export default {
 <template>
   <NuxtLayout name="new">
     <template #navbar>
-      <div class="flex flex-row justify-end w-full">
+      <div v-if="!isPublic" class="flex flex-row justify-end w-full mr-4">
         <GeneralShareProject />
       </div>
     </template>
-    <a-layout>
-      <a-layout-sider>
-        <slot name="sidebar" />
-      </a-layout-sider>
-      <a-layout-content>
-        <slot />
-      </a-layout-content>
-    </a-layout>
+    <template #sidebar>
+      <slot name="sidebar" />
+    </template>
+    <a-layout-content>
+      <slot />
+    </a-layout-content>
   </NuxtLayout>
 </template>
 

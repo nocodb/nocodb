@@ -40,17 +40,13 @@ const openedPage = computed<PageSidebarNode | undefined>({
     if (!value) return
 
     _openedPage.value = value
-    if (openedPageInternal.value && value.title !== openedPageInternal.value?.title) {
-      openedPageInternal.value.title = value.title
-    }
   },
 })
 
 const title = computed({
   get: () => (openedPage.value!.new ? '' : openedPage.value?.title || ''),
   set: (value) => {
-    openedPage.value!.new = false
-    openedPage.value!.title = value
+    openedPage.value = { ...openedPage.value!, title: value, new: false }
   },
 })
 const content = computed(() => openedPage.value?.content || '')

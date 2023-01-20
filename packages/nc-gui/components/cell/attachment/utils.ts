@@ -63,7 +63,19 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { files, open } = useFileDialog()
 
+    const { appInfo } = useGlobal()
+
     const { t } = useI18n()
+
+    const defaultAttachmentMeta = {
+      ...(appInfo.value.ee && {
+        // Maximum Number of Attachments per cell
+        maxNumberOfAttachments: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50,
+        // Maximum File Size per file
+        maxAttachmentSize: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 20) || 20,
+        supportedAttachmentMimeTypes: ['application', 'audio', 'image', 'video', 'misc'],
+      }),
+    }
 
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublic & isForm status */
     const visibleItems = computed<any[]>(() => (isPublic.value && isForm.value ? storedFiles.value : attachments.value))
@@ -123,31 +135,39 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       const newAttachments = []
 
-      const attachmentMeta = typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta
+      const attachmentMeta = {
+        ...defaultAttachmentMeta,
+        ...(typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta),
+      }
 
       const files: File[] = []
 
       for (const file of selectedFiles) {
-        // verify number of files
-        if (visibleItems.value.length + selectedFiles.length > attachmentMeta.maxNumberOfAttachments) {
-          message.error(
-            `You can only upload at most ${attachmentMeta.maxNumberOfAttachments} file${
-              attachmentMeta.maxNumberOfAttachments > 1 ? 's' : ''
-            } to this cell.`,
-          )
-          return
-        }
+        if (appInfo.value.ee) {
+          // verify number of files
+          if (visibleItems.value.length + selectedFiles.length > attachmentMeta.maxNumberOfAttachments) {
+            message.error(
+              `You can only upload at most ${attachmentMeta.maxNumberOfAttachments} file${
+                attachmentMeta.maxNumberOfAttachments > 1 ? 's' : ''
+              } to this cell.`,
+            )
+            return
+          }
 
-        // verify file size
-        if (file.size > attachmentMeta.maxAttachmentSize * 1024 * 1024) {
-          message.error(`The size of ${file.name} exceeds the maximum file size ${attachmentMeta.maxAttachmentSize} MB.`)
-          continue
-        }
+          // verify file size
+          if (file.size > attachmentMeta.maxAttachmentSize * 1024 * 1024) {
+            message.error(`The size of ${file.name} exceeds the maximum file size ${attachmentMeta.maxAttachmentSize} MB.`)
+            continue
+          }
 
-        // verify mime type
-        if (attachmentMeta.unsupportedAttachmentMimeTypes.includes(file.type)) {
-          message.error(`${file.name} has the mime type ${file.type} which is not allowed in this column.`)
-          continue
+          // verify mime type
+          if (
+            !attachmentMeta.supportedAttachmentMimeTypes.includes(file.type) &&
+            !attachmentMeta.supportedAttachmentMimeTypes.includes(file.type.split('/')[0])
+          ) {
+            message.error(`${file.name} has the mime type ${file.type} which is not allowed in this column.`)
+            continue
+          }
         }
 
         files.push(file)
@@ -248,6 +268,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       selectedVisibleItems,
       storedFiles,
       bulkDownloadFiles,
+      defaultAttachmentMeta,
     }
   },
   'useAttachmentCell',

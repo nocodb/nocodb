@@ -32,17 +32,16 @@ vModel.value.meta = {
     maxNumberOfAttachments: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50,
     // Maximum File Size per file
     maxAttachmentSize: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 20) || 20,
-    unsupportedAttachmentMimeTypes: [],
+    supportedAttachmentMimeTypes: ['application', 'audio', 'image', 'video', 'misc'],
   }),
   ...vModel.value.meta,
 }
 
-// the selected keys in the a-transfer
-const selectedKeys = ref<string[]>([])
-
 const filterOption = (val: string, option: Option) => {
   return option.title.includes(val)
 }
+
+const expandedKeys = ref<string[]>([])
 </script>
 
 <template>
@@ -59,23 +58,20 @@ const filterOption = (val: string, option: Option) => {
       </a-form-item>
     </a-col>
 
-    <a-col :span="24">
-      <a-form-item v-bind="validateInfos['meta.unsupportedAttachmentMimeTypes']" label="Mime Types">
-        <a-transfer
-          v-model:target-keys="vModel.meta.unsupportedAttachmentMimeTypes"
-          v-model:selected-keys="selectedKeys"
-          class="nc-attachment-transfer"
-          show-search
-          :list-style="{
-            width: '220px',
-            height: '300px',
-          }"
-          :filter-option="filterOption"
-          :data-source="fileMimeTypes.map((o) => ({ key: o, title: o }))"
-          :render="(item) => item.title"
-          :titles="['allowed', 'not allowed']"
-          :locale="{ itemUnit: 'type ', itemsUnit: 'types ' }"
-        />
+    <a-col class="mt-4" :span="24">
+      <a-form-item v-bind="validateInfos['meta.supportedAttachmentMimeTypes']" label="Allowed Mime Types">
+        <a-tree
+          v-model:expandedKeys="expandedKeys"
+          v-model:checkedKeys="vModel.meta.supportedAttachmentMimeTypes"
+          checkable
+          :height="250"
+          :tree-data="fileMimeTypes"
+          class="!bg-gray-50 !py-[10px] !my-[10px] border-2"
+        >
+          <template #title="{ title, key }">
+            {{ title }}
+          </template>
+        </a-tree>
       </a-form-item>
     </a-col>
   </a-row>

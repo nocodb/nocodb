@@ -14,10 +14,10 @@ import {
   uiTypes,
   useColumnCreateStoreOrThrow,
   useEventListener,
+  useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
-  useGlobal,
   watchEffect,
 } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'

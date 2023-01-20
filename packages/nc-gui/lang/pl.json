@@ -70,11 +70,11 @@
     "moreInfo": "Więcej informacji można znaleźć tutaj",
     "logs": "Logi",
     "groupingField": "Grupowanie pola",
-    "insertAfter": "Insert After",
-    "insertBefore": "Insert Before",
-    "hideField": "Hide Field",
-    "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "insertAfter": "Wstawić po",
+    "insertBefore": "Wstaw przed",
+    "hideField": "Ukryj pole",
+    "sortAsc": "Sortowanie rosnące",
+    "sortDesc": "Sortuj w dół"
   },
   "objects": {
     "project": "Projekt",
@@ -110,8 +110,8 @@
       "editor": "Redaktor",
       "commenter": "Komentator",
       "viewer": "Widz",
-      "orgLevelCreator": "Organization Level Creator",
-      "orgLevelViewer": "Organization Level Viewer"
+      "orgLevelCreator": "Poziom organizacji Twórca",
+      "orgLevelViewer": "Przeglądarka poziomu organizacji"
     },
     "sqlVIew": "Widok SQL"
   },
@@ -205,10 +205,10 @@
     "quickImport": "Szybki import",
     "advancedSettings": "Ustawienia zaawansowane",
     "codeSnippet": "Snippet",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Skróty klawiaturowe"
   },
   "labels": {
-    "createdBy": "Created By",
+    "createdBy": "Stworzony przez",
     "notifyVia": "Powiadomić VIA.",
     "projName": "Nazwa Projektu",
     "tableName": "Nazwa tabeli",
@@ -247,11 +247,11 @@
     "created": "Utworzony",
     "sqlOutput": "Wyjście SQL.",
     "addOption": "Dodaj opcję.",
-    "qrCodeValueColumn": "Column with QR code value",
-    "barcodeValueColumn": "Column with Barcode value",
-    "barcodeFormat": "Barcode format",
-    "qrCodeValueTooLong": "Too many characters for a QR code",
-    "barcodeValueTooLong": "Too many characters for a barcode",
+    "qrCodeValueColumn": "Kolumna z wartością kodu QR",
+    "barcodeValueColumn": "Kolumna z wartością kodu kreskowego",
+    "barcodeFormat": "Format kodu kreskowego",
+    "qrCodeValueTooLong": "Zbyt wiele znaków dla kodu QR",
+    "barcodeValueTooLong": "Zbyt wiele znaków dla kodu kreskowego",
     "aggregateFunction": "Funkcja kruszywa",
     "dbCreateIfNotExists": "Baza danych: Utwórz, jeśli nie istnieje",
     "clientKey": "Klucz klienta",
@@ -277,7 +277,7 @@
     "selectUserRole": "Wybierz rolę użytkownika",
     "childTable": "Stół dziecka.",
     "childColumn": "Kolumna dla dzieci",
-    "linkToAnotherRecord": "Link to another record",
+    "linkToAnotherRecord": "Link do innego rekordu",
     "onUpdate": "Na aktualizacji",
     "onDelete": "Na delete.",
     "account": "Konto",
@@ -312,9 +312,9 @@
     "signInWithGoogle": "Zaloguj się przez Google",
     "agreeToTos": "Rejestrując się, akceptujesz warunki korzystania z usługi",
     "welcomeToNc": "Witaj w NocoDB!",
-    "inviteOnlySignup": "Allow signup only using invite url",
-    "nextRow": "Next Row",
-    "prevRow": "Previous Row"
+    "inviteOnlySignup": "Zezwalaj na rejestrację tylko przy użyciu adresu url zaproszenia",
+    "nextRow": "Następny rząd",
+    "prevRow": "Poprzedni wiersz"
   },
   "activity": {
     "createProject": "Utwórz projekt",
@@ -359,14 +359,14 @@
     "invite": "Zapraszać",
     "inviteMore": "Zaprosić więcej",
     "inviteTeam": "Invite Team.",
-    "inviteUser": "Invite User",
+    "inviteUser": "Zaproś użytkownika",
     "inviteToken": "Zaproś token.",
     "newUser": "Nowy użytkownik",
     "editUser": "Edytuj użytkownika",
     "deleteUser": "Usuń użytkownika z projektu",
     "resendInvite": "Ponownie zaprosić zaproszenie e-maila",
     "copyInviteURL": "Kopiuj Zaproś Url.",
-    "copyPasswordResetURL": "Copy password reset URL",
+    "copyPasswordResetURL": "Skopiuj adres URL resetowania hasła",
     "newRole": "Nowa rola",
     "reloadRoles": "Role ponownie załaduj",
     "nextPage": "Następna strona",
@@ -382,8 +382,8 @@
     "setPrimary": "Ustaw jako wartość podstawowa",
     "addRow": "Dodaj nowy rząd",
     "saveRow": "Zapisz wiersz",
-    "saveAndExit": "Save & Exit",
-    "saveAndStay": "Save & Stay",
+    "saveAndExit": "Zapisz i wyjdź",
+    "saveAndStay": "Oszczędzaj i zostań",
     "insertRow": "Wstaw nowy rząd",
     "deleteRow": "Usuń rząd",
     "deleteSelectedRow": "Usuń wybrane wiersze",
@@ -503,18 +503,18 @@
   "msg": {
     "warning": {
       "barcode": {
-        "renderError": "Barcode error - please check compatibility between input and barcode type"
+        "renderError": "Błąd kodu kreskowego - proszę sprawdzić kompatybilność między typem kodu wejściowego i kreskowego"
       },
       "nonEditableFields": {
-        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
-        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+        "computedFieldUnableToClear": "Ostrzeżenie: Pole obliczone - nie można wyczyścić tekstu",
+        "qrFieldsCannotBeDirectlyChanged": "Ostrzeżenie: Pola QR nie mogą być bezpośrednio zmieniane."
       }
     },
     "info": {
-      "pasteNotSupported": "Paste operation is not supported on the active cell",
+      "pasteNotSupported": "Operacja wklejania nie jest obsługiwana w aktywnej komórce",
       "roles": {
-        "orgCreator": "Creator can create new projects and access any invited project.",
-        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+        "orgCreator": "Twórca może tworzyć nowe projekty i mieć dostęp do każdego zaproszonego projektu.",
+        "orgViewer": "Widz nie może tworzyć nowych projektów, ale może mieć dostęp do każdego zaproszonego projektu."
       },
       "footerInfo": "Wiersze na stronę",
       "upload": "Wybierz plik do przesłania",
@@ -630,9 +630,9 @@
       "deleteTableConfirmation": "Czy chcesz usunąć tabelę",
       "showM2mTables": "Pokaż tabele M2M",
       "deleteKanbanStackConfirmation": "Usunięcie tego stosu spowoduje również usunięcie wybranej opcji `{stackToBeDeleted}` z `{groupingField}`. Rekordy przeniosą się do nieskategoryzowanego stosu.",
-      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
-      "noMoreRecords": "No more records"
+      "computedFieldEditWarning": "Pole obliczeniowe: zawartość jest tylko do odczytu. Do rekonfiguracji należy użyć menu edycji kolumny",
+      "computedFieldDeleteWarning": "Pole obliczeniowe: zawartość jest tylko do odczytu. Nie można wyczyścić zawartości.",
+      "noMoreRecords": "Koniec zapisów"
     },
     "error": {
       "searchProject": "Twoje wyszukiwanie dla {search}, nie znaleziono żadnych wyników",
@@ -693,8 +693,8 @@
       "parameterKeyCannotBeEmpty": "Klucz parametru nie może być pusty",
       "duplicateParameterKeysAreNotAllowed": "Zduplikowane klucze parametrów są niedozwolone",
       "fieldRequired": "{value} nie może być puste.",
-      "projectNotAccessible": "Project not accessible",
-      "copyToClipboardError": "Failed to copy to clipboard"
+      "projectNotAccessible": "Projekt niedostępny",
+      "copyToClipboardError": "Nie udało się skopiować do schowka"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",
@@ -714,7 +714,7 @@
       "futureRelease": "Wkrótce!"
     },
     "success": {
-      "columnDuplicated": "Column duplicated successfully",
+      "columnDuplicated": "Kolumna powielona z powodzeniem",
       "updatedUIACL": "Pomyślnie zaktualizowano UI ACL dla tabel",
       "pluginUninstalled": "Wtyczka odinstalowana pomyślnie",
       "pluginSettingsSaved": "Ustawienia wtyczki zapisane pomyślnie",
@@ -725,16 +725,16 @@
       "tableDataExported": "Pomyślnie wyeksportowano wszystkie dane tabeli",
       "updated": "Zaktualizowano pomyślnie",
       "sharedViewDeleted": "Usunięto udostępniony widok",
-      "userDeleted": "User deleted successfully",
+      "userDeleted": "Użytkownik usunięty pomyślnie",
       "viewRenamed": "Zmieniono nazwę widoku",
       "tokenGenerated": "Token został wygenerowany pomyślnie",
       "tokenDeleted": "Token usunięty pomyślnie",
       "userAddedToProject": "Pomyślnie dodano użytkownika do projektu",
-      "userAdded": "Successfully added user",
+      "userAdded": "Udało się dodać użytkownika",
       "userDeletedFromProject": "Użytkownik usunięty z projektu",
       "inviteEmailSent": "E-mail z zaproszeniem wysłany pomyślnie",
       "inviteURLCopied": "Adres URL zaproszenia skopiowany do schowka",
-      "passwordResetURLCopied": "Password reset URL copied to clipboard",
+      "passwordResetURLCopied": "URL resetowania hasła skopiowany do schowka",
       "shareableURLCopied": "Skopiowano adres URL do schowka!",
       "embeddableHTMLCodeCopied": "Skopiowany kod HTML do osadzenia!",
       "userDetailsUpdated": "Pomyślnie zaktualizowano dane użytkownika",
@@ -745,8 +745,8 @@
       "columnUpdated": "Kolumna zaktualizowana",
       "columnCreated": "Kolumna utworzona",
       "passwordChanged": "Hasło zostało zmienione. Zaloguj się ponownie.",
-      "settingsSaved": "Settings saved successfully",
-      "roleUpdated": "Role updated successfully"
+      "settingsSaved": "Ustawienia zapisane pomyślnie",
+      "roleUpdated": "Rola została pomyślnie zaktualizowana"
     }
   }
 }

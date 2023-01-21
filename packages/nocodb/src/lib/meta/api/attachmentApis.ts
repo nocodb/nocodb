@@ -59,14 +59,18 @@ export async function upload(req: Request, res: Response) {
         file
       );
 
+      let attachmentPath;
+
+      // if `url` is null, then it is local attachment
       if (!url) {
-        url = `${(req as any).ncSiteUrl}/download/${filePath.join(
-          '/'
-        )}/${fileName}`;
+        // then store the attachement path only
+        // url will be constructued in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 
       return {
-        url,
+        ...(url ? { url } : {}),
+        ...(attachmentPath ? { path: attachmentPath } : {}),
         title: file.originalname,
         mimetype: file.mimetype,
         size: file.size,

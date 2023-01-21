@@ -671,6 +671,14 @@ class MysqlClient extends KnexClient {
             column.cdf = response[0][i].cdf;
           }
 
+          if (this._version?.version) {
+            if (this._version.version.includes('Maria')) {
+              if (column.cdf === 'NULL') {
+                column.cdf = null;
+              }
+            }
+          }
+
           column.cc = response[0][i].cc;
 
           column.csn = response[0][i].csn;

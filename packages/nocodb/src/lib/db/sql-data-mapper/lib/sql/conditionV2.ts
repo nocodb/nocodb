@@ -303,11 +303,11 @@ const parseConditionV2 = async (
             } else {
               val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
             }
-            qb = qb.whereNot(
-              field,
-              qb?.client?.config?.client === 'pg' ? 'ilike' : 'like',
-              val
-            );
+            if (qb?.client?.config?.client === 'pg') {
+              qb = qb.whereRaw('??::text not ilike ?', [field, val]);
+            } else {
+              qb = qb.whereNot(field, 'like', val);
+            }
             break;
           case 'allof':
           case 'anyof':

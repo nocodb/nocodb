@@ -102,7 +102,7 @@ watch(searchValue, (value) => {
           <template #title="{ title }">
             <span v-if="title.indexOf(searchValue) > -1">
               {{ title.substr(0, title.indexOf(searchValue)) }}
-              <span style="color: #f50">{{ searchValue }}</span>
+              <span class="text-primary font-bold">{{ searchValue }}</span>
               {{ title.substr(title.indexOf(searchValue) + searchValue.length) }}
             </span>
             <span v-else>{{ title }}</span>

@@ -1,5 +1,15 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  Api,
+  AttachmentType,
+  ColumnType,
+  KanbanType,
+  SelectOptionType,
+  SelectOptionsType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import {
   IsPublicInj,
@@ -14,6 +24,7 @@ import {
   provide,
   ref,
   useApi,
+  useGlobal,
   useI18n,
   useInjectionState,
   useNuxtApp,
@@ -21,9 +32,7 @@ import {
   useSharedView,
   useSmartsheetStoreOrThrow,
   useUIPermission,
-  useGlobal,
 } from '#imports'
-import { AttachmentType, UITypes } from 'nocodb-sdk'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -138,15 +147,15 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       formattedData.value = new Map<string | null, Row[]>()
       countByStack.value = new Map<string | null, number>()
 
-      let res
+      let groupData
 
       if (isPublic.value) {
-        res = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!, {
+        groupData = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!, {
           sortsArr: sorts.value,
           filtersArr: nestedFilters.value,
         })
       } else {
-        res = await api.dbViewRow.groupedDataList(
+        groupData = await api.dbViewRow.groupedDataList(
           'noco',
           project.value.id!,
           meta.value!.id!,
@@ -157,10 +166,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         )
       }
 
-      let records = []
-      for (const data of res) {
+      for (const data of groupData) {
+        const records = []
         const key = data.key
         // TODO: optimize
+        // reconstruct the url
+        // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
         for (const record of data.value.list) {
           for (const attachmentColumn of attachmentColumns.value) {
             const oldAttachment = JSON.parse(record[attachmentColumn!])

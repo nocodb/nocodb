@@ -2264,6 +2264,7 @@ export class Api<
      *
      * @tags DB table column
      * @name Delete
+     * @summary Column Delete
      * @request DELETE:/api/v1/db/meta/columns/{columnId}
      * @response `200` `void` OK
      */
@@ -2271,6 +2272,22 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table Column
+     * @name Get
+     * @summary Column Get
+     * @request GET:/api/v1/db/meta/columns/{columnId}
+     * @response `200` `void` OK
+     */
+    get: (columnId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/columns/${columnId}`,
+        method: 'GET',
         ...params,
       }),
 
@@ -3576,6 +3593,7 @@ export class Api<
         where?: string;
         /** Query params for nested data */
         nested?: any;
+        offset?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -4004,6 +4022,7 @@ export class Api<
  * @response `200` `(ViewType & {
   relatedMetas?: any,
   client?: string,
+  base_id?: string,
   columns?: ((GridColumnType | FormColumnType | GalleryColumnType) & ColumnType),
   model?: TableType,
 
@@ -4017,6 +4036,7 @@ export class Api<
         ViewType & {
           relatedMetas?: any;
           client?: string;
+          base_id?: string;
           columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
             ColumnType;
           model?: TableType;

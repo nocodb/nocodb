@@ -15,6 +15,10 @@ test.describe('Multi select', () => {
     await dashboard.treeView.createTable({ title: 'sheet1' });
 
     await grid.column.create({ title: 'MultiSelect', type: 'MultiSelect' });
+    await grid.column.selectOption.addOptions({
+      columnTitle: 'MultiSelect',
+      options: ['Option 1', 'Option 2'],
+    });
     await grid.addNewRow({ index: 0, value: 'Row 0' });
   });
 

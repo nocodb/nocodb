@@ -221,6 +221,10 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | btw | between | (colName,btw,val1,val2) |
 | nbtw | not between | (colName,nbtw,val1,val2) |
 | like | like | (colName,like,%name) |
+| allof | includes all of | (colName,allof,val1,val2,...) |
+| anyof | includes any of | (colName,anyof,val1,val2,...) |
+| nallof | does not include all of (includes none or some, but not all of) | (colName,nallof,val1,val2,...) |
+| nanyof | does not include any of (includes none of) | (colName,nanyof,val1,val2,...) |
 
 ## Logical Operators
 

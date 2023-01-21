@@ -204,5 +204,3 @@ const onConfirmDeleteRowClick = async () => {
     </a-dropdown-button>
   </div>
 </template>
-
-<style scoped></style>

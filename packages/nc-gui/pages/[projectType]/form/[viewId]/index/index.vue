@@ -85,7 +85,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(field)"
                       :model-value="null"
-                      class="mt-0 nc-input"
+                      class="mt-0 nc-input nc-cell"
                       :data-testid="`nc-form-input-cell-${field.label || field.title}`"
                       :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
                       :column="field"
@@ -133,3 +133,9 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.nc-cell .nc-action-icon) {
+  @apply !text-white-500 !bg-white/50 !rounded-full !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover:!bg-white-600 !hover:!text-white-600 !transition;
+}
+</style>

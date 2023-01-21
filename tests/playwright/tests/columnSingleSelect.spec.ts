@@ -15,6 +15,10 @@ test.describe('Single select', () => {
     await dashboard.treeView.createTable({ title: 'sheet1' });
 
     await grid.column.create({ title: 'SingleSelect', type: 'SingleSelect' });
+    await grid.column.selectOption.addOptions({
+      columnTitle: 'SingleSelect',
+      options: ['Option 1', 'Option 2'],
+    });
     await grid.addNewRow({ index: 0, value: 'Row 0' });
   });
 
@@ -52,6 +56,13 @@ test.describe('Single select', () => {
 
     await grid.cell.selectOption.select({ index: 0, columnHeader: 'SingleSelect', option: 'Option 3' });
     await grid.cell.selectOption.verify({ index: 0, columnHeader: 'SingleSelect', option: 'Option 3' });
+
+    await grid.column.selectOption.deleteOptionWithUndo({ index: 0, columnTitle: 'SingleSelect' });
+    await grid.cell.selectOption.verifyOptions({
+      index: 0,
+      columnHeader: 'SingleSelect',
+      options: ['Option 1', 'Option 2', 'Option 3'],
+    });
 
     await grid.column.selectOption.deleteOption({ index: 2, columnTitle: 'SingleSelect' });
     await grid.cell.selectOption.verifyNoOptionsSelected({ index: 0, columnHeader: 'SingleSelect' });

@@ -55,7 +55,7 @@ jobs:
           echo "Pull Request URL - ${{ steps.cpr.outputs.pr_url }}"
       - name: automerge
         if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
-        uses: "pascalgn/automerge-action@v0.14.3"
+        uses: "pascalgn/automerge-action@v0.15.5"
         env:
            GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
            PULL_REQUEST: "${{ steps.cpr.outputs.pr_number }}"

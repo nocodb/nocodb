@@ -77,16 +77,6 @@ export class ColumnPageObject extends BasePage {
     switch (type) {
       case 'SingleSelect':
       case 'MultiSelect':
-        await this.selectOption.addOption({
-          index: 0,
-          option: 'Option 1',
-          skipColumnModal: true,
-        });
-        await this.selectOption.addOption({
-          index: 1,
-          option: 'Option 2',
-          skipColumnModal: true,
-        });
         break;
       case 'Duration':
         if (format) {
@@ -279,7 +269,7 @@ export class ColumnPageObject extends BasePage {
     timeFormat?: string;
   }) {
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
 
     await this.get().waitFor({ state: 'visible' });
 

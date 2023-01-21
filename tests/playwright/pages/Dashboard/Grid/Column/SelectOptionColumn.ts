@@ -1,5 +1,6 @@
 import { ColumnPageObject } from '.';
 import BasePage from '../../../Base';
+import { expect } from '@playwright/test';
 
 export class SelectOptionColumnPageObject extends BasePage {
   readonly column: ColumnPageObject;
@@ -35,6 +36,18 @@ export class SelectOptionColumnPageObject extends BasePage {
     if (!skipColumnModal && columnTitle) await this.column.save({ isUpdated: true });
   }
 
+  // add multiple options at once after column creation is completed
+  //
+  async addOptions({ columnTitle, options }: { columnTitle: string; options: string[] }) {
+    await this.column.openEdit({ title: columnTitle });
+    for (let i = 0; i < options.length; i++) {
+      await this.column.get().locator('button:has-text("Add option")').click();
+      await this.column.get().locator(`[data-testid="select-column-option-input-${i}"]`).click();
+      await this.column.get().locator(`[data-testid="select-column-option-input-${i}"]`).fill(options[i]);
+    }
+    await this.column.save({ isUpdated: true });
+  }
+
   async editOption({ columnTitle, index, newOption }: { index: number; columnTitle: string; newOption: string }) {
     await this.column.openEdit({ title: columnTitle });
 
@@ -48,6 +61,22 @@ export class SelectOptionColumnPageObject extends BasePage {
     await this.column.openEdit({ title: columnTitle });
 
     await this.column.get().locator(`svg[data-testid="select-column-option-remove-${index}"]`).click();
+
+    await expect(this.column.get().getByTestId(`select-column-option-${index}`)).toHaveClass(/removed/);
+
+    await this.column.save({ isUpdated: true });
+  }
+
+  async deleteOptionWithUndo({ columnTitle, index }: { index: number; columnTitle: string }) {
+    await this.column.openEdit({ title: columnTitle });
+
+    await this.column.get().locator(`svg[data-testid="select-column-option-remove-${index}"]`).click();
+
+    await expect(this.column.get().getByTestId(`select-column-option-${index}`)).toHaveClass(/removed/);
+
+    await this.column.get().locator(`svg[data-testid="select-column-option-remove-undo-${index}"]`).click();
+
+    await expect(this.column.get().getByTestId(`select-column-option-${index}`)).not.toHaveClass(/removed/);
 
     await this.column.save({ isUpdated: true });
   }

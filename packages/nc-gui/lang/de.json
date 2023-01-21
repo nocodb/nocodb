@@ -277,6 +277,7 @@
     "selectUserRole": "Benutzerrolle auswählen",
     "childTable": "Child-Tabelle",
     "childColumn": "Child-Spalte",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Update",
     "onDelete": "Löschen",
     "account": "Benutzerkonto",
@@ -311,7 +312,9 @@
     "signInWithGoogle": "Mit Google einloggen",
     "agreeToTos": "Mit Ihrer Anmeldung stimmen Sie den allgemeinen Nutzungsbedingungen zu",
     "welcomeToNc": "Willkommen bei NocoDB!",
-    "inviteOnlySignup": "Anmeldung nur über Einladungs-URL zulassen"
+    "inviteOnlySignup": "Anmeldung nur über Einladungs-URL zulassen",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "Projekt erstellen",
@@ -504,8 +507,7 @@
       },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
-        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed.",
-        "barcodeFieldsCannotBeDirectlyChanged": "Warning: Barcode fields cannot be directly changed."
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
       }
     },
     "info": {
@@ -629,7 +631,8 @@
       "showM2mTables": "M2M Tabellen anzeigen",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "Ihre Suche nach {search} fand keine Ergebnisse",

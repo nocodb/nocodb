@@ -277,6 +277,7 @@
     "selectUserRole": "Выберите роль пользователя",
     "childTable": "Дочерняя таблица",
     "childColumn": "Дочерний столбец",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "При обновлении",
     "onDelete": "При удалении",
     "account": "Учётная запись",
@@ -311,7 +312,9 @@
     "signInWithGoogle": "Войти при помощи Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Добро пожаловать в NocoDB!",
-    "inviteOnlySignup": "Разрешить регистрацию только по ссылке"
+    "inviteOnlySignup": "Разрешить регистрацию только по ссылке",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "Создать проект",
@@ -628,7 +631,8 @@
       "showM2mTables": "Show M2M Tables",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "Ваш поиск {поиск} не дал результатов",

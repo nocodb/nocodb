@@ -21,14 +21,6 @@ jobs:
   build-executables:
     runs-on: ubuntu-latest
     steps:
-      # Get the latest draft release for asset upload url
-      - uses: cardinalby/git-get-release-action@v1
-        id: get_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
-        with:
-          latest: 1
-          draft: true
       - uses: actions/checkout@v3
       - name: Cache node modules
         id: cache-npm
@@ -107,54 +99,25 @@ jobs:
           mv ./dist/Noco-macos-arm64 ./mac-dist/
           mv ./dist/Noco-macos-x64 ./mac-dist/
 
-      - name: Upload win-arm64 build to asset
+      - name: Upload executables to asset
         id: upload-release-asset
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./scripts/pkg-executable/dist/Noco-win-arm64.exe
-          asset_name: Noco-win-arm64.exe
-          asset_content_type: application/octet-stream
-
-      - name: Upload win-x64 build to asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./scripts/pkg-executable/dist/Noco-win-x64.exe
-          asset_name: Noco-win-x64.exe
-          asset_content_type: application/octet-stream
-
-      - name: Upload linux-arm64 build to asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./scripts/pkg-executable/dist/Noco-linux-arm64
-          asset_name: Noco-linux-arm64
-          asset_content_type: application/octet-stream
-
-      - name: Upload linux-x64 build to asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./scripts/pkg-executable/dist/Noco-linux-x64
-          asset_name: Noco-linux-x64
-          asset_content_type: application/octet-stream
+          draft: true
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
+          files: |
+             ./scripts/pkg-executable/dist/Noco-win-arm64.exe
+             ./scripts/pkg-executable/dist/Noco-win-x64.exe
+             ./scripts/pkg-executable/dist/Noco-linux-arm64
+             ./scripts/pkg-executable/dist/Noco-linux-x64
 
       - uses: actions/upload-artifact@master
         with:
           name: ${{ github.event.inputs.tag || inputs.tag }}
           path: scripts/pkg-executable/mac-dist
           retention-days: 1
-    outputs:
-      upload_url: ${{ steps.get_release.outputs.upload_url }}
   sign-mac-executables:
     runs-on: macos-latest
     needs: build-executables
@@ -205,40 +168,17 @@ jobs:
         id: compress
 
 
-      - name: Upload macos-x64 build to asset
-        uses: actions/upload-release-asset@v1
+      - name: Upload macos executable to asset
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.build-executables.outputs.upload_url }}
-          asset_path: ./scripts/pkg-executable/mac-dist/Noco-macos-x64
-          asset_name: Noco-macos-x64
-          asset_content_type: application/octet-stream
-
-
-
-      - name: Upload macos-arm64 build to asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.build-executables.outputs.upload_url }}
-          asset_path: ./scripts/pkg-executable/mac-dist/Noco-macos-arm64
-          asset_name: Noco-macos-arm64
-          asset_content_type: application/octet-stream
-
-
-
-      - name: Upload macos compressed build(for homebrew) to asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.build-executables.outputs.upload_url }}
-          asset_path: ./scripts/pkg-executable/mac-dist/nocodb.tar.gz
-          asset_name: nocodb.tar.gz
-          asset_content_type: application/octet-stream
-
+          draft: true
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
+          files: |
+            ./scripts/pkg-executable/mac-dist/Noco-macos-x64
+            ./scripts/pkg-executable/mac-dist/Noco-macos-arm64
+            ./scripts/pkg-executable/mac-dist/nocodb.tar.gz
 
       - name: Generate Homebrew Formula class and push
         run: |
@@ -267,7 +207,3 @@ jobs:
 
           git commit ./Formula/nocodb.rb -m "Automatic publish"
           git push
-
-
-
-

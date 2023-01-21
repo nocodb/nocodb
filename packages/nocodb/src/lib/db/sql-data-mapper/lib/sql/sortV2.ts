@@ -51,7 +51,8 @@ export default async function sortV2(
               ).formula,
               null,
               knex,
-              model
+              model,
+              column
             )
           ).builder;
           qb.orderBy(builder, sort.direction || 'asc');
@@ -161,7 +162,8 @@ export default async function sortV2(
                       ).formula,
                       null,
                       knex,
-                      model
+                      model,
+                      column
                     )
                   ).builder;
 

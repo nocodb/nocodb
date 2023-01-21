@@ -33,7 +33,7 @@ export function useGlobalActions(state: State): Actions {
     const t = nuxtApp.vueApp.i18n.global.t
 
     nuxtApp.$api.instance
-      .post('/auth/refresh-token', null, {
+      .post('/auth/token/refresh', null, {
         withCredentials: true,
       })
       .then((response) => {

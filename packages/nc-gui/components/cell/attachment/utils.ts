@@ -99,7 +99,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           Array.from(selectedFiles).map(
             (file) =>
               new Promise<AttachmentType>((resolve) => {
-                const res: AttachmentType & { file: File } = { ...file, file, title: file.name, mimetype: file.type }
+                const res: { file: File; title: string; mimetype: string; data?: any } = {
+                  ...file,
+                  file,
+                  title: file.name,
+                  mimetype: file.type,
+                }
 
                 if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
                   const reader = new FileReader()
@@ -221,20 +226,25 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       ;(await import('file-saver')).saveAs(item.url || item.data, item.title)
     }
 
-    /** construct the attachment url */
+    /** construct the attachment url
+     * See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
+     * */
     async function getAttachmentUrl(item: AttachmentType) {
       const path = item?.path
-      // if path doesn't exist, use `url`
-      if (!path) return Promise.resolve(item.url)
-      // try ${appInfo.value.ncSiteUrl}/${item.path} first
-      const url = `${appInfo.value.ncSiteUrl}/${item.path}`
-      try {
-        const res = await fetch(url)
-        if (res.ok) {
-          return Promise.resolve(url)
+      // if path doesn't exist, use `item.url`
+      if (path) {
+        // try ${appInfo.value.ncSiteUrl}/${item.path} first
+        const url = `${appInfo.value.ncSiteUrl}/${item.path}`
+        try {
+          const res = await fetch(url)
+          if (res.ok) {
+            // use `url` if it is accessible
+            return Promise.resolve(url)
+          }
+        } catch {
+          // for some cases, `url` is not accessible as expected
+          // do nothing here
         }
-      } catch {
-        // do nothing
       }
       // if it fails, use the original url
       return Promise.resolve(item.url)

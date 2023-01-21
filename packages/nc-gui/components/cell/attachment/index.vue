@@ -103,7 +103,8 @@ watch(
       try {
         let nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
 
-        // update the url
+        // reconstruct the url
+        // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
         nextAttachments = await Promise.all(
           nextAttachments.map(async (attachment: any) => ({
             ...attachment,

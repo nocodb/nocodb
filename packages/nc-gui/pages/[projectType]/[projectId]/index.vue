@@ -70,8 +70,6 @@ const activeView = ref()
 
 const { activeTab } = useTabs()
 const { metas } = useMetas()
-// const { tables } = useProject()
-// const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.id : null))
 const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
 
 provide(ActiveViewInj, activeView)
@@ -426,9 +424,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         @click.stop="setIsMobileMode(!isMobileMode)"
                       >
                         <MaterialSymbolsMobileFriendly class="group-hover:text-accent" />
-                        Toggle Mobile Mode
-                        <!-- {{ $t('activity.account.swagger') }} -->
                         <!-- TODO: use i18n here -->
+                        Toggle Mobile Mode
                       </div>
                     </a-menu-item>
 
@@ -603,7 +600,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
             :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
           >
-            <!-- <div>OUTER INDEX - isOpen: {{ isOpen }}</div> -->
             <MdiBackburger
               v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
@@ -613,9 +609,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </div>
 
-        <!-- v-show="isMobileRightSidebarOpen"  -->
-        <!-- meta: {{  JSON.stringify(meta) }} <br />
-        isMobileMode: {{  JSON.stringify(isMobileMode) }} <br /> -->
         <LazyDashboardTreeView v-if="!(isMobileMode && showViewsMobileSidebar)" @clicked-table-link="onClickedTableLink" />
         <SmartsheetSidebarMobile
           v-if="meta && isMobileMode && showViewsMobileSidebar"

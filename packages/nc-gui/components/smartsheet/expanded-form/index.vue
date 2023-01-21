@@ -109,15 +109,7 @@ const onDuplicateRow = () => {
   const previousRow = Object.assign({}, row.value)
   row.value = { row: {}, oldRow: {}, rowMeta: { new: true } }
   setTimeout(async () => {
-    // await nextTick()
     row.value = previousRow
-    // row.value = {
-    //   ...row.value,
-    //   rowMeta: {
-    //     ...row.value.rowMeta,
-    //     new: true,
-    //   },
-    // }
     isExpanded.value = true
     duplicatingRowInProgress.value = false
     message.success('Prepared duplicated row (not saved yet)')

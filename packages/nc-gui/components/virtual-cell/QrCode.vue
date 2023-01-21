@@ -20,7 +20,6 @@ const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
     quality: 1,
   },
 }
-console.log(qrCodeOptions)
 
 const qrCode = useQRCode(qrValue, {
   ...qrCodeOptions,

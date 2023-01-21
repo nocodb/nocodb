@@ -36,7 +36,6 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
 }
 
 onMounted(() => {
-  // if (isMobileMode.value) toggle(true)
   mainArea.value?.addEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
 })
 </script>
@@ -49,7 +48,6 @@ onMounted(() => {
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
         >
-          <!-- <div>INNER INDEX - isOpen: {{ isOpen }}</div> -->
           <MdiMenu
             v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 text-white"

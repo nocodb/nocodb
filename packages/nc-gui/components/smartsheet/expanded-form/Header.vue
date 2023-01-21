@@ -174,7 +174,6 @@ const onConfirmDeleteRowClick = async () => {
         </div>
       </template>
     </a-dropdown>
-    <!-- <SmartsheetExpandedFormMoreActions @onClickDelete="onClickDelete" /> -->
 
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
       <template #overlay>

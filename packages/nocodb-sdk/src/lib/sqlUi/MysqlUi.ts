@@ -597,7 +597,6 @@ export class MysqlUi {
   }
 
   static onCheckboxChangeAI(col) {
-    console.log(col);
     if (
       col.dt === 'int' ||
       col.dt === 'bigint' ||
@@ -977,6 +976,7 @@ export class MysqlUi {
       case 'Checkbox':
         colProp.dt = 'tinyint';
         colProp.dtxp = 1;
+        colProp.cdf = '0';
         break;
       case 'MultiSelect':
         colProp.dt = 'set';
@@ -1049,6 +1049,7 @@ export class MysqlUi {
         break;
       case 'Rating':
         colProp.dt = 'int';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'varchar';

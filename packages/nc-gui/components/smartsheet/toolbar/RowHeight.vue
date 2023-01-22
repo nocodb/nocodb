@@ -54,10 +54,22 @@ useMenuCloseOnEsc(open)
       <div class="w-full bg-gray-50 shadow-lg menu-filter-dropdown !border" data-testid="nc-height-menu">
         <div class="text-gray-500 !text-xs px-4 py-2">Select a row height</div>
         <div class="flex flex-col w-full text-sm" @click.stop>
-          <div class="nc-row-height-option" @click="updateRowHeight(0)">Short</div>
-          <div class="nc-row-height-option" @click="updateRowHeight(1)">Medium</div>
-          <div class="nc-row-height-option" @click="updateRowHeight(2)">Tall</div>
-          <div class="nc-row-height-option" @click="updateRowHeight(3)">Extra</div>
+          <div class="nc-row-height-option" @click="updateRowHeight(0)">
+            <NcIconsRowHeightShort class="nc-row-height-icon" />
+            Short
+          </div>
+          <div class="nc-row-height-option" @click="updateRowHeight(1)">
+            <NcIconsRowHeightMedium class="nc-row-height-icon" />
+            Medium
+          </div>
+          <div class="nc-row-height-option" @click="updateRowHeight(2)">
+            <NcIconsRowHeightTall class="nc-row-height-icon" />
+            Tall
+          </div>
+          <div class="nc-row-height-option" @click="updateRowHeight(3)">
+            <NcIconsRowHeightExtraTall class="nc-row-height-icon" />
+            Extra
+          </div>
         </div>
       </div>
     </template>
@@ -66,6 +78,10 @@ useMenuCloseOnEsc(open)
 
 <style scoped>
 .nc-row-height-option {
-  @apply flex items-center py-1 px-2 justify-center hover:bg-gray-200 cursor-pointer;
+  @apply flex items-center py-1 px-2 justify-start hover:bg-gray-200 cursor-pointer;
+}
+
+.nc-row-height-icon {
+  @apply text-gray-600 mx-4 text-base;
 }
 </style>

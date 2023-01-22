@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import { Modal as AModal, useVModel } from '#imports'
-import { latLongToJoinedString } from '~~/utils/geoDataUtils'
+import { Modal as AModal, latLongToJoinedString, useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -49,14 +48,13 @@ const onClickSetCurrentLocation = () => {
   isLoading = true
   const onSuccess = (position) => {
     const crd = position.coords
-    console.log('crd', crd)
     formState.latitude = crd.latitude
     formState.longitude = crd.longitude
     isLoading = false
   }
 
   const onError = (err) => {
-    console.warn(`ERROR(${err.code}): ${err.message}`)
+    console.error(`ERROR(${err.code}): ${err.message}`)
     isLoading = false
   }
 
@@ -74,7 +72,7 @@ const onClickSetCurrentLocation = () => {
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
       <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
-        <a-form-item class="inputLat">
+        <a-form-item class="input-lat">
           <template #label>
             <div class="fixed-width">{{ $t('labels.lat') }}</div>
           </template>
@@ -91,7 +89,7 @@ const onClickSetCurrentLocation = () => {
           />
         </a-form-item>
 
-        <a-form-item class="inputLng">
+        <a-form-item class="input-lng">
           <template #label>
             <div>{{ $t('labels.lng') }}</div>
           </template>
@@ -113,7 +111,7 @@ const onClickSetCurrentLocation = () => {
             <a-button class="ml-2" @click="onClickSetCurrentLocation">{{ $t('labels.yourLocation') }}</a-button>
           </div>
         </a-form-item>
-        <a-form-item class="buttons">
+        <a-form-item class="btn-cancel-submit">
           <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
           <a-button type="primary" html-type="submit">{{ $t('general.submit') }}</a-button>
         </a-form-item>
@@ -127,14 +125,14 @@ input[type='number']:focus {
   @apply ring-transparent;
 }
 
-.inputLat {
+.input-lat {
   width: 180px;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
   margin-right: 0.5rem;
   margin-left: 0.5rem;
 }
-.inputLng {
+.input-lng {
   width: 180px;
   margin-right: 0.5rem;
   margin-left: 0.5rem;
@@ -143,7 +141,7 @@ input[type='number']:focus {
 .fixed-width {
   width: 24px;
 }
-.buttons {
+.btn-cancel-submit {
   margin-left: auto;
   margin-bottom: 0;
 }

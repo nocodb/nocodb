@@ -123,7 +123,11 @@ onMounted(async () => {
 
   markersClusterGroupRef.value = L.markerClusterGroup({
     iconCreateFunction(cluster: { getChildCount: () => number }) {
-      return L.divIcon({ html: `${cluster.getChildCount()}`, className: 'geo-map-marker-cluster', iconSize: new L.Point(40, 40) })
+      return L.divIcon({
+        html: `${cluster.getChildCount()}`,
+        className: 'bg-pink rounded-full flex items-center justify-center geo-map-marker-cluster',
+        iconSize: new L.Point(40, 40),
+      })
     },
   })
   myMap.addLayer(markersClusterGroupRef.value)
@@ -195,12 +199,13 @@ watch(view, async (nextView) => {
 })
 
 const count = computed(() => paginationData.value.totalRows)
+console.log('count', count)
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full no-underline">
-    <div id="mapContainer" ref="mapContainerRef">
-      <a-tooltip placement="bottom" class="tooltip">
+    <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">
+      <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-10 right-10 p-10 z-500 cursor-default">
         <template #title>
           <span v-if="count > 1000"> {{ $t('msg.info.map.overLimit') }} </span>
           <span v-else-if="count > 900"> {{ $t('msg.info.map.closeLimit') }} </span>
@@ -240,10 +245,6 @@ const count = computed(() => paginationData.value.totalRows)
 </template>
 
 <style scoped lang="scss">
-#mapContainer {
-  height: 100vh;
-}
-
 :global(.geo-map-marker-cluster) {
   background-color: pink;
   border-radius: 50%;
@@ -260,15 +261,5 @@ const count = computed(() => paginationData.value.totalRows)
 .leaflet-popup-content-wrapper {
   max-height: 255px;
   overflow: scroll;
-}
-.tooltip {
-  height: 2rem;
-  max-width: fit-content;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 10px;
-  z-index: 500;
-  cursor: default;
 }
 </style>

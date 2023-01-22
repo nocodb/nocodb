@@ -16,6 +16,7 @@ const open = ref(false)
 
 const updateRowHeight = async (rh: number) => {
   if (view.value?.id) {
+    if (rh === (view.value.view as GridType).row_height) return
     try {
       if (!isPublic.value && !isSharedBase.value) {
         await $api.dbView.gridUpdate(view.value.id, {

@@ -165,7 +165,7 @@ const navigateToOpenedBook = () => {
               <template #overlay>
                 <div class="flex flex-col p-1 bg-gray-50 rounded-md w-28 gap-y-0.5 border-1 border-gray-100">
                   <div
-                    class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-200 rounded-md !text-red-500"
+                    class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-100 rounded-md !text-red-500"
                     @click="() => openDeleteModal({ pageId: id })"
                   >
                     <MdiDeleteOutline class="h-3.5" />

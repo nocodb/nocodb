@@ -21,8 +21,8 @@ const toggleFullScreen = () => {
     :position="PanelPosition.TopLeft"
   >
     <div class="flex">
-      <MiFullscreenExit v-if="config.isFullScreen" class="h-5 w-5" @click="() => toggleFullScreen()" />
-      <MiFullscreen v-else class="h-5 w-5" @click="() => toggleFullScreen()" />
+      <MiFullscreenExit v-if="config.isFullScreen" class="h-5 w-5" @click="toggleFullScreen" />
+      <MiFullscreen v-else class="h-5 w-5" @click="toggleFullScreen" />
     </div>
   </Panel>
 </template>

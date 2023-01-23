@@ -14,7 +14,7 @@ const {
   createMagic,
   fetchBooks,
   navigateToLastBook,
-  addNewPage,
+  addNewPage: _addNewPage,
   createImport,
   flattenedNestedPages,
   // fetchAllPages,
@@ -107,7 +107,6 @@ const magicFormData = ref({
   title: '',
   content: '',
 })
-const magicParentPageId = ref()
 const isMagicLoading = ref(false)
 
 const importModalOpen = ref(false)
@@ -123,8 +122,7 @@ const onCreateBook = async () => {
   showCreateBookModal.value = false
 }
 
-const openMagicModal = (parentId?: string | undefined) => {
-  magicParentPageId.value = parentId
+const openMagicModal = () => {
   magicModalOpen.value = true
 }
 
@@ -159,6 +157,10 @@ const onImport = async () => {
     importModalOpen.value = false
     isImporting.value = false
   }
+}
+
+const addNewPage = () => {
+  _addNewPage()
 }
 
 // watch(isOnlyBookOpened, async () => {
@@ -291,12 +293,6 @@ const onImport = async () => {
             </a-tooltip>
           </div>
           <div class="flex flex-row gap-x-1 h-10 justify-end">
-            <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => addNewPage()">
-              <div class="flex flex-row gap-x-1 items-center">
-                <div class="flex pl-1">New Page</div>
-                <MdiPlus />
-              </div>
-            </a-button> -->
             <a-dropdown trigger="click" placement="bottomLeft">
               <div
                 class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row max-w-28 mr-2 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-gray-100"
@@ -315,7 +311,7 @@ const onImport = async () => {
                   </div>
                   <div
                     class="flex flex-row items-start text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
-                    @click="() => openMagicModal()"
+                    @click="openMagicModal"
                   >
                     <PhSparkleFill class="flex text-orange-400 mt-0.5" />
                     <div class="flex flex-col">
@@ -330,7 +326,7 @@ const onImport = async () => {
                     class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
                     @click="() => openImportModal()"
                   >
-                    <PhUploadSimpleFill class="flex" />
+                    <PhDownloadSimpleFill class="flex" />
                     <div class="flex">Import</div>
                   </div>
                 </div>
@@ -408,7 +404,37 @@ const onImport = async () => {
                 <a-spin size="large" />
               </div>
             </div> -->
-            <div :key="activeTabKey" class="h-full overflow-y-auto docs-book-infinite-list">
+            <div v-if="pages.length === 0" class="h-full flex flex-col justify-center -mt-6">
+              <div class="flex flex-col gap-y-3 items-center">
+                <img src="~/assets/img/add-page.svg" class="flex h-12" />
+                <div class="flex text-xl font-semibold">Lets get started!</div>
+                <div class="flex text-xs">Create your first Document.</div>
+                <div class="flex flex-row items-center gap-x-5 mt-2">
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 border-gray-200 border-1 py-2 px-4 rounded-md font-semibold cursor-pointer hover:bg-gray-50"
+                    @click="addNewPage"
+                  >
+                    <div>Create New Page</div>
+                    <MdiPlus class="h-3.5 font-semibold" />
+                  </div>
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 border-gray-200 border-1 py-2 px-4 rounded-md font-semibold cursor-pointer hover:bg-gray-50"
+                    @click="openImportModal"
+                  >
+                    <div>Import Pages</div>
+                    <PhDownloadSimpleFill class="h-3.5 font-semibold" />
+                  </div>
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 border-gray-200 border-1 py-2 px-4 rounded-md font-semibold cursor-pointer hover:bg-gray-50"
+                    @click="openMagicModal"
+                  >
+                    <div>Create Pages using AI</div>
+                    <PhSparkleFill class="flex text-orange-400 h-3.5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else :key="activeTabKey" class="h-full overflow-y-auto docs-book-infinite-list">
               <div class="flex flex-col gap-y-4 mt-6 mb-12 px-2">
                 <div
                   v-for="(page, index) of pages"

@@ -289,6 +289,7 @@ declare module '@vue/runtime-core' {
     MiCircleWarning: typeof import('~icons/mi/circle-warning')['default']
     MiDocumentAdd: typeof import('~icons/mi/document-add')['default']
     PhCloudLightningDuotone: typeof import('~icons/ph/cloud-lightning-duotone')['default']
+    PhDownloadSimpleFill: typeof import('~icons/ph/download-simple-fill')['default']
     PhFileCsv: typeof import('~icons/ph/file-csv')['default']
     PhSparkleFill: typeof import('~icons/ph/sparkle-fill')['default']
     PhUploadSimpleFill: typeof import('~icons/ph/upload-simple-fill')['default']

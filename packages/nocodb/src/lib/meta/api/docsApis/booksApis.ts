@@ -139,9 +139,18 @@ async function magic(
         NcError.badRequest('Failed to parse schema');
       }
 
-      const pages = JSON5.parse(response.data.choices[0].text);
+      let pages = JSON5.parse(response.data.choices[0].text);
+      pages = pages.length ? pages : pages.data;
+      if (
+        pages.length === 1 &&
+        (pages[0].title as string).toLowerCase() ===
+          (req.body.title as string).toLowerCase()
+      ) {
+        // Skip the root page since it's the same as the book title
+        pages = pages[0].pages;
+      }
 
-      for (const page of pages.length ? pages : pages.data) {
+      for (const page of pages) {
         await handlePageJSON(
           page,
           book.id,

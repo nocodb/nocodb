@@ -12,8 +12,7 @@ const {
   selectBook,
   createBook,
   createMagic,
-  fetchBooks,
-  navigateToLastBook,
+  fetchNestedPages,
   addNewPage: _addNewPage,
   createImport,
   flattenedNestedPages,
@@ -21,6 +20,7 @@ const {
   // allPages,
   // allByTitle,
   openPage,
+  openChildPageOfRootPages,
   // fetchPublishedPages,
   // fetchAllPagesByTitle,
   // isOnlyBookOpened,
@@ -135,8 +135,9 @@ const onMagic = async () => {
   isMagicLoading.value = true
   try {
     await createMagic(magicFormData.value.title)
-    await fetchBooks()
-    await navigateToLastBook()
+    magicFormData.value.title = ''
+    await fetchNestedPages({ book: openedBook.value! })
+    await openChildPageOfRootPages()
   } catch (e) {
     console.error(e)
   } finally {
@@ -149,8 +150,8 @@ const onImport = async () => {
   isImporting.value = true
   try {
     await createImport(importFormData.value.title, 'nuxt')
-    await fetchBooks()
-    await navigateToLastBook()
+    await fetchNestedPages({ book: openedBook.value! })
+    await openChildPageOfRootPages()
   } catch (e) {
     console.error(e)
   } finally {
@@ -161,6 +162,12 @@ const onImport = async () => {
 
 const addNewPage = () => {
   _addNewPage()
+}
+
+const closeMagicModal = () => {
+  if (isMagicLoading.value) return
+
+  magicModalOpen.value = false
 }
 
 // watch(isOnlyBookOpened, async () => {
@@ -487,29 +494,43 @@ const addNewPage = () => {
     <a-modal
       :visible="magicModalOpen"
       :closable="false"
-      :cancel-button-props="{ disabled: isMagicLoading }"
-      :mask-closable="false"
-      :confirm-loading="isMagicLoading"
       ok-text="Submit"
-      @cancel="magicModalOpen = false"
-      @ok="onMagic"
+      class="docs-magic-modal"
+      :ok-button-props="{ hidden: true }"
+      :cancel-button-props="{ hidden: true }"
+      :footer="null"
+      :centered="true"
     >
-      <template #title>
-        <div class="flex items-center">
-          Create Pages
-          <PhSparkleFill :class="{ 'nc-animation-pulse': isMagicLoading }" class="ml-2 text-orange-400" />
-        </div>
-      </template>
-      <a-form :model="magicFormData">
-        <div class="flex flex-col mx-2">
-          <div class="ml-1 mb-2 text-sm">
-            Title representing your need <span class="text-gray-500">(i.e Marketing handbook) </span>:
+      <div class="flex flex-col px-2.5">
+        <div class="flex flex-row items-center justify-between mx-1.5 border-b-1 border-gray-100 pb-2 pt-0.5">
+          <div class="flex flex-row ml-1 font-semibold items-center">
+            <div class="flex">Create pages with prompt</div>
+            <PhSparkleFill :class="{ 'nc-animation-pulse': isMagicLoading }" class="flex ml-2 -mt-0.5 text-orange-400" />
           </div>
-          <a-form-item>
-            <a-input v-model:value="magicFormData.title" class="!rounder-md" />
-          </a-form-item>
+          <div
+            class="flex hover:bg-gray-50 p-1 rounded-md cursor-pointer"
+            :class="{ 'text-gray-400 bg-gray-50 cursor-not-allowed hover:bg-gray-50': isMagicLoading }"
+            @click="closeMagicModal"
+          >
+            <MdiClose class="my-auto h-3.5" />
+          </div>
         </div>
-      </a-form>
+
+        <div class="flex flex-col mx-2 mt-3">
+          <a-input v-model:value="magicFormData.title" class="!rounded-md !bg-gray-50" placeholder="Enter prompt" />
+        </div>
+
+        <div class="flex flex-row justify-end mr-2 mt-3.5 mb-2">
+          <a-button
+            :loading="isMagicLoading"
+            :disabled="magicFormData.title?.length === 0"
+            type="primary"
+            class="!rounded-md"
+            @click="onMagic"
+            >Generate Pages</a-button
+          >
+        </div>
+      </div>
     </a-modal>
     <a-modal
       :visible="importModalOpen"
@@ -616,6 +637,21 @@ const addNewPage = () => {
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
     background: rgb(203, 203, 203);
+  }
+}
+
+.docs-magic-modal {
+  .ant-modal-content {
+    @apply !rounded-md;
+  }
+  .ant-modal-body {
+    @apply !py-2.5 !px-0;
+  }
+  .ant-btn-loading-icon {
+    @apply !pb-1;
+  }
+  .ant-btn {
+    @apply !flex !flex-row !items-center;
   }
 }
 </style>

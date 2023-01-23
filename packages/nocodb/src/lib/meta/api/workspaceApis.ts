@@ -19,19 +19,30 @@ const workspaceCreate = async (
 ) => {
   validateParams(['title'], req.body);
 
-  const workspace = await Workspace.insert({
-    ...req.body,
-    // todo : extend request type
-    fk_user_id: (req as any).user.id,
-  });
+  const workspaceTitles = req.body.title
+    .split(',')
+    .map((title) => title.trim())
+    .filter(Boolean);
 
-  await WorkspaceUser.insert({
-    fk_workspace_id: workspace.id,
-    fk_user_id: (req as any).user.id,
-    roles: WorkspaceUserRoles.OWNER,
-  });
+  const workspaces = [];
 
-  res.json(workspace);
+  for (const workspaceTitle of workspaceTitles) {
+    const workspace = await Workspace.insert({
+      ...req.body,
+      title: workspaceTitle,
+      // todo : extend request type
+      fk_user_id: (req as any).user.id,
+    });
+
+    await WorkspaceUser.insert({
+      fk_workspace_id: workspace.id,
+      fk_user_id: (req as any).user.id,
+      roles: WorkspaceUserRoles.OWNER,
+    });
+
+    workspaces.push(workspace);
+  }
+  res.json(workspaces);
 };
 
 const workspaceGet = async (

@@ -84,10 +84,10 @@ watch(dialogShow, (val) => {
     <div class="pl-10 pr-10 pt-5">
       <a-form :model="workspace" name="create-new-workspace-form" @keydown.enter="_createWorkspace">
         <!-- Create A New Table -->
-        <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
+        <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createWorkspace') }}</div>
 
         <!-- todo: i18n -->
-        <div class="mb-2">Workspace Name</div>
+        <div class="mb-2">Workspace Names</div>
 
         <a-form-item v-bind="validateInfos.title">
           <a-input
@@ -96,7 +96,7 @@ watch(dialogShow, (val) => {
             size="large"
             hide-details
             data-testid="create-workspace-title-input"
-            placeholder="Workspace Title"
+            placeholder="Comma separated names"
           />
         </a-form-item>
         <a-form-item v-bind="validateInfos.description">
@@ -105,7 +105,7 @@ watch(dialogShow, (val) => {
             size="large"
             hide-details
             data-testid="create-workspace-title-input"
-            placeholder="Workspace Description"
+            placeholder="Workspace description"
           />
         </a-form-item>
       </a-form>

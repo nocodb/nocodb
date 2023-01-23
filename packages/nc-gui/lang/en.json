@@ -374,6 +374,7 @@
     "previousRecord": "Previous record",
     "copyApiURL": "Copy API URL",
     "createTable": "Table Create",
+    "createWorkspace": "Workspace Create",
     "refreshTable": "Tables Refresh",
     "renameTable": "Table Rename",
     "deleteTable": "Table Delete",

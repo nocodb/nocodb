@@ -1,0 +1,45 @@
+{
+    "serviceName": "nocohub-service-cli",
+    "cluster": "nocohub-001",
+    "loadBalancers": [
+      {
+        "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:249717198246:targetgroup/nocohub-001-ecs-target-group/65afd18ce54b8c81",
+        "containerName": "nocohub",
+        "containerPort": 8080
+      }
+    ],
+    "serviceRegistries": [],    
+    "desiredCount": 1,
+    "capacityProviderStrategy": [
+      {
+        "capacityProvider": "nocohub-001-ecs-t3micro",
+        "weight": 1,
+        "base": 0
+      }
+    ],
+    "taskDefinition": "arn:aws:ecs:us-east-2:249717198246:task-definition/nocohub-001-task-definition:2",
+    "deploymentConfiguration": {
+      "maximumPercent": 200,
+      "minimumHealthyPercent": 100
+    },
+    "role": "ecsServiceRole",
+    "placementConstraints": [],
+    "placementStrategy": [
+      {
+        "type": "spread",
+        "field": "attribute:ecs.availability-zone"
+      },
+      {
+        "type": "spread",
+        "field": "instanceId"
+      }
+    ],
+    "healthCheckGracePeriodSeconds": 0,
+    "schedulingStrategy": "REPLICA",
+    "deploymentController": {
+      "type": "CODE_DEPLOY"
+    },
+    "enableECSManagedTags": true,
+    "propagateTags": "NONE",
+    "enableExecuteCommand": false
+  }

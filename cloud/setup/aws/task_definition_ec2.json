@@ -1,0 +1,62 @@
+{
+    "family": "nocohub-001-task-definition",
+    "containerDefinitions": [
+        {
+            "name": "nocohub",
+            "image": "249717198246.dkr.ecr.us-east-2.amazonaws.com/nocohub:latest",
+            "cpu": 0,
+            "memory": 900,
+            "links": [],
+            "portMappings": [
+                {                    
+                    "containerPort": 8080,
+                    "hostPort": 80,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "entryPoint": [],
+            "command": [],
+            "environment": [],
+            "environmentFiles": [
+                {
+                    "value": "arn:aws:s3:::nocohub-001/env-staging.env",
+                    "type": "s3"
+                }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "secrets": [],
+            "dnsServers": [],
+            "dnsSearchDomains": [],
+            "extraHosts": [],
+            "dockerSecurityOptions": [],
+            "dockerLabels": {},
+            "ulimits": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/nocohub-001-task-definition",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "systemControls": []
+        }
+    ],
+    "taskRoleArn": "arn:aws:iam::249717198246:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::249717198246:role/ecsTaskExecutionRole",
+    "networkMode": "bridge",
+    "requiresCompatibilities": [
+        "EC2"
+    ],
+    "cpu": "1024",
+    "memory": "922",
+    "tags": [
+        {
+            "key": "ecs:taskDefinition:createdFrom",
+            "value": "ecs-console-v2"
+        }
+    ]
+}

@@ -1,0 +1,44 @@
+{    
+    "serviceName": "nocohub-001-cd-fargate-TEST",
+    "cluster": "nocohub-001",
+    "loadBalancers": [
+        {
+            "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:249717198246:targetgroup/nocohub-001-fargate-1/ca7fbc7784f980f4",
+            "containerName": "nocohub-001-fargate",
+            "containerPort": 8080
+        }
+    ],
+    "serviceRegistries": [],
+    "desiredCount": 1,
+    "launchType": "FARGATE",
+    "platformVersion": "1.4.0",    
+    "taskDefinition": "arn:aws:ecs:us-east-2:249717198246:task-definition/nocohub-001-fargate:1",
+    "deploymentConfiguration": {
+        "maximumPercent": 200,
+        "minimumHealthyPercent": 100
+    },       
+    "placementConstraints": [],
+    "placementStrategy": [],
+    "networkConfiguration": {
+        "awsvpcConfiguration": {
+            "subnets": [
+                "subnet-0f815721f89468e42",
+                "subnet-082a8e3d794066249",
+                "subnet-02a16be8d48549012"
+            ],
+            "securityGroups": [
+                "sg-0df5fe05e2def0eb9"
+            ],
+            "assignPublicIp": "ENABLED"
+        }
+    },
+    "healthCheckGracePeriodSeconds": 0,
+    "schedulingStrategy": "REPLICA",
+    "deploymentController": {
+        "type": "CODE_DEPLOY"
+    },
+    "enableECSManagedTags": true,
+    "propagateTags": "NONE",
+    "enableExecuteCommand": false
+}
+

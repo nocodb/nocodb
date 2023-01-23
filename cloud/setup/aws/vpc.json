@@ -1,0 +1,20 @@
+{
+    "CidrBlock": "172.33.33.0/20",        
+    "InstanceTenancy": "default",
+    "CidrBlockAssociationSet": [
+        {            
+            "CidrBlock": "172.33.16.0/20",
+            "CidrBlockState": {
+                "State": "associated"
+            }
+        }
+    ],    
+    "Tags": [
+        {
+            "Key": "Name",
+            "Value": "nocohub-001-vpc"
+        }
+    ],
+    "EnableDnsSupport": true,
+    "EnableDnsHostnames": true
+}

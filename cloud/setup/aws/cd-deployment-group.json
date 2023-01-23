@@ -1,0 +1,46 @@
+{
+        "applicationName": "nocohub-001-cli",        
+        "deploymentGroupName": "cd-2",
+        "deploymentConfigName": "CodeDeployDefault.ECSLinear10PercentEvery1Minutes",
+        "serviceRoleArn": "arn:aws:iam::249717198246:role/nocohub-codedeploy",        
+        "deploymentStyle": {
+            "deploymentType": "BLUE_GREEN",
+            "deploymentOption": "WITH_TRAFFIC_CONTROL"
+        },
+        "outdatedInstancesStrategy": "UPDATE",
+        "blueGreenDeploymentConfiguration": {
+            "terminateBlueInstancesOnDeploymentSuccess": {
+                "action": "TERMINATE",
+                "terminationWaitTimeInMinutes": 1
+            },
+            "deploymentReadyOption": {
+                "actionOnTimeout": "CONTINUE_DEPLOYMENT",
+                "waitTimeInMinutes": 0
+            }
+        },
+        "loadBalancerInfo": {
+            "targetGroupPairInfoList": [
+                {
+                    "targetGroups": [
+                        {
+                            "name": "nocohub-001-ecs-target-group"
+                        },
+                        {
+                            "name": "nocohub-001-ecs-target-group-2"
+                        }
+                    ],
+                    "prodTrafficRoute": {
+                        "listenerArns": [
+                            "arn:aws:elasticloadbalancing:us-east-2:249717198246:listener/app/nocohub-001/4a584e0fae8a1203/e54c4059a7a181f7"
+                        ]
+                    }
+                }
+            ]
+        },        
+        "ecsServices": [
+            {
+                "serviceName": "nocohub-service-cli",
+                "clusterName": "nocohub-001"
+            }
+        ]
+}

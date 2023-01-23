@@ -1,0 +1,37 @@
+{    
+        "AutoScalingGroupName": "nocohub-001-t3small-for-ecs",        
+        "LaunchTemplate": {
+            "LaunchTemplateId": "lt-0322463d2aa50a198",            
+            "Version": "$Default"
+        },
+        "MinSize": 1,
+        "MaxSize": 12,
+        "DesiredCapacity": 1,
+        "DefaultCooldown": 300,
+        "AvailabilityZones": [
+            "us-east-2a",
+            "us-east-2b",
+            "us-east-2c"
+        ],
+        "LoadBalancerNames": [],
+        "TargetGroupARNs": [
+            "arn:aws:elasticloadbalancing:us-east-2:249717198246:targetgroup/nocohub-001-ecs-target-group/65afd18ce54b8c81"
+        ],
+        "HealthCheckType": "EC2",
+        "HealthCheckGracePeriod": 300,                        
+        "VPCZoneIdentifier": "subnet-0f815721f89468e42,subnet-082a8e3d794066249,subnet-02a16be8d48549012",       
+        "Tags": [
+            {
+                "ResourceId": "nocohub-001-t3small-for-ecs",
+                "ResourceType": "auto-scaling-group",
+                "Key": "AmazonECSManaged",
+                "Value": "",
+                "PropagateAtLaunch": true
+            }
+        ],
+        "TerminationPolicies": [
+            "Default"
+        ],
+        "NewInstancesProtectedFromScaleIn": false,
+        "ServiceLinkedRoleARN": "arn:aws:iam::249717198246:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+}

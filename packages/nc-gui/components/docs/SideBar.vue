@@ -141,7 +141,7 @@ const navigateToOpenedBook = () => {
       :draggable="!isPublic"
       :on-drop="onDrop"
       show-icon
-      class="h-full overflow-y-scroll overflow-x-hidden pb-20"
+      class="!w-full h-full overflow-y-scroll overflow-x-hidden pb-20"
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >
@@ -206,6 +206,7 @@ const navigateToOpenedBook = () => {
 
   .ant-tree {
     // scrollbar reduce width and gray color
+    overflow: overlay;
     &::-webkit-scrollbar {
       width: 4px;
     }

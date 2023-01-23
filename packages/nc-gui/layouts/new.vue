@@ -122,7 +122,7 @@ export default {
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
-        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_80px)] overflow-auto"
+        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_80px)] overflow-auto !shadow-none border-gray-100 border-r-1 !overflow-x-hidden"
         :trigger="null"
         collapsible
         theme="light"

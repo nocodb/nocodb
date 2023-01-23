@@ -671,6 +671,19 @@ class MysqlClient extends KnexClient {
             column.cdf = response[0][i].cdf;
           }
 
+          // Reference: https://github.com/nocodb/nocodb/issues/4625
+          // There is an information_schema difference on MariaDB and MySQL
+          // while MySQL keeps NULL as default value if no value provided
+          // MariaDB keeps NULL as string (if you provide a string NULL it is wrapped by single-quotes)
+          // so we check if database is MariaDB and if so we convert the string NULL to null
+          if (this._version?.version) {
+            if (this._version.version.includes('Maria')) {
+              if (column.cdf === 'NULL') {
+                column.cdf = null;
+              }
+            }
+          }
+
           column.cc = response[0][i].cc;
 
           column.csn = response[0][i].csn;

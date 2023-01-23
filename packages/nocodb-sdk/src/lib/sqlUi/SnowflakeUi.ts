@@ -688,6 +688,7 @@ export class SnowflakeUi {
         break;
       case 'Checkbox':
         colProp.dt = 'BOOLEAN';
+        colProp.cdf = '0';
         break;
       case 'MultiSelect':
         colProp.dt = 'TEXT';
@@ -700,7 +701,6 @@ export class SnowflakeUi {
         break;
       case 'Date':
         colProp.dt = 'DATE';
-
         break;
       case 'Year':
         colProp.dt = 'INT';
@@ -754,6 +754,7 @@ export class SnowflakeUi {
         break;
       case 'Rating':
         colProp.dt = 'SMALLINT';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'VARCHAR';

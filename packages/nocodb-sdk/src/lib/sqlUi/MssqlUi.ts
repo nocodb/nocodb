@@ -1084,6 +1084,7 @@ export class MssqlUi {
       case 'Checkbox':
         colProp.dt = 'tinyint';
         colProp.dtxp = 1;
+        colProp.cdf = '0';
         break;
       case 'MultiSelect':
         colProp.dt = 'text';
@@ -1150,6 +1151,7 @@ export class MssqlUi {
         break;
       case 'Rating':
         colProp.dt = 'int';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'varchar';

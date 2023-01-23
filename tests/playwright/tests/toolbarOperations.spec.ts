@@ -48,16 +48,16 @@ test.describe('Toolbar operations (GRID)', () => {
 
     await validateFirstRow('Afghanistan');
     // Sort column
-    await toolbar.sort.addSort({ columnTitle: 'Country', isAscending: false, isLocallySaved: false });
+    await toolbar.sort.add({ columnTitle: 'Country', isAscending: false, isLocallySaved: false });
     await validateFirstRow('Zambia');
 
     // reset sort
-    await toolbar.sort.resetSort();
+    await toolbar.sort.reset();
     await validateFirstRow('Afghanistan');
 
     // Filter column
     await toolbar.clickFilter();
-    await toolbar.filter.addNew({
+    await toolbar.filter.add({
       columnTitle: 'Country',
       value: 'India',
       opType: 'is equal',
@@ -68,7 +68,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await validateFirstRow('India');
 
     // Reset filter
-    await toolbar.filter.resetFilter();
+    await toolbar.filter.reset();
     await validateFirstRow('Afghanistan');
 
     await dashboard.closeTab({ title: 'Country' });

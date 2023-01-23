@@ -1,20 +1,25 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-import { SettingTab } from '../pages/Dashboard/Settings';
 import setup from '../setup';
 import { FormPage } from '../pages/Dashboard/Form';
 import { SharedFormPage } from '../pages/SharedForm';
+import { AccountPage } from '../pages/Account';
+import { AccountAppStorePage } from '../pages/Account/AppStore';
 
 // todo: Move most of the ui actions to page object and await on the api response
 test.describe('Form view', () => {
   let dashboard: DashboardPage;
   let form: FormPage;
+  let accountAppStorePage: AccountAppStorePage;
+  let accountPage: AccountPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     form = dashboard.form;
+    accountPage = new AccountPage(page);
+    accountAppStorePage = accountPage.appStore;
   });
 
   test('Field re-order operations', async () => {
@@ -78,7 +83,7 @@ test.describe('Form view', () => {
     });
   });
 
-  test('Form elements validation', async () => {
+  test('Form elements validation', async ({ page }) => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
@@ -168,12 +173,16 @@ test.describe('Form view', () => {
     await dashboard.verifyToast({
       message: 'Please activate SMTP plugin in App store for enabling email notification',
     });
+    const url = dashboard.rootPage.url();
 
     // activate SMTP plugin
-    await dashboard.gotoSettings();
-    await dashboard.settings.selectTab({ tab: SettingTab.AppStore });
-    await dashboard.settings.appStore.install({ name: 'SMTP' });
-    await dashboard.settings.appStore.configureSMTP({
+    await accountAppStorePage.goto();
+    await accountAppStorePage.rootPage.reload({ waitUntil: 'networkidle' });
+    await accountAppStorePage.waitUntilContentLoads();
+
+    // install SMTP
+    await accountAppStorePage.install({ name: 'SMTP' });
+    await accountAppStorePage.configureSMTP({
       email: 'a@b.com',
       host: 'smtp.gmail.com',
       port: '587',
@@ -181,7 +190,9 @@ test.describe('Form view', () => {
     await dashboard.verifyToast({
       message: 'Successfully installed and email notification will use SMTP configuration',
     });
-    await dashboard.settings.close();
+
+    // revisit form view
+    await page.goto(url);
 
     // enable 'email-me' option
     await dashboard.viewSidebar.openView({ title: 'CountryForm' });
@@ -192,15 +203,15 @@ test.describe('Form view', () => {
       showBlankForm: false,
     });
 
-    // reset SMTP
-    await dashboard.gotoSettings();
-    await dashboard.settings.selectTab({ tab: SettingTab.AppStore });
-    await dashboard.settings.appStore.uninstall({ name: 'SMTP' });
+    // Uninstall SMTP
+    await accountAppStorePage.goto();
+    await accountAppStorePage.rootPage.reload({ waitUntil: 'networkidle' });
+    await accountAppStorePage.waitUntilContentLoads();
+    await accountAppStorePage.uninstall({ name: 'SMTP' });
 
     await dashboard.verifyToast({
       message: 'Plugin uninstalled successfully',
     });
-    await dashboard.settings.close();
   });
 
   test('Form share, verify attachment file', async () => {

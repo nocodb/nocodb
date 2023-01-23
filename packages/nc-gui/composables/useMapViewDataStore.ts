@@ -61,7 +61,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }))
 
     async function syncCount() {
-      if (!isPublic) {
+      if (!isPublic.value) {
         const { count } = await $api.dbViewRow.count(
           NOCO,
           project?.value?.title as string,

@@ -199,13 +199,14 @@ watch(view, async (nextView) => {
 })
 
 const count = computed(() => paginationData.value.totalRows)
-console.log('count', count)
+
+syncCount()
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full no-underline">
     <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">
-      <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-10 right-10 p-10 z-500 cursor-default">
+      <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-3 right-3 p-2 z-500 cursor-default">
         <template #title>
           <span v-if="count > 1000"> {{ $t('msg.info.map.overLimit') }} </span>
           <span v-else-if="count > 900"> {{ $t('msg.info.map.closeLimit') }} </span>

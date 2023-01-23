@@ -457,17 +457,17 @@
                   "pageId": {
                     "type": "string",
                     "description": "Page id",
-                    "required":true
+                    "required": true
                   },
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "bookId": {
                     "type": "string",
                     "description": "Book id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -507,22 +507,22 @@
                   "pageId": {
                     "type": "string",
                     "description": "Page id",
-                    "required":true
+                    "required": true
                   },
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "bookId": {
                     "type": "string",
                     "description": "Book id",
-                    "required":true
+                    "required": true
                   },
                   "text": {
                     "type": "string",
                     "description": "Text",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -655,7 +655,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties" : {
+                  "properties": {
                     "pages": {
                       "type": "array",
                       "items": {
@@ -900,12 +900,12 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required":true
+                    "required": true
                   },
                   "bookId": {
                     "type": "string",
                     "description": "Book id",
-                    "required":true
+                    "required": true
                   }
                 }
               }
@@ -8619,7 +8619,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Workspace"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Workspace"
+                  }
                 }
               }
             }
@@ -9603,7 +9606,8 @@
                 }
               }
             ],
-            "columnByIds": {}
+            "columnByIds": {
+            }
           }
         ],
         "properties": {
@@ -9737,7 +9741,8 @@
                 }
               }
             ],
-            "columnByIds": {}
+            "columnByIds": {
+            }
           }
         ],
         "properties": {
@@ -11245,7 +11250,8 @@
             "type": "number"
           },
           "deleted_at": {},
-          "created_at": {},
+          "created_at": {
+          },
           "updated_at": {}
         }
       },
@@ -11482,7 +11488,8 @@
             "type": "string"
           },
           "created_at": {},
-          "updated_at": {}
+          "updated_at": {
+          }
         }
       },
       "HookLog": {
@@ -11822,7 +11829,8 @@
           "display_name": {
             "type": "string"
           },
-          "roles": {}
+          "roles": {
+          }
         }
       },
       "Follower": {
@@ -11860,7 +11868,8 @@
           "output": {
             "type": "string"
           },
-          "meta": {},
+          "meta": {
+          },
           "is_read": {
             "type": "boolean"
           },
@@ -11901,7 +11910,8 @@
           "application/xml": {
             "schema": {
               "type": "object",
-              "properties": {}
+              "properties": {
+              }
             }
           }
         }

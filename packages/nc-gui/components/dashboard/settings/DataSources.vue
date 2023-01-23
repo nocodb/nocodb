@@ -381,7 +381,7 @@ watch(
       <div v-else-if="vState === DataSourcesSubTab.UIAcl" class="max-h-600px overflow-y-auto">
         <UIAcl :base-id="activeBaseId" />
       </div>
-      <div v-else-if="vState === DataSourcesSubTab.ERD" class="max-h-600px overflow-y-auto">
+      <div v-else-if="vState === DataSourcesSubTab.ERD" class="h-full overflow-y-auto">
         <Erd :base-id="activeBaseId" />
       </div>
       <div v-else-if="vState === DataSourcesSubTab.Edit" class="max-h-600px overflow-y-auto">

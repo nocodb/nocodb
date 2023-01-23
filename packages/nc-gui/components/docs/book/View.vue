@@ -262,14 +262,15 @@ const addNewPage = () => {
                 <MdiDotsVertical class="flex" />
               </div>
               <template #overlay>
-                <a-menu>
-                  <a-menu-item>
-                    <div class="flex items-center cursor-pointer select-none px-1.5 py-2" @click="() => openImportModal()">
-                      <PhUploadSimpleFill class="text-blue-400 mr-2" />
-                      Import
-                    </div>
-                  </a-menu-item>
-                </a-menu>
+                <div class="flex flex-col p-1 bg-gray-100 rounded-md w-48 gap-y-0.5">
+                  <div
+                    class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-200 rounded-md"
+                    @click="() => openImportModal()"
+                  >
+                    <PhDownloadSimpleFill class="h-3.5" />
+                    <div class="flex">Import</div>
+                  </div>
+                </div>
               </template>
             </a-dropdown>
             <a-tooltip

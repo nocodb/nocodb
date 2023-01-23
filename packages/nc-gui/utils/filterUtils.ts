@@ -41,13 +41,13 @@ export const comparisonOpList: {
     text: 'is empty',
     value: 'empty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Rating, UITypes.MultiSelect, UITypes.SingleSelect],
+    excludedTypes: [UITypes.Checkbox, UITypes.Rating],
   },
   {
     text: 'is not empty',
     value: 'notempty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Rating, UITypes.MultiSelect, UITypes.SingleSelect],
+    excludedTypes: [UITypes.Checkbox, UITypes.Rating],
   },
   {
     text: 'is null',

@@ -75,7 +75,7 @@ onMounted(() => {
   </a-modal>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .nc-attachment-rename-modal {
   .ant-input-affix-wrapper,
   .ant-input {

@@ -105,7 +105,7 @@ watch(
         </GeneralOverlay>
 
         <ErdFullScreenToggle :config="config" />
-        <ErdConfigPanel />
+        <ErdConfigPanel :config="config" />
         <ErdHistogramPanel v-if="!config.singleTableMode" />
       </LazyErdFlow>
     </div>

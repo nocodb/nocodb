@@ -122,8 +122,11 @@ NocoDB has github actions which creates docker and binaries for each PR! And the
 
 Example shown below
 - Go to a PR and click on the comment.
+<img width="1111" alt="Screenshot 2023-01-23 at 15 46 36" src="https://user-images.githubusercontent.com/5435402/214083736-80062398-3712-430f-9865-86b110090c91.png">
 
 - Click on the link to copy the docker image and run it locally.
+<img width="1231" alt="Screenshot 2023-01-23 at 15 46 55" src="https://user-images.githubusercontent.com/5435402/214083755-945d9485-2b9e-4739-8408-068bdf4a84b7.png">
+
 
 This is to
 - reduce pull request cycle time

@@ -64,7 +64,7 @@ function onRemoveFileClick(title: any, i: number) {
     okText: 'Yes',
     okType: 'danger',
     cancelText: 'No',
-    async onOk() {
+    onOk() {
       try {
         removeFile(i)
       } catch (e: any) {

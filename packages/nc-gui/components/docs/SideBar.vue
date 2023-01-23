@@ -76,12 +76,12 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
   })
 }
 
-const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any }) => {
-  if (e.selected) {
-    const id = e.node.dataRef!.id
+const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any; nativeEvent: any }) => {
+  if (!e.selected) return
+  if (e.nativeEvent.path.some((el: any) => el.className?.includes('nc-docs-sidebar-page-options'))) return
+  const id = e.node.dataRef!.id
 
-    navigateTo(nestedUrl(id))
-  }
+  navigateTo(nestedUrl(id))
 }
 
 const navigateToOpenedBook = () => {
@@ -141,7 +141,7 @@ const navigateToOpenedBook = () => {
       :draggable="!isPublic"
       :on-drop="onDrop"
       show-icon
-      class="h-full overflow-y-scroll overflow-x-hidden pb-20"
+      class="!w-full h-full overflow-y-scroll overflow-x-hidden pb-20"
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >
@@ -158,11 +158,20 @@ const navigateToOpenedBook = () => {
           <div v-if="!isPublic" class="flex flex-row justify-start items-center pl-2 gap-x-1">
             <a-dropdown placement="bottom" trigger="click">
               <div
-                class="flex p-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+                class="nc-docs-sidebar-page-options flex p-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
               >
                 <MdiDotsHorizontal />
               </div>
               <template #overlay>
+                <div class="flex flex-col p-1 bg-gray-50 rounded-md w-28 gap-y-0.5 border-1 border-gray-100">
+                  <div
+                    class="flex items-center cursor-pointer select-none px-1.5 py-1.5 text-xs gap-x-2.5 hover:bg-gray-100 rounded-md !text-red-500"
+                    @click="() => openDeleteModal({ pageId: id })"
+                  >
+                    <MdiDeleteOutline class="h-3.5" />
+                    <div class="flex font-semibold">Delete</div>
+                  </div>
+                </div>
                 <a-menu>
                   <a-menu-item class="!py-2">
                     <div class="flex flex-row items-center space-x-2 text-red-500" @click="() => openDeleteModal({ pageId: id })">
@@ -206,6 +215,7 @@ const navigateToOpenedBook = () => {
 
   .ant-tree {
     // scrollbar reduce width and gray color
+    overflow: overlay;
     &::-webkit-scrollbar {
       width: 4px;
     }

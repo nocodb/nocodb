@@ -111,7 +111,7 @@ const onClickSetCurrentLocation = () => {
             <a-button class="ml-2" @click="onClickSetCurrentLocation">{{ $t('labels.yourLocation') }}</a-button>
           </div>
         </a-form-item>
-        <a-form-item class="btn-cancel-submit">
+        <a-form-item class="btn-group-cancel-submit">
           <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
           <a-button type="primary" html-type="submit">{{ $t('general.submit') }}</a-button>
         </a-form-item>
@@ -141,7 +141,7 @@ input[type='number']:focus {
 .fixed-width {
   width: 24px;
 }
-.btn-cancel-submit {
+.btn-group-cancel-submit {
   margin-left: auto;
   margin-bottom: 0;
 }

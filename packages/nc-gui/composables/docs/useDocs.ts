@@ -735,6 +735,14 @@ const [setup, use] = useInjectionState(() => {
     }
   }
 
+  const getParentOfPage = (pageId: string) => {
+    const page = findPage(pageId)
+    if (!page) return undefined
+    if (!page.parent_page_id) return undefined
+
+    return findPage(page.parent_page_id)
+  }
+
   return {
     fetchNestedPages,
     fetchBooks,
@@ -781,6 +789,7 @@ const [setup, use] = useInjectionState(() => {
     isErrored,
     fetchPage,
     updateContent,
+    getParentOfPage,
   }
 }, 'useDocs')
 

@@ -14,7 +14,7 @@ const {
   createMagic,
   fetchBooks,
   navigateToLastBook,
-  addNewPage,
+  addNewPage: _addNewPage,
   createImport,
   flattenedNestedPages,
   // fetchAllPages,
@@ -23,7 +23,7 @@ const {
   openPage,
   // fetchPublishedPages,
   // fetchAllPagesByTitle,
-  isOnlyBookOpened,
+  // isOnlyBookOpened,
 } = useDocs()
 
 const showPublishModal = ref(false)
@@ -34,7 +34,7 @@ const bookFormModelData = ref({
 })
 
 const activeTabKey = ref('all')
-const activeTabPagination = ref(1)
+// const activeTabPagination = ref(1)
 const tabInfo = [
   {
     title: 'All Pages',
@@ -86,7 +86,7 @@ watch(
   },
 )
 
-const isPagesFetching = ref(false)
+// const isPagesFetching = ref(false)
 const pages = computed(() => {
   switch (activeTabKey.value) {
     case 'all':
@@ -107,7 +107,6 @@ const magicFormData = ref({
   title: '',
   content: '',
 })
-const magicParentPageId = ref()
 const isMagicLoading = ref(false)
 
 const importModalOpen = ref(false)
@@ -123,8 +122,7 @@ const onCreateBook = async () => {
   showCreateBookModal.value = false
 }
 
-const openMagicModal = (parentId?: string | undefined) => {
-  magicParentPageId.value = parentId
+const openMagicModal = () => {
   magicModalOpen.value = true
 }
 
@@ -159,6 +157,10 @@ const onImport = async () => {
     importModalOpen.value = false
     isImporting.value = false
   }
+}
+
+const addNewPage = () => {
+  _addNewPage()
 }
 
 // watch(isOnlyBookOpened, async () => {
@@ -207,88 +209,57 @@ const onImport = async () => {
 //   },
 // )
 
-const loadListData = async ($state: any) => {
-  $state.complete()
-  // if (activeTabKey.value === 'unpublished') {
-  //   return
-  // }
+// const loadListData = async ($state: any) => {
+//   $state.complete()
+// if (activeTabKey.value === 'unpublished') {
+//   return
+// }
 
-  // $state.loading()
-  // const oldPagesCount = pages.value?.length || 0
+// $state.loading()
+// const oldPagesCount = pages.value?.length || 0
 
-  // activeTabPagination.value += 1
-  // switch (activeTabKey.value) {
-  //   case 'all':
-  //     await fetchAllPages({
-  //       pageNumber: activeTabPagination.value,
-  //     })
-  //     break
-  //   case 'allByTitle':
-  //     await fetchAllPagesByTitle({
-  //       pageNumber: activeTabPagination.value,
-  //     })
-  //     break
-  //   case 'published':
-  //     await fetchPublishedPages({
-  //       pageNumber: activeTabPagination.value,
-  //     })
-  //     break
-  //   default:
-  //     break
-  // }
+// activeTabPagination.value += 1
+// switch (activeTabKey.value) {
+//   case 'all':
+//     await fetchAllPages({
+//       pageNumber: activeTabPagination.value,
+//     })
+//     break
+//   case 'allByTitle':
+//     await fetchAllPagesByTitle({
+//       pageNumber: activeTabPagination.value,
+//     })
+//     break
+//   case 'published':
+//     await fetchPublishedPages({
+//       pageNumber: activeTabPagination.value,
+//     })
+//     break
+//   default:
+//     break
+// }
 
-  // if (pages.value?.length === oldPagesCount) {
-  //   $state.complete()
-  //   return
-  // }
-  // $state.loaded()
-}
+// if (pages.value?.length === oldPagesCount) {
+//   $state.complete()
+//   return
+// }
+// $state.loaded()
+// }
 </script>
 
 <template>
   <a-layout-content>
     <div class="flex flex-col mx-20 mt-10.5 px-6">
-      <div class="flex flex-col h-28">
-        <div class="flex flex-row justify-between items-center">
-          <div class="flex flex-row gap-x-2 items-center ml-2">
-            <div class="flex underline cursor-pointer">
-              {{ openedBook?.title }}
-            </div>
-            <div class="flex text-gray-400">/</div>
-          </div>
-          <div class="flex flex-row items-center">
-            <a-dropdown trigger="click">
-              <div
-                class="hover: cursor-pointer hover:bg-gray-100 pl-4 pr-2 py-1.5 rounded-md bg-gray-50 flex flex-row w-full mr-4 justify-between items-center"
-              >
-                <div class="flex font-semibold">
-                  {{ openedBook?.title }}
-                </div>
-                <MdiMenuDown />
-              </div>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item class="!py-2" @click="showCreateBookModal = true"> Create new book </a-menu-item>
-                  <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
-                    {{ book.title }}
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
-            <!-- <a-button type="primary" :disabled="!haveDrafts" :loading="isBulkPublishing" @click="showPublishModal = true">
-              Publish v{{ openedBook?.order }}</a-button
-            > -->
-          </div>
-        </div>
-        <div class="flex flex-row justify-between mt-8 items-center">
+      <div class="flex flex-col h-16">
+        <div class="flex flex-row justify-between mt-4 items-center">
           <div class="flex flex-row gap-x-6 items-center">
             <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
             <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
               <div
-                class="flex !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 mt-1.5"
+                class="flex flex-row !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 h-8 items-center"
                 @click.prevent
               >
-                <MdiDotsVertical />
+                <MdiDotsVertical class="flex" />
               </div>
               <template #overlay>
                 <a-menu>
@@ -301,24 +272,123 @@ const loadListData = async ($state: any) => {
                 </a-menu>
               </template>
             </a-dropdown>
-          </div>
-          <div class="flex flex-row gap-x-2">
-            <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => addNewPage()">
-              <div class="flex flex-row gap-x-1 items-center">
-                <div class="flex pl-1">New Page</div>
-                <MdiPlus />
+            <a-tooltip
+              v-if="openedBook?.is_published"
+              placement="bottom"
+              color="#F2F4F7"
+              overlay-class-name="version-publish-status-tootltip"
+            >
+              <template #title>
+                <div class="flex flex-col text-black px-1 py-0.5">
+                  <div :style="{ fontSize: '0.8rem' }" style="font-weight: 500">Page Edits</div>
+                  <div :style="{ fontSize: '0.65rem' }">Page edits will immediately be updated to public link</div>
+                  <div :style="{ fontSize: '0.8rem' }" class="pt-1" style="font-weight: 500">New Page</div>
+                  <div :style="{ fontSize: '0.65rem' }">New pages created will be published</div>
+                </div>
+              </template>
+              <div class="flex px-2 py-1 border-1 rounded-md items-center gap-x-1.5 border-green-500 text-green-600 bg-green-50">
+                <div class="flex">Published</div>
+                <MdiInformationOutline class="flex h-3.5" />
               </div>
-            </a-button>
-            <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
+            </a-tooltip>
+          </div>
+          <div class="flex flex-row gap-x-1 h-10 justify-end">
+            <a-dropdown trigger="click" placement="bottomLeft">
+              <div
+                class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row max-w-28 mr-2 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-gray-100"
+              >
+                <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">New Page</div>
+                <MdiMenuDown />
+              </div>
+              <template #overlay>
+                <div class="flex flex-col bg-gray-100 shadow-gray-300 shadow-sm w-70 p-1 rounded-md gap-y-1">
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                    @click="() => addNewPage()"
+                  >
+                    <MiDocumentAdd class="flex" />
+                    <div class="flex">New Blank Page</div>
+                  </div>
+                  <div
+                    class="flex flex-row items-start text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                    @click="openMagicModal"
+                  >
+                    <PhSparkleFill class="flex text-orange-400 mt-0.5" />
+                    <div class="flex flex-col">
+                      <div class="flex">Create Pages with Prompt</div>
+                      <div class="flex text-gray-500" :style="{ fontSize: '0.6rem' }">
+                        Let AI create pages based on your keyword.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex border-t-1 border-gray-200 mx-1"></div>
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                    @click="() => openImportModal()"
+                  >
+                    <PhDownloadSimpleFill class="flex" />
+                    <div class="flex">Import</div>
+                  </div>
+                </div>
+              </template>
+            </a-dropdown>
+            <a-dropdown trigger="click" placement="bottomRight">
+              <div
+                class="my-1 pl-3 pr-1.5 rounded-md bg-primary-selected border-1 flex flex-row max-w-30 mr-4 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-opacity-75"
+                :style="{ borderColor: '#e9eaff' }"
+              >
+                <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">
+                  {{ openedBook?.title }}
+                </div>
+                <MdiMenuDown />
+              </div>
+              <template #overlay>
+                <div class="flex flex-col bg-gray-100 shadow-gray-300 shadow-sm w-48 p-1 rounded-md gap-y-1">
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 py-2.5 px-1.5 pl-2 cursor-pointer rounded-md justify-between hover:bg-gray-200"
+                    :style="{ fontWeight: 500 }"
+                    @click="showCreateBookModal = true"
+                  >
+                    <div class="flex">Create new version</div>
+                    <MdiPlus class="flex" />
+                  </div>
+                  <div class="flex border-t-1 border-gray-200 mx-1"></div>
+                  <div
+                    v-for="book in books"
+                    :key="book.id"
+                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 pl-2 cursor-pointer rounded-md justify-between hover:bg-gray-200"
+                    :class="{ 'bg-gray-200': book.id === openedBook?.id }"
+                    @click="() => selectBook(book)"
+                  >
+                    <div class="flex">
+                      {{ book.title }}
+                    </div>
+                    <div
+                      v-if="book.is_published"
+                      class="flex px-1 border-1 rounded-md items-center gap-x-1.5 border-green-500 text-green-600 bg-green-50"
+                    >
+                      <div class="flex" :style="{ fontSize: '0.6rem' }">Published</div>
+                    </div>
+                  </div>
+                </div>
+                <!-- <a-menu>
+                  <a-menu-item class="!py-2" @click="showCreateBookModal = true"> Create new version </a-menu-item>
+                  <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
+                    {{ book.title }}
+                  </a-menu-item>
+                </a-menu> -->
+              </template>
+            </a-dropdown>
+            <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
               <div class="flex flex-row gap-x-1 items-center">
                 <div class="flex pl-1">Create Pages with</div>
                 <PhSparkleFill class="text-orange-400 h-3.5" />
               </div>
-            </a-button>
+            </a-button> -->
           </div>
         </div>
       </div>
-      <div class="flex flex-row w-full mt-10 !overflow-y-hidden docs-book-list-container h-[calc(100vh-16rem)]">
+      <div class="flex flex-row w-full mt-8 !overflow-y-hidden docs-book-list-container h-[calc(100vh-12rem)]">
         <a-tabs v-model:activeKey="activeTabKey" class="!w-full !overflow-y-hidden">
           <a-tab-pane v-for="tab of tabInfo" :key="tab.key">
             <template #tab>
@@ -334,7 +404,37 @@ const loadListData = async ($state: any) => {
                 <a-spin size="large" />
               </div>
             </div> -->
-            <div :key="activeTabKey" class="h-full overflow-y-auto docs-book-infinite-list">
+            <div v-if="pages.length === 0" class="h-full flex flex-col justify-center -mt-6">
+              <div class="flex flex-col gap-y-3 items-center">
+                <img src="~/assets/img/add-page.svg" class="flex h-12" />
+                <div class="flex text-xl font-semibold">Lets get started!</div>
+                <div class="flex text-xs">Create your first Document.</div>
+                <div class="flex flex-row items-center gap-x-5 mt-2">
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 border-gray-200 border-1 py-2 px-4 rounded-md font-semibold cursor-pointer hover:bg-gray-50"
+                    @click="addNewPage"
+                  >
+                    <div>Create New Page</div>
+                    <MdiPlus class="h-3.5 font-semibold" />
+                  </div>
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 border-gray-200 border-1 py-2 px-4 rounded-md font-semibold cursor-pointer hover:bg-gray-50"
+                    @click="openImportModal"
+                  >
+                    <div>Import Pages</div>
+                    <PhDownloadSimpleFill class="h-3.5 font-semibold" />
+                  </div>
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 border-gray-200 border-1 py-2 px-4 rounded-md font-semibold cursor-pointer hover:bg-gray-50"
+                    @click="openMagicModal"
+                  >
+                    <div>Create Pages using AI</div>
+                    <PhSparkleFill class="flex text-orange-400 h-3.5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else :key="activeTabKey" class="h-full overflow-y-auto docs-book-infinite-list">
               <div class="flex flex-col gap-y-4 mt-6 mb-12 px-2">
                 <div
                   v-for="(page, index) of pages"
@@ -457,6 +557,11 @@ const loadListData = async ($state: any) => {
 </template>
 
 <style lang="scss">
+.version-publish-status-tootltip {
+  .ant-tooltip-inner {
+    @apply !rounded-md !border-1 !border-gray-200;
+  }
+}
 .docs-book-list-container > .ant-tabs > .ant-tabs-content-holder > .ant-tabs-content {
   @apply h-full;
 }
@@ -469,24 +574,47 @@ const loadListData = async ($state: any) => {
 .docs-book-list-container .ant-tabs-tab {
   @apply px-3 ml-0;
 }
+
 .docs-book-infinite-list {
+  // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
     width: 4px;
   }
 
   /* Track */
   &::-webkit-scrollbar-track {
-    background: #f6f6f6 !important;
+    background: #f6f6f600 !important;
   }
 
   /* Handle */
   &::-webkit-scrollbar-thumb {
-    background: rgb(228, 228, 228);
+    background: #f6f6f600;
   }
 
   /* Handle on hover */
   &::-webkit-scrollbar-thumb:hover {
-    background: rgb(194, 194, 194);
+    background: #f6f6f600;
+  }
+}
+.docs-book-infinite-list:hover {
+  // scrollbar reduce width and gray color
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: rgb(234, 234, 234);
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
   }
 }
 </style>

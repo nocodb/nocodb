@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onKeyStroke } from '@vueuse/core'
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
 const route = useRoute()
@@ -15,6 +16,8 @@ const {
   isOnlyBookOpened,
   navigateToFirstPage,
   isErrored,
+  addNewPage,
+  getParentOfPage,
 } = useDocs()
 
 const { isOpen: isSidebarOpen, toggleHasSidebar: toggleSidebar } = useSidebar('nc-left-sidebar', {
@@ -99,6 +102,43 @@ watch(
   {
     immediate: true,
   },
+)
+
+// Listen to `Alt + n` to create a new page in the same parent
+onKeyStroke(
+  (e) => e.code === 'KeyN' && e.altKey,
+  (e) => {
+    e.preventDefault()
+    if (isPublic.value) return
+
+    addNewPage(openedPage.value?.parent_page_id)
+  },
+  { eventName: 'keydown' },
+)
+
+// Listen to `Alt + m` to create a new page as child of the current page
+onKeyStroke(
+  (e) => e.code === 'KeyM' && e.altKey,
+  (e) => {
+    e.preventDefault()
+    if (isPublic.value) return
+
+    addNewPage(openedPage.value?.id)
+  },
+  { eventName: 'keydown' },
+)
+
+// Listen to `Alt + b` to create a new page as parent of the current page
+onKeyStroke(
+  (e) => e.code === 'KeyB' && e.altKey,
+  (e) => {
+    e.preventDefault()
+    if (isPublic.value) return
+
+    const parentPage = openedPage.value?.parent_page_id ? getParentOfPage(openedPage.value.parent_page_id) : null
+    addNewPage(parentPage?.parent_page_id)
+  },
+  { eventName: 'keydown' },
 )
 
 onMounted(async () => {

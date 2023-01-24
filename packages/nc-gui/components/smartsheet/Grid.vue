@@ -202,7 +202,7 @@ const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCell
       const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
       const altOrOptionKey = e.altKey
       if (e.key === ' ') {
-        if (activeCell.row != null && !editEnabled && hasEditPermission) {
+        if (activeCell.row != null && !isNaN(activeCell.row) && !editEnabled && hasEditPermission) {
           e.preventDefault()
           clearSelectedRange()
           const row = data.value[activeCell.row]

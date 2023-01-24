@@ -96,49 +96,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     async function onFileSelect(selectedFiles: FileList | File[]) {
       if (!selectedFiles.length) return
 
-      if (isPublic.value && isForm.value) {
-        const newFiles = await Promise.all<AttachmentType>(
-          Array.from(selectedFiles).map(
-            (file) =>
-              new Promise<AttachmentType>((resolve) => {
-                const res: { file: File; title: string; mimetype: string; data?: any } = {
-                  ...file,
-                  file,
-                  title: file.name,
-                  mimetype: file.type,
-                }
-
-                if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
-                  const reader = new FileReader()
-
-                  reader.onload = (e) => {
-                    res.data = e.target?.result
-
-                    resolve(res)
-                  }
-
-                  reader.onerror = () => {
-                    resolve(res)
-                  }
-
-                  reader.readAsDataURL(file)
-                } else {
-                  resolve(res)
-                }
-              }),
-          ),
-        )
-        attachments.value = [...attachments.value, ...newFiles]
-
-        return updateModelValue(attachments.value)
-      }
-
-      const newAttachments = []
-
       const attachmentMeta = {
         ...defaultAttachmentMeta,
         ...(typeof column.value?.meta === 'string' ? JSON.parse(column.value.meta) : column.value?.meta),
       }
+
+      const newAttachments = []
 
       const files: File[] = []
 
@@ -171,6 +134,43 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
 
         files.push(file)
+      }
+
+      if (isPublic.value && isForm.value) {
+        const newFiles = await Promise.all<AttachmentType>(
+          Array.from(files).map(
+            (file) =>
+              new Promise<AttachmentType>((resolve) => {
+                const res: { file: File; title: string; mimetype: string; data?: any } = {
+                  ...file,
+                  file,
+                  title: file.name,
+                  mimetype: file.type,
+                }
+
+                if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
+                  const reader = new FileReader()
+
+                  reader.onload = (e) => {
+                    res.data = e.target?.result
+
+                    resolve(res)
+                  }
+
+                  reader.onerror = () => {
+                    resolve(res)
+                  }
+
+                  reader.readAsDataURL(file)
+                } else {
+                  resolve(res)
+                }
+              }),
+          ),
+        )
+        attachments.value = [...attachments.value, ...newFiles]
+
+        return updateModelValue(attachments.value)
       }
 
       try {

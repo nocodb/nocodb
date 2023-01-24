@@ -16,7 +16,6 @@ import NcConfigFactory, {
 import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
-import { feedbackForm } from 'nc-help';
 
 const versionCache = {
   releaseVersion: null,
@@ -92,12 +91,6 @@ export async function versionInfo(_req: Request, res: Response) {
   };
 
   res.json(response);
-}
-
-export function feedbackFormGet(_req: Request, res: Response) {
-  feedbackForm()
-    .then((form) => res.json(form))
-    .catch((e) => res.json({ error: e.message }));
 }
 
 export async function appHealth(_: Request, res: Response) {
@@ -379,7 +372,6 @@ export default (router) => {
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
   router.get('/api/v1/version', catchError(versionInfo));
   router.get('/api/v1/health', catchError(appHealth));
-  router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
   router.post('/api/v1/url_to_config', catchError(urlToDbConfig));
   router.get(
     '/api/v1/aggregated-meta-info',

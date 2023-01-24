@@ -59,11 +59,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     token: null,
     lang: preferredLanguage,
     darkMode: prefersDarkMode,
-    feedbackForm: {
-      url: 'https://docs.google.com/forms/d/e/1FAIpQLSeTlAfZjszgr53lArz3NvUEnJGOT9JtG9NAU5d0oQwunDS2Pw/viewform?embedded=true',
-      createdAt: new Date('2020-01-01T00:00:00.000Z').toISOString(),
-      isHidden: false,
-    },
     filterAutoSave: true,
     previewAs: null,
     includeM2M: false,

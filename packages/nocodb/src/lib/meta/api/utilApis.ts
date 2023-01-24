@@ -16,7 +16,6 @@ import NcConfigFactory, {
 import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
-import { feedbackForm } from 'nc-help';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const versionCache = {

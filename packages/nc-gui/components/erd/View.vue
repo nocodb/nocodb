@@ -21,6 +21,7 @@ const config = reactive<ERDConfig>({
   singleTableMode: !!props.table,
   showMMTables: false,
   showJunctionTableNames: false,
+  isFullScreen: false,
 })
 
 const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
@@ -65,6 +66,10 @@ const populateTables = async () => {
   isLoading = false
 }
 
+const toggleFullScreen = () => {
+  config.isFullScreen = !config.isFullScreen
+}
+
 watch([metas, projectTables], populateTables, {
   flush: 'post',
   immediate: true,
@@ -86,7 +91,15 @@ watch(
 </script>
 
 <template>
-  <div class="w-full" style="height: inherit" :class="[`nc-erd-vue-flow${config.singleTableMode ? '-single-table' : ''}`]">
+  <div
+    class="w-full bg-white"
+    :class="{
+      'z-100 h-screen w-screen fixed top-0 left-0 right-0 bottom-0': config.isFullScreen,
+      'nc-erd-vue-flow-single-table': config.singleTableMode,
+      'nc-erd-vue-flow': !config.singleTableMode,
+    }"
+    :style="!config.isFullScreen ? 'height: inherit' : ''"
+  >
     <div class="relative h-full">
       <LazyErdFlow :tables="filteredTables" :config="config">
         <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50">
@@ -95,6 +108,7 @@ watch(
           </div>
         </GeneralOverlay>
 
+        <ErdFullScreenToggle :config="config" @toggle-full-screen="toggleFullScreen" />
         <ErdConfigPanel :config="config" />
         <ErdHistogramPanel v-if="!config.singleTableMode" />
       </LazyErdFlow>

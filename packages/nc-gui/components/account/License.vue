@@ -5,9 +5,9 @@ import { extractSdkResponseErrorMsg, useApi,useGlobal } from '#imports'
 
 const { api, isLoading } = useApi()
 
-const {$e} = useNuxtApp()
+const { $e } = useNuxtApp()
 
-const {loadAppInfo} = useGlobal()
+const { loadAppInfo } = useGlobal()
 
 let key = $ref('')
 

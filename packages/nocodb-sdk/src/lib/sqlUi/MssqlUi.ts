@@ -190,7 +190,7 @@ export class MssqlUi {
         return '';
 
       case 'decimal':
-        return '10';
+        return 10;
 
       case 'float':
         return '';

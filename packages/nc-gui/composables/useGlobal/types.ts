@@ -61,6 +61,7 @@ export interface Actions {
   signOut: () => void
   signIn: (token: string) => void
   refreshToken: () => void
+  loadAppInfo: () => void
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

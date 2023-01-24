@@ -26,6 +26,8 @@ const rowHeight = computed(() => {
         return 4
       case 3:
         return 6
+      default:
+        return 1
     }
   }
 })

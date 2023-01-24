@@ -139,6 +139,8 @@ const rowHeight = computed(() => {
         return 4
       case 3:
         return 6
+      default:
+        return 1
     }
   }
 })
@@ -150,7 +152,7 @@ const rowHeight = computed(() => {
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
-      { '!h-auto': !rowHeight || rowHeight === 1 },
+      { 'm-y-auto !h-auto': !rowHeight || rowHeight === 1 },
       { '!h-full': rowHeight && rowHeight !== 1 },
     ]"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"

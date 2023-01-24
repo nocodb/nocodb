@@ -35,7 +35,6 @@ const showBarcode = computed(() => barcodeValue?.value.length > 0 && !tooManyCha
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
 
-
 const rowHeight = computed(() => {
   if ((view.value?.view as GridType)?.row_height !== undefined) {
     switch ((view.value?.view as GridType)?.row_height) {
@@ -47,6 +46,8 @@ const rowHeight = computed(() => {
         return 4
       case 3:
         return 6
+      default:
+        return 1
     }
   }
 })

@@ -402,14 +402,14 @@ const [setup, use] = useInjectionState(() => {
   }
 
   const addNewPage = async (parentPageId?: string) => {
-    let dummyTitle = 'Untitled'
+    let dummyTitle = 'Page'
     let conflictCount = 0
     const parentPage = parentPageId && findPage(parentPageId)
     const _pages = parentPage ? parentPage.children : nestedPages.value
 
     while (_pages?.find((page) => page.title === dummyTitle)) {
       conflictCount++
-      dummyTitle = `Untitled ${conflictCount}`
+      dummyTitle = `Page ${conflictCount}`
     }
 
     await createPage({

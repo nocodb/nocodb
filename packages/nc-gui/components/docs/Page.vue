@@ -103,6 +103,16 @@ const editor = useEditor({
 
     openedPage.value.content = editor.getHTML()
   },
+  editorProps: {
+    handleKeyDown: (view, event) => {
+      if (event.altKey) {
+        event.preventDefault()
+        editor?.value?.commands.blur()
+        return
+      }
+      return false
+    },
+  },
   editable: !isPublic.value,
 })
 
@@ -123,25 +133,22 @@ watch(editor, () => {
   editor.value.commands.setContent(content.value)
 })
 
-const containsNewLine = (value: string) => (value.match(/\n/g) || []).length > 0
+const onTitleKeyDown = (e: KeyboardEvent) => {
+  if (e.altKey) {
+    e.preventDefault()
+    titleInputRef.value?.blur()
+    return
+  }
 
-watch(
-  () => openedPage.value?.title,
-  (newTitle) => {
-    if (newTitle && containsNewLine(newTitle)) {
-      openedPage.value!.title = newTitle!.replace(/\n/g, '')
-
-      // Focus on editor's first node
-      editor?.value?.commands.focus('start')
-    }
-  },
-)
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    editor?.value?.commands.focus('start')
+  }
+}
 
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.title],
   async ([newId, newTitle], [oldId, oldTitle]) => {
-    if (newTitle && containsNewLine(newTitle)) return
-
     if (newId === oldId && newTitle && newTitle.length > 0 && newTitle !== oldTitle) {
       await updatePage({ pageId: newId!, page: { title: newTitle } as any })
     }
@@ -212,7 +219,7 @@ watch(
         <div v-if="!isPublic" class="flex flex-row items-center"></div>
       </div>
 
-      <a-textarea
+      <a-input
         ref="titleInputRef"
         v-model:value="title"
         class="!text-4xl font-semibold !px-1.5"
@@ -220,6 +227,7 @@ watch(
         :readonly="isPublic"
         :placeholder="openedPage.title"
         auto-size
+        @keydown="onTitleKeyDown"
       />
 
       <DocsSelectedBubbleMenu v-if="editor" :editor="editor" />
@@ -235,6 +243,17 @@ watch(
 </template>
 
 <style lang="scss">
+::-moz-selection {
+  /* Code for Firefox */
+  color: black;
+  background-color: #1c26b820;
+}
+
+::selection {
+  color: black;
+  background-color: #1c26b820;
+}
+
 /* Basic editor styles */
 .ProseMirror {
   > * + * {

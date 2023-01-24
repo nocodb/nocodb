@@ -78,7 +78,19 @@ const onDrop = async (info: AntTreeNodeDropEvent) => {
 
 const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: any; event: any; nativeEvent: any }) => {
   if (!e.selected) return
-  if (e.nativeEvent.path.some((el: any) => el.className?.includes('nc-docs-sidebar-page-options'))) return
+  const eventBubblePath: any[] = e.nativeEvent?.path ?? []
+  if (
+    eventBubblePath.some((el: any) => {
+      if (typeof el?.classList?.contains === 'function') {
+        return el.classList.contains('nc-docs-sidebar-page-options')
+      }
+
+      return false
+    })
+  ) {
+    return
+  }
+
   const id = e.node.dataRef!.id
 
   navigateTo(nestedUrl(id))

@@ -158,7 +158,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   }
                 } else if (column.uidt === UITypes.Number) {
                   if (
-                    rows.slice(1, this.config.maxRowsToParse).every((v: any) => {
+                    rows.slice(1, this.config.maxRowsToParse).some((v: any) => {
                       return v && v[col] && parseInt(v[col]) !== +v[col]
                     })
                   ) {

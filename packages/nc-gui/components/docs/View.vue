@@ -24,6 +24,37 @@ const { isOpen: isSidebarOpen, toggleHasSidebar: toggleSidebar } = useSidebar('n
   isOpen: true,
 })
 
+const shortCuts = [
+  {
+    condition: (e: KeyboardEvent) => e.code === 'KeyN' && e.altKey,
+    action: (e: KeyboardEvent) => {
+      e.preventDefault()
+      if (isPublic.value) return
+
+      addNewPage(openedPage.value?.parent_page_id)
+    },
+  },
+  {
+    condition: (e: KeyboardEvent) => e.code === 'KeyM' && e.altKey,
+    action: (e: KeyboardEvent) => {
+      e.preventDefault()
+      if (isPublic.value) return
+
+      addNewPage(openedPage.value?.id)
+    },
+  },
+  {
+    condition: (e: KeyboardEvent) => e.code === 'KeyB' && e.altKey,
+    action: (e: KeyboardEvent) => {
+      e.preventDefault()
+      if (isPublic.value) return
+
+      const parentPage = openedPage.value?.parent_page_id ? getParentOfPage(openedPage.value.parent_page_id) : null
+      addNewPage(parentPage?.parent_page_id)
+    },
+  },
+]
+
 const isLoading = ref(true)
 
 const onAdminMount = async () => {
@@ -104,39 +135,14 @@ watch(
   },
 )
 
-// Listen to `Alt + n` to create a new page in the same parent
+// Listen to shortcuts
 onKeyStroke(
-  (e) => e.code === 'KeyN' && e.altKey,
+  (e) => shortCuts.some((shortCut) => shortCut.condition(e)),
   (e) => {
-    e.preventDefault()
-    if (isPublic.value) return
-
-    addNewPage(openedPage.value?.parent_page_id)
-  },
-  { eventName: 'keydown' },
-)
-
-// Listen to `Alt + m` to create a new page as child of the current page
-onKeyStroke(
-  (e) => e.code === 'KeyM' && e.altKey,
-  (e) => {
-    e.preventDefault()
-    if (isPublic.value) return
-
-    addNewPage(openedPage.value?.id)
-  },
-  { eventName: 'keydown' },
-)
-
-// Listen to `Alt + b` to create a new page as parent of the current page
-onKeyStroke(
-  (e) => e.code === 'KeyB' && e.altKey,
-  (e) => {
-    e.preventDefault()
-    if (isPublic.value) return
-
-    const parentPage = openedPage.value?.parent_page_id ? getParentOfPage(openedPage.value.parent_page_id) : null
-    addNewPage(parentPage?.parent_page_id)
+    const shortCut = shortCuts.find((shortCut) => shortCut.condition(e))
+    if (shortCut) {
+      shortCut.action(e)
+    }
   },
   { eventName: 'keydown' },
 )

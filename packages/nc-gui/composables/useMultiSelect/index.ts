@@ -171,7 +171,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (activeCell.row === null || activeCell.col === null) {
+    if (activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)) {
       return
     }
 

@@ -1,8 +1,5 @@
 import { Request, Response } from 'express';
-import { TableType, validatePassword, WorkspaceUserRoles } from 'nocodb-sdk';
-import { OrgUserRoles } from 'nocodb-sdk';
-import { NC_APP_SETTINGS } from '../../../constants';
-import Store from '../../../models/Store';
+import { TableType, validatePassword } from 'nocodb-sdk';
 import { Tele } from 'nc-help';
 import catchError, { NcError } from '../../helpers/catchError';
 
@@ -22,85 +19,8 @@ import extractProjectIdAndAuthenticate from '../../helpers/extractWorkspaceProje
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { MetaTable } from '../../../utils/globals';
 import Noco from '../../../Noco';
-import { genJwt } from './helpers';
+import { genJwt, registerNewUserIfAllowed } from './helpers';
 import { randomTokenString } from '../../helpers/stringHelpers';
-import { Workspace } from '../../../models/Workspace';
-import { WorkspaceUser } from '../../../models/WorkspaceUser';
-
-async function createDefaultWorkspace(user: User) {
-  const title = `${user.email?.split('@')?.[0]}`;
-  // create new workspace for user
-  const workspace = await Workspace.insert({
-    title,
-    description: 'Default workspace',
-    fk_user_id: user.id,
-  });
-
-  await WorkspaceUser.insert({
-    fk_user_id: user.id,
-    fk_workspace_id: workspace.id,
-    roles: WorkspaceUserRoles.OWNER,
-  });
-
-  return workspace;
-}
-
-export async function registerNewUserIfAllowed({
-  avatar,
-  user_name,
-  display_name,
-  email,
-  salt,
-  password,
-  email_verification_token,
-}: {
-  avatar;
-  user_name;
-  display_name;
-  email: string;
-  salt: any;
-  password;
-  email_verification_token;
-}) {
-  let roles: string = OrgUserRoles.CREATOR;
-
-  if (await User.isFirst()) {
-    roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
-    // todo: update in nc_store
-    // roles = 'owner,creator,editor'
-    Tele.emit('evt', {
-      evt_type: 'project:invite',
-      count: 1,
-    });
-  } else {
-    let settings: { invite_only_signup?: boolean } = {};
-    try {
-      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
-    } catch {}
-
-    if (settings?.invite_only_signup) {
-      NcError.badRequest('Not allowed to signup, contact super admin.');
-    } else {
-      // roles = OrgUserRoles.VIEWER;
-      // todo: handle in self-hosted
-      roles = OrgUserRoles.CREATOR;
-    }
-  }
-
-  const token_version = randomTokenString();
-
-  return await User.insert({
-    avatar,
-    display_name,
-    user_name,
-    email,
-    salt,
-    password,
-    email_verification_token,
-    roles,
-    token_version,
-  });
-}
 
 export async function signup(req: Request, res: Response<TableType>) {
   const {
@@ -184,8 +104,6 @@ export async function signup(req: Request, res: Response<TableType>) {
   }
 
   user = await User.getByEmail(email);
-
-  await createDefaultWorkspace(user);
 
   try {
     const template = (await import('./ui/emailTemplates/verify')).default;
@@ -308,6 +226,25 @@ async function googleSignin(req, res, next) {
         req,
         res,
         auditDescription: 'signed in using Google Auth',
+      })
+  )(req, res, next);
+}
+
+async function oidcSignin(req, res, next) {
+  passport.authenticate(
+    'openidconnect',
+    {
+      session: false,
+      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+    },
+    async (err, user, info): Promise<any> =>
+      await successfulSignIn({
+        user,
+        err,
+        info,
+        req,
+        res,
+        auditDescription: 'signed in using OpenID Connect',
       })
   )(req, res, next);
 }
@@ -572,6 +509,16 @@ const mapRoutes = (router) => {
     passport.authenticate('google', {
       scope: ['profile', 'email'],
       state: req.query.state,
+      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+    })(req, res, next)
+  );
+
+  /* OpenID Connect auth apis */
+  /* OpenID Connect APIs */
+  router.post('/auth/oidc/genTokenByCode', catchError(oidcSignin));
+  router.get('/auth/oidc', (req: any, res, next) =>
+    passport.authenticate('openidconnect', {
+      scope: ['profile', 'email'],
       callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
     })(req, res, next)
   );

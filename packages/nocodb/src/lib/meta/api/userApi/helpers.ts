@@ -2,6 +2,13 @@ import * as jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import User from '../../../models/User';
 import { NcConfig } from '../../../../interface/config';
+import { Workspace } from '../../../models/Workspace';
+import { WorkspaceUser } from '../../../models/WorkspaceUser';
+import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import Store from '../../../models/Store';
+import { NC_APP_SETTINGS } from '../../../constants';
+import { NcError } from '../../helpers/catchError';
+import { Tele } from 'nc-help';
 
 export function genJwt(user: User, config: NcConfig) {
   return jwt.sign(
@@ -21,4 +28,85 @@ export function genJwt(user: User, config: NcConfig) {
 
 export function randomTokenString(): string {
   return crypto.randomBytes(40).toString('hex');
+}
+
+export async function createDefaultWorkspace(user: User) {
+  const title = `${user.email?.split('@')?.[0]}`;
+  // create new workspace for user
+  const workspace = await Workspace.insert({
+    title,
+    description: 'Default workspace',
+    fk_user_id: user.id,
+  });
+
+  await WorkspaceUser.insert({
+    fk_user_id: user.id,
+    fk_workspace_id: workspace.id,
+    roles: WorkspaceUserRoles.OWNER,
+  });
+
+  return workspace;
+}
+
+export async function registerNewUserIfAllowed({
+  avatar,
+  user_name,
+  display_name,
+  email,
+  salt,
+  password,
+  email_verification_token,
+  email_verified,
+}: {
+  avatar;
+  user_name;
+  display_name;
+  email: string;
+  salt: any;
+  password;
+  email_verification_token;
+  email_verified?;
+}) {
+  let roles: string = OrgUserRoles.CREATOR;
+
+  if (await User.isFirst()) {
+    roles = `${OrgUserRoles.SUPER_ADMIN}`;
+    // todo: update in nc_store
+    // roles = 'owner,creator,editor'
+    Tele.emit('evt', {
+      evt_type: 'project:invite',
+      count: 1,
+    });
+  } else {
+    let settings: { invite_only_signup?: boolean } = {};
+    try {
+      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+    } catch {}
+
+    if (settings?.invite_only_signup) {
+      NcError.badRequest('Not allowed to signup, contact super admin.');
+    } else {
+      // roles = OrgUserRoles.VIEWER;
+      // todo: handle in self-hosted
+      roles = OrgUserRoles.CREATOR;
+    }
+  }
+
+  const token_version = randomTokenString();
+
+  const user = await User.insert({
+    avatar,
+    display_name,
+    user_name,
+    email,
+    salt,
+    password,
+    email_verification_token,
+    roles,
+    token_version,
+    email_verified,
+  });
+
+  await createDefaultWorkspace(user);
+  return user;
 }

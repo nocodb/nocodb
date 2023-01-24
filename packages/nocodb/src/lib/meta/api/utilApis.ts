@@ -37,6 +37,17 @@ export async function testConnection(req: Request, res: Response) {
 
 export async function appInfo(req: Request, res: Response) {
   const projectHasAdmin = !(await User.isFirst());
+  const oidcAuthEnabled = !!(
+    process.env.NC_OIDC_ISSUER &&
+    process.env.NC_OIDC_AUTHORIZATION_URL &&
+    process.env.NC_OIDC_TOKEN_URL &&
+    process.env.NC_OIDC_USERINFO_URL &&
+    process.env.NC_OIDC_CLIENT_ID &&
+    process.env.NC_OIDC_CLIENT_SECRET
+  );
+  const oidcProviderName = oidcAuthEnabled
+    ? process.env.NC_OIDC_PROVIDER_NAME ?? 'OpenID Connect'
+    : null;
   const result = {
     authType: 'jwt',
     projectHasAdmin,
@@ -49,6 +60,8 @@ export async function appInfo(req: Request, res: Response) {
     githubAuthEnabled: !!(
       process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET
     ),
+    oidcAuthEnabled,
+    oidcProviderName,
     oneClick: !!process.env.NC_ONE_CLICK,
     connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
     version: packageVersion,
@@ -380,7 +393,7 @@ const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
 
 async function selectOptionsMagic(req: Request, res: Response) {
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `return select options for '${req.body.data.title}' column for '${req.body.data.table}' table in '${req.body.data.schema}' schema as Array<string> in json`,
     temperature: 0.7,
     max_tokens: 500,
@@ -390,7 +403,9 @@ async function selectOptionsMagic(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
     return;
   }
 
@@ -401,7 +416,7 @@ async function selectOptionsMagic(req: Request, res: Response) {
 
 async function predictColumnType(req: Request, res: Response) {
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `Within types: ID,LinkToAnotherRecord,ForeignKey,SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry select most appropiate type for '${req.body.data.title}' column:`,
     temperature: 0.7,
     max_tokens: 200,
@@ -411,11 +426,15 @@ async function predictColumnType(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
     return;
   }
 
-  const resObject = { data: response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim() };
+  const resObject = {
+    data: response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim(),
+  };
 
   res.json(resObject);
 }
@@ -423,7 +442,7 @@ async function predictColumnType(req: Request, res: Response) {
 async function predictFormula(req: Request, res: Response) {
   const colPrompt = req.body.data.columns.map((col) => `'${col}'`).join(', ');
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `'${req.body.data.table}' table has ${colPrompt} columns
     write formula for '${req.body.data.title}' using basic arithmetics and wrapping each column name with {}`,
     temperature: 0.7,
@@ -434,19 +453,25 @@ async function predictFormula(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
     return;
   }
 
-  const resObject = { data: response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim() };
+  const resObject = {
+    data: response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim(),
+  };
 
   res.json(resObject);
 }
 
 async function predictNextColumn(req: Request, res: Response) {
-  const colPrompt = req.body.data.columns.length ? req.body.data.columns.map((col) => `'${col}'`).join(', ') : 'no';
+  const colPrompt = req.body.data.columns.length
+    ? req.body.data.columns.map((col) => `'${col}'`).join(', ')
+    : 'no';
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `Using types: SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry
     Predict next 5 column for '${req.body.data.table}' table which have ${colPrompt} columns and return as json { title: string; type: string }[]`,
     temperature: 0.7,
@@ -457,19 +482,27 @@ async function predictNextColumn(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
     return;
   }
 
-  const resObject = { data: JSON5.parse(response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim()) };
+  const resObject = {
+    data: JSON5.parse(
+      response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim()
+    ),
+  };
 
   res.json(resObject);
 }
 
 async function predictNextFormulas(req: Request, res: Response) {
-  const colPrompt = req.body.data.columns.length ? req.body.data.columns.map((col) => `'${col}'`).join(', ') : 'no';
+  const colPrompt = req.body.data.columns.length
+    ? req.body.data.columns.map((col) => `'${col}'`).join(', ')
+    : 'no';
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `${req.body.data.table} table has ${colPrompt} columns
     write possible formulas using basic arithmetic operators and wrapping each column name with {} and return as json { title: string, formula: string }[]
     `,
@@ -481,18 +514,24 @@ async function predictNextFormulas(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
     return;
   }
 
-  const resObject = { data: JSON5.parse(response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim()) };
+  const resObject = {
+    data: JSON5.parse(
+      response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim()
+    ),
+  };
 
   res.json(resObject);
 }
 
 async function generateSinglePrompt(req: Request, res: Response) {
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `${req.body.data.prompt}`,
     temperature: 0.7,
     max_tokens: 1000,
@@ -502,7 +541,9 @@ async function generateSinglePrompt(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res.status(500).json({ msg: "Unable to process request, please try again!" });
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
     return;
   }
 
@@ -517,30 +558,32 @@ export async function genericGPT(req: Request, res: Response) {
 
   try {
     switch (req.body.operation) {
-      case "selectOptions":
+      case 'selectOptions':
         // req.body.data.table, req.body.data.schema, req.body.data.title
         return await selectOptionsMagic(req, res);
-      case "predictColumnType":
+      case 'predictColumnType':
         // req.body.data.title
         return await predictColumnType(req, res);
-      case "predictFormula":
+      case 'predictFormula':
         // req.body.data.columns, req.body.table, req.body.data.title
         return await predictFormula(req, res);
-      case "predictNextColumn":
+      case 'predictNextColumn':
         // req.body.data.columns, req.body.data.table
         return await predictNextColumn(req, res);
-      case "predictNextFormulas":
+      case 'predictNextFormulas':
         // req.body.data.columns, req.body.data.table
         return await predictNextFormulas(req, res);
-      case "generateSinglePrompt":
+      case 'generateSinglePrompt':
         // req.body.data.prompt
         return await generateSinglePrompt(req, res);
       default:
-        return res.status(500).json({ msg: "Unknown operation" });
+        return res.status(500).json({ msg: 'Unknown operation' });
     }
   } catch (e) {
     console.log(e);
-    return res.status(500).json({ msg: "Unable to process request, please try again!" });
+    return res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
   }
 }
 
@@ -549,10 +592,7 @@ export default (router) => {
     '/api/v1/db/meta/connection/test',
     ncMetaAclMw(testConnection, 'testConnection')
   );
-  router.post(
-    '/api/v1/db/meta/magic',
-    ncMetaAclMw(genericGPT, 'genericGPT')
-  );
+  router.post('/api/v1/db/meta/magic', ncMetaAclMw(genericGPT, 'genericGPT'));
 
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));

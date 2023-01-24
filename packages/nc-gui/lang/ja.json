@@ -307,8 +307,8 @@
     "commentsOnly": "コメントのみ",
     "documentation": "ドキュメント",
     "subscribeNewsletter": "週刊ニュースレターを購読する",
-    "signUpWithGoogle": "Googleでログイン",
-    "signInWithGoogle": "Googleでログイン",
+    "signUpWithProvider": "{provider}でログイン",
+    "signInWithProvider": "{provider}でログイン",
     "agreeToTos": "サインアップすることで、利用規約に同意するものとみなされます。",
     "welcomeToNc": "NocoDB へようこそ！",
     "inviteOnlySignup": "招待URL からのサインアップのみ許可"

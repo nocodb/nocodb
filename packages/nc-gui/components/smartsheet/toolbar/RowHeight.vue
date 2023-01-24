@@ -46,7 +46,6 @@ useMenuCloseOnEsc(open)
           <RiLineHeight />
 
           <!-- Row Height -->
-          <span class="text-capitalize !text-sm font-weight-normal">Row Height</span>
           <MdiMenuDown class="text-grey" />
         </div>
       </a-button>

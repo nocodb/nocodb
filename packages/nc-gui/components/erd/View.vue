@@ -66,6 +66,10 @@ const populateTables = async () => {
   isLoading = false
 }
 
+const toggleFullScreen = () => {
+  config.isFullScreen = !config.isFullScreen
+}
+
 watch([metas, projectTables], populateTables, {
   flush: 'post',
   immediate: true,
@@ -104,7 +108,7 @@ watch(
           </div>
         </GeneralOverlay>
 
-        <ErdFullScreenToggle :config="config" />
+        <ErdFullScreenToggle :config="config" @toggle-full-screen="toggleFullScreen" />
         <ErdConfigPanel :config="config" />
         <ErdHistogramPanel v-if="!config.singleTableMode" />
       </LazyErdFlow>

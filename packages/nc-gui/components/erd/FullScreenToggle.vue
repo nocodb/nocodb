@@ -8,10 +8,12 @@ const props = defineProps<{
   config: ERDConfig
 }>()
 
-const config = useVModel(props, 'config')
+const emit = defineEmits(['toggleFullScreen'])
+
+const { config } = toRefs(props)
 
 const toggleFullScreen = () => {
-  config.value.isFullScreen = !config.value.isFullScreen
+  emit('toggleFullScreen')
 }
 </script>
 

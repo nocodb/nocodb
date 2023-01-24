@@ -1142,6 +1142,7 @@ export class MssqlUi {
           'real',
           'smallint',
           'tinyint',
+          'money',
         ];
 
       case 'Percent':

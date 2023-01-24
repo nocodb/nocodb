@@ -980,7 +980,7 @@ const rowHeight = computed(() => {
 
   td:not(:first-child) > div {
     overflow: hidden;
-    @apply flex items-center px-1;
+    @apply flex px-1;
   }
 
   table,

@@ -17,6 +17,7 @@ import {
   unref,
   useCopy,
   useEventListener,
+  useGlobal,
   useI18n,
   useMetas,
   useProject,
@@ -46,6 +47,8 @@ export function useMultiSelect(
   const { copy } = useCopy()
 
   const { getMeta } = useMetas()
+
+  const { appInfo } = useGlobal()
 
   const { isMysql } = useProject()
 
@@ -298,6 +301,8 @@ export function useMultiSelect(
                         value: clipboardContext.value,
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
                       },
                       isMysql.value,
                     )
@@ -330,6 +335,8 @@ export function useMultiSelect(
                         value: clipboardContext.value,
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
                       },
                       isMysql.value,
                     )

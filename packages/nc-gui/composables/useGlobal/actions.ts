@@ -43,5 +43,14 @@ export function useGlobalActions(state: State): Actions {
       })
   }
 
-  return { signIn, signOut, refreshToken }
+  const loadAppInfo = async () => {
+    try {
+      const nuxtApp = useNuxtApp()
+      state.appInfo.value = await nuxtApp.$api.utils.appInfo()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  return { signIn, signOut, refreshToken, loadAppInfo }
 }

@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { useNuxtApp } from '#app'
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, useApi } from '#imports'
+import { extractSdkResponseErrorMsg, useApi,useGlobal } from '#imports'
 
 const { api, isLoading } = useApi()
 
 const {$e} = useNuxtApp()
+
+const {loadAppInfo} = useGlobal()
 
 let key = $ref('')
 
@@ -22,6 +24,7 @@ const setLicense = async () => {
   try {
     await api.orgLicense.set({ key: key })
     message.success('License key updated')
+    await loadAppInfo();
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

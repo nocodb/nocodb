@@ -224,7 +224,7 @@ async function addIfMissingAndSave() {
       // todo: refactor and avoid repetition
       if (updatedColMeta.cdf) {
         // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-        if (isPg.value) {
+        if (isPg(column.value.base_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.substring(
             updatedColMeta.cdf.indexOf(`'`) + 1,
             updatedColMeta.cdf.lastIndexOf(`'`),
@@ -232,7 +232,7 @@ async function addIfMissingAndSave() {
         }
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-        if (!isMysql.value) {
+        if (!isMysql(column.value.base_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }

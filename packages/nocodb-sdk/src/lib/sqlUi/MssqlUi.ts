@@ -163,122 +163,6 @@ export class MssqlUi {
     };
   }
 
-  // static getDefaultLengthForDatatype(type) {
-  //   switch (type) {
-  //     case "int":
-  //       return 11;
-  //       break;
-  //     case "tinyint":
-  //       return 1;
-  //       break;
-  //     case "smallint":
-  //       return 5;
-  //       break;
-  //
-  //     case "mediumint":
-  //       return 9;
-  //       break;
-  //     case "bigint":
-  //       return 20;
-  //       break;
-  //     case "bit":
-  //       return 64;
-  //       break;
-  //     case "boolean":
-  //       return '';
-  //       break;
-  //     case "float":
-  //       return 12;
-  //       break;
-  //     case "decimal":
-  //       return 10;
-  //       break;
-  //     case "double":
-  //       return 22;
-  //       break;
-  //     case "serial":
-  //       return 20;
-  //       break;
-  //     case "date":
-  //       return '';
-  //       break;
-  //     case "datetime":
-  //     case "timestamp":
-  //       return 6;
-  //       break;
-  //     case "time":
-  //       return '';
-  //       break;
-  //     case "year":
-  //       return '';
-  //       break;
-  //     case "char":
-  //       return 255;
-  //       break;
-  //     case "varchar":
-  //       return 45;
-  //       break;
-  //     case "nchar":
-  //       return 255;
-  //       break;
-  //     case "text":
-  //       return '';
-  //       break;
-  //     case "tinytext":
-  //       return '';
-  //       break;
-  //     case "mediumtext":
-  //       return '';
-  //       break;
-  //     case "longtext":
-  //       return ''
-  //       break;
-  //     case "binary":
-  //       return 255;
-  //       break;
-  //     case "varbinary":
-  //       return 65500;
-  //       break;
-  //     case "blob":
-  //       return '';
-  //       break;
-  //     case "tinyblob":
-  //       return '';
-  //       break;
-  //     case "mediumblob":
-  //       return '';
-  //       break;
-  //     case "longblob":
-  //       return '';
-  //       break;
-  //     case "enum":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "set":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "geometry":
-  //       return '';
-  //     case "point":
-  //       return '';
-  //     case "linestring":
-  //       return '';
-  //     case "polygon":
-  //       return '';
-  //     case "multipoint":
-  //       return '';
-  //     case "multilinestring":
-  //       return '';
-  //     case "multipolygon":
-  //       return '';
-  //     case "json":
-  //       return ''
-  //       break;
-  //
-  //   }
-  //
-  // }
-
   static getDefaultLengthForDatatype(type) {
     switch (type) {
       case 'bigint':
@@ -306,7 +190,7 @@ export class MssqlUi {
         return '';
 
       case 'decimal':
-        return '';
+        return 10;
 
       case 'float':
         return '';
@@ -394,8 +278,12 @@ export class MssqlUi {
   static getDefaultLengthIsDisabled(type) {
     switch (type) {
       case 'nvarchar':
+      case 'numeric':
+      case 'decimal':
         return false;
-
+      case 'tinyint':
+      case 'float':
+      case 'int':
       case 'bigint':
       case 'binary':
       case 'bit':
@@ -404,17 +292,13 @@ export class MssqlUi {
       case 'datetime':
       case 'datetime2':
       case 'datetimeoffset':
-      case 'decimal':
-      case 'float':
       case 'geography':
       case 'geometry':
       case 'heirarchyid':
       case 'image':
-      case 'int':
       case 'money':
       case 'nchar':
       case 'ntext':
-      case 'numeric':
       case 'real':
       case 'json':
       case 'smalldatetime':
@@ -425,7 +309,6 @@ export class MssqlUi {
       case 'text':
       case 'time':
       case 'timestamp':
-      case 'tinyint':
       case 'uniqueidentifier':
       case 'varbinary':
       case 'xml':
@@ -578,7 +461,7 @@ export class MssqlUi {
         return '';
 
       case 'decimal':
-        return '';
+        return '2';
 
       case 'float':
         return '';
@@ -608,7 +491,7 @@ export class MssqlUi {
         return '';
 
       case 'numeric':
-        return '';
+        return '2';
 
       case 'nvarchar':
         return '';
@@ -714,8 +597,8 @@ export class MssqlUi {
     // }
   }
 
-  static showScale(_columnObj) {
-    return false;
+  static showScale(columnObj) {
+    return columnObj.dt === 'decimal' || columnObj.dt === 'numeric';
   }
 
   static removeUnsigned(columns) {
@@ -1261,6 +1144,7 @@ export class MssqlUi {
           'real',
           'smallint',
           'tinyint',
+          'money',
         ];
 
       case 'Percent':

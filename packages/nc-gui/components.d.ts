@@ -242,6 +242,7 @@ declare module '@vue/runtime-core' {
     MdiMapMarkerOutline: typeof import('~icons/mdi/map-marker-outline')['default']
     MdiMenu: typeof import('~icons/mdi/menu')['default']
     MdiMenuDown: typeof import('~icons/mdi/menu-down')['default']
+    MdiMenuUp: typeof import('~icons/mdi/menu-up')['default']
     MdiMicrosoftTeams: typeof import('~icons/mdi/microsoft-teams')['default']
     MdiMinusCircleOutline: typeof import('~icons/mdi/minus-circle-outline')['default']
     MdiMoonFull: typeof import('~icons/mdi/moon-full')['default']

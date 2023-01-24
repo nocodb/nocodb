@@ -61,6 +61,10 @@ export function useMultiSelect(
 
   const columnLength = $computed(() => unref(fields)?.length)
 
+  const isCellActive = computed(
+    () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
+  )
+
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
       return
@@ -171,7 +175,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)) {
+    if (!isCellActive.value) {
       return
     }
 
@@ -367,6 +371,7 @@ export function useMultiSelect(
   useEventListener(document, 'mouseup', handleMouseUp)
 
   return {
+    isCellActive,
     handleMouseDown,
     handleMouseOver,
     clearSelectedRange,

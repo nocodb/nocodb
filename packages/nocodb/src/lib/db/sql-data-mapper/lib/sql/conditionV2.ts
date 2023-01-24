@@ -303,50 +303,55 @@ const parseConditionV2 = async (
             } else {
               val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
             }
-            if (qb?.client?.config?.client === 'pg') {
-              qb = qb.whereRaw('??::text not ilike ?', [field, val]);
-            } else {
-              qb = qb.whereNot(field, 'like', val);
-            }
+            qb.where((nestedQb) => {
+              if (qb?.client?.config?.client === 'pg') {
+                nestedQb.whereRaw('??::text not ilike ?', [field, val]);
+              } else {
+                nestedQb.whereNot(field, 'like', val);
+              }
+              nestedQb.orWhereNull(field);
+            });
             break;
           case 'allof':
           case 'anyof':
           case 'nallof':
           case 'nanyof':
-            // Condition for filter, without negation
-            const condition = (builder: Knex.QueryBuilder) => {
-              const items = val.split(',').map((item) => item.trim());
-              for (let i = 0; i < items.length; i++) {
-                let sql;
-                const bindings = [field, `%,${items[i]},%`];
-                if (qb?.client?.config?.client === 'pg') {
-                  sql = "(',' || ??::text || ',') ilike ?";
-                } else if (qb?.client?.config?.client === 'sqlite3') {
-                  sql = "(',' || ?? || ',') like ?";
-                } else {
-                  sql = "CONCAT(',', ??, ',') like ?";
-                }
-                if (i === 0) {
-                  builder = builder.whereRaw(sql, bindings);
-                } else {
-                  if (
-                    filter.comparison_op === 'allof' ||
-                    filter.comparison_op === 'nallof'
-                  ) {
-                    builder = builder.andWhereRaw(sql, bindings);
+            {
+              // Condition for filter, without negation
+              const condition = (builder: Knex.QueryBuilder) => {
+                const items = val.split(',').map((item) => item.trim());
+                for (let i = 0; i < items.length; i++) {
+                  let sql;
+                  const bindings = [field, `%,${items[i]},%`];
+                  if (qb?.client?.config?.client === 'pg') {
+                    sql = "(',' || ??::text || ',') ilike ?";
+                  } else if (qb?.client?.config?.client === 'sqlite3') {
+                    sql = "(',' || ?? || ',') like ?";
                   } else {
-                    builder = builder.orWhereRaw(sql, bindings);
+                    sql = "CONCAT(',', ??, ',') like ?";
+                  }
+                  if (i === 0) {
+                    builder = builder.whereRaw(sql, bindings);
+                  } else {
+                    if (
+                      filter.comparison_op === 'allof' ||
+                      filter.comparison_op === 'nallof'
+                    ) {
+                      builder = builder.andWhereRaw(sql, bindings);
+                    } else {
+                      builder = builder.orWhereRaw(sql, bindings);
+                    }
                   }
                 }
+              };
+              if (
+                filter.comparison_op === 'allof' ||
+                filter.comparison_op === 'anyof'
+              ) {
+                qb = qb.where(condition);
+              } else {
+                qb = qb.whereNot(condition).orWhereNull(field);
               }
-            };
-            if (
-              filter.comparison_op === 'allof' ||
-              filter.comparison_op === 'anyof'
-            ) {
-              qb = qb.where(condition);
-            } else {
-              qb = qb.whereNot(condition).orWhereNull(field);
             }
             break;
           case 'gt':

@@ -4,13 +4,6 @@ import type { JwtPayload } from 'jwt-decode'
 import type { Language, ProjectRole, User } from '~/lib'
 import type { useCounter } from '#imports'
 
-export interface FeedbackForm {
-  url: string
-  createdAt: string
-  isHidden: boolean
-  lastFormPollDate?: string
-}
-
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
@@ -34,7 +27,6 @@ export interface StoredState {
   token: string | null
   lang: keyof typeof Language
   darkMode: boolean
-  feedbackForm: FeedbackForm
   filterAutoSave: boolean
   previewAs: ProjectRole | null
   includeM2M: boolean
@@ -63,6 +55,7 @@ export interface Actions {
   signOut: () => void
   signIn: (token: string) => void
   refreshToken: () => void
+  loadAppInfo: () => void
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

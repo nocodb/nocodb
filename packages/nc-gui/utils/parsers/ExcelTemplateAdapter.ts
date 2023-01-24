@@ -257,6 +257,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       })
                       const cellObj = ws[cellId]
                       rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
+                    } else if (table.columns[i].uidt === UITypes.SingleLineText || table.columns[i].uidt === UITypes.LongText) {
+                      rowData[table.columns[i].column_name] = row[i] === null || row[i] === undefined ? null : `${row[i]}`
                     } else {
                       // TODO: do parsing if necessary based on type
                       rowData[table.columns[i].column_name] = row[i]

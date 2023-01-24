@@ -173,128 +173,138 @@ const getContainerScrollForElement = (
   return scroll
 }
 
-const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCellClick, clearSelectedRange, copyValue } =
-  useMultiSelect(
-    meta,
-    fields,
-    data,
-    $$(editEnabled),
-    isPkAvail,
-    clearCell,
-    makeEditable,
-    scrollToCell,
-    (e: KeyboardEvent) => {
-      // ignore navigating if picker(Date, Time, DateTime, Year)
-      // or single/multi select options is open
-      const activePickerOrDropdownEl = document.querySelector(
-        '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
-      )
-      if (activePickerOrDropdownEl) {
+const {
+  isCellSelected,
+  activeCell,
+  handleMouseDown,
+  handleMouseOver,
+  handleCellClick,
+  clearSelectedRange,
+  copyValue,
+  isCellActive,
+} = useMultiSelect(
+  meta,
+  fields,
+  data,
+  $$(editEnabled),
+  isPkAvail,
+  clearCell,
+  makeEditable,
+  scrollToCell,
+  (e: KeyboardEvent) => {
+    // ignore navigating if picker(Date, Time, DateTime, Year)
+    // or single/multi select options is open
+    const activePickerOrDropdownEl = document.querySelector(
+      '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+    )
+    if (activePickerOrDropdownEl) {
+      e.preventDefault()
+      return true
+    }
+
+    // skip keyboard event handling if there is a drawer / modal
+    if (isDrawerOrModalExist()) {
+      return true
+    }
+
+    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+    const altOrOptionKey = e.altKey
+    if (e.key === ' ') {
+      if (isCellActive.value && !editEnabled && hasEditPermission) {
         e.preventDefault()
+        clearSelectedRange()
+        const row = data.value[activeCell.row]
+        expandForm(row)
         return true
       }
-
-      // skip keyboard event handling if there is a drawer / modal
-      if (isDrawerOrModalExist()) {
+    } else if (e.key === 'Escape') {
+      if (editEnabled) {
+        editEnabled = false
         return true
       }
+    } else if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        // add a line break for types like LongText / JSON
+        return true
+      }
+      if (editEnabled) {
+        editEnabled = false
+        return true
+      }
+    }
 
-      const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-      const altOrOptionKey = e.altKey
-      if (e.key === ' ') {
-        if (activeCell.row != null && !editEnabled && hasEditPermission) {
+    if (cmdOrCtrl) {
+      if (!isCellActive.value) return
+
+      switch (e.key) {
+        case 'ArrowUp':
           e.preventDefault()
           clearSelectedRange()
-          const row = data.value[activeCell.row]
-          expandForm(row)
-          return true
-        }
-      } else if (e.key === 'Escape') {
-        if (editEnabled) {
+          activeCell.row = 0
+          activeCell.col = activeCell.col ?? 0
+          scrollToCell?.()
           editEnabled = false
           return true
-        }
-      } else if (e.key === 'Enter') {
-        if (e.shiftKey) {
-          // add a line break for types like LongText / JSON
-          return true
-        }
-        if (editEnabled) {
+        case 'ArrowDown':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = data.value.length - 1
+          activeCell.col = activeCell.col ?? 0
+          scrollToCell?.()
           editEnabled = false
           return true
-        }
+        case 'ArrowRight':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = activeCell.row ?? 0
+          activeCell.col = fields.value?.length - 1
+          scrollToCell?.()
+          editEnabled = false
+          return true
+        case 'ArrowLeft':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = activeCell.row ?? 0
+          activeCell.col = 0
+          scrollToCell?.()
+          editEnabled = false
+          return true
       }
+    }
 
-      if (cmdOrCtrl) {
-        switch (e.key) {
-          case 'ArrowUp':
-            e.preventDefault()
-            clearSelectedRange()
-            activeCell.row = 0
-            activeCell.col = activeCell.col ?? 0
-            scrollToCell?.()
-            editEnabled = false
-            return true
-          case 'ArrowDown':
-            e.preventDefault()
-            clearSelectedRange()
-            activeCell.row = data.value.length - 1
-            activeCell.col = activeCell.col ?? 0
-            scrollToCell?.()
-            editEnabled = false
-            return true
-          case 'ArrowRight':
-            e.preventDefault()
-            clearSelectedRange()
-            activeCell.row = activeCell.row ?? 0
-            activeCell.col = fields.value?.length - 1
-            scrollToCell?.()
-            editEnabled = false
-            return true
-          case 'ArrowLeft':
-            e.preventDefault()
-            clearSelectedRange()
-            activeCell.row = activeCell.row ?? 0
-            activeCell.col = 0
-            scrollToCell?.()
-            editEnabled = false
-            return true
-        }
-      }
-
-      if (altOrOptionKey) {
-        switch (e.keyCode) {
-          case 82: {
-            // ALT + R
-            if (isAddingEmptyRowAllowed) {
-              $e('c:shortcut', { key: 'ALT + R' })
-              addEmptyRow()
-            }
-            break
+    if (altOrOptionKey) {
+      switch (e.keyCode) {
+        case 82: {
+          // ALT + R
+          if (isAddingEmptyRowAllowed) {
+            $e('c:shortcut', { key: 'ALT + R' })
+            addEmptyRow()
           }
-          case 67: {
-            // ALT + C
-            if (isAddingColumnAllowed) {
-              $e('c:shortcut', { key: 'ALT + C' })
-              addColumnDropdown.value = true
-            }
-            break
+          break
+        }
+        case 67: {
+          // ALT + C
+          if (isAddingColumnAllowed) {
+            $e('c:shortcut', { key: 'ALT + C' })
+            addColumnDropdown.value = true
           }
+          break
         }
       }
-    },
-    async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
-      const rowObj = data.value[ctx.row]
-      const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
+    }
+  },
+  async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
+    const rowObj = data.value[ctx.row]
+    const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
 
-      if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
-        return
-      }
+    if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+      return
+    }
 
-      // update/save cell value
-      await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
-    },
-  )
+    // update/save cell value
+    await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
+  },
+)
 
 function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? activeCell.row

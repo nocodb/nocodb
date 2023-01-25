@@ -26,7 +26,11 @@ function workspaceTests() {
   });
 
   it('Create multiple workspaces', async () => {
-    const workspaceCreateReqBody = {title: 'Workspace1,Workspace2,Workspace3', description: 'Workspace description'}
+    const workspaceCreateReqBody = [
+      {title: 'Workspace1', description: 'Workspace description1'},
+      {title: 'Workspace2', description: 'Workspace description2'},
+      {title: 'Workspace3', description: 'Workspace description3'},
+    ]
 
     const response = await request(context.app)
       .post('/api/v1/workspaces')
@@ -36,11 +40,11 @@ function workspaceTests() {
 
     expect(response.body).to.be.an('array');
 
-    for (let i=0;i<response.body.length;i++) {
+    for (let i=0;i<workspaceCreateReqBody.length;i++) {
       const workspace = response.body[i]
       expect(workspace.id).to.be.a('string');
-      expect(workspace.title).to.be.eq(workspaceCreateReqBody.title.split(',')[i]);
-      expect(workspace.description).to.be.eq('Workspace description');
+      expect(workspace.title).to.be.eq(workspaceCreateReqBody[i].title);
+      expect(workspace.description).to.be.eq(workspaceCreateReqBody[i].description);
     }
   });
 

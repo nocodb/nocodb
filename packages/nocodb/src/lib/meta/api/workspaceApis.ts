@@ -17,19 +17,20 @@ const workspaceCreate = async (
   req: Request<any, WorkspaceType, WorkspaceType>,
   res
 ) => {
-  validateParams(['title'], req.body);
 
-  const workspaceTitles = req.body.title
-    .split(',')
-    .map((title) => title.trim())
-    .filter(Boolean);
+  const workspacePayloads = Array.isArray(req.body) ? req.body : [req.body];
+
+  for(const workspacePayload of workspacePayloads){
+    validateParams(['title'], workspacePayload);
+  }
+
 
   const workspaces = [];
 
-  for (const workspaceTitle of workspaceTitles) {
+  for(const workspacePayload of workspacePayloads) {
     const workspace = await Workspace.insert({
-      ...req.body,
-      title: workspaceTitle,
+      ...workspacePayload,
+      title: workspacePayload.title.trim(),
       // todo : extend request type
       fk_user_id: (req as any).user.id,
     });
@@ -42,7 +43,7 @@ const workspaceCreate = async (
 
     workspaces.push(workspace);
   }
-  res.json(workspaces.length === 1 ? workspaces[0] : workspaces);
+  res.json(Array.isArray(req.body) ? workspaces : workspaces[0]);
 };
 
 const workspaceGet = async (

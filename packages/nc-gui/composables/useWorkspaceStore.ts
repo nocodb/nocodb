@@ -55,11 +55,25 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   const createWorkspace = async (workspace: Pick<WorkspaceType, 'title' | 'order' | 'description' | 'meta'>) => {
     try {
-      // pick a random color from array and assign to workspace
-      const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+      let reqPayload
+
+      if (workspace.title!.includes(',')) {
+        reqPayload = workspace
+          .title!.split(',')
+          .filter((t) => t.trim())
+          .map((title) => {
+            // pick a random color from array and assign to workspace
+            const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+            return { ...workspace, title, meta: { color } }
+          })
+      } else {
+        // pick a random color from array and assign to workspace
+        const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+        reqPayload = { ...workspace, meta: { color } }
+      }
 
       // todo: pagination
-      await $api.workspace.create({ ...workspace, meta: { color } })
+      await $api.workspace.create(reqPayload)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

@@ -48,15 +48,14 @@ export class AttachmentColumnPageObject extends BasePage {
       const checkboxList = await treeList.locator(`.ant-tree-treenode`);
 
       // print count of treenode
-      const count = await checkboxList.count();
-      console.log(`count: ${count}`);
+      // const count = await checkboxList.count();
 
       // log checkboxList
-      for (let i = 0; i < count; i++) {
-        const checkbox = await checkboxList.nth(i);
-        const text = await checkbox.innerText();
-        console.log(`text: ${text}`);
-      }
+      // for (let i = 0; i < count; i++) {
+      //   const checkbox = await checkboxList.nth(i);
+      //   const text = await checkbox.innerText();
+      //   console.log(`text: ${text}`);
+      // }
 
       for (let i = 0; i < fileTypesExcludeList.length; i++) {
         const fileType = fileTypesExcludeList[i];
@@ -110,25 +109,17 @@ export class AttachmentColumnPageObject extends BasePage {
 
   async deleteOption({ columnTitle, index }: { index: number; columnTitle: string }) {
     await this.column.openEdit({ title: columnTitle });
-
     await this.column.get().locator(`svg[data-testid="select-column-option-remove-${index}"]`).click();
-
     await expect(this.column.get().getByTestId(`select-column-option-${index}`)).toHaveClass(/removed/);
-
     await this.column.save({ isUpdated: true });
   }
 
   async deleteOptionWithUndo({ columnTitle, index }: { index: number; columnTitle: string }) {
     await this.column.openEdit({ title: columnTitle });
-
     await this.column.get().locator(`svg[data-testid="select-column-option-remove-${index}"]`).click();
-
     await expect(this.column.get().getByTestId(`select-column-option-${index}`)).toHaveClass(/removed/);
-
     await this.column.get().locator(`svg[data-testid="select-column-option-remove-undo-${index}"]`).click();
-
     await expect(this.column.get().getByTestId(`select-column-option-${index}`)).not.toHaveClass(/removed/);
-
     await this.column.save({ isUpdated: true });
   }
 
@@ -142,9 +133,7 @@ export class AttachmentColumnPageObject extends BasePage {
     destinationOption: string;
   }) {
     await this.column.openEdit({ title: columnTitle });
-
     await this.column.rootPage.waitForTimeout(150);
-
     await this.column.rootPage.dragAndDrop(
       `svg[data-testid="select-option-column-handle-icon-${sourceOption}"]`,
       `svg[data-testid="select-option-column-handle-icon-${destinationOption}"]`,
@@ -152,7 +141,6 @@ export class AttachmentColumnPageObject extends BasePage {
         force: true,
       }
     );
-
     await this.column.save({ isUpdated: true });
   }
 }

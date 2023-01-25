@@ -281,7 +281,7 @@ const onTagClick = (e: Event, onClose: Function) => {
     v-model:value="vModel"
     v-model:open="isOpen"
     mode="multiple"
-    class="w-full"
+    class="w-full overflow-hidden"
     :bordered="false"
     clear-icon
     show-search
@@ -401,5 +401,9 @@ const onTagClick = (e: Event, onClose: Function) => {
 
 :deep(.ant-select-selection-overflow-item) {
   @apply "flex overflow-hidden";
+}
+
+:deep(.ant-select-selection-overflow) {
+  @apply flex-nowrap;
 }
 </style>

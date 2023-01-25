@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import type { VNodeRef } from '@vue/runtime-core'
+import InputOrTags from './InputOrTags'
 import { Form, ref, useVModel } from '#imports'
 import { useWorkspaceStoreOrThrow } from '~/composables/useWorkspaceStore'
 import { extractSdkResponseErrorMsg } from '~/utils'
@@ -23,14 +23,13 @@ const validators = computed(() => {
   // todo: validation
   return {
     title: [
-      validateTableName,
       {
-        validator: (_: any, _value: any) => {
+        validator: (_: any, value: any) => {
           // validate duplicate alias
-          return new Promise((resolve, _reject) => {
-            // if (workspace.value || []).some((t) => t.title === (value || ''))) {
-            //   return reject(new Error('Duplicate workspace alias'))
-            // }
+          return new Promise((resolve, reject) => {
+            if (!value?.trim()) {
+              return reject(new Error('Workspace name required'))
+            }
             return resolve(true)
           })
         },
@@ -53,10 +52,6 @@ const _createWorkspace = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
-
-const inputEl: VNodeRef = (el) => {
-  ;(el as HTMLInputElement)?.focus()
 }
 
 watch(dialogShow, (val) => {
@@ -87,17 +82,19 @@ watch(dialogShow, (val) => {
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createWorkspace') }}</div>
 
         <!-- todo: i18n -->
-        <div class="mb-2">Workspace Names</div>
+        <div class="mb-2">Workspace Name</div>
 
         <a-form-item v-bind="validateInfos.title">
-          <a-input
-            :ref="inputEl"
-            v-model:value="workspace.title"
-            size="large"
-            hide-details
-            data-testid="create-workspace-title-input"
-            placeholder="Comma separated names"
-          />
+          <InputOrTags v-model="workspace.title" />
+
+          <!--          <a-input -->
+          <!--            :ref="inputEl" -->
+          <!--            v-model:value="workspace.title" -->
+          <!--            size="large" -->
+          <!--            hide-details -->
+          <!--            data-testid="create-workspace-title-input" -->
+          <!--            placeholder="Workspace name" -->
+          <!--          /> -->
         </a-form-item>
         <a-form-item v-bind="validateInfos.description">
           <a-textarea

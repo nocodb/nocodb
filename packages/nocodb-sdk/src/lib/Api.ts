@@ -5841,10 +5841,10 @@ export class Api<
      * @name Create
      * @summary List workspaces
      * @request POST:/api/v1/workspaces
-     * @response `200` `(WorkspaceType)[]` OK
+     * @response `200` `((WorkspaceType)[] | WorkspaceType)` OK
      */
     create: (data: WorkspaceType, params: RequestParams = {}) =>
-      this.request<WorkspaceType[], any>({
+      this.request<WorkspaceType[] | WorkspaceType, any>({
         path: `/api/v1/workspaces`,
         method: 'POST',
         body: data,

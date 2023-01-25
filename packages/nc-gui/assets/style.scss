@@ -310,3 +310,12 @@ a {
     opacity: 0.2;
   }
 }
+
+
+.nc-menu-item-wrapper {
+  @apply flex flex-row items-center py-3 gap-2 text-xs;
+}
+
+.nc-click-transition {
+  @apply transform transition-transform transition-color !text-gray-400 !hover:(scale-130 !text-gray-500) !active:(scale-100 !text-gray-500)
+}

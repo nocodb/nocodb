@@ -477,20 +477,7 @@ const closeMagicModal = () => {
       </div>
     </div>
     <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" />
-    <a-modal
-      :visible="showCreateBookModal"
-      title="Create book"
-      :closable="false"
-      :mask-closable="false"
-      @cancel="showCreateBookModal = false"
-      @ok="onCreateBook"
-    >
-      <a-form :model="bookFormModelData">
-        <a-form-item label="Title">
-          <a-input v-model:value="bookFormModelData.title" />
-        </a-form-item>
-      </a-form>
-    </a-modal>
+    <DocsBookVersions :model-value="showCreateBookModal" @update:model-value="showCreateBookModal = $event" />
     <a-modal
       :visible="magicModalOpen"
       :closable="false"

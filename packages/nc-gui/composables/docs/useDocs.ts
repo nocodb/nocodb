@@ -371,7 +371,7 @@ const [setup, use] = useInjectionState(() => {
     }
   }
 
-  const createBook = async ({ book }: { book: BookType }) => {
+  const createBook = async ({ book, navigate = true }: { book: BookType; navigate?: boolean }) => {
     try {
       const createdBook = await $api.nocoDocs.createBook({
         attributes: book,
@@ -380,8 +380,13 @@ const [setup, use] = useInjectionState(() => {
 
       books.value.push(createdBook)
 
-      navigateTo(bookUrl(createdBook.slug!))
       nestedPages.value = []
+
+      if (navigate) {
+        navigateTo(bookUrl(createdBook.slug!))
+      }
+
+      return createdBook
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))

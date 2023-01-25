@@ -89,7 +89,7 @@ export const projectThemeColors = [
   themeV2Colors['royal-blue'].DEFAULT,
   '#2D7FF9',
   '#18BFFF',
-  '#60DAD5',
+  '#0C4E65',
   '#EC2CBD',
   '#F82B60',
   '#F57134',

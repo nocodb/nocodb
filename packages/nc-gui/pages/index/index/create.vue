@@ -3,6 +3,7 @@ import { customAlphabet } from 'nanoid'
 import type { Form } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
+import tinycolor from 'tinycolor2'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -50,15 +51,24 @@ const route = useRoute()
 const createProject = async () => {
   $e('a:project:create:xcdb')
   try {
+    // pick a random color from array and assign to project
+    const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+    const tcolor = tinycolor(color)
+
+    const complement = tcolor.complement()
+
     // todo: provide proper project type
     const result = await api.project.create({
       title: formState.title,
       fk_workspace_id: route.query.workspaceId,
       type: route.query.type ?? NcProjectType.DB,
-      ...(route.query.type === NcProjectType.COWRITER && {
-        meta: {
-          prompt_statement: '',
+      color,
+      meta: JSON.stringify({
+        theme: {
+          primaryColor: color,
+          accentColor: complement.toHex8String(),
         },
+        ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
       }),
     })
 

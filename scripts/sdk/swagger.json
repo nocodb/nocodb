@@ -8639,7 +8639,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Workspace"
+                "oneOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Workspace"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/Workspace"
+                  }
+                ]
               }
             }
           }

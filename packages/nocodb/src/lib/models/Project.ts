@@ -61,6 +61,7 @@ export default class Project implements ProjectType {
         type: projectBody.type,
         fk_workspace_id: projectBody.fk_workspace_id,
         meta: projectBody.meta,
+        color: projectBody.color,
       }
     );
 

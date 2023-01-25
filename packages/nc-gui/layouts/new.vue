@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { useI18n, useRoute, useSidebar } from '#imports'
+import { useGlobal, useI18n, useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
 
 const { te, t } = useI18n()
 
 const { hasSidebar, isOpen } = useSidebar('nc-left-sidebar')
+
+const { signOut } = useGlobal()
 
 const refreshSidebar = ref(false)
 
@@ -24,6 +26,11 @@ watch(hasSidebar, (val) => {
     })
   }
 })
+
+const logout = () => {
+  signOut()
+  navigateTo('/signin')
+}
 </script>
 
 <script lang="ts">

@@ -2,7 +2,7 @@ import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { useRoute } from 'vue-router'
-import { extractSdkResponseErrorMsg, useInjectionState, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, projectThemeColors, useInjectionState, useNuxtApp } from '#imports'
 
 const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string; roles?: string })[]>([])
@@ -55,8 +55,11 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   const createWorkspace = async (workspace: Pick<WorkspaceType, 'title' | 'order' | 'description' | 'meta'>) => {
     try {
+      // pick a random color from array and assign to workspace
+      const color = projectThemeColors[Math.floor(Math.random() * 1000) % projectThemeColors.length]
+
       // todo: pagination
-      await $api.workspace.create(workspace)
+      await $api.workspace.create({ ...workspace, meta: { color } })
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

@@ -564,7 +564,8 @@ export default class Page {
 
         table.float('order');
 
-        table.timestamps(true, true);
+        table.datetime('created_at', { useTz: true });
+        table.datetime('updated_at', { useTz: true });
       }
     );
   }

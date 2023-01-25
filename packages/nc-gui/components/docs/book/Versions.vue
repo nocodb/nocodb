@@ -121,7 +121,7 @@ watch(formStatus, async () => {
         class="docs-version-list flex flex-col mt-2 mb-4 pt-3 border-gray-200 border-t-1 max-h-30 overflow-y-auto"
       >
         <div
-          v-for="book of [...books, ...books, ...books, ...books, ...books]"
+          v-for="book of books"
           :key="book.id"
           class="flex flex-row justify-between items-center p-2 mb-2 mx-0.5 bg-gray-100 rounded-md border-gray-200 border-1 cursor-pointer hover:bg-gray-200"
           @click="() => navigateToBook(book)"

@@ -346,15 +346,13 @@ function onProjectTitleClick(index: number) {
               v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())"
               :trigger="['click']"
             >
-              <MdiDotsHorizontal
-                class="outline-0 nc-workspace-menu transform transition-transform !text-gray-400 hover:(scale-130 !text-gray-500)"
-                @click.stop
-              />
+              <MdiDotsHorizontal class="outline-0 nc-workspace-menu nc-click-transition" @click.stop />
+
               <template #overlay>
                 <a-menu>
                   <a-menu-item @click="enableEdit(i)">
-                    <div class="flex flex-row items-center py-3 gap-2">
-                      <MdiEdit />
+                    <div class="nc-menu-item-wrapper">
+                      <MdiEdit class="text-gray-500" />
                       Rename Project
                     </div>
                   </a-menu-item>
@@ -362,14 +360,14 @@ function onProjectTitleClick(index: number) {
                     v-if="isUIAllowed('moveProject', true, [record.workspace_role, record.project_role].join())"
                     @click="moveProject(record)"
                   >
-                    <div class="flex flex-row items-center py-3 gap-2">
-                      <MdiFolderMove />
+                    <div class="nc-menu-item-wrapper">
+                      <MdiFolderMove class="text-gray-500" />
                       Move Project
                     </div>
                   </a-menu-item>
                   <a-menu-item @click="deleteProject(record)">
-                    <div class="flex flex-row items-center py-3 gap-2">
-                      <MdiDeleteOutline />
+                    <div class="nc-menu-item-wrapper">
+                      <MdiDeleteOutline class="text-gray-500" />
                       Delete Project
                     </div>
                   </a-menu-item>
@@ -407,5 +405,8 @@ function onProjectTitleClick(index: number) {
 
 :deep(.ant-table-row) {
   @apply cursor-pointer;
+}
+:deep(th.ant-table-cell) {
+  @apply !text-gray-500;
 }
 </style>

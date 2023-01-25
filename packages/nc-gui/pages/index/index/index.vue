@@ -322,21 +322,19 @@ const projectListType = computed(() => {
                 </div>
                 <div class="flex-grow"></div>
                 <a-dropdown :trigger="['click']">
-                  <MdiDotsHorizontal
-                    class="outline-0 nc-workspace-menu min-w-4 transform transition-transform !text-gray-400 hover:(scale-130 !text-gray-500)"
-                  />
+                  <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
 
                   <template #overlay>
                     <a-menu>
                       <a-menu-item @click="enableEdit(i)">
-                        <div class="flex flex-row items-center py-3 gap-2">
-                          <MdiPencil />
+                        <div class="nc-menu-item-wrapper">
+                          <MdiPencil class="text-gray-500" />
                           Rename Workspace
                         </div>
                       </a-menu-item>
                       <a-menu-item @click="deleteWorkspace(workspace)">
-                        <div class="flex flex-row items-center py-3 gap-2">
-                          <MdiDeleteOutline />
+                        <div class="nc-menu-item-wrapper">
+                          <MdiDeleteOutline class="text-gray-500" />
                           Delete Workspace
                         </div>
                       </a-menu-item>
@@ -417,19 +415,19 @@ const projectListType = computed(() => {
                 <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
                   <div class="py-4 px-1 flex items-center gap-4">
                     <MdiDatabaseOutline class="text-[#2824FB] text-lg" />
-                     Database
+                    Database
                   </div>
                 </a-menu-item>
                 <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
                   <div class="py-4 px-1 flex items-center gap-4">
                     <MaterialSymbolsDocs class="text-[#247727] text-lg" />
-                     Documentation
+                    Documentation
                   </div>
                 </a-menu-item>
                 <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
                   <div class="py-4 px-1 flex items-center gap-4">
                     <MdiVectorTriangle class="text-[#8626FF] text-lg" />
-                     Cowriter
+                    Cowriter
                   </div>
                 </a-menu-item>
               </a-menu>

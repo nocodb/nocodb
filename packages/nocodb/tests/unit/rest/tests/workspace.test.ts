@@ -20,9 +20,9 @@ function workspaceTests() {
       .expect(200)
 
 
-    expect(response.body[0].id).to.be.a('string');
-    expect(response.body[0].description).to.be.eq('Workspace description');
-    expect(response.body[0].title).to.be.eq('Workspace');
+    expect(response.body.id).to.be.a('string');
+    expect(response.body.description).to.be.eq('Workspace description');
+    expect(response.body.title).to.be.eq('Workspace');
   });
 
   it('Create multiple workspaces', async () => {
@@ -51,17 +51,17 @@ function workspaceTests() {
       .send({title: 'Workspace', description: 'Workspace description'})
       .expect(200)
 
-    expect(response.body[0].title).to.be.eq('Workspace');
+    expect(response.body.title).to.be.eq('Workspace');
 
 
     await request(context.app)
-      .patch(`/api/v1/workspaces/${response.body[0].id}`)
+      .patch(`/api/v1/workspaces/${response.body.id}`)
       .set('xc-auth', context.token)
       .send({title: 'Workspace1'})
       .expect(200)
 
     response = await request(context.app)
-      .get(`/api/v1/workspaces/${response.body[0].id}`)
+      .get(`/api/v1/workspaces/${response.body.id}`)
       .set('xc-auth', context.token)
       .expect(200)
 
@@ -76,16 +76,16 @@ function workspaceTests() {
       .send({title: 'Workspace', description: 'Workspace description'})
       .expect(200)
 
-    expect(response.body[0].title).to.be.eq('Workspace');
+    expect(response.body.title).to.be.eq('Workspace');
 
 
     await request(context.app)
-      .delete(`/api/v1/workspaces/${response.body[0].id}`)
+      .delete(`/api/v1/workspaces/${response.body.id}`)
       .set('xc-auth', context.token)
       .expect(200)
 
     await request(context.app)
-      .get(`/api/v1/workspaces/${response.body[0].id}`)
+      .get(`/api/v1/workspaces/${response.body.id}`)
       .set('xc-auth', context.token)
       .expect(400)
 
@@ -98,7 +98,7 @@ function workspaceTests() {
       .send({title: 'Workspace', description: 'Workspace description'})
       .expect(200)
 
-    expect(response.body[0].title).to.be.eq('Workspace');
+    expect(response.body.title).to.be.eq('Workspace');
 
     // signin a with new email id
     const signinResponse = await request(context.app)

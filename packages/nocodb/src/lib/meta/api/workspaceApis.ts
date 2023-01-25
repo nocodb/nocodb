@@ -42,7 +42,7 @@ const workspaceCreate = async (
 
     workspaces.push(workspace);
   }
-  res.json(workspaces);
+  res.json(workspaces.length === 1 ? workspaces[0] : workspaces);
 };
 
 const workspaceGet = async (

@@ -11,6 +11,8 @@ const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject(EditModeInj)
 
+const { showNull } = useGlobal()
+
 const view = inject(ActiveViewInj, ref())
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
@@ -55,7 +57,7 @@ const rowHeight = computed(() => {
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
   <LazyCellClampedText v-else-if="rowHeight" :value="vModel" :lines="rowHeight" />
 

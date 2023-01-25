@@ -13,6 +13,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
+const { showNull } = useGlobal()
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
@@ -72,7 +74,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null ? 'NULL' : isTimeInvalid ? 'Invalid time' : ''))
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isTimeInvalid ? 'Invalid time' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -99,7 +101,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     use12-hours
     format="HH:mm"
     class="!w-full !px-0 !border-none"
-    :class="{ 'nc-null': modelValue === null }"
+    :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"

@@ -22,6 +22,8 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { showNull } = useGlobal()
+
 const columnMeta = inject(ColumnInj, null)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -71,7 +73,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (modelValue === null ? 'NULL' : isDateInvalid ? 'Invalid date' : ''))
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isDateInvalid ? 'Invalid date' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -169,7 +171,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     v-model:value="localState"
     :bordered="false"
     class="!w-full !px-0 !border-none"
-    :class="{ 'nc-null': modelValue === null }"
+    :class="{ 'nc-null': modelValue === null && showNull }"
     :format="dateFormat"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"

@@ -10,6 +10,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
+const { showNull } = useGlobal()
+
 const editEnabled = inject(EditModeInj)
 
 const _vModel = useVModel(props, 'modelValue', emits)
@@ -47,6 +49,6 @@ const focus: VNodeRef = (el) => {
     @selectstart.capture.stop
     @mousedown.stop
   />
-  <span v-else-if="vModel === null" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
   <span v-else>{{ vModel }}</span>
 </template>

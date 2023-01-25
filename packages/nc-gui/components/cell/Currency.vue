@@ -10,6 +10,8 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'save'])
 
+const { showNull } = useGlobal()
+
 const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
@@ -81,7 +83,7 @@ onMounted(() => {
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
   <span v-else-if="vModel">{{ currency }}</span>
 

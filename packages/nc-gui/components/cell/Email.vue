@@ -14,6 +14,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const { showNull } = useGlobal()
+
 const editEnabled = inject(EditModeInj)
 
 const vModel = useVModel(props, 'modelValue', emits)
@@ -39,7 +41,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null" class="nc-null">NULL</span>
+  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
   <a v-else-if="validEmail" class="text-sm underline hover:opacity-75" :href="`mailto:${vModel}`" target="_blank">
     {{ vModel }}

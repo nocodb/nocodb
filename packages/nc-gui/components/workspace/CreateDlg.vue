@@ -87,7 +87,7 @@ watch(dialogShow, (val) => {
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createWorkspace') }}</div>
 
         <!-- todo: i18n -->
-        <div class="mb-2">Workspace Names</div>
+        <div class="mb-2">Workspace Name</div>
 
         <a-form-item v-bind="validateInfos.title">
           <a-input
@@ -96,7 +96,7 @@ watch(dialogShow, (val) => {
             size="large"
             hide-details
             data-testid="create-workspace-title-input"
-            placeholder="Comma separated names"
+            placeholder="Workspace name"
           />
         </a-form-item>
         <a-form-item v-bind="validateInfos.description">

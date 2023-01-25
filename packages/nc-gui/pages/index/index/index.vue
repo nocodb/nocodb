@@ -417,25 +417,19 @@ const projectListType = computed(() => {
                 <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
                   <div class="py-4 px-1 flex items-center gap-4">
                     <MdiDatabaseOutline class="text-[#2824FB] text-lg" />
-                    New Database
-                  </div>
-                </a-menu-item>
-                <a-menu-item @click="navigateToCreateProject(NcProjectType.AUTOMATION)">
-                  <div class="py-4 px-1 flex items-center gap-4">
-                    <MdiTransitConnectionVariant class="text-[#DDB00F] text-lg" />
-                    New Automation
+                     Database
                   </div>
                 </a-menu-item>
                 <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
                   <div class="py-4 px-1 flex items-center gap-4">
                     <MaterialSymbolsDocs class="text-[#247727] text-lg" />
-                    New Documentation
+                     Documentation
                   </div>
                 </a-menu-item>
                 <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
                   <div class="py-4 px-1 flex items-center gap-4">
                     <MdiVectorTriangle class="text-[#8626FF] text-lg" />
-                    New Cowriter
+                     Cowriter
                   </div>
                 </a-menu-item>
               </a-menu>

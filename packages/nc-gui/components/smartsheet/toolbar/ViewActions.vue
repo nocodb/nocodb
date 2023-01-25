@@ -47,6 +47,8 @@ const { isUIAllowed } = useUIPermission()
 
 const { isSharedBase } = useProject()
 
+const { hasRole } = useRoles()
+
 const Icon = computed(() => {
   switch (selectedView.value?.lock_type) {
     case LockType.Personal:
@@ -138,7 +140,7 @@ useMenuCloseOnEsc(open)
 
             <a-menu-divider />
 
-            <a-sub-menu key="download">
+            <a-sub-menu v-if="hasRole('owner', true)" key="download">
               <template #title>
                 <!--                Download -->
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">

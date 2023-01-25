@@ -8,7 +8,6 @@ import tinycolor from 'tinycolor2'
 import Sortable from 'sortablejs'
 import { useRoute } from 'vue-router'
 import {
-  NcProjectType,
   computed,
   onMounted,
   projectThemeColors,
@@ -105,20 +104,6 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
       await loadWorkspaceList()
     },
   })
-}
-
-const navigateToCreateProject = (type: NcProjectType) => {
-  if (type === NcProjectType.AUTOMATION) {
-    return message.info('Automation is not available at the moment')
-  } else {
-    router.push({
-      path: '/create',
-      query: {
-        type,
-        workspaceId: activeWorkspace.value.id,
-      },
-    })
-  }
 }
 
 const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; temp_title: string }) => {
@@ -406,36 +391,7 @@ const projectListType = computed(() => {
             <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">{{ activeWorkspace?.title }}</h1>
           </div>
           <div class="flex-grow"></div>
-          <a-dropdown v-if="isWorkspaceOwner">
-            <a-button type="primary">
-              <div class="flex items-center gap-2">
-                New Project
-                <MdiMenuDown />
-              </div>
-            </a-button>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
-                  <div class="py-4 px-1 flex items-center gap-4">
-                    <MdiDatabaseOutline class="text-[#2824FB] text-lg" />
-                    Database
-                  </div>
-                </a-menu-item>
-                <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
-                  <div class="py-4 px-1 flex items-center gap-4">
-                    <MaterialSymbolsDocs class="text-[#247727] text-lg" />
-                    Documentation
-                  </div>
-                </a-menu-item>
-                <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
-                  <div class="py-4 px-1 flex items-center gap-4">
-                    <MdiVectorTriangle class="text-[#8626FF] text-lg" />
-                    Cowriter
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
+          <WorkspaceCreateProjectBtn :active-workspace-id="activeWorkspace?.id" v-if="isWorkspaceOwner" />
         </div>
 
         <a-tabs v-model:activeKey="tab">

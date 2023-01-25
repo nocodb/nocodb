@@ -31,7 +31,7 @@ export class AttachmentCellPageObject extends BasePage {
   async expandModalAddFile({ filePath }: { filePath: string[] }) {
     const attachFileAction = this.rootPage
       .locator('.ant-modal.nc-attachment-modal.active')
-      .locator('[data-testid="attachment-cell-file-picker-button"]')
+      .locator('[data-testid="attachment-expand-file-picker-button"]')
       .click();
     return await this.attachFile({ filePickUIAction: attachFileAction, filePath });
   }

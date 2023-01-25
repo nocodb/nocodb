@@ -81,6 +81,8 @@ onMounted(() => {
     @mousedown.stop
   />
 
+  <span v-else-if="vModel === null" class="nc-null">NULL</span>
+
   <span v-else-if="vModel">{{ currency }}</span>
 
   <span v-else />

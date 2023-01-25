@@ -39,6 +39,8 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     @mousedown.stop
   />
 
+  <span v-else-if="vModel === null" class="nc-null">NULL</span>
+
   <a v-else-if="validEmail" class="text-sm underline hover:opacity-75" :href="`mailto:${vModel}`" target="_blank">
     {{ vModel }}
   </a>

@@ -71,7 +71,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
+const placeholder = computed(() => (modelValue === null ? 'NULL' : isDateInvalid ? 'Invalid date' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -169,6 +169,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     v-model:value="localState"
     :bordered="false"
     class="!w-full !px-0 !border-none"
+    :class="{ 'nc-null': modelValue === null }"
     :format="dateFormat"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"

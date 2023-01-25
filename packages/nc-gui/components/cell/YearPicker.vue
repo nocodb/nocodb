@@ -58,7 +58,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
+const placeholder = computed(() => (modelValue === null ? 'NULL' : isYearInvalid ? 'Invalid year' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -82,6 +82,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     picker="year"
     :bordered="false"
     class="!w-full !px-0 !border-none"
+    :class="{ 'nc-null': modelValue === null }"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"

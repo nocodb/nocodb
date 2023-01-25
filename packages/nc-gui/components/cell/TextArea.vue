@@ -55,7 +55,7 @@ const rowHeight = computed(() => {
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null" class="text-gray-300 italic">NULL</span>
+  <span v-else-if="vModel === null" class="nc-null">NULL</span>
 
   <LazyCellClampedText v-else-if="rowHeight" :value="vModel" :lines="rowHeight" />
 

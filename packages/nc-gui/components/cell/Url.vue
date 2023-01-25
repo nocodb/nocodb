@@ -88,6 +88,8 @@ watch(
       @mousedown.stop
     />
 
+    <span v-else-if="vModel === null" class="nc-null">NULL</span>
+
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"
       no-prefetch

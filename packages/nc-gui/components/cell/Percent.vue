@@ -47,5 +47,6 @@ const focus: VNodeRef = (el) => {
     @selectstart.capture.stop
     @mousedown.stop
   />
+  <span v-else-if="vModel === null" class="nc-null">NULL</span>
   <span v-else>{{ vModel }}</span>
 </template>

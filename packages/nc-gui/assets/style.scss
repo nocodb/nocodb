@@ -294,3 +294,10 @@ a {
 .ant-select-selection-search-input:focus {
   @apply !ring-0;
 }
+
+.nc-null {
+  @apply text-gray-300 italic;
+  input::placeholder {
+    @apply text-gray-300 italic;
+  }
+}

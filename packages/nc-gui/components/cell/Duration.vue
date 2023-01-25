@@ -93,6 +93,8 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
       @mousedown.stop
     />
 
+    <span v-else-if="localState === null" class="nc-null">NULL</span>
+
     <span v-else> {{ localState }}</span>
 
     <div v-if="showWarningMessage" class="duration-warning">

@@ -38,7 +38,7 @@ const focus: VNodeRef = (el) => {
     @mousedown.stop
   />
 
-  <span v-else-if="vModel === null" class="text-gray-300 italic">NULL</span>
+  <span v-else-if="vModel === null" class="nc-null">NULL</span>
 
   <LazyCellClampedText v-else :value="vModel" :lines="1" />
 </template>

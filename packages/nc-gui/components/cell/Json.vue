@@ -154,6 +154,8 @@ useSelectedCellKeyupListener(active, (e) => {
       </span>
     </div>
 
+    <span v-else-if="vModel === null" class="nc-null">NULL</span>
+
     <span v-else>{{ vModel }}</span>
   </component>
 </template>

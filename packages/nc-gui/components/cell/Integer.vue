@@ -53,6 +53,7 @@ function onKeyDown(evt: KeyboardEvent) {
     @selectstart.capture.stop
     @mousedown.stop
   />
+  <span v-else-if="vModel === null" class="nc-null">NULL</span>
   <span v-else class="text-sm">{{ vModel }}</span>
 </template>
 

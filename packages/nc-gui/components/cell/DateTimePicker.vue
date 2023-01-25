@@ -79,6 +79,8 @@ watch(
   { flush: 'post' },
 )
 
+const placeholder = computed(() => (modelValue === null ? 'NULL' : isDateInvalid ? 'Invalid date' : ''))
+
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
@@ -172,8 +174,9 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :show-time="true"
     :bordered="false"
     class="!w-full !px-0 !border-none"
+    :class="{ 'nc-null': modelValue === null }"
     :format="dateTimeFormat"
-    :placeholder="isDateInvalid ? 'Invalid date' : ''"
+    :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"

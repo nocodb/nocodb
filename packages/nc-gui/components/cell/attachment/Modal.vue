@@ -89,6 +89,7 @@ function onRemoveFileClick(title: any, i: number) {
         <div
           v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
           class="nc-attach-file group"
+          data-testid="attachment-cell-file-picker-button"
           @click="open"
         >
           <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120)" />

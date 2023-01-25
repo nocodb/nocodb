@@ -96,7 +96,7 @@ watch(formStatus, async () => {
         </div>
       </div>
     </div>
-    <div v-if="formStatus === 'notSubmited'" class="flex flex-col mx-4 pt-3 border-t-1 border-gray-200">
+    <div v-if="formStatus === 'notSubmited'" class="flex flex-col mx-4 pt-3 mt-1.5 border-t-1 border-gray-200">
       <a-input v-model:value="bookFormData.title" class="flex w-full !rounded-md !bg-gray-50" placeholder="Version title" />
       <div class="flex flex-row justify-between mt-3.5 mb-2">
         <div
@@ -116,11 +116,14 @@ watch(formStatus, async () => {
           Create version
         </a-button>
       </div>
-      <div v-if="showVersions" class="flex flex-col mt-2 pt-3 border-gray-200 border-t-1 max-h-30">
+      <div
+        v-if="showVersions"
+        class="docs-version-list flex flex-col mt-2 mb-4 pt-3 border-gray-200 border-t-1 max-h-30 overflow-y-auto"
+      >
         <div
-          v-for="book of books"
+          v-for="book of [...books, ...books, ...books, ...books, ...books]"
           :key="book.id"
-          class="flex flex-row justify-between items-center p-2 bg-gray-100 rounded-md border-gray-200 border-1 cursor-pointer hover:bg-gray-200"
+          class="flex flex-row justify-between items-center p-2 mb-2 mx-0.5 bg-gray-100 rounded-md border-gray-200 border-1 cursor-pointer hover:bg-gray-200"
           @click="() => navigateToBook(book)"
         >
           <div class="flex flex-row gap-x-2 text-xs">
@@ -134,6 +137,7 @@ watch(formStatus, async () => {
             </div>
           </div>
           <div class="flex text-xs text-gray-500">
+            {{ book.is_published ? 'Published on' : 'Created on' }}
             {{ book.is_published ? dayjs(book.last_published_date).local().fromNow() : dayjs(book.created_at).local().fromNow() }}
           </div>
         </div>
@@ -144,9 +148,9 @@ watch(formStatus, async () => {
 
 <style lang="scss">
 .docs-version-modal {
-  .doc-publish-draft-list {
+  .docs-version-list {
     &::-webkit-scrollbar {
-      width: 4px;
+      width: 3px;
     }
 
     /* Track */

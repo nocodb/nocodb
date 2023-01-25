@@ -304,7 +304,7 @@ export function useMultiSelect(
                         column: columnObj,
                         appInfo: unref(appInfo),
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
 
@@ -338,7 +338,7 @@ export function useMultiSelect(
                         column: columnObj,
                         appInfo: unref(appInfo),
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
                     syncCellData?.(activeCell)

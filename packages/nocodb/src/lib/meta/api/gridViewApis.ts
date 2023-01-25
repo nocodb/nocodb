@@ -12,6 +12,7 @@ import Project from '../../models/Project';
 import View from '../../models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import GridView from '../../models/GridView';
 
 // @ts-ignore
 export async function gridViewCreate(req: Request<any, any>, res) {
@@ -25,10 +26,20 @@ export async function gridViewCreate(req: Request<any, any>, res) {
   res.json(view);
 }
 
+export async function gridViewUpdate(req, res) {
+  Tele.emit('evt', { evt_type: 'view:updated', type: 'grid' });
+  res.json(await GridView.update(req.params.viewId, req.body));
+}
+
 const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/grids/',
   metaApiMetrics,
   ncMetaAclMw(gridViewCreate, 'gridViewCreate')
+);
+router.patch(
+  '/api/v1/db/meta/grids/:viewId',
+  metaApiMetrics,
+  ncMetaAclMw(gridViewUpdate, 'gridViewUpdate')
 );
 export default router;

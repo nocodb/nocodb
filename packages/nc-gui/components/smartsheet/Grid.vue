@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, GridType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -660,6 +660,23 @@ const closeAddColumnDropdown = () => {
   columnOrder.value = null
   addColumnDropdown.value = false
 }
+
+const rowHeight = computed(() => {
+  if ((view.value?.view as GridType)?.row_height !== undefined) {
+    switch ((view.value?.view as GridType)?.row_height) {
+      case 0:
+        return 1
+      case 1:
+        return 2
+      case 2:
+        return 4
+      case 3:
+        return 6
+      default:
+        return 1
+    }
+  }
+})
 </script>
 
 <template>
@@ -749,7 +766,11 @@ const closeAddColumnDropdown = () => {
           <tbody ref="tbodyEl">
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
-                <tr class="nc-grid-row" :data-testid="`grid-row-${rowIndex}`">
+                <tr
+                  class="nc-grid-row"
+                  :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
+                  :data-testid="`grid-row-${rowIndex}`"
+                >
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div
@@ -961,7 +982,7 @@ const closeAddColumnDropdown = () => {
 
   td:not(:first-child) > div {
     overflow: hidden;
-    @apply flex items-center h-auto px-1;
+    @apply flex px-1;
   }
 
   table,

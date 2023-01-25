@@ -64,6 +64,7 @@
     "vue-dompurify-html": "^3.0.0",
     "vue-github-button": "^3.0.3",
     "vue-i18n": "^9.2.2",
+    "vue3-text-clamp": "^0.1.1",
     "vuedraggable": "^4.1.0",
     "xlsx": "^0.18.5"
   },

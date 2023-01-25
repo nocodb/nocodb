@@ -3024,6 +3024,44 @@
         }
       }
     },
+    "/api/v1/db/meta/grids/{viewId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-view-grid-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Grid"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/grids/{gridId}/grid-columns": {
       "parameters": [
         {
@@ -8508,6 +8546,9 @@
               "locked",
               "personal"
             ]
+          },
+          "row_height": {
+            "type": "number"
           }
         },
         "description": ""

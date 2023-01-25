@@ -5,17 +5,14 @@ import View from './View';
 import NocoCache from '../cache/NocoCache';
 
 export default class GridView {
-  title: string;
-  show: boolean;
-  is_default: boolean;
-  order: number;
-
   fk_view_id: string;
-
-  columns?: GridViewColumn[];
-
   project_id?: string;
   base_id?: string;
+
+  meta?: string;
+  row_height?: number;
+
+  columns?: GridViewColumn[];
 
   constructor(data: GridView) {
     Object.assign(this, data);
@@ -47,6 +44,7 @@ export default class GridView {
       fk_view_id: view.fk_view_id,
       project_id: view.project_id,
       base_id: view.base_id,
+      row_height: view.row_height,
     };
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id, ncMeta);
@@ -62,5 +60,32 @@ export default class GridView {
   static async getWithInfo(id: string, ncMeta = Noco.ncMeta) {
     const view = await this.get(id, ncMeta);
     return view;
+  }
+
+  static async update(
+    viewId: string,
+    body: Partial<GridView>,
+    ncMeta = Noco.ncMeta
+  ) {
+    // get existing cache
+    const key = `${CacheScope.GRID_VIEW}:${viewId}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      o.row_height = body.row_height;
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    // update meta
+    return await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.GRID_VIEW,
+      {
+        row_height: body.row_height,
+      },
+      {
+        fk_view_id: viewId,
+      }
+    );
   }
 }

@@ -109,9 +109,9 @@ const tabsInfo: TabGroup = {
       $e('c:settings:audit')
     },
   },
-  misc: {
-    // Misc
-    title: 'Misc',
+  projectSettings: {
+    // Project Settings
+    title: 'Project Settings',
     icon: FolderCog,
     subTabs: {
       misc: {

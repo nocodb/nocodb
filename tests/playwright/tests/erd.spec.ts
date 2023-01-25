@@ -37,7 +37,7 @@ test.describe('Erd', () => {
   });
 
   const toggleMMAndOpenErd = async () => {
-    await dashboard.settings.selectTab({ tab: SettingTab.Misc, subTab: SettingsSubTab.Miscellaneous });
+    await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
     await dashboard.settings.miscellaneous.clickShowM2MTables();
     await dashboard.settings.selectTab({ tab: SettingTab.DataSources });
     await dashboard.settings.dataSources.openErd({

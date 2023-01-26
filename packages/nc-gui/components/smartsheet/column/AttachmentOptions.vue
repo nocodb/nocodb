@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { TreeProps } from 'ant-design-vue'
+import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { fileMimeTypeList, fileMimeTypes } from './utils'
 import { useGlobal, useVModel } from '#imports'
-import { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 
 const props = defineProps<{
   value: any

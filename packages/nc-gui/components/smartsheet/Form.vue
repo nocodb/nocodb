@@ -679,7 +679,7 @@ watch(view, (nextView) => {
                     v-else
                     :name="element.title"
                     class="!mb-0"
-                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
+                    :rules="[{ required: isRequired(element, element.required), message: `${element.label} is required` }]"
                   >
                     <LazySmartsheetCell
                       v-model="formState[element.title]"

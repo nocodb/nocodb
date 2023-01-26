@@ -288,11 +288,11 @@ function onProjectTitleClick(index: number) {
           <div @click.stop>
             <a-dropdown :trigger="['click']" @click.stop>
               <div class="w-10 flex justify-center items-center">
-              <!--                  todo: allow based on role -->
-              <span
-                class="block w-2 h-6 rounded-sm nc-click-transition-1"
-                :style="{ backgroundColor: getProjectPrimary(record) }"
-              />
+                <!--                  todo: allow based on role -->
+                <span
+                  class="block w-2 h-6 rounded-sm nc-click-transition-1"
+                  :style="{ backgroundColor: getProjectPrimary(record) }"
+                />
               </div>
               <template #overlay>
                 <a-menu trigger-sub-menu-action="click">

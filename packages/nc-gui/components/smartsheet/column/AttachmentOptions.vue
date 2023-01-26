@@ -2,6 +2,7 @@
 import type { TreeProps } from 'ant-design-vue'
 import { fileMimeTypeList, fileMimeTypes } from './utils'
 import { useGlobal, useVModel } from '#imports'
+import { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 
 const props = defineProps<{
   value: any
@@ -30,7 +31,8 @@ vModel.value.meta = {
     maxNumberOfAttachments: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50,
     // Maximum File Size per file
     maxAttachmentSize: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 20) || 20,
-    supportedAttachmentMimeTypes: ['application', 'audio', 'image', 'video', 'misc'],
+    // allow all mime types by default
+    supportedAttachmentMimeTypes: ['*'],
   }),
   ...vModel.value.meta,
 }
@@ -38,6 +40,8 @@ vModel.value.meta = {
 const expandedKeys = ref<(string | number)[]>([])
 
 const autoExpandParent = ref<boolean>(true)
+
+const allowAllMimeTypeCheckbox = ref(true)
 
 const getParentKey = (key: string | number, tree: TreeProps['treeData']): string | null => {
   if (!tree) return null
@@ -53,6 +57,14 @@ const getParentKey = (key: string | number, tree: TreeProps['treeData']): string
     }
   }
   return parentKey as string
+}
+
+function allowAllMimeTypeCheckboxOnChange(evt: CheckboxChangeEvent) {
+  if (evt.target.checked) {
+    vModel.value.meta.supportedAttachmentMimeTypes = ['*']
+  } else {
+    vModel.value.meta.supportedAttachmentMimeTypes = ['application', 'audio', 'image', 'video', 'misc']
+  }
 }
 
 watch(searchValue, (value) => {
@@ -84,30 +96,36 @@ watch(searchValue, (value) => {
     </a-col>
 
     <a-col class="mt-4" :span="24">
-      <a-form-item
-        v-bind="validateInfos['meta.supportedAttachmentMimeTypes']"
-        label="Allowed Mime Types"
-        class="!p-[10px] border-2"
-      >
-        <a-input-search v-model:value="searchValue" class="mt-[5px] mb-[15px]" placeholder="Search" />
-        <a-tree
-          v-model:expanded-keys="expandedKeys"
-          v-model:checkedKeys="vModel.meta.supportedAttachmentMimeTypes"
-          checkable
-          :height="250"
-          :tree-data="fileMimeTypes"
-          :auto-expand-parent="autoExpandParent"
-          class="!bg-gray-50 my-[10px]"
+      <a-form-item v-bind="validateInfos['meta.supportedAttachmentMimeTypes']" class="!p-[10px] border-2">
+        <a-checkbox
+          v-model:checked="allowAllMimeTypeCheckbox"
+          class="nc-allow-all-mime-type-checkbox"
+          name="virtual"
+          @change="allowAllMimeTypeCheckboxOnChange"
         >
-          <template #title="{ title }">
-            <span v-if="title.indexOf(searchValue) > -1">
-              {{ title.substr(0, title.indexOf(searchValue)) }}
-              <span class="text-primary font-bold">{{ searchValue }}</span>
-              {{ title.substr(title.indexOf(searchValue) + searchValue.length) }}
-            </span>
-            <span v-else>{{ title }}</span>
-          </template>
-        </a-tree>
+          Allow All Mime Types
+        </a-checkbox>
+        <div v-if="!allowAllMimeTypeCheckbox" class="mt-[5px]">
+          <a-input-search v-model:value="searchValue" class="mt-[5px] mb-[15px]" placeholder="Search" />
+          <a-tree
+            v-model:expanded-keys="expandedKeys"
+            v-model:checkedKeys="vModel.meta.supportedAttachmentMimeTypes"
+            checkable
+            :height="250"
+            :tree-data="fileMimeTypes"
+            :auto-expand-parent="autoExpandParent"
+            class="!bg-gray-50 my-[10px]"
+          >
+            <template #title="{ title }">
+              <span v-if="title.indexOf(searchValue) > -1">
+                {{ title.substr(0, title.indexOf(searchValue)) }}
+                <span class="text-primary font-bold">{{ searchValue }}</span>
+                {{ title.substr(title.indexOf(searchValue) + searchValue.length) }}
+              </span>
+              <span v-else>{{ title }}</span>
+            </template>
+          </a-tree>
+        </div>
       </a-form-item>
     </a-col>
   </a-row>

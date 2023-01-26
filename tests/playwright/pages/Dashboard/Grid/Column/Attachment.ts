@@ -44,18 +44,12 @@ export class AttachmentColumnPageObject extends BasePage {
     }
 
     if (fileTypesExcludeList) {
+      // click on nc-allow-all-mime-type-checkbox
+      const allowAllMimeCheckbox = await this.column.get().locator(`.nc-allow-all-mime-type-checkbox`);
+      await allowAllMimeCheckbox.click();
+
       const treeList = await this.column.get().locator(`.ant-tree-list`);
       const checkboxList = await treeList.locator(`.ant-tree-treenode`);
-
-      // print count of treenode
-      // const count = await checkboxList.count();
-
-      // log checkboxList
-      // for (let i = 0; i < count; i++) {
-      //   const checkbox = await checkboxList.nth(i);
-      //   const text = await checkbox.innerText();
-      //   console.log(`text: ${text}`);
-      // }
 
       for (let i = 0; i < fileTypesExcludeList.length; i++) {
         const fileType = fileTypesExcludeList[i];

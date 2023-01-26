@@ -10,6 +10,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
+const { showNull } = useGlobal()
+
 const editEnabled = inject(EditModeInj)
 
 const readonly = inject(ReadonlyInj, ref(false))
@@ -37,6 +39,8 @@ const focus: VNodeRef = (el) => {
     @selectstart.capture.stop
     @mousedown.stop
   />
+
+  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
   <LazyCellClampedText v-else :value="vModel" :lines="1" />
 </template>

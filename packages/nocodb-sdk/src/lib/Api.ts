@@ -5135,6 +5135,25 @@ export class Api<
       }),
 
     /**
+     * @description Get dynamic command palette suggestions based on scope
+     *
+     * @tags Utils
+     * @name CommandPalette
+     * @summary Get command palette suggestions
+     * @request POST:/api/v1/command_palette
+     * @response `200` `any` OK
+     */
+    commandPalette: (data: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/command_palette`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags Utils

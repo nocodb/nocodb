@@ -86,8 +86,12 @@ useDialog(resolveComponent('WorkspaceCreateDlg'), {
   },
 })
 
+const { loadScope } = useCommandPalette()
+
 // TODO
 loadWorkspaceList()
+
+loadScope('workspace')
 
 onMounted(async () => {
   toggle(true)

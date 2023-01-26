@@ -37,6 +37,7 @@ import apiTokenApis from './apiTokenApis';
 import hookFilterApis from './hookFilterApis';
 import testApis from './testApis';
 import { docsBookApis, docsPageApis } from './docsApis';
+import commandPaletteApis from './commandPaletteApis';
 import {
   bulkDataAliasApis,
   dataAliasApis,
@@ -68,6 +69,7 @@ export default function (router: Router, server) {
   projectApis(router);
   baseApis(router);
   utilApis(router);
+  commandPaletteApis(router);
 
   if (process.env['PLAYWRIGHT_TEST'] === 'true') {
     router.use(testApis);

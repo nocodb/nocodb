@@ -28,6 +28,7 @@ export interface StoredState {
   filterAutoSave: boolean
   previewAs: ProjectRole | null
   includeM2M: boolean
+  showNull: boolean
   currentVersion: string | null
   latestRelease: string | null
   hiddenRelease: string | null

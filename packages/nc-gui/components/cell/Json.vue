@@ -25,6 +25,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const { showNull } = useGlobal()
+
 const editEnabled = inject(EditModeInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
@@ -153,6 +155,8 @@ useSelectedCellKeyupListener(active, (e) => {
         {{ error.toString() }}
       </span>
     </div>
+
+    <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
     <span v-else>{{ vModel }}</span>
   </component>

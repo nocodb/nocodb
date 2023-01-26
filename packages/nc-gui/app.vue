@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, useRoute, useTheme } from '#imports'
+import { applyNonSelectable, computed, useCommandPalette, useRoute, useTheme } from '#imports'
 
 const route = useRoute()
 
 const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
 
 useTheme()
+
+const { cmdPalette, cmdData, cmdPlaceholder, cmdOnSelected, cmdOnChange } = useCommandPalette()
 
 applyNonSelectable()
 
@@ -41,4 +43,11 @@ if (typeof window !== 'undefined') {
       <NuxtPage :key="key" :transition="false" />
     </NuxtLayout>
   </a-config-provider>
+  <ninja-keys
+    ref="cmdPalette"
+    :data="cmdData"
+    :placeholder="cmdPlaceholder"
+    @selected="cmdOnSelected"
+    @change="cmdOnChange"
+  ></ninja-keys>
 </template>

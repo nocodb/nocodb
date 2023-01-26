@@ -66,7 +66,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         maxNumberOfAttachments: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50,
         // Maximum File Size per file
         maxAttachmentSize: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 20) || 20,
-        supportedAttachmentMimeTypes: ['application', 'audio', 'image', 'video', 'misc'],
+        supportedAttachmentMimeTypes: ['*'],
       }),
     }
 
@@ -125,6 +125,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
           // verify mime type
           if (
+            !attachmentMeta.supportedAttachmentMimeTypes.includes('*') &&
             !attachmentMeta.supportedAttachmentMimeTypes.includes(file.type) &&
             !attachmentMeta.supportedAttachmentMimeTypes.includes(file.type.split('/')[0])
           ) {

@@ -81,13 +81,14 @@ export default function convertCellData(
       if (parsedVal.some((v: any) => v && !(v.url || v.data))) {
         throw new Error('Invalid attachment data')
       }
+      // TODO(refactor): duplicate logic in attachment/utils.ts
       const defaultAttachmentMeta = {
         ...(args.appInfo.ee && {
           // Maximum Number of Attachments per cell
           maxNumberOfAttachments: Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 50) || 50,
           // Maximum File Size per file
           maxAttachmentSize: Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 20) || 20,
-          supportedAttachmentMimeTypes: ['application', 'audio', 'image', 'video', 'misc'],
+          supportedAttachmentMimeTypes: ['*'],
         }),
       }
 
@@ -118,6 +119,7 @@ export default function convertCellData(
 
           // verify mime type
           if (
+            !attachmentMeta.supportedAttachmentMimeTypes.includes('*') &&
             !attachmentMeta.supportedAttachmentMimeTypes.includes(attachment.type) &&
             !attachmentMeta.supportedAttachmentMimeTypes.includes(attachment.type.split('/')[0])
           ) {

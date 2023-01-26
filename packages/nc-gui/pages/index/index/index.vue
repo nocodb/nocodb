@@ -232,7 +232,7 @@ const projectListType = computed(() => {
   <NuxtLayout name="new">
     <template #sidebar>
       <div class="h-full flex flex-col min-h-[400px] overflow-auto">
-        <div class="nc-workspace-group overflow-auto my-2">
+        <div class="nc-workspace-group overflow-auto mt-2">
           <div
             class="nc-workspace-group-item"
             :class="{ active: activePage === 'recent' }"
@@ -276,9 +276,7 @@ const projectListType = computed(() => {
             <span>Favourites</span>
           </div>
         </div>
-        <a-divider class="!py-0 !my-0" />
-
-        <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
+        <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold pt-2 px-4 pb-2 h-10">
           All workspaces
           <div class="flex-grow"></div>
           <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true" />
@@ -478,7 +476,7 @@ const projectListType = computed(() => {
       @apply bg-primary bg-opacity-8 text-primary font-weight-bold;
     }
 
-    @apply h-[40px] px-4 flex items-center gap-2 cursor-pointer;
+    @apply h-[40px]  p-4 pl-3 flex items-center gap-2 cursor-pointer;
 
     .nc-icon {
       @apply w-6;

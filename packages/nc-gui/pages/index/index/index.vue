@@ -232,13 +232,11 @@ const projectListType = computed(() => {
   <NuxtLayout name="new">
     <template #sidebar>
       <div class="h-full flex flex-col min-h-[400px] overflow-auto">
-
-
         <div class="nc-workspace-group overflow-auto my-2">
           <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'recent' }"
-              @click="
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'recent' }"
+            @click="
               navigateTo({
                 query: {
                   page: 'recent',
@@ -250,9 +248,9 @@ const projectListType = computed(() => {
             <span>Recent</span>
           </div>
           <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'shared' }"
-              @click="
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'shared' }"
+            @click="
               navigateTo({
                 query: {
                   page: 'shared',
@@ -264,9 +262,9 @@ const projectListType = computed(() => {
             <span>Shared with me</span>
           </div>
           <div
-              class="nc-workspace-group-item"
-              :class="{ active: activePage === 'starred' }"
-              @click="
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'starred' }"
+            @click="
               navigateTo({
                 query: {
                   page: 'starred',
@@ -286,7 +284,7 @@ const projectListType = computed(() => {
           <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true" />
         </div>
 
-        <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0;">
+        <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0">
           <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
           <a-menu
@@ -299,14 +297,17 @@ const projectListType = computed(() => {
             <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
               <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
                 <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
-                  <div
-                    :key="workspace.meta?.color"
-                    class="nc-workspace-avatar"
-                    :style="{ backgroundColor: getWorkspaceColor(workspace) }"
-                  >
+                  <div>
                     <span class="color-band" :style="{ backgroundColor: getWorkspaceColor(workspace) }" />
-                    {{ workspace.title?.slice(0, 2) }}
+                    <div
+                      :key="workspace.meta?.color"
+                      class="nc-workspace-avatar nc-click-transition-1"
+                      :style="{ backgroundColor: getWorkspaceColor(workspace) }"
+                    >
+                      {{ workspace.title?.slice(0, 2) }}
+                    </div>
                   </div>
+
                   <template #overlay>
                     <a-menu trigger-sub-menu-action="click">
                       <LazyGeneralColorPicker
@@ -354,10 +355,11 @@ const projectListType = computed(() => {
                   >
                 </div>
                 <div class="flex-grow"></div>
-                <MdiDragVertical class="outline-0 nc-workspace-drag-icon"/>
+                <MdiDragVertical class="outline-0 nc-workspace-drag-icon" />
                 <a-dropdown :trigger="['click']">
-                  <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
-
+                  <div class="w-4">
+                    <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
+                  </div>
                   <template #overlay>
                     <a-menu>
                       <a-menu-item @click="enableEdit(i)">
@@ -392,7 +394,7 @@ const projectListType = computed(() => {
             <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">{{ activeWorkspace?.title }}</h1>
           </div>
           <div class="flex-grow"></div>
-          <WorkspaceCreateProjectBtn :active-workspace-id="activeWorkspace?.id" v-if="isWorkspaceOwner" />
+          <WorkspaceCreateProjectBtn v-if="isWorkspaceOwner" :active-workspace-id="activeWorkspace?.id" />
         </div>
 
         <a-tabs v-model:activeKey="tab">
@@ -445,16 +447,18 @@ const projectListType = computed(() => {
     @apply opacity-100;
   }
 
-  .nc-workspace-menu, .nc-workspace-drag-icon {
+  .nc-workspace-menu,
+  .nc-workspace-drag-icon {
     @apply opacity-0 transition-opactity min-w-4 text-gray-500;
   }
 
-  .nc-workspace-drag-icon{
-    @apply cursor-move
+  .nc-workspace-drag-icon {
+    @apply cursor-move;
   }
 
   :deep(.ant-menu-item:hover) {
-    .nc-workspace-menu, .nc-workspace-drag-icon {
+    .nc-workspace-menu,
+    .nc-workspace-drag-icon {
       @apply opacity-100;
     }
   }

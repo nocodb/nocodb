@@ -320,3 +320,7 @@ a {
 .nc-click-transition {
   @apply transform transition-transform transition-color !text-gray-400 !hover:(scale-130 !text-gray-500) !active:(scale-100 !text-gray-500)
 }
+
+.nc-click-transition-1 {
+  @apply transform transition-transform !hover:(scale-120) !active:(scale-100)
+}

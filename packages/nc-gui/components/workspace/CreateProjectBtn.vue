@@ -1,3 +1,27 @@
+<script setup lang="ts">
+import { NcProjectType, useRouter } from '#imports'
+
+const props = defineProps<{
+  activeWorkspaceId: string
+}>()
+
+const router = useRouter()
+
+const navigateToCreateProject = (type: NcProjectType) => {
+  if (type === NcProjectType.AUTOMATION) {
+    return message.info('Automation is not available at the moment')
+  } else {
+    router.push({
+      path: '/create',
+      query: {
+        type,
+        workspaceId: props.activeWorkspaceId,
+      },
+    })
+  }
+}
+</script>
+
 <template>
   <a-dropdown>
     <a-button type="primary">
@@ -37,32 +61,4 @@
   </a-dropdown>
 </template>
 
-<script setup lang="ts">
-
-import {useRouter, NcProjectType} from "#imports";
-
-const props = defineProps<{
-  activeWorkspaceId: string
-}>()
-
-const router = useRouter()
-
-const navigateToCreateProject = (type: NcProjectType) => {
-  if (type === NcProjectType.AUTOMATION) {
-    return message.info('Automation is not available at the moment')
-  } else {
-    router.push({
-      path: '/create',
-      query: {
-        type,
-        workspaceId: props.activeWorkspaceId,
-      },
-    })
-  }
-}
-
-</script>
-
-<style scoped>
-
-</style>
+<style scoped></style>

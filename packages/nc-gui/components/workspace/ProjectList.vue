@@ -154,12 +154,12 @@ const columns = computed(() => [
       ]
     : []),
   {
-    title: 'Project Type',
+    title: 'Color',
     dataIndex: 'type',
-    sorter: {
-      compare: (a, b) => a.type?.localeCompare(b.type),
-      multiple: 3,
-    },
+    // sorter: {
+    //   compare: (a, b) => a.type?.localeCompare(b.type),
+    //   multiple: 3,
+    // },
   },
   {
     title: 'Last Accessed',
@@ -209,6 +209,7 @@ const moveProject = (project: ProjectType) => {
 let clickCount = 0
 let timer: any = null
 const delay = 250
+
 function onProjectTitleClick(index: number) {
   clickCount++
   if (clickCount === 1) {
@@ -241,37 +242,14 @@ function onProjectTitleClick(index: number) {
       <template #bodyCell="{ column, text, record, index: i }">
         <template v-if="column.dataIndex === 'title'">
           <div class="flex items-center nc-project-title gap-2 max-w-full">
-            <div @click.stop>
-              <a-dropdown :trigger="['click']" @click.stop>
-                <!--                  todo: allow based on role -->
-                <span class="block w-2 h-6 rounded-sm" :style="{ backgroundColor: getProjectPrimary(record) }" />
-                <template #overlay>
-                  <a-menu trigger-sub-menu-action="click">
-                    <a-menu-item>
-                      <LazyGeneralColorPicker
-                        :model-value="getProjectPrimary(record)"
-                        :colors="projectThemeColors"
-                        :row-size="9"
-                        :advanced="false"
-                        @input="handleProjectColor(record.id, $event)"
-                      />
-                    </a-menu-item>
-                    <a-sub-menu key="pick-primary">
-                      <template #title>
-                        <div class="nc-project-menu-item group !py-0">
-                          <ClarityColorPickerSolid class="group-hover:text-accent" />
-                          Custom Color
-                        </div>
-                      </template>
-
-                      <template #expandIcon></template>
-
-                      <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
-                    </a-sub-menu>
-                  </a-menu>
-                </template>
-              </a-dropdown>
+            <div class="flex items-center gap-2 text-center">
+              <!-- todo: replace with switch -->
+              <MaterialSymbolsDocs v-if="record.type === NcProjectType.DOCS" class="text-[#247727] text-sm" />
+              <MdiVectorTriangle v-else-if="record.type === NcProjectType.COWRITER" class="text-[#8626FF] text-sm" />
+              <MdiTransitConnectionVariant v-else-if="record.type === NcProjectType.AUTOMATION" class="text-[#DDB00F] text-sm" />
+              <MdiDatabaseOutline v-else class="text-[#2824FB] text-sm" />
             </div>
+
             <div class="min-w-10">
               <input
                 v-if="record.edit"
@@ -295,7 +273,7 @@ function onProjectTitleClick(index: number) {
               </div>
             </div>
 
-            <div v-if="!record.edit" @click.stop>
+            <div v-if="!record.edit" class="nc-click-transition-1" @click.stop>
               <MdiStar v-if="record.starred" class="text-yellow-400 cursor-pointer" @click="removeFromFavourite(record.id)" />
               <MdiStarOutline
                 v-else
@@ -307,12 +285,39 @@ function onProjectTitleClick(index: number) {
         </template>
 
         <template v-if="column.dataIndex === 'type'">
-          <div class="flex items-center gap-2 text-center">
-            <!-- todo: replace with switch -->
-            <MaterialSymbolsDocs v-if="text === NcProjectType.DOCS" class="text-[#247727] text-sm" />
-            <MdiVectorTriangle v-else-if="text === NcProjectType.COWRITER" class="text-[#8626FF] text-sm" />
-            <MdiTransitConnectionVariant v-else-if="text === NcProjectType.AUTOMATION" class="text-[#DDB00F] text-sm" />
-            <MdiDatabaseOutline v-else class="text-[#2824FB] text-sm" />
+          <div @click.stop>
+            <a-dropdown :trigger="['click']" @click.stop>
+              <!--                  todo: allow based on role -->
+              <span
+                class="block w-2 h-6 rounded-sm nc-click-transition-1"
+                :style="{ backgroundColor: getProjectPrimary(record) }"
+              />
+              <template #overlay>
+                <a-menu trigger-sub-menu-action="click">
+                  <a-menu-item>
+                    <LazyGeneralColorPicker
+                      :model-value="getProjectPrimary(record)"
+                      :colors="projectThemeColors"
+                      :row-size="9"
+                      :advanced="false"
+                      @input="handleProjectColor(record.id, $event)"
+                    />
+                  </a-menu-item>
+                  <a-sub-menu key="pick-primary">
+                    <template #title>
+                      <div class="nc-project-menu-item group !py-0">
+                        <ClarityColorPickerSolid class="group-hover:text-accent" />
+                        Custom Color
+                      </div>
+                    </template>
+
+                    <template #expandIcon></template>
+
+                    <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
+                  </a-sub-menu>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </div>
         </template>
 
@@ -346,8 +351,9 @@ function onProjectTitleClick(index: number) {
               v-if="isUIAllowed('projectActionMenu', true, [record.workspace_role, record.project_role].join())"
               :trigger="['click']"
             >
-              <MdiDotsHorizontal class="outline-0 nc-workspace-menu nc-click-transition" @click.stop />
-
+              <div @click.stop>
+                <MdiDotsHorizontal class="outline-0 nc-workspace-menu nc-click-transition" />
+              </div>
               <template #overlay>
                 <a-menu>
                   <a-menu-item @click="enableEdit(i)">
@@ -406,6 +412,7 @@ function onProjectTitleClick(index: number) {
 :deep(.ant-table-row) {
   @apply cursor-pointer;
 }
+
 :deep(th.ant-table-cell) {
   @apply !text-gray-500;
 }

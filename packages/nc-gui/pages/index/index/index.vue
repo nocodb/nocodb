@@ -354,6 +354,7 @@ const projectListType = computed(() => {
                   >
                 </div>
                 <div class="flex-grow"></div>
+                <MdiDragVertical class="outline-0 nc-workspace-drag-icon"/>
                 <a-dropdown :trigger="['click']">
                   <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
 
@@ -444,12 +445,18 @@ const projectListType = computed(() => {
     @apply opacity-100;
   }
 
-  .nc-workspace-menu {
-    @apply opacity-0 transition-opactity;
+  .nc-workspace-menu, .nc-workspace-drag-icon {
+    @apply opacity-0 transition-opactity min-w-4 text-gray-500;
   }
 
-  :deep(.ant-menu-item:hover) .nc-workspace-menu {
-    @apply opacity-100;
+  .nc-workspace-drag-icon{
+    @apply cursor-move
+  }
+
+  :deep(.ant-menu-item:hover) {
+    .nc-workspace-menu, .nc-workspace-drag-icon {
+      @apply opacity-100;
+    }
   }
 }
 

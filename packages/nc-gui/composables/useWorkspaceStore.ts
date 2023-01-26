@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router'
 import { extractSdkResponseErrorMsg, projectThemeColors, useInjectionState, useNuxtApp } from '#imports'
 
 const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
-  const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string; roles?: string })[]>([])
+  const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string | null; roles?: string })[]>([])
 
   // const activeWorkspace = ref<WorkspaceType | null>()
 

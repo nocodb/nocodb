@@ -52,6 +52,10 @@ const onKeydown = (e: KeyboardEvent) => {
     inputValue = (title as string[]).pop() as string
     title = [...title]
     e.preventDefault()
+  } else if (e.key === ','){
+    e.preventDefault()
+    title = [...title, inputValue]
+    inputValue = ''
   }
 }
 

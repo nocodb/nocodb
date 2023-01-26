@@ -8,7 +8,6 @@ import tinycolor from 'tinycolor2'
 import Sortable from 'sortablejs'
 import { useRoute } from 'vue-router'
 import {
-  NcProjectType,
   computed,
   onMounted,
   projectThemeColors,
@@ -105,20 +104,6 @@ const deleteWorkspace = (workspace: WorkspaceType) => {
       await loadWorkspaceList()
     },
   })
-}
-
-const navigateToCreateProject = (type: NcProjectType) => {
-  if (type === NcProjectType.AUTOMATION) {
-    return message.info('Automation is not available at the moment')
-  } else {
-    router.push({
-      path: '/create',
-      query: {
-        type,
-        workspaceId: activeWorkspace.value.id,
-      },
-    })
-  }
 }
 
 const updateWorkspaceTitle = async (workspace: WorkspaceType & { edit: boolean; temp_title: string }) => {
@@ -246,14 +231,58 @@ const projectListType = computed(() => {
 <template>
   <NuxtLayout name="new">
     <template #sidebar>
-      <div class="h-[calc(100vh_-_80px)] flex flex-col min-h-[400px] overflow-auto">
-        <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold p-4">
+      <div class="h-full flex flex-col min-h-[400px] overflow-auto">
+        <div class="nc-workspace-group overflow-auto mt-2">
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'recent' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'recent',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
+            <span>Recent</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'shared' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'shared',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsGroupsOutline class="nc-icon" />
+            <span>Shared with me</span>
+          </div>
+          <div
+            class="nc-workspace-group-item"
+            :class="{ active: activePage === 'starred' }"
+            @click="
+              navigateTo({
+                query: {
+                  page: 'starred',
+                },
+              })
+            "
+          >
+            <MaterialSymbolsStarOutline class="nc-icon" />
+            <span>Favourites</span>
+          </div>
+        </div>
+        <div class="flex items-center uppercase !text-gray-400 text-xs font-weight-bold pt-2 px-4 pb-2 h-10">
           All workspaces
           <div class="flex-grow"></div>
           <MdiPlus class="!text-gray-400 text-lg cursor-pointer" @click="isCreateDlgOpen = true" />
         </div>
 
-        <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0; max">
+        <div class="overflow-auto min-h-25 flex-grow" style="flex-basis: 0">
           <a-empty v-if="!workspaces?.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
           <a-menu
@@ -266,14 +295,17 @@ const projectListType = computed(() => {
             <a-menu-item v-for="(workspace, i) of workspaces" :key="i">
               <div class="nc-workspace-list-item flex items-center h-full group" :data-id="workspace.id">
                 <a-dropdown :trigger="['click']" trigger-sub-menu-action="click" @click.stop>
-                  <div
-                    :key="workspace.meta?.color"
-                    class="nc-workspace-avatar"
-                    :style="{ backgroundColor: getWorkspaceColor(workspace) }"
-                  >
+                  <div>
                     <span class="color-band" :style="{ backgroundColor: getWorkspaceColor(workspace) }" />
-                    {{ workspace.title?.slice(0, 2) }}
+                    <div
+                      :key="workspace.meta?.color"
+                      class="nc-workspace-avatar nc-click-transition-1"
+                      :style="{ backgroundColor: getWorkspaceColor(workspace) }"
+                    >
+                      {{ workspace.title?.slice(0, 2) }}
+                    </div>
                   </div>
+
                   <template #overlay>
                     <a-menu trigger-sub-menu-action="click">
                       <LazyGeneralColorPicker
@@ -321,9 +353,11 @@ const projectListType = computed(() => {
                   >
                 </div>
                 <div class="flex-grow"></div>
+                <MdiDragVertical class="outline-0 nc-workspace-drag-icon" />
                 <a-dropdown :trigger="['click']">
-                  <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
-
+                  <div class="w-4">
+                    <MdiDotsHorizontal class="outline-0 nc-workspace-menu min-w-4 nc-click-transition" />
+                  </div>
                   <template #overlay>
                     <a-menu>
                       <a-menu-item @click="enableEdit(i)">
@@ -345,55 +379,10 @@ const projectListType = computed(() => {
             </a-menu-item>
           </a-menu>
         </div>
-        <a-divider class="!py-0 !my-0" />
-        <div class="nc-workspace-group overflow-auto flex-grow" style="flex-basis: 0">
-          <div
-            class="nc-workspace-group-item"
-            :class="{ active: activePage === 'recent' }"
-            @click="
-              navigateTo({
-                query: {
-                  page: 'recent',
-                },
-              })
-            "
-          >
-            <MaterialSymbolsNestClockFarsightAnalogOutlineRounded class="nc-icon" />
-            <span>Recent</span>
-          </div>
-          <div
-            class="nc-workspace-group-item"
-            :class="{ active: activePage === 'shared' }"
-            @click="
-              navigateTo({
-                query: {
-                  page: 'shared',
-                },
-              })
-            "
-          >
-            <MaterialSymbolsGroupsOutline class="nc-icon" />
-            <span>Shared with me</span>
-          </div>
-          <div
-            class="nc-workspace-group-item"
-            :class="{ active: activePage === 'starred' }"
-            @click="
-              navigateTo({
-                query: {
-                  page: 'starred',
-                },
-              })
-            "
-          >
-            <MaterialSymbolsStarOutline class="nc-icon" />
-            <span>Favourites</span>
-          </div>
-        </div>
       </div>
     </template>
 
-    <div class="w-full h-[calc(100vh_-_80px)] overflow-auto">
+    <div class="w-full h-full overflow-auto">
       <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
         <div class="px-6 flex items-center">
           <div class="flex gap-2 items-center mb-4">
@@ -403,36 +392,7 @@ const projectListType = computed(() => {
             <h1 class="text-3xl font-weight-bold tracking-[0.5px] mb-0">{{ activeWorkspace?.title }}</h1>
           </div>
           <div class="flex-grow"></div>
-          <a-dropdown v-if="isWorkspaceOwner">
-            <a-button type="primary">
-              <div class="flex items-center gap-2">
-                New Project
-                <MdiMenuDown />
-              </div>
-            </a-button>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
-                  <div class="py-4 px-1 flex items-center gap-4">
-                    <MdiDatabaseOutline class="text-[#2824FB] text-lg" />
-                    Database
-                  </div>
-                </a-menu-item>
-                <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
-                  <div class="py-4 px-1 flex items-center gap-4">
-                    <MaterialSymbolsDocs class="text-[#247727] text-lg" />
-                    Documentation
-                  </div>
-                </a-menu-item>
-                <a-menu-item @click="navigateToCreateProject(NcProjectType.COWRITER)">
-                  <div class="py-4 px-1 flex items-center gap-4">
-                    <MdiVectorTriangle class="text-[#8626FF] text-lg" />
-                    Cowriter
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
+          <WorkspaceCreateProjectBtn v-if="isWorkspaceOwner" :active-workspace-id="activeWorkspace?.id" />
         </div>
 
         <a-tabs v-model:activeKey="tab">
@@ -485,12 +445,20 @@ const projectListType = computed(() => {
     @apply opacity-100;
   }
 
-  .nc-workspace-menu {
-    @apply opacity-0 transition-opactity;
+  .nc-workspace-menu,
+  .nc-workspace-drag-icon {
+    @apply opacity-0 transition-opactity min-w-4 text-gray-500;
   }
 
-  :deep(.ant-menu-item:hover) .nc-workspace-menu {
-    @apply opacity-100;
+  .nc-workspace-drag-icon {
+    @apply cursor-move;
+  }
+
+  :deep(.ant-menu-item:hover) {
+    .nc-workspace-menu,
+    .nc-workspace-drag-icon {
+      @apply opacity-100;
+    }
   }
 }
 
@@ -508,7 +476,7 @@ const projectListType = computed(() => {
       @apply bg-primary bg-opacity-8 text-primary font-weight-bold;
     }
 
-    @apply h-[40px] px-4 flex items-center gap-2 cursor-pointer;
+    @apply h-[40px]  p-4 pl-3 flex items-center gap-2 cursor-pointer;
 
     .nc-icon {
       @apply w-6;

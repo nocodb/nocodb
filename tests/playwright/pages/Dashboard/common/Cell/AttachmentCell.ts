@@ -27,10 +27,12 @@ export class AttachmentCellPageObject extends BasePage {
   // e.g. ['path/to/file1', 'path/to/file2']
   //
   async addFile({ index, columnHeader, filePath }: { index?: number; columnHeader: string; filePath: string[] }) {
-    const attachFileAction = (await this.getAfterClick({ index, columnHeader }))
+    // const attachFileAction = (await this.getAfterClick({ index, columnHeader }))
+    //   .locator('[data-testid="attachment-cell-file-picker-button"]')
+    //   .click();
+    const attachFileAction = this.get({ index, columnHeader })
       .locator('[data-testid="attachment-cell-file-picker-button"]')
       .click();
-
     return await this.attachFile({ filePickUIAction: attachFileAction, filePath });
   }
 

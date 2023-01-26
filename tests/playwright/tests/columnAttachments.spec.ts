@@ -23,7 +23,8 @@ test.describe('Attachment column', () => {
       type: 'Attachment',
     });
 
-    for (let i = 4; i <= 6; i++) {
+    // eslint-disable-next-line for-direction
+    for (let i = 6; i >= 4; i++) {
       const filepath = [`${process.cwd()}/fixtures/sampleFiles/${i}.json`];
       await dashboard.grid.cell.attachment.addFile({
         index: i,

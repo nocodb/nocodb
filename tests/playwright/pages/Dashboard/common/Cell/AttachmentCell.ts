@@ -14,6 +14,11 @@ export class AttachmentCellPageObject extends BasePage {
     return this.cell.get({ index, columnHeader });
   }
 
+  async getAfterClick({ index, columnHeader }: { index?: number; columnHeader: string }) {
+    await this.cell.get({ index, columnHeader }).click();
+    return this.cell.get({ index, columnHeader });
+  }
+
   clickFilePicker({ index, columnHeader }: { index?: number; columnHeader: string }) {
     return this.get({ index, columnHeader }).locator('[data-testid="attachment-cell-file-picker-button"]').click();
   }
@@ -22,9 +27,10 @@ export class AttachmentCellPageObject extends BasePage {
   // e.g. ['path/to/file1', 'path/to/file2']
   //
   async addFile({ index, columnHeader, filePath }: { index?: number; columnHeader: string; filePath: string[] }) {
-    const attachFileAction = this.get({ index, columnHeader })
+    const attachFileAction = (await this.getAfterClick({ index, columnHeader }))
       .locator('[data-testid="attachment-cell-file-picker-button"]')
       .click();
+
     return await this.attachFile({ filePickUIAction: attachFileAction, filePath });
   }
 

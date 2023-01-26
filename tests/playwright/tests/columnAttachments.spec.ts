@@ -16,7 +16,7 @@ test.describe('Attachment column', () => {
     accountLicensePage = new AccountLicensePage(accountPage);
   });
 
-  test('Create and verify atttachent column, verify it in shared form,', async ({ page, context }) => {
+  test('Create and verify attachment column, verify it in shared form,', async ({ page, context }) => {
     await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.grid.column.create({
       title: 'testAttach',

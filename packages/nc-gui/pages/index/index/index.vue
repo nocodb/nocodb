@@ -231,7 +231,7 @@ const projectListType = computed(() => {
 <template>
   <NuxtLayout name="new">
     <template #sidebar>
-      <div class="h-[calc(100vh_-_80px)] flex flex-col min-h-[400px] overflow-auto">
+      <div class="h-full flex flex-col min-h-[400px] overflow-auto">
 
 
         <div class="nc-workspace-group overflow-auto my-2">
@@ -381,7 +381,7 @@ const projectListType = computed(() => {
       </div>
     </template>
 
-    <div class="w-full h-[calc(100vh_-_80px)] overflow-auto">
+    <div class="w-full h-full overflow-auto">
       <div v-if="activeWorkspace" class="h-full flex flex-col pt-6">
         <div class="px-6 flex items-center">
           <div class="flex gap-2 items-center mb-4">

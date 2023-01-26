@@ -8,7 +8,9 @@ const { te, t } = useI18n()
 
 const { hasSidebar, isOpen } = useSidebar('nc-left-sidebar')
 
-const { signOut } = useGlobal()
+const { signOut, user } = useGlobal()
+
+const email = computed(() => user.value?.email ?? '---')
 
 const refreshSidebar = ref(false)
 
@@ -41,7 +43,7 @@ export default {
 
 <template>
   <a-layout>
-    <a-layout-header class="h-20 !px-2">
+    <a-layout-header class="max-h-[var(--new-header-height)] !px-2">
       <div class="flex w-full h-full items-center">
         <div class="flex-1 min-w-0 w-50">
           <nuxt-link :to="isPublic ? '' : '/'">
@@ -73,7 +75,9 @@ export default {
 
           <a-dropdown v-if="!isPublic" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <div class="flex items-center gap-1 cursor-pointer">
-              <div class="h-14 w-14 rounded-full bg-primary flex items-center justify-center font-weight-bold text-white">AB</div>
+              <div class="h-7 w-7 rounded-full bg-primary flex items-center justify-center font-weight-bold text-white uppercase">
+                {{ email ? email.split('@')[0].slice(0, 2) : 'A' }}
+              </div>
               <MaterialSymbolsKeyboardArrowDownRounded />
             </div>
 
@@ -129,14 +133,14 @@ export default {
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
-        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_80px)] overflow-auto !shadow-none border-gray-100 border-r-1 !overflow-x-hidden"
+        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_var(--new-header-height))] overflow-auto !shadow-none border-gray-100 border-r-1 !overflow-x-hidden"
         :trigger="null"
         collapsible
         theme="light"
       >
         <slot name="sidebar" />
       </a-layout-sider>
-      <div class="w-full h-[calc(100vh_-_80px)] overflow-auto">
+      <div class="w-full h-[calc(100vh_-_var(--new-header-height))] overflow-auto">
         <slot></slot>
       </div>
     </a-layout>

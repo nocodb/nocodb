@@ -16,15 +16,18 @@ test.describe('Attachment column', () => {
     accountLicensePage = new AccountLicensePage(accountPage);
   });
 
-  test('Create and verify atttachent column, verify it in shared form,', async ({ page, context }) => {
+  test('Create and verify attachment column, verify it in shared form,', async ({ page, context }) => {
+    // run tests slowly
+    test.slow();
+
     await dashboard.treeView.openTable({ title: 'Country' });
     await dashboard.grid.column.create({
       title: 'testAttach',
       type: 'Attachment',
     });
 
-    for (let i = 4; i <= 6; i++) {
-      const filepath = [`${process.cwd()}/fixtures/sampleFiles/${i}.json`];
+    for (let i = 12; i >= 8; i -= 2) {
+      const filepath = [`${process.cwd()}/fixtures/sampleFiles/${i / 2}.json`];
       await dashboard.grid.cell.attachment.addFile({
         index: i,
         columnHeader: 'testAttach',
@@ -36,12 +39,12 @@ test.describe('Attachment column', () => {
       });
     }
     await dashboard.grid.cell.attachment.addFile({
-      index: 7,
+      index: 14,
       columnHeader: 'testAttach',
       filePath: [`${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`],
     });
     await dashboard.grid.cell.attachment.verifyFile({
-      index: 7,
+      index: 14,
       columnHeader: 'testAttach',
     });
 
@@ -87,12 +90,12 @@ test.describe('Attachment column', () => {
     const csvArray = csvFileData.split('\r\n');
     const columns = csvArray[0];
     const rows = csvArray.slice(1);
-    const cells = rows[4].split(',');
+    const cells = rows[10].split(',');
 
     await expect(columns).toBe('Country,City List,testAttach');
-    await expect(cells[0]).toBe('Anguilla');
-    await expect(cells[1]).toBe('South Hill');
-    await expect(cells[2].includes('4.json(http://localhost:8080/download/')).toBe(true);
+    await expect(cells[0]).toBe('Bahrain');
+    await expect(cells[1]).toBe('al-Manama');
+    await expect(cells[2].includes('5.json(http://localhost:8080/download/')).toBe(true);
   });
 
   test('Attachment enterprise features,', async ({ page, context }) => {

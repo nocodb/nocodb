@@ -18,7 +18,7 @@ watch(includeM2M, async () => await loadTables())
       </div>
       <div class="flex flex-row items-center w-full mb-4 gap-2">
         <!--        Show NULL -->
-        <a-checkbox v-model:checked="showNull" v-e="['c:themes:show-null']" class="nc-settings-show-null">Show NULL</a-checkbox>
+        <a-checkbox v-model:checked="showNull" v-e="['c:settings:show-null']" class="nc-settings-show-null">Show NULL</a-checkbox>
       </div>
     </div>
   </div>

@@ -191,6 +191,8 @@ const rolePermissions = {
       upload: true,
       uploadViaURL: true,
       swaggerJson: true,
+
+      commandPalette: true,
     },
   },
   commenter: {
@@ -252,6 +254,8 @@ const rolePermissions = {
       xcExportAsCsv: true,
       dataCount: true,
       swaggerJson: true,
+
+      commandPalette: true,
     },
   },
   viewer: {
@@ -309,6 +313,8 @@ const rolePermissions = {
       xcExportAsCsv: true,
       dataCount: true,
       swaggerJson: true,
+
+      commandPalette: true,
     },
   },
   [OrgUserRoles.VIEWER]: {
@@ -322,6 +328,7 @@ const rolePermissions = {
       workspaceList: true,
       workspaceGet: true,
       workspaceCreate: true,
+      commandPalette: true,
     },
   },
   [OrgUserRoles.SUPER_ADMIN]: '*',
@@ -350,6 +357,7 @@ const rolePermissions = {
       workspaceGet: true,
       workspaceCreate: true,
       genericGPT: true,
+      commandPalette: true,
     },
   },
 
@@ -374,6 +382,7 @@ const rolePermissions = {
       projectUserMetaUpdate: true,
       workspaceGet: true,
       workspaceDelete: true,
+      commandPalette: true,
     },
   },
   [WorkspaceUserRoles.OWNER]: {
@@ -383,6 +392,7 @@ const rolePermissions = {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
+      commandPalette: true,
     },
   },
 };

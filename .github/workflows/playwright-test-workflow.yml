@@ -93,6 +93,7 @@ jobs:
             printf '.'
             sleep 2
           done
+
       - name: Run Playwright tests
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}

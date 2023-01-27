@@ -160,6 +160,7 @@ async function getDbRows(baseModel, view: View, req: Request) {
         dbRow[column.title] = await serializeCellValue({
           value: row[column.title],
           column,
+          siteUrl: req['ncSiteUrl'],
         });
       }
       dbRows.push(dbRow);
@@ -171,9 +172,11 @@ async function getDbRows(baseModel, view: View, req: Request) {
 export async function serializeCellValue({
   value,
   column,
+  siteUrl,
 }: {
   column?: Column;
   value: any;
+  siteUrl: string;
 }) {
   if (!column) {
     return value;
@@ -192,7 +195,9 @@ export async function serializeCellValue({
 
       return (data || []).map(
         (attachment) =>
-          `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`
+          `${encodeURI(attachment.title)}(${encodeURI(
+            attachment.path ? `${siteUrl}/${attachment.path}` : attachment.url
+          )})`
       );
     }
     case UITypes.Lookup:
@@ -205,6 +210,7 @@ export async function serializeCellValue({
               serializeCellValue({
                 value: v,
                 column: lookupColumn,
+                siteUrl,
               })
             )
           )

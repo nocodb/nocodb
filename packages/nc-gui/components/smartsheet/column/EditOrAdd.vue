@@ -14,6 +14,7 @@ import {
   uiTypes,
   useColumnCreateStoreOrThrow,
   useEventListener,
+  useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -38,6 +39,8 @@ const { getMeta } = useMetas()
 const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
+
+const { appInfo } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 
@@ -171,7 +174,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 <template>
   <div
     class="w-[400px] bg-gray-50 shadow p-4 overflow-auto border"
-    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
+    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula, '!w-[500px]': formState.uidt === UITypes.Attachment }"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
@@ -255,6 +258,11 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               {{ `Accept only valid ${formState.uidt}` }}
             </span>
           </a-checkbox>
+
+          <LazySmartsheetColumnAttachmentOptions
+            v-if="appInfo.ee && formState.uidt === UITypes.Attachment"
+            v-model:value="formState"
+          />
 
           <LazySmartsheetColumnAdvancedOptions v-model:value="formState" />
         </div>

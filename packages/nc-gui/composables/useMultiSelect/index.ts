@@ -17,6 +17,7 @@ import {
   unref,
   useCopy,
   useEventListener,
+  useGlobal,
   useI18n,
   useMetas,
   useProject,
@@ -47,6 +48,8 @@ export function useMultiSelect(
 
   const { getMeta } = useMetas()
 
+  const { appInfo } = useGlobal()
+
   const { isMysql } = useProject()
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
@@ -60,6 +63,10 @@ export function useMultiSelect(
   const activeCell = reactive<Nullable<Cell>>({ row: null, col: null })
 
   const columnLength = $computed(() => unref(fields)?.length)
+
+  const isCellActive = computed(
+    () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
+  )
 
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
@@ -171,7 +178,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (activeCell.row === null || activeCell.col === null) {
+    if (!isCellActive.value) {
       return
     }
 
@@ -267,7 +274,8 @@ export function useMultiSelect(
               // copy - ctrl/cmd +c
               case 67:
                 // set clipboard context only if single cell selected
-                if (selectedRange.isSingleCell() && rowObj.row[columnObj.title!]) {
+                // or if selected range is empty
+                if (selectedRange.isSingleCell() || (selectedRange.isEmpty() && rowObj && columnObj)) {
                   clipboardContext = {
                     value: rowObj.row[columnObj.title!],
                     uidt: columnObj.uidt as UITypes,
@@ -293,8 +301,10 @@ export function useMultiSelect(
                         value: clipboardContext.value,
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
 
@@ -325,8 +335,10 @@ export function useMultiSelect(
                         value: clipboardContext.value,
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
                     syncCellData?.(activeCell)
@@ -366,6 +378,7 @@ export function useMultiSelect(
   useEventListener(document, 'mouseup', handleMouseUp)
 
   return {
+    isCellActive,
     handleMouseDown,
     handleMouseOver,
     clearSelectedRange,

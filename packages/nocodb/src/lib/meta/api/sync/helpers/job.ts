@@ -246,7 +246,7 @@ export default async (
     count: UITypes.Count,
     lookup: UITypes.Lookup,
     autoNumber: UITypes.AutoNumber,
-    barcode: UITypes.Barcode,
+    barcode: UITypes.SingleLineText,
     button: UITypes.Button,
   };
 
@@ -1401,10 +1401,6 @@ export default async (
           } else rec[key] = `${value?.name} <${value?.email}>`;
           break;
 
-        case UITypes.Barcode:
-          rec[key] = value.text;
-          break;
-
         case UITypes.Button:
           rec[key] = `${value?.label} <${value?.url}>`;
           break;
@@ -1470,6 +1466,13 @@ export default async (
             }
 
             rec[key] = JSON.stringify(tempArr);
+          }
+          break;
+
+        case UITypes.SingleLineText:
+          // Barcode data
+          if (value?.text) {
+            rec[key] = value.text;
           }
           break;
 

@@ -296,6 +296,13 @@ a {
   @apply !ring-0;
 }
 
+.nc-null {
+  @apply text-gray-300 italic;
+  input::placeholder {
+    @apply text-gray-300 italic;
+  }
+}
+
 .nc-animation-pulse {
   animation: pulse 2s linear infinite;
 }
@@ -324,3 +331,4 @@ a {
 .nc-click-transition-1 {
   @apply transform transition-transform !hover:(scale-120) !active:(scale-100)
 }
+

@@ -118,7 +118,7 @@ test.describe('View', () => {
     });
 
     // verify sort
-    await toolbar.sort.addSort({
+    await toolbar.sort.add({
       columnTitle: 'Title',
       isAscending: false,
       isLocallySaved: false,
@@ -133,7 +133,7 @@ test.describe('View', () => {
         stackIndex: i,
         order: order2[i - 1],
       });
-    await toolbar.sort.resetSort();
+    await toolbar.sort.reset();
     // verify card order
     const order3 = [
       ['ACE GOLDFINGER', 'AFFAIR PREJUDICE', 'AFRICAN EGG'],
@@ -149,7 +149,7 @@ test.describe('View', () => {
     await toolbar.clickFilter({
       networkValidation: true,
     });
-    await toolbar.filter.addNew({
+    await toolbar.filter.add({
       columnTitle: 'Title',
       opType: 'is like',
       value: 'BA',
@@ -167,7 +167,7 @@ test.describe('View', () => {
         stackIndex: i,
         order: order4[i - 1],
       });
-    await toolbar.filter.resetFilter();
+    await toolbar.filter.reset();
     const order5 = [
       ['ACE GOLDFINGER', 'AFFAIR PREJUDICE', 'AFRICAN EGG'],
       ['ACADEMY DINOSAUR', 'AGENT TRUMAN', 'ALASKA PHANTOM'],
@@ -192,14 +192,14 @@ test.describe('View', () => {
       index: 1,
     });
 
-    await toolbar.sort.addSort({
+    await toolbar.sort.add({
       columnTitle: 'Title',
       isAscending: false,
       isLocallySaved: false,
     });
 
     await toolbar.clickFilter();
-    await toolbar.filter.addNew({
+    await toolbar.filter.add({
       columnTitle: 'Title',
       opType: 'is like',
       value: 'BA',
@@ -267,8 +267,8 @@ test.describe('View', () => {
     await toolbar.fields.toggleShowSystemFields();
     await toolbar.fields.toggle({ title: 'LanguageId' });
     await toolbar.fields.toggle({ title: 'Title' });
-    await toolbar.sort.resetSort();
-    await toolbar.filter.resetFilter();
+    await toolbar.sort.reset();
+    await toolbar.filter.reset();
 
     await kanban.addCard({ stackIndex: 6 });
     await dashboard.expandedForm.fillField({
@@ -300,5 +300,31 @@ test.describe('View', () => {
     await kanban.verifyCardCount({
       count: [1, 25, 25, 25, 25, 25],
     });
+  });
+
+  test('Kanban shared view operations', async ({ page }) => {
+    test.slow();
+
+    await dashboard.viewSidebar.createKanbanView({
+      title: 'Film Kanban',
+    });
+    await dashboard.viewSidebar.verifyView({
+      title: 'Film Kanban',
+      index: 1,
+    });
+
+    // Share view
+    await toolbar.fields.toggle({ title: 'Rating' });
+    await toolbar.clickShareView();
+    const sharedLink = await toolbar.shareView.getShareLink();
+    await toolbar.shareView.close();
+
+    // sign-out
+    await dashboard.signOut();
+
+    // Open shared view & verify stack count
+    await page.goto(sharedLink);
+    const kanban = dashboard.kanban;
+    await kanban.verifyStackCount({ count: 6 });
   });
 });

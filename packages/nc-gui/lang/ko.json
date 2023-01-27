@@ -277,6 +277,7 @@
     "selectUserRole": "사용자 역할을 선택하세요",
     "childTable": "자식 테이블",
     "childColumn": "자식 컬럼",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "업데이트 시 ",
     "onDelete": "삭제 시",
     "account": "Account",
@@ -311,7 +312,9 @@
     "signInWithProvider": "Sign in with {provider}",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
-    "inviteOnlySignup": "Allow signup only using invite url"
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "프로젝트 생성",
@@ -628,7 +631,8 @@
       "showM2mTables": "Show M2M Tables",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "검색 결과가 없습니다",

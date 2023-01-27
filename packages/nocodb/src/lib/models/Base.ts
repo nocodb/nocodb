@@ -7,7 +7,7 @@ import {
   MetaTable,
 } from '../utils/globals';
 import Model from './Model';
-import { BaseType } from 'nocodb-sdk';
+import { BaseType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import CryptoJS from 'crypto-js';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -277,8 +277,57 @@ export default class Base implements BaseType {
       },
       ncMeta
     );
+
+    const relColumns = [];
+    const relRank = {
+      [UITypes.Lookup]: 1,
+      [UITypes.Rollup]: 2,
+      [UITypes.ForeignKey]: 3,
+      [UITypes.LinkToAnotherRecord]: 4,
+    }
+
     for (const model of models) {
-      await model.delete(ncMeta);
+      for (const col of await model.getColumns(ncMeta)) {
+        let colOptionTableName = null;
+        let cacheScopeName = null;
+        switch (col.uidt) {
+          case UITypes.Rollup:
+            colOptionTableName = MetaTable.COL_ROLLUP;
+            cacheScopeName = CacheScope.COL_ROLLUP;
+            break;
+          case UITypes.Lookup:
+            colOptionTableName = MetaTable.COL_LOOKUP;
+            cacheScopeName = CacheScope.COL_LOOKUP;
+            break;
+          case UITypes.ForeignKey:
+          case UITypes.LinkToAnotherRecord:
+            colOptionTableName = MetaTable.COL_RELATIONS;
+            cacheScopeName = CacheScope.COL_RELATION;
+            break;
+        }
+        if (colOptionTableName && cacheScopeName) {
+          relColumns.push({ col, colOptionTableName, cacheScopeName });
+        }
+      }
+    }
+
+    relColumns.sort((a, b) => {
+      return relRank[a.col.uidt] - relRank[b.col.uidt];
+    });
+
+    for (const relCol of relColumns) {
+      await ncMeta.metaDelete(null, null, relCol.colOptionTableName, {
+        fk_column_id: relCol.col.id,
+      });
+      await NocoCache.deepDel(
+        relCol.cacheScopeName,
+        `${relCol.cacheScopeName}:${relCol.col.id}`,
+        CacheDelDirection.CHILD_TO_PARENT
+      );
+    }
+
+    for (const model of models) {
+      await model.delete(ncMeta, true);
     }
     await NocoCache.deepDel(
       CacheScope.BASE,

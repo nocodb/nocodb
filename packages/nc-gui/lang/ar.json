@@ -277,6 +277,7 @@
     "selectUserRole": "حدد دور المستخدم",
     "childTable": "جدول فرعي",
     "childColumn": "عمود فرعي",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "عند التحديث",
     "onDelete": "عند الحذف",
     "account": "حساب",
@@ -311,7 +312,9 @@
     "signInWithProvider": "Sign in with {provider}",
     "agreeToTos": "بالتسجيل، أنت توافق على شروط الخدمة",
     "welcomeToNc": "مرحبا بكم في NocoDB!",
-    "inviteOnlySignup": "Allow signup only using invite url"
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -628,7 +631,8 @@
       "showM2mTables": "إظهار جداول M2M",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",

@@ -83,19 +83,25 @@ const sqlite3 = {
     );
   },
   DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    let datetime_expr1 = fn(pt.arguments[0]).bindings[0];
-    let datetime_expr2 = fn(pt.arguments[1]).bindings[0];
+    let datetime_expr1 = fn(pt.arguments[0]);
+    let datetime_expr2 = fn(pt.arguments[1]);
     // JULIANDAY takes YYYY-MM-DD
-    datetime_expr1 = convertToTargetFormat(
-      datetime_expr1,
-      getDateFormat(datetime_expr1),
-      'YYYY-MM-DD'
-    );
-    datetime_expr2 = convertToTargetFormat(
-      datetime_expr2,
-      getDateFormat(datetime_expr2),
-      'YYYY-MM-DD'
-    );
+    if (datetime_expr1.sql === '?' && datetime_expr1.bindings?.[0]) {
+      datetime_expr1 = `'${convertToTargetFormat(
+        datetime_expr1.bindings[0],
+        getDateFormat(datetime_expr1.bindings[0]),
+        'YYYY-MM-DD'
+      )}'`;
+    }
+
+    if (datetime_expr2.sql === '?' && datetime_expr2.bindings?.[0]) {
+      datetime_expr2 = `'${convertToTargetFormat(
+        datetime_expr2.bindings[0],
+        getDateFormat(datetime_expr2.bindings[0]),
+        'YYYY-MM-DD'
+      )}'`;
+    }
+
     const rawUnit = pt.arguments[2]
       ? fn(pt.arguments[2]).bindings[0]
       : 'seconds';
@@ -103,36 +109,47 @@ const sqlite3 = {
     const unit = convertUnits(rawUnit, 'sqlite');
     switch (unit) {
       case 'seconds':
-        sql = `ROUND((JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')) * 86400)`;
+        sql = `(strftime('%s', ${datetime_expr1}) - strftime('%s', ${datetime_expr2}))`;
         break;
       case 'minutes':
-        sql = `ROUND((JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')) * 1440)`;
+        sql = `(strftime('%s', ${datetime_expr1}) - strftime('%s', ${datetime_expr2})) / 60`;
         break;
       case 'hours':
-        sql = `ROUND((JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')) * 24)`;
+        sql = `(strftime('%s', ${datetime_expr1}) - strftime('%s', ${datetime_expr2})) / 3600`;
         break;
       case 'milliseconds':
-        sql = `ROUND((JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')) * 86400000)`;
+        sql = `(strftime('%s', ${datetime_expr1}) - strftime('%s', ${datetime_expr2})) * 1000`;
         break;
       case 'weeks':
-        sql = `ROUND((JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')) / 7)`;
+        sql = `ROUND((JULIANDAY(${datetime_expr1}) - JULIANDAY(${datetime_expr2})) / 7)`;
         break;
       case 'months':
-        sql = `(ROUND((JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')) / 365))
-        * 12 + (ROUND((JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')) / 365 / 12))`;
+        sql = `(strftime('%Y', ${datetime_expr1}) - strftime('%Y', ${datetime_expr2})) * 12 + (strftime('%m', ${datetime_expr1}) - strftime('%m', ${datetime_expr2})) `;
         break;
       case 'quarters':
-        sql = `
-            ROUND((JULIANDAY('${datetime_expr1}')) / 365 / 4) -
-            ROUND((JULIANDAY('${datetime_expr2}')) / 365 / 4) +
-            (ROUND((JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')) / 365)) * 4
-        `;
+        sql = `(strftime('%Y', ${datetime_expr1}) - strftime('%Y', ${datetime_expr2})) * 4 + (strftime('%m', ${datetime_expr1}) - strftime('%m', ${datetime_expr2})) / 3`;
         break;
       case 'years':
-        sql = `ROUND((JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')) / 365)`;
+        sql = `CASE 
+                WHEN (${datetime_expr2} < ${datetime_expr1}) THEN 
+                (
+                  (strftime('%Y', ${datetime_expr1}) - strftime('%Y', ${datetime_expr2}))
+                  - (strftime('%m', ${datetime_expr1}) < strftime('%m', ${datetime_expr2})
+                  OR (strftime('%m', ${datetime_expr1}) = strftime('%m', ${datetime_expr2})
+                  AND strftime('%d', ${datetime_expr1}) < strftime('%d', ${datetime_expr2})))
+                )
+                WHEN (${datetime_expr2} > ${datetime_expr1}) THEN 
+                -1 * (
+                  (strftime('%Y', ${datetime_expr2}) - strftime('%Y', ${datetime_expr1}))
+                  - (strftime('%m', ${datetime_expr2}) < strftime('%m', ${datetime_expr1})
+                  OR (strftime('%m', ${datetime_expr2}) = strftime('%m', ${datetime_expr1})
+                  AND strftime('%d', ${datetime_expr2}) < strftime('%d', ${datetime_expr1})))
+                )
+                ELSE 0
+              END`;
         break;
       case 'days':
-        sql = `JULIANDAY('${datetime_expr1}') - JULIANDAY('${datetime_expr2}')`;
+        sql = `JULIANDAY(${datetime_expr1}) - JULIANDAY(${datetime_expr2})`;
         break;
       default:
         sql = '';

@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import {
   Modal,
   SYSTEM_COLUMNS,
@@ -119,7 +119,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       async onOk() {
         try {
           const meta = (await getMeta(table.id as string, true)) as TableType
-          const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord)
+          const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
           if (relationColumns?.length) {
             const refColMsgs = await Promise.all(

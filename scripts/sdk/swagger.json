@@ -3463,7 +3463,7 @@
         ]
       },
       "delete": {
-        "summary": "",
+        "summary": "Column Delete",
         "operationId": "db-table-column-delete",
         "responses": {
           "200": {
@@ -3472,6 +3472,18 @@
         },
         "tags": [
           "DB table column"
+        ]
+      },
+      "get": {
+        "summary": "Column Get",
+        "operationId": "db-table-column-get",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB Table Column"
         ]
       }
     },
@@ -4371,6 +4383,44 @@
         }
       }
     },
+    "/api/v1/db/meta/grids/{viewId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-view-grid-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Grid"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/grids/{gridId}/grid-columns": {
       "parameters": [
         {
@@ -5234,6 +5284,13 @@
             "in": "query",
             "name": "nested",
             "description": "Query params for nested data"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
           }
         ],
         "responses": {
@@ -6884,6 +6941,9 @@
                       "properties": {
                         "relatedMetas": {},
                         "client": {
+                          "type": "string"
+                        },
+                        "base_id": {
                           "type": "string"
                         },
                         "columns": {
@@ -10711,6 +10771,9 @@
               "locked",
               "personal"
             ]
+          },
+          "row_height": {
+            "type": "number"
           }
         },
         "description": ""
@@ -11266,6 +11329,11 @@
           },
           "icon": {
             "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "data": {}
           }
         }
       },

@@ -2580,11 +2580,15 @@ class MssqlClient extends KnexClient {
 
     const defaultValue = getDefaultValue(n);
     const shouldSanitize = true;
+    const scaleAndPrecision =
+      !getDefaultLengthIsDisabled(n.dt) && n.dtxp
+        ? `(${n.dtxp}${n.dtxs ? `,${n.dtxs}` : ''})`
+        : '';
 
     if (change === 0) {
       query = existingQuery ? ',' : '';
       query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
-      query += !getDefaultLengthIsDisabled(n.dt) && n.dtxp ? `(${n.dtxp})` : '';
+      query += scaleAndPrecision;
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
       query += defaultValue
@@ -2599,7 +2603,7 @@ class MssqlClient extends KnexClient {
       }
     } else if (change === 1) {
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
-      query += !getDefaultLengthIsDisabled(n.dt) && n.dtxp ? `(${n.dtxp})` : '';
+      query += scaleAndPrecision;
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += n.ai ? ' IDENTITY(1,1)' : ' ';
       query += defaultValue
@@ -2629,43 +2633,17 @@ class MssqlClient extends KnexClient {
         );
       }
 
-      if (n.dtxp !== o.dtxp && !['text'].includes(n.dt)) {
+      if (
+        n.dtxp !== o.dtxp ||
+        n.dtxs !== o.dtxs ||
+        n.dt !== o.dt ||
+        n.rqd !== o.rqd
+      ) {
         query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}(${n.dtxp});\n`,
+          `\nALTER TABLE ?? ALTER COLUMN ?? ${n.dt}${scaleAndPrecision}`,
           [this.getTnPath(t), n.cn],
           shouldSanitize
         );
-      } else if (n.dt !== o.dt) {
-        query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${n.dt};\n`,
-          [this.getTnPath(t), n.cn],
-          shouldSanitize
-        );
-      }
-
-      if (n.rqd !== o.rqd) {
-        query += this.genQuery(
-          `\nALTER TABLE ?? ALTER COLUMN ??  ${n.dt}`,
-          [this.getTnPath(t), n.cn],
-          shouldSanitize
-        );
-        if (
-          ![
-            'int',
-            'bigint',
-            'bit',
-            'real',
-            'float',
-            'decimal',
-            'money',
-            'smallint',
-            'tinyint',
-            'geometry',
-            'datetime',
-            'text',
-          ].includes(n.dt)
-        )
-          query += n.dtxp && n.dtxp != -1 ? `(${n.dtxp})` : '';
         query += n.rqd ? ` NOT NULL;\n` : ` NULL;\n`;
       }
 
@@ -2787,43 +2765,32 @@ function getDefaultValue(n) {
 
 function getDefaultLengthIsDisabled(type) {
   switch (type) {
-    // case 'binary':
-    // case 'char':
-    // case 'sql_variant':
-    // case 'nvarchar':
-    // case 'nchar':
-    // case 'ntext':
-    // case 'varbinary':
-    // case 'sysname':
-    case 'bigint':
-    case 'bit':
-    case 'date':
-    case 'datetime':
-    case 'datetime2':
     case 'datetimeoffset':
-    case 'decimal':
-    case 'float':
     case 'geography':
     case 'geometry':
     case 'heirarchyid':
     case 'image':
-    case 'int':
     case 'money':
-    case 'numeric':
     case 'real':
     case 'json':
     case 'smalldatetime':
-    case 'smallint':
     case 'smallmoney':
     case 'text':
     case 'time':
     case 'timestamp':
+    case 'int':
     case 'tinyint':
+    case 'bigint':
+    case 'bit':
+    case 'smallint':
+    case 'float':
     case 'uniqueidentifier':
     case 'xml':
       return true;
       break;
     default:
+    case 'decimal':
+    case 'numeric':
     case 'varchar':
       return false;
       break;

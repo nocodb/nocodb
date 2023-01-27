@@ -19,28 +19,32 @@ services:
     #     - 3356:3306
     #   volumes:
     #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
-    db57:
-      image: mysql:5.7
-      restart: always
-      environment:
-        MYSQL_ROOT_PASSWORD: password
-      ports:
-       - 3357:3306
-      volumes:
-       - ./tests/mysql-sakila-db:/docker-entrypoint-initdb.d
-      healthcheck:
-         test: "/etc/init.d/mysql status"
-         interval: 1s
-         retries: 240
-    # db80:
-    #   image: mysql:8.0
+    # db57:
+    #   image: mysql:5.7
     #   restart: always
     #   environment:
     #     MYSQL_ROOT_PASSWORD: password
     #   ports:
-    #     - 3380:3306
+    #    - 3357:3306
     #   volumes:
-    #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
+    #    - ./tests/mysql-sakila-db:/docker-entrypoint-initdb.d
+      # healthcheck:
+      #    test: "/etc/init.d/mysql status"
+      #    interval: 1s
+      #    retries: 240
+    db8032:
+      image: mysql:8.0.32
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: password
+      ports:
+        - 3380:3306
+      volumes:
+        - ./tests/mysql-sakila-db:/docker-entrypoint-initdb.d
+      healthcheck:
+         test: "/etc/init.d/mysql status"
+         interval: 1s
+         retries: 240
     # maria102:
     #   image: mariadb:10.2
     #   restart: always

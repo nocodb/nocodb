@@ -10,9 +10,22 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
+const { showNull } = useGlobal()
+
 const editEnabled = inject(EditModeInj)
 
-const vModel = useVModel(props, 'modelValue', emits)
+const _vModel = useVModel(props, 'modelValue', emits)
+
+const vModel = computed({
+  get: () => _vModel.value,
+  set: (value) => {
+    if (value === '') {
+      _vModel.value = null
+    } else {
+      _vModel.value = value
+    }
+  },
+})
 
 const focus: VNodeRef = (el) => {
   ;(el as HTMLInputElement)?.focus()
@@ -36,5 +49,6 @@ const focus: VNodeRef = (el) => {
     @selectstart.capture.stop
     @mousedown.stop
   />
+  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
   <span v-else>{{ vModel }}</span>
 </template>

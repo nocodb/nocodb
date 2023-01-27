@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import AppStore from './AppStore.vue'
 import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
 import { DataSourcesSubTab, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
-import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
 import NotebookOutline from '~icons/mdi/notebook-outline'
@@ -79,20 +77,6 @@ const tabsInfo: TabGroup = {
     },
     onClick: () => {
       $e('c:settings:team-auth')
-    },
-  },
-  appStore: {
-    // App Store
-    title: t('title.appStore'),
-    icon: StoreFrontOutline,
-    subTabs: {
-      new: {
-        title: 'Apps',
-        body: AppStore,
-      },
-    },
-    onClick: () => {
-      $e('c:settings:appstore')
     },
   },
   dataSources: {
@@ -186,13 +170,11 @@ watch(
 
       <a-button
         type="text"
-        class="!rounded-md border-none -mt-1.5 -mr-1"
+        class="!rounded-md border-none !px-1.5"
         data-testid="settings-modal-close-button"
         @click="vModel = false"
       >
-        <template #icon>
-          <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
-        </template>
+        <MdiClose class="cursor-pointer nc-modal-close w-4" />
       </a-button>
     </div>
 

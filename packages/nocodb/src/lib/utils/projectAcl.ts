@@ -33,6 +33,7 @@ const rolePermissions = {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
+      projectDelete: true,
       workspaceList: true,
       workspaceGet: true,
       workspaceUpdate: true,

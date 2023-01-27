@@ -6,6 +6,7 @@ import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
 
@@ -109,6 +110,9 @@ export default defineNuxtConfig({
         autoInstall: false,
         compiler: 'vue3',
         defaultClass: 'nc-icon',
+        customCollections: {
+          'nc-icons': FileSystemIconLoader('./assets/nc-icons', (svg) => svg.replace(/^<svg /, '<svg fill="currentColor" ')),
+        },
       }),
       Components({
         resolvers: [
@@ -135,12 +139,16 @@ export default defineNuxtConfig({
               'system-uicons',
               'vscode-icons',
               'simple-icons',
+              'nc-icons',
             ],
           }),
         ],
       }),
       monacoEditorPlugin({
         languageWorkers: ['json'],
+        customDistPath: (root: string, buildOutDir: string) => {
+          return `${buildOutDir}/` + `monacoeditorwork`
+        },
       }),
       PurgeIcons({
         /* PurgeIcons Options */

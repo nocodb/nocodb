@@ -423,6 +423,7 @@ export interface GridType {
   deleted?: boolean;
   order?: number;
   lock_type?: 'collaborative' | 'locked' | 'personal';
+  row_height?: number;
 }
 
 export interface GalleryType {
@@ -567,6 +568,8 @@ export interface AttachmentType {
   mimetype?: string;
   size?: string;
   icon?: string;
+  path?: string;
+  data?: any;
 }
 
 export interface WorkspaceType {
@@ -3209,6 +3212,7 @@ export class Api<
      *
      * @tags DB table column
      * @name Delete
+     * @summary Column Delete
      * @request DELETE:/api/v1/db/meta/columns/{columnId}
      * @response `200` `void` OK
      */
@@ -3216,6 +3220,22 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/db/meta/columns/${columnId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB Table Column
+     * @name Get
+     * @summary Column Get
+     * @request GET:/api/v1/db/meta/columns/{columnId}
+     * @response `200` `void` OK
+     */
+    get: (columnId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/columns/${columnId}`,
+        method: 'GET',
         ...params,
       }),
 
@@ -3420,6 +3440,24 @@ export class Api<
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/form-columns/${formViewColumnId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name GridUpdate
+     * @request PATCH:/api/v1/db/meta/grids/{viewId}
+     * @response `200` `any` OK
+     */
+    gridUpdate: (viewId: string, data: GridType, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/grids/${viewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -4521,6 +4559,7 @@ export class Api<
         where?: string;
         /** Query params for nested data */
         nested?: any;
+        offset?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -4949,6 +4988,7 @@ export class Api<
  * @response `200` `(ViewType & {
   relatedMetas?: any,
   client?: string,
+  base_id?: string,
   columns?: ((GridColumnType | FormColumnType | GalleryColumnType) & ColumnType),
   model?: TableType,
 
@@ -4962,6 +5002,7 @@ export class Api<
         ViewType & {
           relatedMetas?: any;
           client?: string;
+          base_id?: string;
           columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
             ColumnType;
           model?: TableType;

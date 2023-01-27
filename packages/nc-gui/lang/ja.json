@@ -205,7 +205,8 @@
     "quickImport": "クイックインポート",
     "advancedSettings": "詳細設定",
     "codeSnippet": "コードスニペット",
-    "keyboardShortcut": "キーボードショートカット"
+    "keyboardShortcut": "キーボードショートカット",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "クリエイティッド バイ",

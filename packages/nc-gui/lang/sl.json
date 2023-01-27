@@ -205,7 +205,8 @@
     "quickImport": "Hitri uvoz",
     "advancedSettings": "Napredne nastavitve",
     "codeSnippet": "Odlomek kode",
-    "keyboardShortcut": "Bližnjice na tipkovnici"
+    "keyboardShortcut": "Bližnjice na tipkovnici",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Ustvaril je",

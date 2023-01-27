@@ -205,7 +205,8 @@
     "quickImport": "استيراد سريع",
     "advancedSettings": "الإعدادات المتقدمة",
     "codeSnippet": "كتلة برمجية",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",

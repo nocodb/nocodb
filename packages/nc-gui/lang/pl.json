@@ -205,7 +205,8 @@
     "quickImport": "Szybki import",
     "advancedSettings": "Ustawienia zaawansowane",
     "codeSnippet": "Snippet",
-    "keyboardShortcut": "Skróty klawiaturowe"
+    "keyboardShortcut": "Skróty klawiaturowe",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Stworzony przez",

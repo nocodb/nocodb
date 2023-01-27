@@ -205,7 +205,8 @@
     "quickImport": "Швидкий імпорт",
     "advancedSettings": "Додаткові налаштування",
     "codeSnippet": "Фрагмент коду",
-    "keyboardShortcut": "Комбінації клавіш"
+    "keyboardShortcut": "Комбінації клавіш",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Створено",

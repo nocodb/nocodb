@@ -205,7 +205,8 @@
     "quickImport": "Rychlý import",
     "advancedSettings": "Pokročilá nastavení",
     "codeSnippet": "Úryvek kódu",
-    "keyboardShortcut": "Klávesové zkratky"
+    "keyboardShortcut": "Klávesové zkratky",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Vytvořil/a",

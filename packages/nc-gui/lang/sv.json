@@ -205,7 +205,8 @@
     "quickImport": "Snabb import",
     "advancedSettings": "Avancerade inställningar",
     "codeSnippet": "Kodutdrag",
-    "keyboardShortcut": "Tangentbordsgenvägar"
+    "keyboardShortcut": "Tangentbordsgenvägar",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Skapad av",

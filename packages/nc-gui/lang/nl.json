@@ -205,7 +205,8 @@
     "quickImport": "Snel importeren",
     "advancedSettings": "Geavanceerde instellingen",
     "codeSnippet": "Codefragment",
-    "keyboardShortcut": "Sneltoetsen"
+    "keyboardShortcut": "Sneltoetsen",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Gemaakt door",

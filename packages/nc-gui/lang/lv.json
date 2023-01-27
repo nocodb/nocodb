@@ -205,7 +205,8 @@
     "quickImport": "Ātrā importēšana",
     "advancedSettings": "Izvērstie iestatījumi",
     "codeSnippet": "Koda fragments",
-    "keyboardShortcut": "Tastatūras saīsnes"
+    "keyboardShortcut": "Tastatūras saīsnes",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Izveidoja",

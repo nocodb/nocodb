@@ -205,7 +205,8 @@
     "quickImport": "Hurtig import",
     "advancedSettings": "Avancerede indstillinger",
     "codeSnippet": "Kodeuddrag",
-    "keyboardShortcut": "Tastaturgenveje"
+    "keyboardShortcut": "Tastaturgenveje",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Oprettet af",

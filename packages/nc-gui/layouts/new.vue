@@ -71,14 +71,14 @@ export default {
           </div>
 
           <div v-if="!isPublic" class="flex items-center">
-            <MdiBellOutline class="text-xl h-4.5" />
+            <MdiBellOutline class="text-xl h-4" />
             <!-- <MaterialSymbolsKeyboardArrowDownRounded /> -->
           </div>
 
           <a-dropdown v-if="!isPublic" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <div class="flex items-center gap-1 cursor-pointer">
               <div
-                class="h-8 w-8 rounded-full text-xs bg-secondary flex items-center justify-center font-weight-bold text-black uppercase"
+                class="h-8.5 w-8.5 rounded-full text-xs bg-secondary flex items-center justify-center font-weight-bold text-black uppercase"
               >
                 {{ email ? email.split('@')[0].slice(0, 2) : 'A' }}
               </div>

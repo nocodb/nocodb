@@ -70,18 +70,6 @@ jobs:
         run: |
           npm install
           npm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
-      - name: Wait for backend
-        run: |
-          end=$((SECONDS+20))
-          while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
-            if [ $SECONDS -gt $end ]; then
-              echo "Backend not started"
-              curl --silent --head --fail http://localhost:8080;
-              exit 1
-            fi
-            printf '.'
-            sleep 2
-          done
       - name: run frontend
         working-directory: ./packages/nc-gui
         run: npm run ci:run

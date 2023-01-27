@@ -284,7 +284,7 @@ export default class Base implements BaseType {
       [UITypes.Rollup]: 2,
       [UITypes.ForeignKey]: 3,
       [UITypes.LinkToAnotherRecord]: 4,
-    }
+    };
 
     for (const model of models) {
       for (const col of await model.getColumns(ncMeta)) {

@@ -79,23 +79,23 @@ export async function validateCondition(filters: Filter[], data: any) {
         res = data[field] !== null;
         break;
       case 'allof':
-        res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-          (data[field]?.split(',') ?? []).includes(item)
+        res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every(
+          (item) => (data[field]?.split(',') ?? []).includes(item)
         );
         break;
       case 'anyof':
-        res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-          (data[field]?.split(',') ?? []).includes(item)
+        res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some(
+          (item) => (data[field]?.split(',') ?? []).includes(item)
         );
         break;
       case 'nallof':
-        res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-          (data[field]?.split(',') ?? []).includes(item)
-        );
+        res = !(
+          filter.value?.split(',').map((item) => item.trim()) ?? []
+        ).every((item) => (data[field]?.split(',') ?? []).includes(item));
         break;
       case 'nanyof':
-        res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-          (data[field]?.split(',') ?? []).includes(item)
+        res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some(
+          (item) => (data[field]?.split(',') ?? []).includes(item)
         );
         break;
       case 'lt':

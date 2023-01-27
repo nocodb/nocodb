@@ -153,7 +153,8 @@ const filterItems = computed(() => {
 
 const selectedIndex = ref(0)
 
-const selectItem = (index: number) => {
+const selectItem = (title: string) => {
+  const index = items.findIndex((item) => item.title === title)
   command(items[index])
 }
 
@@ -170,7 +171,9 @@ const onHover = (index: number) => {
 }
 
 const enterHandler = () => {
-  selectItem(selectedIndex.value)
+  console.log('enter', selectedIndex.value)
+  const item = filterItems.value[selectedIndex.value]
+  selectItem(item.title)
 }
 
 function onKeyDown({ event }: { event: KeyboardEvent }) {
@@ -232,7 +235,7 @@ defineExpose({
 <template>
   <div class="items">
     <template v-if="filterItems.length">
-      <template v-for="(item, index) in filterItems" :key="index">
+      <template v-for="(item, index) in filterItems" :key="item.title">
         <a-button
           class="item !flex !flex-row !items-center"
           :class="{
@@ -241,7 +244,7 @@ defineExpose({
           }"
           type="text"
           :loading="loadingOperationName === item.title"
-          @click="selectItem(index)"
+          @click="selectItem(item.title)"
           @mouseenter="() => onHover(index)"
         >
           <input

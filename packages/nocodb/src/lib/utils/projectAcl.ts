@@ -17,6 +17,7 @@ export default {
       pluginRead: true,
       pluginUpdate: true,
       isPluginActive: true,
+      projectDelete: true,
     },
   },
   guest: {},

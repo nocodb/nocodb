@@ -360,8 +360,6 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
         show-less-items
         @change="loadUsers"
       />
-
-      <LazyTabsAuthUserManagementFeedbackForm />
     </div>
   </div>
 </template>

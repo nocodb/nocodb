@@ -205,7 +205,8 @@
     "quickImport": "Quick Import",
     "advancedSettings": "Cài đặt Nâng cao",
     "codeSnippet": "Thư viện mã",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Đã tạo bởi",
@@ -312,7 +313,9 @@
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
-    "inviteOnlySignup": "Allow signup only using invite url"
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -629,7 +632,8 @@
       "showM2mTables": "Show M2M Tables",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",

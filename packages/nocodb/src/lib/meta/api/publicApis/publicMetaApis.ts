@@ -39,8 +39,6 @@ export async function viewMetaGet(req: Request, res: Response) {
   // todo: return only required props
   delete view['password'];
 
-  // const columnsById = c;
-
   view.model.columns = view.columns
     .filter((c) => {
       const column = view.model.columnsById[c.fk_column_id];

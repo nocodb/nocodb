@@ -24,6 +24,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
+const { showNull } = useGlobal()
+
 const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
@@ -87,6 +89,8 @@ watch(
       @selectstart.capture.stop
       @mousedown.stop
     />
+
+    <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"

@@ -65,7 +65,7 @@ useSelectedCellKeyupListener(active, (e) => {
   <div
     class="flex cursor-pointer"
     :class="{
-      'justify-center': !isForm && !readOnly,
+      'justify-center': !isForm,
       'w-full': isForm,
       'nc-cell-hover-show': !vModel && !readOnly,
       'opacity-0': readOnly && !vModel,

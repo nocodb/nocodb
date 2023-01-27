@@ -158,7 +158,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   }
                 } else if (column.uidt === UITypes.Number) {
                   if (
-                    rows.slice(1, this.config.maxRowsToParse).every((v: any) => {
+                    rows.slice(1, this.config.maxRowsToParse).some((v: any) => {
                       return v && v[col] && parseInt(v[col]) !== +v[col]
                     })
                   ) {
@@ -257,6 +257,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       })
                       const cellObj = ws[cellId]
                       rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
+                    } else if (table.columns[i].uidt === UITypes.SingleLineText || table.columns[i].uidt === UITypes.LongText) {
+                      rowData[table.columns[i].column_name] = row[i] === null || row[i] === undefined ? null : `${row[i]}`
                     } else {
                       // TODO: do parsing if necessary based on type
                       rowData[table.columns[i].column_name] = row[i]

@@ -468,6 +468,13 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
   async startTransaction(): Promise<NcMetaIO> {
     const trx = await this.connection.transaction();
+
+    // todo: Extend transaction class to add our custom properties
+    Object.assign(trx, {
+      clientType: this.connection.clientType,
+      searchPath: (this.connection as any).searchPath,
+    });
+
     return new NcMetaIOImpl(this.app, this.config, trx);
   }
 

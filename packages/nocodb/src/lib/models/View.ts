@@ -299,6 +299,7 @@ export default class View implements ViewType {
       case ViewTypes.GRID:
         await GridView.insert(
           {
+            ...((copyFromView?.view as GridView) || {}),
             ...(view as GridView),
             fk_view_id: view_id,
           },

@@ -2,15 +2,18 @@ import { expect } from '@playwright/test';
 import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
+import { AttachmentColumnPageObject } from './Attachment';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
+  readonly attachmentColumnPageObject: AttachmentColumnPageObject;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
     this.grid = grid;
     this.selectOption = new SelectOptionColumnPageObject(this);
+    this.attachmentColumnPageObject = new AttachmentColumnPageObject(this);
   }
 
   get() {
@@ -77,16 +80,6 @@ export class ColumnPageObject extends BasePage {
     switch (type) {
       case 'SingleSelect':
       case 'MultiSelect':
-        await this.selectOption.addOption({
-          index: 0,
-          option: 'Option 1',
-          skipColumnModal: true,
-        });
-        await this.selectOption.addOption({
-          index: 1,
-          option: 'Option 2',
-          skipColumnModal: true,
-        });
         break;
       case 'Duration':
         if (format) {
@@ -279,7 +272,7 @@ export class ColumnPageObject extends BasePage {
     timeFormat?: string;
   }) {
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
 
     await this.get().waitFor({ state: 'visible' });
 
@@ -306,6 +299,10 @@ export class ColumnPageObject extends BasePage {
       default:
         break;
     }
+  }
+
+  async editMenuShowMore() {
+    await this.rootPage.locator('.nc-more-options').click();
   }
 
   async duplicateColumn({ title, expectedTitle = `${title}_copy` }: { title: string; expectedTitle?: string }) {

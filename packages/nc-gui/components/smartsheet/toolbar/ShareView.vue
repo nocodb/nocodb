@@ -86,9 +86,16 @@ const genShareLink = async () => {
   if (!view.value?.id) return
 
   const response = (await $api.dbViewShare.create(view.value.id)) as SharedView
+
   const meta = isString(response.meta) ? JSON.parse(response.meta) : response.meta
 
   shared.value = { ...response, meta }
+
+  if (shared.value.type === ViewTypes.KANBAN) {
+    const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
+    shared.value.meta = { ...shared.value.meta, groupingFieldColumn: groupingFieldColumn.value }
+    await updateSharedViewMeta(true)
+  }
 
   passwordProtected.value = !!shared.value.password && shared.value.password !== ''
 
@@ -133,7 +140,7 @@ async function saveTheme() {
 
 // const saveTransitionDuration = useDebounceFn(updateSharedViewMeta, 1000, { maxWait: 2000 })
 
-async function updateSharedViewMeta() {
+async function updateSharedViewMeta(silentMessage = false) {
   try {
     const meta = shared.value.meta && isString(shared.value.meta) ? JSON.parse(shared.value.meta) : shared.value.meta
 
@@ -141,7 +148,7 @@ async function updateSharedViewMeta() {
       meta,
     })
 
-    message.success(t('msg.success.updated'))
+    if (!silentMessage) message.success(t('msg.success.updated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -205,7 +212,7 @@ const iframeCode = computed(() => {
   frameborder="0"
   width="100%"
   height="700"
-  style="background: transparent; border: 1px solid #ddd"/>`
+  style="background: transparent; border: 1px solid #ddd"></iframe>`
 })
 
 const copyIframeCode = async () => {

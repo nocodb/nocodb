@@ -42,13 +42,17 @@ function getTnPath(knex: XKnex, tb: Model) {
 }
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  const bases = await ncMeta.metaList2(null, null, MetaTable.BASES);
+  const bases: Base[] = await ncMeta.metaList2(null, null, MetaTable.BASES);
   for (const base of bases) {
-    const knex: XKnex = NcConnectionMgrv2.get(base);
-    const models = await (await Base.get(base.id)).getModels();
+    const knex: XKnex = base.is_meta
+      ? ncMeta.knexConnection
+      : NcConnectionMgrv2.get(base);
+    const models = await (await Base.get(base.id, ncMeta)).getModels(ncMeta);
     for (const model of models) {
       const updateRecords = [];
-      const columns = await (await Model.get(model.id)).getColumns();
+      const columns = await (
+        await Model.get(model.id, ncMeta)
+      ).getColumns(ncMeta);
       const attachmentColumns = columns
         .filter((c) => c.uidt === UITypes.Attachment)
         .map((c) => c.column_name);
@@ -62,7 +66,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       ]);
       for (const record of records) {
         for (const attachmentColumn of attachmentColumns) {
-          let attachmentMeta =
+          const attachmentMeta =
             typeof record[attachmentColumn] === 'string'
               ? JSON.parse(record[attachmentColumn])
               : record[attachmentColumn];

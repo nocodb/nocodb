@@ -4,7 +4,7 @@ import Base from '../models/Base';
 import Model from '../models/Model';
 import { XKnex } from '../db/sql-data-mapper/index';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { UITypes } from 'nocodb-sdk';
+import { BaseType, UITypes } from 'nocodb-sdk'
 
 // before 0.103.0, an attachment object was like
 // [{
@@ -42,12 +42,13 @@ function getTnPath(knex: XKnex, tb: Model) {
 }
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  const bases: Base[] = await ncMeta.metaList2(null, null, MetaTable.BASES);
-  for (const base of bases) {
+  const bases: BaseType[] = await ncMeta.metaList2(null, null, MetaTable.BASES);
+  for (const _base of bases) {
+    const base = new Base(_base);
     const knex: XKnex = base.is_meta
       ? ncMeta.knexConnection
       : NcConnectionMgrv2.get(base);
-    const models = await (await Base.get(base.id, ncMeta)).getModels(ncMeta);
+    const models = await base.getModels(ncMeta);
     for (const model of models) {
       const updateRecords = [];
       const columns = await (
@@ -66,14 +67,27 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       ]);
       for (const record of records) {
         for (const attachmentColumn of attachmentColumns) {
-          const attachmentMeta =
-            typeof record[attachmentColumn] === 'string'
-              ? JSON.parse(record[attachmentColumn])
-              : record[attachmentColumn];
+          let attachmentMeta: Array<{
+            url: string;
+          }>;
+
+          // if parsing failed ignore the cell
+          try {
+            attachmentMeta =
+              typeof record[attachmentColumn] === 'string'
+                ? JSON.parse(record[attachmentColumn])
+                : record[attachmentColumn];
+          } catch {}
+
+          // if cell data is not an array, ignore it
+          if (!Array.isArray(attachmentMeta)) {
+            continue;
+          }
+
           if (attachmentMeta) {
             const newAttachmentMeta = [];
             for (const attachment of attachmentMeta) {
-              if ('url' in attachment) {
+              if ('url' in attachment && typeof attachment.url === 'string') {
                 const match = attachment.url.match(/^(.*)\/download\/(.*)$/);
                 if (match) {
                   // e.g. http://localhost:8080/download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png

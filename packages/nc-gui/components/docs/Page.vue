@@ -386,11 +386,14 @@ div[contenteditable='false'].ProseMirror {
   font-size: 1rem;
 }
 .ProseMirror pre {
-  background: #0d0d0d;
-  color: #fff;
+  background: #f2f4f7;
+  border-color: #d0d5dd;
+  border: 1px;
+  color: black;
   font-family: 'JetBrainsMono', monospace;
   padding: 1rem;
   border-radius: 0.5rem;
+  @apply overflow-auto;
 
   code {
     color: inherit;

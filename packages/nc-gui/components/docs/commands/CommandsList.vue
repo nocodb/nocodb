@@ -171,7 +171,6 @@ const onHover = (index: number) => {
 }
 
 const enterHandler = () => {
-  console.log('enter', selectedIndex.value)
   const item = filterItems.value[selectedIndex.value]
   selectItem(item.title)
 }
@@ -274,10 +273,11 @@ defineExpose({
   @apply px-1 py-0.5
   position: relative;
   border-radius: 0.5rem;
-  background: #fff;
   color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
   font-size: 0.9rem;
+  @apply bg-gray-50;
+
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -298,7 +298,7 @@ defineExpose({
   margin: 0.2rem 0;
 
   &.is-selected {
-    @apply border-gray-100 !bg-gray-50;
+    @apply border-gray-200 !bg-gray-100;
   }
 }
 </style>

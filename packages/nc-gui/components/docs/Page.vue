@@ -396,13 +396,13 @@ div[contenteditable='false'].ProseMirror {
   padding: 1rem;
   border-radius: 0.5rem;
   @apply overflow-auto;
+}
 
-  code {
-    color: inherit;
-    padding: 0;
-    background: none;
-    font-size: 0.8rem;
-  }
+code {
+  background: #f2f4f7;
+  @apply rounded-md px-2 py-1;
+  color: inherit;
+  font-size: 0.8rem;
 }
 
 ul {

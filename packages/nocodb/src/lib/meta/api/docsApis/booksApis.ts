@@ -141,11 +141,7 @@ async function magic(
 
       let pages = JSON5.parse(response.data.choices[0].text);
       pages = pages.length ? pages : pages.data;
-      if (
-        pages.length === 1 &&
-        (pages[0].title as string).toLowerCase() ===
-          (req.body.title as string).toLowerCase()
-      ) {
+      if (pages.length === 1) {
         // Skip the root page since it's the same as the book title
         pages = pages[0].pages;
       }

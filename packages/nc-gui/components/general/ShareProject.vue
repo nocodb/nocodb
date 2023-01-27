@@ -43,7 +43,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </div>
     </template>
     <div
-      class="my-auto h-7 flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1 px-2 rounded-md mr-2 cursor-pointer"
+      class="my-auto h-7 flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1.5 px-2 rounded-md mr-2 cursor-pointer"
       @click="showModal = true"
     >
       <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />

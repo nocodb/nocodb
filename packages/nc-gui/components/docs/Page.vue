@@ -28,6 +28,7 @@ const {
   bookUrl,
   uploadFile,
   fetchPage,
+  openPage,
 } = useDocs()
 
 const isTitleInputRefLoaded = ref(false)
@@ -199,45 +200,63 @@ watch(
 
 <template>
   <a-layout-content>
-    <div v-if="openedPage" class="mx-20 px-6 mt-12 flex flex-col gap-y-4">
-      <div class="flex flex-row justify-between items-center">
-        <a-breadcrumb v-if="breadCrumbs.length >= 0" class="!px-2">
-          <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
-            <NuxtLink
-              class="!text-gray-400 !hover:text-black docs-breadcrumb-item"
-              :to="href"
-              :class="{
-                '!text-black !underline-current': index === breadCrumbs.length - 1,
-                '!underline-transparent !hover:underline-transparent': index !== breadCrumbs.length - 1,
-              }"
-            >
-              {{ title }}
-            </NuxtLink>
-          </a-breadcrumb-item>
-        </a-breadcrumb>
-        <div v-else class="flex"></div>
-        <div v-if="!isPublic" class="flex flex-row items-center"></div>
-      </div>
+    <div v-if="openedPage" class="nc-docs-page overflow-y-auto h-full">
+      <div class="mx-20 px-6 mt-12 flex flex-col gap-y-4">
+        <div class="flex flex-row justify-between items-center">
+          <a-breadcrumb v-if="breadCrumbs.length >= 0" class="!px-2">
+            <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
+              <NuxtLink
+                class="!text-gray-400 !hover:text-black docs-breadcrumb-item"
+                :to="href"
+                :class="{
+                  '!text-black !underline-current': index === breadCrumbs.length - 1,
+                  '!underline-transparent !hover:underline-transparent': index !== breadCrumbs.length - 1,
+                }"
+              >
+                {{ title }}
+              </NuxtLink>
+            </a-breadcrumb-item>
+          </a-breadcrumb>
+          <div v-else class="flex"></div>
+          <div v-if="!isPublic" class="flex flex-row items-center"></div>
+        </div>
 
-      <a-input
-        ref="titleInputRef"
-        v-model:value="title"
-        class="!text-4xl font-semibold !px-1.5"
-        :bordered="false"
-        :readonly="isPublic"
-        :placeholder="openedPage.title"
-        auto-size
-        @keydown="onTitleKeyDown"
-      />
-
-      <DocsSelectedBubbleMenu v-if="editor" :editor="editor" />
-      <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
-        <MdiPlus
-          class="hover:cursor-pointer hover:bg-gray-50 rounded-md"
-          @click="editor!.chain().focus().insertContent('/').run()"
+        <a-input
+          ref="titleInputRef"
+          v-model:value="title"
+          class="!text-4xl font-semibold !px-1.5"
+          :bordered="false"
+          :readonly="isPublic"
+          :placeholder="openedPage.title"
+          auto-size
+          @keydown="onTitleKeyDown"
         />
-      </FloatingMenu>
-      <EditorContent v-if="!isLoading" :editor="editor" class="px-2" />
+
+        <DocsSelectedBubbleMenu v-if="editor" :editor="editor" />
+        <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
+          <MdiPlus
+            class="hover:cursor-pointer hover:bg-gray-50 rounded-md"
+            @click="editor!.chain().focus().insertContent('/').run()"
+          />
+        </FloatingMenu>
+        <EditorContent v-if="!isLoading" :editor="editor" class="px-2" />
+        <div
+          v-if="!isLoading && openedPageInternal?.children?.length !== 0"
+          class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
+        >
+          <div
+            v-for="page of openedPageInternal?.children"
+            :key="page.id"
+            class="flex flex-row items-center gap-x-2 cursor-pointer"
+            @click="openPage(page)"
+          >
+            <MdiFileDocumentOutline class="flex" />
+            <div class="font-semibold text-base">
+              {{ page.title }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </a-layout-content>
 </template>
@@ -252,6 +271,49 @@ watch(
 ::selection {
   color: black;
   background-color: #1c26b820;
+}
+
+.nc-docs-page {
+  // scrollbar reduce width and gray color
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: #f6f6f600;
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f6f6f600;
+  }
+}
+.nc-docs-page:hover {
+  // scrollbar reduce width and gray color
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: rgb(215, 215, 215);
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
+  }
 }
 
 /* Basic editor styles */

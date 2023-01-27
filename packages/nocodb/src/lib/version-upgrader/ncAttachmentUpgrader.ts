@@ -66,14 +66,27 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       ]);
       for (const record of records) {
         for (const attachmentColumn of attachmentColumns) {
-          const attachmentMeta =
-            typeof record[attachmentColumn] === 'string'
-              ? JSON.parse(record[attachmentColumn])
-              : record[attachmentColumn];
+          let attachmentMeta: Array<{
+            url: string;
+          }>;
+
+          // if parsing failed ignore the cell
+          try {
+            attachmentMeta =
+              typeof record[attachmentColumn] === 'string'
+                ? JSON.parse(record[attachmentColumn])
+                : record[attachmentColumn];
+          } catch {}
+
+          // if cell data is not an array, ignore it
+          if (!Array.isArray(attachmentMeta)) {
+            continue;
+          }
+
           if (attachmentMeta) {
             const newAttachmentMeta = [];
             for (const attachment of attachmentMeta) {
-              if ('url' in attachment) {
+              if ('url' in attachment && typeof attachment.url === 'string') {
                 const match = attachment.url.match(/^(.*)\/download\/(.*)$/);
                 if (match) {
                   // e.g. http://localhost:8080/download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png

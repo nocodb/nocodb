@@ -13,6 +13,7 @@ import MdiCodeSnippet from '~icons/mdi/code-braces'
 import MdiImageMultipleOutline from '~icons/mdi/image-multiple-outline'
 import MdiFormatColorText from '~icons/mdi/format-color-text'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
+import MdiFormatQuoteOpen from '~icons/mdi/format-quote-open'
 
 interface Props {
   command: Function
@@ -73,6 +74,15 @@ const items = [
       editor.chain().focus().deleteRange(range).setNode('paragraph', { level: 2 }).run()
     },
     icon: MdiFormatColorText,
+    iconClass: '',
+  },
+  {
+    title: 'Quote',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('blockquote').run()
+    },
+    icon: MdiFormatQuoteOpen,
     iconClass: '',
   },
   {
@@ -261,7 +271,7 @@ defineExpose({
             </div>
           </div>
         </a-button>
-        <div v-if="item.hasDivider" class="divider"></div>
+        <div v-if="item.hasDivider && filterItems.length === items.length" class="divider"></div>
       </template>
     </template>
     <div v-else class="item">No result</div>

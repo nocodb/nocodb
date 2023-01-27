@@ -10,6 +10,7 @@ import Strike from '@tiptap/extension-strike'
 import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
+import Blockquote from '@tiptap/extension-blockquote'
 import Commands from './commands'
 import { History } from './history'
 import suggestion from './commands/suggestion'
@@ -98,6 +99,7 @@ const editor = useEditor({
     }),
     Underline,
     History,
+    Blockquote,
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -446,5 +448,13 @@ hr.nc-docs-horizontal-rule {
   border: 0;
   border-top: 1px solid #ccc;
   margin: 1.5em 0;
+}
+
+blockquote {
+  border-left: 3px solid #d0d5dd;
+  padding: 0 1em;
+  color: #666;
+  margin: 1em 0;
+  font-style: italic;
 }
 </style>

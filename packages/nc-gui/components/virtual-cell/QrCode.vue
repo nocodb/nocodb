@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
-import { GridType } from 'nocodb-sdk'
+import type { GridType } from 'nocodb-sdk'
 import { ActiveViewInj } from '#imports'
 
 const maxNumberOfAllowedCharsForQrValue = 2000
@@ -68,7 +68,14 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('labels.qrCodeValueTooLong') }}
   </div>
-  <img v-if="showQrCode" class="mx-auto" :style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }" :src="qrCode" alt="QR Code" @click="showQrModal" />
+  <img
+    v-if="showQrCode"
+    class="mx-auto"
+    :style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
+    :src="qrCode"
+    alt="QR Code"
+    @click="showQrModal"
+  />
   <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.computedFieldUnableToClear') }}
   </div>

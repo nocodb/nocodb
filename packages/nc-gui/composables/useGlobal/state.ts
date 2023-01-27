@@ -96,6 +96,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     teleEnabled: true,
     type: 'nocodb',
     version: '0.0.0',
+    ncAttachmentFieldSize: 20,
+    ncMaxAttachmentsAllowed: 10,
   })
 
   /** reactive token payload */

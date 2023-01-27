@@ -69,6 +69,7 @@ declare module '@vue/runtime-core' {
     ATextarea: typeof import('ant-design-vue/es')['Textarea']
     ATimePicker: typeof import('ant-design-vue/es')['TimePicker']
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
+    ATree: typeof import('ant-design-vue/es')['Tree']
     ATypographyTitle: typeof import('ant-design-vue/es')['TypographyTitle']
     AUploadDragger: typeof import('ant-design-vue/es')['UploadDragger']
     BiFiletypeJson: typeof import('~icons/bi/filetype-json')['default']

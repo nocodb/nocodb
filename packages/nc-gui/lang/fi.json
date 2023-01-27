@@ -205,7 +205,8 @@
     "quickImport": "Pikatuonti",
     "advancedSettings": "Lisäasetukset",
     "codeSnippet": "Koodinpätkä",
-    "keyboardShortcut": "Näppäimistön pikanäppäimet"
+    "keyboardShortcut": "Näppäimistön pikanäppäimet",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Luonut",

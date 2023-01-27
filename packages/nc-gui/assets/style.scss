@@ -121,37 +121,37 @@ a {
 
 @-webkit-keyframes gradient {
   0% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
   50% {
-    background-position: 100% 79%
+    background-position: 100% 79%;
   }
   100% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
 }
 
 @-moz-keyframes gradient {
   0% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
   50% {
-    background-position: 100% 79%
+    background-position: 100% 79%;
   }
   100% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
 }
 
 @keyframes gradient {
   0% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
   50% {
-    background-position: 100% 79%
+    background-position: 100% 79%;
   }
   100% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
 }
 
@@ -232,7 +232,8 @@ a {
 .ant-dropdown-menu-submenu {
   @apply !py-0;
 
-  .ant-dropdown-menu, .ant-menu {
+  .ant-dropdown-menu,
+  .ant-menu {
     @apply m-0 p-0;
   }
 
@@ -261,7 +262,8 @@ a {
   @apply m-0;
 }
 
-.ant-dropdown-menu-item, .ant-menu-item {
+.ant-dropdown-menu-item,
+.ant-menu-item {
   @apply py-0;
 }
 

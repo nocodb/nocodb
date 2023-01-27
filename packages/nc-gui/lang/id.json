@@ -205,7 +205,8 @@
     "quickImport": "Impor Cepat",
     "advancedSettings": "Pengaturan Lanjutan",
     "codeSnippet": "Cuplikan Kode",
-    "keyboardShortcut": "Pintasan Papan Ketik"
+    "keyboardShortcut": "Pintasan Papan Ketik",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Dibuat oleh",

@@ -4,6 +4,8 @@ import { useGlobal, useI18n, useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
 
+useShare()
+
 const { te, t } = useI18n()
 
 const { hasSidebar, isOpen } = useSidebar('nc-left-sidebar')
@@ -47,7 +49,7 @@ export default {
       <div class="flex w-full h-full items-center">
         <div class="flex-1 min-w-0 w-50">
           <nuxt-link :to="isPublic ? '' : '/'">
-            <img src="~/assets/img/brand/nocodb-full-color.png" class="h-12" />
+            <img src="~/assets/img/brand/nocodb-full-color.png" class="h-10" />
           </nuxt-link>
         </div>
 
@@ -69,13 +71,15 @@ export default {
           </div>
 
           <div v-if="!isPublic" class="flex items-center">
-            <MdiBellOutline class="text-xl" />
-            <MaterialSymbolsKeyboardArrowDownRounded />
+            <MdiBellOutline class="text-xl h-4.5" />
+            <!-- <MaterialSymbolsKeyboardArrowDownRounded /> -->
           </div>
 
           <a-dropdown v-if="!isPublic" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <div class="flex items-center gap-1 cursor-pointer">
-              <div class="h-7 w-7 rounded-full bg-primary flex items-center justify-center font-weight-bold text-white uppercase">
+              <div
+                class="h-8 w-8 rounded-full text-xs bg-secondary flex items-center justify-center font-weight-bold text-black uppercase"
+              >
                 {{ email ? email.split('@')[0].slice(0, 2) : 'A' }}
               </div>
               <MaterialSymbolsKeyboardArrowDownRounded />

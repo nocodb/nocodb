@@ -258,7 +258,7 @@ const closeMagicModal = () => {
   <a-layout-content>
     <div class="flex flex-col mx-20 mt-10.5 px-6">
       <div class="flex flex-col h-16">
-        <div class="flex flex-row justify-between mt-4 items-center">
+        <div class="flex flex-row justify-between mt-2 items-center">
           <div class="flex flex-row gap-x-6 items-center">
             <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
             <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
@@ -280,70 +280,10 @@ const closeMagicModal = () => {
                 </div>
               </template>
             </a-dropdown>
-            <a-tooltip
-              v-if="openedBook?.is_published"
-              placement="bottom"
-              color="#F2F4F7"
-              overlay-class-name="version-publish-status-tootltip"
-            >
-              <template #title>
-                <div class="flex flex-col text-black px-1 py-0.5">
-                  <div :style="{ fontSize: '0.8rem' }" style="font-weight: 500">Page Edits</div>
-                  <div :style="{ fontSize: '0.65rem' }">Page edits will immediately be updated to public link</div>
-                  <div :style="{ fontSize: '0.8rem' }" class="pt-1" style="font-weight: 500">New Page</div>
-                  <div :style="{ fontSize: '0.65rem' }">New pages created will be published</div>
-                </div>
-              </template>
-              <div class="flex px-2 py-1 border-1 rounded-md items-center gap-x-1.5 border-green-500 text-green-600 bg-green-50">
-                <div class="flex">Published</div>
-                <MdiInformationOutline class="flex h-3.5" />
-              </div>
-            </a-tooltip>
-          </div>
-          <div class="flex flex-row gap-x-1 h-10 justify-end">
             <a-dropdown trigger="click" placement="bottomLeft">
               <div
-                class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row max-w-28 mr-2 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-gray-100"
-              >
-                <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">New Page</div>
-                <MdiMenuDown />
-              </div>
-              <template #overlay>
-                <div class="flex flex-col bg-gray-100 shadow-gray-300 shadow-sm w-70 p-1 rounded-md gap-y-1">
-                  <div
-                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
-                    @click="() => addNewPage()"
-                  >
-                    <MiDocumentAdd class="flex" />
-                    <div class="flex">New Blank Page</div>
-                  </div>
-                  <div
-                    class="flex flex-row items-start text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
-                    @click="openMagicModal"
-                  >
-                    <PhSparkleFill class="flex text-orange-400 mt-0.5" />
-                    <div class="flex flex-col">
-                      <div class="flex">Create Pages with Prompt</div>
-                      <div class="flex text-gray-500" :style="{ fontSize: '0.6rem' }">
-                        Let AI create pages based on your keyword.
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex border-t-1 border-gray-200 mx-1"></div>
-                  <div
-                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
-                    @click="() => openImportModal()"
-                  >
-                    <PhDownloadSimpleFill class="flex" />
-                    <div class="flex">Import</div>
-                  </div>
-                </div>
-              </template>
-            </a-dropdown>
-            <a-dropdown trigger="click" placement="bottomRight">
-              <div
-                class="my-1 pl-3 pr-1.5 rounded-md bg-primary-selected border-1 flex flex-row max-w-30 mr-4 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-opacity-75"
-                :style="{ borderColor: '#e9eaff' }"
+                class="my-1 pl-3 pr-1.5 rounded-md py-1 border-1 flex flex-row max-w-30 mr-4 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-opacity-75"
+                :style="{ borderColor: '#f4f4f4' }"
               >
                 <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">
                   {{ openedBook?.title }}
@@ -387,6 +327,48 @@ const closeMagicModal = () => {
                 </a-menu> -->
               </template>
             </a-dropdown>
+          </div>
+          <div class="flex flex-row gap-x-1 h-10 justify-end">
+            <a-dropdown trigger="click" placement="bottomLeft">
+              <div
+                class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row max-w-28 mr-2 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-gray-100"
+              >
+                <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">New Page</div>
+                <MdiMenuDown />
+              </div>
+              <template #overlay>
+                <div class="flex flex-col bg-gray-100 shadow-gray-300 shadow-sm w-70 p-1 rounded-md gap-y-1">
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                    @click="() => addNewPage()"
+                  >
+                    <MiDocumentAdd class="flex" />
+                    <div class="flex">New Blank Page</div>
+                  </div>
+                  <div
+                    class="flex flex-row items-start text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                    @click="openMagicModal"
+                  >
+                    <PhSparkleFill class="flex text-orange-400 mt-0.5" />
+                    <div class="flex flex-col">
+                      <div class="flex">Create Pages with Prompt</div>
+                      <div class="flex text-gray-500" :style="{ fontSize: '0.6rem' }">
+                        Let AI create pages based on your keyword.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex border-t-1 border-gray-200 mx-1"></div>
+                  <div
+                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 cursor-pointer rounded-md hover:bg-gray-200"
+                    @click="() => openImportModal()"
+                  >
+                    <PhDownloadSimpleFill class="flex" />
+                    <div class="flex">Import</div>
+                  </div>
+                </div>
+              </template>
+            </a-dropdown>
+
             <!-- <a-button type="text" class="!px-2 !border-1 !border-gray-100 !rounded-md" @click="() => openMagicModal()">
               <div class="flex flex-row gap-x-1 items-center">
                 <div class="flex pl-1">Create Pages with</div>

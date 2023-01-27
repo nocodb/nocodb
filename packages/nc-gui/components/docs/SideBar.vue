@@ -114,7 +114,7 @@ const navigateToOpenedBook = () => {
   >
     <div
       v-if="!isPublic"
-      class="flex flex-row justify-between items-center pr-2 pl-3 pb-3 pt-2.5 border-b-gray-100 border-b-1 hover:(bg-gray-100 cursor-pointer)"
+      class="flex flex-row justify-between items-center pr-2 pl-4.5 py-2 border-b-gray-100 border-b-1 hover:(bg-gray-100 cursor-pointer)"
       :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': isOnlyBookOpened, '': !isOnlyBookOpened }"
       @click.self="navigateToOpenedBook"
     >
@@ -126,7 +126,7 @@ const navigateToOpenedBook = () => {
         <div class="flex">
           <MdiBookOpenOutline />
         </div>
-        <div class="flex text-base">
+        <div class="flex text-sm">
           {{ project.title }}
         </div>
       </div>

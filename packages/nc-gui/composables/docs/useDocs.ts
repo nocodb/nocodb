@@ -349,6 +349,7 @@ const [setup, use] = useInjectionState(() => {
           isLeaf: !createdPageData.is_parent,
           key: createdPageData.id!,
           parentNodeId: parentPage.id,
+          children: [],
         })
         parentPage.isLeaf = false
       } else {
@@ -357,6 +358,7 @@ const [setup, use] = useInjectionState(() => {
           isLeaf: !createdPageData.is_parent,
           key: createdPageData.id!,
           parentNodeId: book.id,
+          children: [],
         })
       }
 

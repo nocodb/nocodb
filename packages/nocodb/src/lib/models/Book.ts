@@ -126,6 +126,11 @@ export default class Book {
 
     attributes.last_updated_by_id = user.id;
 
+    if ('is_published' in attributes && attributes.is_published) {
+      const now = new Date();
+      attributes.last_published_date = now.toISOString();
+    }
+
     await ncMeta.metaUpdate(null, null, MetaTable.BOOK, { ...attributes }, id);
 
     if (attributes.order) {

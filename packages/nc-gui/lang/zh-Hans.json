@@ -205,7 +205,8 @@
     "quickImport": "快速导入",
     "advancedSettings": "高级设置",
     "codeSnippet": "代码片段",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",

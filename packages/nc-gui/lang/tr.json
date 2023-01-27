@@ -205,7 +205,8 @@
     "quickImport": "Hızlı İçe Aktarma",
     "advancedSettings": "Gelişmiş Ayarlar",
     "codeSnippet": "Kod Parçacığı",
-    "keyboardShortcut": "Klavye Kısayolları"
+    "keyboardShortcut": "Klavye Kısayolları",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Tarafından Oluşturuldu",

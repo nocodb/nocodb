@@ -54,22 +54,16 @@ As a temporary solution, There is check if there is new image available as lates
 - logging, and incident response.
 
 ### Cost Analysis: 
-TODO : make a table structure and add more details
-EC2 :
-Currently used: t3.small 2vCPU/2gb  0.0208 USD per Hour - t3.small can run two containers 
-Alternates t3.micro provides 2vCPU/1GB at half the cost (0.0104 USD per Hour) but can run only one container. 
-
-Fargate:
-pay as per use \
-For 2vCPU/2GB used for entire month would cost approximately $5 (pure approxmiataion based on example 4 on [this](https://aws.amazon.com/fargate/pricing/) page)
-
-RDS:
-
-LB:
-
-ElastiCache: 
-
-Others: 
+| AWS Service  | Type / Size                   | Cost                                             | Note                                                                                                                                          | Currently Preffered |
+|--------------|-------------------------------|--------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
+| EC2          | t3.small 2vCPU/2gb            | $0.0208 USD per Hour                             | Two containers in one instance                                                                                                                | Yes                 |
+|              | t3.micro 2vCPU/1GB            | $0.0104 per Hour                                 | Only one container can be run                                                                                                                 | No                  |
+| EBS          | 8GB per EC2 instance          | $0.1 per GB/month                                | Can be reduced to smaller size                                                                                                                |                     |
+| Fargate      | 2vCPU/2GB                     | $5 per month per instance                        | Refer example 4 on [ here ]( https://aws.amazon.com/fargate/pricing/ ),  Issues with customizing VPCs.  PG wont be accessible if made private | Yes                 |
+| RDS          | db.t3.medium (2vCPU / 4GB)    | $60 per month  additional storage and backups will cost more | Production will require bigger cpu/memory                                                                                                     | Yes                 |
+| LB           | Application Loadbalancer      | $40 - $50 with light traffic                     | traffic/network IO, and logging  will increase the cost                                                                                       | Yes                 |
+| Elasti-Cache | cache.t4g.small * 3 instances | $70-$90                                          | TODO: too expensive for the usage,  reduce the size here                                                                                      | MayBe               |
+| ECR/S3       |                               | Minor                                            |                                                                                                                                               |                     |
 
 ### Tools comparision: 
 TODO : make a table structure and add more details

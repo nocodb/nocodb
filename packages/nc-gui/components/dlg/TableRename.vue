@@ -8,6 +8,7 @@ import {
   message,
   nextTick,
   reactive,
+  useCommandPalette,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -39,6 +40,8 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 const { updateTab } = useTabs()
 
 const { loadTables, tables, project, isMysql, isMssql, isPg } = useProject()
+
+const { refreshCommandPalette } = useCommandPalette()
 
 const inputEl = $ref<ComponentPublicInstance>()
 
@@ -132,6 +135,8 @@ const renameTable = async () => {
     await setMeta(newMeta)
 
     updateTab({ id: tableMeta.id }, { title: newMeta.title })
+
+    refreshCommandPalette()
 
     // Table renamed successfully
     message.success(t('msg.success.tableRenamed'))

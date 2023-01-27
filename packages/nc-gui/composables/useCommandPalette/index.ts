@@ -1,4 +1,5 @@
 import type { NinjaKeys } from 'ninja-keys'
+import type { Ref } from 'vue'
 import { workspaceCommands } from './commands'
 
 export const useCommandPalette = createSharedComposable(() => {
@@ -6,7 +7,9 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const { $api } = useNuxtApp()
 
-  const lastScope = ref('workspace')
+  const refreshCommandPalette = createEventHook<void>()
+
+  const lastScope: Ref<{ scope: string; data?: any }> = ref({ scope: 'workspace' })
 
   const cmdLoading = ref(false)
 
@@ -21,11 +24,12 @@ export const useCommandPalette = createSharedComposable(() => {
   const cmdPlaceholder = ref('Quick actions')
 
   const staticData = computed(() => {
-    switch (lastScope.value) {
-      case 'workspace':
-      case 'project':
-      default:
-        return workspaceCommands
+    const rtData = workspaceCommands
+
+    if (lastScope.value.scope === 'workspace') return rtData
+
+    if (lastScope.value.scope === 'project') {
+      rtData.push(...projectCommands)
     }
   })
 
@@ -51,9 +55,9 @@ export const useCommandPalette = createSharedComposable(() => {
   async function loadScope(scope: string, data?: any) {
     dynamicData.value = []
     cmdLoading.value = true
-    lastScope.value = scope
+    lastScope.value = { scope, data }
     $api.utils
-      .commandPalette({ scope, data })
+      .commandPalette(lastScope.value)
       .then((res) => {
         dynamicData.value = res.map((item: any) => {
           if (item.handler) item.handler = processHandler(item.handler)
@@ -65,5 +69,17 @@ export const useCommandPalette = createSharedComposable(() => {
       .catch(() => (cmdLoading.value = false))
   }
 
-  return { cmdPalette, cmdData, loadScope, cmdPlaceholder, cmdOnSelected, cmdOnChange }
+  refreshCommandPalette.on(() => {
+    loadScope(lastScope.value.scope, lastScope.value?.data)
+  })
+
+  return {
+    cmdPalette,
+    cmdData,
+    loadScope,
+    cmdPlaceholder,
+    cmdOnSelected,
+    cmdOnChange,
+    refreshCommandPalette: refreshCommandPalette.trigger,
+  }
 })

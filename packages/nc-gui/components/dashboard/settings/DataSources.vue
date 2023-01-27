@@ -7,7 +7,7 @@ import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
 import { ClientType, DataSourcesSubTab } from '~/lib'
-import { useNuxtApp, useProject } from '#imports'
+import { useCommandPalette, useNuxtApp, useProject } from '#imports'
 
 interface Props {
   state: string
@@ -23,6 +23,7 @@ const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
 const { project, loadProject } = useProject()
+const { refreshCommandPalette } = useCommandPalette()
 
 let sources = $ref<BaseType[]>([])
 let activeBaseId = $ref('')
@@ -31,9 +32,11 @@ let clientType = $ref<ClientType>(ClientType.MYSQL)
 let isReloading = $ref(false)
 let forceAwakened = $ref(false)
 
-async function loadBases() {
+async function loadBases(changed?: boolean) {
   try {
     if (!project.value?.id) return
+
+    if (changed) refreshCommandPalette()
 
     isReloading = true
     vReload.value = true
@@ -373,10 +376,10 @@ watch(
         </div>
       </div>
       <div v-else-if="vState === DataSourcesSubTab.New" class="max-h-600px overflow-y-auto">
-        <CreateBase :connection-type="clientType" @base-created="loadBases" />
+        <CreateBase :connection-type="clientType" @base-created="loadBases(true)" />
       </div>
       <div v-else-if="vState === DataSourcesSubTab.Metadata" class="max-h-600px overflow-y-auto">
-        <Metadata :base-id="activeBaseId" @base-synced="loadBases" />
+        <Metadata :base-id="activeBaseId" @base-synced="loadBases(true)" />
       </div>
       <div v-else-if="vState === DataSourcesSubTab.UIAcl" class="max-h-600px overflow-y-auto">
         <UIAcl :base-id="activeBaseId" />
@@ -385,7 +388,7 @@ watch(
         <Erd :base-id="activeBaseId" />
       </div>
       <div v-else-if="vState === DataSourcesSubTab.Edit" class="max-h-600px overflow-y-auto">
-        <EditBase :base-id="activeBaseId" @base-updated="loadBases" />
+        <EditBase :base-id="activeBaseId" @base-updated="loadBases(true)" />
       </div>
     </div>
   </div>

@@ -7,6 +7,7 @@ import {
   inject,
   ref,
   resolveComponent,
+  useCommandPalette,
   useDialog,
   useNuxtApp,
   useRoute,
@@ -16,6 +17,8 @@ import {
   useViews,
   watch,
 } from '#imports'
+
+const { refreshCommandPalette } = useCommandPalette()
 
 const meta = inject(MetaInj, ref())
 
@@ -118,6 +121,8 @@ function onOpenModal({
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
+
+      refreshCommandPalette()
 
       await loadViews()
 

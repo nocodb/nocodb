@@ -2,7 +2,7 @@ import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { useRoute } from 'vue-router'
-import { extractSdkResponseErrorMsg, projectThemeColors, useInjectionState, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, projectThemeColors, useCommandPalette, useInjectionState, useNuxtApp } from '#imports'
 
 const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string | null; roles?: string })[]>([])
@@ -17,6 +17,8 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   const route = useRoute()
 
   const { $api } = useNuxtApp()
+
+  const { refreshCommandPalette } = useCommandPalette()
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
@@ -74,6 +76,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
       // todo: pagination
       await $api.workspace.create(reqPayload)
+      refreshCommandPalette()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -86,6 +89,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
     try {
       // todo: pagination
       await $api.workspace.update(workspaceId, workspace)
+      refreshCommandPalette()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -94,6 +98,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   const deleteWorkspace = async (workspaceId: string) => {
     // todo: pagination
     await $api.workspace.delete(workspaceId)
+    refreshCommandPalette()
   }
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
@@ -232,6 +237,7 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
       await $api.project.update(project.id!, { title: project.temp_title })
       project.title = project.temp_title
       project.edit = false
+      refreshCommandPalette()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

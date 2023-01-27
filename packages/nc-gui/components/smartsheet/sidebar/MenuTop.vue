@@ -13,6 +13,7 @@ import {
   ref,
   resolveComponent,
   useApi,
+  useCommandPalette,
   useDialog,
   useI18n,
   useNuxtApp,
@@ -44,6 +45,8 @@ const activeView = inject(ActiveViewInj, ref())
 const { api } = useApi()
 
 const router = useRouter()
+
+const { refreshCommandPalette } = useCommandPalette()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -177,6 +180,8 @@ async function onRename(view: ViewType) {
       },
     })
 
+    refreshCommandPalette()
+
     // View renamed successfully
     message.success(t('msg.success.viewRenamed'))
   } catch (e: any) {
@@ -196,6 +201,8 @@ function openDeleteDialog(view: ViewType) {
       closeDialog()
 
       emits('deleted')
+
+      refreshCommandPalette()
       if (activeView.value === view) {
         // return to the default view
         router.replace({

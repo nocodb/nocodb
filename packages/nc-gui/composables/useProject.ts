@@ -8,6 +8,7 @@ import {
   createEventHook,
   ref,
   useApi,
+  useCommandPalette,
   useGlobal,
   useInjectionState,
   useNuxtApp,
@@ -31,6 +32,8 @@ const [setup, use] = useInjectionState(() => {
   const router = useRouter()
 
   const { projectRoles, loadProjectRoles } = useRoles()
+
+  const { refreshCommandPalette } = useCommandPalette()
 
   const projectLoadedHook = createEventHook<ProjectType>()
 
@@ -151,6 +154,8 @@ const [setup, use] = useInjectionState(() => {
     } else {
       await api.project.update(projectId.value, { ...data, meta: JSON.stringify(data.meta) })
     }
+
+    refreshCommandPalette()
   }
 
   async function saveTheme(_theme: Partial<ThemeConfig>) {

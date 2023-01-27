@@ -12,6 +12,7 @@ import {
   reactive,
   ref,
   useApi,
+  useCommandPalette,
   useNuxtApp,
   useProject,
   useRoute,
@@ -27,6 +28,8 @@ const { loadTables, loadProject } = useProject()
 const { table, createTable } = useTable(async (_) => {
   await loadTables()
 })
+
+const { refreshCommandPalette } = useCommandPalette()
 
 const { api, isLoading } = useApi({ useGlobalInstance: true })
 
@@ -71,6 +74,8 @@ const createProject = async () => {
         ...(route.query.type === NcProjectType.COWRITER && { prompt_statement: '' }),
       }),
     })
+
+    refreshCommandPalette()
 
     switch (route.query.type) {
       case NcProjectType.DOCS:

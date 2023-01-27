@@ -7,6 +7,7 @@ import {
   generateUniqueTitle as generateTitle,
   message,
   reactive,
+  useCommandPalette,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -33,6 +34,8 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const { closeTab } = useTabs()
 
+  const { refreshCommandPalette } = useCommandPalette()
+
   const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 
   const createTable = async () => {
@@ -58,6 +61,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       })
       $e('a:table:create')
       onTableCreate?.(tableMeta)
+      refreshCommandPalette()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -74,6 +78,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
       $e('a:table:create')
       onTableCreate?.(tableMeta as TableType)
+      refreshCommandPalette()
     } catch (e: any) {
       message.warning('NocoAI failed for the demo reasons. Please try again.')
     }
@@ -90,6 +95,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
       $e('a:table:create')
       onTableCreate?.(tableMeta as TableType)
+      refreshCommandPalette()
     } catch (e: any) {
       message.warning('NocoAI failed for the demo reasons. Please try again.')
     }
@@ -151,6 +157,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
           await loadTables()
 
           removeMeta(table.id as string)
+          refreshCommandPalette()
           // Deleted table successfully
           message.info(t('msg.info.tableDeleted'))
           $e('a:table:delete')

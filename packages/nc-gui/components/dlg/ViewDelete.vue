@@ -1,5 +1,14 @@
 <script lang="ts" setup>
-import { extractSdkResponseErrorMsg, message, onKeyStroke, useApi, useI18n, useNuxtApp, useVModel } from '#imports'
+import {
+  extractSdkResponseErrorMsg,
+  message,
+  onKeyStroke,
+  useApi,
+  useCommandPalette,
+  useI18n,
+  useNuxtApp,
+  useVModel,
+} from '#imports'
 
 interface Props {
   modelValue: boolean

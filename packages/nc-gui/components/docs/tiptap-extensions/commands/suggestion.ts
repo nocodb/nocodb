@@ -1,4 +1,4 @@
-import type { Editor, Range } from '@tiptap/vue-3'
+import type { Editor } from '@tiptap/vue-3'
 import { VueRenderer } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 

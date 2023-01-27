@@ -139,7 +139,6 @@ declare module '@vue/runtime-core' {
     MdiChevronDown: typeof import('~icons/mdi/chevron-down')['default']
     MdiChevronLeft: typeof import('~icons/mdi/chevron-left')['default']
     MdiChevronRight: typeof import('~icons/mdi/chevron-right')['default']
-    MdiChevronUp: typeof import('~icons/mdi/chevron-up')['default']
     MdiClose: typeof import('~icons/mdi/close')['default']
     MdiCloseBox: typeof import('~icons/mdi/close-box')['default']
     MdiCloseCircle: typeof import('~icons/mdi/close-circle')['default']

@@ -40,7 +40,7 @@ services:
       ports:
         - 3380:3306
       volumes:
-        - ./mysql-sakila-db:/docker-entrypoint-initdb.d
+        - ./tests/mysql-sakila-db:/docker-entrypoint-initdb.d
       healthcheck:
          test: "/etc/init.d/mysql status"
          interval: 1s

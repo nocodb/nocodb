@@ -192,57 +192,58 @@ const toggleMenu = (e: Event) => {
 </script>
 
 <template>
-  <a-select
-    ref="aselect"
-    v-model:value="vModel"
-    class="w-full"
-    :class="{ 'caret-transparent': !hasEditRoles }"
-    :allow-clear="!column.rqd && editAllowed"
-    :bordered="false"
-    :open="isOpen"
-    :disabled="readOnly"
-    :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
-    :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
-    show-search
-    @select="isOpen = false"
-    @keydown.stop
-    @search="search"
-    @click="toggleMenu"
-  >
-    <a-select-option
-      v-for="op of options"
-      :key="op.title"
-      :value="op.title"
-      :data-testid="`select-option-${column.title}-${rowIndex}`"
-      @click.stop
+  <div class="h-full w-full flex items-center" @click="toggleMenu">
+    <a-select
+      ref="aselect"
+      v-model:value="vModel"
+      class="w-full"
+      :class="{ 'caret-transparent': !hasEditRoles }"
+      :allow-clear="!column.rqd && editAllowed"
+      :bordered="false"
+      :open="isOpen && (active || editable)"
+      :disabled="readOnly"
+      :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
+      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
+      :show-search="isOpen && (active || editable)"
+      @select="isOpen = false"
+      @keydown.stop
+      @search="search"
     >
-      <a-tag class="rounded-tag" :color="op.color">
-        <span
-          :style="{
-            'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-              ? '#fff'
-              : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-            'font-size': '13px',
-          }"
-          :class="{ 'text-sm': isKanban }"
-        >
-          {{ op.title }}
-        </span>
-      </a-tag>
-    </a-select-option>
-    <a-select-option
-      v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
-      :key="searchVal"
-      :value="searchVal"
-    >
-      <div class="flex gap-2 text-gray-500 items-center h-full">
-        <MdiPlusThick class="min-w-4" />
-        <div class="text-xs whitespace-normal">
-          Create new option named <strong>{{ searchVal }}</strong>
+      <a-select-option
+        v-for="op of options"
+        :key="op.title"
+        :value="op.title"
+        :data-testid="`select-option-${column.title}-${rowIndex}`"
+        @click.stop
+      >
+        <a-tag class="rounded-tag" :color="op.color">
+          <span
+            :style="{
+              'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                ? '#fff'
+                : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ op.title }}
+          </span>
+        </a-tag>
+      </a-select-option>
+      <a-select-option
+        v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
+        :key="searchVal"
+        :value="searchVal"
+      >
+        <div class="flex gap-2 text-gray-500 items-center h-full">
+          <MdiPlusThick class="min-w-4" />
+          <div class="text-xs whitespace-normal">
+            Create new option named <strong>{{ searchVal }}</strong>
+          </div>
         </div>
-      </div>
-    </a-select-option>
-  </a-select>
+      </a-select-option>
+    </a-select>
+  </div>
 </template>
 
 <style scoped lang="scss">

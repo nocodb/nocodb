@@ -1,7 +1,6 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
-import { useRoute } from 'vue-router'
 import {
   ClientType,
   computed,
@@ -12,6 +11,7 @@ import {
   useInjectionState,
   useNuxtApp,
   useRoles,
+  useRoute,
   useRouter,
   useTheme,
 } from '#imports'

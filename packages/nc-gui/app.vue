@@ -51,6 +51,10 @@ function hookFunction(object: any, functionName: string, callback: Function) {
 onMounted(() => {
   if (!cmdPalette.value) return
   hookFunction(cmdPalette.value, 'open', () => {
+    if (activeScope.value === 'disabled') {
+      cmdPalette.value?.close()
+      return
+    }
     cmdPalette.value?.setParent(activeScope.value)
   })
 })

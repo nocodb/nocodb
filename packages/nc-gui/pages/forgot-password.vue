@@ -10,6 +10,10 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
+const { loadScope } = useCommandPalette()
+
+loadScope('disabled')
+
 let success = $ref(false)
 
 const formValidator = ref()

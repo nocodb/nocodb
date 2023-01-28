@@ -77,6 +77,10 @@ export const useCommandPalette = createSharedComposable(() => {
   })
 
   async function loadScope(scope = 'workspace', data?: any) {
+    if (scope === 'disabled') {
+      lastScope.value = { scope, data }
+      return
+    }
     dynamicData.value = []
     cmdLoading.value = true
     lastScope.value = { scope, data }

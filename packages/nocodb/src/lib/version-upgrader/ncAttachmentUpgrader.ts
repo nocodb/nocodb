@@ -1,3 +1,4 @@
+import { Knex } from 'knex';
 import { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
 import Base from '../models/Base';
@@ -29,7 +30,7 @@ function getTnPath(knex: XKnex, tb: Model) {
   const schema = (knex as any).searchPath?.();
   const clientType = knex.clientType();
   if (clientType === 'mssql' && schema) {
-    return knex.raw('??.??', [schema, tb.table_name]);
+    return knex.raw('??.??', [schema, tb.table_name]).toQuery();
   } else if (clientType === 'snowflake') {
     return [
       knex.client.config.connection.database,
@@ -45,82 +46,119 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   const bases: BaseType[] = await ncMeta.metaList2(null, null, MetaTable.BASES);
   for (const _base of bases) {
     const base = new Base(_base);
-    const knex: XKnex = base.is_meta
+
+    const isProjectDeleted = (await base.getProject(ncMeta)).deleted;
+
+    const knex: Knex = base.is_meta
       ? ncMeta.knexConnection
       : NcConnectionMgrv2.get(base);
     const models = await base.getModels(ncMeta);
+
     for (const model of models) {
-      const updateRecords = [];
-      const columns = await (
-        await Model.get(model.id, ncMeta)
-      ).getColumns(ncMeta);
-      const attachmentColumns = columns
-        .filter((c) => c.uidt === UITypes.Attachment)
-        .map((c) => c.column_name);
-      if (attachmentColumns.length === 0) {
-        continue;
-      }
-      const primaryKeys = columns.filter((c) => c.pk).map((c) => c.column_name);
-      const records = await knex(getTnPath(knex, model)).select([
-        ...primaryKeys,
-        ...attachmentColumns,
-      ]);
-      for (const record of records) {
-        for (const attachmentColumn of attachmentColumns) {
-          let attachmentMeta: Array<{
-            url: string;
-          }>;
+      try {
+        // if the table is missing in database, skip
+        if (!(await knex.schema.hasTable(getTnPath(knex, model)))) {
+          continue;
+        }
 
-          // if parsing failed ignore the cell
-          try {
-            attachmentMeta =
-              typeof record[attachmentColumn] === 'string'
-                ? JSON.parse(record[attachmentColumn])
-                : record[attachmentColumn];
-          } catch {}
+        const updateRecords = [];
 
-          // if cell data is not an array, ignore it
-          if (!Array.isArray(attachmentMeta)) {
-            continue;
-          }
+        // get all attachment & primary key columns
+        // and filter out the columns that are missing in database
+        const columns = await (await Model.get(model.id, ncMeta))
+          .getColumns(ncMeta)
+          .then(async (columns) => {
+            const filteredColumns = [];
 
-          if (attachmentMeta) {
-            const newAttachmentMeta = [];
-            for (const attachment of attachmentMeta) {
-              if ('url' in attachment && typeof attachment.url === 'string') {
-                const match = attachment.url.match(/^(.*)\/download\/(.*)$/);
-                if (match) {
-                  // e.g. http://localhost:8080/download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png
-                  // match[1] = http://localhost:8080
-                  // match[2] = download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png
-                  const path = `download/${match[2]}`;
+            for (const column of columns) {
+              if (column.uidt !== UITypes.Attachment && !column.pk) continue;
+              if (
+                !(await knex.schema.hasColumn(
+                  getTnPath(knex, model),
+                  column.column_name
+                ))
+              )
+                continue;
+              filteredColumns.push(column);
+            }
 
-                  newAttachmentMeta.push({
-                    ...attachment,
-                    path,
-                  });
-                } else {
-                  // keep it as it is
-                  newAttachmentMeta.push(attachment);
+            return filteredColumns;
+          });
+
+        const attachmentColumns = columns
+          .filter((c) => c.uidt === UITypes.Attachment)
+          .map((c) => c.column_name);
+        if (attachmentColumns.length === 0) {
+          continue;
+        }
+        const primaryKeys = columns
+          .filter((c) => c.pk)
+          .map((c) => c.column_name);
+
+        const records = await knex(getTnPath(knex, model)).select();
+
+        for (const record of records) {
+          for (const attachmentColumn of attachmentColumns) {
+            let attachmentMeta: Array<{
+              url: string;
+            }>;
+
+            // if parsing failed ignore the cell
+            try {
+              attachmentMeta =
+                typeof record[attachmentColumn] === 'string'
+                  ? JSON.parse(record[attachmentColumn])
+                  : record[attachmentColumn];
+            } catch {}
+
+            // if cell data is not an array, ignore it
+            if (!Array.isArray(attachmentMeta)) {
+              continue;
+            }
+
+            if (attachmentMeta) {
+              const newAttachmentMeta = [];
+              for (const attachment of attachmentMeta) {
+                if ('url' in attachment && typeof attachment.url === 'string') {
+                  const match = attachment.url.match(/^(.*)\/download\/(.*)$/);
+                  if (match) {
+                    // e.g. http://localhost:8080/download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png
+                    // match[1] = http://localhost:8080
+                    // match[2] = download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png
+                    const path = `download/${match[2]}`;
+
+                    newAttachmentMeta.push({
+                      ...attachment,
+                      path,
+                    });
+                  } else {
+                    // keep it as it is
+                    newAttachmentMeta.push(attachment);
+                  }
                 }
               }
-            }
-            const where = primaryKeys
-              .map((key) => {
-                return { [key]: record[key] };
-              })
-              .reduce((acc, val) => Object.assign(acc, val), {});
-            updateRecords.push(
-              await knex(getTnPath(knex, model))
-                .update({
-                  [attachmentColumn]: JSON.stringify(newAttachmentMeta),
+              const where = primaryKeys
+                .map((key) => {
+                  return { [key]: record[key] };
                 })
-                .where(where)
-            );
+                .reduce((acc, val) => Object.assign(acc, val), {});
+              updateRecords.push(
+                await knex(getTnPath(knex, model))
+                  .update({
+                    [attachmentColumn]: JSON.stringify(newAttachmentMeta),
+                  })
+                  .where(where)
+              );
+            }
           }
         }
+        await Promise.all(updateRecords);
+      } catch (e) {
+        // ignore the error related to deleted project
+        if (!isProjectDeleted) {
+          throw e;
+        }
       }
-      await Promise.all(updateRecords);
     }
   }
 }

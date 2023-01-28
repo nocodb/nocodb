@@ -47,7 +47,11 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const _base of bases) {
     const base = new Base(_base);
 
-    const isProjectDeleted = (await base.getProject(ncMeta)).deleted;
+    const isProjectDeleted = (
+      await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
+        id: base.project_id,
+      })
+    ).deleted;
 
     const knex: Knex = base.is_meta
       ? ncMeta.knexConnection

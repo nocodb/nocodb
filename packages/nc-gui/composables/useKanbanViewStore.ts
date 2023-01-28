@@ -24,6 +24,7 @@ import {
   provide,
   ref,
   useApi,
+  useFieldQuery,
   useGlobal,
   useI18n,
   useInjectionState,
@@ -65,6 +66,28 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
     const password = ref<string | null>(null)
+
+    const { search } = useFieldQuery()
+
+    const { sqlUis } = useProject()
+
+    const sqlUi = ref(meta.value?.base_id ? sqlUis.value[meta.value?.base_id] : Object.values(sqlUis.value)[0])
+
+    const xWhere = computed(() => {
+      let where
+      const col =
+        (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
+        (meta.value as TableType)?.columns?.find((v) => v.pv)
+      if (!col) return
+
+      if (!search.value.query.trim()) return
+      if (['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
+        where = `(${col.title},like,%${search.value.query.trim()}%)`
+      } else {
+        where = `(${col.title},eq,${search.value.query.trim()})`
+      }
+      return where
+    })
 
     const attachmentColumns = computed(() =>
       (meta.value?.columns as ColumnType[])?.filter((c) => c.uidt === UITypes.Attachment).map((c) => c.title),
@@ -141,7 +164,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     async function loadKanbanData() {
-      if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+      if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
+        return
 
       // reset formattedData & countByStack to avoid storing previous data after changing grouping field
       formattedData.value = new Map<string | null, Row[]>()
@@ -161,7 +185,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           meta.value!.id!,
           viewMeta.value!.id!,
           groupingFieldColumn!.value!.id!,
-          {},
+          { where: xWhere.value },
           {},
         )
       }
@@ -200,6 +224,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       const response = !isPublic.value
         ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+            ...{ where: xWhere.value },
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),

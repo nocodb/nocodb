@@ -9,6 +9,7 @@ import {
   projectRoleTagColors,
   projectRoles,
   ref,
+  useActiveKeyupListener,
   useCopy,
   useDashboard,
   useI18n,
@@ -138,6 +139,16 @@ const clickInviteMore = () => {
 const emailField = (inputEl: typeof Input) => {
   inputEl?.$el?.focus()
 }
+
+useActiveKeyupListener(
+  computed(() => show),
+  (e: KeyboardEvent) => {
+    console.log(e.key)
+    if (e.key === 'Escape') {
+      emit('closed')
+    }
+  },
+)
 </script>
 
 <template>

@@ -4,7 +4,7 @@ import Base from '../models/Base';
 import Model from '../models/Model';
 import { XKnex } from '../db/sql-data-mapper/index';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { BaseType, UITypes } from 'nocodb-sdk'
+import { BaseType, UITypes } from 'nocodb-sdk';
 
 // before 0.103.0, an attachment object was like
 // [{

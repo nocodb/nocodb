@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { Input } from 'ant-design-vue'
 import type { Form } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
@@ -8,7 +9,9 @@ import {
   navigateTo,
   projectTitleValidator,
   reactive,
+  onMounted,
   ref,
+  generateUniqueName,
   useApi,
   useNuxtApp,
   useSidebar,
@@ -31,7 +34,7 @@ const nameValidationRules = [
 const form = ref<typeof Form>()
 
 const formState = reactive({
-  title: '',
+  title:  ''
 })
 
 const createProject = async () => {
@@ -47,7 +50,14 @@ const createProject = async () => {
   }
 }
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el: typeof Input) => {
+  el?.$el?.focus()
+  el?.$el?.select()
+}
+
+onMounted(async () => {
+  formState.title = await generateUniqueName()
+})
 </script>
 
 <template>

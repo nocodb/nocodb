@@ -1206,14 +1206,14 @@ class BaseModelSqlv2 {
   private async getSelectQueryBuilderForFormula(column: Column<any>) {
     const formula = await column.getColOptions<FormulaColumn>();
     if (formula.error) throw new Error(`Formula error: ${formula.error}`);
-    const selectQb = await formulaQueryBuilderv2(
+    const qb = await formulaQueryBuilderv2(
       formula.formula,
       null,
       this.dbDriver,
-      this.model
+      this.model,
+      column
     );
-
-    return selectQb;
+    return qb;
   }
 
   async getProto() {
@@ -1502,7 +1502,6 @@ class BaseModelSqlv2 {
               const selectQb = await this.getSelectQueryBuilderForFormula(
                 column
               );
-              // todo:  verify syntax of as ? / ??
               qb.select(
                 this.dbDriver.raw(`?? as ??`, [
                   selectQb.builder,
@@ -1510,7 +1509,10 @@ class BaseModelSqlv2 {
                 ])
               );
             } catch {
-              continue;
+              // return dummy select
+              qb.select(
+                this.dbDriver.raw(`'ERR' as ??`, [sanitize(column.title)])
+              );
             }
           }
           break;

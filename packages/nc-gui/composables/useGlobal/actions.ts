@@ -29,7 +29,7 @@ export function useGlobalActions(state: State): Actions {
     const t = nuxtApp.vueApp.i18n.global.t
 
     nuxtApp.$api.instance
-      .post('/auth/refresh-token', null, {
+      .post('/auth/token/refresh', null, {
         withCredentials: true,
       })
       .then((response) => {
@@ -43,5 +43,14 @@ export function useGlobalActions(state: State): Actions {
       })
   }
 
-  return { signIn, signOut, refreshToken }
+  const loadAppInfo = async () => {
+    try {
+      const nuxtApp = useNuxtApp()
+      state.appInfo.value = await nuxtApp.$api.utils.appInfo()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  return { signIn, signOut, refreshToken, loadAppInfo }
 }

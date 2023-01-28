@@ -14,6 +14,7 @@ import {
   extractSdkResponseErrorMsg,
   inject,
   ref,
+  useRoles,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -49,6 +50,8 @@ const searchVal = ref()
 
 const { getMeta } = useMetas()
 
+const { hasRole } = useRoles()
+
 const { isPg, isMysql } = useProject()
 
 // a variable to keep newly created option value
@@ -73,6 +76,10 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
+const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
+
+const editAllowed = computed(() => hasEditRoles.value && (active.value || editable.value))
+
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
@@ -87,10 +94,12 @@ const vModel = computed({
 })
 
 watch(isOpen, (n, _o) => {
-  if (!n) {
-    aselect.value?.$el?.querySelector('input')?.blur()
-  } else {
-    aselect.value?.$el?.querySelector('input')?.focus()
+  if (editAllowed.value) {
+    if (!n) {
+      aselect.value?.$el?.querySelector('input')?.blur()
+    } else {
+      aselect.value?.$el?.querySelector('input')?.focus()
+    }
   }
 })
 
@@ -100,11 +109,15 @@ useSelectedCellKeyupListener(active, (e) => {
       isOpen.value = false
       break
     case 'Enter':
-      if (active.value && !isOpen.value) {
+      if (editAllowed.value && active.value && !isOpen.value) {
         isOpen.value = true
       }
       break
     default:
+      if (!editAllowed.value) {
+        e.preventDefault()
+        break
+      }
       // toggle only if char key pressed
       if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1) {
         e.stopPropagation()
@@ -134,7 +147,7 @@ async function addIfMissingAndSave() {
       // todo: refactor and avoid repetition
       if (updatedColMeta.cdf) {
         // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-        if (isPg.value) {
+        if (isPg(column.value.base_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.substring(
             updatedColMeta.cdf.indexOf(`'`) + 1,
             updatedColMeta.cdf.lastIndexOf(`'`),
@@ -142,7 +155,7 @@ async function addIfMissingAndSave() {
         }
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-        if (!isMysql.value) {
+        if (!isMysql(column.value.base_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
@@ -174,7 +187,7 @@ const toggleMenu = (e: Event) => {
     vModel.value = ''
     return
   }
-  isOpen.value = (active.value || editable.value) && !isOpen.value
+  isOpen.value = editAllowed.value && !isOpen.value
 }
 </script>
 
@@ -183,11 +196,12 @@ const toggleMenu = (e: Event) => {
     ref="aselect"
     v-model:value="vModel"
     class="w-full"
-    :allow-clear="!column.rqd && active"
+    :class="{ 'caret-transparent': !hasEditRoles }"
+    :allow-clear="!column.rqd && editAllowed"
     :bordered="false"
-    :open="isOpen && (active || editable)"
+    :open="isOpen"
     :disabled="readOnly"
-    :show-arrow="!readOnly && (active || editable || vModel === null)"
+    :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
     show-search
     @select="isOpen = false"
@@ -216,8 +230,11 @@ const toggleMenu = (e: Event) => {
         </span>
       </a-tag>
     </a-select-option>
-
-    <a-select-option v-if="searchVal && isOptionMissing && !isPublic" :key="searchVal" :value="searchVal">
+    <a-select-option
+      v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
+      :key="searchVal"
+      :value="searchVal"
+    >
       <div class="flex gap-2 text-gray-500 items-center h-full">
         <MdiPlusThick class="min-w-4" />
         <div class="text-xs whitespace-normal">

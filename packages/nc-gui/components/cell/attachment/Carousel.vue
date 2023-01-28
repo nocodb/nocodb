@@ -70,13 +70,13 @@ onClickOutside(carouselRef, () => {
         >
           <template #prevArrow>
             <div class="custom-slick-arrow left-2 z-1">
-              <MaterialSymbolsArrowCircleLeftRounded class="bg-white rounded-full" />
+              <MaterialSymbolsArrowCircleLeftRounded class="rounded-full" />
             </div>
           </template>
 
           <template #nextArrow>
             <div class="custom-slick-arrow !right-2 z-1">
-              <MaterialSymbolsArrowCircleRightRounded class="bg-white rounded-full" />
+              <MaterialSymbolsArrowCircleRightRounded class="rounded-full" />
             </div>
           </template>
 
@@ -105,6 +105,9 @@ onClickOutside(carouselRef, () => {
 </template>
 
 <style scoped>
+.ant-carousel :deep(.custom-slick-arrow .nc-icon):hover {
+  @apply !bg-white;
+}
 .ant-carousel :deep(.slick-dots) {
   @apply relative mt-4;
 }

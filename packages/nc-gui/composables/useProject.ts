@@ -45,9 +45,9 @@ const [setup, use] = useInjectionState(() => {
 
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
-  let forcedProjectId: string | undefined
+  const forcedProjectId = ref<string>()
 
-  const projectId = computed(() => forcedProjectId || (route.params.projectId as string))
+  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
 
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
@@ -117,7 +117,7 @@ const [setup, use] = useInjectionState(() => {
   }
 
   async function loadProject(withTheme = true, forcedId?: string) {
-    if (forcedId) forcedProjectId = forcedId
+    if (forcedId) forcedProjectId.value = forcedId
     if (projectType === 'base') {
       try {
         const baseData = await api.public.sharedBaseGet(route.params.projectId as string)

@@ -13,6 +13,7 @@ import {
   MetaInj,
   OpenNewRecordFormHookInj,
   inject,
+  isLTAR,
   onBeforeMount,
   onBeforeUnmount,
   provide,
@@ -472,35 +473,40 @@ watch(view, async (nextView) => {
                                   :key="`record-${record.row.id}-${col.id}`"
                                   class="flex flex-col rounded-lg w-full"
                                 >
-                                  <!-- Smartsheet Header (Virtual) Cell -->
-                                  <div v-if="!isRowEmpty(record, col)" class="flex flex-row w-full justify-start pt-2">
-                                    <div class="w-full text-gray-400">
-                                      <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                                      <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                  <div v-if="!isRowEmpty(record, col) || isLTAR(col.uidt)">
+                                    <!-- Smartsheet Header (Virtual) Cell -->
+                                    <div class="flex flex-row w-full justify-start pt-2">
+                                      <div class="w-full text-gray-400">
+                                        <LazySmartsheetHeaderVirtualCell
+                                          v-if="isVirtualCol(col)"
+                                          :column="col"
+                                          :hide-menu="true"
+                                        />
+                                        <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                      </div>
                                     </div>
-                                  </div>
 
-                                  <!--  Smartsheet (Virtual) Cell -->
-                                  <div
-                                    v-if="!isRowEmpty(record, col)"
-                                    class="flex flex-row w-full items-center justify-start pl-[6px]"
-                                    :class="{ '!ml-[-12px]': col.uidt === UITypes.SingleSelect }"
-                                  >
-                                    <LazySmartsheetVirtualCell
-                                      v-if="isVirtualCol(col)"
-                                      v-model="record.row[col.title]"
-                                      class="text-sm pt-1"
-                                      :column="col"
-                                      :row="record"
-                                    />
-                                    <LazySmartsheetCell
-                                      v-else
-                                      v-model="record.row[col.title]"
-                                      class="text-sm pt-1"
-                                      :column="col"
-                                      :edit-enabled="false"
-                                      :read-only="true"
-                                    />
+                                    <!--  Smartsheet (Virtual) Cell -->
+                                    <div
+                                      class="flex flex-row w-full items-center justify-start pl-[6px]"
+                                      :class="{ '!ml-[-12px]': col.uidt === UITypes.SingleSelect }"
+                                    >
+                                      <LazySmartsheetVirtualCell
+                                        v-if="isVirtualCol(col)"
+                                        v-model="record.row[col.title]"
+                                        class="text-sm pt-1"
+                                        :column="col"
+                                        :row="record"
+                                      />
+                                      <LazySmartsheetCell
+                                        v-else
+                                        v-model="record.row[col.title]"
+                                        class="text-sm pt-1"
+                                        :column="col"
+                                        :edit-enabled="false"
+                                        :read-only="true"
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               </a-card>

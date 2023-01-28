@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FilterType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
@@ -70,15 +69,7 @@ const types = computed(() => {
   }
 
   return meta.value?.columns?.reduce((obj: any, col: any) => {
-    switch (col.uidt) {
-      case UITypes.Number:
-      case UITypes.Decimal:
-        obj[col.title] = obj[col.column_name] = 'number'
-        break
-      case UITypes.Checkbox:
-        obj[col.title] = obj[col.column_name] = 'boolean'
-        break
-    }
+    obj[col.id] = col.uidt
     return obj
   }, {})
 })
@@ -110,6 +101,21 @@ const applyChanges = async (hookId?: string, _nested = false) => {
       await nestedFilter.applyChanges(hookId, true)
     }
   }
+}
+
+const isComparisonOpAllowed = (filter: FilterType, compOp: typeof comparisonOpList[number]) => {
+  // show current selected value in list even if not allowed
+  if (filter.comparison_op === compOp.value) return true
+
+  // include allowed values only if selected column type matches
+  if (compOp.includedTypes) {
+    return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
+  }
+  // include not allowed values only if selected column type not matches
+  else if (compOp.excludedTypes) {
+    return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
+  }
+  return true
 }
 
 defineExpose({
@@ -186,7 +192,7 @@ defineExpose({
               @click.stop
               @change="filterUpdateCondition(filter, i)"
             >
-              <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
+              <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
                 {{ op.text }}
               </a-select-option>
             </a-select>
@@ -213,22 +219,19 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="">
-                {{ compOp.text }}
-              </a-select-option>
+              <template v-for="compOp of comparisonOpList" :key="compOp.value">
+                <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
+                  {{ compOp.text }}
+                </a-select-option>
+              </template>
             </a-select>
 
             <span
-              v-if="filter.comparison_op && ['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)"
+              v-if="
+                filter.comparison_op &&
+                ['null', 'notnull', 'checked', 'notchecked', 'empty', 'notempty'].includes(filter.comparison_op)
+              "
               :key="`span${i}`"
-            />
-
-            <a-checkbox
-              v-else-if="filter.field && types[filter.field] === 'boolean'"
-              v-model:checked="filter.value"
-              dense
-              :disabled="filter.readOnly"
-              @change="saveOrUpdate(filter, i)"
             />
 
             <a-input
@@ -236,7 +239,7 @@ defineExpose({
               :key="`${i}_7`"
               v-model:value="filter.value"
               class="nc-filter-value-select"
-              :disabled="filter.readOnly"
+              :disabled="filter.readOnly || !filter.fk_column_id"
               @click.stop
               @input="saveOrUpdate(filter, i)"
             />

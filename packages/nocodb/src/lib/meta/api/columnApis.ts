@@ -40,6 +40,7 @@ import { metaApiMetrics } from '../helpers/apiMetrics';
 import FormulaColumn from '../../models/FormulaColumn';
 import KanbanView from '../../models/KanbanView';
 import { MetaTable } from '../../utils/globals';
+import formulaQueryBuilderv2 from '../../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 
@@ -98,6 +99,10 @@ async function createHmAndBtColumn(
       system: isSystemCol,
     });
   }
+}
+
+export async function columnGet(req: Request, res: Response) {
+  res.json(await Column.get({ colId: req.params.columnId }));
 }
 
 export async function columnAdd(
@@ -523,6 +528,16 @@ export async function columnAdd(
         colBody.formula_raw || colBody.formula,
         table.columns
       );
+
+      try {
+        // test the query to see if it is valid in db level
+        const dbDriver = NcConnectionMgrv2.get(base);
+        await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
+      } catch (e) {
+        console.error(e);
+        NcError.badRequest('Invalid Formula');
+      }
+
       await Column.insert({
         ...colBody,
         fk_model_id: table.id,
@@ -759,6 +774,16 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           colBody.formula_raw || colBody.formula,
           table.columns
         );
+
+        try {
+          // test the query to see if it is valid in db level
+          const dbDriver = NcConnectionMgrv2.get(base);
+          await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
+        } catch (e) {
+          console.error(e);
+          NcError.badRequest('Invalid Formula');
+        }
+
         await Column.update(column.id, {
           // title: colBody.title,
           ...column,
@@ -1790,21 +1815,31 @@ async function createColumnIndex({
 }
 
 const router = Router({ mergeParams: true });
+
 router.post(
   '/api/v1/db/meta/tables/:tableId/columns/',
   metaApiMetrics,
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
+
 router.patch(
   '/api/v1/db/meta/columns/:columnId',
   metaApiMetrics,
   ncMetaAclMw(columnUpdate, 'columnUpdate')
 );
+
 router.delete(
   '/api/v1/db/meta/columns/:columnId',
   metaApiMetrics,
   ncMetaAclMw(columnDelete, 'columnDelete')
 );
+
+router.get(
+  '/api/v1/db/meta/columns/:columnId',
+  metaApiMetrics,
+  ncMetaAclMw(columnGet, 'columnGet')
+);
+
 router.post(
   '/api/v1/db/meta/columns/:columnId/primary',
   metaApiMetrics,

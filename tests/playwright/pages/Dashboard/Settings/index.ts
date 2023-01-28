@@ -1,14 +1,12 @@
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { AuditSettingsPage } from './Audit';
-import { AppStoreSettingsPage } from './AppStore';
 import { MiscSettingsPage } from './Miscellaneous';
 import { TeamsPage } from './Teams';
 import { DataSourcesPage } from './DataSources';
 
 export enum SettingTab {
   TeamAuth = 'teamAndAuth',
-  AppStore = 'appStore',
   DataSources = 'dataSources',
   Audit = 'audit',
   ProjectSettings = 'projectSettings',
@@ -22,7 +20,6 @@ export enum SettingsSubTab {
 
 export class SettingsPage extends BasePage {
   readonly audit: AuditSettingsPage;
-  readonly appStore: AppStoreSettingsPage;
   readonly miscellaneous: MiscSettingsPage;
   readonly dataSources: DataSourcesPage;
   readonly teams: TeamsPage;
@@ -30,7 +27,6 @@ export class SettingsPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.audit = new AuditSettingsPage(this);
-    this.appStore = new AppStoreSettingsPage(this);
     this.miscellaneous = new MiscSettingsPage(this);
     this.dataSources = new DataSourcesPage(this);
     this.teams = new TeamsPage(this);

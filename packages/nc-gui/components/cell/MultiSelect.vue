@@ -19,6 +19,7 @@ import {
   useEventListener,
   useMetas,
   useProject,
+  useRoles,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -57,6 +58,8 @@ const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
 
+const { hasRole } = useRoles()
+
 const { isPg, isMysql } = useProject()
 
 // a variable to keep newly created options value
@@ -79,6 +82,10 @@ const options = computed<(SelectOptionType & { value?: string })[]>(() => {
 const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
+
+const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
+
+const editAllowed = computed(() => hasEditRoles.value && (active.value || editable.value))
 
 const vModel = computed({
   get: () => {
@@ -154,10 +161,12 @@ watch(
 )
 
 watch(isOpen, (n, _o) => {
-  if (!n) {
-    aselect.value?.$el?.querySelector('input')?.blur()
-  } else {
-    aselect.value?.$el?.querySelector('input')?.focus()
+  if (editAllowed.value) {
+    if (!n) {
+      aselect.value?.$el?.querySelector('input')?.blur()
+    } else {
+      aselect.value?.$el?.querySelector('input')?.focus()
+    }
   }
 })
 
@@ -167,7 +176,7 @@ useSelectedCellKeyupListener(active, (e) => {
       isOpen.value = false
       break
     case 'Enter':
-      if (active.value && !isOpen.value) {
+      if (editAllowed.value && active.value && !isOpen.value) {
         isOpen.value = true
       }
       break
@@ -179,6 +188,10 @@ useSelectedCellKeyupListener(active, (e) => {
       // skip
       break
     default:
+      if (!editAllowed.value) {
+        e.preventDefault()
+        break
+      }
       // toggle only if char key pressed
       if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1) {
         e.stopPropagation()
@@ -211,7 +224,7 @@ async function addIfMissingAndSave() {
       // todo: refactor and avoid repetition
       if (updatedColMeta.cdf) {
         // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-        if (isPg.value) {
+        if (isPg(column.value.base_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.substring(
             updatedColMeta.cdf.indexOf(`'`) + 1,
             updatedColMeta.cdf.lastIndexOf(`'`),
@@ -219,7 +232,7 @@ async function addIfMissingAndSave() {
         }
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-        if (!isMysql.value) {
+        if (!isMysql(column.value.base_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
@@ -268,18 +281,18 @@ const onTagClick = (e: Event, onClose: Function) => {
     v-model:value="vModel"
     v-model:open="isOpen"
     mode="multiple"
-    class="w-full"
+    class="w-full overflow-hidden"
     :bordered="false"
     clear-icon
     show-search
-    :show-arrow="!readOnly"
+    :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel.length === 0))"
     :open="isOpen && (active || editable)"
     :disabled="readOnly"
-    :class="{ '!ml-[-8px]': readOnly }"
+    :class="{ '!ml-[-8px]': readOnly, 'caret-transparent': !hasEditRoles }"
     :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
     @search="search"
     @keydown.stop
-    @click="isOpen = (active || editable) && !isOpen"
+    @click="isOpen = editAllowed && !isOpen"
   >
     <a-select-option
       v-for="op of options"
@@ -303,7 +316,11 @@ const onTagClick = (e: Event, onClose: Function) => {
       </a-tag>
     </a-select-option>
 
-    <a-select-option v-if="searchVal && isOptionMissing && !isPublic" :key="searchVal" :value="searchVal">
+    <a-select-option
+      v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
+      :key="searchVal"
+      :value="searchVal"
+    >
       <div class="flex gap-2 text-gray-500 items-center h-full">
         <MdiPlusThick class="min-w-4" />
         <div class="text-xs whitespace-normal">
@@ -318,7 +335,7 @@ const onTagClick = (e: Event, onClose: Function) => {
         class="rounded-tag nc-selected-option"
         :style="{ display: 'flex', alignItems: 'center' }"
         :color="options.find((el) => el.title === val)?.color"
-        :closable="(active || editable) && (vModel.length > 1 || !column?.rqd)"
+        :closable="editAllowed && (active || editable) && (vModel.length > 1 || !column?.rqd)"
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @click="onTagClick($event, onClose)"
         @close="onClose"
@@ -384,5 +401,9 @@ const onTagClick = (e: Event, onClose: Function) => {
 
 :deep(.ant-select-selection-overflow-item) {
   @apply "flex overflow-hidden";
+}
+
+:deep(.ant-select-selection-overflow) {
+  @apply flex-nowrap;
 }
 </style>

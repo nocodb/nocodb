@@ -7,7 +7,7 @@ const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || ro
 
 useTheme()
 
-const { cmdPalette, cmdData, cmdPlaceholder, cmdOnSelected, cmdOnChange } = useCommandPalette()
+const { cmdPalette, cmdData, cmdPlaceholder, cmdOnSelected, cmdOnChange, activeScope } = useCommandPalette()
 
 applyNonSelectable()
 
@@ -35,6 +35,25 @@ if (typeof window !== 'undefined') {
   // @ts-expect-error using arbitrary window key
   window.__ncvue = true
 }
+
+function hookFunction(object: any, functionName: string, callback: Function) {
+  ;(function (originalFunction) {
+    object[functionName] = function (...args: any) {
+      const returnValue = originalFunction.apply(this, args)
+
+      callback.apply(this, [returnValue, originalFunction, args])
+
+      return returnValue
+    }
+  })(object[functionName])
+}
+
+onMounted(() => {
+  if (!cmdPalette.value) return
+  hookFunction(cmdPalette.value, 'open', () => {
+    cmdPalette.value?.setParent(activeScope.value)
+  })
+})
 </script>
 
 <template>

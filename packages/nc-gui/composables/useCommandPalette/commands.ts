@@ -1,6 +1,6 @@
 import { navigateTo } from '#imports'
 
-export const workspaceCommands = [
+export const homeCommands = [
   {
     id: 'account_settings-users',
     title: 'Users',
@@ -51,7 +51,6 @@ export const workspaceCommands = [
     id: 'account_settings-license',
     title: 'License',
     parent: 'account_settings',
-    hotkey: 'cmd+l',
     handler: () => {
       navigateTo('/account/license')
     },
@@ -71,4 +70,24 @@ export const workspaceCommands = [
   },
 ]
 
-export const projectCommands = []
+/*
+  Here is a list of all the available commands defined throughout the app.
+  Commands prefixed with a '-' are static commands that are always available.
+  Commands prefixed with a '+' are dynamic commands that are only available when the user is in a specific context. 
+
+  Commands:
+    - home (Navigate Home)
+    + workspaces (Workspaces)
+    + projects (Projects)
+    - account_settings (Account Settings)
+      - account_settings-users (Users)
+        - account_settings-users-user_management (User Management)
+        - account_settings-users-reset_password (Reset Password)
+        - account_settings-users-settings (Settings)
+      - account_settings-tokens (Tokens)
+      - account_settings-app_store (App Store)
+      - account_settings-license (License)
+    - project (Project)
+      + tables (Tables)
+      + views (Views)
+*/

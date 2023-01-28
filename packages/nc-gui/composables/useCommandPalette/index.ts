@@ -1,6 +1,18 @@
 import type { NinjaKeys } from 'ninja-keys'
 import type { Ref } from 'vue'
-import { workspaceCommands } from './commands'
+import { homeCommands } from './commands'
+
+interface CmdAction {
+  id: string
+  title: string
+  hotkey?: string
+  parent?: string
+  children?: string[]
+  handler?: Function
+  icon?: string
+  keywords?: string[]
+  section?: string
+}
 
 export const useCommandPalette = createSharedComposable(() => {
   const cmdPalette = ref<NinjaKeys>()
@@ -23,14 +35,21 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdPlaceholder = ref('Quick actions')
 
+  const commands = ref<Record<string, CmdAction[]>>({
+    homeCommands,
+    projectCommands: [],
+  })
+
   const staticData = computed(() => {
-    const rtData = workspaceCommands
+    const rtData = commands.value.homeCommands
 
     if (lastScope.value.scope === 'workspace') return rtData
 
     if (lastScope.value.scope === 'project') {
-      rtData.push(...projectCommands)
+      rtData.push(...commands.value.projectCommands)
     }
+
+    return rtData
   })
 
   const dynamicData = ref([])
@@ -52,7 +71,12 @@ export const useCommandPalette = createSharedComposable(() => {
     }
   }
 
-  async function loadScope(scope: string, data?: any) {
+  const activeScope = computed(() => {
+    if (lastScope.value.scope === 'workspace') return ''
+    return lastScope.value.scope
+  })
+
+  async function loadScope(scope = 'workspace', data?: any) {
     dynamicData.value = []
     cmdLoading.value = true
     lastScope.value = { scope, data }
@@ -76,6 +100,7 @@ export const useCommandPalette = createSharedComposable(() => {
   return {
     cmdPalette,
     cmdData,
+    activeScope,
     loadScope,
     cmdPlaceholder,
     cmdOnSelected,

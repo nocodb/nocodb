@@ -107,6 +107,7 @@ export async function commandPalette(req: Request, res: Response) {
           cmdData.push({
             id: 'tables',
             title: 'Tables',
+            parent: scope,
             children: [...tableList.map((w) => `tbl-${w.id}`)]
           })
         }
@@ -115,6 +116,7 @@ export async function commandPalette(req: Request, res: Response) {
           cmdData.push({
             id: 'views',
             title: 'Views',
+            parent: scope,
             children: [...vwList.map((w) => `vw-${w.id}`)]
           })
         }

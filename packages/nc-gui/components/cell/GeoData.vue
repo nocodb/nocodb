@@ -74,7 +74,7 @@ const onClickSetCurrentLocation = () => {
       <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
         <a-form-item class="input-lat">
           <template #label>
-            <div class="fixed-width">{{ $t('labels.lat') }}</div>
+            <div>{{ $t('labels.lat') }}</div>
           </template>
           <a-input
             v-model:value="formState.latitude"
@@ -140,15 +140,11 @@ input[type='number'] {
   margin-left: 0.5rem;
 }
 
-.fixed-width {
-  width: 24px;
-}
 .btn-group-cancel-submit {
   margin-left: auto;
   margin-bottom: 0;
 }
 .ant-dropdown-menu {
-  height: fit-content;
   align-items: flex-end;
 }
 

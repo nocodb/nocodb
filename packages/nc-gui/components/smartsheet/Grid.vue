@@ -830,6 +830,8 @@ const rowHeight = computed(() => {
                     :class="{
                       'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
+                      'align-middle': !rowHeight || rowHeight === 1,
+                      'align-top': rowHeight && rowHeight !== 1,
                     }"
                     :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                     :data-key="rowIndex + columnObj.id"
@@ -982,7 +984,7 @@ const rowHeight = computed(() => {
 
   td:not(:first-child) > div {
     overflow: hidden;
-    @apply flex px-1;
+    @apply flex px-1 h-auto;
   }
 
   table,

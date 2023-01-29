@@ -106,7 +106,7 @@ const onClickSetCurrentLocation = () => {
           />
         </a-form-item>
         <a-form-item>
-          <div style="display: flex; align-items: center; margin-right: 0.5rem">
+          <div class="flex set-location-group">
             <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
             <a-button class="ml-2" @click="onClickSetCurrentLocation">{{ $t('labels.yourLocation') }}</a-button>
           </div>
@@ -125,15 +125,17 @@ input[type='number']:focus {
   @apply ring-transparent;
 }
 
-.input-lat {
+input[type='number'] {
   width: 180px;
+}
+
+.input-lat {
   margin-top: 1rem;
   margin-bottom: 0.5rem;
   margin-right: 0.5rem;
   margin-left: 0.5rem;
 }
 .input-lng {
-  width: 180px;
   margin-right: 0.5rem;
   margin-left: 0.5rem;
 }
@@ -148,5 +150,10 @@ input[type='number']:focus {
 .ant-dropdown-menu {
   height: fit-content;
   align-items: flex-end;
+}
+
+.set-location-group {
+  align-items: center;
+  margin-right: 0.5rem;
 }
 </style>

@@ -3,9 +3,8 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
-import { OpenNewRecordFormHookInj, onMounted, provide, ref } from '#imports'
+import { OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
 import type { Row as RowType } from '~/lib'
-import { latLongToJoinedString } from '~~/utils/geoDataUtils'
 
 const route = useRoute()
 
@@ -130,6 +129,7 @@ onMounted(async () => {
       })
     },
   })
+
   myMap.addLayer(markersClusterGroupRef.value)
 
   myMap.on('zoomend', function () {
@@ -137,6 +137,7 @@ onMounted(async () => {
       localStorage.setItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id), myMap.getZoom().toString())
     }
   })
+
   myMap.on('moveend', function () {
     if (localStorage != null && mapMetaData?.value?.fk_view_id) {
       localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData?.value?.fk_view_id), JSON.stringify(myMap.getCenter()))

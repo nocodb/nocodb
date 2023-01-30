@@ -14,6 +14,9 @@ import MdiImageMultipleOutline from '~icons/mdi/image-multiple-outline'
 import MdiFormatColorText from '~icons/mdi/format-color-text'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import MdiFormatQuoteOpen from '~icons/mdi/format-quote-open'
+import IcOutlineInfo from '~icons/ic/outline-info'
+import IcRoundStar from '~icons/ic/round-star'
+import IcRoundWarning from '~icons/ic/round-warning'
 
 interface Props {
   command: Function
@@ -133,6 +136,34 @@ const items = [
       ;(editor.chain().focus() as any).toggleTaskList().run()
     },
     icon: MdiTaskList,
+    iconClass: '',
+    hasDivider: true,
+  },
+  {
+    title: 'Info notice',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('infoCallout').run()
+    },
+    icon: IcOutlineInfo,
+    iconClass: '',
+  },
+  {
+    title: 'Tip notice',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('tipCallout').run()
+    },
+    icon: IcRoundStar,
+    iconClass: '',
+  },
+  {
+    title: 'Warning notice',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('warningCallout').run()
+    },
+    icon: IcRoundWarning,
     iconClass: '',
     hasDivider: true,
   },
@@ -306,6 +337,7 @@ defineExpose({
   border: 1px solid transparent;
   padding: 0.3rem 0.75rem;
   margin: 0.2rem 0;
+  @apply !transition-none;
 
   &.is-selected {
     @apply border-gray-200 !bg-gray-100;

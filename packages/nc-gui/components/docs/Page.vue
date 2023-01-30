@@ -15,6 +15,9 @@ import { History } from './tiptap-extensions/history'
 import suggestion from './tiptap-extensions/commands/suggestion'
 import { createImageExtension } from './tiptap-extensions/images/node'
 import Commands from './tiptap-extensions/commands'
+import { InfoCallout } from './tiptap-extensions/callouts/info'
+import { WarningCallout } from './tiptap-extensions/callouts/warning'
+import { TipCallout } from './tiptap-extensions/callouts/tip'
 import type { PageSidebarNode } from '~~/composables/docs/useDocs'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
@@ -100,6 +103,9 @@ const editor = useEditor({
     Underline,
     History,
     Blockquote,
+    InfoCallout,
+    WarningCallout,
+    TipCallout,
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -234,10 +240,13 @@ watch(
           @keydown="onTitleKeyDown"
         />
 
-        <DocsSelectedBubbleMenu v-if="editor" :editor="editor" />
+        <DocsTiptapExtensionsSelectedBubbleMenu v-if="editor" :editor="editor" />
         <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
           <MdiPlus
             class="hover:cursor-pointer hover:bg-gray-50 rounded-md"
+            :class="{
+              'mr-8': editor?.isActive('infoCallout') || editor?.isActive('tipCallout') || editor?.isActive('warningCallout'),
+            }"
             @click="editor!.chain().focus().insertContent('/').run()"
           />
         </FloatingMenu>
@@ -318,18 +327,20 @@ watch(
   }
 }
 
-/* Basic editor styles */
-.ProseMirror {
+.nc-docs-page {
   > * + * {
     margin-top: 0.75em;
   }
-}
 
-div[contenteditable='false'].ProseMirror {
-  user-select: text !important;
-}
+  .ProseMirror-focused {
+    // remove all border
+    outline: none;
+  }
 
-.ProseMirror {
+  div[contenteditable='false'].ProseMirror {
+    user-select: text !important;
+  }
+
   img {
     max-width: 100%;
     max-height: 30rem;
@@ -341,120 +352,148 @@ div[contenteditable='false'].ProseMirror {
 
     &.ProseMirror-selectednode {
       // outline with rounded corners
-      outline: 2.5px solid #1890ff;
+      outline: 3px solid #4351e8;
       outline-offset: -2px;
       border-radius: 4px;
     }
   }
-}
 
-.ProseMirror p.is-empty::before {
-  content: attr(data-placeholder);
-  float: left;
-  color: #bcc2c8;
-  pointer-events: none;
-  height: 0;
-}
+  p.is-empty::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #bcc2c8;
+    pointer-events: none;
+    height: 0;
+  }
 
-.ProseMirror .nc-docs-list-item > p {
-  margin-top: 0.25rem !important;
-  margin-bottom: 0.25rem !important;
-}
-
-.ProseMirror-focused {
-  // remove all border
-  outline: none;
-}
-.ProseMirror p {
-  margin-top: 1em;
-  margin-bottom: 1em;
-}
-.ProseMirror h1 {
-  font-size: 1.75rem;
-}
-.ProseMirror h2 {
-  font-size: 1.5rem;
-}
-.ProseMirror h3 {
-  font-size: 1.35rem;
-}
-.ProseMirror h4 {
-  font-size: 1.2rem;
-}
-.ProseMirror h5 {
-  font-size: 1rem;
-}
-.ProseMirror h6 {
-  font-size: 1rem;
-}
-.ProseMirror pre {
-  background: #f2f4f7;
-  border-color: #d0d5dd;
-  border: 1px;
-  color: black;
-  font-family: 'JetBrainsMono', monospace;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  @apply overflow-auto;
-}
-
-code {
-  background: #f2f4f7;
-  @apply rounded-md px-2 py-1;
-  color: inherit;
-  font-size: 0.8rem;
-}
-
-ul {
-  padding-left: 1rem;
-  // bullet color black
-  color: #000;
-  list-style: disc;
-  li > p {
+  .nc-docs-list-item > p {
     margin-top: 0.25rem !important;
     margin-bottom: 0.25rem !important;
   }
-}
-
-ul[data-type='taskList'] {
-  list-style: none;
-  padding: 0;
 
   p {
-    margin: 0;
+    margin-top: 1em;
+    margin-bottom: 1em;
   }
 
-  li {
-    display: flex;
+  h1 {
+    font-size: 1.75rem;
+  }
 
-    > label {
-      margin-right: 0.5rem;
-      user-select: none;
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.35rem;
+  }
+
+  h4 {
+    font-size: 1.2rem;
+  }
+
+  h5 {
+    font-size: 1rem;
+  }
+
+  h6 {
+    font-size: 1rem;
+  }
+
+  // Pre tag is the parent wrapper for Code block
+  pre {
+    background: #f2f4f7;
+    border-color: #d0d5dd;
+    border: 1px;
+    color: black;
+    font-family: 'JetBrainsMono', monospace;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    @apply overflow-auto;
+  }
+
+  code {
+    background: #f2f4f7;
+    @apply rounded-md px-2 py-1;
+    color: inherit;
+    font-size: 0.8rem;
+  }
+
+  ul[data-type='taskList'] {
+    list-style: none;
+    padding: 0;
+
+    p {
+      margin: 0;
     }
 
-    > label > input {
-      // margin-top: 0.1rem !important;
-      margin-bottom: 0.2rem !important;
-      // height: max-content;
-    }
+    li {
+      display: flex;
 
-    > div {
-      flex: 1 1 auto;
+      > label {
+        margin-right: 0.5rem;
+        user-select: none;
+      }
+
+      > label > input {
+        // margin-top: 0.1rem !important;
+        margin-bottom: 0.2rem !important;
+        // height: max-content;
+      }
+
+      > div {
+        flex: 1 1 auto;
+      }
     }
   }
-}
 
-hr.nc-docs-horizontal-rule {
-  border: 0;
-  border-top: 1px solid #ccc;
-  margin: 1.5em 0;
-}
+  ul {
+    padding-left: 1rem;
+    // bullet color black
+    color: #000;
+    list-style: disc;
+    li > p {
+      margin-top: 0.25rem !important;
+      margin-bottom: 0.25rem !important;
+    }
+  }
 
-blockquote {
-  border-left: 3px solid #d0d5dd;
-  padding: 0 1em;
-  color: #666;
-  margin: 1em 0;
-  font-style: italic;
+  hr.nc-docs-horizontal-rule {
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1.5em 0;
+  }
+
+  blockquote {
+    border-left: 3px solid #d0d5dd;
+    padding: 0 1em;
+    color: #666;
+    margin: 1em 0;
+    font-style: italic;
+  }
+
+  div.info-callout {
+    @apply px-2 py-2 rounded-md border-l-3;
+    border-color: #2696db;
+    background-color: rgb(230, 246, 255);
+    color: #666;
+    margin: 1em 0;
+  }
+
+  div.tip-callout {
+    @apply px-2 py-2 rounded-md border-l-3;
+    border-color: #fcbe3a;
+    background-color: #fef7d7;
+    color: #666;
+    margin: 1em 0;
+  }
+
+  div.warning-callout {
+    @apply px-2 py-2 rounded-md border-l-3;
+    border-color: #ff4a3f;
+    background-color: #ffe7d8;
+    color: #666;
+    margin: 1em 0;
+  }
 }
 </style>

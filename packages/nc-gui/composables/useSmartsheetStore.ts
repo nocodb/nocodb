@@ -1,7 +1,7 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { NOCO, computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
+import { computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
 import type { SmartsheetStoreEvents } from '~/lib'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
@@ -13,7 +13,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialFilters?: Ref<FilterType[]>,
   ) => {
     const { $api } = useNuxtApp()
-    const { sqlUis, project } = useProject()
+    const { sqlUis } = useProject()
 
     const sqlUi = ref(meta.value?.base_id ? sqlUis.value[meta.value?.base_id] : Object.values(sqlUis.value)[0])
 

@@ -91,6 +91,15 @@ watch(
   },
 )
 
+const getColumn = (filter: Filter) => {
+  return columns.value?.find((col) => col.id === filter.fk_column_id)
+}
+
+const selectFilterField = (filter: Filter, index: number) => {
+  filter.value = null
+  saveOrUpdate(filter, index)
+}
+
 const applyChanges = async (hookId?: string, _nested = false) => {
   await sync(hookId, _nested)
 
@@ -204,7 +213,7 @@ defineExpose({
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
-              @change="saveOrUpdate(filter, i)"
+              @change="selectFilterField(filter, i)"
             />
 
             <a-select
@@ -234,14 +243,26 @@ defineExpose({
               :key="`span${i}`"
             />
 
-            <a-input
+            <a-checkbox
+              v-else-if="filter.field && types[filter.field] === 'boolean'"
+              v-model:checked="filter.value"
+              dense
+              :disabled="filter.readOnly"
+              @change="saveOrUpdate(filter, i)"
+            />
+
+            <LazySmartsheetToolbarFilterInput
               v-else
-              :key="`${i}_7`"
-              v-model:value="filter.value"
               class="nc-filter-value-select"
-              :disabled="filter.readOnly || !filter.fk_column_id"
+              :column="getColumn(filter)"
+              :filter="filter"
+              @updateFilterValue="
+                (value) => {
+                  filter.value = value
+                  saveOrUpdate(filter, i)
+                }
+              "
               @click.stop
-              @input="saveOrUpdate(filter, i)"
             />
           </template>
         </template>

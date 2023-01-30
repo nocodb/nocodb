@@ -14,6 +14,7 @@ import {
   extractSdkResponseErrorMsg,
   inject,
   ref,
+  useEventListener,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
@@ -22,9 +23,10 @@ import {
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
+  disableOptionCreation?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -189,6 +191,14 @@ const toggleMenu = (e: Event) => {
   }
   isOpen.value = editAllowed.value && !isOpen.value
 }
+
+const handleClose = (e: MouseEvent) => {
+  if (aselect.value && !aselect.value.$el.contains(e.target)) {
+    isOpen.value = false
+  }
+}
+
+useEventListener(document, 'click', handleClose)
 </script>
 
 <template>
@@ -231,7 +241,13 @@ const toggleMenu = (e: Event) => {
       </a-tag>
     </a-select-option>
     <a-select-option
-      v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
+      v-if="
+        searchVal &&
+        isOptionMissing &&
+        !isPublic &&
+        !disableOptionCreation &&
+        (hasRole('owner', true) || hasRole('creator', true))
+      "
       :key="searchVal"
       :value="searchVal"
     >

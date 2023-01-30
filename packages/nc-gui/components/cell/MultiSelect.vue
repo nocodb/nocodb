@@ -28,9 +28,10 @@ import MdiCloseCircle from '~icons/mdi/close-circle'
 interface Props {
   modelValue?: string | string[]
   rowIndex?: number
+  disableOptionCreation?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -317,7 +318,13 @@ const onTagClick = (e: Event, onClose: Function) => {
     </a-select-option>
 
     <a-select-option
-      v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
+      v-if="
+        searchVal &&
+        isOptionMissing &&
+        !isPublic &&
+        !disableOptionCreation &&
+        (hasRole('owner', true) || hasRole('creator', true))
+      "
       :key="searchVal"
       :value="searchVal"
     >

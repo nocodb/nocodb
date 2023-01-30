@@ -42,7 +42,17 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
-const { filters, nonDeletedFilters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
+const {
+  filters,
+  nonDeletedFilters,
+  deleteFilter,
+  saveOrUpdate,
+  loadFilters,
+  addFilter,
+  addFilterGroup,
+  sync,
+  saveOrUpdateDebounced,
+} = useViewFilters(
   activeView,
   parentId,
   computed(() => autoSave),
@@ -259,7 +269,7 @@ defineExpose({
               @update-filter-value="
                 (value) => {
                   filter.value = value
-                  saveOrUpdate(filter, i)
+                  saveOrUpdateDebounced(filter, i)
                 }
               "
               @click.stop

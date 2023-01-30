@@ -2,12 +2,12 @@ import type { FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
-  ReloadViewDataHookInj,
   computed,
   extractSdkResponseErrorMsg,
   inject,
   message,
   ref,
+  useDebounceFn,
   useMetas,
   useNuxtApp,
   useUIPermission,
@@ -191,8 +191,6 @@ export function useViewFilters(
           fk_parent_id: parentId,
         })
       }
-
-      reloadHook?.trigger()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -200,6 +198,8 @@ export function useViewFilters(
 
     reloadData?.()
   }
+
+  const saveOrUpdateDebounced = useDebounceFn(saveOrUpdate, 500)
 
   const addFilter = () => {
     filters.value.push({ ...placeholderFilter })
@@ -239,5 +239,15 @@ export function useViewFilters(
     },
   )
 
-  return { filters, nonDeletedFilters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup }
+  return {
+    filters,
+    nonDeletedFilters,
+    loadFilters,
+    sync,
+    deleteFilter,
+    saveOrUpdate,
+    addFilter,
+    addFilterGroup,
+    saveOrUpdateDebounced,
+  }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
+import type { GridType } from 'nocodb-sdk'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
-import { ComputedRef } from 'vue'
-import { GridType } from 'nocodb-sdk'
 import { ActiveViewInj } from '#imports'
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100

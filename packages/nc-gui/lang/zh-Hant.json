@@ -205,7 +205,8 @@
     "quickImport": "快速匯入",
     "advancedSettings": "進階設定",
     "codeSnippet": "程式碼片段",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",

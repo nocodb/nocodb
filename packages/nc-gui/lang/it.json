@@ -205,7 +205,8 @@
     "quickImport": "Importazione rapida",
     "advancedSettings": "Impostazioni Avanzate",
     "codeSnippet": "Snippet di codice",
-    "keyboardShortcut": "Scorciatoie da tastiera"
+    "keyboardShortcut": "Scorciatoie da tastiera",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Creato da",

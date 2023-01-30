@@ -2,15 +2,18 @@ import { expect } from '@playwright/test';
 import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
+import { AttachmentColumnPageObject } from './Attachment';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
+  readonly attachmentColumnPageObject: AttachmentColumnPageObject;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
     this.grid = grid;
     this.selectOption = new SelectOptionColumnPageObject(this);
+    this.attachmentColumnPageObject = new AttachmentColumnPageObject(this);
   }
 
   get() {
@@ -296,6 +299,10 @@ export class ColumnPageObject extends BasePage {
       default:
         break;
     }
+  }
+
+  async editMenuShowMore() {
+    await this.rootPage.locator('.nc-more-options').click();
   }
 
   async duplicateColumn({ title, expectedTitle = `${title}_copy` }: { title: string; expectedTitle?: string }) {

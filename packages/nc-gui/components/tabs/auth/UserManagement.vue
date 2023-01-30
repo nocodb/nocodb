@@ -109,11 +109,6 @@ const deleteUser = async () => {
   $e('a:user:delete')
 }
 
-const isNewInvitedUser = (user: User) => {
-  if (user.invite_token) return true
-  return false
-}
-
 const onEdit = (user: User) => {
   selectedUser = user
   showUserModal = true
@@ -326,7 +321,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
             </a-tooltip>
 
             <a-dropdown
-              v-if="isNewInvitedUser(user)"
+              v-if="user.invite_token"
               :trigger="['click']"
               class="flex"
               placement="bottomRight"

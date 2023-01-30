@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Form, message } from 'ant-design-vue'
-import ShareBase from './ShareBase.vue'
+import type { Input } from 'ant-design-vue'
 import {
+  Form,
   computed,
   extractSdkResponseErrorMsg,
-  isEmail,
+  message,
   onMounted,
   projectRoleTagColors,
   projectRoles,
@@ -14,13 +14,14 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
+  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
 
 interface Props {
   show: boolean
-  selectedUser?: User
+  selectedUser?: User | null
 }
 
 interface Users {
@@ -36,11 +37,15 @@ const emit = defineEmits(['closed', 'reload'])
 const { t } = useI18n()
 
 const { project } = useProject()
+
 const { $api, $e } = useNuxtApp()
+
 const { copy } = useCopy()
+
 const { dashboardUrl } = $(useDashboard())
 
 const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
+
 const formRef = ref()
 
 const useForm = Form.useForm
@@ -53,7 +58,7 @@ const validators = computed(() => {
             callback('Email is required')
             return
           }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !isEmail(e))
+          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
           if (invalidEmails.length > 0) {
             callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
           } else {
@@ -129,6 +134,10 @@ const clickInviteMore = () => {
   usersData.role = ProjectRole.Viewer
   usersData.emails = undefined
 }
+
+const emailField = (inputEl: typeof Input) => {
+  inputEl?.$el?.focus()
+}
 </script>
 
 <template>
@@ -136,15 +145,22 @@ const clickInviteMore = () => {
     :footer="null"
     centered
     :visible="show"
+    :class="{ active: show }"
     :closable="false"
     width="max(50vw, 44rem)"
     wrap-class-name="nc-modal-invite-user-and-share-base"
     @cancel="emit('closed')"
   >
-    <div class="flex flex-col">
+    <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
         <a-typography-title class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
-        <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
+
+        <a-button
+          type="text"
+          class="!rounded-md mr-1 -mt-1.5"
+          data-testid="invite-user-and-share-base-modal-close-btn"
+          @click="emit('closed')"
+        >
           <template #icon>
             <MaterialSymbolsCloseRounded class="flex mx-auto" />
           </template>
@@ -162,9 +178,10 @@ const clickInviteMore = () => {
             <a-alert class="mt-1" type="success" show-icon>
               <template #message>
                 <div class="flex flex-row justify-between items-center py-1">
-                  <div class="flex pl-2 text-green-700 text-xs">
+                  <div class="flex pl-2 text-green-700 text-xs" data-testid="invite-modal-invitation-url">
                     {{ inviteUrl }}
                   </div>
+
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
                       <MdiContentCopy class="flex mx-auto text-green-700 h-[1rem]" />
@@ -178,21 +195,25 @@ const clickInviteMore = () => {
               {{ $t('msg.info.userInviteNoSMTP') }}
               {{ usersData.invitationToken && usersData.emails }}
             </div>
+
             <div class="flex flex-row justify-start mt-4 ml-2">
               <a-button size="small" outlined @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
                   <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]" />
+
                   <div class="text-xs text-gray-600">{{ $t('activity.inviteMore') }}</div>
                 </div>
               </a-button>
             </div>
           </div>
         </template>
+
         <div v-else class="flex flex-col pb-4">
           <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
             <MdiAccountOutline />
             <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? $t('activity.editUser') : $t('activity.inviteTeam') }}</div>
           </div>
+
           <div class="border-1 py-3 px-4 rounded-md mt-1">
             <a-form
               ref="formRef"
@@ -210,7 +231,9 @@ const clickInviteMore = () => {
                     :rules="[{ required: true, message: 'Please input email' }]"
                   >
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
+
                     <a-input
+                      :ref="emailField"
                       v-model:value="usersData.emails"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"
@@ -218,9 +241,11 @@ const clickInviteMore = () => {
                     />
                   </a-form-item>
                 </div>
+
                 <div class="flex flex-col w-1/4">
                   <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
+
                     <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
                         <div class="flex flex-row h-full justify-start items-center">
@@ -236,9 +261,11 @@ const clickInviteMore = () => {
                   </a-form-item>
                 </div>
               </div>
+
               <div class="flex flex-row justify-center">
                 <a-button type="primary" html-type="submit">
                   <div v-if="selectedUser">{{ $t('general.save') }}</div>
+
                   <div v-else class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
                     <div>{{ $t('activity.invite') }}</div>
@@ -248,12 +275,11 @@ const clickInviteMore = () => {
             </a-form>
           </div>
         </div>
+
         <div class="flex mt-4">
-          <ShareBase />
+          <LazyTabsAuthUserManagementShareBase />
         </div>
       </div>
     </div>
   </a-modal>
 </template>
-
-<style scoped></style>

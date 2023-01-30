@@ -23,13 +23,13 @@ menuTitle: 'FAQs'
 
 - You can hover the NocoDB icon on the top left corner or check ``PackageVersion`` in Project info.
 
-![image](https://user-images.githubusercontent.com/35857179/164968969-da53adda-97fc-4a79-9331-039ddef75a13.png)
+![image](https://user-images.githubusercontent.com/35857179/192435277-1b1715b9-5885-4e15-861f-4f95bb60294b.png)
 
 ## How to check my Project info ?
 
 - You can click on top right icon and click ``Copy Project Info``.
 
-![image](https://user-images.githubusercontent.com/35857179/164968940-6c987863-e7d8-4b44-a46d-2f755825af0a.png)
+![image](https://user-images.githubusercontent.com/35857179/192435381-e01013b1-7f87-4d3f-b443-420e685f8c41.png)
 
 You should see the similar result as below.
 
@@ -39,23 +39,23 @@ Arch: **arm64**
 Platform: **darwin**
 Docker: **false**
 Database: **mysql2**
-ProjectOnRootDB: **false**
+ProjectOnRootDB: **true**
 RootDB: **mysql2**
-PackageVersion: **0.90.0**
+PackageVersion: **0.97.0**
 ```
 
 ## What is available in free version ?
-
+- [Detailed comparison of NocoDB's generous CE compared to others is here](https://github.com/orgs/nocodb/projects/13).
 - NocoDB has just one version that is free & open source.
 - In it you will notice advanced features are all available for free.
     - ACL
     - Collaboration
-    - Advanced views : Form View, Gallery view, Kanban (coming soon)
-    - Share view, 
-    - Embed view 
-    - Password protected view,
+    - Advanced Views : Form View, Gallery View & Kanban View
+    - Share View
+    - Embed View 
+    - Password protected View
     - Automations
-    - API token support.    
+    - API Token Support
 - And we would never move these features from free to an enterprise version of NocoDB.
 - There is no limitations to number of projects, rows or columns either.
 
@@ -66,7 +66,6 @@ Auth Token is a JWT Token generated based on the logged-in user. By default, the
 API Token is a Nano ID with a length of 40. If you are passing API Token, make sure that the header is called `xc-token`.
 
 ## Do you plan to have Enterprise Edition ?
-
 For features that make sense for enterprises like below - yes 
 - SSO, SLA, Organisation wide reports and analytics, 
 - Advanced Audit or ACL,  

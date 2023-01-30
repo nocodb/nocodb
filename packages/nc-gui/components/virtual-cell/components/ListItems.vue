@@ -1,29 +1,31 @@
 <script lang="ts" setup>
+import type { Card } from 'ant-design-vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { Empty } from 'ant-design-vue'
 import {
   ColumnInj,
+  Empty,
+  IsPublicInj,
   computed,
-  defineAsyncComponent,
   inject,
+  isDrawerExist,
   ref,
   useLTARStoreOrThrow,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useVModel,
   watch,
 } from '#imports'
-import { IsPublicInj } from '~/context'
 
 const props = defineProps<{ modelValue: boolean }>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
-const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/expanded-form/index.vue'))
-
 const vModel = useVModel(props, 'modelValue', emit)
 
 const column = inject(ColumnInj)
+
+const filterQueryRef = ref()
 
 const {
   childrenExcludedList,
@@ -41,6 +43,8 @@ const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const selectedRowIndex = ref(0)
+
 const linkRow = async (row: Record<string, any>) => {
   if (isNew.value) {
     addLTARRef(row, column?.value as ColumnType)
@@ -57,6 +61,7 @@ watch(vModel, (nextVal, prevVal) => {
     childrenExcludedListPagination.query = ''
     childrenExcludedListPagination.page = 1
     loadChildrenExcludedList()
+    selectedRowIndex.value = 0
   }
 })
 
@@ -101,11 +106,61 @@ const newRowState = computed(() => {
 watch(expandedFormDlg, (nexVal) => {
   if (!nexVal && !isNew.value) vModel.value = false
 })
+
+useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'ArrowLeft':
+      e.stopPropagation()
+      e.preventDefault()
+      if (childrenExcludedListPagination.page > 1) childrenExcludedListPagination.page--
+      break
+    case 'ArrowRight':
+      e.stopPropagation()
+      e.preventDefault()
+      if (
+        childrenExcludedList.value?.pageInfo &&
+        childrenExcludedListPagination.page <
+          (childrenExcludedList.value.pageInfo.totalRows || 1) / childrenExcludedListPagination.size
+      )
+        childrenExcludedListPagination.page++
+      break
+    case 'ArrowUp':
+      selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)
+      e.stopPropagation()
+      e.preventDefault()
+      break
+    case 'ArrowDown':
+      selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
+      e.stopPropagation()
+      e.preventDefault()
+      break
+    case 'Enter':
+      {
+        const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
+        if (selectedRow) {
+          linkRow(selectedRow)
+          e.stopPropagation()
+          e.preventDefault()
+        }
+      }
+      break
+    default: {
+      const el = filterQueryRef.value?.$el
+      if (el && !isDrawerExist()) {
+        filterQueryRef.value.$el.focus()
+      }
+    }
+  }
+})
+const activeRow = (vNode?: InstanceType<typeof Card>) => {
+  vNode?.$el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+}
 </script>
 
 <template>
   <a-modal
     v-model:visible="vModel"
+    :class="{ active: vModel }"
     :footer="null"
     :title="$t('activity.linkRecord')"
     :body-style="{ padding: 0 }"
@@ -114,24 +169,32 @@ watch(expandedFormDlg, (nexVal) => {
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <a-input
+          ref="filterQueryRef"
           v-model:value="childrenExcludedListPagination.query"
           :placeholder="$t('placeholder.filterQuery')"
           class="max-w-[200px]"
           size="small"
-        ></a-input>
+          @keydown.capture.stop
+        />
+
         <div class="flex-1" />
+
         <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
+
         <!--        Add new record -->
         <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">
           {{ $t('activity.addNewRecord') }}
         </a-button>
       </div>
+
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12">
           <a-card
             v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
+            :ref="selectedRowIndex === i ? activeRow : null"
             class="!my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
+            :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
             {{ refRow[relatedTablePrimaryValueProp] }}
@@ -140,6 +203,7 @@ watch(expandedFormDlg, (nexVal) => {
             </span>
           </a-card>
         </div>
+
         <div class="flex justify-center mt-6">
           <a-pagination
             v-if="childrenExcludedList?.pageInfo"
@@ -152,10 +216,11 @@ watch(expandedFormDlg, (nexVal) => {
           />
         </div>
       </template>
+
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
       <Suspense>
-        <ExpandedForm
+        <LazySmartsheetExpandedForm
           v-if="expandedFormDlg"
           v-model="expandedFormDlg"
           :meta="relatedTableMeta"
@@ -171,5 +236,9 @@ watch(expandedFormDlg, (nexVal) => {
 <style scoped>
 :deep(.ant-pagination-item a) {
   line-height: 21px !important;
+}
+
+:deep(.nc-selected-row) {
+  @apply !ring;
 }
 </style>

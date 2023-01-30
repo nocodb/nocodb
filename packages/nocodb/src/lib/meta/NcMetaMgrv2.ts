@@ -4,13 +4,14 @@ import multer from 'multer';
 
 import { NcConfig } from '../../interface/config';
 import ProjectMgr from '../db/sql-mgr/ProjectMgr';
+import { packageVersion } from '../utils/packageVersion';
 import projectAcl from '../utils/projectAcl';
 import Noco from '../Noco';
 import NcPluginMgr from '../v1-legacy/plugins/NcPluginMgr';
-import { packageVersion } from 'nc-help';
 import NcMetaIO from './NcMetaIO';
 import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import ncCreateLookup from './handlersv2/ncCreateLookup';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 // import ncGetMeta from './handlersv2/ncGetMeta';
 
 export default class NcMetaMgrv2 {
@@ -71,6 +72,9 @@ export default class NcMetaMgrv2 {
         storage: multer.diskStorage({
           // dest: path.join(this.config.toolDir, 'uploads')
         }),
+        limits: {
+          fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+        },
       });
       // router.post(this.config.dashboardPath, upload.single('file'));
       router.post(this.config.dashboardPath, upload.any());
@@ -443,26 +447,3 @@ export class XCEeError extends Error {
     throw new XCEeError('Upgrade to Enterprise Edition');
   }
 }
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

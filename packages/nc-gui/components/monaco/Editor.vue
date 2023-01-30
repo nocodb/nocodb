@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import * as monaco from 'monaco-editor'
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import TypescriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
-import { onMounted } from '#imports'
-import { deepCompare } from '~/utils'
+import type { editor as MonacoEditor } from 'monaco-editor'
+import { deepCompare, isDrawerOrModalExist, onMounted, ref, watch } from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any>
@@ -60,7 +59,8 @@ self.MonacoEnvironment = {
 }
 
 const root = ref<HTMLDivElement>()
-let editor: monaco.editor.IStandaloneCodeEditor
+
+let editor: MonacoEditor.IStandaloneCodeEditor
 
 const format = () => {
   editor.setValue(JSON.stringify(JSON.parse(editor?.getValue() as string), null, 2))
@@ -71,18 +71,20 @@ defineExpose({
   isValid,
 })
 
-onMounted(() => {
+onMounted(async () => {
+  const { editor: monacoEditor, languages } = await import('monaco-editor')
+
   if (root.value && lang) {
-    const model = monaco.editor.createModel(vModel, lang)
+    const model = monacoEditor.createModel(vModel, lang)
 
     if (lang === 'json') {
       // configure the JSON language support with schemas and schema associations
-      monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+      languages.json.jsonDefaults.setDiagnosticsOptions({
         validate: validate as boolean,
       })
     }
 
-    editor = monaco.editor.create(root.value, {
+    editor = monacoEditor.create(root.value, {
       model,
       theme: 'vs',
       foldingStrategy: 'indentation',
@@ -107,6 +109,7 @@ onMounted(() => {
           vModel = editor.getValue()
         } else {
           const obj = JSON.parse(editor.getValue())
+
           if (!obj || !deepCompare(vModel, obj)) vModel = obj
         }
       } catch (e) {
@@ -114,6 +117,11 @@ onMounted(() => {
         console.log(e)
       }
     })
+
+    if (!isDrawerOrModalExist()) {
+      // auto focus on json cells only
+      editor.focus()
+    }
   }
 })
 

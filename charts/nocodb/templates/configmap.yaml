@@ -1,0 +1,13 @@
+{{- if .Values.extraEnvs }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nocodb.fullname" . }}
+  labels:
+    {{- include "nocodb.labels" . | nindent 4 }}
+data:
+{{- range $key, $value := .Values.extraEnvs }}
+  {{ $key }}: |-
+    {{- $value | nindent 4 }}
+{{- end }}
+{{- end }}

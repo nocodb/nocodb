@@ -1,8 +1,20 @@
 <script setup lang="ts">
-import { Empty, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { extractSdkResponseErrorMsg, viewIcons } from '~/utils'
-import { computed, h, useNuxtApp, useProject } from '#imports'
+import {
+  Empty,
+  computed,
+  extractSdkResponseErrorMsg,
+  h,
+  message,
+  onMounted,
+  useGlobal,
+  useI18n,
+  useNuxtApp,
+  useProject,
+} from '#imports'
+
+const props = defineProps<{
+  baseId: string
+}>()
 
 const { t } = useI18n()
 
@@ -23,8 +35,9 @@ const searchInput = $ref('')
 const filteredTables = computed(() =>
   tables.filter(
     (el) =>
-      (typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
-      (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase())),
+      el?.base_id === props.baseId &&
+      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
+        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase()))),
   ),
 )
 
@@ -109,12 +122,14 @@ const columns = [
             <MdiMagnify />
           </template>
         </a-input>
+
         <a-button class="self-start nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             Reload
           </div>
         </a-button>
+
         <a-button class="self-start nc-acl-save" @click="saveUIAcl">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <MdiContentSave />
@@ -122,6 +137,7 @@ const columns = [
           </div>
         </a-button>
       </div>
+
       <div class="max-h-600px overflow-y-auto">
         <a-table
           class="w-full"
@@ -140,14 +156,29 @@ const columns = [
           <template #emptyText>
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
           </template>
+
           <template #bodyCell="{ record, column }">
-            <div v-if="column.name === 'table_name'">{{ record._ptn }}</div>
-            <div v-if="column.name === 'view_name'">
-              <div class="flex items-center">
-                <component :is="viewIcons[record.type].icon" :class="`text-${viewIcons[record.type].color} mr-1`" />
-                {{ record.title }}
+            <div v-if="column.name === 'table_name'">
+              <div class="flex items-center gap-1">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon
+                    :meta="{ meta: record.table_meta, type: record.ptype }"
+                    class="text-gray-500"
+                  ></GeneralTableIcon>
+                </div>
+                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record._ptn }}</span>
               </div>
             </div>
+
+            <div v-if="column.name === 'view_name'">
+              <div class="flex items-center gap-1">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralViewIcon :meta="record" class="text-gray-500"></GeneralViewIcon>
+                </div>
+                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.title }}</span>
+              </div>
+            </div>
+
             <div v-for="role in roles" :key="role">
               <div v-if="column.name === role">
                 <a-tooltip>
@@ -157,11 +188,12 @@ const columns = [
                     >
                     <span v-else>Click to hide '{{ record.title }}' for role:{{ role }} in UI dashboard</span>
                   </template>
+
                   <a-checkbox
                     :checked="!record.disabled[role]"
                     :class="`nc-acl-${record.title}-${role}-chkbox`"
                     @change="onRoleCheck(record, role)"
-                  ></a-checkbox>
+                  />
                 </a-tooltip>
               </div>
             </div>

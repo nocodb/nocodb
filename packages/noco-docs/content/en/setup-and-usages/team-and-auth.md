@@ -1,30 +1,23 @@
 ---
-title: 'Team & Auth'
+title: 'Team & Settings > Team & Auth'
 description: 'Breakdown of roles & permissions for team user management'
-position: 630
+position: 580
 category: 'Product'
-menuTitle: 'Team & Auth'
+menuTitle: 'Team & Settings > Team & Auth'
 ---
 
 # Accessing Team & Auth 
+
 - Click on `Team & Settings` from the `Project Menu` 
 - Access `Team & Auth` under `Settings`
   
-  
-<img width="390" alt="image" src="https://user-images.githubusercontent.com/35857179/189115289-07657c15-deab-435f-b0f9-2948007f8c65.png">
-
-
-![Screenshot 2022-09-13 at 10 52 55 AM](https://user-images.githubusercontent.com/86527202/189816444-1591fed2-52d5-4031-b462-f1ad2a72df20.png)
-<!-- ![image](https://user-images.githubusercontent.com/35857179/161902746-aa59b8e5-06d2-4c07-ac60-c82f92b42752.png) -->
+<img width="322" alt="image" src="https://user-images.githubusercontent.com/35857179/194856648-67936db0-ee4d-4060-be3d-af9f86ef8fc6.png">
 
 ## How to Add a User
 
 1. Go to `Team & Auth`, click on `Invite Team`
 
-  
-  ![Screenshot 2022-09-13 at 10 52 55 AM](https://user-images.githubusercontent.com/86527202/189817510-089371d9-1a47-40fa-9dad-0c7b0cea2de0.png)
-
-<!--     ![image](https://user-images.githubusercontent.com/35857179/161903214-1e0f7ba0-6daf-4073-90c9-9d86a40c9f90.png) -->
+<img width="1336" alt="image" src="https://user-images.githubusercontent.com/35857179/194849838-f936128a-3f8a-46ef-a4e3-fdc14b633874.png">
 
 2. Enter the user's `E-mail`. Select `User Role`, and Click `Invite`.
 

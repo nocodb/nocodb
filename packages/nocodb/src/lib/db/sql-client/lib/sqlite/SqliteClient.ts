@@ -5,14 +5,22 @@ import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import queries from './sqlite.queries';
-import lodash from 'lodash';
-import _ from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import mapKeys from 'lodash/mapKeys';
+import find from 'lodash/find';
+import { customAlphabet } from 'nanoid';
+
+const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 6);
+
 const log = new Debug('SqliteClient');
 
 class SqliteClient extends KnexClient {
   private queries: any;
   private _version: any;
+
   constructor(connectionConfig) {
+    // sqlite does not support inserting default values and knex fires a warning without this flag
+    connectionConfig.connection.useNullAsDefault = true;
     super(connectionConfig);
     this.sqlClient = knex(connectionConfig.connection);
     this.queries = queries;
@@ -130,10 +138,14 @@ class SqliteClient extends KnexClient {
         const fd = await promisify(fs.open)(args.database, 'w');
         const close = await promisify(fs.close)(fd);
         log.debug('sqlite file is created', fd, close);
+        // create new knex client
+        this.sqlClient = knex(this.connectionConfig.connection);
+        // set encoding to utf8
+        await this.sqlClient.raw('PRAGMA encoding = "UTF-8"');
+      } else {
+        // create new knex client
+        this.sqlClient = knex(this.connectionConfig.connection);
       }
-
-      // create new knex client
-      this.sqlClient = knex(this.connectionConfig.connection);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -277,7 +289,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - tables[].tn
    */
   async tableList(args: any = {}) {
-    const _func = this.createDatabaseIfNotExists.name;
+    const _func = this.tableList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
@@ -305,7 +317,7 @@ class SqliteClient extends KnexClient {
   }
 
   async schemaList(args: any = {}) {
-    const _func = this.createDatabaseIfNotExists.name;
+    const _func = this.schemaList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
@@ -672,7 +684,7 @@ class SqliteClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let fn = response[0][i];
-          fn = _.mapKeys(fn, function (_v, k) {
+          fn = mapKeys(fn, function (_v, k) {
             return k.toLowerCase();
           });
           fn.function_name = fn.name;
@@ -726,7 +738,7 @@ class SqliteClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
-          procedure = _.mapKeys(procedure, function (_v, k) {
+          procedure = mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
           procedure.procedure_name = procedure.name;
@@ -810,7 +822,7 @@ class SqliteClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let _function = response[0][i];
 
-          _function = _.mapKeys(_function, function (_v, k) {
+          _function = mapKeys(_function, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -862,7 +874,7 @@ class SqliteClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
 
-          procedure = _.mapKeys(procedure, function (_v, k) {
+          procedure = mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -994,7 +1006,7 @@ class SqliteClient extends KnexClient {
   }
 
   async functionDelete(args: any = {}) {
-    const _func = this.createDatabaseIfNotExists.name;
+    const _func = this.functionDelete.name;
     // const result = new Result();
     log.api(`${_func}:args:`, args);
 
@@ -1025,7 +1037,7 @@ class SqliteClient extends KnexClient {
    */
   async _getQuery(args) {
     try {
-      if (_.isEmpty(this._version)) {
+      if (isEmpty(this._version)) {
         const result = await this.version();
         this._version = result.data.object;
         log.debug(
@@ -1485,13 +1497,13 @@ class SqliteClient extends KnexClient {
       let downQuery = '';
 
       for (let i = 0; i < args.columns.length; ++i) {
-        const oldColumn = lodash.find(originalColumns, {
+        const oldColumn = find(originalColumns, {
           cn: args.columns[i].cno,
         });
 
-        if (args.columns[i].altered & 4) {
+        if (!args.columns[i].pk && args.columns[i].altered & 4) {
           // col remove
-          upQuery += await this.alterTableRemoveColumn(
+          upQuery += this.alterTableRemoveColumn(
             args.table,
             args.columns[i],
             oldColumn,
@@ -1538,26 +1550,52 @@ class SqliteClient extends KnexClient {
         }
       }
 
-      upQuery += this.alterTablePK(
+      const pkQuery = this.alterTablePK(
         args.columns,
         args.originalColumns,
-        upQuery,
-        this.sqlClient
+        upQuery
       );
-      //downQuery += alterTablePK(args.originalColumns, args.columns, downQuery);
 
-      if (upQuery) {
-        //upQuery = `ALTER TABLE ${args.columns[0].tn} ${upQuery};`;
-        //downQuery = `ALTER TABLE ${args.columns[0].tn} ${downQuery};`;
+      await this.sqlClient.raw('PRAGMA foreign_keys = OFF;');
+      await this.sqlClient.raw('PRAGMA legacy_alter_table = ON;');
+
+      const trx = await this.sqlClient.transaction();
+
+      try {
+        const queries = upQuery.split(';');
+        for (let i = 0; i < queries.length; i++) {
+          if (queries[i].trim() !== '') {
+            await trx.raw(queries[i]);
+          }
+        }
+
+        if (pkQuery) {
+          await trx.schema.alterTable(args.table, (table) => {
+            for (const pk of pkQuery.oldPks.filter(
+              (el) => !pkQuery.newPks.includes(el)
+            )) {
+              table.dropPrimary(pk);
+            }
+
+            for (const pk of pkQuery.dropPks) {
+              table.dropColumn(pk);
+            }
+
+            if (pkQuery.newPks.length) {
+              table.primary(pkQuery.newPks);
+            }
+          });
+        }
+
+        await trx.commit();
+      } catch (e) {
+        await trx.rollback();
+        log.ppe(e, _func);
+        throw e;
+      } finally {
+        await this.sqlClient.raw('PRAGMA foreign_keys = ON;');
+        await this.sqlClient.raw('PRAGMA legacy_alter_table = OFF;');
       }
-
-      await Promise.all(
-        upQuery.split(';').map(async (query) => {
-          if (query.trim().length) await this.sqlClient.raw(query);
-        })
-      );
-
-      // await this.sqlClient.raw(upQuery);
 
       console.log(upQuery);
 
@@ -1866,62 +1904,72 @@ class SqliteClient extends KnexClient {
     return result;
   }
 
-  alterTablePK(n, o, _existingQuery, createTable = false) {
-    const numOfPksInOriginal = [];
-    const numOfPksInNew = [];
-    let pksChanged = 0;
+  createTablePK(n, _existingQuery) {
+    const newPks = [];
 
     for (let i = 0; i < n.length; ++i) {
       if (n[i].pk) {
-        if (n[i].altered !== 4) numOfPksInNew.push(n[i].cn);
+        if (n[i].altered !== 4) newPks.push(n[i].cn);
       }
-    }
-
-    for (let i = 0; i < o.length; ++i) {
-      if (o[i].pk) {
-        numOfPksInOriginal.push(o[i].cn);
-      }
-    }
-
-    if (numOfPksInNew.length === numOfPksInOriginal.length) {
-      for (let i = 0; i < numOfPksInNew.length; ++i) {
-        if (numOfPksInOriginal[i] !== numOfPksInNew[i]) {
-          pksChanged = 1;
-          break;
-        }
-      }
-    } else {
-      pksChanged = numOfPksInNew.length - numOfPksInOriginal.length;
     }
 
     let query = '';
-    if (!numOfPksInNew.length && !numOfPksInOriginal.length) {
-      // do nothing
-    } else if (pksChanged) {
-      query += numOfPksInOriginal.length ? ',DROP PRIMARY KEY' : '';
-
-      if (numOfPksInNew.length) {
-        if (createTable) {
-          query += this.genQuery(`, PRIMARY KEY(??)`, [numOfPksInNew]);
-        } else {
-          query += this.genQuery(`, ADD PRIMARY KEY(??)`, [numOfPksInNew]);
-        }
-      }
+    if (newPks.length) {
+      query += this.genQuery(`, PRIMARY KEY(??)`, [newPks]);
     }
 
     return query;
   }
 
-  async alterTableRemoveColumn(t, n, _o, _existingQuery) {
-    // let query = existingQuery ? "," : "";
-    // query += ` DROP COLUMN ${n.cn}`;
-    // query = existingQuery ? query : `ALTER TABLE "${t}" ${query};`;
-    // return query;
-    await this.sqlClient.schema.alterTable(t, (tb) => {
-      tb.dropColumn(n.cn);
-    });
+  alterTablePK(n, o, _existingQuery) {
+    const newPks = [];
+    const oldPks = [];
+    const dropPks = [];
+    let pksChanged = false;
 
-    return '';
+    for (let i = 0; i < n.length; ++i) {
+      if (n[i].pk) {
+        if (n[i].altered !== 4) {
+          newPks.push(n[i].cn);
+        } else {
+          dropPks.push(n[i].cn);
+        }
+        pksChanged = true;
+      }
+    }
+
+    for (let i = 0; i < o.length; ++i) {
+      if (o[i].pk) {
+        oldPks.push(o[i].cn);
+      }
+    }
+
+    if (newPks.length === oldPks.length) {
+      if (newPks.every((pk) => oldPks.includes(pk)) && dropPks.length === 0) {
+        pksChanged = false;
+      }
+    }
+
+    if (pksChanged) {
+      return {
+        newPks,
+        oldPks,
+        dropPks,
+      };
+    } else {
+      return false;
+    }
+  }
+
+  alterTableRemoveColumn(t, n, _o, existingQuery) {
+    const shouldSanitize = true;
+    let query = existingQuery ? ';' : '';
+    query += this.genQuery(
+      `ALTER TABLE ?? DROP COLUMN ??`,
+      [t, n.cn],
+      shouldSanitize
+    );
+    return query;
   }
 
   createTableColumn(t, n, o, existingQuery) {
@@ -1943,7 +1991,7 @@ class SqliteClient extends KnexClient {
       query += this.createTableColumn(table, args.columns[i], null, query);
     }
 
-    query += this.alterTablePK(args.columns, [], query, true);
+    query += this.createTablePK(args.columns, query);
 
     query = this.genQuery(`CREATE TABLE ?? (${query});`, [args.tn]);
 
@@ -1956,22 +2004,57 @@ class SqliteClient extends KnexClient {
     const defaultValue = getDefaultValue(n);
     let shouldSanitize = true;
     if (change === 2) {
-      query += this.genQuery(
-        `ALTER TABLE ?? RENAME COLUMN ?? TO ??`,
-        [t, o.cn, n.cn],
+      const suffix = nanoid();
+
+      let backupOldColumnQuery = this.genQuery(
+        `ALTER TABLE ?? RENAME COLUMN ?? TO ??;`,
+        [t, o.cn, `${o.cno}_nc_${suffix}`],
         shouldSanitize
       );
+
+      let addNewColumnQuery = '';
+      addNewColumnQuery += this.genQuery(
+        ` ADD ?? ${n.dt}`,
+        [n.cn],
+        shouldSanitize
+      );
+      addNewColumnQuery += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
+      addNewColumnQuery += n.cdf
+        ? ` DEFAULT ${n.cdf}`
+        : !n.rqd
+        ? ' '
+        : ` DEFAULT ''`;
+      addNewColumnQuery += n.rqd ? ` NOT NULL` : ' ';
+      addNewColumnQuery = this.genQuery(
+        `ALTER TABLE ?? ${addNewColumnQuery};`,
+        [t],
+        shouldSanitize
+      );
+
+      let updateNewColumnQuery = this.genQuery(
+        `UPDATE ?? SET ?? = ??;`,
+        [t, n.cn, `${o.cno}_nc_${suffix}`],
+        shouldSanitize
+      );
+
+      let dropOldColumnQuery = this.genQuery(
+        `ALTER TABLE ?? DROP COLUMN ??;`,
+        [t, `${o.cno}_nc_${suffix}`],
+        shouldSanitize
+      );
+
+      query = `${backupOldColumnQuery}${addNewColumnQuery}${updateNewColumnQuery}${dropOldColumnQuery}`;
     } else if (change === 0) {
       query = existingQuery ? ',' : '';
       query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? (n.cdf.includes(',') ? ` DEFAULT ('${n.cdf}')` : ` DEFAULT ${n.cdf}`) : ' ';
+      query += n.cdf ? ` DEFAULT ${n.cdf}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? (n.cdf.includes(',') ? ` DEFAULT ('${n.cdf}')` : ` DEFAULT ${n.cdf}`) : ' ';
+      query += n.cdf ? ` DEFAULT ${n.cdf}` : !n.rqd ? ' ' : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {

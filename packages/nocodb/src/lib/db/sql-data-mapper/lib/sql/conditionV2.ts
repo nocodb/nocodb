@@ -1,6 +1,6 @@
 import Filter from '../../../../models/Filter';
 import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import { QueryBuilder } from 'knex';
+import { Knex } from 'knex';
 import { XKnex } from '../../index';
 import Column from '../../../../models/Column';
 import LookupColumn from '../../../../models/LookupColumn';
@@ -9,12 +9,11 @@ import RollupColumn from '../../../../models/RollupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-// import LookupColumn from '../../../models/LookupColumn';
 import { sanitize } from './helpers/sanitize';
 
 export default async function conditionV2(
   conditionObj: Filter | Filter[],
-  qb: QueryBuilder,
+  qb: Knex.QueryBuilder,
   knex: XKnex
 ) {
   if (!conditionObj || typeof conditionObj !== 'object') {
@@ -127,7 +126,7 @@ const parseConditionV2 = async (
           )
         )(selectQb);
 
-        return (qbP: QueryBuilder) => {
+        return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
             qbP.whereNotIn(parentColumn.column_name, selectQb);
           else qbP.whereIn(parentColumn.column_name, selectQb);
@@ -162,7 +161,7 @@ const parseConditionV2 = async (
           )
         )(selectQb);
 
-        return (qbP: QueryBuilder) => {
+        return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
             qbP.whereNotIn(childColumn.column_name, selectQb);
           else qbP.whereIn(childColumn.column_name, selectQb);
@@ -217,7 +216,7 @@ const parseConditionV2 = async (
           )
         )(selectQb);
 
-        return (qbP: QueryBuilder) => {
+        return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
             qbP.whereNotIn(childColumn.column_name, selectQb);
           else qbP.whereIn(childColumn.column_name, selectQb);
@@ -246,7 +245,7 @@ const parseConditionV2 = async (
       const model = await column.getModel();
       const formula = await column.getColOptions<FormulaColumn>();
       const builder = (
-        await formulaQueryBuilderv2(formula.formula, null, knex, model)
+        await formulaQueryBuilderv2(formula.formula, null, knex, model, column)
       ).builder;
       return parseConditionV2(
         new Filter({ ...filter, value: knex.raw('?', [filter.value]) } as any),
@@ -270,7 +269,7 @@ const parseConditionV2 = async (
       );
       const _val = customWhereClause ? customWhereClause : filter.value;
 
-      return (qb) => {
+      return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
         switch (filter.comparison_op) {
           case 'eq':
@@ -278,14 +277,18 @@ const parseConditionV2 = async (
             break;
           case 'neq':
           case 'not':
-            qb = qb.whereNot(field, val);
+            qb = qb.where((nestedQb) => {
+              nestedQb
+                .whereNot(field, val)
+                .orWhereNull(customWhereClause ? _val : _field);
+            });
             break;
           case 'like':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
               val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
             } else {
-              val = `%${val}%`;
+              val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
             }
             if (qb?.client?.config?.client === 'pg') {
               qb = qb.whereRaw('??::text ilike ?', [field, val]);
@@ -298,13 +301,58 @@ const parseConditionV2 = async (
               [field, val] = [val, field];
               val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
             } else {
-              val = `%${val}%`;
+              val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
             }
-            qb = qb.whereNot(
-              field,
-              qb?.client?.config?.client === 'pg' ? 'ilike' : 'like',
-              val
-            );
+            qb.where((nestedQb) => {
+              if (qb?.client?.config?.client === 'pg') {
+                nestedQb.whereRaw('??::text not ilike ?', [field, val]);
+              } else {
+                nestedQb.whereNot(field, 'like', val);
+              }
+              nestedQb.orWhereNull(field);
+            });
+            break;
+          case 'allof':
+          case 'anyof':
+          case 'nallof':
+          case 'nanyof':
+            {
+              // Condition for filter, without negation
+              const condition = (builder: Knex.QueryBuilder) => {
+                const items = val.split(',').map((item) => item.trim());
+                for (let i = 0; i < items.length; i++) {
+                  let sql;
+                  const bindings = [field, `%,${items[i]},%`];
+                  if (qb?.client?.config?.client === 'pg') {
+                    sql = "(',' || ??::text || ',') ilike ?";
+                  } else if (qb?.client?.config?.client === 'sqlite3') {
+                    sql = "(',' || ?? || ',') like ?";
+                  } else {
+                    sql = "CONCAT(',', ??, ',') like ?";
+                  }
+                  if (i === 0) {
+                    builder = builder.whereRaw(sql, bindings);
+                  } else {
+                    if (
+                      filter.comparison_op === 'allof' ||
+                      filter.comparison_op === 'nallof'
+                    ) {
+                      builder = builder.andWhereRaw(sql, bindings);
+                    } else {
+                      builder = builder.orWhereRaw(sql, bindings);
+                    }
+                  }
+                }
+              };
+              if (
+                filter.comparison_op === 'allof' ||
+                filter.comparison_op === 'anyof'
+              ) {
+                qb = qb.where(condition);
+              } else {
+                qb = qb.whereNot(condition).orWhereNull(field);
+              }
+            }
             break;
           case 'gt':
             qb = qb.where(field, customWhereClause ? '<' : '>', val);
@@ -328,6 +376,10 @@ const parseConditionV2 = async (
               qb = qb.where(customWhereClause || field, '');
             else if (filter.value === 'notempty')
               qb = qb.whereNot(customWhereClause || field, '');
+            else if (filter.value === 'true')
+              qb = qb.where(customWhereClause || field, true);
+            else if (filter.value === 'false')
+              qb = qb.where(customWhereClause || field, false);
             break;
           case 'isnot':
             if (filter.value === 'null')
@@ -338,6 +390,10 @@ const parseConditionV2 = async (
               qb = qb.whereNot(customWhereClause || field, '');
             else if (filter.value === 'notempty')
               qb = qb.where(customWhereClause || field, '');
+            else if (filter.value === 'true')
+              qb = qb.whereNot(customWhereClause || field, true);
+            else if (filter.value === 'false')
+              qb = qb.whereNot(customWhereClause || field, false);
             break;
           case 'lt':
             qb = qb.where(field, customWhereClause ? '>' : '<', val);
@@ -364,6 +420,16 @@ const parseConditionV2 = async (
             break;
           case 'notnull':
             qb = qb.whereNotNull(customWhereClause || field);
+            break;
+          case 'checked':
+            qb = qb.where(customWhereClause || field, true);
+            break;
+          case 'notchecked':
+            qb = qb.where((grpdQb) => {
+              grpdQb
+                .whereNull(customWhereClause || field)
+                .orWhere(customWhereClause || field, false);
+            });
             break;
           case 'btw':
             qb = qb.whereBetween(field, val.split(','));
@@ -428,7 +494,7 @@ async function generateLookupCondition(
         aliasCount
       );
 
-      return (qbP: QueryBuilder) => {
+      return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
           qbP.whereNotIn(parentColumn.column_name, qb);
         else qbP.whereIn(parentColumn.column_name, qb);
@@ -451,7 +517,7 @@ async function generateLookupCondition(
         aliasCount
       );
 
-      return (qbP: QueryBuilder) => {
+      return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
           qbP.whereNotIn(childColumn.column_name, qb);
         else qbP.whereIn(childColumn.column_name, qb);
@@ -485,7 +551,7 @@ async function generateLookupCondition(
         aliasCount
       );
 
-      return (qbP: QueryBuilder) => {
+      return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
           qbP.whereNotIn(childColumn.column_name, qb);
         else qbP.whereIn(childColumn.column_name, qb);
@@ -497,7 +563,7 @@ async function generateLookupCondition(
 async function nestedConditionJoin(
   filter: Filter,
   lookupColumn: Column,
-  qb: QueryBuilder,
+  qb: Knex.QueryBuilder,
   knex,
   alias: string,
   aliasCount: { count: number }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useGlobal, useProject } from '#imports'
+import { ref, useGlobal, useProject, useRoute } from '#imports'
 
 const showDrawer = ref(false)
 
@@ -20,6 +20,7 @@ const openSwaggerLink = () => {
     @click="showDrawer = true"
   >
     <MdiCommentTextOutline class="mr-1" />
+
     <!-- APIs & Support -->
     <div>{{ $t('title.APIsAndSupport') }}</div>
   </div>
@@ -37,11 +38,13 @@ const openSwaggerLink = () => {
       <!-- Help center -->
       <a-typography-title :level="4" class="!mb-6 !text-gray-500">{{ $t('title.helpCenter') }}</a-typography-title>
 
-      <GeneralSocialCard class="!w-full nc-social-card">
+      <LazyGeneralSocialCard class="!w-full nc-social-card">
         <template #before>
           <a-list-item v-if="project">
             <nuxt-link
               v-e="['a:navbar:user:swagger']"
+              no-prefetch
+              no-rel
               class="!no-underline !text-current py-4 font-semibold"
               target="_blank"
               @click="openSwaggerLink"
@@ -54,7 +57,8 @@ const openSwaggerLink = () => {
             </nuxt-link>
           </a-list-item>
         </template>
-      </GeneralSocialCard>
+      </LazyGeneralSocialCard>
+
       <div class="min-h-10 w-full" />
     </div>
   </a-drawer>

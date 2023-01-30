@@ -29,6 +29,10 @@ const getRow = async (context, {project, table, id}) => {
     .get(`/api/v1/db/data/noco/${project.id}/${table.id}/${id}`)
     .set('xc-auth', context.token);
 
+  if(response.status !== 200) {
+    return undefined
+  }
+
   return response.body;
 };
 

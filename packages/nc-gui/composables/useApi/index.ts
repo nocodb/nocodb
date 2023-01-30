@@ -3,15 +3,16 @@ import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
 import { addAxiosInterceptors } from './interceptors'
-import { BASE_URL } from '~/lib'
-import { createEventHook, ref, unref, useCounter, useGlobal, useNuxtApp } from '#imports'
+import { BASE_FALLBACK_URL, createEventHook, extractSdkResponseErrorMsg, ref, unref, useCounter, useNuxtApp } from '#imports'
 
-export function createApiInstance<SecurityDataType = any>({ baseURL = BASE_URL }: CreateApiOptions = {}): Api<SecurityDataType> {
-  const { appInfo } = $(useGlobal())
+export function createApiInstance<SecurityDataType = any>({
+  baseURL = BASE_FALLBACK_URL,
+}: CreateApiOptions = {}): Api<SecurityDataType> {
+  const config = useRuntimeConfig()
 
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
-      baseURL: baseURL ?? appInfo.ncSiteUrl,
+      baseURL: config.public.ncBackendUrl || baseURL,
     }),
   )
 }
@@ -106,9 +107,9 @@ export function useApi<Data = any, RequestConfig = any>({
         ...unref(axiosConfig),
       }
     },
-    (requestError) => {
+    async (requestError) => {
       errorHook.trigger(requestError)
-      error.value = requestError
+      error.value = await extractSdkResponseErrorMsg(requestError)
 
       response.value = null
 
@@ -127,9 +128,9 @@ export function useApi<Data = any, RequestConfig = any>({
 
       return Promise.resolve(apiResponse)
     },
-    (apiError) => {
+    async (apiError) => {
       errorHook.trigger(apiError)
-      error.value = apiError
+      error.value = await extractSdkResponseErrorMsg(apiError)
 
       onRequestFinish()
 

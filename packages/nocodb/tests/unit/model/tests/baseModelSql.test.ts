@@ -14,6 +14,7 @@ import { expect } from 'chai';
 import Filter from '../../../../src/lib/models/Filter';
 import { createLtarColumn } from '../../factory/column';
 import LinkToAnotherRecordColumn from '../../../../src/lib/models/LinkToAnotherRecordColumn';
+import { isSqlite } from '../../init/db';
 
 function baseModelSqlTests() {
   let context;
@@ -126,6 +127,9 @@ function baseModelSqlTests() {
   });
 
   it('Bulk update record', async () => {
+    // Since sqlite doesn't support multiple sql connections, we can't test bulk update in sqlite
+    if(isSqlite(context)) return
+
     const columns = await table.getColumns();
     const request = {
       clientIp: '::ffff:192.0.0.1',

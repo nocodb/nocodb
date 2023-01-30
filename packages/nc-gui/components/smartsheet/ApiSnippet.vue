@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import HTTPSnippet from 'httpsnippet'
-import { message } from 'ant-design-vue'
 import {
   ActiveViewInj,
   MetaInj,
   inject,
+  message,
+  ref,
   useCopy,
   useGlobal,
   useI18n,
@@ -12,15 +13,14 @@ import {
   useSmartsheetStoreOrThrow,
   useVModel,
   useViewData,
+  watch,
 } from '#imports'
 
-const props = defineProps<Props>()
+const props = defineProps<{
+  modelValue: boolean
+}>()
 
 const emits = defineEmits(['update:modelValue'])
-
-interface Props {
-  modelValue: boolean
-}
 
 const { t } = useI18n()
 
@@ -81,7 +81,7 @@ const selectedLangName = $ref(langs[0].name)
 
 const apiUrl = $computed(
   () =>
-    new URL(`/api/v1/db/data/noco/${project.id}/${meta.title}/views/${view.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
+    new URL(`/api/v1/db/data/noco/${project.id}/${meta?.title}/views/${view?.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
 )
 
 const snippet = $computed(
@@ -103,9 +103,9 @@ const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLa
 
 const code = $computed(() => {
   if (activeLang?.name === 'nocodb-sdk') {
-    return `${selectedClient === 'node' ? 'const { Api } require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
+    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
 const api = new Api({
-  baseURL: ${JSON.stringify(apiUrl)},
+  baseURL: "${(appInfo && appInfo.ncSiteUrl) || '/'}",
   headers: {
     "xc-auth": ${JSON.stringify(token as string)}
   }
@@ -114,8 +114,8 @@ const api = new Api({
 api.dbViewRow.list(
   "noco",
   ${JSON.stringify(project.title)},
-  ${JSON.stringify(meta.title)},
-  ${JSON.stringify(view.title)}, ${JSON.stringify(queryParams, null, 4)}).then(function (data) {
+  ${JSON.stringify(meta?.title)},
+  ${JSON.stringify(view?.title)}, ${JSON.stringify(queryParams, null, 4)}).then(function (data) {
   console.log(data);
 }).catch(function (error) {
   console.error(error);
@@ -145,7 +145,6 @@ watch($$(activeLang), (newLang) => {
   <a-drawer
     v-model:visible="vModel"
     class="h-full relative nc-drawer-api-snippet"
-    style="color: red"
     placement="right"
     size="large"
     :closable="false"
@@ -154,6 +153,7 @@ watch($$(activeLang), (newLang) => {
     <div class="flex flex-col w-full h-full p-4">
       <!--      Code Snippet -->
       <a-typography-title :level="4" class="pb-1">{{ $t('title.codeSnippet') }}</a-typography-title>
+
       <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
         <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
           <template #tab>
@@ -161,7 +161,8 @@ watch($$(activeLang), (newLang) => {
               {{ item.name }}
             </div>
           </template>
-          <monaco-editor
+
+          <LazyMonacoEditor
             class="h-[60vh] border-1 border-gray-100 py-4 rounded-sm"
             :model-value="code"
             :read-only="true"
@@ -170,17 +171,14 @@ watch($$(activeLang), (newLang) => {
             :disable-deep-compare="true"
             hide-minimap
           />
-          <div v-if="activeLang.clients" class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
-            <a-select
-              v-if="activeLang"
-              v-model:value="selectedClient"
-              style="width: 6rem"
-              dropdown-class-name="nc-dropdown-snippet-active-lang"
-            >
+
+          <div v-if="activeLang?.clients" class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
+            <a-select v-model:value="selectedClient" style="width: 6rem" dropdown-class-name="nc-dropdown-snippet-active-lang">
               <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
                 {{ client }}
               </a-select-option>
             </a-select>
+
             <a-button
               v-e="[
                 'c:snippet:copy',
@@ -188,7 +186,8 @@ watch($$(activeLang), (newLang) => {
               ]"
               type="primary"
               @click="onCopyToClipboard"
-              >{{ $t('general.copy') }}
+            >
+              {{ $t('general.copy') }}
             </a-button>
           </div>
 

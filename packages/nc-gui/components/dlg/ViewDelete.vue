@@ -1,12 +1,6 @@
 <script lang="ts" setup>
-import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import { onKeyStroke, useApi, useNuxtApp, useVModel } from '#imports'
+import { extractSdkResponseErrorMsg, message, onKeyStroke, useApi, useI18n, useNuxtApp, useVModel } from '#imports'
 
-const props = defineProps<Props>()
-const emits = defineEmits<Emits>()
-const { t } = useI18n()
 interface Props {
   modelValue: boolean
   view?: Record<string, any>
@@ -16,6 +10,12 @@ interface Emits {
   (event: 'update:modelValue', data: boolean): void
   (event: 'deleted'): void
 }
+
+const props = defineProps<Props>()
+
+const emits = defineEmits<Emits>()
+
+const { t } = useI18n()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -48,16 +48,23 @@ async function onDelete() {
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="isLoading" wrap-class-name="nc-modal-view-delete">
+  <a-modal
+    v-model:visible="vModel"
+    class="!top-[35%]"
+    :class="{ active: vModel }"
+    :confirm-loading="isLoading"
+    wrap-class-name="nc-modal-view-delete"
+  >
     <template #title> {{ $t('general.delete') }} {{ $t('objects.view') }} </template>
 
     {{ $t('msg.info.deleteViewConfirmation') }}
 
     <template #footer>
       <a-button key="back" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" danger html-type="submit" :loading="isLoading" @click="onDelete">{{
-        $t('general.submit')
-      }}</a-button>
+
+      <a-button key="submit" danger html-type="submit" :loading="isLoading" @click="onDelete">
+        {{ $t('general.submit') }}
+      </a-button>
     </template>
   </a-modal>
 </template>

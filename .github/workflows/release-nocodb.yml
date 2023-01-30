@@ -45,13 +45,12 @@ jobs:
             TARGET_TAG=$(echo ${PREV_TAG} | awk -F. -v OFS=. '{$NF += 1 ; print}')
           fi
 
-          echo target version: ${TARGET_TAG}
-          echo previous version: ${PREV_TAG}
-          echo "::set-output name=target_tag::${TARGET_TAG}"
-          echo "::set-output name=prev_tag::${PREV_TAG}"
+          echo "TARGET_TAG=${TARGET_TAG}" >> $GITHUB_OUTPUT
+          echo "PREV_TAG=${PREV_TAG}" >> $GITHUB_OUTPUT
       - name: Verify
         run : |
-          echo ${{ steps.process-input.outputs.target_tag }}
+          echo TARGET_TAG: ${{ steps.process-input.outputs.target_tag }}
+          echo PREV_TAG: ${{ steps.process-input.outputs.prev_tag }}
 
   # Merge develop to master
   pr-to-master:
@@ -104,12 +103,12 @@ jobs:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
   # Close all issues with target tags 'Status: Ready for Next Release'
-  close-issues:
-    needs: [release-docker, process-input]
-    uses: ./.github/workflows/release-close-issue.yml
-    with:
-      issue_label: 'Status: Ready for Next Release'
-      version: ${{ needs.process-input.outputs.target_tag }}
+  # close-issues:
+  #   needs: [release-docker, process-input]
+  #   uses: ./.github/workflows/release-close-issue.yml
+  #   with:
+  #     issue_label: '🚀 Status: Ready for Next Release'
+  #     version: ${{ needs.process-input.outputs.target_tag }}
 
   # Publish Docs
   publish-docs:
@@ -118,12 +117,7 @@ jobs:
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
-  # Change nocodb-sdk back to local path
-  update-sdk-path:
-    needs: publish-docs
-    uses: ./.github/workflows/update-sdk-path.yml
-
   # Sync changes to develop
   sync-to-develop:
-    needs: update-sdk-path
+    needs: close-issues
     uses: ./.github/workflows/sync-to-develop.yml

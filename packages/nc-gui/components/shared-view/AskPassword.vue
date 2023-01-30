@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import type { VNodeRef } from '@vue/runtime-core'
+import type { InputPassword } from 'ant-design-vue'
+import { extractSdkResponseErrorMsg, message, ref, useRoute, useSharedView, useVModel } from '#imports'
 
-interface Props {
+const props = defineProps<{
   modelValue: boolean
-}
-const props = defineProps<Props>()
+}>()
+
 const emit = defineEmits(['update:modelValue'])
 
+const vModel = useVModel(props, 'modelValue', emit)
+
 const route = useRoute()
+
 const { loadSharedView } = useSharedView()
 
 const formState = ref({ password: undefined })
-const vModel = useVModel(props, 'modelValue', emit)
 
 const onFinish = async () => {
   try {
@@ -23,11 +26,14 @@ const onFinish = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const focus: VNodeRef = (el: typeof InputPassword) => el?.$el?.querySelector('input').focus()
 </script>
 
 <template>
   <a-modal
     v-model:visible="vModel"
+    :class="{ active: vModel }"
     :closable="false"
     width="28rem"
     centered
@@ -38,14 +44,14 @@ const onFinish = async () => {
   >
     <div class="w-full flex flex-col">
       <a-typography-title :level="4">This shared view is protected</a-typography-title>
+
       <a-form ref="formRef" :model="formState" class="mt-2" @finish="onFinish">
         <a-form-item name="password" :rules="[{ required: true, message: 'Password is required' }]">
-          <a-input-password v-model:value="formState.password" placeholder="Enter password" />
+          <a-input-password :ref="focus" v-model:value="formState.password" placeholder="Enter password" />
         </a-form-item>
+
         <a-button type="primary" html-type="submit">Unlock</a-button>
       </a-form>
     </div>
   </a-modal>
 </template>
-
-<style scoped lang="scss"></style>

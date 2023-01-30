@@ -42,23 +42,7 @@ module.exports = {
   //   fs: 'empty'
   // },
   plugins: [
-
-
     new webpack.BannerPlugin({banner: "#! /usr/bin/env node", raw: true}),
-    // new CopyPlugin({
-    //   patterns: [
-    //     // {
-    //     //   from: "src/sample-db/chinook.sqlite",
-    //     //   to: 'chinook.sqlite',
-    //     //   // flatten: true,
-    //     // },
-    //     {
-    //       from: "src/sample-db/sakila.db",
-    //       to: 'sakila.db',
-    //       // flatten: true,
-    //     },
-    //   ],
-    // })
   ],
 
   target: 'node',

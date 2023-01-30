@@ -1,29 +1,22 @@
 <script lang="ts" setup>
 import type { Form } from 'ant-design-vue'
-import { message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
+import type { VNodeRef } from '@vue/runtime-core'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   extractSdkResponseErrorMsg,
+  message,
   navigateTo,
-  nextTick,
-  onMounted,
   projectTitleValidator,
   reactive,
   ref,
-  useApi,
+  useProject,
   useRoute,
-  useSidebar,
 } from '#imports'
-
-const { isLoading } = useApi()
-
-useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 
-const { project, loadProject, updateProject } = useProject(route.params.projectId as string)
-
-await loadProject()
+const { project, loadProject, updateProject, isLoading } = useProject()
 
 const nameValidationRules = [
   {
@@ -31,7 +24,7 @@ const nameValidationRules = [
     message: 'Project name is required',
   },
   projectTitleValidator,
-]
+] as RuleObject[]
 
 const form = ref<typeof Form>()
 
@@ -49,30 +42,23 @@ const renameProject = async () => {
   }
 }
 
-// select and focus title field on load
-onMounted(async () => {
-  formState.title = project.value.title as string
-  await nextTick(() => {
-    // todo: replace setTimeout and follow better approach
-    setTimeout(() => {
-      const input = form.value?.$el?.querySelector('input[type=text]')
+onBeforeMount(async () => {
+  await loadProject(false)
 
-      input.setSelectionRange(0, formState.title?.length)
-
-      input.focus()
-    }, 500)
-  })
+  formState.title = project.value?.title
 })
+
+const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
   <div
-    class="update-project bg-white relative flex-auto flex flex-col justify-center gap-2 p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+    class="update-project relative flex-auto flex flex-col justify-center gap-2 p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
   >
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+    <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
 
     <div
-      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"
+      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
       @click="navigateTo('/')"
     >
       <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
@@ -80,7 +66,10 @@ onMounted(async () => {
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.editProject') }}</h1>
 
+    <a-skeleton v-if="isLoading" />
+
     <a-form
+      v-else
       ref="form"
       :model="formState"
       name="basic"
@@ -91,11 +80,11 @@ onMounted(async () => {
       @finish="renameProject"
     >
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules">
-        <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+        <a-input :ref="focus" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>
 
       <div class="text-center">
-        <button v-e="['a:project:edit:rename']" type="submit" class="submit">
+        <button v-e="['a:project:edit:rename']" type="submit" class="scaling-btn bg-opacity-100">
           <span class="flex items-center gap-2">
             <MaterialSymbolsRocketLaunchOutline />
             {{ $t('general.edit') }}
@@ -110,25 +99,7 @@ onMounted(async () => {
 .update-project {
   .ant-input-affix-wrapper,
   .ant-input {
-    @apply !appearance-none my-1 border-1 border-solid rounded;
-  }
-
-  .submit {
-    @apply z-1 relative color-transition rounded p-3 text-white shadow-sm;
-
-    &::after {
-      @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
-      content: '';
-      z-index: -1;
-    }
-
-    &:hover::after {
-      @apply transform scale-110 ring ring-accent;
-    }
-
-    &:active::after {
-      @apply ring ring-accent;
-    }
+    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
   }
 }
 </style>

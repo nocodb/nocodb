@@ -1,31 +1,57 @@
 import clone from 'just-clone'
-import { Form, message } from 'ant-design-vue'
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { computed, createInjectionState, extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
+import type { RuleObject } from 'ant-design-vue/es/form'
+import {
+  Form,
+  computed,
+  createInjectionState,
+  extractSdkResponseErrorMsg,
+  message,
+  ref,
+  useI18n,
+  useMetas,
+  useNuxtApp,
+  useProject,
+  watch,
+} from '#imports'
 
 const useForm = Form.useForm
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
+interface ValidationsObj {
+  [key: string]: RuleObject[]
+}
+
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
   (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
-    const { sqlUi } = useProject()
+    const { sqlUis, isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc } = useProject()
     const { $api } = useNuxtApp()
+
     const { getMeta } = useMetas()
+
     const { t } = useI18n()
+
     const { $e } = useNuxtApp()
 
-    const isEdit = computed(() => !!column.value?.id)
+    const sqlUi = ref(meta.value?.base_id ? sqlUis.value[meta.value?.base_id] : Object.values(sqlUis.value)[0])
+
+    const isEdit = computed(() => !!column?.value?.id)
+
+    const isMysql = computed(() => isMysqlFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+
+    const isPg = computed(() => isPgFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
+
+    const isMssql = computed(() => isMssqlFunc(meta.value?.base_id ? meta.value?.base_id : Object.keys(sqlUis.value)[0]))
 
     const idType = null
 
-    const additionalValidations = ref<Record<string, any>>({})
+    const additionalValidations = ref<ValidationsObj>({})
 
-    const setAdditionalValidations = (validations: Record<string, any>) => {
-      additionalValidations.value = validations
+    const setAdditionalValidations = (validations: ValidationsObj) => {
+      additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
 
     const formState = ref<Record<string, any>>({
@@ -83,7 +109,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const onUidtOrIdTypeChange = () => {
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
-        ...formState.value,
+        ...(!isEdit.value && {
+          // only take title, column_name and uidt when creating a column
+          // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
+          // to mess up the column creation
+          title: formState.value.title,
+          column_name: formState.value.column_name,
+          uidt: formState.value.uidt,
+        }),
+        ...(isEdit.value && {
+          // take the existing formState.value when editing a column
+          // LTAR is not available in this case
+          ...formState.value,
+        }),
         meta: {},
         rqd: false,
         pk: false,
@@ -165,13 +203,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       if (cdf) formState.value.cdf = formState.value.cdf || null
     }
 
-    const addOrUpdate = async (onSuccess: () => void) => {
+    const addOrUpdate = async (onSuccess: () => void, columnPosition?: Pick<ColumnReqType, 'column_order'>) => {
       try {
         if (!(await validate())) return
-      } catch (e) {
-        console.log(e)
-        console.trace()
-        message.error(t('msg.error.formValidationFailed'))
+      } catch (e: any) {
+        const errorMsgs = e.errorFields
+          ?.map((e: any) => e.errors?.join(', '))
+          .filter(Boolean)
+          .join(', ')
+        if (errorMsgs) {
+          message.error(errorMsgs)
+        } else {
+          message.error(t('msg.error.formValidationFailed'))
+        }
         return
       }
 
@@ -179,6 +223,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         formState.value.table_name = meta.value?.table_name
         // formState.value.title = formState.value.column_name
         if (column.value) {
+          // reset column validation if column is not to be validated
+          if (!columnToValidate.includes(formState.value.uidt)) {
+            formState.value.validate = ''
+          }
           await $api.dbTableColumn.update(column.value?.id as string, formState.value)
           // Column updated
           message.success(t('msg.success.columnUpdated'))
@@ -192,7 +240,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             //   };
             // }
           }
-          await $api.dbTableColumn.create(meta.value?.id as string, formState.value)
+          await $api.dbTableColumn.create(meta.value?.id as string, { ...formState.value, ...columnPosition })
 
           /** if LTAR column then force reload related table meta */
           if (formState.value.uidt === UITypes.LinkToAnotherRecord && meta.value?.id !== formState.value.childId) {
@@ -231,6 +279,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isEdit,
       column,
       sqlUi,
+      isMssql,
+      isPg,
+      isMysql,
     }
   },
 )
@@ -239,6 +290,8 @@ export { useProvideColumnCreateStore }
 
 export function useColumnCreateStoreOrThrow() {
   const columnCreateStore = useColumnCreateStore()
+
   if (columnCreateStore == null) throw new Error('Please call `useProvideColumnCreateStore` on the appropriate parent component')
+
   return columnCreateStore
 }

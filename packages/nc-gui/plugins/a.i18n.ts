@@ -1,7 +1,8 @@
-import { defineNuxtPlugin } from 'nuxt/app'
 import { createI18n } from 'vue-i18n'
-import { nextTick } from 'vue'
+import { isClient } from '@vueuse/core'
+import { applyLanguageDirection, defineNuxtPlugin, isRtlLang, nextTick } from '#imports'
 import type { Language, NocoI18n } from '~/lib'
+import { LanguageAlias } from '~/lib'
 
 let globalI18n: NocoI18n
 
@@ -24,9 +25,16 @@ export async function setI18nLanguage(locale: keyof typeof Language, i18n = glob
   }
 
   i18n.global.locale.value = locale
+
+  if (isClient) applyLanguageDirection(isRtlLang(locale) ? 'rtl' : 'ltr')
 }
 
-export async function loadLocaleMessages(locale: keyof typeof Language, i18n: NocoI18n = globalI18n) {
+export async function loadLocaleMessages(
+  locale: keyof typeof Language | keyof typeof LanguageAlias,
+  i18n: NocoI18n = globalI18n,
+) {
+  if (Object.keys(LanguageAlias).includes(locale)) locale = LanguageAlias[locale as keyof typeof LanguageAlias]
+
   // load locale messages with dynamic import
   const messages = await import(`../lang/${locale}.json`)
 

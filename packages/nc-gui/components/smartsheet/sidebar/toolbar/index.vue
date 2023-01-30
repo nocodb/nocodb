@@ -1,40 +1,32 @@
 <script lang="ts" setup>
-import ExportCache from './ExportCache.vue'
-import DeleteCache from './DeleteCache.vue'
-import DebugMeta from './DebugMeta.vue'
-import ToggleDrawer from './ToggleDrawer.vue'
+let debug = $ref(false)
 
-const debug = $ref(false)
+let clickCount = $ref(0)
 
-const clickCount = $ref(0)
+const onClick = () => {
+  clickCount = clickCount + 1
+  debug = clickCount >= 4
+}
 </script>
 
 <template>
-  <div
-    class="flex gap-2 justify-start"
-    @click="
-      () => {
-        clickCount = clickCount + 1
-        debug = clickCount >= 4
-      }
-    "
-  >
+  <div class="flex gap-2 justify-start" @click="onClick">
     <slot name="start" />
 
-    <ToggleDrawer />
+    <LazySmartsheetSidebarToolbarToggleDrawer />
 
     <span></span>
 
     <template v-if="debug">
-      <ExportCache />
+      <LazySmartsheetSidebarToolbarExportCache />
 
       <div class="dot" />
 
-      <DeleteCache />
+      <LazySmartsheetSidebarToolbarDeleteCache />
 
       <div class="dot" />
 
-      <DebugMeta />
+      <LazySmartsheetSidebarToolbarDebugMeta />
 
       <div class="dot" />
     </template>

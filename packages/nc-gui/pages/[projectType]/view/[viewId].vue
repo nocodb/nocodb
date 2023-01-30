@@ -1,16 +1,5 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import {
-  ReadonlyInj,
-  ReloadViewDataHookInj,
-  createEventHook,
-  definePageMeta,
-  extractSdkResponseErrorMsg,
-  provide,
-  ref,
-  useRoute,
-  useSharedView,
-} from '#imports'
+import { definePageMeta, extractSdkResponseErrorMsg, message, ref, useRoute, useSharedView } from '#imports'
 
 definePageMeta({
   public: true,
@@ -20,11 +9,8 @@ definePageMeta({
 
 const route = useRoute()
 
-const reloadEventHook = createEventHook<void>()
-provide(ReloadViewDataHookInj, reloadEventHook)
-provide(ReadonlyInj, true)
-
 const { loadSharedView } = useSharedView()
+
 const showPassword = ref(false)
 
 try {
@@ -40,11 +26,11 @@ try {
 </script>
 
 <template>
-  <NuxtLayout id="content" class="flex" name="shared-view">
+  <NuxtLayout class="flex" name="shared-view">
     <div v-if="showPassword">
-      <SharedViewAskPassword v-model="showPassword" />
+      <LazySharedViewAskPassword v-model="showPassword" />
     </div>
 
-    <SharedViewGrid v-else />
+    <LazySharedViewGrid v-else />
   </NuxtLayout>
 </template>

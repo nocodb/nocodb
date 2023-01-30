@@ -1,28 +1,25 @@
 <script lang="ts" setup>
-import { onUnmounted, useEventListener, useGlobal, useState, watch } from '#imports'
+import { onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
 import MdiAccountEdit from '~icons/mdi/account-edit'
 import MdiEyeOutline from '~icons/mdi/eye-outline'
 import MdiCommentAccountOutline from '~icons/mdi/comment-account-outline'
+import { ProjectRole } from '~/lib'
 
 const { float } = defineProps<{ float?: boolean }>()
 
-const position = useState('preview-as-position', () => ({
-  y: `${window.innerHeight - 100}px`,
-  x: `${window.innerWidth / 2 - 250}px`,
-}))
-
 const { $e } = useNuxtApp()
+
 const { t } = useI18n()
 
-const roleList = [
-  { value: 'editor', label: t('objects.roleType.editor') },
-  { value: 'commenter', label: t('objects.roleType.commenter') },
-  { value: 'viewer', label: t('objects.roleType.viewer') },
-]
-
 const { previewAs } = useGlobal()
+
+const roleList = [
+  { value: ProjectRole.Editor, label: t('objects.roleType.editor') },
+  { value: ProjectRole.Commenter, label: t('objects.roleType.commenter') },
+  { value: ProjectRole.Viewer, label: t('objects.roleType.viewer') },
+]
 
 const roleIcon = {
   owner: MdiAccountStar,
@@ -31,6 +28,11 @@ const roleIcon = {
   viewer: MdiEyeOutline,
   commenter: MdiCommentAccountOutline,
 }
+
+const position = ref({
+  y: `${window.innerHeight - 100}px`,
+  x: `${window.innerWidth / 2 - 250}px`,
+})
 
 const divMove = (e: MouseEvent) => {
   position.value = { y: `${e.clientY - 10}px`, x: `${e.clientX - 18}px` }
@@ -49,7 +51,7 @@ onUnmounted(() => {
   window.removeEventListener('mousemove', divMove, true)
 })
 
-/** reload page on previewas change */
+/** reload page on preview-as change */
 watch(previewAs, (newRole) => {
   $e('a:navdraw:preview', { role: newRole })
   window.location.reload()
@@ -63,7 +65,7 @@ watch(previewAs, (newRole) => {
     class="floating-reset-btn nc-floating-preview-btn p-4"
     :style="{ top: position.y, left: position.x }"
   >
-    <MdiDrag style="cursor: move" class="text-white" @mousedown="mouseDown" />
+    <MdiDrag class="cursor-move text-white" @mousedown="mouseDown" />
 
     <div class="divider" />
 
@@ -80,7 +82,7 @@ watch(previewAs, (newRole) => {
       <div class="divider -ml-4" />
 
       <!-- Close -->
-      <div class="flex items-center gap-2 cursor-pointer" @click="previewAs = null">
+      <div class="flex items-center gap-2 cursor-pointer nc-preview-btn-exit-to-app" @click="previewAs = null">
         <MdiExitToApp />
         {{ $t('general.close') }}
       </div>
@@ -89,7 +91,7 @@ watch(previewAs, (newRole) => {
 
   <template v-else>
     <template v-for="role of roleList" :key="role.value">
-      <a-menu-item @click="previewAs = role.value">
+      <a-menu-item class="nc-role-preview-menu" @click="previewAs = role.value">
         <div class="nc-project-menu-item group">
           <component :is="roleIcon[role.value]" class="group-hover:text-accent" />
 

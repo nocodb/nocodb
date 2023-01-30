@@ -1,9 +1,7 @@
 import osLocale from 'os-locale';
 
 class Locales {
-
   public static getPrompt() {
-
     const x = new Date();
     const offset = -x.getTimezoneOffset();
 
@@ -11,7 +9,6 @@ class Locales {
 
     const locale = offset === 330 ? 'en-IN' : osLocale.sync();
     switch (locale) {
-
       case 'en':
       case 'en-GB':
       case 'en-AU':
@@ -20,7 +17,8 @@ class Locales {
       case 'en-US':
       default:
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             'Facebook',
@@ -29,10 +27,12 @@ class Locales {
             'Reddit',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "English",
-          message: '\n\n👋 Hello! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-        }
+            '- - - - - - - -'
+          ],
+          language: 'English',
+          message: '\n\n👋 Hello! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'zh':
@@ -47,17 +47,18 @@ class Locales {
             'WeChat',
             'Github - ⭐️ or 👀 repo',
             '豆瓣', // douban
-            '新浪微博',// weibo
+            '新浪微博', // weibo
             'Renren',
             'Line',
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Chinese",
-          message: '\n\n👋 你好! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Chinese',
+          message: '\n\n👋 你好! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'en-IN':
@@ -71,13 +72,13 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "English (India)",
-          message: '\n\n👋 Hello / नमस्ते / ನ ಮ ಸ್ಕಾ ರ / ന മ സ് കാ രം / வணக்கம்! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'English (India)',
+          message: '\n\n👋 Hello / नमस्ते / ನ ಮ ಸ್ಕಾ ರ / ന മ സ് കാ രം / வணக்கம்! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
-
 
       case 'de':
       case 'de-DE':
@@ -94,18 +95,19 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "German",
-          message: '\n\n👋 Hallo! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'German',
+          message: '\n\n👋 Hallo! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
-
 
       case 'el':
       case 'el-GR':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -114,11 +116,12 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Greek",
-          message: '\n\n👋 Γειά σου! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Greek',
+          message: '\n\n👋 Γειά σου! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'es':
@@ -134,7 +137,8 @@ class Locales {
       case 'es-US':
       case 'es-VE':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -143,17 +147,19 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Spanish",
-          message: '\n\n👋 Hola! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Spanish',
+          message: '\n\n👋 Hola! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'fa':
       case 'fa-IR':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -162,17 +168,19 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Persian",
-          message: '\n\n👋 سلام! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Persian',
+          message: '\n\n👋 سلام! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'fi':
       case 'fi-FI':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -181,22 +189,22 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Finnish",
-          message: '\n\n👋 سلام! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Finnish',
+          message: '\n\n👋 سلام! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
-
 
       case 'fr':
       case 'fr-CA':
       case 'fr-FR':
       case 'fr-BE':
       case 'fr-CH':
-
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -205,17 +213,19 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "French",
-          message: '\n\n👋 Bonjour! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'French',
+          message: '\n\n👋 Bonjour! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'ga':
       case 'ga-IE':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -224,17 +234,19 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Irish",
-          message: '\n\n👋 Dia dhuit! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Irish',
+          message: '\n\n👋 Dia dhuit! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'he':
       case 'he-IL':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -243,17 +255,19 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Hebrew",
-          message: '\n\n👋 שלום! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Hebrew',
+          message: '\n\n👋 שלום! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'it':
       case 'it-IT':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -262,18 +276,19 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Italian",
-          message: '\n\n👋 Ciao! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Italian',
+          message: '\n\n👋 Ciao! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
-
 
       case 'ja':
       case 'ja-JP':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Line',
             'Linkedin',
@@ -284,17 +299,19 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Japanese",
-          message: '\n\n👋 こんにちは! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Japanese',
+          message: '\n\n👋 こんにちは! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'ko':
       case 'ko-KR':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Line',
             'Linkedin',
@@ -303,20 +320,22 @@ class Locales {
             'WhatsApp',
             'WeChat',
             '豆瓣', // douban
-            '新浪微博',// weibo
+            '新浪微博', // weibo
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Korean",
-          message: '\n\n👋 여보세요! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Korean',
+          message: '\n\n👋 여보세요! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'mn-MN':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -324,20 +343,21 @@ class Locales {
             'WhatsApp',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Mongolian",
-          message: '\n\n👋 Сайн уу! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Mongolian',
+          message: '\n\n👋 Сайн уу! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
-
 
       case 'nl':
       case 'nl-BE':
       case 'nl-NL':
       case 'nn-NO':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -345,19 +365,20 @@ class Locales {
             'WhatsApp',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Dutch",
-          message: '\n\n👋 Hallo! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Dutch',
+          message: '\n\n👋 Hallo! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
-
 
       case 'pt':
       case 'pt-BR':
       case 'pt-PT':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -365,17 +386,19 @@ class Locales {
             'WhatsApp',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Portuguese",
-          message: '\n\n👋 Olá! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Portuguese',
+          message: '\n\n👋 Olá! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'ru':
       case 'ru-RU':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'OKru',
             'Telegram',
@@ -386,18 +409,19 @@ class Locales {
             'WhatsApp',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Russian",
-          message: '\n\n👋 Здравствуйте! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Russian',
+          message: '\n\n👋 Здравствуйте! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
-
 
       case 'sv':
       case 'sv-SE':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -405,18 +429,19 @@ class Locales {
             'WhatsApp',
             'WeChat',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Swedish",
-          message: '\n\n👋 Hej! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Swedish',
+          message: '\n\n👋 Hej! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
-
 
       case 'th':
       case 'th-TH':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -425,17 +450,19 @@ class Locales {
             'Telegram',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Thai",
-          message: '\n\n👋 สวัสดี! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Thai',
+          message: '\n\n👋 สวัสดี! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'tl':
       case 'tl-PH':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -444,18 +471,19 @@ class Locales {
             'WeChat',
             'Telegram',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Filipino",
-          message: '\n\n👋 Kamusta! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Filipino',
+          message: '\n\n👋 Kamusta! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
-
 
       case 'tr':
       case 'tr-TR':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -463,17 +491,19 @@ class Locales {
             'WhatsApp',
             'Telegram',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Turkish",
-          message: '\n\n👋 Merhaba! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Turkish',
+          message: '\n\n👋 Merhaba! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'uk':
       case 'uk-UA':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'OKru',
             // 'Reddit',
@@ -485,17 +515,19 @@ class Locales {
             'Wykop',
             'Next time',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Ukrainian",
-          message: '\n\n👋 Здравствуйте! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Ukrainian',
+          message: '\n\n👋 Здравствуйте! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
 
       case 'vi':
       case 'vi-VN':
         prompt = {
-          choices: ['Twitter',
+          choices: [
+            'Twitter',
             'Github - ⭐️ or 👀 repo',
             'Linkedin',
             // 'Reddit',
@@ -504,41 +536,17 @@ class Locales {
             'WeChat',
             'Telegram',
             'Please dont ask me',
-            '- - - - - - - -'],
-          language: "Vietnamese",
-          message: '\n\n👋 xin chào! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'.green
-
-        }
+            '- - - - - - - -'
+          ],
+          language: 'Vietnamese',
+          message: '\n\n👋 xin chào! 😀 \n\n🔥 Loving XgenCloud? 🔥\n\n🙏 Please mention a word about us to your friends & followers. 🙏\n\n'
+            .green
+        };
         break;
     }
 
     return prompt;
-
   }
-
 }
 
-
 export default Locales;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

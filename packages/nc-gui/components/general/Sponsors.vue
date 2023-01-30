@@ -25,7 +25,7 @@ const { nav = false } = defineProps<Props>()
     </div>
 
     <div class="flex justify-center">
-      <nuxt-link href="https://github.com/sponsors/nocodb" target="_blank">
+      <nuxt-link no-prefetch no-rel href="https://github.com/sponsors/nocodb" target="_blank">
         <a-button class="!shadow rounded" size="large">
           <div class="flex items-center">
             <mdi-cards-heart class="text-red-500 mr-2" />

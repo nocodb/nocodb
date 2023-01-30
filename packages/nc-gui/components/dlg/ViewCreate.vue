@@ -1,20 +1,32 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import { message } from 'ant-design-vue'
-import type { Form as AntForm } from 'ant-design-vue'
-import { capitalize, inject } from '@vue/runtime-core'
-import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
-import { MetaInj, ViewListInj } from '~/context'
-import { generateUniqueTitle } from '~/utils'
-import { computed, nextTick, reactive, unref, useApi, useVModel, watch } from '#imports'
+import type { Form as AntForm, SelectProps } from 'ant-design-vue'
+import { capitalize } from '@vue/runtime-core'
+import type { FormType, GalleryType, GridType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
+import {
+  computed,
+  generateUniqueTitle,
+  message,
+  nextTick,
+  onBeforeMount,
+  reactive,
+  ref,
+  unref,
+  useApi,
+  useI18n,
+  useVModel,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue: boolean
   type: ViewTypes
   title?: string
   selectedViewId?: string
+  groupingFieldColumnId?: string
+  views: ViewType[]
+  meta: TableType
 }
 
 interface Emits {
@@ -26,9 +38,11 @@ interface Form {
   title: string
   type: ViewTypes
   copy_from_id: string | null
+  // for kanban view only
+  fk_grp_col_id: string | null
 }
 
-const props = defineProps<Props>()
+const { views = [], meta, selectedViewId, groupingFieldColumnId, ...props } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
@@ -42,29 +56,33 @@ const { t } = useI18n()
 
 const { isLoading: loading, api } = useApi()
 
-const meta = inject(MetaInj, ref())
-
-const viewList = inject(ViewListInj)
-
 const form = reactive<Form>({
   title: props.title || '',
   type: props.type,
   copy_from_id: null,
+  fk_grp_col_id: null,
 })
 
-const formRules = [
+const singleSelectFieldOptions = ref<SelectProps['options']>([])
+
+const viewNameRules = [
   // name is required
   { required: true, message: `${t('labels.viewName')} ${t('general.required')}` },
   // name is unique
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        ;(unref(viewList) || []).every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== v)
+        views.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== v)
           ? resolve(true)
           : reject(new Error(`View name should be unique`))
       }),
     message: 'View name should be unique',
   },
+]
+
+const groupingFieldColumnRules = [
+  // name is required
+  { required: true, message: `${t('general.groupingField')} ${t('general.required')}` },
 ]
 
 const typeAlias = computed(
@@ -77,18 +95,40 @@ const typeAlias = computed(
     }[props.type]),
 )
 
-watch(vModel, (value) => value && init())
+onBeforeMount(init)
 
 watch(
   () => props.type,
-  (newType) => (form.type = newType),
+  (newType) => {
+    form.type = newType
+  },
 )
 
 function init() {
-  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), viewList?.value || [], 'title')
+  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), views, 'title')
 
-  if (props.selectedViewId) {
-    form.copy_from_id = props.selectedViewId
+  if (selectedViewId) {
+    form.copy_from_id = selectedViewId
+  }
+
+  // preset the grouping field column
+  if (props.type === ViewTypes.KANBAN) {
+    singleSelectFieldOptions.value = meta
+      .columns!.filter((el) => el.uidt === UITypes.SingleSelect)
+      .map((field) => {
+        return {
+          value: field.id,
+          label: field.title,
+        }
+      })
+
+    if (groupingFieldColumnId) {
+      // take from the one from copy view
+      form.fk_grp_col_id = groupingFieldColumnId
+    } else {
+      // take the first option
+      form.fk_grp_col_id = singleSelectFieldOptions.value?.[0]?.value as string
+    }
   }
 
   nextTick(() => {
@@ -122,6 +162,8 @@ async function onSubmit() {
         case ViewTypes.FORM:
           data = await api.dbView.formCreate(_meta.id, form)
           break
+        case ViewTypes.KANBAN:
+          data = await api.dbView.kanbanCreate(_meta.id, form)
       }
 
       if (data) {
@@ -140,14 +182,36 @@ async function onSubmit() {
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="loading" wrap-class-name="nc-modal-view-create">
+  <a-modal
+    v-model:visible="vModel"
+    class="!top-[35%]"
+    :class="{ active: vModel }"
+    :confirm-loading="loading"
+    wrap-class-name="nc-modal-view-create"
+  >
     <template #title>
-      {{ $t('general.create') }} <span class="text-capitalize">{{ typeAlias }}</span> {{ $t('objects.view') }}
+      {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="capitalize">{{ typeAlias }}</span>
+      {{ $t('objects.view') }}
     </template>
 
     <a-form ref="formValidator" layout="vertical" :model="form">
-      <a-form-item :label="$t('labels.viewName')" name="title" :rules="formRules">
+      <a-form-item :label="$t('labels.viewName')" name="title" :rules="viewNameRules">
         <a-input ref="inputEl" v-model:value="form.title" autofocus @keydown.enter="onSubmit" />
+      </a-form-item>
+      <a-form-item
+        v-if="form.type === ViewTypes.KANBAN"
+        :label="$t('general.groupingField')"
+        name="fk_grp_col_id"
+        :rules="groupingFieldColumnRules"
+      >
+        <a-select
+          v-model:value="form.fk_grp_col_id"
+          class="w-full nc-kanban-grouping-field-select"
+          :options="singleSelectFieldOptions"
+          :disabled="groupingFieldColumnId"
+          placeholder="Select a Grouping Field"
+          not-found-content="No Single Select Field can be found. Please create one first."
+        />
       </a-form-item>
     </a-form>
 

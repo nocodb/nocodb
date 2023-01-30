@@ -1,5 +1,4 @@
 import { dirname, resolve } from 'node:path'
-import { defineNuxtConfig } from 'nuxt'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -7,6 +6,9 @@ import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
+import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+
+import PurgeIcons from 'vite-plugin-purge-icons'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -15,6 +17,19 @@ export default defineNuxtConfig({
   ssr: false,
 
   app: {
+    pageTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
+      ? false
+      : {
+          name: 'page',
+          mode: 'out-in',
+        },
+    layoutTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
+      ? false
+      : {
+          name: 'layout',
+          mode: 'out-in',
+        },
+
     /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
     cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
   },
@@ -26,6 +41,12 @@ export default defineNuxtConfig({
     '~/assets/css/global.css',
     '~/assets/style.scss',
   ],
+
+  runtimeConfig: {
+    public: {
+      ncBackendUrl: '',
+    },
+  },
 
   meta: {
     title: 'NocoDB',
@@ -50,10 +71,33 @@ export default defineNuxtConfig({
     ],
   },
 
+  build: {
+    splitChunks: {
+      pages: true,
+      layouts: true,
+    },
+  },
+
   vite: {
-    // todo: minifiy again
     build: {
-      minify: false,
+      commonjsOptions: {
+        ignoreTryCatch: true,
+      },
+      minify: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            const chunks = ['ant-design-vue', 'nocodb-sdk', 'vue-router', 'vue-i18n']
+            if (id.includes('/node_modules/')) {
+              for (const chunkName of chunks) {
+                if (id.includes(chunkName)) {
+                  return chunkName
+                }
+              }
+            }
+          },
+        },
+      },
     },
     plugins: [
       vueI18n({
@@ -61,9 +105,12 @@ export default defineNuxtConfig({
         runtimeOnly: false,
       }),
       Icons({
-        autoInstall: true,
+        autoInstall: false,
         compiler: 'vue3',
         defaultClass: 'nc-icon',
+        customCollections: {
+          'nc-icons': FileSystemIconLoader('./assets/nc-icons', (svg) => svg.replace(/^<svg /, '<svg fill="currentColor" ')),
+        },
       }),
       Components({
         resolvers: [
@@ -73,16 +120,43 @@ export default defineNuxtConfig({
           }),
           IconsResolver({
             prefix: false,
+            enabledCollections: [
+              'ant-design',
+              'bi',
+              'cil',
+              'clarity',
+              'eva',
+              'ic',
+              'logos',
+              'lucide',
+              'material-symbols',
+              'mdi',
+              'mi',
+              'ph',
+              'ri',
+              'system-uicons',
+              'vscode-icons',
+              'simple-icons',
+              'nc-icons',
+            ],
           }),
         ],
       }),
       monacoEditorPlugin({
         languageWorkers: ['json'],
+        customDistPath: (root: string, buildOutDir: string) => {
+          return `${buildOutDir}/` + `monacoeditorwork`
+        },
+      }),
+      PurgeIcons({
+        /* PurgeIcons Options */
+        includedCollections: ['emojione'],
       }),
     ],
     define: {
       'process.env.DEBUG': 'false',
       'process.nextTick': () => {},
+      'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
     },
     server: {
       watch: {
@@ -115,17 +189,15 @@ export default defineNuxtConfig({
     dir: 'assets/',
   },
 
-  autoImports: {
-    dirs: ['./context', './utils', './lib'],
-    imports: [{ name: 'useI18n', from: 'vue-i18n' }],
-  },
-
-  pageTransition: {
-    name: 'page',
-    mode: 'out-in',
-  },
-  layoutTransition: {
-    name: 'layout',
-    mode: 'out-in',
+  imports: {
+    dirs: ['./context', './utils/**', './lib', './composables/**'],
+    imports: [
+      { name: 'useI18n', from: 'vue-i18n' },
+      { name: 'message', from: 'ant-design-vue/es' },
+      { name: 'Modal', from: 'ant-design-vue/es' },
+      { name: 'Empty', from: 'ant-design-vue/es' },
+      { name: 'Form', from: 'ant-design-vue/es' },
+      { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
+    ],
   },
 })

@@ -1,52 +1,49 @@
 <script lang="ts" setup>
-import type { ViewType, ViewTypes } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
-import type { Menu as AntMenu } from 'ant-design-vue'
-import { message } from 'ant-design-vue'
-import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
-import RenameableMenuItem from './RenameableMenuItem.vue'
+import type { Menu as AntMenu } from 'ant-design-vue'
 import {
   ActiveViewInj,
-  ViewListInj,
   extractSdkResponseErrorMsg,
   inject,
+  message,
   onMounted,
   ref,
+  resolveComponent,
   useApi,
   useDialog,
   useI18n,
   useNuxtApp,
-  useRoute,
   useRouter,
   viewTypeAlias,
   watch,
 } from '#imports'
-import DlgViewDelete from '~/components/dlg/ViewDelete.vue'
+
+interface Props {
+  views: ViewType[]
+}
+
+interface Emits {
+  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
+
+  (event: 'deleted'): void
+}
+
+const { views = [] } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
 const { t } = useI18n()
 
-interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
-
-  (event: 'deleted'): void
-
-  (event: 'sorted'): void
-}
-
 const { $e } = useNuxtApp()
 
 const activeView = inject(ActiveViewInj, ref())
 
-const views = inject<Ref<ViewType[]>>(ViewListInj, ref([]))
-
 const { api } = useApi()
 
 const router = useRouter()
-
-const route = useRoute()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -60,10 +57,8 @@ let isMarked = $ref<string | false>(false)
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
-  const _nextActiveView = nextActiveView as ViewType
-
-  if (_nextActiveView && _nextActiveView.id) {
-    selected.value = [_nextActiveView.id]
+  if (nextActiveView && nextActiveView.id) {
+    selected.value = [nextActiveView.id]
   }
 })
 
@@ -81,7 +76,7 @@ function validate(view: ViewType) {
     return 'View name is required'
   }
 
-  if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
+  if (views.some((v) => v.title === view.title && v.id !== view.id)) {
     return 'View name should be unique'
   }
 
@@ -99,7 +94,7 @@ async function onSortEnd(evt: SortableEvent) {
   evt.preventDefault()
   dragging = false
 
-  if (views.value.length < 2) return
+  if (views.length < 2) return
 
   const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -110,17 +105,17 @@ async function onSortEnd(evt: SortableEvent) {
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem = views.value.find((v) => v.id === evt.item.id)
+  const currentItem = views.find((v) => v.id === evt.item.id)
 
   if (!currentItem || !currentItem.id) return
 
-  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) : {}) as ViewType
-  const nextItem = (nextEl ? views.value.find((v) => v.id === nextEl.id) : {}) as ViewType
+  const previousItem = (previousEl ? views.find((v) => v.id === previousEl.id) : {}) as ViewType
+  const nextItem = (nextEl ? views.find((v) => v.id === nextEl.id) : {}) as ViewType
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
-  if (views.value.length - 1 === newIndex) {
+  if (views.length - 1 === newIndex) {
     nextOrder = parseFloat(String(previousItem.order)) + 1
   } else if (newIndex === 0) {
     nextOrder = parseFloat(String(nextItem.order)) / 2
@@ -145,7 +140,7 @@ const initSortable = (el: HTMLElement) => {
   if (sortable) sortable.destroy()
 
   sortable = new Sortable(el, {
-    handle: '.nc-drag-icon',
+    // handle: '.nc-drag-icon',
     ghostClass: 'ghost',
     onStart: onSortStart,
     onEnd: onSortEnd,
@@ -155,9 +150,10 @@ const initSortable = (el: HTMLElement) => {
 onMounted(() => menuRef && initSortable(menuRef.$el))
 
 /** Navigate to view by changing url param */
-function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
+function changeView(view: ViewType) {
   router.push({ params: { viewTitle: view.title || '' } })
-  if (view.type === 1 && selected.value[0] === view.id) {
+
+  if (view.type === ViewTypes.FORM && selected.value[0] === view.id) {
     // reload the page if the same form view is clicked
     // router.go(0)
     // fix me: router.go(0) reloads entire page. need to reload only the form view
@@ -189,10 +185,10 @@ async function onRename(view: ViewType) {
 }
 
 /** Open delete modal */
-function openDeleteDialog(view: Record<string, any>) {
+function openDeleteDialog(view: ViewType) {
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgViewDelete, {
+  const { close } = useDialog(resolveComponent('DlgViewDelete'), {
     'modelValue': isOpen,
     'view': view,
     'onUpdate:modelValue': closeDialog,
@@ -204,7 +200,7 @@ function openDeleteDialog(view: Record<string, any>) {
         // return to the default view
         router.replace({
           params: {
-            viewTitle: views.value[0].title,
+            viewTitle: views[0].title,
           },
         })
       }
@@ -217,27 +213,46 @@ function openDeleteDialog(view: Record<string, any>) {
     close(1000)
   }
 }
+
+const setIcon = async (icon: string, view: ViewType) => {
+  try {
+    // modify the icon property in meta
+    view.meta = {
+      ...(view.meta || {}),
+      icon,
+    }
+
+    api.dbView.update(view.id as string, {
+      meta: view.meta,
+    })
+
+    $e('a:view:icon:sidebar', { icon })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
   <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
-    <RenameableMenuItem
-      v-for="(view, index) of views"
+    <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
+    <SmartsheetSidebarRenameableMenuItem
+      v-for="view of views"
       :id="view.id"
       :key="view.id"
       :view="view"
       :on-validate="validate"
-      class="transition-all ease-in duration-300"
+      class="nc-view-item transition-all ease-in duration-300"
       :class="{
         'bg-gray-100': isMarked === view.id,
-        'active':
-          (route.params.viewTitle && route.params.viewTitle === view.title) || (route.params.viewTitle === '' && index === 0),
-        [`nc-view-item nc-${viewTypeAlias[view.type] || view.type}-view-item`]: true,
+        'active': activeView?.id === view.id,
+        [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
       }"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
-      @delete="openDeleteDialog(view)"
+      @delete="openDeleteDialog"
       @rename="onRename"
+      @select-icon="setIcon($event, view)"
     />
   </a-menu>
 </template>

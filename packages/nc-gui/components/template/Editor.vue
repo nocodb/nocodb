@@ -1,32 +1,41 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { Empty, Form, message } from 'ant-design-vue'
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
+  Empty,
+  Form,
   MetaInj,
   ReloadViewDataHookInj,
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
+  getDateFormat,
+  getDateTimeFormat,
   getUIDTIcon,
   inject,
+  message,
   nextTick,
   onMounted,
+  parseStringDate,
   reactive,
   ref,
   useI18n,
   useNuxtApp,
   useProject,
   useTabs,
-  useTemplateRefsList,
 } from '#imports'
-import { TabType } from '~/composables'
+import { TabType } from '~/lib'
 
-const { quickImportType, projectTemplate, importData, importColumns, importOnly, maxRowsToParse } = defineProps<Props>()
+const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId } =
+  defineProps<Props>()
 
 const emit = defineEmits(['import'])
+
+dayjs.extend(utc)
 
 const { t } = useI18n()
 
@@ -35,8 +44,9 @@ interface Props {
   projectTemplate: Record<string, any>
   importData: Record<string, any>
   importColumns: any[]
-  importOnly: boolean
+  importDataOnly: boolean
   maxRowsToParse: number
+  baseId: string
 }
 
 interface Option {
@@ -56,7 +66,9 @@ const { $api } = useNuxtApp()
 
 const { addTab } = useTabs()
 
-const { sqlUi, project, loadTables } = useProject()
+const { sqlUis, project, loadTables } = useProject()
+
+const sqlUi = ref(sqlUis.value[baseId] || Object.values(sqlUis.value)[0])
 
 const hasSelectColumn = ref<boolean[]>([])
 
@@ -64,11 +76,11 @@ const expansionPanel = ref<number[]>([])
 
 const editableTn = ref<boolean[]>([])
 
-const inputRefs = useTemplateRefsList<HTMLInputElement>()
+const inputRefs = ref<HTMLInputElement[]>([])
 
 const isImporting = ref(false)
 
-const importingTip = ref('Importing')
+const importingTips = ref<Record<string, string>>({})
 
 const uiTypeOptions = ref<Option[]>(
   (Object.keys(UITypes) as (keyof typeof UITypes)[])
@@ -85,9 +97,13 @@ const uiTypeOptions = ref<Option[]>(
     })),
 )
 
-const srcDestMapping = ref<Record<string, any>[]>([])
+const srcDestMapping = ref<Record<string, Record<string, any>[]>>({})
 
-const data = reactive<{ title: string | null; name: string; tables: (TableType & { ref_table_name: string })[] }>({
+const data = reactive<{
+  title: string | null
+  name: string
+  tables: (TableType & { ref_table_name: string; columns: (ColumnType & { key: number; _disableSelect?: boolean })[] })[]
+}>({
   title: null,
   name: 'Project Name',
   tables: [],
@@ -95,7 +111,7 @@ const data = reactive<{ title: string | null; name: string; tables: (TableType &
 
 const validators = computed(() =>
   data.tables.reduce<Record<string, [ReturnType<typeof fieldRequiredValidator>]>>((acc, table, tableIdx) => {
-    acc[`tables.${tableIdx}.ref_table_name`] = [fieldRequiredValidator()]
+    acc[`tables.${tableIdx}.table_name`] = [fieldRequiredValidator()]
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
@@ -112,24 +128,36 @@ const validators = computed(() =>
 
 const { validate, validateInfos } = useForm(data, validators)
 
-const isValid = computed(() => {
-  if (importOnly) {
-    for (const record of srcDestMapping.value) {
-      if (!fieldsValidation(record)) {
-        return false
+const isValid = ref(!importDataOnly)
+
+watch(
+  () => srcDestMapping.value,
+  () => {
+    let res = true
+    if (importDataOnly) {
+      for (const tn of Object.keys(srcDestMapping.value)) {
+        if (!atLeastOneEnabledValidation(tn)) {
+          res = false
+        }
+        for (const record of srcDestMapping.value[tn]) {
+          if (!fieldsValidation(record, tn)) {
+            return false
+          }
+        }
       }
-    }
-  } else {
-    for (const [_, o] of Object.entries(validateInfos)) {
-      if (o?.validateStatus) {
-        if (o.validateStatus === 'error') {
-          return false
+    } else {
+      for (const [_, o] of Object.entries(validateInfos)) {
+        if (o?.validateStatus) {
+          if (o.validateStatus === 'error') {
+            res = false
+          }
         }
       }
     }
-  }
-  return true
-})
+    isValid.value = res
+  },
+  { deep: true },
+)
 
 const prevEditableTn = ref<string[]>([])
 
@@ -139,7 +167,11 @@ onMounted(() => {
   // used to record the previous EditableTn values
   // for checking the table duplication in current import
   // and updating the key in importData
-  prevEditableTn.value = data.tables.map((t) => t.ref_table_name)
+  prevEditableTn.value = data.tables.map((t) => t.table_name)
+
+  if (importDataOnly) {
+    mapDefaultColumns()
+  }
 
   nextTick(() => {
     inputRefs.value[0]?.focus()
@@ -172,7 +204,7 @@ function parseTemplate({ tables = [], ...rest }: Props['projectTemplate']) {
         }),
         ...v.map((v: any) => ({
           column_name: v.title,
-          ref_table_name: {
+          table_name: {
             ...v,
           },
         })),
@@ -191,20 +223,20 @@ function deleteTable(tableIdx: number) {
   data.tables.splice(tableIdx, 1)
 }
 
-function deleteTableColumn(tableIdx: number, columnIdx: number) {
-  data.tables[tableIdx].columns?.splice(columnIdx, 1)
+function deleteTableColumn(tableIdx: number, columnKey: number) {
+  const columnIdx = data.tables[tableIdx].columns.findIndex((c: ColumnType & { key: number }) => c.key === columnKey)
+  data.tables[tableIdx].columns.splice(columnIdx, 1)
 }
 
-function addNewColumnRow(table: Record<string, any>, uidt?: string) {
-  table.columns.push({
-    key: table.columns.length,
-    column_name: `title${table.columns.length + 1}`,
+function addNewColumnRow(tableIdx: number, uidt: string) {
+  data.tables[tableIdx].columns.push({
+    key: data.tables[tableIdx].columns.length,
+    column_name: `title${data.tables[tableIdx].columns.length + 1}`,
     uidt,
   })
 
   nextTick(() => {
-    const input = inputRefs.value[table.columns.length - 1]
-
+    const input = inputRefs.value[data.tables[tableIdx].columns.length - 1]
     input.focus()
     input.select()
   })
@@ -215,21 +247,44 @@ function setEditableTn(tableIdx: number, val: boolean) {
 }
 
 function remapColNames(batchData: any[], columns: ColumnType[]) {
+  const dateFormatMap: Record<number, string> = {}
   return batchData.map((data) =>
-    (columns || []).reduce(
-      (aggObj, col: Record<string, any>) => ({
+    (columns || []).reduce((aggObj, col: Record<string, any>) => {
+      // for excel & json, if the column name is changed in TemplateEditor,
+      // then only col.column_name exists in data, else col.ref_column_name
+      // for csv, col.column_name always exists in data
+      // since it streams the data in getData() with the updated col.column_name
+      const key = col.column_name in data ? col.column_name : col.ref_column_name
+      let d = data[key]
+      if (col.uidt === UITypes.Date && d) {
+        let dateFormat
+        if (col?.meta?.date_format) {
+          dateFormat = col.meta.date_format
+          dateFormatMap[col.key] = dateFormat
+        } else if (col.key in dateFormatMap) {
+          dateFormat = dateFormatMap[col.key]
+        } else {
+          dateFormat = getDateFormat(d)
+          dateFormatMap[col.key] = dateFormat
+        }
+        d = parseStringDate(d, dateFormat)
+      } else if (col.uidt === UITypes.DateTime && d) {
+        const dateTimeFormat = getDateTimeFormat(data[key])
+        d = dayjs(data[key], dateTimeFormat).format('YYYY-MM-DD HH:mm')
+      }
+      return {
         ...aggObj,
-        [col.column_name]: data[col.ref_column_name || col.column_name],
-      }),
-      {},
-    ),
+        [col.column_name]: d,
+      }
+    }, {}),
   )
 }
 
-function missingRequiredColumnsValidation() {
+function missingRequiredColumnsValidation(tn: string) {
   const missingRequiredColumns = columns.value.filter(
     (c: Record<string, any>) =>
-      (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) && !srcDestMapping.value.some((r) => r.destCn === c.title),
+      (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) &&
+      !srcDestMapping.value[tn].some((r: Record<string, any>) => r.destCn === c.title),
   )
 
   if (missingRequiredColumns.length) {
@@ -240,153 +295,158 @@ function missingRequiredColumnsValidation() {
   return true
 }
 
-function atLeastOneEnabledValidation() {
-  if (srcDestMapping.value.filter((v) => v.enabled === true).length === 0) {
+function atLeastOneEnabledValidation(tn: string) {
+  if (srcDestMapping.value[tn].filter((v: Record<string, any>) => v.enabled === true).length === 0) {
     message.error(t('msg.error.selectAtleastOneColumn'))
     return false
   }
-
   return true
 }
 
-function fieldsValidation(record: Record<string, any>) {
+function fieldsValidation(record: Record<string, any>, tn: string) {
   // if it is not selected, then pass validation
   if (!record.enabled) {
     return true
   }
-
-  const tableName = meta.value?.title || ''
 
   if (!record.destCn) {
     message.error(`${t('msg.error.columnDescriptionNotFound')} ${record.srcCn}`)
     return false
   }
 
-  if (srcDestMapping.value.filter((v) => v.destCn === record.destCn).length > 1) {
+  if (srcDestMapping.value[tn].filter((v: Record<string, any>) => v.destCn === record.destCn).length > 1) {
     message.error(t('msg.error.duplicateMappingFound'))
     return false
   }
 
   const v = columns.value.find((c) => c.title === record.destCn) as Record<string, any>
 
-  // check if the input contains null value for a required column
-  if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
-    if (
-      importData[tableName]
-        .slice(0, maxRowsToParse)
-        .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
-    ) {
-      message.error(t('msg.error.nullValueViolatesNotNull'))
-    }
-  }
-
-  switch (v.uidt) {
-    case UITypes.Number:
+  for (const tableName of Object.keys(importData)) {
+    // check if the input contains null value for a required column
+    if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
       if (
         importData[tableName]
           .slice(0, maxRowsToParse)
-          .some(
-            (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
-          )
+          .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
       ) {
-        message.error(t('msg.error.sourceHasInvalidNumbers'))
-        return false
+        message.error(t('msg.error.nullValueViolatesNotNull'))
       }
+    }
 
-      break
-    case UITypes.Checkbox:
-      if (
-        importData[tableName].slice(0, maxRowsToParse).some((r: Record<string, any>) => {
-          if (r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
-            let input = r[record.srcCn]
-            if (typeof input === 'string') {
-              input = input.replace(/["']/g, '').toLowerCase().trim()
-              return !(
-                input === 'false' ||
-                input === 'no' ||
-                input === 'n' ||
-                input === '0' ||
-                input === 'true' ||
-                input === 'yes' ||
-                input === 'y' ||
-                input === '1'
-              )
-            }
-
-            return input !== 1 && input !== 0 && input !== true && input !== false
-          }
-
+    switch (v.uidt) {
+      case UITypes.Number:
+        if (
+          importData[tableName]
+            .slice(0, maxRowsToParse)
+            .some(
+              (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
+            )
+        ) {
+          message.error(t('msg.error.sourceHasInvalidNumbers'))
           return false
-        })
-      ) {
-        message.error(t('msg.error.sourceHasInvalidBoolean'))
+        }
 
-        return false
-      }
-      break
+        break
+      case UITypes.Checkbox:
+        if (
+          importData[tableName].slice(0, maxRowsToParse).some((r: Record<string, any>) => {
+            if (r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
+              let input = r[record.srcCn]
+              if (typeof input === 'string') {
+                input = input.replace(/["']/g, '').toLowerCase().trim()
+                return !(
+                  input === 'false' ||
+                  input === 'no' ||
+                  input === 'n' ||
+                  input === '0' ||
+                  input === 'true' ||
+                  input === 'yes' ||
+                  input === 'y' ||
+                  input === '1'
+                )
+              }
+
+              return input !== 1 && input !== 0 && input !== true && input !== false
+            }
+            return false
+          })
+        ) {
+          message.error(t('msg.error.sourceHasInvalidBoolean'))
+          return false
+        }
+        break
+    }
   }
-
   return true
 }
 
-async function importTemplate() {
-  if (importOnly) {
-    // validate required columns
-    if (!missingRequiredColumnsValidation()) return
+function updateImportTips(projectName: string, tableName: string, progress: number, total: number) {
+  importingTips.value[
+    `${projectName}-${tableName}`
+  ] = `Importing data to ${projectName} - ${tableName}: ${progress}/${total} records`
+}
 
-    // validate at least one column needs to be selected
-    if (!atLeastOneEnabledValidation()) return
+async function importTemplate() {
+  if (importDataOnly) {
+    for (const table of data.tables) {
+      // validate required columns
+      if (!missingRequiredColumnsValidation(table.table_name)) return
+
+      // validate at least one column needs to be selected
+      if (!atLeastOneEnabledValidation(table.table_name)) return
+    }
 
     try {
       isImporting.value = true
 
-      const tableName = meta.value?.title
-
-      // only one file is allowed currently
-      const data = importData[Object.keys(importData)[0]]
-
+      const tableId = meta.value?.id
       const projectName = project.value.title!
 
-      const total = data.length
+      await Promise.all(
+        Object.keys(importData).map((key: string) =>
+          (async (k) => {
+            const data = importData[k]
+            const total = data.length
 
-      for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
-        const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
-          srcDestMapping.value.reduce((res: Record<string, any>, col: Record<string, any>) => {
-            if (col.enabled && col.destCn) {
-              const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
-
-              let input = row[col.srcCn]
-
-              // parse potential boolean values
-              if (v.uidt === UITypes.Checkbox) {
-                input = input.replace(/["']/g, '').toLowerCase().trim()
-
-                if (input === 'false' || input === 'no' || input === 'n') {
-                  input = '0'
-                } else if (input === 'true' || input === 'yes' || input === 'y') {
-                  input = '1'
-                }
-              } else if (v.uidt === UITypes.Number) {
-                if (input === '') {
-                  input = null
-                }
-              } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
-                if (input === '') {
-                  input = null
-                }
-              }
-              res[col.destCn] = input
+            for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
+              const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
+                srcDestMapping.value[k].reduce((res: Record<string, any>, col: Record<string, any>) => {
+                  if (col.enabled && col.destCn) {
+                    const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
+                    let input = row[col.srcCn]
+                    // parse potential boolean values
+                    if (v.uidt === UITypes.Checkbox) {
+                      input = input.replace(/["']/g, '').toLowerCase().trim()
+                      if (input === 'false' || input === 'no' || input === 'n') {
+                        input = '0'
+                      } else if (input === 'true' || input === 'yes' || input === 'y') {
+                        input = '1'
+                      }
+                    } else if (v.uidt === UITypes.Number) {
+                      if (input === '') {
+                        input = null
+                      }
+                    } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
+                      if (input === '') {
+                        input = null
+                      }
+                    } else if (v.uidt === UITypes.Date) {
+                      if (input) {
+                        input = parseStringDate(input, v.meta.date_format)
+                      }
+                    }
+                    res[col.destCn] = input
+                  }
+                  return res
+                }, {}),
+              )
+              await $api.dbTableRow.bulkCreate('noco', projectName, tableId!, batchData)
+              updateImportTips(projectName, tableId!, progress, total)
+              progress += batchData.length
             }
-            return res
-          }, {}),
-        )
-
-        await $api.dbTableRow.bulkCreate('noco', projectName, tableName!, batchData)
-
-        importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
-
-        progress += batchData.length
-      }
+          })(key),
+        ),
+      )
 
       // reload table
       reloadHook.trigger()
@@ -426,53 +486,62 @@ async function importTemplate() {
           }
         }
 
-        // set pk & rqd if ID is provided
         if (table.columns) {
           for (const column of table.columns) {
+            // set pk & rqd if ID is provided
             if (column.column_name?.toLowerCase() === 'id' && !('pk' in column)) {
               column.pk = true
               column.rqd = true
-              break
+            }
+            if (!isSystemColumn(column) && column.uidt !== UITypes.SingleSelect && column.uidt !== UITypes.MultiSelect) {
+              // delete dtxp if the final data type is not single & multi select
+              // e.g. import -> detect as single / multi select -> switch to SingleLineText
+              // the correct dtxp will be generated during column creation
+              delete column.dtxp
             }
           }
         }
-        const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
-          table_name: table.ref_table_name,
-          // leave title empty to get a generated one based on ref_table_name
+        const createdTable = await $api.base.tableCreate(project?.value?.id as string, baseId as string, {
+          table_name: table.table_name,
+          // leave title empty to get a generated one based on table_name
           title: '',
           columns: table.columns || [],
         })
-        table.title = tableMeta.title
+        table.id = createdTable.id
+        table.title = createdTable.title
 
         // open the first table after import
         if (tab.id === '' && tab.title === '') {
-          tab.id = tableMeta.id as string
-          tab.title = tableMeta.title as string
+          tab.id = createdTable.id as string
+          tab.title = createdTable.title as string
         }
 
         // set primary value
-        if (tableMeta?.columns?.[0]?.id) {
-          await $api.dbTableColumn.primaryColumnSet(tableMeta.columns[0].id as string)
+        if (createdTable?.columns?.[0]?.id) {
+          await $api.dbTableColumn.primaryColumnSet(createdTable.columns[0].id as string)
         }
       }
       // bulk insert data
       if (importData) {
-        let total = 0
-        let progress = 0
         const offset = maxRowsToParse
         const projectName = project.value.title as string
         await Promise.all(
           data.tables.map((table: Record<string, any>) =>
             (async (tableMeta) => {
+              let progress = 0
+              let total = 0
+              // use ref_table_name here instead of table_name
+              // since importData[talbeMeta.table_name] would be empty after renaming
               const data = importData[tableMeta.ref_table_name]
               if (data) {
                 total += data.length
                 for (let i = 0; i < data.length; i += offset) {
-                  importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
+                  updateImportTips(projectName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                  await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.title, batchData)
+                  await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.id, batchData)
                   progress += batchData.length
                 }
+                updateImportTips(projectName, tableMeta.title, total, total)
               }
             })(table),
           ),
@@ -494,18 +563,23 @@ async function importTemplate() {
 }
 
 function mapDefaultColumns() {
-  srcDestMapping.value = []
-  for (const col of importColumns[0]) {
-    const o = { srcCn: col.column_name, destCn: '', enabled: true }
-    if (columns.value) {
-      const tableColumn = columns.value.find((c: Record<string, any>) => c.title === col.column_name)
-      if (tableColumn) {
-        o.destCn = tableColumn.title as string
-      } else {
-        o.enabled = false
+  srcDestMapping.value = {}
+  for (let i = 0; i < data.tables.length; i++) {
+    for (const col of importColumns[i]) {
+      const o = { srcCn: col.column_name, destCn: '', enabled: true }
+      if (columns.value) {
+        const tableColumn = columns.value.find((c) => c.column_name === col.column_name)
+        if (tableColumn) {
+          o.destCn = tableColumn.title as string
+        } else {
+          o.enabled = false
+        }
       }
+      if (!(data.tables[i].table_name in srcDestMapping.value)) {
+        srcDestMapping.value[data.tables[i].table_name] = []
+      }
+      srcDestMapping.value[data.tables[i].table_name].push(o)
     }
-    srcDestMapping.value.push(o)
   }
 }
 
@@ -514,45 +588,44 @@ defineExpose({
   isValid,
 })
 
-onMounted(() => {
-  if (importOnly) {
-    mapDefaultColumns()
-  }
-})
-
 function handleEditableTnChange(idx: number) {
   const oldValue = prevEditableTn.value[idx]
-  const newValue = data.tables[idx].ref_table_name
-  if (data.tables.filter((t) => t.ref_table_name === newValue).length > 1) {
+  const newValue = data.tables[idx].table_name
+  if (data.tables.filter((t) => t.table_name === newValue).length > 1) {
     message.warn('Duplicate Table Name')
-    data.tables[idx].ref_table_name = oldValue
+    data.tables[idx].table_name = oldValue
   } else {
     prevEditableTn.value[idx] = newValue
-    if (oldValue !== newValue) {
-      // update the key name of importData
-      delete Object.assign(importData, { [newValue]: importData[oldValue] })[oldValue]
-    }
   }
   setEditableTn(idx, false)
+}
+
+function isSelectDisabled(uidt: string, disableSelect = false) {
+  return (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) && disableSelect
 }
 </script>
 
 <template>
-  <a-spin :spinning="isImporting" :tip="importingTip" size="large">
-    <a-card v-if="importOnly">
+  <a-spin :spinning="isImporting" size="large">
+    <template #tip>
+      <p v-for="(importingTip, idx) of importingTips" :key="idx" class="mt-[10px]">
+        {{ importingTip }}
+      </p>
+    </template>
+    <a-card v-if="importDataOnly">
       <a-form :model="data" name="import-only">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
           available for import
         </p>
       </a-form>
+
       <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" class="template-collapse" accordion>
         <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
           <template #header>
             <span class="font-weight-bold text-lg flex items-center gap-2">
               <mdi-table class="text-primary" />
-
-              {{ table.ref_table_name }}
+              {{ table.table_name }}
             </span>
           </template>
 
@@ -560,7 +633,7 @@ function handleEditableTnChange(idx: number) {
             v-if="srcDestMapping"
             class="template-form"
             row-class-name="template-form-row"
-            :data-source="srcDestMapping"
+            :data-source="srcDestMapping[table.table_name]"
             :columns="srcDestMappingColumns"
             :pagination="false"
           >
@@ -603,6 +676,7 @@ function handleEditableTnChange(idx: number) {
         </a-collapse-panel>
       </a-collapse>
     </a-card>
+
     <a-card v-else>
       <a-form :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
@@ -618,21 +692,21 @@ function handleEditableTnChange(idx: number) {
         >
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
             <template #header>
-              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.ref_table_name`]" no-style>
+              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <a-input
-                  v-model:value="table.ref_table_name"
-                  class="max-w-xs"
+                  v-model:value="table.table_name"
+                  class="max-w-xs font-weight-bold text-lg"
                   size="large"
                   hide-details
-                  @click="$event.stopPropagation()"
+                  :bordered="false"
+                  @click.stop
                   @blur="handleEditableTnChange(tableIdx)"
                   @keydown.enter="handleEditableTnChange(tableIdx)"
                 />
               </a-form-item>
-
               <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
                 <mdi-table class="text-primary" />
-                {{ table.ref_table_name }}
+                {{ table.table_name }}
               </span>
             </template>
 
@@ -645,7 +719,6 @@ function handleEditableTnChange(idx: number) {
                 <mdi-delete-outline v-if="data.tables.length > 1" class="text-lg mr-8" @click.stop="deleteTable(tableIdx)" />
               </a-tooltip>
             </template>
-
             <a-table
               v-if="table.columns && table.columns.length"
               class="template-form"
@@ -657,6 +730,7 @@ function handleEditableTnChange(idx: number) {
               <template #emptyText>
                 <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
               </template>
+
               <template #headerCell="{ column }">
                 <template v-if="column.key === 'column_name'">
                   <span>
@@ -681,7 +755,7 @@ function handleEditableTnChange(idx: number) {
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-input :ref="inputRefs.set" v-model:value="record.column_name" />
+                    <a-input :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)" v-model:value="record.column_name" />
                   </a-form-item>
                 </template>
 
@@ -691,10 +765,23 @@ function handleEditableTnChange(idx: number) {
                       v-model:value="record.uidt"
                       class="w-52"
                       show-search
-                      :options="uiTypeOptions"
                       :filter-option="filterOption"
                       dropdown-class-name="nc-dropdown-template-uidt"
-                    />
+                    >
+                      <a-select-option
+                        v-for="(option, i) of uiTypeOptions"
+                        :key="i"
+                        :value="option.value"
+                        :disabled="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)"
+                      >
+                        <a-tooltip placement="right">
+                          <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
+                            The field is too large to be converted to {{ option.label }}
+                          </template>
+                          {{ option.label }}
+                        </a-tooltip>
+                      </a-select-option>
+                    </a-select>
                   </a-form-item>
                 </template>
 
@@ -739,7 +826,7 @@ function handleEditableTnChange(idx: number) {
                   <span>Add Number Column</span>
                 </template>
 
-                <a-button class="group" @click="addNewColumnRow(table, 'Number')">
+                <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
                   <div class="flex items-center">
                     <mdi-numeric class="group-hover:!text-accent flex text-lg" />
                   </div>
@@ -752,7 +839,7 @@ function handleEditableTnChange(idx: number) {
                   <span>Add SingleLineText Column</span>
                 </template>
 
-                <a-button class="group" @click="addNewColumnRow(table, 'SingleLineText')">
+                <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
                   <div class="flex items-center">
                     <mdi-alpha-a class="group-hover:!text-accent text-lg" />
                   </div>
@@ -765,7 +852,7 @@ function handleEditableTnChange(idx: number) {
                   <span>Add LongText Column</span>
                 </template>
 
-                <a-button class="group" @click="addNewColumnRow(table, 'LongText')">
+                <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
                   <div class="flex items-center">
                     <mdi-text class="group-hover:!text-accent text-lg" />
                   </div>
@@ -778,7 +865,7 @@ function handleEditableTnChange(idx: number) {
                   <span>Add Other Column</span>
                 </template>
 
-                <a-button class="group" @click="addNewColumnRow(table, 'SingleLineText')">
+                <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
                   <div class="flex items-center gap-1">
                     <mdi-plus class="group-hover:!text-accent text-lg" />
                   </div>

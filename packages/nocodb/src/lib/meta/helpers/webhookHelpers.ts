@@ -66,11 +66,37 @@ export async function validateCondition(filters: Filter[], data: any) {
           data[field] === undefined
         );
         break;
+      case 'checked':
+        res = !!data[field];
+        break;
+      case 'notchecked':
+        res = !data[field];
+        break;
       case 'null':
         res = res = data[field] === null;
         break;
       case 'notnull':
         res = data[field] !== null;
+        break;
+      case 'allof':
+        res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every(
+          (item) => (data[field]?.split(',') ?? []).includes(item)
+        );
+        break;
+      case 'anyof':
+        res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some(
+          (item) => (data[field]?.split(',') ?? []).includes(item)
+        );
+        break;
+      case 'nallof':
+        res = !(
+          filter.value?.split(',').map((item) => item.trim()) ?? []
+        ).every((item) => (data[field]?.split(',') ?? []).includes(item));
+        break;
+      case 'nanyof':
+        res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some(
+          (item) => (data[field]?.split(',') ?? []).includes(item)
+        );
         break;
       case 'lt':
         res = +data[field] < +filter.value;
@@ -116,20 +142,33 @@ export async function handleHttpWebHook(apiMeta, user, data) {
 
 export function axiosRequestMake(_apiMeta, _user, data) {
   const apiMeta = { ..._apiMeta };
+  // if it's a string try to parse and apply handlebar
+  // or if object then convert into JSON string and parse it
   if (apiMeta.body) {
     try {
-      apiMeta.body = JSON.parse(apiMeta.body, (_key, value) => {
-        return typeof value === 'string' ? parseBody(value, data) : value;
-      });
+      apiMeta.body = JSON.parse(
+        typeof apiMeta.body === 'string'
+          ? apiMeta.body
+          : JSON.stringify(apiMeta.body),
+        (_key, value) => {
+          return typeof value === 'string' ? parseBody(value, data) : value;
+        }
+      );
     } catch (e) {
+      // if string parsing failed then directly apply the handlebar
       apiMeta.body = parseBody(apiMeta.body, data);
     }
   }
   if (apiMeta.auth) {
     try {
-      apiMeta.auth = JSON.parse(apiMeta.auth, (_key, value) => {
-        return typeof value === 'string' ? parseBody(value, data) : value;
-      });
+      apiMeta.auth = JSON.parse(
+        typeof apiMeta.auth === 'string'
+          ? apiMeta.auth
+          : JSON.stringify(apiMeta.auth),
+        (_key, value) => {
+          return typeof value === 'string' ? parseBody(value, data) : value;
+        }
+      );
     } catch (e) {
       apiMeta.auth = parseBody(apiMeta.auth, data);
     }

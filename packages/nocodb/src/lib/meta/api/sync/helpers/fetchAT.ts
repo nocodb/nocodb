@@ -1,12 +1,12 @@
 const axios = require('axios').default;
 
-var info: any = {
+const info: any = {
   initialized: false,
 };
 
 async function initialize(shareId) {
   info.cookie = '';
-  let url = `https://airtable.com/${shareId}`;
+  const url = `https://airtable.com/${shareId}`;
 
   try {
     const hreq = await axios
@@ -36,6 +36,12 @@ async function initialize(shareId) {
           info.cookie += ck.split(';')[0] + '; ';
         }
         return response.data;
+      })
+      .catch(() => {
+        throw {
+          message:
+            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+        };
       });
 
     info.headers = JSON.parse(
@@ -64,6 +70,14 @@ async function initialize(shareId) {
   } catch (e) {
     console.log(e);
     info.initialized = false;
+    if (e.message) {
+      throw e;
+    } else {
+      throw {
+        message:
+          'Error processing Shared Base :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+      };
+    }
   }
 }
 
@@ -94,7 +108,10 @@ async function read() {
         return response.data;
       })
       .catch(() => {
-        throw 'Error while fetching';
+        throw {
+          message:
+            'Error Reading :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+        };
       });
 
     return {
@@ -103,7 +120,9 @@ async function read() {
       baseInfo: info.baseInfo,
     };
   } else {
-    throw 'Please initialize first!';
+    throw {
+      message: 'Error Initializing :: please try again !!',
+    };
   }
 }
 
@@ -149,11 +168,16 @@ async function readView(viewId) {
         return response.data;
       })
       .catch(() => {
-        throw 'Error while fetching';
+        throw {
+          message:
+            'Error Reading View :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+        };
       });
     return { view: resreq.data };
   } else {
-    throw 'Please initialize first!';
+    throw {
+      message: 'Error Initializing :: please try again !!',
+    };
   }
 }
 
@@ -192,7 +216,10 @@ async function readTemplate(templateId) {
       return response.data;
     })
     .catch(() => {
-      throw 'Error while fetching';
+      throw {
+        message:
+          'Error Fetching :: Ensure www.airtable.com/templates/featured/<TemplateID> is accessible.',
+      };
     });
   return { template: resreq };
 }

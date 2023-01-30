@@ -1,4 +1,4 @@
-import locale from 'locale-codes'
+import { all } from 'locale-codes'
 
 export const currencyCodes = [
   'AED',
@@ -191,24 +191,14 @@ export function validateCurrencyCode(v: string) {
 }
 
 export function currencyLocales() {
-  const localeList = locale.all
-    .filter((l: Record<string, any>) => {
-      try {
-        if (Intl.NumberFormat.supportedLocalesOf(l.tag).length > 0) {
-          return true
-        }
-        return false
-      } catch (e) {
-        return false
-      }
-    })
-    .map((l: Record<string, any>) => {
+  return all
+    .filter((l) => validateCurrencyLocale(l.tag))
+    .map((l) => {
       return {
         text: `${l.name} (${l.tag})`,
         value: l.tag,
       }
     })
-  return localeList
 }
 
 export function validateCurrencyLocale(v: string) {

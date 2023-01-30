@@ -1,5 +1,0 @@
-# robotstxt.org/
-
-User-agent: *
-
-Sitemap: https://senseprofit.com/sitemap.xml

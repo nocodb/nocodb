@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, computed, inject, useVModel } from '#imports'
-import { EditModeInj } from '~/context'
+import { ColumnInj, EditModeInj, computed, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -9,13 +8,28 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'save'])
+
+const { showNull } = useGlobal()
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj)!
 
-const vModel = useVModel(props, 'modelValue', emit)
+const _vModel = useVModel(props, 'modelValue', emit)
+
+const vModel = computed({
+  get: () => _vModel.value,
+  set: (value: unknown) => {
+    if (value === '') {
+      _vModel.value = null
+    } else {
+      _vModel.value = value as number
+    }
+  },
+})
+
+const lastSaved = ref()
 
 const currencyMeta = computed(() => {
   return {
@@ -39,6 +53,18 @@ const currency = computed(() => {
 })
 
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+
+const submitCurrency = () => {
+  if (lastSaved.value !== vModel.value) {
+    lastSaved.value = vModel.value
+    emit('save')
+  }
+  editEnabled.value = false
+}
+
+onMounted(() => {
+  lastSaved.value = vModel.value
+})
 </script>
 
 <template>
@@ -46,9 +72,20 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full h-full border-none outline-none"
-    @blur="editEnabled = false"
+    class="w-full h-full border-none outline-none px-2"
+    @blur="submitCurrency"
+    @keydown.down.stop
+    @keydown.left.stop
+    @keydown.right.stop
+    @keydown.up.stop
+    @keydown.delete.stop
+    @selectstart.capture.stop
+    @mousedown.stop
   />
+
+  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+
   <span v-else-if="vModel">{{ currency }}</span>
+
   <span v-else />
 </template>

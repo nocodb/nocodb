@@ -1,13 +1,13 @@
+import IEmailAdapter, { XcEmail } from './lib/IEmailAdapter';
+import IStorageAdapter, { XcFile } from './lib/IStorageAdapter';
+import IStorageAdapterV2 from './lib/IStorageAdapterV2';
+import IWebhookNotificationAdapter from './lib/IWebhookNotificationAdapter';
+import XcEmailPlugin from './lib/XcEmailPlugin';
 import XcPlugin from './lib/XcPlugin';
 import XcPluginConfig from './lib/XcPluginConfig';
 import XcPluginHooks from './lib/XcPluginHooks';
 import XcPluginMigration from './lib/XcPluginMigration';
 import XcStoragePlugin from './lib/XcStoragePlugin';
-import XcEmailPlugin from './lib/XcEmailPlugin';
-import IStorageAdapter, {XcFile} from './lib/IStorageAdapter';
-import IStorageAdapterV2 from './lib/IStorageAdapterV2';
-import IEmailAdapter, {XcEmail} from './lib/IEmailAdapter';
-import IWebhookNotificationAdapter from './lib/IWebhookNotificationAdapter';
 import XcWebhookNotificationPlugin from './lib/XcWebhookNotificationPlugin';
 
 export {
@@ -23,5 +23,5 @@ export {
   XcEmail,
   IWebhookNotificationAdapter,
   XcWebhookNotificationPlugin,
-  IStorageAdapterV2
-}
+  IStorageAdapterV2,
+};

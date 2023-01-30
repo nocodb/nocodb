@@ -75,6 +75,9 @@ export default async (req, res, next) => {
     } else if (params.filterId) {
       const filter = await Filter.get(params.filterId);
       req.ncProjectId = filter?.project_id;
+    } else if (params.filterParentId) {
+      const filter = await Filter.get(params.filterParentId);
+      req.ncProjectId = filter?.project_id;
     } else if (params.sortId) {
       const sort = await Sort.get(params.sortId);
       req.ncProjectId = sort?.project_id;

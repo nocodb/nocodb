@@ -1,7 +1,9 @@
 export enum Role {
   Super = 'super',
   Admin = 'admin',
-  User = 'user',
+  OrgLevelCreator = 'org-level-creator',
+  OrgLevelViewer = 'org-level-viewer',
+  Guest = 'guest',
 }
 
 export enum ProjectRole {
@@ -18,15 +20,18 @@ export enum ClientType {
   PG = 'pg',
   SQLITE = 'sqlite3',
   VITESS = 'vitess',
+  SNOWFLAKE = 'snowflake',
 }
 
 export enum Language {
   ar = 'العربية',
   bn_IN = 'বাংলা',
+  cs = 'Czech',
   da = 'Dansk',
   de = 'Deutsch',
   en = 'English',
   es = 'Español',
+  eu = 'Basque',
   fa = 'فارسی',
   fi = 'Suomalainen',
   fr = 'Français',
@@ -44,6 +49,7 @@ export enum Language {
   pt = 'Português',
   pt_BR = 'Português (Brasil)',
   ru = 'Pусский',
+  sk = 'Slovenčina',
   sl = 'Slovenščina',
   sv = 'Svenska',
   th = 'ไทย',
@@ -52,6 +58,11 @@ export enum Language {
   vi = 'Tiếng Việt',
   'zh-Hans' = '简体中文',
   'zh-Hant' = '繁體中文',
+}
+
+export enum LanguageAlias {
+  zn_CN = 'zh-Hans',
+  zh_TW = 'zh-Hant',
 }
 
 export enum NavigateDir {
@@ -63,4 +74,27 @@ export enum LockType {
   Personal = 'personal',
   Locked = 'locked',
   Collaborative = 'collaborative',
+}
+
+export enum TabType {
+  TABLE = 'table',
+  VIEW = 'view',
+  AUTH = 'auth',
+}
+
+export enum SmartsheetStoreEvents {
+  SORT_RELOAD = 'sort-reload',
+  FILTER_RELOAD = 'filter-reload',
+  DATA_RELOAD = 'data-reload',
+  FIELD_RELOAD = 'field-reload',
+  FIELD_ADD = 'field-add',
+}
+
+export enum DataSourcesSubTab {
+  New = 'New',
+  Metadata = 'Metadata',
+  ERD = 'ERD',
+  UIAcl = 'UI ACL',
+  Misc = 'Misc',
+  Edit = 'Edit',
 }

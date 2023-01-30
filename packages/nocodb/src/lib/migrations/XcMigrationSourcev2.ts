@@ -7,6 +7,12 @@ import * as nc_016_alter_hooklog_payload_types from './v2/nc_016_alter_hooklog_p
 import * as nc_017_add_user_token_version_column from './v2/nc_017_add_user_token_version_column';
 import * as nc_018_add_meta_in_view from './v2/nc_018_add_meta_in_view';
 import * as nc_019_add_meta_in_meta_tables from './v2/nc_019_add_meta_in_meta_tables';
+import * as nc_020_kanban_view from './v2/nc_020_kanban_view';
+import * as nc_021_add_fields_in_token from './v2/nc_021_add_fields_in_token';
+import * as nc_022_qr_code_column_type from './v2/nc_022_qr_code_column_type';
+import * as nc_023_multiple_source from './v2/nc_023_multiple_source';
+import * as nc_024_barcode_column_type from './v2/nc_024_barcode_column_type';
+import * as nc_025_add_row_height from './v2/nc_025_add_row_height';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -25,6 +31,12 @@ export default class XcMigrationSourcev2 {
       'nc_017_add_user_token_version_column',
       'nc_018_add_meta_in_view',
       'nc_019_add_meta_in_meta_tables',
+      'nc_020_kanban_view',
+      'nc_021_add_fields_in_token',
+      'nc_022_qr_code_column_type',
+      'nc_023_multiple_source',
+      'nc_024_barcode_column_type',
+      'nc_025_add_row_height',
     ]);
   }
 
@@ -52,30 +64,18 @@ export default class XcMigrationSourcev2 {
         return nc_018_add_meta_in_view;
       case 'nc_019_add_meta_in_meta_tables':
         return nc_019_add_meta_in_meta_tables;
+      case 'nc_020_kanban_view':
+        return nc_020_kanban_view;
+      case 'nc_021_add_fields_in_token':
+        return nc_021_add_fields_in_token;
+      case 'nc_022_qr_code_column_type':
+        return nc_022_qr_code_column_type;
+      case 'nc_023_multiple_source':
+        return nc_023_multiple_source;
+      case 'nc_024_barcode_column_type':
+        return nc_024_barcode_column_type;
+      case 'nc_025_add_row_height':
+        return nc_025_add_row_height;
     }
   }
 }
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- * @author Wing-Kam Wong <wingkwong.code@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

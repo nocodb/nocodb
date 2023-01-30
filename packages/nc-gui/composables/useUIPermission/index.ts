@@ -1,46 +1,38 @@
 import { isString } from '@vueuse/core'
-import type { Permission } from './rolePermissions'
-import rolePermissions from './rolePermissions'
-import { USER_PROJECT_ROLES, computed, useGlobal, useState } from '#imports'
-import type { Role, Roles } from '~/lib'
+import { createSharedComposable, rolePermissions, useGlobal, useRoles } from '#imports'
+import type { Permission, ProjectRole, Role } from '~/lib'
 
-export function useUIPermission() {
-  const { user, previewAs } = useGlobal()
+const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: Permission | string) => {
+  const rolePermission = rolePermissions[role]
 
-  const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
+  if (!hasRole || !rolePermission) return false
 
-  const baseRoles = computed(() => {
-    let userRoles = isString(user.value?.roles) ? user.value?.roles : ({ ...(user.value?.roles || {}) } as Roles)
+  if (isString(rolePermission) && rolePermission === '*') return true
 
-    // if string populate key-value paired object
-    if (typeof userRoles === 'string') {
-      userRoles = userRoles.split(',').reduce<Record<string, boolean>>((acc, role) => {
-        acc[role] = true
-        return acc
-      }, {})
-    }
+  if ('include' in rolePermission && rolePermission.include) {
+    return !!rolePermission.include[permission as keyof typeof rolePermission.include]
+  }
 
-    // merge user role and project specific user roles
-    return {
-      ...userRoles,
-      ...projectRoles.value,
-    }
-  })
+  if ('exclude' in rolePermission && rolePermission.exclude) {
+    return !rolePermission.exclude[permission as keyof typeof rolePermission.exclude]
+  }
+
+  return rolePermission[permission as keyof typeof rolePermission]
+}
+
+export const useUIPermission = createSharedComposable(() => {
+  const { previewAs } = useGlobal()
+  const { allRoles } = useRoles()
 
   const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
-    let roles = baseRoles.value as Record<string, any>
-
     if (previewAs.value && !skipPreviewAs) {
-      roles = {
-        [previewAs.value as Role]: true,
-      }
+      return hasPermission(previewAs.value, true, permission)
     }
 
-    return Object.entries<boolean>(roles).some(([role, hasRole]) => {
-      const rolePermission = rolePermissions[role as keyof typeof rolePermissions] as '*' | Record<Permission, true>
-      return hasRole && (rolePermission === '*' || rolePermission?.[permission as Permission])
-    })
+    return Object.entries(allRoles.value).some(([role, hasRole]) =>
+      hasPermission(role as Role | ProjectRole, hasRole, permission),
+    )
   }
 
   return { isUIAllowed }
-}
+})

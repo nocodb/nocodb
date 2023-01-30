@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj, computed, inject, onClickOutside, ref, watch } from '#imports'
+import { ActiveCellInj, ReadonlyInj, computed, inject, onClickOutside, ref, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
+  isPk?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isPk = false } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const readOnly = inject(ReadonlyInj, false)
+const { showNull } = useGlobal()
+
+const readOnly = inject(ReadonlyInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 let isYearInvalid = $ref(false)
 
@@ -53,7 +60,22 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isYearInvalid ? 'Invalid year' : ''))
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case 'Escape':
+      if (open.value) {
+        e.stopPropagation()
+        open.value = false
+      }
+      break
+  }
+})
 </script>
 
 <template>
@@ -61,14 +83,15 @@ const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
     v-model:value="localState"
     picker="year"
     :bordered="false"
-    class="!w-full px-1"
+    class="!w-full !px-0 !border-none"
+    :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :open="readOnly ? false : open"
-    :dropdown-class-name="`${randomClass} nc-picker-year`"
-    @click="open = !open"
-    @change="open = !open"
+    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
+    :dropdown-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''}`"
+    @click="open = (active || editable) && !open"
+    @change="open = (active || editable) && !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

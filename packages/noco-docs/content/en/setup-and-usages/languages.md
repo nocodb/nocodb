@@ -10,10 +10,8 @@ NocoDB supports multiple lanuages on dashboard. By default, English will be used
 
 Open `Project Menu` (click on project name on left top to access Project menu)
 
-![Screenshot 2022-09-13 at 11 14 02 AM](https://user-images.githubusercontent.com/86527202/189819445-c1a64ebe-2f6d-41f2-97de-473c48945986.png)
-<!-- ![image](https://user-images.githubusercontent.com/35857179/161960398-a41f9f23-5786-4a1c-a57e-8c166a2785a5.png) -->
+<img width="505" alt="image" src="https://user-images.githubusercontent.com/35857179/194849611-7d037906-7c21-4797-8bb4-12edeafe8b7b.png">
 
 and select the one you prefer.
-
 
 If you want to help translate, please check out <a href ="../engineering/translation" target="_blank">i18n</a>. If you want to request a new language, please create an issue on <a href="https://github.com/nocodb/nocodb/issues" target="_blank">Github</a>.

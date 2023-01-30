@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import SmartsheetGrid from '../smartsheet/Grid.vue'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -8,40 +7,47 @@ import {
   IsLockedInj,
   MetaInj,
   OpenNewRecordFormHookInj,
+  ReadonlyInj,
   ReloadViewDataHookInj,
+  ReloadViewMetaHookInj,
+  TabMetaInj,
   computed,
-  inject,
+  createEventHook,
   provide,
-  provideSidebar,
+  ref,
+  toRef,
   useMetas,
+  useProvideKanbanViewStore,
   useProvideSmartsheetStore,
-  watch,
+  useUIPermission,
 } from '#imports'
-import type { TabItem } from '~/composables'
+import type { TabItem } from '~/lib'
 
-const { activeTab } = defineProps<{
+const props = defineProps<{
   activeTab: TabItem
 }>()
 
+const { isUIAllowed } = useUIPermission()
+
 const { metas } = useMetas()
+
+const activeTab = toRef(props, 'activeTab')
 
 const activeView = ref()
 
-const el = ref<typeof SmartsheetGrid>()
-
 const fields = ref<ColumnType[]>([])
 
-provide(TabMetaInj, ref(activeTab))
-const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
+const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
 
-const reloadEventHook = createEventHook<void>()
-const reloadViewMetaEventHook = createEventHook<void>()
+const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
+
+const reloadEventHook = createEventHook<void | boolean>()
+
+const reloadViewMetaEventHook = createEventHook<void | boolean>()
+
 const openNewRecordFormHook = createEventHook<void>()
 
-const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
-
-// provide the sidebar injection state
-provideSidebar('nc-right-sidebar', { useStorage: true, isOpen: true })
+useProvideKanbanViewStore(meta, activeView)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -52,29 +58,38 @@ provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
-
-const treeViewIsLockedInj = inject('TreeViewIsLockedInj', ref(false))
-
-watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immediate: true })
+provide(TabMetaInj, activeTab)
+provide(
+  ReadonlyInj,
+  computed(() => !isUIAllowed('xcDatatableEditable')),
+)
 </script>
 
 <template>
   <div class="nc-container flex h-full">
     <div class="flex flex-col h-full flex-1 min-w-0">
-      <SmartsheetToolbar />
+      <LazySmartsheetToolbar />
 
-      <template v-if="meta">
-        <div class="flex flex-1 min-h-0">
-          <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
-            <SmartsheetGrid v-if="isGrid" :ref="el" />
+      <Transition name="layout" mode="out-in">
+        <template v-if="meta">
+          <div class="flex flex-1 min-h-0">
+            <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
+              <LazySmartsheetGrid v-if="isGrid" />
 
-            <SmartsheetGallery v-else-if="isGallery" />
+              <LazySmartsheetGallery v-else-if="isGallery" />
 
-            <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
+              <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+
+              <LazySmartsheetKanban v-else-if="isKanban" />
+            </div>
           </div>
-        </div>
-      </template>
+        </template>
+      </Transition>
     </div>
+
+    <LazySmartsheetExpandedFormDetached />
+
+    <!-- Lazy loading the sidebar causes issues when deleting elements, i.e. it appears as if multiple elements are removed when they are not -->
     <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
   </div>
 </template>

@@ -6,12 +6,17 @@ const log = debug('nc:cache');
 
 export default class RedisMockCacheMgr extends CacheMgr {
   client: any;
+  prefix: string;
 
   constructor() {
     super();
     this.client = new Redis();
     // flush the existing db with selected key (Default: 0)
     this.client.flushdb();
+
+    // TODO(cache): fetch orgs once it's implemented
+    const orgs = 'noco';
+    this.prefix = `nc:${orgs}`;
   }
 
   // avoid circular structure to JSON
@@ -91,28 +96,33 @@ export default class RedisMockCacheMgr extends CacheMgr {
 
   // @ts-ignore
   async delAll(scope: string, pattern: string): Promise<any[]> {
-    // Example: model:*:<id>
-    const keys = await this.client.keys(`${scope}:${pattern}`);
+    // Example: nc:<orgs>:model:*:<id>
+    const keys = await this.client.keys(`${this.prefix}:${scope}:${pattern}`);
     log(
-      `RedisMockCacheMgr::delAll: deleting all keys with pattern ${scope}:${pattern}`
+      `RedisMockCacheMgr::delAll: deleting all keys with pattern ${this.prefix}:${scope}:${pattern}`
     );
-    return Promise.all(
+    await Promise.all(
       keys.map(
         async (k) =>
           await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT)
       )
+    );
+    return Promise.all(
+      keys.map(async (k) => {
+        await this.del(k);
+      })
     );
   }
 
   async getList(scope: string, subKeys: string[]): Promise<any[]> {
     // remove null from arrays
     subKeys = subKeys.filter((k) => k);
-    // e.g. key = <scope>:<project_id_1>:<base_id_1>:list
+    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
     const key =
       subKeys.length === 0
-        ? `${scope}:list`
-        : `${scope}:${subKeys.join(':')}:list`;
-    // e.g. arr = ["<scope>:<model_id_1>", "<scope>:<model_id_2>"]
+        ? `${this.prefix}:${scope}:list`
+        : `${this.prefix}:${scope}:${subKeys.join(':')}:list`;
+    // e.g. arr = ["nc:<orgs>:<scope>:<model_id_1>", "nc:<orgs>:<scope>:<model_id_2>"]
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisMockCacheMgr::getList: getting list with key ${key}`);
     return Promise.all(
@@ -128,11 +138,11 @@ export default class RedisMockCacheMgr extends CacheMgr {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
     // construct key for List
-    // e.g. <scope>:<project_id_1>:<base_id_1>:list
+    // e.g. nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
     const listKey =
       subListKeys.length === 0
-        ? `${scope}:list`
-        : `${scope}:${subListKeys.join(':')}:list`;
+        ? `${this.prefix}:${scope}:list`
+        : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     if (!list.length) {
       log(
         `RedisMockCacheMgr::setList: List is empty for ${listKey}. Skipping ...`
@@ -144,11 +154,11 @@ export default class RedisMockCacheMgr extends CacheMgr {
       (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
     for (const o of list) {
       // construct key for Get
-      // e.g. <scope>:<model_id_1>
-      let getKey = `${scope}:${o.id}`;
+      // e.g. nc:<orgs>:<scope>:<model_id_1>
+      let getKey = `${this.prefix}:${scope}:${o.id}`;
       // special case - MODEL_ROLE_VISIBILITY
       if (scope === CacheScope.MODEL_ROLE_VISIBILITY) {
-        getKey = `${scope}:${o.id}:${o.role}`;
+        getKey = `${this.prefix}:${scope}:${o.id}:${o.role}`;
       }
       // set Get Key
       log(`RedisMockCacheMgr::setList: setting key ${getKey}`);
@@ -166,10 +176,11 @@ export default class RedisMockCacheMgr extends CacheMgr {
     key: string,
     direction: string
   ): Promise<boolean> {
+    key = `${this.prefix}:${key}`;
     log(`RedisMockCacheMgr::deepDel: choose direction ${direction}`);
     if (direction === CacheDelDirection.CHILD_TO_PARENT) {
       // given a child key, delete all keys in corresponding parent lists
-      const scopeList = await this.client.keys(`${scope}*list`);
+      const scopeList = await this.client.keys(`${this.prefix}:${scope}*list`);
       for (const listKey of scopeList) {
         // get target list
         let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
@@ -210,11 +221,11 @@ export default class RedisMockCacheMgr extends CacheMgr {
   ): Promise<boolean> {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
-    // e.g. key = <scope>:<project_id_1>:<base_id_1>:list
+    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
     const listKey =
       subListKeys.length === 0
-        ? `${scope}:list`
-        : `${scope}:${subListKeys.join(':')}:list`;
+        ? `${this.prefix}:${scope}:list`
+        : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     log(`RedisMockCacheMgr::appendToList: append key ${key} to ${listKey}`);
     const list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
     list.push(key);

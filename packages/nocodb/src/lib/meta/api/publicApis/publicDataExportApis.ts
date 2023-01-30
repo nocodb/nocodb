@@ -16,21 +16,38 @@ import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 async function exportExcel(req: Request, res: Response) {
   const view = await View.getByUUID(req.params.publicDataUuid);
   if (!view) NcError.notFound('Not found');
-  if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
+  if (
+    view.type !== ViewTypes.GRID &&
+    view.type !== ViewTypes.KANBAN &&
+    view.type !== ViewTypes.GALLERY
+  )
+    NcError.notFound('Not found');
 
   if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 
   const model = await view.getModelWithInfo();
+
   await view.getColumns();
 
   const { offset, dbRows, elapsed } = await getDbRows(model, view, req);
 
-  const data = XLSX.utils.json_to_sheet(dbRows);
+  const fields = req.query.fields as string[];
+
+  const data = XLSX.utils.json_to_sheet(
+    dbRows.map((o: Record<string, any>) =>
+      Object.fromEntries(fields.map((f) => [f, o[f]]))
+    ),
+    { header: fields }
+  );
+
   const wb = XLSX.utils.book_new();
+
   XLSX.utils.book_append_sheet(wb, data, view.title);
-  const buf = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
+
+  const buf = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+
   res.set({
     'Access-Control-Expose-Headers': 'nc-export-offset',
     'nc-export-offset': offset,
@@ -47,7 +64,12 @@ async function exportCsv(req: Request, res: Response) {
   const fields = req.query.fields;
 
   if (!view) NcError.notFound('Not found');
-  if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
+  if (
+    view.type !== ViewTypes.GRID &&
+    view.type !== ViewTypes.KANBAN &&
+    view.type !== ViewTypes.GALLERY
+  )
+    NcError.notFound('Not found');
 
   if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);

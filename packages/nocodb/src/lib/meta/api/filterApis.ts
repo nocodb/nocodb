@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express';
 // @ts-ignore
 import Model from '../../models/Model';
+import { Tele } from 'nc-help';
 // @ts-ignore
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 // @ts-ignore
@@ -11,13 +12,12 @@ import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import Project from '../../models/Project';
 import Filter from '../../models/Filter';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 
 // @ts-ignore
 export async function filterGet(req: Request, res: Response, next) {
   try {
-    const filter = await Filter.getFilterObject({ viewId: req.params.viewId });
+    const filter = await Filter.get(req.params.filterId);
 
     res.json(filter);
   } catch (e) {

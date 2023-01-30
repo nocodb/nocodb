@@ -1,3 +1,5 @@
+import { OrgUserRoles } from 'nocodb-sdk';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Router } from 'express';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
@@ -6,7 +8,6 @@ import validator from 'validator';
 import { NcError } from '../helpers/catchError';
 import { v4 as uuidv4 } from 'uuid';
 import User from '../../models/User';
-import { Tele } from 'nc-help';
 import Audit from '../../models/Audit';
 import NocoCache from '../../cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
@@ -63,11 +64,6 @@ async function userInvite(req, res, next): Promise<any> {
         );
       }
 
-      // todo : provide a different role
-      await User.update(user.id, {
-        roles: 'user',
-      });
-
       await ProjectUser.insert({
         project_id: req.params.projectId,
         fk_user_id: user.id,
@@ -87,7 +83,7 @@ async function userInvite(req, res, next): Promise<any> {
         );
       }
 
-      Audit.insert({
+      await Audit.insert({
         project_id: req.params.projectId,
         op_type: 'AUTHENTICATION',
         op_sub_type: 'INVITE',
@@ -102,7 +98,7 @@ async function userInvite(req, res, next): Promise<any> {
           invite_token,
           invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
           email,
-          roles: 'user',
+          roles: OrgUserRoles.VIEWER,
           token_version: randomTokenString(),
         });
 
@@ -188,7 +184,7 @@ async function projectUserUpdate(req, res, next): Promise<any> {
       req.body.roles
     );
 
-    Audit.insert({
+    await Audit.insert({
       op_type: 'AUTHENTICATION',
       op_sub_type: 'ROLES_MANAGEMENT',
       user: req.user.email,
@@ -255,7 +251,7 @@ async function projectUserInviteResend(req, res): Promise<any> {
 
   await sendInviteEmail(user.email, invite_token, req);
 
-  Audit.insert({
+  await Audit.insert({
     op_type: 'AUTHENTICATION',
     op_sub_type: 'RESEND_INVITE',
     user: user.email,
@@ -267,7 +263,7 @@ async function projectUserInviteResend(req, res): Promise<any> {
   res.json({ msg: 'success' });
 }
 
-async function sendInviteEmail(
+export async function sendInviteEmail(
   email: string,
   token: string,
   req: any

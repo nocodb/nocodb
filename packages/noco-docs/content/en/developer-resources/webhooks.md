@@ -12,15 +12,11 @@ Some types of notifications can be triggered by a webhook after a particular eve
 
 ### Open `View menu`, click on `Webhooks`
   
-![Screenshot 2022-09-14 at 10 32 13 AM](https://user-images.githubusercontent.com/86527202/190064555-77d2444e-250e-4c26-bf65-4bccde166c25.png)
+<img width="442" alt="image" src="https://user-images.githubusercontent.com/35857179/194849113-910ddafa-4b05-4492-a7a6-d9259d892eb9.png">
 
-<!-- ![Screenshot 2022-02-22 at 11 16 18 AM](https://user-images.githubusercontent.com/86527202/155085373-f9b438ed-98c3-4fb1-9209-1bb52736a35d.png) -->
+### Click `Add New Webhook`
 
-### Click `Add new webhook`
-  
-![Screenshot 2022-09-14 at 10 33 15 AM](https://user-images.githubusercontent.com/86527202/190064639-c51038bc-cfd0-4f5a-aece-3bade55ae994.png)
-
-<!-- ![image](https://user-images.githubusercontent.com/35857179/166660074-0a896ec9-9cd8-403e-a713-61c2cefbae28.png) -->
+<img width="686" alt="image" src="https://user-images.githubusercontent.com/35857179/194849248-1d0b80c6-f65b-4075-8ebd-af7dc735c2c3.png">
 
 ### Configure Webhook
   - General configurations

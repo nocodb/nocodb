@@ -1,11 +1,11 @@
 import type { FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { message } from 'ant-design-vue'
 import {
   IsPublicInj,
   computed,
   extractSdkResponseErrorMsg,
   inject,
+  message,
   ref,
   useDebounceFn,
   useMetas,
@@ -13,16 +13,21 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import type { Filter } from '~/lib'
+import { TabMetaInj } from '~/context'
+import type { Filter, TabItem } from '~/lib'
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
-  currentFilters?: Filter[],
+  _currentFilters?: Filter[],
   isNestedRoot?: boolean,
 ) {
+  let currentFilters = $ref(_currentFilters)
+
+  const reloadHook = inject(ReloadViewDataHookInj)
+
   const { nestedFilters } = useSmartsheetStoreOrThrow()
 
   const isPublic = inject(IsPublicInj, ref(false))
@@ -32,24 +37,36 @@ export function useViewFilters(
   const { isUIAllowed } = useUIPermission()
 
   const { metas } = useMetas()
+
   const _filters = ref<Filter[]>([])
 
-  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync' || !isUIAllowed('filterChildrenRead')))
+  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
+
+  const tabMeta = inject(TabMetaInj, ref({ filterState: new Map(), sortsState: new Map() } as TabItem))
 
   const filters = computed<Filter[]>({
-    get: () => (nestedMode.value ? currentFilters! : _filters.value),
+    get: () => {
+      return nestedMode.value ? currentFilters! : _filters.value
+    },
     set: (value: Filter[]) => {
       if (nestedMode.value) {
         currentFilters = value
-        if (isNestedRoot) nestedFilters.value = value
-
+        if (isNestedRoot) {
+          nestedFilters.value = value
+          tabMeta.value.filterState!.set(view.value!.id!, nestedFilters.value)
+        }
         nestedFilters.value = [...nestedFilters.value]
+        reloadHook?.trigger()
         return
       }
 
       _filters.value = value
     },
   })
+
+  // when a filter is deleted with auto apply disabled, the status is marked as 'delete'
+  // nonDeletedFilters are those filters that are not deleted physically & virtually
+  const nonDeletedFilters = computed(() => filters.value.filter((f) => f.status !== 'delete'))
 
   const placeholderFilter: Filter = {
     comparison_op: 'eq',
@@ -59,7 +76,11 @@ export function useViewFilters(
   }
 
   const loadFilters = async (hookId?: string) => {
-    if (nestedMode.value) return
+    if (nestedMode.value) {
+      // ignore restoring if not root filter group
+      if (isNestedRoot) filters.value = tabMeta.value.filterState!.get(view.value!.id!) || []
+      return
+    }
 
     try {
       if (hookId) {
@@ -126,12 +147,11 @@ export function useViewFilters(
         if (!autoApply?.value) {
           filter.status = 'delete'
           // if auto-apply enabled invoke delete api and remove from array
+          // no splice is required here
         } else {
           try {
             await $api.dbTableFilter.delete(filter.id)
-
             reloadData?.()
-
             filters.value.splice(i, 1)
           } catch (e: any) {
             console.log(e)
@@ -142,7 +162,7 @@ export function useViewFilters(
       } else {
         filters.value.splice(i, 1)
       }
-      $e('a:filter:delete')
+      $e('a:filter:delete', { length: nonDeletedFilters.value.length })
     }
   }
 
@@ -215,9 +235,9 @@ export function useViewFilters(
       return metas?.value?.[view?.value?.fk_model_id as string]?.columns?.length || 0
     },
     async (nextColsLength, oldColsLength) => {
-      if (nextColsLength < oldColsLength) await loadFilters()
+      if (nextColsLength && nextColsLength < oldColsLength) await loadFilters()
     },
   )
 
-  return { filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup, saveOrUpdateDebounced }
+  return { filters, nonDeletedFilters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup, saveOrUpdateDebounced }
 }

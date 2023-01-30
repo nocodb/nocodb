@@ -1,21 +1,25 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { Modal, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import {
   IsPublicInj,
+  Modal,
   NOCO,
+  SharedViewPasswordInj,
   computed,
   extractSdkResponseErrorMsg,
+  inject,
+  message,
   reactive,
   ref,
+  useI18n,
   useInjectionState,
   useMetas,
   useNuxtApp,
   useProject,
+  useSharedView,
+  watch,
 } from '#imports'
-import type { Row } from '~/composables'
-import { SharedViewPasswordInj } from '~/context'
+import type { Row } from '~/lib'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -24,32 +28,45 @@ interface DataApiResponse {
 
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
-  (column: Ref<Required<ColumnType>>, row: Ref<Row>, isNewRow: ComputedRef<boolean> | Ref<boolean>, reloadData = () => {}) => {
+  (
+    column: Ref<Required<ColumnType>>,
+    row: Ref<Row>,
+    isNewRow: ComputedRef<boolean> | Ref<boolean>,
+    reloadData = (_showProgress?: boolean) => {},
+  ) => {
     // state
     const { metas, getMeta } = useMetas()
+
     const { project } = useProject()
+
     const { $api } = useNuxtApp()
+
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
+
     const childrenExcludedList = ref<DataApiResponse | undefined>()
     const childrenList = ref<DataApiResponse | undefined>()
+
     const childrenExcludedListPagination = reactive({
       page: 1,
       query: '',
       size: 10,
     })
+
     const childrenListPagination = reactive({
       page: 1,
       query: '',
       size: 10,
     })
+
     const { t } = useI18n()
 
     const isPublic: boolean = $(inject(IsPublicInj, ref(false)))
 
     const colOptions = $computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
-    const { sharedView } = useSharedView() as Record<string, any>
-    const projectId = project.value?.id || sharedView.value?.view?.project_id
+    const { sharedView } = useSharedView()
+
+    const projectId = project.value?.id || (sharedView.value?.view as any)?.project_id
 
     // getters
     const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])
@@ -77,7 +94,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     const relatedTablePrimaryValueProp = computed(() => {
-      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
+      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title || ''
     })
 
     const relatedTablePrimaryKeyProps = computed(() => {
@@ -168,7 +185,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else {
           childrenList.value = await $api.dbTableRow.nestedList(
             NOCO,
-            (project?.value?.id || sharedView?.value?.view?.project_id) as string,
+            (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
             meta.value.id,
             rowId.value,
             colOptions.type as 'mm' | 'hm',
@@ -209,7 +226,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            reloadData?.()
+            reloadData?.(false)
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -251,12 +268,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
-      reloadData?.()
-      // todo: reload table data and children list
-      // this.$emit('loadTableData');
-      // if (this.isForm && this.$refs.childList) {
-      //   this.$refs.childList.loadData();
-      // }
+
+      reloadData?.(false)
     }
 
     const link = async (row: Record<string, any>) => {
@@ -288,23 +301,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       }
 
-      // todo: reload table data and child list
-      // this.pid = pid;
-      //
-      // this.newRecordModal = false;
-      //
-      // this.$emit('loadTableData');
-      // if (this.isForm && this.$refs.childList) {
-      //   this.$refs.childList.loadData();
-      // }
-
-      reloadData?.()
+      reloadData?.(false)
     }
 
     // watchers
     watch(childrenExcludedListPagination, async () => {
       await loadChildrenExcludedList()
     })
+
     watch(childrenListPagination, async () => {
       await loadChildrenList()
     })

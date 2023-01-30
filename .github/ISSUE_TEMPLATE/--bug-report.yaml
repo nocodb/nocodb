@@ -1,0 +1,61 @@
+name: 🐛 Bug Report
+description: Create a bug report to help improve NocoDB
+title: "🐛 Bug: "
+labels: [Type : Bug]
+assignees:
+- o1lab
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you ❤️ for taking the time to fill out this feature request report!
+
+- type: checkboxes
+  attributes:
+    label: Please confirm if bug report does NOT exists already ?
+    description: We kindly ask that you [search](https://github.com/nocodb/nocodb/issues?q=is%3Aissue+sort%3Acreated-desc+) to see if an issue already exists for your bug
+    options:
+    - label: I confirm there is no existing issue for this
+      required: true
+
+- type: textarea
+  attributes:
+    label: Steps to reproduce ?
+    description: A clear and concise steps on how to reproduce the issue. More details the better.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Desired Behavior
+    description: Describe the solution you'd like. A clear and concise description of what you want to happen.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Project Details
+    description: Click on top left icon and click `Copy Project Info`. (See [YouTube video](https://www.youtube.com/watch?v=AUSNN-RCwhE) or [Docs](https://docs.nocodb.com/FAQs#how-to-check-my-project-info-))
+    placeholder: |
+      or provide the following info
+      ```
+      NocoDB used as docker : true / false
+      NocoDB version : 
+      Database used in NC_DB URL  : mysql | pg | mssql | sqlite3 / (defaults to sqlite3 if empty)
+      Project was created  by clicking : New Project | New Project by connecting to external database
+      Database on which spreadsheet is created : mysql | pg | mssql | sqlite3 / (defaults to sqlite3 if empty)
+      OS on which NocoDB is running : 
+      Node.js version if running as node : 
+      Database version : 
+      ```
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Attachements
+    description: Add any relevant attachemnts here
+    placeholder: |
+      > Drag & drop relevant image or videos
+  validations:
+    required: false

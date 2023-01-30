@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { useSidebar } from '#imports'
+import { computed, isDrawerOrModalExist, isMac, useNuxtApp, useSidebar } from '#imports'
 
 const rightSidebar = useSidebar('nc-right-sidebar')
+
 const leftSidebar = useSidebar('nc-left-sidebar')
+
+const { $e } = useNuxtApp()
 
 const isSidebarsOpen = computed({
   get: () => rightSidebar.isOpen.value || leftSidebar.isOpen.value,
@@ -10,6 +13,22 @@ const isSidebarsOpen = computed({
     rightSidebar.toggle(value)
     leftSidebar.toggle(value)
   },
+})
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
+    switch (e.keyCode) {
+      case 70: {
+        // ALT + F
+        if (!isDrawerOrModalExist()) {
+          $e('c:shortcut', { key: 'ALT + F' })
+          isSidebarsOpen.value = !isSidebarsOpen.value
+        }
+        break
+      }
+    }
+  }
 })
 </script>
 

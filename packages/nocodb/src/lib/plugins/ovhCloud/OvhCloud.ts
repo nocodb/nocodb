@@ -1,9 +1,11 @@
 import fs from 'fs';
-import path from 'path';
-
 import AWS from 'aws-sdk';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
+import {
+  waitForStreamClose,
+  generateTempFilePath,
+} from '../../utils/pluginUtils';
 
 export default class OvhCloud implements IStorageAdapterV2 {
   private s3Client: AWS.S3;
@@ -16,6 +18,7 @@ export default class OvhCloud implements IStorageAdapterV2 {
   async fileCreate(key: string, file: XcFile): Promise<any> {
     const uploadParams: any = {
       ACL: 'public-read',
+      ContentType: file.mimetype,
     };
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
@@ -52,11 +55,12 @@ export default class OvhCloud implements IStorageAdapterV2 {
           url: url,
           encoding: null,
         },
-        (err, _, body) => {
+        (err, httpResponse, body) => {
           if (err) return reject(err);
 
           uploadParams.Body = body;
           uploadParams.Key = key;
+          uploadParams.ContentType = httpResponse.headers['content-type'];
 
           // call S3 to retrieve upload file to specified bucket
           this.s3Client.upload(uploadParams, (err1, data) => {
@@ -109,12 +113,12 @@ export default class OvhCloud implements IStorageAdapterV2 {
 
   public async test(): Promise<boolean> {
     try {
-      const tempFile = path.join(process.cwd(), 'temp.txt');
+      const tempFile = generateTempFilePath();
       const createStream = fs.createWriteStream(tempFile);
-      createStream.end();
+      await waitForStreamClose(createStream);
       await this.fileCreate('nc-test-file.txt', {
         path: tempFile,
-        mimetype: '',
+        mimetype: 'text/plain',
         originalname: 'temp.txt',
         size: '',
       });
@@ -125,26 +129,3 @@ export default class OvhCloud implements IStorageAdapterV2 {
     }
   }
 }
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

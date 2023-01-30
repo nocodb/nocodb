@@ -16,8 +16,11 @@ import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 
 import { NcConfig } from '../interface/config';
+import { NC_LICENSE_KEY } from './constants';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
+import Store from './models/Store';
 import NcConfigFactory from './utils/NcConfigFactory';
+import { Tele } from 'nc-help';
 
 import NcProjectBuilderCE from './v1-legacy/NcProjectBuilder';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilderEE';
@@ -38,7 +41,6 @@ import NocoCache from './cache/NocoCache';
 import registerMetaApis from './meta/api';
 import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
 import User from './models/User';
-import { Tele } from 'nc-help';
 import * as http from 'http';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
@@ -53,6 +55,7 @@ const NcProjectBuilder = process.env.EE
 
 export default class Noco {
   private static _this: Noco;
+  private static ee: boolean;
 
   public static get dashboardUrl(): string {
     let siteUrl = `http://localhost:${process.env.PORT || 8080}`;
@@ -101,7 +104,12 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    process.env.NC_VERSION = '0090000';
+    process.env.NC_VERSION = '0101002';
+
+    // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
+    if (process.env.NC_MINIMAL_DBS) {
+      process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
+    }
 
     this.router = express.Router();
     this.projectRouter = express.Router();
@@ -187,6 +195,7 @@ export default class Noco {
     }
 
     await Noco._ncMeta.metaInit();
+    await Noco.loadEEState();
     await this.initJwt();
     await initAdminFromEnv();
 
@@ -208,7 +217,6 @@ export default class Noco {
     });
 
     // to get ip addresses
-
     this.router.use(requestIp.mw());
     this.router.use(cookieParser());
     this.router.use(
@@ -538,27 +546,15 @@ export default class Noco {
   public static getConfig(): NcConfig {
     return Noco.config;
   }
-}
 
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
+  public static isEE(): boolean {
+    return Noco.ee;
+  }
+
+  public static async loadEEState(): Promise<boolean> {
+    try {
+      return (Noco.ee = !!(await Store.get(NC_LICENSE_KEY))?.value);
+    } catch {}
+    return (Noco.ee = false);
+  }
+}

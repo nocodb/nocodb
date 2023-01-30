@@ -16,6 +16,7 @@
     "cancel": "Hủy bỏ",
     "submit": "Nộp",
     "create": "Tạo ra",
+    "duplicate": "Tạo bản sao",
     "insert": "Chèn",
     "delete": "Xóa bỏ",
     "update": "Cập nhật",
@@ -55,19 +56,25 @@
     "notification": "Thông báo",
     "reference": "Thẩm quyền giải quyết",
     "function": "Chức năng",
-    "confirm": "Confirm",
+    "confirm": "Xác nhận",
     "generate": "Generate",
-    "copy": "Copy",
-    "misc": "Miscellaneous",
-    "lock": "Lock",
-    "unlock": "Unlock",
-    "credentials": "Credentials",
-    "help": "Help",
-    "questions": "Questions",
-    "reachOut": "Reach out here",
-    "betaNote": "This feature is currently in beta.",
+    "copy": "Sao Chép",
+    "misc": "Các tùy chọn khác",
+    "lock": "Khoá",
+    "unlock": "Mở khoá",
+    "credentials": "Thông tin đăng nhập",
+    "help": "Trợ giúp",
+    "questions": "Câu hỏi",
+    "reachOut": "Tiếp cận sau",
+    "betaNote": "Tính năng này hiện không được hỗ trợ.",
     "moreInfo": "More information can be found here",
-    "logs": "Logs"
+    "logs": "Nhật ký",
+    "groupingField": "Nhóm theo trường",
+    "insertAfter": "Insert After",
+    "insertBefore": "Insert Before",
+    "hideField": "Hide Field",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending"
   },
   "objects": {
     "project": "Dự định",
@@ -102,8 +109,11 @@
       "creator": "Người sáng tạo",
       "editor": "Biên tập viên",
       "commenter": "Bình luận",
-      "viewer": "Người xem"
-    }
+      "viewer": "Người xem",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "TÔI",
@@ -157,6 +167,7 @@
     "isNotNull": "không phải là null."
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "Dự án mới",
     "myProject": "Những dự án của tôi",
     "formTitle": "Tiêu đề mẫu",
@@ -183,19 +194,22 @@
     "headCreateProject": "Tạo dự án |. NOCODB.",
     "headLogin": "Đăng nhập |. NOCODB.",
     "resetPassword": "Đặt lại mật khẩu của bạn",
-    "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable",
-    "generateToken": "Generate Token",
-    "APIsAndSupport": "APIs & Support",
+    "teamAndSettings": "Cài đặt nhóm",
+    "apiDocs": "Văn bản API",
+    "importFromAirtable": "Nhập khẩu từ CSDL Airtable",
+    "generateToken": "Tạo mã Token",
+    "APIsAndSupport": "APIS và Hỗ trợ",
     "helpCenter": "Help center",
-    "swaggerDocumentation": "Swagger Documentation",
-    "quickImportFrom": "Quick Import From",
+    "swaggerDocumentation": "Tài liệu Swagger",
+    "quickImportFrom": "Kết nhập nhanh dữ liệu từ",
     "quickImport": "Quick Import",
-    "advancedSettings": "Advanced Settings",
-    "codeSnippet": "Code Snippet"
+    "advancedSettings": "Cài đặt Nâng cao",
+    "codeSnippet": "Thư viện mã",
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
+    "createdBy": "Đã tạo bởi",
     "notifyVia": "Thông báo qua",
     "projName": "Tên dự án",
     "tableName": "Tên bảng.",
@@ -213,7 +227,7 @@
     "port": "Cổng số",
     "username": "tên tài khoản",
     "password": "Mật khẩu",
-    "schemaName": "Schema name",
+    "schemaName": "Tên lược đồ",
     "database": "Cơ sở dữ liệu",
     "action": "Hoạt động",
     "actions": "Hành động",
@@ -226,7 +240,7 @@
     "where": "Ở đâu",
     "cache": "Cache.",
     "chat": "Trò chuyện",
-    "email": "E-mail",
+    "email": "Thư điện tử",
     "storage": "Kho",
     "uiAcl": "UI-ACL",
     "models": "Mô hình",
@@ -234,6 +248,11 @@
     "created": "Tạo",
     "sqlOutput": "Đầu ra SQL.",
     "addOption": "Thêm tùy chọn",
+    "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "Chức năng tổng hợp",
     "dbCreateIfNotExists": "Cơ sở dữ liệu: Tạo nếu không tồn tại",
     "clientKey": "Khóa khách",
@@ -251,7 +270,7 @@
       "bookDemo": "Đặt một bản demo miễn phí",
       "getAnswered": "Nhận câu hỏi của bạn được trả lời",
       "joinDiscord": "Tham gia thông minh",
-      "joinCommunity": "Join NocoDB Community",
+      "joinCommunity": "Tham gia cộng đồng",
       "joinReddit": "Tham gia /r/NocoDB",
       "followNocodb": "Theo dõi NocoDB"
     },
@@ -259,23 +278,24 @@
     "selectUserRole": "Chọn vai trò người dùng",
     "childTable": "Bảng con",
     "childColumn": "Cột trẻ con.",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Trên bản cập nhật",
     "onDelete": "Trên xóa",
-    "account": "Account",
+    "account": "Tài khoản",
     "language": "Language",
-    "primaryColor": "Primary Color",
-    "accentColor": "Accent Color",
-    "customTheme": "Custom Theme",
+    "primaryColor": "Màu chính",
+    "accentColor": "Màu phụ",
+    "customTheme": "Giao diện tùy chỉnh",
     "requestDataSource": "Request a data source you need?",
     "apiKey": "API Key",
     "sharedBase": "Shared Base",
-    "importData": "Import Data",
-    "importSecondaryViews": "Import Secondary Views",
+    "importData": "Kết nhập dữ liệu",
+    "importSecondaryViews": "Kết nhập Hiển thị thứ hai",
     "importRollupColumns": "Import Rollup Columns",
     "importLookupColumns": "Import Lookup Columns",
-    "importAttachmentColumns": "Import Attachment Columns",
-    "importFormulaColumns": "Import Formula Columns",
-    "noData": "No Data",
+    "importAttachmentColumns": "Kết nhập cột tệp đính kèm",
+    "importFormulaColumns": "Kết nhập cột công thức",
+    "noData": "Không có dữ liệu",
     "goToDashboard": "Go to Dashboard",
     "importing": "Importing",
     "flattenNested": "Flatten Nested",
@@ -290,8 +310,12 @@
     "documentation": "Documentation",
     "subscribeNewsletter": "Subscribe to our weekly newsletter",
     "signUpWithGoogle": "Sign up with Google",
+    "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
-    "welcomeToNc": "Welcome to NocoDB!"
+    "welcomeToNc": "Welcome to NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -304,6 +328,7 @@
     "deleteProject": "Xóa dự án",
     "refreshProject": "Làm mới các dự án",
     "saveProject": "Lưu dự án",
+    "deleteKanbanStack": "Delete stack?",
     "createProjectExtended": {
       "extDB": "Tạo bằng cách kết nối <br> vào cơ sở dữ liệu bên ngoài",
       "excel": "Tạo dự án từ Excel",
@@ -335,12 +360,14 @@
     "invite": "Mời",
     "inviteMore": "Mời thêm",
     "inviteTeam": "Mời đội",
+    "inviteUser": "Invite User",
     "inviteToken": "Mời Token.",
     "newUser": "Người dùng mới",
     "editUser": "Người dùng biên tập",
     "deleteUser": "Xóa người dùng khỏi dự án",
     "resendInvite": "Gửi lại lời mời e-mail",
     "copyInviteURL": "Sao chép Mời URL.",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "Vai trò mới",
     "reloadRoles": "Đóng vai trò",
     "nextPage": "Trang tiếp theo",
@@ -356,6 +383,8 @@
     "setPrimary": "Đặt dưới dạng giá trị chính",
     "addRow": "Thêm hàng mới",
     "saveRow": "Lưu hàng.",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Chèn hàng mới",
     "deleteRow": "Xóa hàng",
     "deleteSelectedRow": "Xóa các hàng đã chọn",
@@ -406,7 +435,23 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "expandRecord": "Expand Record",
+    "deleteRecord": "Delete Record",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Hiển thị truy vấn SQL",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    },
+    "kanban": {
+      "collapseStack": "Collapse Stack",
+      "deleteStack": "Xóa ngăn xếp",
+      "stackedBy": "Stacked By",
+      "chooseGroupingField": "Choose a Grouping Field",
+      "addOrEditStack": "Add / Edit Stack"
+    }
   },
   "tooltip": {
     "saveChanges": "Lưu thay đổi",
@@ -457,7 +502,21 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
+      "pasteNotSupported": "Paste operation is not supported on the active cell",
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "Hàng trên mỗi trang",
       "upload": "Chọn tệp để tải lên",
       "upload_sub": "hoặc kéo và thả tập tin",
@@ -570,7 +629,11 @@
       "generatePublicShareableReadonlyBase": "Generate publicly shareable readonly base",
       "deleteViewConfirmation": "Are you sure you want to delete this view?",
       "deleteTableConfirmation": "Do you want to delete the table",
-      "showM2mTables": "Show M2M Tables"
+      "showM2mTables": "Show M2M Tables",
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
+      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",
@@ -629,7 +692,10 @@
       "theAcceptedFileTypeIsCsv": "The accepted file type is .csv",
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
-      "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed"
+      "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible",
+      "copyToClipboardError": "Failed to copy to clipboard"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",
@@ -649,6 +715,7 @@
       "futureRelease": "Sắp có!"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",
@@ -659,13 +726,16 @@
       "tableDataExported": "Successfully exported all table data",
       "updated": "Successfully updated",
       "sharedViewDeleted": "Deleted shared view successfully",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "View renamed successfully",
       "tokenGenerated": "Token generated successfully",
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "Successfully added user to project",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
@@ -675,7 +745,9 @@
       "webhookTested": "Webhook tested successfully",
       "columnUpdated": "Column updated",
       "columnCreated": "Column created",
-      "passwordChanged": "Password changed successfully. Please login again."
+      "passwordChanged": "Password changed successfully. Please login again.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

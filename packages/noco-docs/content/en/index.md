@@ -8,13 +8,13 @@ menuTitle: 'Introduction'
 
 ## Welcome!
 
+![image](/banner.png)
+
 NocoDB is a no-code database platform that allows teams to collaborate and build applications with ease of a familiar and intuitive spreadsheet interface. This allows even non-developers or business users to become software creators.
 
 NocoDB works by connecting to any relational database and transforming them into a smart spreadsheet interface! This allows you to build no-code applications collaboratively with teams. NocoDB currently works with MySQL, PostgreSQL, Microsoft SQL Server, SQLite, Amazon Aurora & MariaDB databases.
 
 Also NocoDB's app store allows you to build business workflows on views with combination of Slack, Microsoft Teams, Discord, Twilio, Whatsapp, Email & any 3rd party APIs too. Plus NocoDB provides programmatic access to APIs so that you can build integrations with Zapier / Integromat and custom applications too.
-
-<img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 ## Features
 
@@ -22,7 +22,7 @@ Also NocoDB's app store allows you to build business workflows on views with com
 
 - ⚡ &nbsp;Basic Operations: Create, Read, Update and Delete on Tables, Columns, and Rows
 - ⚡ &nbsp;Fields Operations: Sort, Filter, Hide / Unhide Columns
-- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery and Form View
+- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery, Form View and Kanban View
 - ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views 
 - ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
 - ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachement, Currency, Formula and etc
@@ -61,3 +61,5 @@ Our mission is to provide the most powerful no-code interface for databases whic
 ## How can I contribute to NocoDB's development ?
 
 Please refer to [here](https://github.com/nocodb/nocodb/blob/develop/.github/CONTRIBUTING.md) for the contribution guidelines.
+
+<img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" style="margin: 0px;" />

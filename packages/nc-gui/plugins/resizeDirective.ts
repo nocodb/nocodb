@@ -1,4 +1,4 @@
-import { defineNuxtPlugin } from '#app'
+import { defineNuxtPlugin, getCurrentInstance } from '#imports'
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.directive('xc-ver-resize', {
@@ -18,6 +18,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       resizer.addEventListener('mousedown', initDrag, false)
 
       const instance = getCurrentInstance()
+
       const emit =
         instance?.emit ??
         ((arg, data) => {
@@ -37,6 +38,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         document.documentElement.addEventListener('mouseup', stopDrag, false)
       }
 
+      ;(el as any).initDrag = initDrag
+
       let width: number | string
 
       // emit event on dragging
@@ -53,6 +56,13 @@ export default defineNuxtPlugin((nuxtApp) => {
         document.documentElement.removeEventListener('mouseup', stopDrag, false)
         emit('xcresize', width)
         emit('xcresized')
+      }
+    },
+    beforeUnmount: (el: Element) => {
+      const resizer = el.querySelector('.resizer')
+
+      if (resizer) {
+        resizer.removeEventListener('mousedown', (el as any).initDrag, false)
       }
     },
   })

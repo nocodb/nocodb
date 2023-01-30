@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import MaterialSymbolsLightMode from '~icons/material-symbols/light-mode'
-import MaterialSymbolsDarkMode from '~icons/material-symbols/dark-mode'
 interface Props {
   modelValue: boolean
 }

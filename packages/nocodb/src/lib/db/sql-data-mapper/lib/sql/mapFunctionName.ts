@@ -3,7 +3,7 @@ import mssql from './functionMappings/mssql';
 import mysql from './functionMappings/mysql';
 import pg from './functionMappings/pg';
 import sqlite from './functionMappings/sqlite';
-import { QueryBuilder } from 'knex';
+import { Knex } from 'knex';
 
 export interface MapFnArgs {
   pt: any;
@@ -11,7 +11,7 @@ export interface MapFnArgs {
   knex: XKnex;
   alias: string;
   a?: string;
-  fn: (...args: any) => QueryBuilder | any;
+  fn: (...args: any) => Knex.QueryBuilder | any;
   colAlias: string;
   prevBinaryOp?: any;
 }

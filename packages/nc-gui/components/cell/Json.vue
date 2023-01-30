@@ -1,8 +1,17 @@
 <script setup lang="ts">
-import { Modal as AModal } from 'ant-design-vue'
-import Editor from '~/components/monaco/Editor.vue'
-import { ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
-import { EditModeInj, IsFormInj } from '~/context'
+import {
+  Modal as AModal,
+  ActiveCellInj,
+  EditModeInj,
+  IsFormInj,
+  ReadonlyInj,
+  computed,
+  inject,
+  ref,
+  useSelectedCellKeyupListener,
+  useVModel,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any> | undefined
@@ -16,7 +25,11 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const { showNull } = useGlobal()
+
 const editEnabled = inject(EditModeInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -92,12 +105,28 @@ watch(editEnabled, () => {
 
   localValue.value = vModel.value
 })
+
+useSelectedCellKeyupListener(active, (e) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      if (e.shiftKey) {
+        return true
+      }
+      if (editEnabled.value) {
+        onSave()
+      } else {
+        editEnabled.value = true
+      }
+      break
+  }
+})
 </script>
 
 <template>
   <component :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
-    <div v-if="editEnabled && !readonly" class="flex flex-col w-full">
-      <div class="flex flex-row justify-between pt-1 pb-2">
+    <div v-if="editEnabled && !readonly" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
+      <div class="flex flex-row justify-between pt-1 pb-2" @mousedown.stop>
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">
           <CilFullscreenExit v-if="isExpanded" class="h-2.5" />
 
@@ -107,14 +136,14 @@ watch(editEnabled, () => {
         <div v-if="!isForm || isExpanded" class="flex flex-row">
           <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
 
-          <a-button type="primary" size="small" :disabled="!!error || localValue === vModel">
-            <div class="text-xs" :onclick="onSave">Save</div>
+          <a-button type="primary" size="small" :disabled="!!error || localValue === vModel" @click="onSave">
+            <div class="text-xs">Save</div>
           </a-button>
         </div>
       </div>
 
-      <Editor
-        :model-value="localValue"
+      <LazyMonacoEditor
+        :model-value="localValue || ''"
         class="min-w-full w-80"
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
         :hide-minimap="true"
@@ -126,6 +155,8 @@ watch(editEnabled, () => {
         {{ error.toString() }}
       </span>
     </div>
+
+    <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
     <span v-else>{{ vModel }}</span>
   </component>

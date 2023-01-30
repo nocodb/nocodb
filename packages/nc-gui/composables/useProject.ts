@@ -1,9 +1,9 @@
-import type { MaybeRef } from '@vueuse/core'
-import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
+import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
+import { useRoute } from 'vue-router'
 import {
-  USER_PROJECT_ROLES,
+  ClientType,
   computed,
   createEventHook,
   ref,
@@ -11,15 +11,13 @@ import {
   useGlobal,
   useInjectionState,
   useNuxtApp,
-  useRoute,
-  useState,
+  useRoles,
+  useRouter,
   useTheme,
-  watch,
 } from '#imports'
-import type { ProjectMetaInfo, Roles } from '~/lib'
-import type { ThemeConfig } from '@/composables/useTheme'
+import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
 
-const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
+const [setup, use] = useInjectionState(() => {
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()
@@ -30,17 +28,23 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
   const { setTheme, theme } = useTheme()
 
+  const router = useRouter()
+
+  const { projectRoles, loadProjectRoles } = useRoles()
+
   const projectLoadedHook = createEventHook<ProjectType>()
 
   const project = ref<ProjectType>({})
-
+  const bases = computed<BaseType[]>(() => project.value?.bases || [])
   const tables = ref<TableType[]>([])
-
-  const projectRoles = useState<Roles>(USER_PROJECT_ROLES, () => ({}))
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
-  const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
+  const lastOpenedViewMap = ref<Record<string, string>>({})
+
+  const forcedProjectId = ref<string>()
+
+  const projectId = computed(() => forcedProjectId.value || (route.params.projectId as string))
 
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
@@ -53,42 +57,40 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     }
   })
 
-  const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
+  const sqlUis = computed(() => {
+    const temp: Record<string, any> = {}
+    for (const base of bases.value) {
+      if (base.id) {
+        temp[base.id] = SqlUiFactory.create({ client: base.type }) as Exclude<
+          ReturnType<typeof SqlUiFactory['create']>,
+          typeof OracleUi
+        >
+      }
+    }
+    return temp
+  })
 
-  const sqlUi = computed(
-    () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
-  )
+  function getBaseType(baseId?: string) {
+    return bases.value.find((base) => base.id === baseId)?.type || ClientType.MYSQL
+  }
 
-  const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
-  const isMssql = computed(() => projectBaseType === 'mssql')
-  const isPg = computed(() => projectBaseType === 'pg')
+  function isMysql(baseId?: string) {
+    return ['mysql', ClientType.MYSQL].includes(getBaseType(baseId))
+  }
+
+  function isMssql(baseId?: string) {
+    return getBaseType(baseId) === 'mssql'
+  }
+
+  function isPg(baseId?: string) {
+    return getBaseType(baseId) === 'pg'
+  }
+
   const isSharedBase = computed(() => projectType === 'base')
-
-  const router = useRouter()
 
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
       projectMetaInfo.value = await api.project.metaGet(project.value.id!, {}, {})
-    }
-  }
-
-  async function loadProjectRoles() {
-    projectRoles.value = {}
-
-    if (isSharedBase.value) {
-      const user = await api.auth.me(
-        {},
-        {
-          headers: {
-            'xc-shared-base-id': route.params.projectId,
-          },
-        },
-      )
-
-      projectRoles.value = user.roles
-    } else if (project.value.id) {
-      const user = await api.auth.me({ project_id: project.value.id })
-      projectRoles.value = user.roles
     }
   }
 
@@ -98,16 +100,18 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
         includeM2M: includeM2M.value,
       })
 
-      if (tablesResponse.list) tables.value = tablesResponse.list
+      if (tablesResponse.list) {
+        tables.value = tablesResponse.list.filter((table) => bases.value.find((base) => base.id === table.base_id)?.enabled)
+      }
     }
   }
 
-  async function loadProject(id?: string) {
-    if (id) {
-      project.value = await api.project.read(projectId.value)
-    } else if (projectType === 'base') {
+  async function loadProject(withTheme = true, forcedId?: string) {
+    if (forcedId) forcedProjectId.value = forcedId
+    if (projectType === 'base') {
       try {
         const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
+
         project.value = await api.project.read(baseData.project_id!)
       } catch (e: any) {
         if (e?.response?.status === 404) {
@@ -118,16 +122,17 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     } else if (projectId.value) {
       project.value = await api.project.read(projectId.value)
     } else {
+      console.warn('Project id not found')
       return
     }
 
-    await loadProjectRoles()
+    await loadProjectRoles(project.value.id || projectId.value, isSharedBase.value, projectId.value)
 
     await loadTables()
 
-    setTheme(projectMeta.value?.theme)
+    if (withTheme) setTheme(projectMeta.value?.theme)
 
-    projectLoadedHook.trigger(project.value)
+    return projectLoadedHook.trigger(project.value)
   }
 
   async function updateProject(data: Partial<ProjectType>) {
@@ -161,24 +166,17 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     $e('c:themes:change')
   }
 
-  watch(
-    () => route.params,
-    (next) => {
-      if (!next.projectId) {
-        setTheme()
-      }
-    },
-  )
-
   const reset = () => {
     project.value = {}
     tables.value = []
     projectMetaInfo.value = undefined
     projectRoles.value = {}
+    setTheme()
   }
 
   return {
     project,
+    bases,
     tables,
     loadProjectRoles,
     loadProject,
@@ -187,7 +185,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     isMysql,
     isMssql,
     isPg,
-    sqlUi,
+    sqlUis,
     isSharedBase,
     loadProjectMetaInfo,
     projectMetaInfo,
@@ -196,16 +194,17 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     projectLoadedHook: projectLoadedHook.on,
     reset,
     isLoading,
+    lastOpenedViewMap,
   }
 }, 'useProject')
 
 export const provideProject = setup
 
-export function useProject(projectId?: MaybeRef<string>) {
+export function useProject() {
   const state = use()
 
   if (!state) {
-    return setup(projectId)
+    return setup()
   }
 
   return state

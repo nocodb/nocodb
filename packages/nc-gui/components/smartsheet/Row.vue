@@ -1,16 +1,28 @@
 <script lang="ts" setup>
-import type { Row } from '~/composables'
-import { ReloadRowDataHookInj, useProvideSmartsheetRowStore, useSmartsheetStoreOrThrow } from '#imports'
+import type { Ref } from 'vue'
+import type { TableType } from 'nocodb-sdk'
+import type { Row } from '~/lib'
+import {
+  ReloadRowDataHookInj,
+  ReloadViewDataHookInj,
+  createEventHook,
+  inject,
+  provide,
+  toRef,
+  useProvideSmartsheetRowStore,
+  useSmartsheetStoreOrThrow,
+  watch,
+} from '#imports'
 
-interface Props {
+const props = defineProps<{
   row: Row
-}
+}>()
 
-const props = defineProps<Props>()
 const currentRow = toRef(props, 'row')
 
 const { meta } = useSmartsheetStoreOrThrow()
-const { isNew, state, syncLTARRefs } = useProvideSmartsheetRowStore(meta, currentRow)
+
+const { isNew, state, syncLTARRefs, clearLTARCell } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
 
 // on changing isNew(new record insert) status sync LTAR cell values
 watch(isNew, async (nextVal, prevVal) => {
@@ -25,17 +37,18 @@ watch(isNew, async (nextVal, prevVal) => {
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj)!
 
 // override reload trigger and use it to reload row
-const reloadHook = createEventHook()
+const reloadHook = createEventHook<boolean | void>()
 
-reloadHook.on(() => {
+reloadHook.on((shouldShowLoading) => {
   if (isNew.value) return
-  reloadViewDataTrigger?.trigger()
+  reloadViewDataTrigger?.trigger(shouldShowLoading)
 })
 
 provide(ReloadRowDataHookInj, reloadHook)
 
 defineExpose({
   syncLTARRefs,
+  clearLTARCell,
 })
 </script>
 

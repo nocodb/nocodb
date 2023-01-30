@@ -1,6 +1,7 @@
-import XcPlugin from "./XcPlugin";
-import XcPluginMigration from "./XcPluginMigration";
-import {XcForm} from "nc-common";
+import { XcForm } from 'nc-common';
+
+import XcPlugin from './XcPlugin';
+import XcPluginMigration from './XcPluginMigration';
 
 export default interface XcPluginConfig {
   title: string;
@@ -11,7 +12,7 @@ export default interface XcPluginConfig {
   category?: string;
   permissions?: string[];
   inputs?: XcForm;
-  price?:string;
+  price?: string;
   builder: Constructor<any>;
   migrations?: XcPluginMigration[];
   msgOnInstall?: string;
@@ -19,5 +20,5 @@ export default interface XcPluginConfig {
 }
 
 type Constructor<T extends XcPlugin> = {
-  new(...args: any[]): T;
-}
+  new (...args: any[]): T;
+};

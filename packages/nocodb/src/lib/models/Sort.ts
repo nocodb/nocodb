@@ -34,18 +34,22 @@ export default class Sort {
     });
   }
 
-  public static async insert(sortObj: Partial<Sort>, ncMeta = Noco.ncMeta) {
+  public static async insert(
+    sortObj: Partial<Sort> & { push_to_top?: boolean },
+    ncMeta = Noco.ncMeta
+  ) {
     // todo: implement a generic function
-    const order =
-      (+(
-        await ncMeta
-          .knex(MetaTable.SORT)
-          .max('order', { as: 'order' })
-          .where({
-            fk_view_id: sortObj.fk_view_id,
-          })
-          .first()
-      )?.order || 0) + 1;
+    const order = sortObj.push_to_top
+      ? 1
+      : (+(
+          await ncMeta
+            .knex(MetaTable.SORT)
+            .max('order', { as: 'order' })
+            .where({
+              fk_view_id: sortObj.fk_view_id,
+            })
+            .first()
+        )?.order || 0) + 1;
 
     const insertObj = {
       id: sortObj.id,
@@ -62,20 +66,39 @@ export default class Sort {
       insertObj.base_id = model.base_id;
     }
 
+    // increment existing order
+    if (sortObj.push_to_top) {
+      await ncMeta
+        .knex(MetaTable.SORT)
+        .where({
+          fk_view_id: sortObj.fk_view_id,
+        })
+        .increment('order', 1);
+    }
+
     const row = await ncMeta.metaInsert2(null, null, MetaTable.SORT, insertObj);
+    if (sortObj.push_to_top) {
+      // todo: delete cache
+      const sortList = await ncMeta.metaList2(null, null, MetaTable.SORT, {
+        condition: { fk_view_id: sortObj.fk_view_id },
+        orderBy: {
+          order: 'asc',
+        },
+      });
+      await NocoCache.setList(CacheScope.SORT, [sortObj.fk_view_id], sortList);
+    } else {
+      await NocoCache.appendToList(
+        CacheScope.SORT,
+        [sortObj.fk_view_id],
+        `${CacheScope.SORT}:${row.id}`
+      );
 
-    await NocoCache.appendToList(
-      CacheScope.SORT,
-      [sortObj.fk_view_id],
-      `${CacheScope.SORT}:${row.id}`
-    );
-
-    await NocoCache.appendToList(
-      CacheScope.SORT,
-      [sortObj.fk_column_id],
-      `${CacheScope.SORT}:${row.id}`
-    );
-
+      await NocoCache.appendToList(
+        CacheScope.SORT,
+        [sortObj.fk_column_id],
+        `${CacheScope.SORT}:${row.id}`
+      );
+    }
     return this.get(row.id, ncMeta);
   }
 

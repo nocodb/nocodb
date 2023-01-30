@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
-import { timeAgo } from '~/utils/dateTimeUtils'
-import { h, useNuxtApp, useProject } from '#imports'
-import MdiReload from '~icons/mdi/reload'
+import { h, onMounted, timeAgo, useI18n, useNuxtApp, useProject } from '#imports'
 
 const { $api } = useNuxtApp()
+
 const { project } = useProject()
+
 const { t } = useI18n()
 
 let isLoading = $ref(false)
@@ -92,9 +91,11 @@ const columns = [
         <!--        Reload -->
         <div class="flex items-center gap-2 text-gray-600 font-light">
           <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+
           {{ $t('general.reload') }}
         </div>
       </a-button>
+
       <a-pagination
         v-model:current="currentPage"
         :page-size="currentLimit"
@@ -104,7 +105,15 @@ const columns = [
       />
     </div>
 
-    <a-table class="w-full" size="small" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading">
+    <a-table
+      class="w-full"
+      size="small"
+      :data-source="audits ?? []"
+      :columns="columns"
+      :pagination="false"
+      :loading="isLoading"
+      data-testid="audit-tab-table"
+    >
       <template #emptyText>
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
       </template>

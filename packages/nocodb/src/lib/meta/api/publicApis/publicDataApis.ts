@@ -18,13 +18,20 @@ import slash from 'slash';
 import { sanitizeUrlPath } from '../attachmentApis';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { getColumnByIdOrName } from '../dataApis/helpers';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../../constants';
 
 export async function dataList(req: Request, res: Response) {
   try {
     const view = await View.getByUUID(req.params.sharedViewUuid);
 
     if (!view) NcError.notFound('Not found');
-    if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY
+    ) {
+      NcError.notFound('Not found');
+    }
 
     if (view.password && view.password !== req.headers?.['xc-password']) {
       return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
@@ -77,6 +84,94 @@ export async function dataList(req: Request, res: Response) {
     console.log(e);
     res.status(500).json({ msg: e.message });
   }
+}
+
+// todo: Handle the error case where view doesnt belong to model
+async function groupedDataList(req: Request, res: Response) {
+  try {
+    const view = await View.getByUUID(req.params.sharedViewUuid);
+
+    if (!view) NcError.notFound('Not found');
+
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY
+    ) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== req.headers?.['xc-password']) {
+      return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+    }
+
+    const model = await Model.getByIdOrName({
+      id: view?.fk_model_id,
+    });
+
+    res.json(await getGroupedDataList(model, view, req));
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ msg: e.message });
+  }
+}
+
+async function getGroupedDataList(model, view: View, req) {
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  const requestObj = await getAst({ model, query: req.query, view });
+
+  const listArgs: any = { ...req.query };
+  try {
+    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+  } catch (e) {}
+  try {
+    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+  } catch (e) {}
+  try {
+    listArgs.options = JSON.parse(listArgs.optionsArrJson);
+  } catch (e) {}
+
+  let data = [];
+
+  try {
+    const groupedData = await baseModel.groupedList({
+      ...listArgs,
+      groupColumnId: req.params.columnId,
+    });
+    data = await nocoExecute(
+      { key: 1, value: requestObj },
+      groupedData,
+      {},
+      listArgs
+    );
+    const countArr = await baseModel.groupedListCount({
+      ...listArgs,
+      groupColumnId: req.params.columnId,
+    });
+    data = data.map((item) => {
+      // todo: use map to avoid loop
+      const count =
+        countArr.find((countItem: any) => countItem.key === item.key)?.count ??
+        0;
+
+      item.value = new PagedResponseImpl(item.value, {
+        ...req.query,
+        count: count,
+      });
+      return item;
+    });
+  } catch (e) {
+    // show empty result instead of throwing error here
+    // e.g. search some text in a numeric field
+  }
+  return data;
 }
 
 async function dataInsert(
@@ -346,6 +441,10 @@ router.get(
   catchError(dataList)
 );
 router.get(
+  '/api/v1/db/public/shared-view/:sharedViewUuid/group/:columnId',
+  catchError(groupedDataList)
+);
+router.get(
   '/api/v1/db/public/shared-view/:sharedViewUuid/nested/:columnId',
   catchError(relDataList)
 );
@@ -353,6 +452,9 @@ router.post(
   '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
   multer({
     storage: multer.diskStorage({}),
+    limits: {
+      fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+    },
   }).any(),
   catchError(dataInsert)
 );

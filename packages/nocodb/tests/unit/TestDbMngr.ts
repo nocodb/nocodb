@@ -2,27 +2,47 @@ import { DbConfig } from "../../src/interface/config";
 import { NcConfigFactory } from "../../src/lib";
 import SqlMgrv2 from "../../src/lib/db/sql-mgr/v2/SqlMgrv2";
 import fs from 'fs';
-import knex from "knex";
+import { Knex, knex } from "knex";
 import process from "process";
 
 export default class TestDbMngr {
   public static readonly dbName = 'test_meta';
   public static readonly sakilaDbName = 'test_sakila';
-  public static metaKnex: knex;
-  public static sakilaKnex: knex;
+  public static metaKnex: Knex;
+  public static sakilaKnex: Knex;
 
   public static defaultConnection = {
-    user: process.env['DB_USER'] || 'root',
-    password: process.env['DB_PASSWORD'] || 'password',
-    host: process.env['DB_HOST'] || 'localhost',
-    port: Number(process.env['DB_PORT']) || 3306,
+    user: 'root',
+    password: 'password',
+    host: 'localhost',
+    port: 3306,
     client: 'mysql2',
   }
 
+  public static connection: {
+    user: string;
+    password: string;
+    host: string;
+    port: number;
+    client: string;
+  } = TestDbMngr.defaultConnection;
+
   public static dbConfig: DbConfig;
+
+  static populateConnectionConfig() {
+    const { user, password, host, port, client } = TestDbMngr.defaultConnection;
+    TestDbMngr.connection = {
+      user: process.env['DB_USER'] || user,
+      password: process.env['DB_PASSWORD'] || password,
+      host: process.env['DB_HOST'] || host,
+      port: Number(process.env['DB_PORT']) || port,
+      client
+    }
+  }
 
   static async testConnection(config: DbConfig) {
     try {
+      console.log('Testing connection', TestDbMngr.connection);
       return await SqlMgrv2.testConnection(config);
     } catch (e) {
       console.log(e);
@@ -31,15 +51,18 @@ export default class TestDbMngr {
   }
 
   static async init() {
+    TestDbMngr.populateConnectionConfig()
+
     if(await TestDbMngr.isMysqlConfigured()){
       await TestDbMngr.connectMysql();
     } else {
+      console.log('Mysql is not configured. Switching to sqlite');
       await TestDbMngr.switchToSqlite();
     }
   }
 
   static async isMysqlConfigured() {
-    const { user, password, host, port, client } = TestDbMngr.defaultConnection;
+    const { user, password, host, port, client } = TestDbMngr.connection;
     const config = NcConfigFactory.urlToDbConfig(`${client}://${user}:${password}@${host}:${port}`);
     config.connection = {
       user,
@@ -52,7 +75,7 @@ export default class TestDbMngr {
   }
 
   static async connectMysql() {
-    const { user, password, host, port, client } = TestDbMngr.defaultConnection;
+    const { user, password, host, port, client } = TestDbMngr.connection;
     if(!process.env[`DATABASE_URL`]){
       process.env[`DATABASE_URL`] = `${client}://${user}:${password}@${host}:${port}/${TestDbMngr.dbName}`;
     }
@@ -87,7 +110,7 @@ export default class TestDbMngr {
       await TestDbMngr.resetMetaSqlite();
       TestDbMngr.metaKnex = knex(TestDbMngr.getMetaDbConfig());
       return
-    } 
+    }
 
     TestDbMngr.metaKnex = knex(TestDbMngr.getDbConfigWithNoDb());
     await TestDbMngr.resetDatabase(TestDbMngr.metaKnex, TestDbMngr.dbName);
@@ -106,12 +129,12 @@ export default class TestDbMngr {
       await TestDbMngr.seedSakila();
       TestDbMngr.sakilaKnex = knex(TestDbMngr.getSakilaDbConfig());
       return
-    } 
-    
+    }
+
     TestDbMngr.sakilaKnex = knex(TestDbMngr.getDbConfigWithNoDb());
     await TestDbMngr.resetDatabase(TestDbMngr.sakilaKnex, TestDbMngr.sakilaDbName);
     await TestDbMngr.sakilaKnex.destroy();
-    
+
     TestDbMngr.sakilaKnex = knex(TestDbMngr.getSakilaDbConfig());
     await TestDbMngr.useDatabase(TestDbMngr.sakilaKnex, TestDbMngr.sakilaDbName);
   }
@@ -194,7 +217,7 @@ export default class TestDbMngr {
     return sakilaDbConfig;
   }
 
-  static async seedSakila() {     
+  static async seedSakila() {
     const testsDir = __dirname.replace('tests/unit', 'tests');
 
     if(TestDbMngr.isSqlite()){

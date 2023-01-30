@@ -43,6 +43,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Public | Get | public | csvExport | /api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type} |
 | Public | Get | public | dataRelationList | /api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName} |
 | Public | Get | public | sharedViewMetaGet | /api/v1/db/public/shared-view/{sharedViewUuid}/meta |
+| Public | Get | public | groupedDataList | /api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId} |
 
 ### Data APIs
 
@@ -62,6 +63,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Patch | dbTableRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Delete| dbTableRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Get | dbTableRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/count |
+| Data | Get | dbTableRow | groupedDataList | /api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId} |
 | Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
 | Data | Get | dbViewRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one |
 | Data | Get | dbViewRow | groupBy | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupby |
@@ -71,6 +73,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
 | Data | Delete| dbViewRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
 | Data | Get | dbViewRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count |
+| Data | Get | dbViewRow | groupedDataList | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId} |
 
 ### Meta APIs
 
@@ -169,6 +172,16 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Meta | Get | utils | appInfo | /api/v1/db/meta/nocodb/info |
 | Meta | Get | utils | appVersion | /api/v1/version |
 | Meta | Get | utils | appHealth | /api/v1/health |
+| Meta | Get | utils | aggregatedMetaInfo | /api/v1/aggregated-meta-info |
+| Meta | Get | orgUsers | list | /api/v1/users |
+| Meta | Post | orgUsers | add | /api/v1/users |
+| Meta | Patch | orgUsers | update | /api/v1/users/{userId} |
+| Meta | Delete | orgUsers | delete | /api/v1/users/{userId} |
+| Meta | Get | orgTokens | list | /api/v1/tokens |
+| Meta | Post | orgTokens | create | /api/v1/tokens |
+| Meta | Delete | orgTokens | delete | /api/v1/tokens/{token} |
+| Meta | Get | orgAppSettings | get | /api/v1/app-settings |
+| Meta | Post | orgAppSettings | set | /api/v1/app-settings |
 
 ## Query params
 
@@ -208,6 +221,10 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | btw | between | (colName,btw,val1,val2) |
 | nbtw | not between | (colName,nbtw,val1,val2) |
 | like | like | (colName,like,%name) |
+| allof | includes all of | (colName,allof,val1,val2,...) |
+| anyof | includes any of | (colName,anyof,val1,val2,...) |
+| nallof | does not include all of (includes none or some, but not all of) | (colName,nallof,val1,val2,...) |
+| nanyof | does not include any of (includes none of) | (colName,nanyof,val1,val2,...) |
 
 ## Logical Operators
 

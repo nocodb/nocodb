@@ -1,14 +1,7 @@
-import { message } from 'ant-design-vue'
-import { Api } from 'nocodb-sdk'
 import type { Actions, State } from './types'
-import { getI18n } from '~/plugins/a.i18n'
+import { message, useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
-  /** detached api instance, will not trigger global loading */
-  const api = new Api()
-
-  const { t } = getI18n().global
-
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = () => {
     state.token.value = null
@@ -32,8 +25,11 @@ export function useGlobalActions(state: State): Actions {
 
   /** manually try to refresh token */
   const refreshToken = async () => {
-    api.instance
-      .post('/auth/refresh-token', null, {
+    const nuxtApp = useNuxtApp()
+    const t = nuxtApp.vueApp.i18n.global.t
+
+    nuxtApp.$api.instance
+      .post('/auth/token/refresh', null, {
         withCredentials: true,
       })
       .then((response) => {
@@ -47,5 +43,14 @@ export function useGlobalActions(state: State): Actions {
       })
   }
 
-  return { signIn, signOut, refreshToken }
+  const loadAppInfo = async () => {
+    try {
+      const nuxtApp = useNuxtApp()
+      state.appInfo.value = await nuxtApp.$api.utils.appInfo()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  return { signIn, signOut, refreshToken, loadAppInfo }
 }

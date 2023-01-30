@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import FileSaver from 'file-saver'
-import { useI18n } from 'vue-i18n'
+import { message, useApi, useI18n } from '#imports'
 
 const { t } = useI18n()
+
 const { api } = useApi()
 
 async function exportCache() {
+  const FileSaver = await import('file-saver')
+
   try {
     const data = await api.utils.cacheGet()
     if (!data) {
@@ -14,10 +15,13 @@ async function exportCache() {
       message.info(t('msg.info.cacheEmpty'))
       return
     }
+
     const blob = new Blob([JSON.stringify(data)], {
       type: 'text/plain;charset=utf-8',
     })
+
     FileSaver.saveAs(blob, 'cache_exported.json')
+
     // Exported Cache Successfully
     message.info(t('msg.info.exportedCache'))
   } catch (e: any) {
@@ -31,6 +35,7 @@ async function exportCache() {
     <template #title>
       <span> Export Cache </span>
     </template>
+
     <mdi-export class="cursor-pointer" @click="exportCache" />
   </a-tooltip>
 </template>

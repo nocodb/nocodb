@@ -1367,9 +1367,6 @@ export class PgUi {
 
       case 'bit':
         return 'integer';
-      case 'bigint':
-      case 'bigserial':
-        return 'string';
 
       case 'bool':
         return 'boolean';
@@ -1412,13 +1409,13 @@ export class PgUi {
       case 'int4':
       case 'int8':
       case 'integer':
+      case 'bigint':
+      case 'bigserial':
         return 'integer';
       case 'int4range':
       case 'int8range':
       case 'internal':
       case 'interval':
-        return 'string';
-      case 'jsonb':
         return 'string';
 
       case 'language_handler':
@@ -1534,6 +1531,7 @@ export class PgUi {
       case 'multipolygon':
         return 'string';
       case 'json':
+      case 'jsonb':
         return 'json';
     }
   }
@@ -1598,6 +1596,7 @@ export class PgUi {
         break;
       case 'Checkbox':
         colProp.dt = 'bool';
+        colProp.cdf = 'false';
         break;
       case 'MultiSelect':
         colProp.dt = 'text';
@@ -1664,6 +1663,7 @@ export class PgUi {
         break;
       case 'Rating':
         colProp.dt = 'smallint';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'character varying';
@@ -1979,25 +1979,3 @@ export class PgUi {
 }
 
 // module.exports = PgUiHelp;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

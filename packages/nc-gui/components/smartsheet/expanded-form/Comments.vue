@@ -25,7 +25,7 @@ watch(
 <template>
   <div class="h-full flex flex-col w-full bg-[#eceff1] p-2">
     <div ref="commentsWrapperEl" class="flex-1 min-h-[100px] overflow-y-auto scrollbar-thin-dull p-2 space-y-2">
-      <v-skeleton-loader v-if="isCommentsLoading && !commentsAndLogs" type="list-item-avatar-two-line@8" />
+      <a-skeleton v-if="isCommentsLoading && !commentsAndLogs" type="list-item-avatar-two-line@8" />
 
       <template v-else>
         <div v-for="log of commentsAndLogs" :key="log.id" class="flex gap-1 text-xs">
@@ -36,6 +36,7 @@ watch(
               {{ isYou(log.user) ? 'You' : log.user == null ? 'Shared base' : log.user }}
               {{ log.op_type === 'COMMENT' ? 'commented' : log.op_sub_type === 'INSERT' ? 'created' : 'edited' }}
             </p>
+
             <p
               v-if="log.op_type === 'COMMENT'"
               class="block caption my-2 nc-chip w-full min-h-20px p-2 rounded"
@@ -53,14 +54,19 @@ watch(
         </div>
       </template>
     </div>
+
     <div class="border-1 my-2 w-full" />
+
     <div class="p-0">
       <div class="flex justify-center">
         <!--        Comments only -->
-        <a-checkbox v-model:checked="commentsOnly" v-e="['c:row-expand:comment-only']" @change="loadCommentsAndLogs"
-          >{{ $t('labels.commentsOnly') }}<span class="text-[11px] text-gray-500"></span>
+        <a-checkbox v-model:checked="commentsOnly" v-e="['c:row-expand:comment-only']" @change="loadCommentsAndLogs">
+          {{ $t('labels.commentsOnly') }}
+
+          <span class="text-[11px] text-gray-500" />
         </a-checkbox>
       </div>
+
       <div class="shrink mt-2 flex">
         <a-input
           v-model:value="comment"
@@ -76,6 +82,7 @@ watch(
               <mdi-account-circle class="text-lg text-pink-300" small @click="saveComment" />
             </div>
           </template>
+
           <template #suffix>
             <mdi-keyboard-return v-if="comment" class="text-sm" small @click="saveComment" />
           </template>

@@ -168,7 +168,7 @@ CREATE TABLE film (
     rating mpaa_rating DEFAULT 'G'::mpaa_rating,
     last_update timestamp without time zone DEFAULT now() NOT NULL,
     special_features text[],
-    fulltext tsvector NOT NULL
+    fulltext tsvector
 );
 
 

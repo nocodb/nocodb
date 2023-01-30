@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { Empty, message } from 'ant-design-vue'
-import { h, useNuxtApp, useProject } from '#imports'
-import MdiReload from '~icons/mdi/reload'
-import MdiDatabaseSync from '~icons/mdi/database-sync'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
+
+const props = defineProps<{
+  baseId: string
+}>()
+
+const emit = defineEmits(['baseSynced'])
 
 const { $api } = useNuxtApp()
+
 const { project, loadTables } = useProject()
+
 const { t } = useI18n()
 
 let isLoading = $ref(false)
+
 let isDifferent = $ref(false)
+
 let metadiff = $ref<any[]>([])
 
 async function loadMetaDiff() {
@@ -20,7 +25,7 @@ async function loadMetaDiff() {
 
     isLoading = true
     isDifferent = false
-    metadiff = await $api.project.metaDiffGet(project.value?.id)
+    metadiff = await $api.base.metaDiffGet(project.value?.id, props.baseId)
     for (const model of metadiff) {
       if (model.detectedChanges?.length > 0) {
         model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
@@ -39,11 +44,12 @@ async function syncMetaDiff() {
     if (!project.value?.id || !isDifferent) return
 
     isLoading = true
-    await $api.project.metaDiffSync(project.value.id)
+    await $api.base.metaDiffSync(project.value.id, props.baseId)
     // Table metadata recreated successfully
     message.info(t('msg.info.metaDataRecreated'))
     await loadTables()
     await loadMetaDiff()
+    emit('baseSynced')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -58,13 +64,12 @@ onMounted(async () => {
 })
 
 const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
+
 const columns = [
   {
     // Models
     title: tableHeaderRenderer(t('labels.models')),
     key: 'table_name',
-    customRender: ({ record }: { record: { table_name: string; title?: string } }) =>
-      h('div', {}, record.title || record.table_name),
   },
   {
     // Sync state
@@ -105,10 +110,24 @@ const columns = [
           :loading="isLoading"
           bordered
         >
-          <template #emptyText> <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" /> </template
-        ></a-table>
+          <template #emptyText>
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+          </template>
+
+          <template #bodyCell="{ record, column }">
+            <div v-if="column.key === 'table_name'">
+              <div class="flex items-center gap-1">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon :meta="record" class="text-gray-500"></GeneralTableIcon>
+                </div>
+                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.title || record.table_name }}</span>
+              </div>
+            </div>
+          </template>
+        </a-table>
       </div>
     </div>
+
     <div class="flex place-content-center w-2/5">
       <!--      Sync Now -->
       <div v-if="isDifferent">
@@ -119,9 +138,12 @@ const columns = [
           </div>
         </a-button>
       </div>
+
       <div v-else>
         <!--        Tables metadata is in sync -->
-        <span><a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon /></span>
+        <span>
+          <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
+        </span>
       </div>
     </div>
   </div>

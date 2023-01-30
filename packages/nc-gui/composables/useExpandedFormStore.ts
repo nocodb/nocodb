@@ -1,50 +1,66 @@
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import { useI18n } from 'vue-i18n'
 import {
   NOCO,
+  computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
+  message,
+  populateInsertObject,
+  ref,
   useApi,
+  useI18n,
   useInjectionState,
+  useKanbanViewStoreOrThrow,
+  useMetas,
   useNuxtApp,
   useProject,
   useProvideSmartsheetRowStore,
+  useSharedView,
 } from '#imports'
-import type { Row } from '~/composables'
+import type { Row } from '~/lib'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
+
   const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
+
   const { t } = useI18n()
 
   const commentsOnly = ref(false)
+
   const commentsAndLogs = ref<any[]>([])
+
   const comment = ref('')
+
   const commentsDrawer = ref(false)
+
   const changedColumns = ref(new Set<string>())
+
   const { project } = useProject()
+
   const rowStore = useProvideSmartsheetRowStore(meta, row)
-  const { sharedView } = useSharedView() as Record<string, any>
 
-  // todo
-  // const activeView = inject(ActiveViewInj)
+  const activeView = inject(ActiveViewInj, ref())
 
-  // const { updateOrSaveRow, insertRow } = useViewData(meta, activeView as any)
+  const { sharedView } = useSharedView()
 
   // getters
   const primaryValue = computed(() => {
     if (row?.value?.row) {
       const col = meta?.value?.columns?.find((c) => c.pv)
+
       if (!col) {
         return
       }
+
       const value = row.value.row?.[col.title as string]
+
       const uidt = col.uidt
+
       if (uidt === UITypes.Date) {
         return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD')
       } else if (uidt === UITypes.DateTime) {
@@ -73,8 +89,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   // actions
   const loadCommentsAndLogs = async () => {
     if (!row.value) return
+
     const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+
     if (!rowId) return
+
     commentsAndLogs.value =
       (
         await api.utils.commentList({
@@ -92,7 +111,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const saveComment = async () => {
     try {
       if (!row.value || !comment.value) return
+
       const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+
       if (!rowId) return
 
       await api.utils.commentRow({
@@ -111,63 +132,72 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     $e('a:row-expand:comment')
   }
 
-  const save = async () => {
+  const save = async (ltarState: Record<string, any> = {}) => {
     let data
     try {
-      // todo:
-      // if (this.presetValues) {
-      //   // cater presetValues
-      //   for (const k in this.presetValues) {
-      //     this.$set(this.changedColumns, k, true);
-      //   }
-      // }
+      const isNewRow = row.value.rowMeta?.new ?? false
 
-      const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
-        obj[col] = row.value.row[col]
-        return obj
-      }, {} as Record<string, any>)
+      if (isNewRow) {
+        const { getMeta } = useMetas()
 
-      if (row.value.rowMeta?.new) {
-        data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
+        const { missingRequiredColumns, insertObj } = await populateInsertObject({
+          meta: meta.value,
+          ltarState,
+          getMeta,
+          row: row.value.row,
+          throwError: true,
+        })
+
+        if (missingRequiredColumns.size) return
+
+        data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, insertObj)
 
         Object.assign(row.value, {
           row: data,
           rowMeta: {},
           oldRow: { ...data },
         })
-      } else if (Object.keys(updateOrInsertObj).length) {
-        const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
-
-        if (!id) {
-          return message.info("Update not allowed for table which doesn't have primary Key")
-        }
-        await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
-        for (const key of Object.keys(updateOrInsertObj)) {
-          // audit
-          $api.utils
-            .auditRowUpdate(id, {
-              fk_model_id: meta.value.id,
-              column_name: key,
-              row_id: id,
-              value: getHTMLEncodedText(updateOrInsertObj[key]),
-              prev_value: getHTMLEncodedText(row.value.oldRow[key]),
-            })
-            .then(async () => {
-              /** load latest comments/audit if right drawer is open */
-              if (commentsDrawer.value) {
-                await loadCommentsAndLogs()
-              }
-            })
-        }
       } else {
-        // No columns to update
-        return message.info(t('msg.info.noColumnsToUpdate'))
+        const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
+          obj[col] = row.value.row[col]
+          return obj
+        }, {} as Record<string, any>)
+        if (Object.keys(updateOrInsertObj).length) {
+          const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+
+          if (!id) {
+            return message.info("Update not allowed for table which doesn't have primary Key")
+          }
+
+          await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
+
+          for (const key of Object.keys(updateOrInsertObj)) {
+            // audit
+            $api.utils
+              .auditRowUpdate(id, {
+                fk_model_id: meta.value.id,
+                column_name: key,
+                row_id: id,
+                value: getHTMLEncodedText(updateOrInsertObj[key]),
+                prev_value: getHTMLEncodedText(row.value.oldRow[key]),
+              })
+              .then(async () => {
+                /** load latest comments/audit if right drawer is open */
+                if (commentsDrawer.value) {
+                  await loadCommentsAndLogs()
+                }
+              })
+          }
+        } else {
+          // No columns to update
+          return message.info(t('msg.info.noColumnsToUpdate'))
+        }
       }
 
-      // this.$emit('update:oldRow', { ...this.localState });
-      // this.changedColumns = {};
-      // this.$emit('input', this.localState);
-      // this.$emit('update:isNew', false);
+      if (activeView.value?.type === ViewTypes.KANBAN) {
+        const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
+        addOrEditStackRow(row.value, isNewRow)
+      }
 
       message.success(`${primaryValue.value || 'Row'} updated successfully.`)
 
@@ -182,7 +212,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const loadRow = async (rowId?: string) => {
     const record = await $api.dbTableRow.read(
       NOCO,
-      (project?.value?.id || sharedView.value.view.project_id) as string,
+      // todo: project_id missing on view type
+      (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,
       meta.value.title,
       rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
     )
@@ -218,6 +249,8 @@ export { useProvideExpandedFormStore }
 
 export function useExpandedFormStoreOrThrow() {
   const expandedFormStore = useExpandedFormStore()
+
   if (expandedFormStore == null) throw new Error('Please call `useExpandedFormStore` on the appropriate parent component')
+
   return expandedFormStore
 }

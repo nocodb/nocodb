@@ -1,15 +1,20 @@
 import { message } from 'ant-design-vue'
 import type { WatchStopHandle } from 'vue'
 import type { TableInfoType, TableType } from 'nocodb-sdk'
-import { useProject } from './useProject'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import { useNuxtApp, useState } from '#app'
+import { extractSdkResponseErrorMsg, useNuxtApp, useProject, useState, watch } from '#imports'
 
 export function useMetas() {
   const { $api } = useNuxtApp()
+
   const { tables } = useProject()
 
   const metas = useState<{ [idOrTitle: string]: TableType | any }>('metas', () => ({}))
+
+  const metasWithIdAsKey = computed<Record<string, TableType>>(() => {
+    const idEntries = Object.entries(metas.value).filter(([k, v]) => k === v.id)
+    return Object.fromEntries(idEntries)
+  })
+
   const loadingState = useState<Record<string, boolean>>('metas-loading-state', () => ({}))
 
   const setMeta = async (model: any) => {
@@ -20,6 +25,7 @@ export function useMetas() {
     }
   }
 
+  // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea
   const getMeta = async (tableIdOrTitle: string, force = false): Promise<TableType | TableInfoType | null> => {
     if (!tableIdOrTitle) return null
     /** wait until loading is finished if requesting same meta */
@@ -47,11 +53,14 @@ export function useMetas() {
           { immediate: true },
         )
       })
+
       if (metas.value[tableIdOrTitle]) {
         return metas.value[tableIdOrTitle]
       }
     }
+
     loadingState.value[tableIdOrTitle] = true
+
     try {
       if (!force && metas.value[tableIdOrTitle]) {
         return metas.value[tableIdOrTitle]
@@ -83,13 +92,15 @@ export function useMetas() {
   const clearAllMeta = () => {
     metas.value = {}
   }
+
   const removeMeta = (idOrTitle: string) => {
     const meta = metas.value[idOrTitle]
+
     if (meta) {
       delete metas.value[meta.id]
       delete metas.value[meta.title]
     }
   }
 
-  return { getMeta, clearAllMeta, metas, removeMeta, setMeta }
+  return { getMeta, clearAllMeta, metas, metasWithIdAsKey, removeMeta, setMeta }
 }

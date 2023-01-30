@@ -1,9 +1,17 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
-import { message } from 'ant-design-vue'
-import { ref, useDialog, useDropZone, useFileDialog, useNuxtApp, useProject, watch } from '#imports'
-import DlgQuickImport from '~/components/dlg/QuickImport.vue'
-import DlgTableCreate from '~/components/dlg/TableCreate.vue'
+import {
+  message,
+  ref,
+  resolveComponent,
+  useDialog,
+  useDropZone,
+  useFileDialog,
+  useNuxtApp,
+  useProject,
+  useUIPermission,
+  watch,
+} from '#imports'
 
 const dropZone = ref<HTMLDivElement>()
 
@@ -11,7 +19,8 @@ const { isOverDropZone } = useDropZone(dropZone, onDrop)
 
 const { files, open, reset } = useFileDialog()
 
-const { isSharedBase } = useProject()
+const { bases, isSharedBase } = useProject()
+
 const { isUIAllowed } = useUIPermission()
 
 const { $e } = useNuxtApp()
@@ -85,7 +94,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 
   const isOpen = ref(true)
 
-  const { close, vNode } = useDialog(DlgQuickImport, {
+  const { close, vNode } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
@@ -116,9 +125,10 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 
 function openCreateTable() {
   const isOpen = ref(true)
-  const { close } = useDialog(DlgTableCreate, {
+  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
+    'baseId': bases.value[0].id,
   })
 
   function closeDialog() {
@@ -150,8 +160,10 @@ function onDropZoneClick(e: MouseEvent) {
       class="flex flex-col gap-6 items-center justify-center mx-auto text-center text-gray-500 border-gray-300 border-1 w-3/5 h-1/2 rounded-md"
     >
       <div class="text-3xl">Welcome to NocoDB!</div>
+
       <div class="prose-lg leading-8">To get started, click on a table in the left pane</div>
     </div>
+
     <div v-else ref="dropZone">
       <general-overlay
         :model-value="true"
@@ -169,9 +181,12 @@ function onDropZoneClick(e: MouseEvent) {
 
         <div class="flex items-center flex-wrap justify-center gap-2 prose-lg leading-8">
           To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV,</span>
+
           <span class="flex items-center gap-2"><BiFiletypeJson /> JSON</span> or
+
           <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel file here or</span>
         </div>
+
         <a-button type="primary" ghost class="create-table-btn">
           <span class="prose text-[1rem] text-primary z-50" @click.stop="openCreateTable">{{ $t('tooltip.addTable') }}</span>
         </a-button>

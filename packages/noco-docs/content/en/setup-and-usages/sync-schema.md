@@ -1,7 +1,7 @@
 ---
 title: 'Sync Schema'
 description: 'Schema changes made to database from outside NocoDB GUI can be synced'
-position: 610
+position: 613
 category: 'Product'
 menuTitle: 'Sync Schema'
 ---
@@ -14,11 +14,11 @@ Below are the steps to sync schema changes.
 
 ### 1. From the `Project menu`, click `Team & Settings`
 
-<img width="390" alt="image" src="https://user-images.githubusercontent.com/35857179/189115289-07657c15-deab-435f-b0f9-2948007f8c65.png">
+<img width="322" alt="image" src="https://user-images.githubusercontent.com/35857179/194856648-67936db0-ee4d-4060-be3d-af9f86ef8fc6.png">
 
 ### 2. Click `Project Metadata` under SETTINGS, access `Metadata` tab
 
-![Screenshot 2022-09-13 at 10 37 17 AM](https://user-images.githubusercontent.com/86527202/189814111-56036958-c6e4-4560-af1e-9443380db080.png)
+<img width="1333" alt="image" src="https://user-images.githubusercontent.com/35857179/194850034-5330458e-85a9-4a3c-87a3-dd2f3edc5b46.png">
 
 ### 3. Changes carried outside GUI, identified by NocoDB are listed under `Sync state`
 - If changes made to the database are not visible, click `Reload`

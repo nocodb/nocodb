@@ -1,5 +1,6 @@
 import { defineNuxtPlugin, useApi, useGlobal } from '#imports'
 import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
+import { Language, LanguageAlias } from '~/lib'
 
 /**
  * Initialize global state and watches for changes
@@ -16,9 +17,12 @@ import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
 export default defineNuxtPlugin(async () => {
   const state = useGlobal()
 
-  const { api } = useApi()
+  const { api } = useApi({ useGlobalInstance: true })
 
-  const currentLang = state.lang.value
+  let currentLang = state.lang.value
+
+  /** fall back to EN language if the current language cannot be found in Language or LanguagesAlias */
+  if (![...Object.keys(Language), ...Object.keys(LanguageAlias)].includes(currentLang)) state.lang.value = currentLang = 'en'
 
   /** force load initial locale messages */
   await loadLocaleMessages(currentLang)

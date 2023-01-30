@@ -15,9 +15,13 @@ export const useCopy = () => {
   const { copy: _copy, isSupported } = useClipboard()
 
   const copy = async (text: string) => {
-    if (isSupported) {
-      await _copy(text)
-    } else {
+    try {
+      if (isSupported.value) {
+        await _copy(text)
+      } else {
+        copyFallback(text)
+      }
+    } catch (e) {
       copyFallback(text)
     }
   }

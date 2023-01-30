@@ -1,6 +1,6 @@
-import { adjectives, animals, starWars, uniqueNamesGenerator } from 'unique-names-generator'
+export const generateUniqueName = async () => {
+  const { adjectives, animals, starWars, uniqueNamesGenerator } = await import('unique-names-generator')
 
-export const generateUniqueName = () => {
   return uniqueNamesGenerator({
     dictionaries: [[starWars], [adjectives, animals]][Math.floor(Math.random() * 2)],
   })
@@ -14,7 +14,7 @@ export const generateUniqueTitle = <T extends Record<string, any> = Record<strin
   predicate: keyof T,
 ) => {
   let c = 1
-  while (arr.some((item) => item[predicate] === (`${title}-${c}` as keyof T))) {
+  while (arr.some((item) => item[predicate].includes(`${title}-${c}` as keyof T))) {
     c++
   }
 

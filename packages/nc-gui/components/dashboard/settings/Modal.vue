@@ -1,22 +1,17 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import AuditTab from './AuditTab.vue'
-import AppStore from './AppStore.vue'
-import Metadata from './Metadata.vue'
-import UIAcl from './UIAcl.vue'
+import DataSources from './DataSources.vue'
 import Misc from './Misc.vue'
-import { useNuxtApp } from '#app'
-import { useI18n, useUIPermission, useVModel, watch } from '#imports'
-import ApiTokenManagement from '~/components/tabs/auth/ApiTokenManagement.vue'
-import UserManagement from '~/components/tabs/auth/UserManagement.vue'
-import StoreFrontOutline from '~icons/mdi/storefront-outline'
+import { DataSourcesSubTab, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
-import NootbookOutline from '~icons/mdi/notebook-outline'
+import NotebookOutline from '~icons/mdi/notebook-outline'
+import FolderCog from '~icons/mdi/folder-cog'
 
 interface Props {
   modelValue: boolean
-  openKey?: string
+  openKey: string
+  dataSourcesState: string
 }
 
 interface SubTabGroup {
@@ -38,15 +33,23 @@ interface TabGroup {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue', 'update:openKey', 'update:dataSourcesState'])
 
 const vModel = useVModel(props, 'modelValue', emits)
+
+const vOpenKey = useVModel(props, 'openKey', emits)
+
+const vDataState = useVModel(props, 'dataSourcesState', emits)
 
 const { isUIAllowed } = useUIPermission()
 
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
+
+const dataSourcesReload = ref(false)
+
+const dataSourcesAwakened = ref(false)
 
 const tabsInfo: TabGroup = {
   teamAndAuth: {
@@ -58,7 +61,7 @@ const tabsInfo: TabGroup = {
             usersManagement: {
               // Users Management
               title: t('title.userMgmt'),
-              body: UserManagement,
+              body: resolveComponent('TabsAuthUserManagement'),
             },
           }
         : {}),
@@ -67,7 +70,7 @@ const tabsInfo: TabGroup = {
             apiTokenManagement: {
               // API Tokens Management
               title: t('title.apiTokenMgmt'),
-              body: ApiTokenManagement,
+              body: resolveComponent('TabsAuthApiTokenManagement'),
             },
           }
         : {}),
@@ -76,71 +79,70 @@ const tabsInfo: TabGroup = {
       $e('c:settings:team-auth')
     },
   },
-  appStore: {
-    // App Store
-    title: t('title.appStore'),
-    icon: StoreFrontOutline,
-    subTabs: {
-      new: {
-        title: 'Apps',
-        body: AppStore,
-      },
-    },
-    onClick: () => {
-      $e('c:settings:appstore')
-    },
-  },
-  metaData: {
-    // Project Metadata
-    title: t('title.projMeta'),
+  dataSources: {
+    // Data Sources
+    title: 'Data Sources',
     icon: MultipleTableIcon,
     subTabs: {
-      metaData: {
-        // Metadata
-        title: t('title.metadata'),
-        body: Metadata,
-      },
-      acl: {
-        // UI Access Control
-        title: t('title.uiACL'),
-        body: UIAcl,
-        onClick: () => {
-          $e('c:table:ui-acl')
-        },
-      },
-      misc: {
-        title: t('general.misc'),
-        body: Misc,
+      dataSources: {
+        title: 'Data Sources',
+        body: DataSources,
       },
     },
     onClick: () => {
-      $e('c:settings:proj-metadata')
+      vDataState.value = ''
+      $e('c:settings:data-sources')
     },
   },
   audit: {
     // Audit
     title: t('title.audit'),
-    icon: NootbookOutline,
+    icon: NotebookOutline,
     subTabs: {
       audit: {
         // Audit
         title: t('title.audit'),
-        body: AuditTab,
+        body: resolveComponent('DashboardSettingsAuditTab'),
       },
     },
     onClick: () => {
       $e('c:settings:audit')
     },
   },
+  projectSettings: {
+    // Project Settings
+    title: 'Project Settings',
+    icon: FolderCog,
+    subTabs: {
+      misc: {
+        // Misc
+        title: 'Misc',
+        body: Misc,
+      },
+    },
+    onClick: () => {
+      $e('c:settings:project-settings')
+    },
+  },
 }
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
-let selectedTabKeys = $ref<string[]>([firstKeyOfObject(tabsInfo)])
+const selectedTabKeys = $computed<string[]>({
+  get: () => [Object.keys(tabsInfo).find((key) => key === vOpenKey.value) || firstKeyOfObject(tabsInfo)],
+  set: (value) => {
+    vOpenKey.value = value[0]
+  },
+})
+
 const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
 
 let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
 const selectedSubTab = $computed(() => selectedTab.subTabs[selectedSubTabKeys[0]])
+
+const handleAwaken = (val: boolean) => {
+  dataSourcesAwakened.value = val
+}
 
 watch(
   () => selectedTabKeys[0],
@@ -148,18 +150,12 @@ watch(
     selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
   },
 )
-
-watch(
-  () => props.openKey,
-  (nextOpenKey) => {
-    selectedTabKeys = [Object.keys(tabsInfo).find((key) => key === nextOpenKey) || firstKeyOfObject(tabsInfo)]
-  },
-)
 </script>
 
 <template>
   <a-modal
     v-model:visible="vModel"
+    :class="{ active: vModel }"
     :footer="null"
     width="max(90vw, 600px)"
     :closable="false"
@@ -172,10 +168,13 @@ watch(
         {{ $t('activity.settings') }}
       </a-typography-title>
 
-      <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="vModel = false">
-        <template #icon>
-          <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
-        </template>
+      <a-button
+        type="text"
+        class="!rounded-md border-none !px-1.5"
+        data-testid="settings-modal-close-button"
+        @click="vModel = false"
+      >
+        <MdiClose class="cursor-pointer nc-modal-close w-4" />
       </a-button>
     </div>
 
@@ -201,7 +200,12 @@ watch(
 
       <!-- Sub Tabs -->
       <a-layout-content class="h-auto px-4 scrollbar-thumb-gray-500">
-        <a-menu v-model:selectedKeys="selectedSubTabKeys" :open-keys="[]" mode="horizontal">
+        <a-menu
+          v-if="selectedTabKeys[0] !== 'dataSources'"
+          v-model:selectedKeys="selectedSubTabKeys"
+          :open-keys="[]"
+          mode="horizontal"
+        >
           <a-menu-item
             v-for="(tab, key) of selectedTab.subTabs"
             :key="key"
@@ -211,8 +215,59 @@ watch(
             {{ tab.title }}
           </a-menu-item>
         </a-menu>
+        <div v-else>
+          <div class="flex items-center">
+            <a-breadcrumb class="w-full cursor-pointer">
+              <a-breadcrumb-item v-if="vDataState !== ''" @click="vDataState = ''">
+                <a class="!no-underline">Data Sources</a>
+              </a-breadcrumb-item>
+              <a-breadcrumb-item v-else @click="vDataState = ''">Data Sources</a-breadcrumb-item>
+              <a-breadcrumb-item v-if="vDataState !== ''">{{ vDataState }}</a-breadcrumb-item>
+            </a-breadcrumb>
+            <div v-if="vDataState === ''" class="flex flex-row justify-end items-center w-full gap-1">
+              <a-button
+                v-if="dataSourcesAwakened"
+                class="self-start nc-btn-new-datasource"
+                @click="vDataState = DataSourcesSubTab.New"
+              >
+                <div v-if="vDataState === ''" class="flex items-center gap-2 text-primary font-light">
+                  <MdiDatabasePlusOutline class="text-lg group-hover:text-accent" />
+                  New
+                </div>
+              </a-button>
+              <!--        Reload -->
+              <a-button
+                v-e="['a:proj-meta:data-sources:reload']"
+                class="self-start nc-btn-metasync-reload"
+                @click="dataSourcesReload = true"
+              >
+                <div class="flex items-center gap-2 text-gray-600 font-light">
+                  <MdiReload :class="{ 'animate-infinite animate-spin !text-success': dataSourcesReload }" />
+                  {{ $t('general.reload') }}
+                </div>
+              </a-button>
+            </div>
+          </div>
+          <a-divider style="margin: 10px 0" />
+        </div>
 
-        <component :is="selectedSubTab?.body" class="px-2 py-6" />
+        <div class="h-[600px]">
+          <component
+            :is="selectedSubTab?.body"
+            v-if="selectedSubTabKeys[0] === 'dataSources'"
+            v-model:state="vDataState"
+            v-model:reload="dataSourcesReload"
+            class="px-2 pb-2"
+            :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+            @awaken="handleAwaken"
+          />
+          <component
+            :is="selectedSubTab?.body"
+            v-else
+            class="px-2 py-6"
+            :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+          />
+        </div>
       </a-layout-content>
     </a-layout>
   </a-modal>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, onMounted, useCopy, useI18n, useNuxtApp, useProject } from '#imports'
+import { extractSdkResponseErrorMsg, message, onMounted, useCopy, useDashboard, useI18n, useNuxtApp, useProject } from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -137,49 +136,58 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full">
+  <div class="flex flex-col w-full" data-testid="nc-share-base-sub-modal">
     <div class="flex flex-row items-center space-x-0.5 pl-2 h-[0.8rem]">
       <MdiOpenInNew />
 
       <div class="text-xs">{{ $t('activity.shareBase.link') }}</div>
     </div>
+
     <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
       <span class="flex text-xs overflow-x-hidden overflow-ellipsis text-gray-700 pl-2 nc-url">{{ url }}</span>
+
       <div class="flex border-l-1 pt-1 pl-1">
         <a-tooltip placement="bottom">
           <template #title>
             <span>{{ $t('general.reload') }}</span>
           </template>
+
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="recreate">
             <template #icon>
               <MdiReload class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
+
         <a-tooltip placement="bottom">
           <template #title>
             <span>{{ $t('activity.copyUrl') }}</span>
           </template>
+
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="copyUrl">
             <template #icon>
               <MdiContentCopy class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
+
         <a-tooltip placement="bottom">
           <template #title>
             <span>{{ $t('activity.openTab') }}</span>
           </template>
+
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="navigateToSharedBase">
             <template #icon>
               <MdiOpenInNew class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
+
         <a-tooltip placement="bottom">
           <template #title>
             <span>{{ $t('activity.iFrame') }}</span>
           </template>
+
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="generateEmbeddableIframe">
             <template #icon>
               <MdiXml class="flex mx-auto text-gray-600" />
@@ -188,8 +196,10 @@ onMounted(() => {
         </a-tooltip>
       </div>
     </div>
+
     <!--    Generate publicly shareable readonly base -->
     <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">{{ $t('msg.info.generatePublicShareableReadonlyBase') }}</div>
+
     <div class="mt-4 flex flex-row justify-between mx-1">
       <a-dropdown v-model="showEditBaseDropdown" class="flex" overlay-class-name="nc-dropdown-shared-base-toggle">
         <a-button>
@@ -221,6 +231,7 @@ onMounted(() => {
             <IcRoundKeyboardArrowDown class="text-black -mt-0.5 h-[1rem]" />
           </div>
         </template>
+
         <a-select-option
           v-for="(role, index) in [ShareBaseRole.Editor, ShareBaseRole.Viewer]"
           :key="index"

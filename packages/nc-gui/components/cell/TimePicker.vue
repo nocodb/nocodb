@@ -1,22 +1,31 @@
 <script setup lang="ts">
-import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
+import { ActiveCellInj, ReadonlyInj, inject, onClickOutside, useProject, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null | undefined
+  isPk?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
-const readOnly = inject(ReadonlyInj, false)
+const { showNull } = useGlobal()
+
+const readOnly = inject(ReadonlyInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
+
+const column = inject(ColumnInj)!
 
 let isTimeInvalid = $ref(false)
 
-const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+const dateFormat = isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
 const localState = $computed({
   get() {
@@ -64,6 +73,23 @@ watch(
   },
   { flush: 'post' },
 )
+
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isTimeInvalid ? 'Invalid time' : ''))
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case 'Escape':
+      if (open.value) {
+        e.stopPropagation()
+        open.value = false
+      }
+      break
+  }
+})
 </script>
 
 <template>
@@ -74,13 +100,14 @@ watch(
     :bordered="false"
     use12-hours
     format="HH:mm"
-    class="!w-full px-1"
-    :placeholder="isTimeInvalid ? 'Invalid time' : ''"
-    :allow-clear="!readOnly"
+    class="!w-full !px-0 !border-none"
+    :class="{ 'nc-null': modelValue === null && showNull }"
+    :placeholder="placeholder"
+    :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :open="readOnly ? false : open"
-    :popup-class-name="`${randomClass} nc-picker-time`"
-    @click="open = !open"
+    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
+    :popup-class-name="`${randomClass} nc-picker-time ${open ? 'active' : ''}`"
+    @click="open = (active || editable) && !open"
     @ok="open = !open"
   >
     <template #suffixIcon></template>

@@ -1,25 +1,21 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
 import type { PluginType } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
-import { extractSdkResponseErrorMsg, ref, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg, message, onMounted, ref, useI18n, useNuxtApp } from '#imports'
 
-interface Props {
+const { id } = defineProps<{
   id: string
-}
-
-type Plugin = PluginType & {
-  formDetails: Record<string, any>
-  parsedInput: Record<string, any>
-}
-
-const { id } = defineProps<Props>()
+}>()
 
 const emits = defineEmits(['saved', 'close'])
 
 enum Action {
   Save = 'save',
   Test = 'test',
+}
+
+type Plugin = PluginType & {
+  formDetails: Record<string, any>
+  parsedInput: Record<string, any>
 }
 
 const { $api } = useNuxtApp()
@@ -29,8 +25,11 @@ const formRef = ref()
 const { t } = useI18n()
 
 let plugin = $ref<Plugin | null>(null)
+
 let pluginFormData = $ref<Record<string, any>>({})
+
 let isLoading = $ref(true)
+
 let loadingAction = $ref<null | Action>(null)
 
 const layout = {
@@ -153,6 +152,7 @@ onMounted(async () => {
 
           <span class="font-semibold text-lg">{{ plugin.formDetails.title }}</span>
         </div>
+
         <div class="absolute -right-2 -top-0.5">
           <a-button type="text" class="!rounded-md mr-1" @click="emits('close')">
             <template #icon>
@@ -175,6 +175,7 @@ onMounted(async () => {
                 </th>
               </tr>
             </thead>
+
             <tbody>
               <tr v-for="(itemRow, itemIndex) in plugin.parsedInput" :key="itemIndex">
                 <td v-for="(columnData, columnIndex) in plugin.formDetails.items" :key="columnIndex" class="px-2">
@@ -188,17 +189,21 @@ onMounted(async () => {
                       v-model:value="itemRow[columnData.key]"
                       :placeholder="columnData.placeholder"
                     />
+
                     <a-textarea
                       v-else-if="columnData.type === 'LongText'"
                       v-model:value="itemRow[columnData.key]"
                       :placeholder="columnData.placeholder"
                     />
+
                     <a-switch
                       v-else-if="columnData.type === 'Checkbox'"
                       v-model:value="itemRow[columnData.key]"
                       :placeholder="columnData.placeholder"
                     />
+
                     <a-input v-else v-model:value="itemRow[columnData.key]" :placeholder="columnData.placeholder" />
+
                     <div
                       v-if="itemIndex !== 0 && columnIndex === plugin.formDetails.items.length - 1"
                       class="absolute flex flex-col justify-start mt-2 -right-6 top-0"
@@ -236,19 +241,23 @@ onMounted(async () => {
               v-model:value="pluginFormData[columnData.key]"
               :placeholder="columnData.placeholder"
             />
+
             <a-textarea
               v-else-if="columnData.type === 'LongText'"
               v-model:value="pluginFormData[columnData.key]"
               :placeholder="columnData.placeholder"
             />
+
             <a-switch
               v-else-if="columnData.type === 'Checkbox'"
               v-model:checked="pluginFormData[columnData.key]"
               :placeholder="columnData.placeholder"
             />
+
             <a-input v-else v-model:value="pluginFormData[columnData.key]" :placeholder="columnData.placeholder" />
           </a-form-item>
         </template>
+
         <div class="flex flex-row space-x-4 justify-center mt-4">
           <a-button
             v-for="(action, i) in plugin.formDetails.actions"
@@ -265,5 +274,3 @@ onMounted(async () => {
     </div>
   </template>
 </template>
-
-<style scoped lang="scss"></style>

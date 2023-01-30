@@ -2,17 +2,18 @@
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import Modal from './Modal.vue'
-import Carousel from './Carousel.vue'
 import {
-  IsFormInj,
+  ActiveCellInj,
+  DropZoneRef,
   IsGalleryInj,
+  IsKanbanInj,
   inject,
   isImage,
   nextTick,
   openLink,
   ref,
   useDropZone,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
   watch,
@@ -24,24 +25,30 @@ interface Props {
 }
 
 interface Emits {
-  (event: 'update:modelValue', value: string | Record<string, any>): void
+  (event: 'update:modelValue', value: string | Record<string, any>[]): void
 }
 
 const { modelValue, rowIndex } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const isForm = inject(IsFormInj, ref(false))
-
 const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
+const dropZoneInjection = inject(DropZoneRef, ref())
 
 const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const { cellRefs } = useSmartsheetStoreOrThrow()!
+const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
+
+const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
 
 const {
+  isPublic,
+  isForm,
   column,
   modalVisible,
   attachments,
@@ -53,14 +60,15 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
+  getAttachmentUrl,
 } = useProvideAttachmentCell(updateModelValue)
 
-const currentCellRef = ref()
-
 watch(
-  [() => rowIndex, isForm],
+  [() => rowIndex, isForm, attachmentCellRef],
   () => {
-    if (!rowIndex && isForm.value && isGallery.value) {
+    if (dropZoneInjection?.value) return
+
+    if (!rowIndex && (isForm.value || isGallery.value || isKanban.value)) {
       currentCellRef.value = attachmentCellRef.value
     } else {
       nextTick(() => {
@@ -85,27 +93,54 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, is
 
 const { state: rowState } = useSmartsheetRowStoreOrThrow()
 
-const { isOverDropZone } = useDropZone(currentCellRef, onDrop)
+const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
 
 /** on new value, reparse our stored attachments */
 watch(
   () => modelValue,
-  (nextModel) => {
+  async (nextModel) => {
     if (nextModel) {
       try {
-        attachments.value = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
+        let nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
+
+        // reconstruct the url
+        // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
+        nextAttachments = await Promise.all(
+          nextAttachments.map(async (attachment: any) => ({
+            ...attachment,
+            url: await getAttachmentUrl(attachment),
+          })),
+        )
+
+        if (isPublic.value && isForm.value) {
+          storedFiles.value = nextAttachments
+        } else {
+          attachments.value = nextAttachments
+        }
       } catch (e) {
         console.error(e)
+        if (isPublic.value && isForm.value) {
+          storedFiles.value = []
+        } else {
+          attachments.value = []
+        }
+      }
+    } else {
+      if (isPublic.value && isForm.value) {
+        storedFiles.value = []
+      } else {
         attachments.value = []
       }
     }
   },
-  { immediate: true },
+  {
+    immediate: true,
+  },
 )
 
 /** updates attachments array for autosave */
-function updateModelValue(data: string | Record<string, any>) {
-  emits('update:modelValue', typeof data !== 'string' ? JSON.stringify(data) : data)
+function updateModelValue(data: string | Record<string, any>[]) {
+  emits('update:modelValue', data)
 }
 
 /** Close modal on escape press, disable dropzone as well */
@@ -122,7 +157,17 @@ watch(
   },
 )
 
-const { isSharedForm } = useSmartsheetStoreOrThrow()
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+  if (e.key === 'Enter' && !isReadonly.value) {
+    e.stopPropagation()
+    if (!modalVisible.value) {
+      modalVisible.value = true
+    } else {
+      // click Attach File button
+      ;(document.querySelector('.nc-attachment-modal.active .nc-attach-file') as HTMLDivElement)?.click()
+    }
+  }
+})
 </script>
 
 <template>
@@ -130,88 +175,100 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
     ref="attachmentCellRef"
     class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1"
   >
-    <Carousel />
+    <LazyCellAttachmentCarousel />
 
     <template v-if="isSharedForm || (!isReadonly && !dragging && !!currentCellRef)">
       <general-overlay
         v-model="isOverDropZone"
         inline
         :target="currentCellRef"
-        class="text-white text-lg ring ring-accent bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
+        class="nc-attachment-cell-dropzone text-white text-lg ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
-        <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here
+        <MaterialSymbolsFileCopyOutline class="text-accent" />
+        Drop here
       </general-overlay>
     </template>
 
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group flex gap-1 items-center active:ring rounded border-1 p-1 hover:(bg-primary bg-opacity-10)"
+      class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <a-tooltip v-else placement="bottom">
-        <template #title> Click or drop a file into cell </template>
+        <template #title> Click or drop a file into cell</template>
 
         <div class="flex items-center gap-2">
-          <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120) text-gray-500 text-[10px]" />
+          <MaterialSymbolsAttachFile
+            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
+          />
 
-          <div v-if="!visibleItems.length" class="group-hover:text-primary text-gray-500 text-xs">Add file(s)</div>
+          <div
+            v-if="!visibleItems.length"
+            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs"
+          >
+            Add file(s)
+          </div>
         </div>
       </a-tooltip>
     </div>
+
     <div v-else class="flex" />
 
     <template v-if="visibleItems.length">
       <div
         ref="sortableRef"
         :class="{ dragging }"
-        class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
+        class="flex cursor-pointer justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
       >
-        <div
-          v-for="(item, i) of visibleItems"
-          :key="item.url || item.title"
-          :class="isImage(item.title, item.mimetype ?? item.type) ? '' : 'border-1 rounded'"
-          class="nc-attachment flex items-center justify-center min-h-[50px]"
-        >
+        <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
           <a-tooltip placement="bottom">
             <template #title>
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
 
-            <nuxt-img
-              v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)"
-              quality="75"
-              placeholder
-              :alt="item.title || `#${i}`"
-              :src="item.url || item.data"
-              class="ring-1 ring-gray-300 rounded max-h-[50px] max-w-[50px]"
-              @click="selectedImage = item"
-            />
+            <template v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)">
+              <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
+                <LazyNuxtImg
+                  quality="75"
+                  placeholder
+                  fit="cover"
+                  :alt="item.title || `#${i}`"
+                  :src="item.url || item.data"
+                  class="max-w-full max-h-full"
+                />
+              </div>
+            </template>
 
-            <component :is="FileIcon(item.icon)" v-else-if="item.icon" @click="openLink(item.url || item.data)" />
+            <div v-else class="nc-attachment flex items-center justify-center" @click="openLink(item.url || item.data)">
+              <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
-            <IcOutlineInsertDriveFile v-else @click.stop="openLink(item.url || item.data)" />
+              <IcOutlineInsertDriveFile v-else />
+            </div>
           </a-tooltip>
-        </div>
+        </template>
       </div>
 
-      <div class="group flex gap-1 items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)">
+      <div
+        class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      >
         <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">
-          <template #title> View attachments </template>
+          <template #title> View attachments</template>
 
           <MdiArrowExpand
-            class="select-none transform group-hover:(text-accent scale-120) text-[10px] text-gray-500"
+            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="modalVisible = true"
           />
         </a-tooltip>
       </div>
     </template>
 
-    <Modal />
+    <LazyCellAttachmentModal />
   </div>
 </template>
 
@@ -219,7 +276,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply w-[50px] h-[50px] min-h-[50px] min-w-[50px];
+      @apply w-[50px] h-[50px] min-h-[50px] min-w-[50px] ring-1 ring-gray-300 rounded;
     }
 
     .ghost,

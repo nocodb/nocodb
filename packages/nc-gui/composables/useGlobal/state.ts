@@ -1,9 +1,17 @@
-import { usePreferredLanguages, useStorage } from '@vueuse/core'
-import { useJwt } from '@vueuse/integrations/useJwt'
+import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
 import type { AppInfo, State, StoredState } from './types'
-import { BASE_URL } from '~/lib'
-import { computed, ref, toRefs, useCounter, useNuxtApp, useTimestamp } from '#imports'
+import {
+  BASE_FALLBACK_URL,
+  computed,
+  ref,
+  toRefs,
+  useCounter,
+  useJwt,
+  useNuxtApp,
+  usePreferredLanguages,
+  useTimestamp,
+} from '#imports'
 import type { Language, User } from '~/lib'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
@@ -51,14 +59,10 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     token: null,
     lang: preferredLanguage,
     darkMode: prefersDarkMode,
-    feedbackForm: {
-      url: 'https://docs.google.com/forms/d/e/1FAIpQLSeTlAfZjszgr53lArz3NvUEnJGOT9JtG9NAU5d0oQwunDS2Pw/viewform?embedded=true',
-      createdAt: new Date('2020-01-01T00:00:00.000Z').toISOString(),
-      isHidden: false,
-    },
     filterAutoSave: true,
     previewAs: null,
     includeM2M: false,
+    showNull: false,
     currentVersion: null,
     latestRelease: null,
     hiddenRelease: null,
@@ -76,8 +80,10 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     set: (val) => (storage.value.token = val),
   })
 
+  const config = useRuntimeConfig()
+
   const appInfo = ref<AppInfo>({
-    ncSiteUrl: BASE_URL,
+    ncSiteUrl: config.public.ncBackendUrl || BASE_FALLBACK_URL,
     authType: 'jwt',
     connectToExternalDB: false,
     defaultLimit: 0,
@@ -90,6 +96,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     teleEnabled: true,
     type: 'nocodb',
     version: '0.0.0',
+    ncAttachmentFieldSize: 20,
+    ncMaxAttachmentsAllowed: 10,
   })
 
   /** reactive token payload */

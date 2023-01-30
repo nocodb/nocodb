@@ -1,18 +1,23 @@
 <script lang="ts" setup>
-import { Empty, Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import { breakpointsTailwind } from '@vueuse/core'
 import {
+  Empty,
+  Modal,
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
+  message,
   navigateTo,
+  onBeforeMount,
   projectThemeColors,
   ref,
   themeV2Colors,
   useApi,
+  useBreakpoints,
+  useCopy,
   useNuxtApp,
-  useSidebar,
   useUIPermission,
 } from '#imports'
 
@@ -26,7 +31,7 @@ const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
 
-useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
+const { md } = useBreakpoints(breakpointsTailwind)
 
 const filterQuery = ref('')
 
@@ -67,8 +72,6 @@ const deleteProject = (project: ProjectType) => {
   })
 }
 
-await loadProjects()
-
 const handleProjectColor = async (projectId: string, color: string) => {
   const tcolor = tinycolor(color)
 
@@ -95,6 +98,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
 
     if (localProject) {
       localProject.color = color
+
       localProject.meta = JSON.stringify({
         ...meta,
         theme: {
@@ -122,179 +126,165 @@ const customRow = (record: ProjectType) => ({
   },
   class: ['group'],
 })
+
+onBeforeMount(loadProjects)
+
+const { copy } = useCopy()
+
+const copyProjectMeta = async () => {
+  const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
+  copy(JSON.stringify(aggregatedMetaInfo))
+  message.info('Copied aggregated project meta to clipboard')
+}
 </script>
 
 <template>
-  <div class="bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)">
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
-
+  <div
+    class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
+    data-testid="projects-container"
+  >
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
-      <!-- My Projects -->
-      <span class="text-4xl nc-project-page-title">{{ $t('title.myProject') }}</span>
-
-      <a-tooltip title="Reload projects">
-        <span
-          class="transition-all duration-200 h-full flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
-          :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
-        >
-          <MdiRefresh
-            v-e="['a:project:refresh']"
-            class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
-            :class="isLoading ? '!text-primary' : ''"
-            @click="loadProjects"
-          />
-        </span>
-      </a-tooltip>
+      <span class="text-4xl nc-project-page-title" @dblclick="copyProjectMeta">{{ $t('title.myProject') }}</span>
     </h1>
 
-    <div class="flex mb-6">
+    <div class="flex flex-wrap gap-2 mb-6">
       <a-input-search
         v-model:value="filterQuery"
         class="max-w-[250px] nc-project-page-search rounded"
         :placeholder="$t('activity.searchProject')"
       />
 
+      <a-tooltip title="Reload projects">
+        <div
+          class="transition-all duration-200 h-full flex-0 flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
+          :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
+        >
+          <MdiRefresh
+            v-e="['a:project:refresh']"
+            class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
+            :class="isLoading ? '!text-primary' : ''"
+            data-testid="projects-reload-button"
+            @click="loadProjects"
+          />
+        </div>
+      </a-tooltip>
+
       <div class="flex-1" />
 
-      <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']" overlay-class-name="nc-dropdown-create-project">
-        <button class="nc-new-project-menu">
-          <span class="flex items-center w-full">
-            {{ $t('title.newProj') }}
-            <MdiMenuDown class="menu-icon" />
-          </span>
-        </button>
-
-        <template #overlay>
-          <a-menu class="!py-0 rounded">
-            <a-menu-item>
-              <div
-                v-e="['c:project:create:xcdb']"
-                class="nc-project-menu-item group nc-create-xc-db-project"
-                @click="navigateTo('/create')"
-              >
-                <MdiPlusOutline class="group-hover:text-accent" />
-
-                <div>{{ $t('activity.createProject') }}</div>
-              </div>
-            </a-menu-item>
-
-            <a-menu-item>
-              <div
-                v-e="['c:project:create:extdb']"
-                class="nc-project-menu-item group nc-create-external-db-project"
-                @click="navigateTo('/create-external')"
-              >
-                <MdiDatabaseOutline class="group-hover:text-accent" />
-
-                <div v-html="$t('activity.createProjectExtended.extDB')" />
-              </div>
-            </a-menu-item>
-          </a-menu>
-        </template>
-      </a-dropdown>
+      <button v-if="isUIAllowed('projectCreate', true)" class="nc-new-project-menu mt-4 md:mt-0" @click="navigateTo('/create')">
+        <span class="flex items-center w-full">
+          {{ $t('title.newProj') }}
+        </span>
+      </button>
     </div>
 
-    <TransitionGroup name="layout" mode="out-in">
-      <div v-if="isLoading" key="skeleton">
-        <a-skeleton />
-      </div>
+    <!--
+      TODO: bring back transition after fixing the bug with navigation
+      <Transition name="layout" mode="out-in"> -->
+    <div v-if="isLoading">
+      <a-skeleton />
+    </div>
 
-      <a-table
-        v-else
-        key="table"
-        :custom-row="customRow"
-        :data-source="filteredProjects"
-        :pagination="{ position: ['bottomCenter'] }"
-      >
-        <template #emptyText>
-          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-        </template>
+    <a-table
+      v-else
+      :custom-row="customRow"
+      :data-source="filteredProjects"
+      :pagination="{ position: ['bottomCenter'] }"
+      :table-layout="md ? 'auto' : 'fixed'"
+    >
+      <template #emptyText>
+        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+      </template>
 
-        <!-- Title -->
-        <a-table-column key="title" :title="$t('general.title')" data-index="title">
-          <template #default="{ text, record }">
-            <div class="flex items-center">
-              <div @click.stop>
-                <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
-                  <template v-if="isUIAllowed('projectTheme')">
-                    <a-sub-menu key="theme" popup-class-name="custom-color">
+      <!-- Title -->
+      <a-table-column key="title" :title="$t('general.title')" data-index="title">
+        <template #default="{ text, record }">
+          <div class="flex items-center">
+            <div @click.stop>
+              <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
+                <template v-if="isUIAllowed('projectTheme')">
+                  <a-sub-menu key="theme" popup-class-name="custom-color">
+                    <template #title>
+                      <div
+                        class="color-selector"
+                        :style="{
+                          'background-color': getProjectPrimary(record),
+                          'width': '8px',
+                          'height': '100%',
+                        }"
+                      />
+                    </template>
+
+                    <template #expandIcon></template>
+
+                    <LazyGeneralColorPicker
+                      :model-value="getProjectPrimary(record)"
+                      :colors="projectThemeColors"
+                      :row-size="9"
+                      :advanced="false"
+                      @input="handleProjectColor(record.id, $event)"
+                    />
+
+                    <a-sub-menu key="pick-primary">
                       <template #title>
-                        <div
-                          class="color-selector"
-                          :style="{
-                            'background-color': getProjectPrimary(record),
-                            'width': '8px',
-                            'height': '100%',
-                          }"
-                        />
+                        <div class="nc-project-menu-item group !py-0">
+                          <ClarityColorPickerSolid class="group-hover:text-accent" />
+                          Custom Color
+                        </div>
                       </template>
 
                       <template #expandIcon></template>
 
-                      <GeneralColorPicker
-                        :colors="projectThemeColors"
-                        :row-size="9"
-                        :advanced="false"
-                        @input="handleProjectColor(record.id, $event)"
-                      />
-                      <a-sub-menu key="pick-primary">
-                        <template #title>
-                          <div class="nc-project-menu-item group !py-0">
-                            <ClarityColorPickerSolid class="group-hover:text-accent" />
-                            Custom Color
-                          </div>
-                        </template>
-                        <template #expandIcon></template>
-                        <GeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
-                      </a-sub-menu>
+                      <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
                     </a-sub-menu>
-                  </template>
-                </a-menu>
-              </div>
-              <div
-                class="capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
-              >
-                {{ text }}
-              </div>
+                  </a-sub-menu>
+                </template>
+              </a-menu>
             </div>
-          </template>
-        </a-table-column>
-        <!-- Actions -->
-
-        <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
-          <template #default="{ text, record }">
-            <div class="flex items-center gap-2">
-              <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
-
-              <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
+            <div
+              class="capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
+            >
+              {{ text }}
             </div>
-          </template>
-        </a-table-column>
-      </a-table>
-    </TransitionGroup>
+          </div>
+        </template>
+      </a-table-column>
+      <!-- Actions -->
+
+      <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
+        <template #default="{ text, record }">
+          <div class="flex items-center gap-2">
+            <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
+
+            <MdiDeleteOutline
+              class="nc-action-btn"
+              :data-testid="`delete-project-${record.title}`"
+              @click.stop="deleteProject(record)"
+            />
+          </div>
+        </template>
+      </a-table-column>
+    </a-table>
+    <!--    </Transition> -->
   </div>
 </template>
 
 <style scoped>
 .nc-action-btn {
-  @apply text-gray-500 group-hover:text-accent active:(ring ring-accent) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
+  @apply text-gray-500 group-hover:text-accent active:(ring ring-accent ring-opacity-100) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
 }
 
 .nc-new-project-menu {
   @apply cursor-pointer z-1 relative color-transition rounded-md px-3 py-2 text-white;
 
   &::after {
-    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
+    @apply ring-opacity-100 rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
     content: '';
     z-index: -1;
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-accent;
-  }
-
-  &:active::after {
-    @apply ring ring-accent;
+    @apply transform scale-110;
   }
 }
 

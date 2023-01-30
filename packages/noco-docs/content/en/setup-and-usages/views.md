@@ -1,7 +1,7 @@
 ---
 title: 'Views'
 description: 'Understanding Views in NocoDB!'
-position: 600
+position: 700
 category: 'Product'
 menuTitle: 'Views'
 ---
@@ -13,14 +13,14 @@ In a table, you can use different views to display your data. You can show speci
 To navigate different views, we can select the target one in the view sidebar. By default, Grid View will be created for you after creating the table. You can create multiple views of a type, as long as they have unique View names.
 
 ## View Menu Bar
+
 To work with `Views`, use View menu-bar on the right hand side - 
 - <1> Toggle View menu-bar.
 - <2> Displays created view-list for the selected table
   - Currently active view is high-lighted   
 - <3> Add new view to the list
 
-![Screenshot 2022-09-09 at 2 56 15 PM](https://user-images.githubusercontent.com/86527202/189321194-303c4a8c-d9a1-4368-962c-c7596763efb6.png)
-<!-- ![image](https://user-images.githubusercontent.com/35857179/163340916-d1101709-2051-4d0e-9d86-dd14eced49e9.png) -->
+![image](https://user-images.githubusercontent.com/35857179/194814369-53fa8875-7610-4849-9a91-f94096b15b3f.png)
 
 ## View Types
 
@@ -28,25 +28,27 @@ To work with `Views`, use View menu-bar on the right hand side -
 
 Grid View, as a default type of view, allows you to display your data in a spreadsheet-like interface.
   
-![image](https://user-images.githubusercontent.com/86527202/189322133-04bddf2b-c885-49ca-aa8e-2a09ac755555.png)
-<!-- ![image](https://user-images.githubusercontent.com/35857179/163343433-f6594d6e-5874-45ae-b403-5774247659bb.png) -->
+![1010-2 Grid](https://user-images.githubusercontent.com/35857179/194824161-ce5c4875-4425-40b7-b932-8176271e4f1e.png)
 
 ### Form View
 
 Form View allows you to arrange fields in a form to input data.
   
-https://user-images.githubusercontent.com/35857179/188585121-94d0260d-6dbd-4e34-9758-a1a3709fc416.png
-<!-- ![image](https://user-images.githubusercontent.com/35857179/163355269-73d2a9d4-bafb-47c0-8c0d-d0e66503b47a.png) -->
+![1010-2 Form](https://user-images.githubusercontent.com/35857179/194824127-b400f9c8-18a7-4a37-b8c3-7d279e9976af.png)
 
 You can drag-drop columns from the form to form-field-menu-bar as requried.
-
 
 ### Gallery View
 
 Gallery View allows you to display images as thumbnails with other fields just like a gallery.
   
-![image](https://user-images.githubusercontent.com/86527202/189322216-f8df0b69-5177-4ebc-be28-c11e3efb41a4.png)
+![1010-2 Gallery](https://user-images.githubusercontent.com/35857179/194824141-04c76a4e-2cae-448f-a842-c79f5bce339d.png)
   
+### Kanban View
+
+Kanban View allows you to visualise your data using cards at various stacks.
+
+![1010-2 Kanban](https://user-images.githubusercontent.com/35857179/194824164-97ca897a-3af4-42ab-8812-534afaf23396.png)
   
 ## View Permission Types
 

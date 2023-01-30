@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectType } from 'nocodb-sdk'
-import { navigateTo } from '#app'
-import { useColors } from '#imports'
+import { navigateTo, useColors, useNuxtApp } from '#imports'
 import MdiMenuDown from '~icons/mdi/menu-down'
 import MdiDeleteOutline from '~icons/mdi/delete-outline'
 import MdiPlus from '~icons/mdi/plus'
@@ -25,9 +24,9 @@ const openProject = async (project: ProjectType) => {
   $e('a:project:open', { count: projects.length })
 }
 
-const formatTitle = (title: string) =>
+const formatTitle = (title?: string) =>
   title
-    .split(' ')
+    ?.split(' ')
     .map((w) => w[0])
     .slice(0, 2)
     .join('')

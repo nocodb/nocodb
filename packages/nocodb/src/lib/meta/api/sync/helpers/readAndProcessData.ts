@@ -1,58 +1,53 @@
 import { AirtableBase } from 'airtable/lib/airtable_base';
 import { Api, RelationTypes, TableType, UITypes } from 'nocodb-sdk';
+import EntityMap from './EntityMap';
 
-const BULK_DATA_BATCH_SIZE = 2000;
-const ASSOC_BULK_DATA_BATCH_SIZE = 5000;
+const BULK_DATA_BATCH_SIZE = 500;
+const ASSOC_BULK_DATA_BATCH_SIZE = 1000;
+const BULK_PARALLEL_PROCESS = 5;
 
 async function readAllData({
   table,
   fields,
   base,
   logBasic = (_str) => {},
-  triggerThreshold = BULK_DATA_BATCH_SIZE,
-  onThreshold = async (_rec) => {},
 }: {
   table: { title?: string };
   fields?;
   base: AirtableBase;
   logBasic?: (string) => void;
   logDetailed?: (string) => void;
-  triggerThreshold?: number;
-  onThreshold?: (
-    records: Array<{ fields: any; id: string }>,
-    allRecords?: Array<{ fields: any; id: string }>
-  ) => Promise<void>;
-}): Promise<Array<any>> {
+}): Promise<EntityMap> {
   return new Promise((resolve, reject) => {
-    const data = [];
-    let thresholdCbkData = [];
+    let data = null;
 
     const selectParams: any = {
       pageSize: 100,
     };
 
     if (fields) selectParams.fields = fields;
-    const insertJobs: Promise<any>[] = [];
 
     base(table.title)
       .select(selectParams)
       .eachPage(
         async function page(records, fetchNextPage) {
-          data.push(...records);
-          thresholdCbkData.push(...records);
+          if (!data) {
+            data = new EntityMap();
+            await data.init();
+          }
+
+          for await (const record of records) {
+            await data.addRow({ id: record.id, ...record.fields });
+          }
+
+          const tmpLength = await data.getCount();
 
           logBasic(
             `:: Reading '${table.title}' data :: ${Math.max(
               1,
-              data.length - records.length
-            )} - ${data.length}`
+              tmpLength - records.length
+            )} - ${tmpLength}`
           );
-
-          if (thresholdCbkData.length >= triggerThreshold) {
-            await Promise.all(insertJobs);
-            insertJobs.push(onThreshold(thresholdCbkData, data));
-            thresholdCbkData = [];
-          }
 
           // To fetch the next page of records, call `fetchNextPage`.
           // If there are more records, `page` will get called again.
@@ -63,11 +58,6 @@ async function readAllData({
           if (err) {
             console.error(err);
             return reject(err);
-          }
-          if (thresholdCbkData.length) {
-            await Promise.all(insertJobs);
-            await onThreshold(thresholdCbkData, data);
-            thresholdCbkData = [];
           }
           resolve(data);
         }
@@ -94,7 +84,7 @@ export async function importData({
   api: Api<any>;
   nocoBaseDataProcessing_v2;
   sDB;
-}): Promise<any> {
+}): Promise<EntityMap> {
   try {
     // @ts-ignore
     const records = await readAllData({
@@ -102,26 +92,80 @@ export async function importData({
       base,
       logDetailed,
       logBasic,
-      async onThreshold(records, allRecords) {
-        const allData = [];
-        for (let i = 0; i < records.length; i++) {
-          const r = await nocoBaseDataProcessing_v2(sDB, table, records[i]);
-          allData.push(r);
-        }
+    });
 
-        logBasic(
-          `:: Importing '${table.title}' data :: ${
-            allRecords.length - records.length + 1
-          } - ${allRecords.length}`
+    await new Promise(async (resolve) => {
+      const readable = records.getStream();
+      const allRecordsCount = await records.getCount();
+      const promises = [];
+      let tempData = [];
+      let importedCount = 0;
+      let activeProcess = 0;
+      readable.on('data', async (record) => {
+        promises.push(
+          new Promise(async (resolve) => {
+            activeProcess++;
+            if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
+            const { id: rid, ...fields } = record;
+            const r = await nocoBaseDataProcessing_v2(sDB, table, {
+              id: rid,
+              fields,
+            });
+            tempData.push(r);
+
+            if (tempData.length >= BULK_DATA_BATCH_SIZE) {
+              let insertArray = tempData.splice(0, tempData.length);
+              await api.dbTableRow.bulkCreate(
+                'nc',
+                projectName,
+                table.id,
+                insertArray
+              );
+              logBasic(
+                `:: Importing '${
+                  table.title
+                }' data :: ${importedCount} - ${Math.min(
+                  importedCount + BULK_DATA_BATCH_SIZE,
+                  allRecordsCount
+                )}`
+              );
+              importedCount += insertArray.length;
+              insertArray = [];
+            }
+            activeProcess--;
+            if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
+            resolve(true);
+          })
         );
-        await api.dbTableRow.bulkCreate('nc', projectName, table.id, allData);
-      },
+      });
+      readable.on('end', async () => {
+        await Promise.all(promises);
+        if (tempData.length > 0) {
+          await api.dbTableRow.bulkCreate(
+            'nc',
+            projectName,
+            table.id,
+            tempData
+          );
+          logBasic(
+            `:: Importing '${
+              table.title
+            }' data :: ${importedCount} - ${Math.min(
+              importedCount + BULK_DATA_BATCH_SIZE,
+              allRecordsCount
+            )}`
+          );
+          importedCount += tempData.length;
+          tempData = [];
+        }
+        resolve(true);
+      });
     });
 
     return records;
   } catch (e) {
     console.log(e);
-    return 0;
+    return null;
   }
 }
 
@@ -136,6 +180,7 @@ export async function importLTARData({
   logBasic = (_str) => {},
   records,
   atNcAliasRef,
+  ncLinkMappingTable,
 }: {
   projectName: string;
   table: { title?: string; id?: string };
@@ -145,12 +190,13 @@ export async function importLTARData({
   logBasic: (string) => void;
   api: Api<any>;
   insertedAssocRef: { [assocTableId: string]: boolean };
-  records?: Array<{ fields: any; id: string }>;
+  records?: EntityMap;
   atNcAliasRef: {
     [ncTableId: string]: {
       [ncTitle: string]: string;
     };
   };
+  ncLinkMappingTable: Record<string, Record<string, any>>[];
 }) {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
@@ -182,6 +228,9 @@ export async function importLTARData({
     // skip if already inserted
     if (colMeta.colOptions.fk_mm_model_id in insertedAssocRef) continue;
 
+    // self links: skip if the column under consideration is the add-on column NocoDB creates
+    if (ncLinkMappingTable.every((a) => a.nc.title !== colMeta.title)) continue;
+
     // mark as inserted
     insertedAssocRef[colMeta.colOptions.fk_mm_model_id] = true;
 
@@ -204,49 +253,86 @@ export async function importLTARData({
 
   let nestedLinkCnt = 0;
   // Iterate over all related M2M associative  table
-  for (const assocMeta of assocTableMetas) {
-    const assocTableData = [];
+  for await (const assocMeta of assocTableMetas) {
+    let assocTableData = [];
+    let importedCount = 0;
 
     //  extract insert data from records
-    for (const record of allData) {
-      const rec = record.fields;
+    await new Promise((resolve) => {
+      const promises = [];
+      const readable = allData.getStream();
+      let activeProcess = 0;
+      readable.on('data', async (record) => {
+        promises.push(
+          new Promise(async (resolve) => {
+            activeProcess++;
+            if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
+            const { id: _atId, ...rec } = record;
 
-      // todo: use actual alias instead of sanitized
-      assocTableData.push(
-        ...(rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []).map(
-          (id) => ({
-            [assocMeta.curCol.title]: record.id,
-            [assocMeta.refCol.title]: id,
+            // todo: use actual alias instead of sanitized
+            assocTableData.push(
+              ...(
+                rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []
+              ).map((id) => ({
+                [assocMeta.curCol.title]: record.id,
+                [assocMeta.refCol.title]: id,
+              }))
+            );
+
+            if (assocTableData.length >= ASSOC_BULK_DATA_BATCH_SIZE) {
+              let insertArray = assocTableData.splice(0, assocTableData.length);
+              logBasic(
+                `:: Importing '${
+                  table.title
+                }' LTAR data :: ${importedCount} - ${Math.min(
+                  importedCount + ASSOC_BULK_DATA_BATCH_SIZE,
+                  insertArray.length
+                )}`
+              );
+
+              await api.dbTableRow.bulkCreate(
+                'nc',
+                projectName,
+                assocMeta.modelMeta.id,
+                insertArray
+              );
+
+              importedCount += insertArray.length;
+              insertArray = [];
+            }
+            activeProcess--;
+            if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
+            resolve(true);
           })
-        )
-      );
-    }
+        );
+      });
+      readable.on('end', async () => {
+        await Promise.all(promises);
+        if (assocTableData.length >= 0) {
+          logBasic(
+            `:: Importing '${
+              table.title
+            }' LTAR data :: ${importedCount} - ${Math.min(
+              importedCount + ASSOC_BULK_DATA_BATCH_SIZE,
+              assocTableData.length
+            )}`
+          );
 
-    nestedLinkCnt += assocTableData.length;
-    // Insert datas as chunks of size `ASSOC_BULK_DATA_BATCH_SIZE`
-    for (
-      let i = 0;
-      i < assocTableData.length;
-      i += ASSOC_BULK_DATA_BATCH_SIZE
-    ) {
-      logBasic(
-        `:: Importing '${table.title}' LTAR data :: ${i + 1} - ${Math.min(
-          i + ASSOC_BULK_DATA_BATCH_SIZE,
-          assocTableData.length
-        )}`
-      );
+          await api.dbTableRow.bulkCreate(
+            'nc',
+            projectName,
+            assocMeta.modelMeta.id,
+            assocTableData
+          );
 
-      console.log(
-        assocTableData.slice(i, i + ASSOC_BULK_DATA_BATCH_SIZE).length
-      );
+          importedCount += assocTableData.length;
+          assocTableData = [];
+        }
+        resolve(true);
+      });
+    });
 
-      await api.dbTableRow.bulkCreate(
-        'nc',
-        projectName,
-        assocMeta.modelMeta.id,
-        assocTableData.slice(i, i + ASSOC_BULK_DATA_BATCH_SIZE)
-      );
-    }
+    nestedLinkCnt += importedCount;
   }
   return nestedLinkCnt;
 }

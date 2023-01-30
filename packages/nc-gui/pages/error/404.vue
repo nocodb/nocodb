@@ -8,8 +8,8 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="w-full h-[300px] flex justify-center items-center text-4xl">
-    <div class="text-gray-400 flex gap-2 items-center">
+  <div class="bg-primary bg-opacity-5 w-full h-full flex flex-col justify-center items-center text-4xl gap-12">
+    <div class="text-gray-400 flex gap-4 items-center">
       <MdiWarning />
       Page Not Found
     </div>

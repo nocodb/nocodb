@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import Model from '../../models/Model';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Tele } from 'nc-help';
+import { PagedResponseImpl } from '../helpers/PagedResponse';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
@@ -89,15 +89,22 @@ export async function tableList(req: Request, res: Response<TableListType>) {
 
 export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const project = await Project.getWithInfo(req.params.projectId);
-  const base = project.bases[0];
+  let base = project.bases[0];
 
-  if (!req.body.table_name) {
+  if (req.params.baseId) {
+    base = project.bases.find((b) => b.id === req.params.baseId);
+  }
+
+  if (
+    !req.body.table_name ||
+    (project.prefix && project.prefix === req.body.table_name)
+  ) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
     );
   }
 
-  if (project.prefix) {
+  if (base.is_meta && project.prefix) {
     if (!req.body.table_name.startsWith(project.prefix)) {
       req.body.table_name = `${project.prefix}_${req.body.table_name}`;
     }
@@ -178,8 +185,9 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     base_id: base.id,
   });
 
-  Audit.insert({
+  await Audit.insert({
     project_id: project.id,
+    base_id: base.id,
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.CREATED,
     user: (req as any)?.user?.email,
@@ -220,8 +228,22 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 export async function tableUpdate(req: Request<any, any>, res) {
   const model = await Model.get(req.params.tableId);
 
-  const project = await Project.getWithInfo(req.body.project_id);
-  const base = project.bases[0];
+  const project = await Project.getWithInfo(
+    req.body.project_id || (req as any).ncProjectId
+  );
+  const base = project.bases.find((b) => b.id === model.base_id);
+
+  if (model.project_id !== project.id) {
+    NcError.badRequest('Model does not belong to project');
+  }
+
+  // if meta present update meta and return
+  // todo: allow user to update meta  and other prop in single api call
+  if ('meta' in req.body) {
+    await Model.updateMeta(req.params.tableId, req.body.meta);
+
+    return res.json({ msg: 'success' });
+  }
 
   if (!req.body.table_name) {
     NcError.badRequest(
@@ -229,7 +251,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
     );
   }
 
-  if (project.prefix) {
+  if (base.is_meta && project.prefix) {
     if (!req.body.table_name.startsWith(project.prefix)) {
       req.body.table_name = `${project.prefix}${req.body.table_name}`;
     }
@@ -348,8 +370,9 @@ export async function tableDelete(req: Request, res: Response) {
     });
   }
 
-  Audit.insert({
+  await Audit.insert({
     project_id: project.id,
+    base_id: base.id,
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.DELETED,
     user: (req as any)?.user?.email,
@@ -368,8 +391,18 @@ router.get(
   metaApiMetrics,
   ncMetaAclMw(tableList, 'tableList')
 );
+router.get(
+  '/api/v1/db/meta/projects/:projectId/:baseId/tables',
+  metaApiMetrics,
+  ncMetaAclMw(tableList, 'tableList')
+);
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
+  metaApiMetrics,
+  ncMetaAclMw(tableCreate, 'tableCreate')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   metaApiMetrics,
   ncMetaAclMw(tableCreate, 'tableCreate')
 );

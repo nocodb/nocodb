@@ -20,7 +20,7 @@ export default defineConfig({
   },
 
   darkMode: 'class',
-
+  safelist: ['text-yellow-500', 'text-sky-500', 'text-red-500'],
   plugins: [
     scrollbar,
     animations,
@@ -64,6 +64,10 @@ export default defineConfig({
       backgroundColor: {
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
+      },
+      ringColor: {
+        primary: 'rgba(var(--color-primary), var(--tw-ring-opacity))',
+        accent: 'rgba(var(--color-accent), var(--tw-ring-opacity))',
       },
       colors: {
         ...windiColors,

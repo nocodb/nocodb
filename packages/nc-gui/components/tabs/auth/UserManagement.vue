@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
+import { OrgUserRoles } from 'nocodb-sdk'
 import type { RequestParams } from 'nocodb-sdk'
-import UsersModal from './user-management/UsersModal.vue'
-import FeedbackForm from './user-management/FeedbackForm.vue'
 import {
   extractSdkResponseErrorMsg,
+  message,
   onBeforeMount,
+  projectRoleTagColors,
   ref,
   useApi,
   useCopy,
@@ -44,7 +44,7 @@ let isLoading = $ref(false)
 
 let totalRows = $ref(0)
 
-const currentPage = $ref(1)
+let currentPage = $ref(1)
 
 const currentLimit = $ref(10)
 
@@ -58,7 +58,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     const response: any = await api.auth.projectUserList(project.value?.id, {
       query: {
         limit,
-        offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
+        offset: (page - 1) * limit,
         query: searchText.value,
       },
     } as RequestParams)
@@ -160,7 +160,18 @@ onBeforeMount(async () => {
   }
 })
 
-watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
+watchDebounced(
+  searchText,
+  () => {
+    currentPage = 1
+    loadUsers()
+  },
+  { debounce: 300, maxWait: 600 },
+)
+
+const isSuperAdmin = (user: { main_roles?: string }) => {
+  return user.main_roles?.split(',').includes(OrgUserRoles.SUPER_ADMIN)
+}
 </script>
 
 <template>
@@ -169,15 +180,17 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
   </div>
 
   <div v-else class="flex flex-col w-full px-6">
-    <UsersModal
-      :key="showUserModal"
+    <LazyTabsAuthUserManagementUsersModal
+      :key="`${showUserModal}`"
       :show="showUserModal"
       :selected-user="selectedUser"
       @closed="showUserModal = false"
       @reload="loadUsers()"
     />
+
     <a-modal
       v-model:visible="showUserDeleteModal"
+      :class="{ active: showUserDeleteModal }"
       :closable="false"
       width="28rem"
       centered
@@ -194,6 +207,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
       </div>
     </a-modal>
+
     <div class="flex flex-row mb-4 mx-4 justify-between pb-2">
       <div class="flex w-1/3">
         <a-input v-model:value="searchText" :placeholder="$t('placeholder.filterByEmail')">
@@ -210,6 +224,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
+
         <a-button
           v-if="isUIAllowed('newUser')"
           v-e="['c:user:invite']"
@@ -226,6 +241,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </a-button>
       </div>
     </div>
+
     <div class="px-5">
       <div class="flex flex-row border-b-1 pb-2 px-2">
         <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
@@ -250,6 +266,13 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
 
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
           <div
+            v-if="isSuperAdmin(user)"
+            class="rounded-full px-2 py-1 nc-user-role"
+            :style="{ backgroundColor: projectRoleTagColors[OrgUserRoles.SUPER_ADMIN] }"
+          >
+            Super Admin
+          </div>
+          <div
             v-if="user.roles"
             class="rounded-full px-2 py-1 nc-user-role"
             :style="{ backgroundColor: projectRoleTagColors[user.roles] }"
@@ -258,68 +281,76 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
           </div>
         </div>
         <div class="flex w-1/6 flex-wrap justify-end">
-          <a-tooltip v-if="user.project_id" placement="bottom">
-            <template #title>
-              <span>{{ $t('activity.editUser') }}</span>
-            </template>
-            <a-button type="text" class="!rounded-md nc-user-edit" @click="onEdit(user)">
-              <template #icon>
-                <IcRoundEdit class="flex mx-auto h-[1rem] text-gray-500" />
+          <template v-if="!isSuperAdmin(user)">
+            <a-tooltip v-if="user.project_id" placement="bottom">
+              <template #title>
+                <span>{{ $t('activity.editUser') }}</span>
               </template>
-            </a-button>
-          </a-tooltip>
-          <!--          Add user to project -->
-          <a-tooltip v-if="!user.project_id" placement="bottom">
-            <template #title>
-              <span>{{ $t('activity.addUserToProject') }}</span>
-            </template>
-            <a-button type="text" class="!rounded-md nc-user-invite" @click="inviteUser(user)">
-              <template #icon>
-                <MdiPlus class="flex mx-auto h-[1.1rem] text-gray-500" />
-              </template>
-            </a-button>
-          </a-tooltip>
 
-          <!--          Remove user from the project -->
-          <a-tooltip v-else placement="bottom">
-            <template #title>
-              <span>{{ $t('activity.deleteUser') }}</span>
-            </template>
-            <a-button v-e="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
-              <template #icon>
-                <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
-              </template>
-            </a-button>
-          </a-tooltip>
-
-          <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
-            <div class="flex flex-row items-center">
-              <a-button type="text" class="!px-0">
-                <div class="flex flex-row items-center h-[1.2rem]">
-                  <IcBaselineMoreVert />
-                </div>
+              <a-button type="text" class="!rounded-md nc-user-edit" @click="onEdit(user)">
+                <template #icon>
+                  <IcRoundEdit class="flex mx-auto h-[1rem] text-gray-500" />
+                </template>
               </a-button>
-            </div>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item>
-                  <!--                  Resend invite Email -->
-                  <div class="flex flex-row items-center py-3" @click="resendInvite(user)">
-                    <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
-                    <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
+            </a-tooltip>
+
+            <!--          Add user to project -->
+            <a-tooltip v-if="!user.project_id" placement="bottom">
+              <template #title>
+                <span>{{ $t('activity.addUserToProject') }}</span>
+              </template>
+
+              <a-button type="text" class="!rounded-md nc-user-invite" @click="inviteUser(user)">
+                <template #icon>
+                  <MdiPlus class="flex mx-auto h-[1.1rem] text-gray-500" />
+                </template>
+              </a-button>
+            </a-tooltip>
+
+            <!--          Remove user from the project -->
+            <a-tooltip v-else placement="bottom">
+              <template #title>
+                <span>{{ $t('activity.deleteUser') }}</span>
+              </template>
+
+              <a-button v-e="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
+                <template #icon>
+                  <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
+                </template>
+              </a-button>
+            </a-tooltip>
+
+            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
+              <div class="flex flex-row items-center">
+                <a-button type="text" class="!px-0">
+                  <div class="flex flex-row items-center h-[1.2rem]">
+                    <IcBaselineMoreVert />
                   </div>
-                </a-menu-item>
-                <a-menu-item>
-                  <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
-                    <MdiContentCopy class="flex h-[1rem] text-gray-500" />
-                    <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
+                </a-button>
+              </div>
+
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item>
+                    <!--                  Resend invite Email -->
+                    <div class="flex flex-row items-center py-3" @click="resendInvite(user)">
+                      <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
+                      <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item>
+                    <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
+                      <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                      <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </template>
         </div>
       </div>
+
       <a-pagination
         v-model:current="currentPage"
         hide-on-single-page
@@ -329,7 +360,6 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         show-less-items
         @change="loadUsers"
       />
-      <FeedbackForm />
     </div>
   </div>
 </template>

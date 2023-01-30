@@ -6,6 +6,7 @@ import { CacheGetType } from '../utils/globals';
 export default class NocoCache {
   private static client: CacheMgr;
   private static cacheDisabled: boolean;
+  private static prefix: string;
 
   public static init() {
     this.cacheDisabled = (process.env.NC_DISABLE_CACHE || false) === 'true';
@@ -17,11 +18,15 @@ export default class NocoCache {
     } else {
       this.client = new RedisMockCacheMgr();
     }
+
+    // TODO(cache): fetch orgs once it's implemented
+    const orgs = 'noco';
+    this.prefix = `nc:${orgs}`;
   }
 
   public static async set(key, value): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
-    return this.client.set(key, value);
+    return this.client.set(`${this.prefix}:${key}`, value);
   }
 
   public static async get(key, type): Promise<any> {
@@ -30,17 +35,17 @@ export default class NocoCache {
       else if (type === CacheGetType.TYPE_OBJECT) return Promise.resolve(null);
       return Promise.resolve(null);
     }
-    return this.client.get(key, type);
+    return this.client.get(`${this.prefix}:${key}`, type);
   }
 
   public static async getAll(pattern: string): Promise<any[]> {
     if (this.cacheDisabled) return Promise.resolve([]);
-    return this.client.getAll(pattern);
+    return this.client.getAll(`${this.prefix}:${pattern}`);
   }
 
   public static async del(key): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
-    return this.client.del(key);
+    return this.client.del(`${this.prefix}:${key}`);
   }
 
   public static async delAll(scope: string, pattern: string): Promise<any[]> {
@@ -77,10 +82,15 @@ export default class NocoCache {
   public static async appendToList(
     scope: string,
     subListKeys: string[],
+
     key: string
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
-    return this.client.appendToList(scope, subListKeys, key);
+    return this.client.appendToList(
+      scope,
+      subListKeys,
+      `${this.prefix}:${key}`
+    );
   }
 
   public static async destroy(): Promise<boolean> {

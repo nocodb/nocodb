@@ -84,17 +84,24 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.SingleLineText:
       {
-        return 'Text';
+        return 'Sample Text';
       }
       break;
     case UITypes.LongText:
       {
-        return 'Long text';
+        return 'Sample Long text';
       }
       break;
     case UITypes.Attachment:
       {
-        return '[{"url":"https://nocodb.com/dummy.png","title":"image.png","mimetype":"image/png","size":0}]';
+        return [
+          {
+            url: 'https://nocodb.com/dummy.png',
+            title: 'image.png',
+            mimetype: 'image/png',
+            size: 0,
+          },
+        ];
       }
       break;
     case UITypes.Checkbox:
@@ -182,7 +189,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.Formula:
       {
-        return 'output';
+        return 'Sample Output';
       }
       break;
     case UITypes.Rollup:

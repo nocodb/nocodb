@@ -34,6 +34,7 @@ export enum AuditOperationTypes {
   WEBHOOKS = 'WEBHOOKS',
   AUTHENTICATION = 'AUTHENTICATION',
   TABLE_COLUMN = 'TABLE_COLUMN',
+  ORG_USER = 'ORG_USER',
 }
 
 export enum AuditOperationSubTypes {

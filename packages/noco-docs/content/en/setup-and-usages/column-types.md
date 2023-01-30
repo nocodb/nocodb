@@ -32,6 +32,8 @@ menuTitle: 'Column Types'
 |[Duration](#duration)|  Duration |
 |[Rating](#rating)| Rating |
 |[Formula](#formula)|  Formula based generated column |
+|[QR Code](#qr-code)|  QR Code visualization of another referenced column |
+|[Barcode](#barcode)|  Barcode visualization of another referenced column |
 | [Count](#count) | |
 |[DateTime](#datetime)| Date & Time selector |
 |[CreateTime](#createtime)| |
@@ -267,6 +269,29 @@ N/A
 
 For more about formula, please visit [here](./formulas).
 
+### QR-Code
+
+Encodes the value of a reference column as QR code. The following column types are supported for the for reference column: 
+* Formula
+* Single Line Text
+* Long Text
+* Phone Number
+* URL 
+* Email
+
+Since it's a virtual column, the cell content (QR code) cannot be changed directly. 
+
+### Barcode
+
+Encodes the value of a reference column as Barcode. Supported barcode formats: CODE128, EAN, EAN-13, EAN-8, EAN-5, EAN-2, UPC (A), CODE39, ITF-14, MSI, Pharmacode, Codabar. The following column types are supported for the for reference column: 
+* Formula
+* Single Line Text
+* Long Text
+* Phone Number
+* URL 
+* Email
+
+Since it's a virtual column, the cell content (Barcode) cannot be changed directly.
 ### Count
 
 #### Available Database Types

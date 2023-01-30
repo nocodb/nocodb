@@ -3,8 +3,8 @@ import Model from '../../models/Model';
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import Base from '../../models/Base';
 import Column from '../../models/Column';
-import validateParams from '../helpers/validateParams';
 import { Tele } from 'nc-help';
+import validateParams from '../helpers/validateParams';
 
 import { customAlphabet } from 'nanoid';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
@@ -15,9 +15,13 @@ import {
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  ColumnReqType,
   isVirtualCol,
+  LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
+  LookupColumnReqType,
   RelationTypes,
+  RollupColumnReqType,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   TableType,
@@ -34,7 +38,9 @@ import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import FormulaColumn from '../../models/FormulaColumn';
+import KanbanView from '../../models/KanbanView';
 import { MetaTable } from '../../utils/globals';
+import formulaQueryBuilderv2 from '../../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 
@@ -95,7 +101,14 @@ async function createHmAndBtColumn(
   }
 }
 
-export async function columnAdd(req: Request, res: Response<TableType>) {
+export async function columnGet(req: Request, res: Response) {
+  res.json(await Column.get({ colId: req.params.columnId }));
+}
+
+export async function columnAdd(
+  req: Request<any, any, ColumnReqType & { uidt: UITypes }>,
+  res: Response<TableType>
+) {
   const table = await Model.getWithInfo({
     id: req.params.tableId,
   });
@@ -120,7 +133,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
     NcError.badRequest('Duplicate column alias');
   }
 
-  let colBody = req.body;
+  let colBody: any = req.body;
   switch (colBody.uidt) {
     case UITypes.Rollup:
       {
@@ -136,7 +149,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
 
         const relation = await (
           await Column.get({
-            colId: req.body.fk_relation_column_id,
+            colId: (req.body as RollupColumnReqType).fk_relation_column_id,
           })
         ).getColOptions<LinkToAnotherRecordType>();
 
@@ -162,7 +175,8 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         const relatedTable = await relatedColumn.getModel();
         if (
           !(await relatedTable.getColumns()).find(
-            (c) => c.id === req.body.fk_rollup_column_id
+            (c) =>
+              c.id === (req.body as RollupColumnReqType).fk_rollup_column_id
           )
         )
           throw new Error('Rollup column not found in related table');
@@ -182,7 +196,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
 
         const relation = await (
           await Column.get({
-            colId: req.body.fk_relation_column_id,
+            colId: (req.body as LookupColumnReqType).fk_relation_column_id,
           })
         ).getColOptions<LinkToAnotherRecordType>();
 
@@ -208,7 +222,8 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         const relatedTable = await relatedColumn.getModel();
         if (
           !(await relatedTable.getColumns()).find(
-            (c) => c.id === req.body.fk_lookup_column_id
+            (c) =>
+              c.id === (req.body as LookupColumnReqType).fk_lookup_column_id
           )
         )
           throw new Error('Lookup column not found in related table');
@@ -226,14 +241,21 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         validateParams(['parentId', 'childId', 'type'], req.body);
 
         // get parent and child models
-        const parent = await Model.getWithInfo({ id: req.body.parentId });
-        const child = await Model.getWithInfo({ id: req.body.childId });
+        const parent = await Model.getWithInfo({
+          id: (req.body as LinkToAnotherColumnReqType).parentId,
+        });
+        const child = await Model.getWithInfo({
+          id: (req.body as LinkToAnotherColumnReqType).childId,
+        });
         let childColumn: Column;
 
         const sqlMgr = await ProjectMgrv2.getSqlMgr({
           id: base.project_id,
         });
-        if (req.body.type === 'hm' || req.body.type === 'bt') {
+        if (
+          (req.body as LinkToAnotherColumnReqType).type === 'hm' ||
+          (req.body as LinkToAnotherColumnReqType).type === 'bt'
+        ) {
           // populate fk column name
           const fkColName = getUniqueColumnName(
             await child.getColumns(),
@@ -284,7 +306,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             childColumn = await Column.get({ colId: id });
 
             // ignore relation creation if virtual
-            if (!req.body.virtual) {
+            if (!(req.body as LinkToAnotherColumnReqType).virtual) {
               // create relation
               await sqlMgr.sqlOpPlus(base, 'relationCreate', {
                 childColumn: fkColName,
@@ -314,11 +336,11 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             child,
             parent,
             childColumn,
-            req.body.type,
-            req.body.title,
-            req.body.virtual
+            (req.body as LinkToAnotherColumnReqType).type as RelationTypes,
+            (req.body as LinkToAnotherColumnReqType).title,
+            (req.body as LinkToAnotherColumnReqType).virtual
           );
-        } else if (req.body.type === 'mm') {
+        } else if ((req.body as LinkToAnotherColumnReqType).type === 'mm') {
           const aTn = `${project?.prefix ?? ''}_nc_m2m_${randomID()}`;
           const aTnAlias = aTn;
 
@@ -377,7 +399,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             columns: associateTableCols,
           });
 
-          if (!req.body.virtual) {
+          if (!(req.body as LinkToAnotherColumnReqType).virtual) {
             const rel1Args = {
               ...req.body,
               childTable: aTn,
@@ -411,7 +433,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             childCol,
             null,
             null,
-            req.body.virtual,
+            (req.body as LinkToAnotherColumnReqType).virtual,
             true
           );
           await createHmAndBtColumn(
@@ -420,7 +442,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             parentCol,
             null,
             null,
-            req.body.virtual,
+            (req.body as LinkToAnotherColumnReqType).virtual,
             true
           );
 
@@ -489,11 +511,33 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
       Tele.emit('evt', { evt_type: 'relation:created' });
       break;
 
+    case UITypes.QrCode:
+      await Column.insert({
+        ...colBody,
+        fk_model_id: table.id,
+      });
+      break;
+    case UITypes.Barcode:
+      await Column.insert({
+        ...colBody,
+        fk_model_id: table.id,
+      });
+      break;
     case UITypes.Formula:
       colBody.formula = await substituteColumnAliasWithIdInFormula(
         colBody.formula_raw || colBody.formula,
         table.columns
       );
+
+      try {
+        // test the query to see if it is valid in db level
+        const dbDriver = NcConnectionMgrv2.get(base);
+        await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
+      } catch (e) {
+        console.error(e);
+        NcError.badRequest('Invalid Formula');
+      }
+
       await Column.insert({
         ...colBody,
         fk_model_id: table.id,
@@ -510,35 +554,51 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           colBody.dtxs = '4';
         }
 
-        if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)) {
+        if (
+          [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
+        ) {
           const dbDriver = NcConnectionMgrv2.get(base);
           const driverType = dbDriver.clientType();
-          const optionTitles = colBody.colOptions.options.map(el => el.title.replace(/'/g, "''"));
+          const optionTitles = colBody.colOptions.options.map((el) =>
+            el.title.replace(/'/g, "''")
+          );
 
           // this is not used for select columns and cause issue for MySQL
           colBody.dtxs = '';
           // Handle default values
           if (colBody.cdf) {
             if (colBody.uidt === UITypes.SingleSelect) {
-              if (!optionTitles.includes(colBody.cdf)) {
-                NcError.badRequest(`Default value '${colBody.cdf}' is not a select option.`);
+              if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+                NcError.badRequest(
+                  `Default value '${colBody.cdf}' is not a select option.`
+                );
               }
             } else {
               for (const cdf of colBody.cdf.split(',')) {
-                if (!optionTitles.includes(cdf)) {
-                  NcError.badRequest(`Default value '${cdf}' is not a select option.`);
+                if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+                  NcError.badRequest(
+                    `Default value '${cdf}' is not a select option.`
+                  );
                 }
               }
             }
+
+            // handle single quote for default value
+            if (driverType === 'mysql' || driverType === 'mysql2') {
+              colBody.cdf = colBody.cdf.replace(/'/g, "'");
+            } else {
+              colBody.cdf = colBody.cdf.replace(/'/g, "''");
+            }
+
             if (driverType === 'pg') {
               colBody.cdf = `'${colBody.cdf}'`;
             }
           }
 
           // Restrict duplicates
-          const titles = colBody.colOptions.options.map(el => el.title)
-          if (titles
-            .some( function(item) {
+          const titles = colBody.colOptions.options.map((el) => el.title);
+          if (
+            titles.some(function (item) {
               return titles.indexOf(item) !== titles.lastIndexOf(item);
             })
           ) {
@@ -546,8 +606,8 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           }
 
           // Restrict empty options
-          if (titles
-            .some( function(item) {
+          if (
+            titles.some(function (item) {
               return item === '';
             })
           ) {
@@ -557,33 +617,45 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           // Trim end of enum/set
           if (colBody.dt === 'enum' || colBody.dt === 'set') {
             for (const opt of colBody.colOptions.options) {
-              opt.title = opt.title.trimEnd()
+              opt.title = opt.title.trimEnd();
             }
           }
-          
+
           if (colBody.uidt === UITypes.SingleSelect) {
-            colBody.dtxp = (colBody.colOptions?.options.length)
-              ? `${colBody.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+            colBody.dtxp = colBody.colOptions?.options.length
+              ? `${colBody.colOptions.options
+                  .map((o) => `'${o.title.replace(/'/gi, "''")}'`)
+                  .join(',')}`
               : '';
-          } else if (colBody.uidt === UITypes.MultiSelect){
-            colBody.dtxp = (colBody.colOptions?.options.length)
-              ? `${colBody.colOptions.options.map((o) => {
-                  if(o.title.includes(',')) {
-                    NcError.badRequest('Illegal char(\',\') for MultiSelect');
-                  }
-                  return `'${o.title.replace(/'/gi, '\'\'')}'`;
-                }).join(',')}`
+          } else if (colBody.uidt === UITypes.MultiSelect) {
+            colBody.dtxp = colBody.colOptions?.options.length
+              ? `${colBody.colOptions.options
+                  .map((o) => {
+                    if (o.title.includes(',')) {
+                      NcError.badRequest("Illegal char(',') for MultiSelect");
+                    }
+                    return `'${o.title.replace(/'/gi, "''")}'`;
+                  })
+                  .join(',')}`
               : '';
           }
 
           // Handle empty enum/set for mysql (we restrict empty user options beforehand)
           if (driverType === 'mysql' || driverType === 'mysql2') {
-            if (!colBody.colOptions.options.length && (!colBody.dtxp || colBody.dtxp === '')) {
-              colBody.dtxp = '\'\'';
+            if (
+              !colBody.colOptions.options.length &&
+              (!colBody.dtxp || colBody.dtxp === '')
+            ) {
+              colBody.dtxp = "''";
+            }
+
+            if (colBody.dt === 'set') {
+              if (colBody.colOptions?.options.length > 64) {
+                colBody.dt = 'text';
+              }
             }
           }
         }
-        
 
         const tableUpdateBody = {
           ...table,
@@ -632,7 +704,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
 
   await table.getColumns();
 
-  Audit.insert({
+  await Audit.insert({
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.CREATED,
@@ -686,15 +758,32 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       UITypes.Rollup,
       UITypes.LinkToAnotherRecord,
       UITypes.Formula,
+      UITypes.QrCode,
+      UITypes.Barcode,
       UITypes.ForeignKey,
     ].includes(column.uidt)
   ) {
     if (column.uidt === colBody.uidt) {
-      if (column.uidt === UITypes.Formula) {
+      if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
+        await Column.update(column.id, {
+          ...column,
+          ...colBody,
+        });
+      } else if (column.uidt === UITypes.Formula) {
         colBody.formula = await substituteColumnAliasWithIdInFormula(
           colBody.formula_raw || colBody.formula,
           table.columns
         );
+
+        try {
+          // test the query to see if it is valid in db level
+          const dbDriver = NcConnectionMgrv2.get(base);
+          await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
+        } catch (e) {
+          console.error(e);
+          NcError.badRequest('Invalid Formula');
+        }
+
         await Column.update(column.id, {
           // title: colBody.title,
           ...column,
@@ -716,23 +805,22 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       UITypes.Rollup,
       UITypes.LinkToAnotherRecord,
       UITypes.Formula,
+      UITypes.QrCode,
+      UITypes.Barcode,
       UITypes.ForeignKey,
     ].includes(colBody.uidt)
   ) {
     NcError.notImplemented(
       `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`
     );
-  } else if(
-    [
-      UITypes.SingleSelect,
-      UITypes.MultiSelect
-    ].includes(colBody.uidt)
+  } else if (
+    [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
   ) {
     colBody = getColumnPropsFromUIDT(colBody, base);
-    
+
     const baseModel = await Model.getBaseModelSQL({
       id: table.id,
-      dbDriver: NcConnectionMgrv2.get(base)
+      dbDriver: NcConnectionMgrv2.get(base),
     });
 
     if (colBody.colOptions?.options) {
@@ -741,49 +829,97 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       const driverType = dbDriver.clientType();
 
       // MultiSelect to SingleSelect
-      if (column.uidt === UITypes.MultiSelect && colBody.uidt === UITypes.SingleSelect) {
+      if (
+        column.uidt === UITypes.MultiSelect &&
+        colBody.uidt === UITypes.SingleSelect
+      ) {
         if (driverType === 'mysql' || driverType === 'mysql2') {
-          await dbDriver.raw(`UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`, [table.table_name, column.column_name, column.column_name, column.column_name]);
+          await dbDriver.raw(
+            `UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`,
+            [
+              table.table_name,
+              column.column_name,
+              column.column_name,
+              column.column_name,
+            ]
+          );
         } else if (driverType === 'pg') {
-          await dbDriver.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [table.table_name, column.column_name, column.column_name]);
+          await dbDriver.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [
+            table.table_name,
+            column.column_name,
+            column.column_name,
+          ]);
         } else if (driverType === 'mssql') {
-          await dbDriver.raw(`UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`, [table.table_name, column.column_name, column.column_name, column.column_name, column.column_name]);
+          await dbDriver.raw(
+            `UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`,
+            [
+              table.table_name,
+              column.column_name,
+              column.column_name,
+              column.column_name,
+              column.column_name,
+            ]
+          );
         } else if (driverType === 'sqlite3') {
-          await dbDriver.raw(`UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`, [table.table_name, column.column_name, column.column_name, column.column_name, column.column_name]);
+          await dbDriver.raw(
+            `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
+            [
+              table.table_name,
+              column.column_name,
+              column.column_name,
+              column.column_name,
+              column.column_name,
+            ]
+          );
         }
       }
 
       // Handle migrations
       if (column.colOptions?.options) {
-        for (const op of column.colOptions.options.filter(el => el.order === null)) {
-          op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+        for (const op of column.colOptions.options.filter(
+          (el) => el.order === null
+        )) {
+          op.title = op.title.replace(/^'/, '').replace(/'$/, '');
         }
       }
 
       // Handle default values
-      const optionTitles = colBody.colOptions.options.map(el => el.title.replace(/'/g, "''"));
+      const optionTitles = colBody.colOptions.options.map((el) =>
+        el.title.replace(/'/g, "''")
+      );
       if (colBody.cdf) {
         if (colBody.uidt === UITypes.SingleSelect) {
-          if (!optionTitles.includes(colBody.cdf)) {
-            NcError.badRequest(`Default value '${colBody.cdf}' is not a select option.`);
+          if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
+            NcError.badRequest(
+              `Default value '${colBody.cdf}' is not a select option.`
+            );
           }
         } else {
           for (const cdf of colBody.cdf.split(',')) {
-            if (!optionTitles.includes(cdf)) {
-              NcError.badRequest(`Default value '${cdf}' is not a select option.`);
+            if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
+              NcError.badRequest(
+                `Default value '${cdf}' is not a select option.`
+              );
             }
           }
         }
+
+        // handle single quote for default value
+        if (driverType === 'mysql' || driverType === 'mysql2') {
+          colBody.cdf = colBody.cdf.replace(/'/g, "'");
+        } else {
+          colBody.cdf = colBody.cdf.replace(/'/g, "''");
+        }
+
         if (driverType === 'pg') {
           colBody.cdf = `'${colBody.cdf}'`;
         }
       }
-      
 
       // Restrict duplicates
-      const titles = colBody.colOptions.options.map(el => el.title)
-      if (titles
-        .some( function(item) {
+      const titles = colBody.colOptions.options.map((el) => el.title);
+      if (
+        titles.some(function (item) {
           return titles.indexOf(item) !== titles.lastIndexOf(item);
         })
       ) {
@@ -791,8 +927,8 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       }
 
       // Restrict empty options
-      if (titles
-        .some( function(item) {
+      if (
+        titles.some(function (item) {
           return item === '';
         })
       ) {
@@ -802,99 +938,196 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       // Trim end of enum/set
       if (colBody.dt === 'enum' || colBody.dt === 'set') {
         for (const opt of colBody.colOptions.options) {
-          opt.title = opt.title.trimEnd()
+          opt.title = opt.title.trimEnd();
         }
       }
 
       if (colBody.uidt === UITypes.SingleSelect) {
-        colBody.dtxp = (colBody.colOptions?.options.length)
-          ? `${colBody.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+        colBody.dtxp = colBody.colOptions?.options.length
+          ? `${colBody.colOptions.options
+              .map((o) => `'${o.title.replace(/'/gi, "''")}'`)
+              .join(',')}`
           : '';
-      } else if (colBody.uidt === UITypes.MultiSelect){
-        colBody.dtxp = (colBody.colOptions?.options.length)
-          ? `${colBody.colOptions.options.map((o) => {
-              if(o.title.includes(',')) {
-                NcError.badRequest('Illegal char(\',\') for MultiSelect');
-              }
-              return `'${o.title.replace(/'/gi, '\'\'')}'`;
-            }).join(',')}`
+      } else if (colBody.uidt === UITypes.MultiSelect) {
+        colBody.dtxp = colBody.colOptions?.options.length
+          ? `${colBody.colOptions.options
+              .map((o) => {
+                if (o.title.includes(',')) {
+                  NcError.badRequest("Illegal char(',') for MultiSelect");
+                }
+                return `'${o.title.replace(/'/gi, "''")}'`;
+              })
+              .join(',')}`
           : '';
       }
 
       // Handle empty enum/set for mysql (we restrict empty user options beforehand)
       if (driverType === 'mysql' || driverType === 'mysql2') {
-        if (!colBody.colOptions.options.length && (!colBody.dtxp || colBody.dtxp === '')) {
-          colBody.dtxp = '\'\'';
+        if (
+          !colBody.colOptions.options.length &&
+          (!colBody.dtxp || colBody.dtxp === '')
+        ) {
+          colBody.dtxp = "''";
+        }
+
+        if (colBody.dt === 'set') {
+          if (colBody.colOptions?.options.length > 64) {
+            colBody.dt = 'text';
+          }
         }
       }
 
       // Handle option delete
       if (column.colOptions?.options) {
-        for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id) ? false : true)) {
-          if (!supportedDrivers.includes(driverType) && column.uidt === UITypes.MultiSelect) {
-            NcError.badRequest('Your database not yet supported for this operation. Please remove option from records manually before dropping.');
+        for (const option of column.colOptions.options.filter((oldOp) =>
+          colBody.colOptions.options.find((newOp) => newOp.id === oldOp.id)
+            ? false
+            : true
+        )) {
+          if (
+            !supportedDrivers.includes(driverType) &&
+            column.uidt === UITypes.MultiSelect
+          ) {
+            NcError.badRequest(
+              'Your database not yet supported for this operation. Please remove option from records manually before dropping.'
+            );
           }
-          if (column.uidt === UITypes.SingleSelect) { 
+          if (column.uidt === UITypes.SingleSelect) {
             if (driverType === 'mssql') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [table.table_name, column.column_name, column.column_name, option.title]);
+              await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [
+                table.table_name,
+                column.column_name,
+                column.column_name,
+                option.title,
+              ]);
             } else {
-              await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: null }, { cookie: req});
+              await baseModel.bulkUpdateAll(
+                { where: `(${column.title},eq,${option.title})` },
+                { [column.column_name]: null },
+                { cookie: req }
+              );
             }
           } else if (column.uidt === UITypes.MultiSelect) {
             if (driverType === 'mysql' || driverType === 'mysql2') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, option.title, option.title, column.column_name]);
+              if (colBody.dt === 'set') {
+                await dbDriver.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`,
+                  [
+                    table.table_name,
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    option.title,
+                    column.column_name,
+                  ]
+                );
+              } else {
+                await dbDriver.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ','))`,
+                  [
+                    table.table_name,
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                  ]
+                );
+              }
             } else if (driverType === 'pg') {
-              await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`, [table.table_name, column.column_name, column.column_name, option.title]);
+              await dbDriver.raw(
+                `UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  option.title,
+                ]
+              );
             } else if (driverType === 'mssql') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`, [table.table_name, column.column_name, column.column_name, option.title, column.column_name, option.title]);
+              await dbDriver.raw(
+                `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  option.title,
+                  column.column_name,
+                  option.title,
+                ]
+              );
             } else if (driverType === 'sqlite3') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`, [table.table_name, column.column_name, column.column_name, option.title]);
+              await dbDriver.raw(
+                `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  option.title,
+                ]
+              );
             }
           }
         }
       }
 
-      let interchange = [];
+      const interchange = [];
 
       // Handle option update
       if (column.colOptions?.options) {
-        const old_titles = column.colOptions.options.map(el => el.title);
-        for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id && newOp.title !== oldOp.title))) {
-          if (!supportedDrivers.includes(driverType) && column.uidt === UITypes.MultiSelect) {
-            NcError.badRequest('Your database not yet supported for this operation. Please remove option from records manually before updating.');
+        const old_titles = column.colOptions.options.map((el) => el.title);
+        for (const option of column.colOptions.options.filter((oldOp) =>
+          colBody.colOptions.options.find(
+            (newOp) => newOp.id === oldOp.id && newOp.title !== oldOp.title
+          )
+        )) {
+          if (
+            !supportedDrivers.includes(driverType) &&
+            column.uidt === UITypes.MultiSelect
+          ) {
+            NcError.badRequest(
+              'Your database not yet supported for this operation. Please remove option from records manually before updating.'
+            );
           }
 
-          let newOp = { ...colBody.colOptions.options.find(el => option.id === el.id) };
+          const newOp = {
+            ...colBody.colOptions.options.find((el) => option.id === el.id),
+          };
           if (old_titles.includes(newOp.title)) {
-            let def_option = { ...newOp };
+            const def_option = { ...newOp };
             let title_counter = 1;
             while (old_titles.includes(newOp.title)) {
               newOp.title = `${def_option.title}_${title_counter++}`;
             }
-            interchange.push( {
+            interchange.push({
               def_option,
-              temp_title: newOp.title
-            } );
+              temp_title: newOp.title,
+            });
           }
-          
+
           // Append new option before editing
-          if ((driverType === 'mysql' || driverType === 'mysql2') && (column.dt === 'enum' || column.dt === 'set')) {
+          if (
+            (driverType === 'mysql' || driverType === 'mysql2') &&
+            (column.dt === 'enum' || column.dt === 'set')
+          ) {
             column.colOptions.options.push({ title: newOp.title });
 
             let temp_dtxp = '';
             if (column.uidt === UITypes.SingleSelect) {
-              temp_dtxp = (column.colOptions.options.length)
-                ? `${column.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+              temp_dtxp = column.colOptions.options.length
+                ? `${column.colOptions.options
+                    .map((o) => `'${o.title.replace(/'/gi, "''")}'`)
+                    .join(',')}`
                 : '';
-            } else if (column.uidt === UITypes.MultiSelect){
-              temp_dtxp = (column.colOptions.options.length)
-                ? `${column.colOptions.options.map((o) => {
-                    if(o.title.includes(',')) {
-                      NcError.badRequest('Illegal char(\',\') for MultiSelect');
-                      throw new Error('');
-                    }
-                    return `'${o.title.replace(/'/gi, '\'\'')}'`;
-                  }).join(',')}`
+            } else if (column.uidt === UITypes.MultiSelect) {
+              temp_dtxp = column.colOptions.options.length
+                ? `${column.colOptions.options
+                    .map((o) => {
+                      if (o.title.includes(',')) {
+                        NcError.badRequest("Illegal char(',') for MultiSelect");
+                        throw new Error('');
+                      }
+                      return `'${o.title.replace(/'/gi, "''")}'`;
+                    })
+                    .join(',')}`
                 : '';
             }
 
@@ -926,51 +1159,183 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
               ),
             };
 
-            const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+            const sqlMgr = await ProjectMgrv2.getSqlMgr({
+              id: base.project_id,
+            });
             await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
-          
+
             await Column.update(req.params.columnId, {
               ...column,
             });
           }
 
-          if (column.uidt === UITypes.SingleSelect) { 
+          if (column.uidt === UITypes.SingleSelect) {
             if (driverType === 'mssql') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.column_name, newOp.title, column.column_name, option.title]);
+              await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
+                table.table_name,
+                column.column_name,
+                newOp.title,
+                column.column_name,
+                option.title,
+              ]);
             } else {
-              await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: newOp.title }, { cookie: req});
+              await baseModel.bulkUpdateAll(
+                { where: `(${column.title},eq,${option.title})` },
+                { [column.column_name]: newOp.title },
+                { cookie: req }
+              );
             }
           } else if (column.uidt === UITypes.MultiSelect) {
             if (driverType === 'mysql' || driverType === 'mysql2') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title, option.title, column.column_name]);
+              if (colBody.dt === 'set') {
+                await dbDriver.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
+                  [
+                    table.table_name,
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    newOp.title,
+                    option.title,
+                    column.column_name,
+                  ]
+                );
+              } else {
+                await dbDriver.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
+                  [
+                    table.table_name,
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    newOp.title,
+                  ]
+                );
+              }
             } else if (driverType === 'pg') {
-              await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title]);
+              await dbDriver.raw(
+                `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  option.title,
+                  newOp.title,
+                ]
+              );
             } else if (driverType === 'mssql') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title, column.column_name, option.title, newOp.title]);
+              await dbDriver.raw(
+                `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  option.title,
+                  newOp.title,
+                  column.column_name,
+                  option.title,
+                  newOp.title,
+                ]
+              );
             } else if (driverType === 'sqlite3') {
-              await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title]);
+              await dbDriver.raw(
+                `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  option.title,
+                  newOp.title,
+                ]
+              );
             }
           }
         }
       }
 
       for (const ch of interchange) {
-        let newOp = ch.def_option;
-        if (column.uidt === UITypes.SingleSelect) { 
+        const newOp = ch.def_option;
+        if (column.uidt === UITypes.SingleSelect) {
           if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.column_name, newOp.title, column.column_name, ch.temp_title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
+              table.table_name,
+              column.column_name,
+              newOp.title,
+              column.column_name,
+              ch.temp_title,
+            ]);
           } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${ch.temp_title})` }, { [column.column_name]: newOp.title }, { cookie: req});
+            await baseModel.bulkUpdateAll(
+              { where: `(${column.title},eq,${ch.temp_title})` },
+              { [column.column_name]: newOp.title },
+              { cookie: req }
+            );
           }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, ch.temp_title, newOp.title, ch.temp_title, column.column_name]);
+            if (colBody.dt === 'set') {
+              await dbDriver.raw(
+                `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  ch.temp_title,
+                  newOp.title,
+                  ch.temp_title,
+                  column.column_name,
+                ]
+              );
+            } else {
+              await dbDriver.raw(
+                `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  ch.temp_title,
+                  newOp.title,
+                  ch.temp_title,
+                  column.column_name,
+                ]
+              );
+            }
           } else if (driverType === 'pg') {
-            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`, [table.table_name, column.column_name, column.column_name, ch.temp_title, newOp.title]);
+            await dbDriver.raw(
+              `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
+              [
+                table.table_name,
+                column.column_name,
+                column.column_name,
+                ch.temp_title,
+                newOp.title,
+              ]
+            );
           } else if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.column_name, column.column_name, ch.temp_title, newOp.title, column.column_name, ch.temp_title, newOp.title]);
+            await dbDriver.raw(
+              `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
+              [
+                table.table_name,
+                column.column_name,
+                column.column_name,
+                ch.temp_title,
+                newOp.title,
+                column.column_name,
+                ch.temp_title,
+                newOp.title,
+              ]
+            );
           } else if (driverType === 'sqlite3') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.column_name, column.column_name, ch.temp_title, newOp.title]);
+            await dbDriver.raw(
+              `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
+              [
+                table.table_name,
+                column.column_name,
+                column.column_name,
+                ch.temp_title,
+                newOp.title,
+              ]
+            );
           }
         }
       }
@@ -1029,7 +1394,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
     await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
-  
+
     await Column.update(req.params.columnId, {
       ...colBody,
     });
@@ -1093,7 +1458,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       ...colBody,
     });
   }
-  Audit.insert({
+  await Audit.insert({
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.UPDATED,
@@ -1127,6 +1492,8 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
   switch (column.uidt) {
     case UITypes.Lookup:
     case UITypes.Rollup:
+    case UITypes.QrCode:
+    case UITypes.Barcode:
     case UITypes.Formula:
       await Column.delete(req.params.columnId);
       break;
@@ -1259,9 +1626,21 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
       }
       Tele.emit('evt', { evt_type: 'raltion:deleted' });
       break;
-    case UITypes.ForeignKey:
+    case UITypes.ForeignKey: {
       NcError.notImplemented();
       break;
+    }
+    // @ts-ignore
+    case UITypes.SingleSelect: {
+      if (column.uidt === UITypes.SingleSelect) {
+        if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {
+          NcError.badRequest(
+            `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`
+          );
+        }
+      }
+      /* falls through to default */
+    }
     default: {
       const tableUpdateBody = {
         ...table,
@@ -1292,7 +1671,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
     }
   }
 
-  Audit.insert({
+  await Audit.insert({
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.DELETED,
@@ -1436,21 +1815,31 @@ async function createColumnIndex({
 }
 
 const router = Router({ mergeParams: true });
+
 router.post(
   '/api/v1/db/meta/tables/:tableId/columns/',
   metaApiMetrics,
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
+
 router.patch(
   '/api/v1/db/meta/columns/:columnId',
   metaApiMetrics,
   ncMetaAclMw(columnUpdate, 'columnUpdate')
 );
+
 router.delete(
   '/api/v1/db/meta/columns/:columnId',
   metaApiMetrics,
   ncMetaAclMw(columnDelete, 'columnDelete')
 );
+
+router.get(
+  '/api/v1/db/meta/columns/:columnId',
+  metaApiMetrics,
+  ncMetaAclMw(columnGet, 'columnGet')
+);
+
 router.post(
   '/api/v1/db/meta/columns/:columnId/primary',
   metaApiMetrics,

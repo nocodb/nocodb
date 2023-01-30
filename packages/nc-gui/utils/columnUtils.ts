@@ -1,6 +1,8 @@
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import LinkVariant from '~icons/mdi/link-variant'
-import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
+import QrCodeScan from '~icons/mdi/qrcode-scan'
+import BarcodeScan from '~icons/mdi/barcode-scan'
 import FormatColorText from '~icons/mdi/format-color-text'
 import TextSubject from '~icons/mdi/text-subject'
 import JSONIcon from '~icons/mdi/code-json'
@@ -23,10 +25,10 @@ import TimerOutline from '~icons/mdi/timer-outline'
 import Star from '~icons/mdi/star'
 import MathIntegral from '~icons/mdi/math-integral'
 import MovieRoll from '~icons/mdi/movie-roll'
-import Counter from '~icons/mdi/counter'
 import CalendarClock from '~icons/mdi/calendar-clock'
 import ID from '~icons/mdi/identifier'
 import RulerSquareCompass from '~icons/mdi/ruler-square-compass'
+import MdiTextSearchVariant from '~icons/mdi/text-search-variant'
 
 const uiTypes = [
   {
@@ -36,7 +38,7 @@ const uiTypes = [
   },
   {
     name: UITypes.Lookup,
-    icon: TableColumnPlusBefore,
+    icon: MdiTextSearchVariant,
     virtual: 1,
   },
   {
@@ -122,16 +124,18 @@ const uiTypes = [
     virtual: 1,
   },
   {
-    name: UITypes.Count,
-    icon: Counter,
-  },
-  {
     name: UITypes.DateTime,
     icon: CalendarClock,
   },
   {
-    name: UITypes.AutoNumber,
-    icon: Numeric,
+    name: UITypes.QrCode,
+    icon: QrCodeScan,
+    virtual: 1,
+  },
+  {
+    name: UITypes.Barcode,
+    icon: BarcodeScan,
+    virtual: 1,
   },
   {
     name: UITypes.Geometry,
@@ -167,27 +171,58 @@ const getUIDTIcon = (uidt: UITypes | string) => {
   ).icon
 }
 
-export { uiTypes, getUIDTIcon }
+// treat column as required if `non_null` is true and one of the following is true
+// 1. column not having default value
+// 2. column is not auto increment
+// 3. column is not auto generated
+const isColumnRequired = (col?: ColumnType) => col && col.rqd && !col.cdf && !col.ai && !col.meta?.ag
 
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
+const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
+  col.uidt === UITypes.LinkToAnotherRecord &&
+  (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO &&
+  isColumnRequired(columns.find((c) => c.id === (<LinkToAnotherRecordType>col.colOptions).fk_child_column_id))
+
+const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
+  return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)
+}
+
+const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {
+  let name = initName
+  let i = 1
+  while (columns.find((c) => c.title === name)) {
+    name = `${initName}_${i}`
+    i++
+  }
+  return name
+}
+
+const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
+  let uidt: UITypes
+  if (typeof colOrUidt === 'object') {
+    uidt = colOrUidt.uidt as UITypes
+  } else {
+    uidt = colOrUidt
+  }
+  return [
+    UITypes.LongText,
+    UITypes.SingleLineText,
+    UITypes.Number,
+    UITypes.PhoneNumber,
+    UITypes.Email,
+    UITypes.Decimal,
+    UITypes.Currency,
+    UITypes.Percent,
+    UITypes.Duration,
+    UITypes.JSON,
+  ].includes(uidt)
+}
+
+export {
+  uiTypes,
+  isTypableInputColumn,
+  getUIDTIcon,
+  getUniqueColumnName,
+  isColumnRequiredAndNull,
+  isColumnRequired,
+  isVirtualColRequired,
+}

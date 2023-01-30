@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
+import { message, useApi, useI18n } from '#imports'
 
 const { t } = useI18n()
+
 const { api } = useApi()
 
 async function deleteCache() {
@@ -21,6 +21,7 @@ async function deleteCache() {
     <template #title>
       <span> Delete Cache </span>
     </template>
+
     <mdi-delete class="cursor-pointer" @click="deleteCache" />
   </a-tooltip>
 </template>

@@ -1,6 +1,7 @@
 import jsep from 'jsep';
 import mapFunctionName from '../mapFunctionName';
 import Model from '../../../../../models/Model';
+import Column from '../../../../../models/Column';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import RollupColumn from '../../../../../models/RollupColumn';
 import FormulaColumn from '../../../../../models/FormulaColumn';
@@ -8,6 +9,9 @@ import { XKnex } from '../../../index';
 import LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../../../models/LookupColumn';
 import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
+import { validateDateWithUnknownFormat } from '../helpers/formulaFnHelper';
+import { CacheGetType, CacheScope } from '../../../../../utils/globals';
+import NocoCache from '../../../../../cache/NocoCache';
 
 // todo: switch function based on database
 
@@ -44,25 +48,28 @@ const getAggregateFn: (fnName: string) => (args: { qb; knex?; cn }) => any = (
   }
 };
 
-export default async function formulaQueryBuilderv2(
+async function _formulaQueryBuilder(
   _tree,
   alias,
   knex: XKnex,
   model: Model,
   aliasToColumn = {}
 ) {
-  // register jsep curly hook
-  jsep.plugins.register(jsepCurlyHook);
-  const tree = jsep(_tree);
+  // formula may include double curly brackets in previous version
+  // convert to single curly bracket here for compatibility
+  const tree = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
+
+  const columnIdToUidt = {};
 
   // todo: improve - implement a common solution for filter, sort, formula, etc
   for (const col of await model.getColumns()) {
+    columnIdToUidt[col.id] = col.uidt;
     if (col.id in aliasToColumn) continue;
     switch (col.uidt) {
       case UITypes.Formula:
         {
           const formulOption = await col.getColOptions<FormulaColumn>();
-          const { builder } = await formulaQueryBuilderv2(
+          const { builder } = await _formulaQueryBuilder(
             formulOption.formula,
             alias,
             knex,
@@ -336,7 +343,7 @@ export default async function formulaQueryBuilderv2(
                   const formulaOption =
                     await lookupColumn.getColOptions<FormulaColumn>();
                   const lookupModel = await lookupColumn.getModel();
-                  const { builder } = await formulaQueryBuilderv2(
+                  const { builder } = await _formulaQueryBuilder(
                     formulaOption.formula,
                     '',
                     knex,
@@ -646,6 +653,11 @@ export default async function formulaQueryBuilderv2(
           type: 'CallExpression',
           arguments: [pt.left],
         };
+        pt.right = {
+          callee: { name: 'FLOAT' },
+          type: 'CallExpression',
+          arguments: [pt.right],
+        };
       }
       pt.left.fnName = pt.left.fnName || 'ARITH';
       pt.right.fnName = pt.right.fnName || 'ARITH';
@@ -654,11 +666,93 @@ export default async function formulaQueryBuilderv2(
       const right = fn(pt.right, null, pt.operator).toQuery();
       let sql = `${left} ${pt.operator} ${right}${colAlias}`;
 
+      // comparing a date with empty string would throw
+      // `ERROR: zero-length delimited identifier` in Postgres
+      if (
+        knex.clientType() === 'pg' &&
+        columnIdToUidt[pt.left.name] === UITypes.Date
+      ) {
+        // The correct way to compare with Date should be using
+        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+        // This is to prevent empty data returned to UI due to incorrect SQL
+        if (pt.right.value === '') {
+          if (pt.operator === '=') {
+            sql = `${left} IS NULL ${colAlias}`;
+          } else {
+            sql = `${left} IS NOT NULL ${colAlias}`;
+          }
+        } else if (!validateDateWithUnknownFormat(pt.right.value)) {
+          // left tree value is date but right tree value is not date
+          // return true if left tree value is not null, else false
+          sql = `${left} IS NOT NULL ${colAlias}`;
+        }
+      }
+      if (
+        knex.clientType() === 'pg' &&
+        columnIdToUidt[pt.right.name] === UITypes.Date
+      ) {
+        // The correct way to compare with Date should be using
+        // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+        // This is to prevent empty data returned to UI due to incorrect SQL
+        if (pt.left.value === '') {
+          if (pt.operator === '=') {
+            sql = `${right} IS NULL ${colAlias}`;
+          } else {
+            sql = `${right} IS NOT NULL ${colAlias}`;
+          }
+        } else if (!validateDateWithUnknownFormat(pt.left.value)) {
+          // right tree value is date but left tree value is not date
+          // return true if right tree value is not null, else false
+          sql = `${right} IS NOT NULL ${colAlias}`;
+        }
+      }
+
       // handle NULL values when calling CONCAT for sqlite3
       if (pt.left.fnName === 'CONCAT' && knex.clientType() === 'sqlite3') {
         sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')${colAlias}`;
       }
 
+      if (knex.clientType() === 'mysql2') {
+        sql = `IFNULL(${left} ${pt.operator} ${right}, ${
+          pt.operator === '='
+            ? pt.left.type === 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : pt.operator === '!='
+            ? pt.left.type !== 'Literal'
+              ? pt.left.value === ''
+              : pt.right.value === ''
+            : 0
+        }) ${colAlias}`;
+      } else if (
+        knex.clientType() === 'sqlite3' ||
+        knex.clientType() === 'pg' ||
+        knex.clientType() === 'mssql'
+      ) {
+        if (pt.operator === '=') {
+          if (pt.left.type === 'Literal' && pt.left.value === '') {
+            sql = `${right} IS NULL OR CAST(${right} AS TEXT) = ''`;
+          } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+            sql = `${left} IS NULL OR CAST(${left} AS TEXT) = ''`;
+          }
+        } else if (pt.operator === '!=') {
+          if (pt.left.type === 'Literal' && pt.left.value === '') {
+            sql = `${right} IS NOT NULL AND CAST(${right} AS TEXT) != ''`;
+          } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+            sql = `${left} IS NOT NULL AND CAST(${left} AS TEXT) != ''`;
+          }
+        }
+
+        if (
+          (pt.operator === '=' || pt.operator === '!=') &&
+          prevBinaryOp !== 'AND' &&
+          prevBinaryOp !== 'OR'
+        ) {
+          sql = `(CASE WHEN ${sql} THEN true ELSE false END ${colAlias})`;
+        } else {
+          sql = `${sql} ${colAlias}`;
+        }
+      }
       const query = knex.raw(sql);
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
@@ -679,4 +773,75 @@ export default async function formulaQueryBuilderv2(
     }
   };
   return { builder: fn(tree, alias) };
+}
+
+function getTnPath(tb: Model, knex) {
+  const schema = knex.searchPath?.();
+  if (knex.clientType() === 'mssql' && schema) {
+    return knex.raw('??.??', [schema, tb.table_name]);
+  } else if (knex.clientType() === 'snowflake') {
+    return [
+      knex.client.config.connection.database,
+      knex.client.config.connection.schema,
+      tb.table_name,
+    ].join('.');
+  } else {
+    return tb.table_name;
+  }
+}
+
+export default async function formulaQueryBuilderv2(
+  _tree,
+  alias,
+  knex: XKnex,
+  model: Model,
+  column?: Column,
+  aliasToColumn = {}
+) {
+  // register jsep curly hook once only
+  jsep.plugins.register(jsepCurlyHook);
+  // generate qb
+  const qb = await _formulaQueryBuilder(
+    _tree,
+    alias,
+    knex,
+    model,
+    aliasToColumn
+  );
+
+  try {
+    // dry run qb.builder to see if it will break the grid view or not
+    // if so, set formula error and show empty selectQb instead
+    await knex(getTnPath(model, knex)).select(qb.builder).as('dry-run-only');
+
+    // if column is provided, i.e. formula has been created
+    if (column) {
+      const formula = await column.getColOptions<FormulaColumn>();
+      // clean the previous formula error if the formula works this time
+      if (formula.error) {
+        await FormulaColumn.update(formula.id, {
+          error: null,
+        });
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    if (column) {
+      const formula = await column.getColOptions<FormulaColumn>();
+      // add formula error to show in UI
+      await FormulaColumn.update(formula.id, {
+        error: e.message,
+      });
+      // update cache to reflect the error in UI
+      const key = `${CacheScope.COL_FORMULA}:${column.id}`;
+      let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        o = { ...o, error: e.message };
+        // set cache
+        await NocoCache.set(key, o);
+      }
+    }
+    throw new Error(`Formula error: ${e.message}`);
+  }
+  return qb;
 }

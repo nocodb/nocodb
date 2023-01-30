@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import { watchEffect } from '@vue/runtime-core'
-import { Form, message } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
-import { useMetas, useProject, useTabs } from '#imports'
-import { extractSdkResponseErrorMsg, validateTableName } from '~/utils'
-import { useNuxtApp } from '#app'
+import type { ComponentPublicInstance } from '@vue/runtime-core'
+import {
+  Form,
+  computed,
+  extractSdkResponseErrorMsg,
+  message,
+  nextTick,
+  reactive,
+  useI18n,
+  useMetas,
+  useNuxtApp,
+  useProject,
+  useTabs,
+  useVModel,
+  validateTableName,
+  watchEffect,
+} from '#imports'
 
 interface Props {
   modelValue?: boolean
   tableMeta: TableType
+  baseId: string
 }
 
-const { modelValue = false, tableMeta } = defineProps<Props>()
+const { tableMeta, baseId, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
@@ -22,24 +34,22 @@ const { $e, $api } = useNuxtApp()
 
 const { setMeta } = useMetas()
 
-const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v) {
-    emit('update:modelValue', v)
-  },
-})
+const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { updateTab } = useTabs()
+
 const { loadTables, tables, project, isMysql, isMssql, isPg } = useProject()
 
-const inputEl = $ref<any>()
+const inputEl = $ref<ComponentPublicInstance>()
+
 let loading = $ref(false)
+
 const useForm = Form.useForm
+
 const formState = reactive({
   title: '',
 })
+
 const validators = computed(() => {
   return {
     title: [
@@ -48,11 +58,11 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             let tableNameLengthLimit = 255
-            if (isMysql) {
+            if (isMysql(baseId)) {
               tableNameLengthLimit = 64
-            } else if (isPg) {
+            } else if (isPg(baseId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql) {
+            } else if (isMssql(baseId)) {
               tableNameLengthLimit = 128
             }
             const projectPrefix = project?.value?.prefix || ''
@@ -83,39 +93,56 @@ const validators = computed(() => {
     ],
   }
 })
+
 const { validateInfos } = useForm(formState, validators)
 
-watchEffect(() => {
-  if (tableMeta?.title) formState.title = tableMeta?.title
-  // todo: replace setTimeout and follow better approach
-  nextTick(() => {
-    const input = inputEl?.$el
-    input.setSelectionRange(0, formState.title.length)
-    input.focus()
-  })
-})
+watchEffect(
+  () => {
+    if (tableMeta?.title) formState.title = `${tableMeta.title}`
+
+    nextTick(() => {
+      const input = inputEl?.$el as HTMLInputElement
+
+      if (input) {
+        input.setSelectionRange(0, formState.title.length)
+        input.focus()
+      }
+    })
+  },
+  { flush: 'post' },
+)
 
 const renameTable = async () => {
+  if (!tableMeta) return
+
   loading = true
   try {
-    await $api.dbTable.update(tableMeta?.id as string, {
-      project_id: tableMeta?.project_id,
+    await $api.dbTable.update(tableMeta.id as string, {
+      project_id: tableMeta.project_id,
       table_name: formState.title,
+      title: formState.title,
     })
+
     dialogShow.value = false
-    loadTables()
-    updateTab({ id: tableMeta?.id }, { title: formState.title })
+
+    await loadTables()
 
     // update metas
-    setMeta(await $api.dbTable.read(tableMeta?.id as string))
+    const newMeta = await $api.dbTable.read(tableMeta.id as string)
+    await setMeta(newMeta)
+
+    updateTab({ id: tableMeta.id }, { title: newMeta.title })
 
     // Table renamed successfully
     message.success(t('msg.success.tableRenamed'))
+
     $e('a:table:rename')
+
     dialogShow.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+
   loading = false
 }
 </script>
@@ -123,6 +150,7 @@ const renameTable = async () => {
 <template>
   <a-modal
     v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
     :title="$t('activity.renameTable')"
     :mask-closable="false"
     wrap-class-name="nc-modal-table-rename"
@@ -131,12 +159,15 @@ const renameTable = async () => {
   >
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+
       <a-button key="submit" type="primary" :loading="loading" @click="renameTable">{{ $t('general.submit') }}</a-button>
     </template>
+
     <div class="pl-10 pr-10 pt-5">
       <a-form :model="formState" name="create-new-table-form">
         <!-- hint="Enter table name" -->
         <div class="mb-2">{{ $t('msg.info.enterTableName') }}</div>
+
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import { MetaInj, extractSdkResponseErrorMsg, inject, onMounted, ref, useI18n, useNuxtApp } from '#imports'
+import { MetaInj, extractSdkResponseErrorMsg, inject, message, onMounted, ref, useI18n, useNuxtApp } from '#imports'
 
 const emit = defineEmits(['edit', 'add'])
 
@@ -53,7 +52,8 @@ onMounted(() => {
 <template>
   <div class="">
     <div class="mb-2">
-      <div class="float-left font-bold text-xl mt-2 mb-4">{{ meta.title }} : Webhooks</div>
+      <div class="float-left font-bold text-xl mt-2 mb-4">{{ meta?.title }} : Webhooks</div>
+
       <a-button
         v-e="['c:webhook:add']"
         class="float-right nc-btn-create-webhook"
@@ -64,7 +64,9 @@ onMounted(() => {
         {{ $t('activity.addWebhook') }}
       </a-button>
     </div>
+
     <a-divider />
+
     <div v-if="hooks.length" class="">
       <a-list item-layout="horizontal" :data-source="hooks" class="cursor-pointer scrollbar-thin-primary">
         <template #renderItem="{ item, index }">
@@ -73,21 +75,25 @@ onMounted(() => {
               <template #description>
                 <span class="uppercase"> {{ item.event }} {{ item.operation }}</span>
               </template>
+
               <template #title>
                 <span class="text-xl normal-case">
                   {{ item.title }}
                 </span>
               </template>
+
               <template #avatar>
                 <div class="mt-4">
                   <MdiHook class="text-xl" />
                 </div>
               </template>
             </a-list-item-meta>
+
             <template #extra>
               <div>
                 <!-- Notify Via -->
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
+
                 <div class="float-right pt-2 pr-1">
                   <MdiDeleteOutline class="text-xl nc-hook-delete-icon" @click.stop="deleteHook(item, index)" />
                 </div>
@@ -97,6 +103,7 @@ onMounted(() => {
         </template>
       </a-list>
     </div>
+
     <div v-else class="min-h-[75vh]">
       <div class="p-4 bg-gray-100 text-gray-600">
         Webhooks list is empty, create new webhook by clicking 'Create webhook' button.

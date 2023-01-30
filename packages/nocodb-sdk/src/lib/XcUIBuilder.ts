@@ -1,12 +1,11 @@
 interface XcForm {
   title: string;
   items: XcItem[];
-  actions: XcButton[],
-  msgOnInstall: string,
-  msgOnUninstall: string,
-  [key: string]: any
+  actions: XcButton[];
+  msgOnInstall: string;
+  msgOnUninstall: string;
+  [key: string]: any;
 }
-
 
 enum XcType {
   ID = 'ID',
@@ -43,7 +42,6 @@ enum XcType {
   Password = 'Password',
 }
 
-
 interface XcItem {
   label: string;
   key: string;
@@ -61,24 +59,16 @@ interface XcItem {
   validations?: any;
 }
 
-
 interface XcButton extends XcItem {
   type: XcType.Button;
-  actionType: XcActionType
+  actionType: XcActionType;
 }
 
 enum XcActionType {
   SUBMIT = 'SUBMIT',
   TEST = 'TEST',
   CLEAR = 'CLEAR',
-  CANCEL = 'CANCEL'
+  CANCEL = 'CANCEL',
 }
 
-
-export {
-  XcForm,
-  XcItem,
-  XcType,
-  XcButton,
-  XcActionType
-}
+export { XcForm, XcItem, XcType, XcButton, XcActionType };

@@ -1,16 +1,20 @@
 <script lang="ts" setup>
-import { Form, Modal, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
+import type { DefaultConnection, ProjectCreateForm } from '#imports'
 import {
   CertTypes,
+  ClientType,
+  Form,
+  Modal,
   SSLUsage,
-  clientTypes,
+  clientTypes as _clientTypes,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
   generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  message,
   navigateTo,
   nextTick,
   onMounted,
@@ -23,9 +27,8 @@ import {
   useSidebar,
   watch,
 } from '#imports'
-import { ClientType } from '~/lib'
-import { DefaultConnection, SQLiteConnection } from '~/utils'
-import type { ProjectCreateForm } from '~/utils'
+
+const { appInfo } = useGlobal()
 
 const useForm = Form.useForm
 
@@ -33,7 +36,7 @@ const testSuccess = ref(false)
 
 const form = ref<typeof Form>()
 
-const { api, isLoading } = useApi()
+const { api, isLoading } = useApi({ useGlobalInstance: true })
 
 const { $e } = useNuxtApp()
 
@@ -45,8 +48,8 @@ let formState = $ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
@@ -56,14 +59,50 @@ const customFormState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
 })
 
+const clientTypes = computed(() => {
+  return _clientTypes.filter((type) => {
+    return appInfo.value?.ee || type.value !== ClientType.SNOWFLAKE
+  })
+})
+
 const validators = computed(() => {
+  let clientValidations: Record<string, any[]> = {
+    'dataSource.connection.host': [fieldRequiredValidator()],
+    'dataSource.connection.port': [fieldRequiredValidator()],
+    'dataSource.connection.user': [fieldRequiredValidator()],
+    'dataSource.connection.password': [fieldRequiredValidator()],
+    'dataSource.connection.database': [fieldRequiredValidator()],
+  }
+
+  switch (formState.dataSource.client) {
+    case ClientType.SQLITE:
+      clientValidations = {
+        'dataSource.connection.connection.filename': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.SNOWFLAKE:
+      clientValidations = {
+        'dataSource.connection.account': [fieldRequiredValidator()],
+        'dataSource.connection.username': [fieldRequiredValidator()],
+        'dataSource.connection.password': [fieldRequiredValidator()],
+        'dataSource.connection.warehouse': [fieldRequiredValidator()],
+        'dataSource.connection.database': [fieldRequiredValidator()],
+        'dataSource.connection.schema': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.PG:
+    case ClientType.MSSQL:
+      clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
+      break
+  }
+
   return {
     'title': [
       {
@@ -74,22 +113,7 @@ const validators = computed(() => {
     ],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
-    ...(formState.dataSource.client === ClientType.SQLITE
-      ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator()],
-        }
-      : {
-          'dataSource.connection.host': [fieldRequiredValidator()],
-          'dataSource.connection.port': [fieldRequiredValidator()],
-          'dataSource.connection.user': [fieldRequiredValidator()],
-          'dataSource.connection.password': [fieldRequiredValidator()],
-          'dataSource.connection.database': [fieldRequiredValidator()],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
-            ? {
-                'dataSource.searchPath.0': [fieldRequiredValidator()],
-              }
-            : {}),
-        }),
+    ...clientValidations,
   }
 })
 
@@ -112,6 +136,9 @@ const onSSLModeChange = ((mode: SSLUsage) => {
         delete connection.ssl
         break
       case SSLUsage.Allowed:
+        connection.ssl = 'no-verify'
+        break
+      case SSLUsage.Preferred:
         connection.ssl = 'true'
         break
       default:
@@ -318,9 +345,10 @@ watch(
 )
 
 // select and focus title field on load
-onMounted(() => {
-  formState.title = generateUniqueName()
-  nextTick(() => {
+onMounted(async () => {
+  formState.title = await generateUniqueName()
+
+  await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
@@ -333,12 +361,12 @@ onMounted(() => {
 
 <template>
   <div
-    class="create-external bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+    class="create-external relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
   >
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+    <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
 
     <div
-      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"
+      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
       @click="navigateTo('/')"
     >
       <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
@@ -365,8 +393,8 @@ onMounted(() => {
           dropdown-class-name="nc-dropdown-ext-db-type"
           @change="onClientChange"
         >
-          <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
-            >{{ client.text }}
+          <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value">
+            {{ client.text }}
           </a-select-option>
         </a-select>
       </a-form-item>
@@ -377,34 +405,65 @@ onMounted(() => {
         :label="$t('labels.sqliteFile')"
         v-bind="validateInfos['dataSource.connection.connection.filename']"
       >
-        <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
+        <a-input v-model:value="formState.dataSource.connection.connection.filename" />
       </a-form-item>
+
+      <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
+        <!-- Account -->
+        <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
+          <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
+        </a-form-item>
+
+        <!-- Username -->
+        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
+          <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
+        </a-form-item>
+
+        <!-- Password -->
+        <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
+          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
+        </a-form-item>
+
+        <!-- Warehouse -->
+        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
+          <a-input v-model:value="formState.dataSource.connection.warehouse" />
+        </a-form-item>
+
+        <!-- Database -->
+        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+          <!-- Database : create if not exists -->
+          <a-input
+            v-model:value="formState.dataSource.connection.database"
+            :placeholder="$t('labels.dbCreateIfNotExists')"
+            class="nc-extdb-host-database"
+          />
+        </a-form-item>
+
+        <!-- Schema name -->
+        <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
+          <a-input v-model:value="formState.dataSource.connection.schema" />
+        </a-form-item>
+      </template>
 
       <template v-else>
         <!-- Host Address -->
         <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host" class="nc-extdb-host-address" />
+          <a-input v-model:value="formState.dataSource.connection.host" class="nc-extdb-host-address" />
         </a-form-item>
 
         <!-- Port Number -->
         <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-          <a-input-number
-            v-model:value="(formState.dataSource.connection as DefaultConnection).port"
-            class="!w-full nc-extdb-host-port"
-          />
+          <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full nc-extdb-host-port" />
         </a-form-item>
 
         <!-- Username -->
         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user" class="nc-extdb-host-user" />
+          <a-input v-model:value="formState.dataSource.connection.user" class="nc-extdb-host-user" />
         </a-form-item>
 
         <!-- Password -->
         <a-form-item :label="$t('labels.password')">
-          <a-input-password
-            v-model:value="(formState.dataSource.connection as DefaultConnection).password"
-            class="nc-extdb-host-password"
-          />
+          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
         </a-form-item>
 
         <!-- Database -->
@@ -439,7 +498,7 @@ onMounted(() => {
             </template>
             <a-form-item label="SSL mode">
               <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
-                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
+                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
               </a-select>
             </a-form-item>
 
@@ -502,7 +561,9 @@ onMounted(() => {
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                  <div class="flex items-center justify-center">
+                    <MdiPlus />
+                  </div>
                 </a-button>
               </a-card>
             </a-form-item>
@@ -552,17 +613,19 @@ onMounted(() => {
 
     <a-modal
       v-model:visible="configEditDlg"
+      :class="{ active: configEditDlg }"
       :title="$t('activity.editConnJson')"
       width="600px"
       wrap-class-name="nc-modal-edit-connection-json"
       @ok="handleOk"
     >
-      <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
+      <LazyMonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
     </a-modal>
 
     <!--    Use Connection URL -->
     <a-modal
       v-model:visible="importURLDlg"
+      :class="{ active: importURLDlg }"
       :title="$t('activity.useConnectionUrl')"
       width="600px"
       :ok-text="$t('general.ok')"

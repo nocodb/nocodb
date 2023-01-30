@@ -124,8 +124,10 @@ async function getDataList(model, view: View, req) {
     );
     count = await baseModel.count(listArgs);
   } catch (e) {
-    // show empty result instead of throwing error here
-    // e.g. search some text in a numeric field
+    console.log(e);
+    NcError.internalServerError(
+      'Internal Server Error, check server log for more details'
+    );
   }
 
   return new PagedResponseImpl(data, {
@@ -203,7 +205,7 @@ async function dataRead(req: Request, res: Response) {
       await getAst({ model, query: req.query, view }),
       row,
       {},
-      {}
+      req.query
     )
   );
 }
@@ -220,6 +222,72 @@ async function dataExist(req: Request, res: Response) {
   });
 
   res.json(await baseModel.exist(req.params.rowId));
+}
+
+// todo: Handle the error case where view doesnt belong to model
+async function groupedDataList(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+  res.json(await getGroupedDataList(model, view, req));
+}
+
+async function getGroupedDataList(model, view: View, req) {
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  const requestObj = await getAst({ model, query: req.query, view });
+
+  const listArgs: any = { ...req.query };
+  try {
+    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+  } catch (e) {}
+  try {
+    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+  } catch (e) {}
+  try {
+    listArgs.options = JSON.parse(listArgs.optionsArrJson);
+  } catch (e) {}
+
+  let data = [];
+  // let count = 0
+  try {
+    const groupedData = await baseModel.groupedList({
+      ...listArgs,
+      groupColumnId: req.params.columnId,
+    });
+    data = await nocoExecute(
+      { key: 1, value: requestObj },
+      groupedData,
+      {},
+      listArgs
+    );
+    const countArr = await baseModel.groupedListCount({
+      ...listArgs,
+      groupColumnId: req.params.columnId,
+    });
+    data = data.map((item) => {
+      // todo: use map to avoid loop
+      const count =
+        countArr.find((countItem: any) => countItem.key === item.key)?.count ??
+        0;
+
+      item.value = new PagedResponseImpl(item.value, {
+        ...req.query,
+        count: count,
+      });
+      return item;
+    });
+  } catch (e) {
+    console.log(e);
+    NcError.internalServerError(
+      'Internal Server Error, check server log for more details'
+    );
+  }
+  return data;
 }
 
 const router = Router({ mergeParams: true });
@@ -241,6 +309,12 @@ router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/groupby',
   apiMetrics,
   ncMetaAclMw(dataGroupBy, 'dataGroupBy')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/group/:columnId',
+  apiMetrics,
+  ncMetaAclMw(groupedDataList, 'groupedDataList')
 );
 
 router.get(
@@ -302,6 +376,12 @@ router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/groupby',
   apiMetrics,
   ncMetaAclMw(dataGroupBy, 'dataGroupBy')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/group/:columnId',
+  apiMetrics,
+  ncMetaAclMw(groupedDataList, 'groupedDataList')
 );
 
 router.get(

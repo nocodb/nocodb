@@ -16,6 +16,7 @@
     "cancel": "Otkazati",
     "submit": "podnijeti",
     "create": "Stvoriti",
+    "duplicate": "Duplicate",
     "insert": "Umetnuti",
     "delete": "Izbrisati",
     "update": "ažuriranje",
@@ -67,7 +68,13 @@
     "reachOut": "Reach out here",
     "betaNote": "This feature is currently in beta.",
     "moreInfo": "More information can be found here",
-    "logs": "Logs"
+    "logs": "Logs",
+    "groupingField": "Grouping Field",
+    "insertAfter": "Insert After",
+    "insertBefore": "Insert Before",
+    "hideField": "Hide Field",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending"
   },
   "objects": {
     "project": "Projekt",
@@ -102,8 +109,11 @@
       "creator": "Kreator",
       "editor": "Urednik",
       "commenter": "Komentator",
-      "viewer": "Preglednika"
-    }
+      "viewer": "Preglednika",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "iskaznica",
@@ -157,6 +167,7 @@
     "isNotNull": "nije ništavan"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "Novi projekt",
     "myProject": "Moji projekti",
     "formTitle": "Naslov oblika",
@@ -193,9 +204,12 @@
     "quickImportFrom": "Quick Import From",
     "quickImport": "Quick Import",
     "advancedSettings": "Advanced Settings",
-    "codeSnippet": "Code Snippet"
+    "codeSnippet": "Code Snippet",
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "Obavijestiti putem",
     "projName": "Naziv projekta",
     "tableName": "Tablica",
@@ -234,6 +248,11 @@
     "created": "Stvoren",
     "sqlOutput": "SQL izlaz",
     "addOption": "Dodajte opciju",
+    "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "Agregatna funkcija",
     "dbCreateIfNotExists": "Baza podataka: stvoriti ako ne postoji",
     "clientKey": "Ključ klijenta",
@@ -259,6 +278,7 @@
     "selectUserRole": "Odaberite korisničku ulogu",
     "childTable": "Dječji stol",
     "childColumn": "Dječji stupac",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Na ažuriranje",
     "onDelete": "Na brisanje",
     "account": "Account",
@@ -290,8 +310,12 @@
     "documentation": "Documentation",
     "subscribeNewsletter": "Subscribe to our weekly newsletter",
     "signUpWithGoogle": "Sign up with Google",
+    "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
-    "welcomeToNc": "Welcome to NocoDB!"
+    "welcomeToNc": "Welcome to NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "Stvoriti projekt",
@@ -304,6 +328,7 @@
     "deleteProject": "Izbriši projekt",
     "refreshProject": "Osvježi projekti",
     "saveProject": "Spremi projekt",
+    "deleteKanbanStack": "Delete stack?",
     "createProjectExtended": {
       "extDB": "Stvoriti povezivanjem u vanjskoj bazi podataka",
       "excel": "Stvoriti projekt iz Excela",
@@ -335,12 +360,14 @@
     "invite": "Pozvati",
     "inviteMore": "Pozvati više",
     "inviteTeam": "Pozvati tim",
+    "inviteUser": "Invite User",
     "inviteToken": "Pozvati token",
     "newUser": "Novi korisnik",
     "editUser": "Uredi korisnika",
     "deleteUser": "Uklonite korisnika od projekta",
     "resendInvite": "Ponovno pošaljite e-poštu",
     "copyInviteURL": "Kopirajte URL",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "Nova uloga",
     "reloadRoles": "Ponovno učitajte uloge",
     "nextPage": "Sljedeća stranica",
@@ -356,6 +383,8 @@
     "setPrimary": "Postavite kao primarnu vrijednost",
     "addRow": "Dodaj novi red",
     "saveRow": "Spremanje retka",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Umetnite novi red",
     "deleteRow": "Brisanje retka",
     "deleteSelectedRow": "Izbrišite odabrane retke",
@@ -406,7 +435,23 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "expandRecord": "Expand Record",
+    "deleteRecord": "Delete Record",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    },
+    "kanban": {
+      "collapseStack": "Collapse Stack",
+      "deleteStack": "Delete Stack",
+      "stackedBy": "Stacked By",
+      "chooseGroupingField": "Choose a Grouping Field",
+      "addOrEditStack": "Add / Edit Stack"
+    }
   },
   "tooltip": {
     "saveChanges": "Spremi promjene",
@@ -457,7 +502,21 @@
     "selectField": "Select field"
   },
   "msg": {
+    "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
+      "pasteNotSupported": "Paste operation is not supported on the active cell",
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "Redaka po stranici",
       "upload": "Odaberite datoteku za prijenos",
       "upload_sub": "ili povucite i ispustite datoteku",
@@ -570,7 +629,11 @@
       "generatePublicShareableReadonlyBase": "Generate publicly shareable readonly base",
       "deleteViewConfirmation": "Are you sure you want to delete this view?",
       "deleteTableConfirmation": "Do you want to delete the table",
-      "showM2mTables": "Show M2M Tables"
+      "showM2mTables": "Show M2M Tables",
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
+      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "Vaša potraga za {Search} nije pronašla rezultate",
@@ -629,7 +692,10 @@
       "theAcceptedFileTypeIsCsv": "The accepted file type is .csv",
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
-      "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed"
+      "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible",
+      "copyToClipboardError": "Failed to copy to clipboard"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",
@@ -649,6 +715,7 @@
       "futureRelease": "Dolazi uskoro!"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",
@@ -659,13 +726,16 @@
       "tableDataExported": "Successfully exported all table data",
       "updated": "Successfully updated",
       "sharedViewDeleted": "Deleted shared view successfully",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "View renamed successfully",
       "tokenGenerated": "Token generated successfully",
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "Successfully added user to project",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
@@ -675,7 +745,9 @@
       "webhookTested": "Webhook tested successfully",
       "columnUpdated": "Column updated",
       "columnCreated": "Column created",
-      "passwordChanged": "Password changed successfully. Please login again."
+      "passwordChanged": "Password changed successfully. Please login again.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

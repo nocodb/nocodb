@@ -34,6 +34,27 @@
           }
         }
       },
+      "Attachment": {
+        "title": "Attachment",
+        "type": "object",
+        "properties": {
+          "mimetype": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        }
+      },
       "Groupby": {
         "title": "Groupby",
         "type": "object",

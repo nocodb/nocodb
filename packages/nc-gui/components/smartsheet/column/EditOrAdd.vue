@@ -51,6 +51,8 @@ const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
 
+const advancedDBOptions = ref(false)
+
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
@@ -198,6 +200,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         v-if="!isVirtualCol(formState.uidt)"
         class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
+        @dblclick="advancedDBOptions = !advancedDBOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
         <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
@@ -220,7 +223,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             v-model:value="formState"
           />
 
-          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" />
+          <LazySmartsheetColumnAdvancedOptions :advancedDBOptions="advancedDBOptions" v-model:value="formState" />
         </div>
       </Transition>
 

@@ -239,5 +239,15 @@ export function useViewFilters(
     },
   )
 
-  return { filters, nonDeletedFilters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup, saveOrUpdateDebounced }
+  return {
+    filters,
+    nonDeletedFilters,
+    loadFilters,
+    sync,
+    deleteFilter,
+    saveOrUpdate,
+    addFilter,
+    addFilterGroup,
+    saveOrUpdateDebounced,
+  }
 }

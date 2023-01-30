@@ -81,7 +81,7 @@ const validators = computed(() => {
             }
             if (
               !(tables?.value || []).every(
-                (t) => t.id === tableMeta.id || t.table_name.toLowerCase() !== (value || '').toLowerCase(),
+                (t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value || '').toLowerCase(),
               )
             ) {
               return reject(new Error('Duplicate table alias'))

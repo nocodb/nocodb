@@ -80,9 +80,7 @@ const validators = computed(() => {
               return reject(new Error('Leading or trailing whitespace not allowed in table name'))
             }
             if (
-              !(tables?.value || []).every(
-                (t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value || '').toLowerCase(),
-              )
+              !(tables?.value || []).every((t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value || '').toLowerCase())
             ) {
               return reject(new Error('Duplicate table alias'))
             }

@@ -1,4 +1,5 @@
 import type { MaybeRef } from '@vueuse/core'
+import type { HTMLElement } from 'happy-dom'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
@@ -41,6 +42,8 @@ export function useMultiSelect(
   syncCellData?: Function,
 ) {
   const meta = ref(_meta)
+
+  const tbodyEl = ref<HTMLElement>()
 
   const { t } = useI18n()
 
@@ -374,8 +377,8 @@ export function useMultiSelect(
 
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
-  useEventListener(document, 'keydown', handleKeyDown)
-  useEventListener(document, 'mouseup', handleMouseUp)
+  useEventListener(tbodyEl, 'keydown', handleKeyDown)
+  useEventListener(tbodyEl, 'mouseup', handleMouseUp)
 
   return {
     isCellActive,
@@ -386,5 +389,6 @@ export function useMultiSelect(
     isCellSelected,
     activeCell,
     handleCellClick,
+    tbodyEl,
   }
 }

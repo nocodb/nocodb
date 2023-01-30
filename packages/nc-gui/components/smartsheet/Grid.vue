@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType, GridType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { querySelector } from 'ultrahtml/selector'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -45,7 +46,6 @@ import {
   useViewData,
   watch,
 } from '#imports'
-import { querySelector } from 'ultrahtml/selector'
 import type { Row } from '~/lib'
 
 const { t } = useI18n()
@@ -98,7 +98,6 @@ const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
-const tbodyEl = ref<HTMLElement>()
 const gridWrapper = ref<HTMLElement>()
 const tableHead = ref<HTMLElement>()
 
@@ -183,6 +182,7 @@ const {
   clearSelectedRange,
   copyValue,
   isCellActive,
+  tbodyEl,
 } = useMultiSelect(
   meta,
   fields,

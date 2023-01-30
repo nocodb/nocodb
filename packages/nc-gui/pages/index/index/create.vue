@@ -1,17 +1,17 @@
 <script lang="ts" setup>
-import { Input } from 'ant-design-vue'
-import type { Form } from 'ant-design-vue'
+import type { Form, Input } from 'ant-design-vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { VNodeRef } from '@vue/runtime-core'
 import {
   extractSdkResponseErrorMsg,
+  generateUniqueName,
   message,
   navigateTo,
+  nextTick,
+  onMounted,
   projectTitleValidator,
   reactive,
-  onMounted,
   ref,
-  generateUniqueName,
   useApi,
   useNuxtApp,
   useSidebar,
@@ -34,7 +34,7 @@ const nameValidationRules = [
 const form = ref<typeof Form>()
 
 const formState = reactive({
-  title:  ''
+  title: '',
 })
 
 const createProject = async () => {
@@ -50,13 +50,13 @@ const createProject = async () => {
   }
 }
 
-const focus: VNodeRef = (el: typeof Input) => {
-  el?.$el?.focus()
-  el?.$el?.select()
-}
+const input: VNodeRef = ref<typeof Input>()
 
 onMounted(async () => {
   formState.title = await generateUniqueName()
+  await nextTick()
+  input.value?.$el?.focus()
+  input.value?.$el?.select()
 })
 </script>
 
@@ -86,7 +86,7 @@ onMounted(async () => {
       @finish="createProject"
     >
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-        <a-input :ref="focus" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+        <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>
 
       <div class="text-center">

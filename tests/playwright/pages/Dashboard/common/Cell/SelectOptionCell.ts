@@ -65,7 +65,6 @@ export class SelectOptionCellPageObject extends BasePage {
 
     await this.get({ index, columnHeader }).click();
     await this.rootPage.locator('.ant-select-single > .ant-select-clear').click();
-    await this.cell.get({ index, columnHeader }).click();
     await this.rootPage.locator(`.nc-dropdown-single-select-cell`).waitFor({ state: 'hidden' });
   }
 

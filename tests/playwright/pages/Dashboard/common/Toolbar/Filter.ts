@@ -18,7 +18,7 @@ export class ToolbarFilterPage extends BasePage {
     await expect(this.get().locator('.nc-filter-field-select').nth(index)).toHaveText(column);
     await expect(this.get().locator('.nc-filter-operation-select').nth(index)).toHaveText(operator);
     await expect
-      .poll(async () => await this.get().locator('input.nc-filter-value-select').nth(index).inputValue())
+      .poll(async () => await this.get().locator('.nc-filter-value-select > input').nth(index).inputValue())
       .toBe(value);
   }
 
@@ -71,7 +71,7 @@ export class ToolbarFilterPage extends BasePage {
 
     // if value field was provided, fill it
     if (value) {
-      const fillFilter = this.rootPage.locator('.nc-filter-value-select').last().fill(value);
+      const fillFilter = this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
       await this.waitForResponse({
         uiAction: fillFilter,
         httpMethodsToMatch: ['GET'],

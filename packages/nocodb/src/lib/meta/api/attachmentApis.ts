@@ -113,7 +113,7 @@ export async function uploadViaURL(req: Request, res: Response) {
       }
 
       return {
-        ...(url ? { url: attachmentUrl } : {}),
+        ...(attachmentUrl ? { url: attachmentUrl } : {}),
         ...(attachmentPath ? { path: attachmentPath } : {}),
         title: fileName,
         mimetype: urlMeta.mimetype,

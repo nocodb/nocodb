@@ -11,7 +11,7 @@ import {
   useRoute,
   useRouter,
   useUIPermission,
-  useViewsStoreOrThrow,
+  useViews,
   watch,
 } from '#imports'
 
@@ -23,7 +23,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { activeTab } = useTabs()
 
-const { views, loadViews, isLoading } = useViewsStoreOrThrow()
+const { views, loadViews, isLoading } = useViews(meta)
 
 const { lastOpenedViewMap } = useProject()
 

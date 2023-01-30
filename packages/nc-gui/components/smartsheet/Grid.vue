@@ -284,7 +284,11 @@ const {
             activeCell.col = 0
             makeEditable(data.value[activeCell.row], fields.value[activeCell.col])
             nextTick(() => {
-              (document.querySelector('td.cell.active')?.querySelector('input,textarea') as HTMLInputElement | HTMLTextAreaElement)?.focus()
+              ;(
+                document.querySelector('td.cell.active')?.querySelector('input,textarea') as
+                  | HTMLInputElement
+                  | HTMLTextAreaElement
+              )?.focus()
             })
           }
           break

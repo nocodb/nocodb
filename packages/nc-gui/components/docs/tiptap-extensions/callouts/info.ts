@@ -22,8 +22,6 @@ export const InfoCallout = Node.create<InfoCalloutOptions>({
 
   topNode: true,
 
-  draggable: true,
-
   parseHTML() {
     return [
       {

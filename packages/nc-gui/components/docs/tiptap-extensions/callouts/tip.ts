@@ -22,8 +22,6 @@ export const TipCallout = Node.create<TipCalloutOptions>({
 
   topNode: true,
 
-  draggable: true,
-
   parseHTML() {
     return [
       {

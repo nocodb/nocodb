@@ -22,8 +22,6 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
 
   topNode: true,
 
-  draggable: true,
-
   parseHTML() {
     return [
       {

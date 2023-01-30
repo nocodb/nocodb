@@ -239,6 +239,8 @@ export function useViewData(
     const records = []
     for (const record of response.list) {
       for (const attachmentColumn of attachmentColumns.value) {
+        // attachment column can be hidden
+        if (!record[attachmentColumn!]) continue
         const oldAttachment =
           typeof record[attachmentColumn!] === 'string' ? JSON.parse(record[attachmentColumn!]) : record[attachmentColumn!]
         const newAttachment = []

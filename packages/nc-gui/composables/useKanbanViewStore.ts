@@ -198,6 +198,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
         for (const record of data.value.list) {
           for (const attachmentColumn of attachmentColumns.value) {
+            // attachment column can be hidden
+            if (!record[attachmentColumn!]) continue
             const oldAttachment = JSON.parse(record[attachmentColumn!])
             const newAttachment = []
             for (const attachmentObj of oldAttachment) {

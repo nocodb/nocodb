@@ -45,6 +45,7 @@ import {
   useViewData,
   watch,
 } from '#imports'
+import { querySelector } from 'ultrahtml/selector'
 import type { Row } from '~/lib'
 
 const { t } = useI18n()
@@ -279,6 +280,12 @@ const {
           if (isAddingEmptyRowAllowed) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
+            activeCell.row = data.value.length - 1
+            activeCell.col = 0
+            makeEditable(data.value[activeCell.row], fields.value[activeCell.col])
+            nextTick(() => {
+              (document.querySelector('td.cell.active')?.querySelector('input,textarea') as HTMLInputElement | HTMLTextAreaElement)?.focus()
+            })
           }
           break
         }
@@ -448,6 +455,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
+  console.log(row, col)
   if (!hasEditPermission || editEnabled || isView) {
     return
   }

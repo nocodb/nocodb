@@ -17,7 +17,7 @@ import { metaApiMetrics } from '../helpers/apiMetrics';
 // @ts-ignore
 export async function filterGet(req: Request, res: Response, next) {
   try {
-    const filter = await Filter.getFilterObject({ viewId: req.params.viewId });
+    const filter = await Filter.get(req.params.filterId);
 
     res.json(filter);
   } catch (e) {

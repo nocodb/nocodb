@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { navigateTo, useEventListener, useRouter } from '#imports'
-const { isLoading, currentVersion } = useGlobal()
+
+const { isLoading, appInfo } = useGlobal()
+
 const { sharedView } = useSharedView()
+
 const router = useRouter()
 
 onMounted(() => {
@@ -43,7 +46,7 @@ export default {
         <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105" @click="navigateTo('/')">
           <a-tooltip placement="bottom">
             <template #title>
-              {{ currentVersion }}
+              {{ appInfo.version }}
             </template>
             <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </a-tooltip>
@@ -58,7 +61,8 @@ export default {
                 <MdiReload :class="{ 'animate-infinite animate-spin ': isLoading }" />
               </template>
 
-              <div v-else class="text-xl font-semibold truncate text-white nc-shared-view-title">
+              <div v-else class="text-xl font-semibold truncate text-white nc-shared-view-title flex gap-2 items-center">
+                <GeneralViewIcon v-if="sharedView" class="!text-xl" :meta="sharedView" />
                 {{ sharedView?.title }}
               </div>
             </div>

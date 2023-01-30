@@ -19,7 +19,7 @@ test.describe('Project operations', () => {
 
   test('rename, delete', async () => {
     await dashboard.clickHome();
-    await projectPage.createProject({ name: 'project-1', type: 'xcdb' });
+    await projectPage.createProject({ name: 'project-1' });
     await dashboard.clickHome();
     await projectPage.renameProject({
       title: 'project-1',

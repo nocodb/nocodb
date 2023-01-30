@@ -31,3 +31,4 @@ export const EditModeInj: InjectionKey<Ref<boolean>> = Symbol('edit-mode-injecti
 export const SharedViewPasswordInj: InjectionKey<Ref<string | null>> = Symbol('shared-view-password-injection')
 export const CellUrlDisableOverlayInj: InjectionKey<Ref<boolean>> = Symbol('cell-url-disable-url')
 export const DropZoneRef: InjectionKey<Ref<Element | undefined>> = Symbol('drop-zone-ref')
+export const ToggleDialogInj: InjectionKey<Function> = Symbol('toggle-dialog-injection')

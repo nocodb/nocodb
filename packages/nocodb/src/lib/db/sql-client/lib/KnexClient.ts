@@ -779,11 +779,7 @@ class KnexClient extends SqlClient {
 
     let max1 = 10000;
     let searchFrom = 0;
-    let foundIndex = findIndex(
-      tableObj.columns,
-      { ck: 'UNI' },
-      searchFrom
-    );
+    let foundIndex = findIndex(tableObj.columns, { ck: 'UNI' }, searchFrom);
 
     while (foundIndex !== -1) {
       const col = tableObj.columns[foundIndex];
@@ -799,11 +795,7 @@ class KnexClient extends SqlClient {
       }
 
       searchFrom = foundIndex;
-      foundIndex = findIndex(
-        tableObj.columns,
-        { ck: 'UNI' },
-        searchFrom + 1
-      );
+      foundIndex = findIndex(tableObj.columns, { ck: 'UNI' }, searchFrom + 1);
     }
 
     let max2 = 10000;
@@ -824,11 +816,7 @@ class KnexClient extends SqlClient {
       }
 
       searchFrom = foundIndex;
-      foundIndex = findIndex(
-        tableObj.columns,
-        { ck: 'MUL' },
-        searchFrom + 1
-      );
+      foundIndex = findIndex(tableObj.columns, { ck: 'MUL' }, searchFrom + 1);
     }
 
     // console.log('min of: ', max, max1, max2, maxy);

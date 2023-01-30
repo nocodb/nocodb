@@ -6,7 +6,7 @@
 </h1>
 
 <p align="center">
-MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트로 바꿔줍니다.
+MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 스마트 스프레드시트로 바꿔줍니다.
 </p>
 
 <div align="center">
@@ -32,20 +32,7 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 똑똑한 스프레드시트�
   <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
-# 바로 써보기
-
-### 원클릭 배포
-
-#### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="NocoDB를 Heroku에 원클릭 배포하기" 
-    />
-</a>
-<br>
+# 빠른 시도
 
 ### Docker 사용
 
@@ -78,7 +65,7 @@ npm start
 
 ### GUI
 
-대시보드 접근하기 : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+대시보드 접근 : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # 커뮤니티 가입
 
@@ -127,18 +114,17 @@ npm start
 
 # 기능
 
-### 스프레드시트같은 인터페이스
+### 스프레드시트 인터페이스
 
-- ⚡ 정말 쉬운 검색, 정렬, 필터링, 열 숨기기
-- ⚡ 뷰 만들기: 그리드, 갤러리, 칸반, 간트 차트, 양식
-- ⚡ 뷰 공유하기: 완전 공개, 패스워드 걸고 공개
-- ⚡ 개인화하거나 잠글 수 있는 뷰
-- ⚡ 이미지를 자신의 공간에 업로드 (S3, Minio, GCP, Azure, Digitalocean, Linode, OVH, Backblaze 등)
-- ⚡ 역할 부여: 소유자, 작성자, 편집자, 보기 전용, 의견 제시만, 원하는 대로
-- ⚡ 접근 통제: 데이터베이스, 테이블 및 열 수준까지도 상세한 통제 가능
+- ⚡ 기본 오퍼레이션: 테이블, 칼럼, 로우 CRUD
+- ⚡ 필드 오퍼레이션: 정렬, 필터, 칼럼 보기/숨기기
+- ⚡ 뷰 타입: 그리드, 갤러리, 칸반, 간트 차트, 양식(Form)
+- ⚡ 공유: 공개 / 비공개 뷰 (비밀 번호 설정)
+- ⚡ 다양한 셀 타입: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLine Text, Attachment, Currency, Formula 등
+- ⚡ 역할에 따른 접근 제한: 다양한 수준의 세분화된 액세스 제어
 
 ### 워크플로 자동화를 위한 앱스토어
-
+크게 채팅, 이메일, 저장소 세 가지 카테고리에 대한 통합을 제공합니다. 자세한 사항은 <a href="https://docs.nocodb.com/setup-and-usages/app-store" target="_blank">App Store</a> 를 참고하세요.
 - ⚡ 채팅: MS 팀즈, 슬랙, 디스코드, 매터모스트
 - ⚡ 이메일: SMTP, SES, MailChimp
 - ⚡ SMS: Twilio
@@ -201,12 +187,12 @@ docker-compose up -d
 여기서 확인해주세요.
 [환경변수 ](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
-# 개발 환경에 설치하기
+# 개발 환경에 설치
 
 여기서 확인해주세요.
 [개발 환경에 설치하는 법](https://docs.nocodb.com/engineering/development-setup)
 
-# 기여하기
+# 기여
 
 여기서 확인해주세요.
 [기여 가이드라인](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).

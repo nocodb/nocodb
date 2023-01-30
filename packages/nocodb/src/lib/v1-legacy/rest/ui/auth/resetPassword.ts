@@ -86,7 +86,11 @@ export default `<!DOCTYPE html>
             });
             this.success = true;
           } catch (e) {
-            alert('Some error occured')
+            if (e.response && e.response.data && e.response.data.msg) {
+              alert('Failed to reset password: ' + e.response.data.msg)
+            } else {
+              alert('Some error occurred')
+            }
           }
         }
       }

@@ -44,7 +44,7 @@ let isLoading = $ref(false)
 
 let totalRows = $ref(0)
 
-const currentPage = $ref(1)
+let currentPage = $ref(1)
 
 const currentLimit = $ref(10)
 
@@ -58,7 +58,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     const response: any = await api.auth.projectUserList(project.value?.id, {
       query: {
         limit,
-        offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
+        offset: (page - 1) * limit,
         query: searchText.value,
       },
     } as RequestParams)
@@ -160,7 +160,14 @@ onBeforeMount(async () => {
   }
 })
 
-watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
+watchDebounced(
+  searchText,
+  () => {
+    currentPage = 1
+    loadUsers()
+  },
+  { debounce: 300, maxWait: 600 },
+)
 
 const isSuperAdmin = (user: { main_roles?: string }) => {
   return user.main_roles?.split(',').includes(OrgUserRoles.SUPER_ADMIN)
@@ -174,7 +181,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
   <div v-else class="flex flex-col w-full px-6">
     <LazyTabsAuthUserManagementUsersModal
-      :key="showUserModal"
+      :key="`${showUserModal}`"
       :show="showUserModal"
       :selected-user="selectedUser"
       @closed="showUserModal = false"
@@ -353,8 +360,6 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
         show-less-items
         @change="loadUsers"
       />
-
-      <LazyTabsAuthUserManagementFeedbackForm />
     </div>
   </div>
 </template>

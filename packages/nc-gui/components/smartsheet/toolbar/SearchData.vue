@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TableType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ReloadViewDataHookInj,
@@ -16,7 +17,7 @@ const { meta } = useSmartsheetStoreOrThrow()
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { search, loadFieldQuery } = useFieldQuery(activeView)
+const { search, loadFieldQuery } = useFieldQuery()
 
 const isDropdownOpen = ref(false)
 
@@ -25,9 +26,9 @@ const searchDropdown = ref(null)
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
-  meta.value?.columns?.map((c) => ({
-    value: c.id,
-    label: c.title,
+  (meta.value as TableType)?.columns?.map((column) => ({
+    value: column.id,
+    label: column.title,
   })),
 )
 
@@ -35,7 +36,7 @@ watch(
   () => activeView.value?.id,
   (n, o) => {
     if (n !== o) {
-      loadFieldQuery(activeView)
+      loadFieldQuery(activeView.value?.id)
     }
   },
   { immediate: true },
@@ -75,6 +76,7 @@ function onPressEnter() {
       class="max-w-[200px]"
       :placeholder="$t('placeholder.filterQuery')"
       :bordered="false"
+      data-testid="search-data-input"
       @press-enter="onPressEnter"
     >
       <template #addonBefore> </template>

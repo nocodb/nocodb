@@ -69,7 +69,12 @@
     "betaNote": "Tính năng này hiện không được hỗ trợ.",
     "moreInfo": "More information can be found here",
     "logs": "Nhật ký",
-    "groupingField": "Nhóm theo trường"
+    "groupingField": "Nhóm theo trường",
+    "insertAfter": "Insert After",
+    "insertBefore": "Insert Before",
+    "hideField": "Hide Field",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending"
   },
   "objects": {
     "project": "Dự định",
@@ -199,7 +204,9 @@
     "quickImportFrom": "Kết nhập nhanh dữ liệu từ",
     "quickImport": "Quick Import",
     "advancedSettings": "Cài đặt Nâng cao",
-    "codeSnippet": "Thư viện mã"
+    "codeSnippet": "Thư viện mã",
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Đã tạo bởi",
@@ -242,7 +249,10 @@
     "sqlOutput": "Đầu ra SQL.",
     "addOption": "Thêm tùy chọn",
     "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "Chức năng tổng hợp",
     "dbCreateIfNotExists": "Cơ sở dữ liệu: Tạo nếu không tồn tại",
     "clientKey": "Khóa khách",
@@ -268,6 +278,7 @@
     "selectUserRole": "Chọn vai trò người dùng",
     "childTable": "Bảng con",
     "childColumn": "Cột trẻ con.",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Trên bản cập nhật",
     "onDelete": "Trên xóa",
     "account": "Tài khoản",
@@ -302,7 +313,9 @@
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
-    "inviteOnlySignup": "Allow signup only using invite url"
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -490,12 +503,16 @@
   },
   "msg": {
     "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
         "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
       }
     },
     "info": {
+      "pasteNotSupported": "Paste operation is not supported on the active cell",
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
@@ -613,7 +630,10 @@
       "deleteViewConfirmation": "Are you sure you want to delete this view?",
       "deleteTableConfirmation": "Do you want to delete the table",
       "showM2mTables": "Show M2M Tables",
-      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
+      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",

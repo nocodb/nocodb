@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useRoute, useUIPermission } from '#imports'
+import { isDrawerOrModalExist, isMac, useNuxtApp, useRoute, useUIPermission } from '#imports'
 
 const route = useRoute()
 
 const showUserModal = ref(false)
 
 const { isUIAllowed } = useUIPermission()
+
+const { $e } = useNuxtApp()
 
 const isShareBaseAllowed = computed(
   () =>
@@ -24,6 +26,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       case 73: {
         // ALT + I
         if (isShareBaseAllowed.value && !isDrawerOrModalExist()) {
+          $e('c:shortcut', { key: 'ALT + I' })
           showUserModal.value = true
         }
         break
@@ -34,13 +37,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div class="flex items-center w-full pl-3 hover:(text-primary bg-primary bg-opacity-5)" @click="showUserModal = true">
+  <div class="flex items-center h-full" @click="showUserModal = true">
     <div v-if="isShareBaseAllowed">
-      <div class="flex items-center space-x-1">
-        <MdiAccountPlusOutline class="mr-1 nc-share-base" />
-
-        <div>{{ $t('activity.inviteTeam') }}</div>
-      </div>
+      <a-tooltip placement="left">
+        <template #title>
+          <span class="text-xs">{{ $t('activity.inviteTeam') }}</span>
+        </template>
+        <div class="flex items-center space-x-1 cursor-pointer">
+          <MdiAccountPlusOutline class="mr-1 nc-share-base text-gray-300 hover:text-accent" />
+        </div>
+      </a-tooltip>
     </div>
 
     <LazyTabsAuthUserManagementUsersModal :show="showUserModal" @closed="showUserModal = false" />

@@ -4,28 +4,32 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
-import type { Row } from '~/lib'
+import type { Nullable, Row } from '~/lib'
 import {
   copyTable,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   isMac,
+  isTypableInputColumn,
   message,
   reactive,
   ref,
   unref,
   useCopy,
   useEventListener,
+  useGlobal,
   useI18n,
   useMetas,
   useProject,
 } from '#imports'
 
+const MAIN_MOUSE_PRESSED = 0
+
 /**
  * Utility to help with multi-selecting rows/cells in the smartsheet
  */
 export function useMultiSelect(
-  _meta: MaybeRef<TableType>,
+  _meta: MaybeRef<TableType | undefined>,
   fields: MaybeRef<ColumnType[]>,
   data: MaybeRef<Row[]>,
   _editEnabled: MaybeRef<boolean>,
@@ -44,21 +48,38 @@ export function useMultiSelect(
 
   const { getMeta } = useMetas()
 
+  const { appInfo } = useGlobal()
+
   const { isMysql } = useProject()
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 
   const editEnabled = ref(_editEnabled)
 
-  const selectedCell = reactive<Cell>({ row: null, col: null })
-  const selectedRange = reactive(new CellRange())
   let isMouseDown = $ref(false)
+
+  const selectedRange = reactive(new CellRange())
+
+  const activeCell = reactive<Nullable<Cell>>({ row: null, col: null })
 
   const columnLength = $computed(() => unref(fields)?.length)
 
+  const isCellActive = computed(
+    () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
+  )
+
+  function makeActive(row: number, col: number) {
+    if (activeCell.row === row && activeCell.col === col) {
+      return
+    }
+
+    activeCell.row = row
+    activeCell.col = col
+  }
+
   async function copyValue(ctx?: Cell) {
     try {
-      if (!selectedRange.isEmpty()) {
+      if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
         const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
@@ -67,8 +88,8 @@ export function useMultiSelect(
       } else {
         // if copy was called with context (right click position) - copy value from context
         // else if there is just one selected cell, copy it's value
-        const cpRow = ctx?.row ?? selectedCell?.row
-        const cpCol = ctx?.col ?? selectedCell?.col
+        const cpRow = ctx?.row ?? activeCell.row
+        const cpCol = ctx?.col ?? activeCell.col
 
         if (cpRow != null && cpCol != null) {
           const rowObj = unref(data)[cpRow]
@@ -92,29 +113,19 @@ export function useMultiSelect(
     }
   }
 
-  function selectCell(row: number, col: number) {
-    selectedRange.clear()
-    if (selectedCell.row === row && selectedCell.col === col) return
-    editEnabled.value = false
-    selectedCell.row = row
-    selectedCell.col = col
-  }
-
-  function endSelectRange(row: number, col: number) {
+  function handleMouseOver(row: number, col: number) {
     if (!isMouseDown) {
       return
     }
-    selectedCell.row = null
-    selectedCell.col = null
     selectedRange.endRange({ row, col })
   }
 
   function isCellSelected(row: number, col: number) {
-    if (selectedCell?.row === row && selectedCell?.col === col) {
+    if (activeCell.col === col && activeCell.row === row) {
       return true
     }
 
-    if (selectedRange.isEmpty()) {
+    if (selectedRange.start === null || selectedRange.end === null) {
       return false
     }
 
@@ -126,45 +137,50 @@ export function useMultiSelect(
     )
   }
 
-  function startSelectRange(event: MouseEvent, row: number, col: number) {
+  function handleMouseDown(event: MouseEvent, row: number, col: number) {
     // if there was a right click on selected range, don't restart the selection
-    const leftClickButton = 0
-    if (event?.button !== leftClickButton && isCellSelected(row, col)) {
+    if (event?.button !== MAIN_MOUSE_PRESSED && isCellSelected(row, col)) {
       return
     }
 
-    if (unref(editEnabled)) {
-      event.preventDefault()
-      return
-    }
-
+    editEnabled.value = false
     isMouseDown = true
-    selectedRange.clear()
     selectedRange.startRange({ row, col })
   }
 
-  useEventListener(document, 'mouseup', (e) => {
-    // if the editEnabled is false prevent the mouseup event for not select text
+  const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+    isMouseDown = true
+    editEnabled.value = false
+    selectedRange.startRange({ row, col })
+    selectedRange.endRange({ row, col })
+    makeActive(row, col)
+    isMouseDown = false
+  }
+
+  const handleMouseUp = (event: MouseEvent) => {
+    // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
+    // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
+    setTimeout(() => {
+      makeActive(selectedRange.start.row, selectedRange.start.col)
+    }, 0)
+
+    // if the editEnabled is false, prevent selecting text on mouseUp
     if (!unref(editEnabled)) {
-      e.preventDefault()
+      event.preventDefault()
     }
 
     isMouseDown = false
-  })
+  }
 
-  const onKeyDown = async (e: KeyboardEvent) => {
+  const handleKeyDown = async (e: KeyboardEvent) => {
     // invoke the keyEventHandler if provided and return if it returns true
     if (await keyEventHandler?.(e)) {
       return true
     }
 
-    if (!selectedRange.isEmpty()) {
-      // In case the user press tabs or arrows keys
-      selectedCell.row = selectedRange.start.row
-      selectedCell.col = selectedRange.start.col
+    if (!isCellActive.value) {
+      return
     }
-
-    if (selectedCell.row === null || selectedCell.col === null) return
 
     /** on tab key press navigate through cells */
     switch (e.key) {
@@ -173,21 +189,21 @@ export function useMultiSelect(
         selectedRange.clear()
 
         if (e.shiftKey) {
-          if (selectedCell.col > 0) {
-            selectedCell.col--
+          if (activeCell.col > 0) {
+            activeCell.col--
             editEnabled.value = false
-          } else if (selectedCell.row > 0) {
-            selectedCell.row--
-            selectedCell.col = unref(columnLength) - 1
+          } else if (activeCell.row > 0) {
+            activeCell.row--
+            activeCell.col = unref(columnLength) - 1
             editEnabled.value = false
           }
         } else {
-          if (selectedCell.col < unref(columnLength) - 1) {
-            selectedCell.col++
+          if (activeCell.col < unref(columnLength) - 1) {
+            activeCell.col++
             editEnabled.value = false
-          } else if (selectedCell.row < unref(data).length - 1) {
-            selectedCell.row++
-            selectedCell.col = 0
+          } else if (activeCell.row < unref(data).length - 1) {
+            activeCell.row++
+            activeCell.col = 0
             editEnabled.value = false
           }
         }
@@ -197,78 +213,69 @@ export function useMultiSelect(
       case 'Enter':
         e.preventDefault()
         selectedRange.clear()
-        makeEditable(unref(data)[selectedCell.row], unref(fields)[selectedCell.col])
+
+        makeEditable(unref(data)[activeCell.row], unref(fields)[activeCell.col])
         break
       /** on delete key press clear cell */
       case 'Delete':
         e.preventDefault()
         selectedRange.clear()
-        await clearCell(selectedCell as { row: number; col: number })
+
+        await clearCell(activeCell as { row: number; col: number })
         break
       /** on arrow key press navigate through cells */
       case 'ArrowRight':
         e.preventDefault()
         selectedRange.clear()
-        if (selectedCell.col < unref(columnLength) - 1) {
-          selectedCell.col++
+
+        if (activeCell.col < unref(columnLength) - 1) {
+          activeCell.col++
           scrollToActiveCell?.()
           editEnabled.value = false
         }
         break
       case 'ArrowLeft':
-        selectedRange.clear()
         e.preventDefault()
-        if (selectedCell.col > 0) {
-          selectedCell.col--
+        selectedRange.clear()
+
+        if (activeCell.col > 0) {
+          activeCell.col--
           scrollToActiveCell?.()
           editEnabled.value = false
         }
         break
       case 'ArrowUp':
-        selectedRange.clear()
         e.preventDefault()
-        if (selectedCell.row > 0) {
-          selectedCell.row--
+        selectedRange.clear()
+
+        if (activeCell.row > 0) {
+          activeCell.row--
           scrollToActiveCell?.()
           editEnabled.value = false
         }
         break
       case 'ArrowDown':
-        selectedRange.clear()
         e.preventDefault()
-        if (selectedCell.row < unref(data).length - 1) {
-          selectedCell.row++
+        selectedRange.clear()
+
+        if (activeCell.row < unref(data).length - 1) {
+          activeCell.row++
           scrollToActiveCell?.()
           editEnabled.value = false
         }
         break
       default:
         {
-          const rowObj = unref(data)[selectedCell.row]
+          const rowObj = unref(data)[activeCell.row]
+          const columnObj = unref(fields)[activeCell.col]
 
-          const columnObj = unref(fields)[selectedCell.col]
-
-          if (
-            (!unref(editEnabled) ||
-              [
-                UITypes.DateTime,
-                UITypes.Date,
-                UITypes.Year,
-                UITypes.Time,
-                UITypes.Lookup,
-                UITypes.Rollup,
-                UITypes.Formula,
-                UITypes.Attachment,
-                UITypes.Checkbox,
-                UITypes.Rating,
-              ].includes(columnObj.uidt as UITypes)) &&
-            (isMac() ? e.metaKey : e.ctrlKey)
-          ) {
+          if ((!unref(editEnabled) || !isTypableInputColumn(columnObj)) && (isMac() ? e.metaKey : e.ctrlKey)) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
                 // set clipboard context only if single cell selected
-                if (rowObj.row[columnObj.title!]) {
+                // or if selected range is empty
+                if (selectedRange.isSingleCell() || (selectedRange.isEmpty() && rowObj && columnObj)) {
                   clipboardContext = {
                     value: rowObj.row[columnObj.title!],
                     uidt: columnObj.uidt as UITypes,
@@ -278,6 +285,7 @@ export function useMultiSelect(
                 }
                 await copyValue()
                 break
+              // paste - ctrl/cmd + v
               case 86:
                 try {
                   // handle belongs to column
@@ -293,8 +301,10 @@ export function useMultiSelect(
                         value: clipboardContext.value,
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
 
@@ -311,7 +321,7 @@ export function useMultiSelect(
                       (relatedTableMeta as any)!.columns!,
                     )
 
-                    return await syncCellData?.({ ...selectedCell, updatedColumnTitle: foreignKeyColumn.title })
+                    return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
                   }
 
                   // if it's a virtual column excluding belongs to cell type skip paste
@@ -325,13 +335,15 @@ export function useMultiSelect(
                         value: clipboardContext.value,
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
-                    syncCellData?.(selectedCell)
+                    syncCellData?.(activeCell)
                   } else {
-                    clearCell(selectedCell as { row: number; col: number }, true)
+                    clearCell(activeCell as { row: number; col: number }, true)
                     makeEditable(rowObj, columnObj)
                   }
                 } catch (error: any) {
@@ -350,7 +362,7 @@ export function useMultiSelect(
               // Update not allowed for table which doesn't have primary Key
               return message.info(t('msg.info.updateNotAllowedWithoutPK'))
             }
-            if (makeEditable(rowObj, columnObj) && columnObj.title) {
+            if (isTypableInputColumn(columnObj) && makeEditable(rowObj, columnObj) && columnObj.title) {
               rowObj.row[columnObj.title] = ''
             }
             // editEnabled = true
@@ -360,15 +372,19 @@ export function useMultiSelect(
     }
   }
 
-  useEventListener(document, 'keydown', onKeyDown)
+  const clearSelectedRange = selectedRange.clear.bind(selectedRange)
+
+  useEventListener(document, 'keydown', handleKeyDown)
+  useEventListener(document, 'mouseup', handleMouseUp)
 
   return {
-    selectCell,
-    startSelectRange,
-    endSelectRange,
-    clearSelectedRange: selectedRange.clear.bind(selectedRange),
+    isCellActive,
+    handleMouseDown,
+    handleMouseOver,
+    clearSelectedRange,
     copyValue,
     isCellSelected,
-    selectedCell,
+    activeCell,
+    handleCellClick,
   }
 }

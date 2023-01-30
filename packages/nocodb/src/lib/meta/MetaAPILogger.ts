@@ -11,7 +11,6 @@ export default class MetaAPILogger {
       connection: {
         filename: 'noco_log.db',
       },
-      useNullAsDefault: true,
     });
   }
 

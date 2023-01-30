@@ -200,7 +200,6 @@ export default class NcConfigFactory implements NcConfig {
           },
           database:
             url.searchParams.get('d') || url.searchParams.get('database'),
-          useNullAsDefault: true,
         },
       } as any;
     } else {
@@ -496,7 +495,6 @@ export default class NcConfigFactory implements NcConfig {
         connection: {
           ...dbConnectionConfig,
           database: dbConnectionConfig.connection.filename,
-          useNullAsDefault: true,
         },
       };
     }

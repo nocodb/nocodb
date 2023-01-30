@@ -184,6 +184,36 @@ const createQrCodeColumn = async (
   return qrCodeColumn;
 };
 
+const createBarcodeColumn = async (
+  context,
+  {
+    title,
+    table,
+    referencedBarcodeValueTableColumnTitle,
+  }: {
+    title: string;
+    table: Model;
+    referencedBarcodeValueTableColumnTitle: string;
+  }
+) => {
+  const referencedBarcodeValueTableColumnId = await table
+    .getColumns()
+    .then(
+      (cols) =>
+        cols.find(
+          (column) => column.title == referencedBarcodeValueTableColumnTitle
+        )['id']
+    );
+
+  const barcodeColumn = await createColumn(context, table, {
+    title: title,
+    uidt: UITypes.Barcode,
+    column_name: title,
+    fk_barcode_value_column_id: referencedBarcodeValueTableColumnId,
+  });
+  return barcodeColumn;
+};
+
 const createLtarColumn = async (
   context,
   {
@@ -232,6 +262,7 @@ export {
   defaultColumns,
   createColumn,
   createQrCodeColumn,
+  createBarcodeColumn,
   createRollupColumn,
   createLookupColumn,
   createLtarColumn,

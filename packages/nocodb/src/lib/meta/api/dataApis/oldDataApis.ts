@@ -108,7 +108,6 @@ async function getViewAndModelFromRequest(req) {
   const project = await Project.getWithInfo(req.params.projectId);
   const model = await Model.getByAliasOrId({
     project_id: project.id,
-    base_id: project.bases?.[0]?.id,
     aliasOrId: req.params.tableName,
   });
   const view =

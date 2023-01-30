@@ -824,6 +824,7 @@ export class OracleUi {
       case 'Checkbox':
         colProp.dt = 'tinyint';
         colProp.dtxp = 1;
+        colProp.cdf = '0';
         break;
       case 'MultiSelect':
         colProp.dt = 'varchar2';
@@ -890,6 +891,7 @@ export class OracleUi {
         break;
       case 'Rating':
         colProp.dt = 'integer';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'varchar';

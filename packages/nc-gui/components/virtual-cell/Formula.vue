@@ -10,7 +10,7 @@ const cellValue = inject(CellValueInj)
 
 const { isPg } = useProject()
 
-const result = computed(() => (isPg.value ? handleTZ(cellValue?.value) : cellValue?.value))
+const result = computed(() => (isPg(column.value.base_id) ? handleTZ(cellValue?.value) : cellValue?.value))
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 
@@ -24,11 +24,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>
       </template>
-
       <span>ERR!</span>
     </a-tooltip>
 
-    <div class="p-2" @dblclick="activateShowEditNonEditableFieldWarning">
+    <div v-else class="p-2" @dblclick="activateShowEditNonEditableFieldWarning">
       <div v-if="urls" v-html="urls" />
 
       <div v-else>{{ result }}</div>

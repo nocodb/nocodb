@@ -4,6 +4,7 @@ import { TabType } from '~/lib'
 
 const props = defineProps<{
   modelValue: boolean
+  baseId: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -28,7 +29,7 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTable(as
   })
 
   dialogShow.value = false
-})
+}, props.baseId)
 
 const useForm = Form.useForm
 
@@ -51,11 +52,11 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             let tableNameLengthLimit = 255
-            if (isMysql) {
+            if (isMysql(props.baseId)) {
               tableNameLengthLimit = 64
-            } else if (isPg) {
+            } else if (isPg(props.baseId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql) {
+            } else if (isMssql(props.baseId)) {
               tableNameLengthLimit = 128
             }
             const projectPrefix = project?.value?.prefix || ''

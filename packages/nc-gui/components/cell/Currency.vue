@@ -10,11 +10,24 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'save'])
 
+const { showNull } = useGlobal()
+
 const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
 
-const vModel = useVModel(props, 'modelValue', emit)
+const _vModel = useVModel(props, 'modelValue', emit)
+
+const vModel = computed({
+  get: () => _vModel.value,
+  set: (value: unknown) => {
+    if (value === '') {
+      _vModel.value = null
+    } else {
+      _vModel.value = value as number
+    }
+  },
+})
 
 const lastSaved = ref()
 
@@ -69,6 +82,8 @@ onMounted(() => {
     @selectstart.capture.stop
     @mousedown.stop
   />
+
+  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
 
   <span v-else-if="vModel">{{ currency }}</span>
 

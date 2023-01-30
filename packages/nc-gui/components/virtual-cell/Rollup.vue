@@ -1,28 +1,23 @@
 <script setup lang="ts">
-import { CellValueInj, inject, refAutoReset } from '#imports'
+import { CellValueInj, inject, useShowNotEditableWarning } from '#imports'
 
 const value = inject(CellValueInj)
 
-const timeout = 3000 // in ms
-
-const showEditWarning = refAutoReset(false, timeout)
-
-const showClearWarning = refAutoReset(false, timeout)
-
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), () => (showClearWarning.value = true))
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
+  useShowNotEditableWarning()
 </script>
 
 <template>
-  <div>
+  <div @dblclick="activateShowEditNonEditableFieldWarning">
     <span class="text-center pl-3">
       {{ value }}
     </span>
 
     <div>
-      <div v-if="showEditWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}
       </div>
-      <div v-if="showClearWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
     </div>

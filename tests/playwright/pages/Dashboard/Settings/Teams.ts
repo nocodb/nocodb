@@ -28,6 +28,10 @@ export class TeamsPage extends BasePage {
     return this.rootPage.getByTestId('nc-share-base-sub-modal');
   }
 
+  async clickInviteTeamBtn() {
+    await this.inviteTeamBtn.click();
+  }
+
   async invite({ email, role, skipOpeningModal }: { email: string; role: string; skipOpeningModal?: boolean }) {
     email = this.prefixEmail(email);
 

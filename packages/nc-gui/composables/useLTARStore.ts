@@ -94,7 +94,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     const relatedTablePrimaryValueProp = computed(() => {
-      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
+      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title || ''
     })
 
     const relatedTablePrimaryKeyProps = computed(() => {

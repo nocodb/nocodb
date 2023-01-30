@@ -12,8 +12,8 @@ import {
   isAttachment,
   provide,
   ref,
-  refAutoReset,
   useMetas,
+  useShowNotEditableWarning,
   watch,
 } from '#imports'
 
@@ -75,26 +75,13 @@ provide(MetaInj, lookupTableMeta)
 
 provide(CellUrlDisableOverlayInj, ref(true))
 
-const timeout = 3000 // in ms
-
-const showEditWarning = refAutoReset(false, timeout)
-
-const showClearWarning = refAutoReset(false, timeout)
-
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Enter':
-      showEditWarning.value = true
-      break
-    default:
-      showClearWarning.value = true
-  }
-})
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
+  useShowNotEditableWarning()
 </script>
 
 <template>
-  <div class="h-full">
-    <div class="h-full flex gap-1 overflow-x-auto p-1" @dblclick="showEditWarning = true">
+  <div class="h-full" @dblclick="activateShowEditNonEditableFieldWarning">
+    <div class="h-full flex gap-1 overflow-x-auto p-1">
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
         <div v-if="isVirtualCol(lookupColumn)">
@@ -133,10 +120,10 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       </template>
     </div>
     <div>
-      <div v-if="showEditWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}
       </div>
-      <div v-if="showClearWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
     </div>

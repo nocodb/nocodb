@@ -1,18 +1,8 @@
 <script lang="ts" setup>
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import {
-  IsLockedInj,
-  computed,
-  inject,
-  message,
-  onKeyStroke,
-  useDebounceFn,
-  useNuxtApp,
-  useUIPermission,
-  useVModel,
-  viewIcons,
-} from '#imports'
+import { Tooltip } from 'ant-design-vue'
+import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
 
 interface Props {
   view: ViewType
@@ -21,9 +11,15 @@ interface Props {
 
 interface Emits {
   (event: 'update:view', data: Record<string, any>): void
+
+  (event: 'selectIcon', icon: string): void
+
   (event: 'changeView', view: Record<string, any>): void
+
   (event: 'rename', view: ViewType): void
+
   (event: 'delete', view: ViewType): void
+
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
 }
 
@@ -47,8 +43,6 @@ let isStopped = $ref(false)
 
 /** Original view title when editing the view name */
 let originalTitle = $ref<string | undefined>()
-
-const viewType = computed(() => vModel.value.type as number)
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
@@ -172,20 +166,26 @@ function onStopEdit() {
     @click.stop="onClick"
   >
     <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-testid="view-item">
-      <div class="flex w-auto" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
-        <MdiDrag
-          class="nc-drag-icon hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 !cursor-move"
-          @click.stop.prevent
-        />
+      <div class="flex w-auto min-w-5" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
+        <a-dropdown :trigger="['click']" @click.stop>
+          <component :is="isUIAllowed('viewIconCustomisation') ? Tooltip : 'div'">
+            <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
+            <template v-if="isUIAllowed('viewIconCustomisation')" #title>Change icon</template>
+          </component>
 
-        <component
-          :is="viewIcons[viewType].icon"
-          class="nc-view-icon group-hover:hidden"
-          :style="{ color: viewIcons[viewType].color }"
-        />
+          <template v-if="isUIAllowed('viewIconCustomisation')" #overlay>
+            <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="emits('selectIcon', $event)" />
+          </template>
+        </a-dropdown>
       </div>
 
-      <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
+      <a-input
+        v-if="isEditing"
+        :ref="focusInput"
+        v-model:value="vModel.title"
+        @blur="onCancel"
+        @keydown.stop="onKeyDown($event)"
+      />
 
       <div v-else>
         <LazyGeneralTruncateText>{{ vModel.alias || vModel.title }}</LazyGeneralTruncateText>

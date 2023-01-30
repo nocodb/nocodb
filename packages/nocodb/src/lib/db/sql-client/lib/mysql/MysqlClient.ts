@@ -622,9 +622,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           const column: any = {};
 
-          response[0][i] = mapKeys(response[0][i], (_v, k) =>
-            k.toLowerCase()
-          );
+          response[0][i] = mapKeys(response[0][i], (_v, k) => k.toLowerCase());
 
           if (this._version.key === '57' || this._version.key === '80') {
             column.dp = response[0][i].dp;
@@ -671,6 +669,19 @@ class MysqlClient extends KnexClient {
             }
           } else {
             column.cdf = response[0][i].cdf;
+          }
+
+          // Reference: https://github.com/nocodb/nocodb/issues/4625
+          // There is an information_schema difference on MariaDB and MySQL
+          // while MySQL keeps NULL as default value if no value provided
+          // MariaDB keeps NULL as string (if you provide a string NULL it is wrapped by single-quotes)
+          // so we check if database is MariaDB and if so we convert the string NULL to null
+          if (this._version?.version) {
+            if (this._version.version.includes('Maria')) {
+              if (column.cdf === 'NULL') {
+                column.cdf = null;
+              }
+            }
           }
 
           column.cc = response[0][i].cc;

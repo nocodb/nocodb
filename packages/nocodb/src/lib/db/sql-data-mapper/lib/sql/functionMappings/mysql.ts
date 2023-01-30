@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { MapFnArgs } from '../mapFunctionName';
 import commonFns from './commonFns';
+import { convertUnits } from '../helpers/convertUnits';
 import { getWeekdayByText } from '../helpers/formulaFnHelper';
 
 const mysql2 = {
@@ -36,7 +37,11 @@ const mysql2 = {
   MID: 'SUBSTR',
   FLOAT: (args: MapFnArgs) => {
     return args.knex
-      .raw(`CAST(CAST(${args.fn(args.pt.arguments[0])} as CHAR) AS DOUBLE)${args.colAlias}`)
+      .raw(
+        `CAST(CAST(${args.fn(args.pt.arguments[0])} as CHAR) AS DOUBLE)${
+          args.colAlias
+        }`
+      )
       .wrap('(', ')');
   },
   DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
@@ -55,6 +60,26 @@ const mysql2 = {
         ''
       )}))
       END${colAlias}`
+    );
+  },
+  DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const datetime_expr1 = fn(pt.arguments[0]);
+    const datetime_expr2 = fn(pt.arguments[1]);
+
+    const unit = convertUnits(
+      pt.arguments[2] ? fn(pt.arguments[2]).bindings[0] : 'seconds',
+      'mysql'
+    );
+
+    if (unit === 'MICROSECOND') {
+      // MySQL doesn't support millisecond
+      // hence change from MICROSECOND to millisecond manually
+      return knex.raw(
+        `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) div 1000 ${colAlias}`
+      );
+    }
+    return knex.raw(
+      `TIMESTAMPDIFF(${unit}, ${datetime_expr2}, ${datetime_expr1}) ${colAlias}`
     );
   },
   WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {

@@ -1,31 +1,37 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
-import { CellPageObject } from '../common/Cell';
+import { CellPageObject, CellProps } from '../common/Cell';
 import { ColumnPageObject } from './Column';
 import { ToolbarPage } from '../common/Toolbar';
 import { ProjectMenuObject } from '../common/ProjectMenu';
 import { QrCodeOverlay } from '../QrCodeOverlay';
+import { BarcodeOverlay } from '../BarcodeOverlay';
+import { RowPageObject } from './Row';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly addNewTableButton: Locator;
   readonly dashboardPage: DashboardPage;
   readonly qrCodeOverlay: QrCodeOverlay;
+  readonly barcodeOverlay: BarcodeOverlay;
   readonly column: ColumnPageObject;
   readonly cell: CellPageObject;
   readonly toolbar: ToolbarPage;
   readonly projectMenu: ProjectMenuObject;
+  readonly rowPage: RowPageObject;
 
   constructor(dashboardPage: DashboardPage) {
     super(dashboardPage.rootPage);
     this.dashboard = dashboardPage;
     this.addNewTableButton = dashboardPage.get().locator('.nc-add-new-table');
     this.qrCodeOverlay = new QrCodeOverlay(this);
+    this.barcodeOverlay = new BarcodeOverlay(this);
     this.column = new ColumnPageObject(this);
     this.cell = new CellPageObject(this);
     this.toolbar = new ToolbarPage(this);
     this.projectMenu = new ProjectMenuObject(this);
+    this.rowPage = new RowPageObject(this);
   }
 
   get() {
@@ -285,5 +291,58 @@ export class GridPage extends BasePage {
     await expect(this.get().locator('.nc-grid-add-new-cell')).toHaveCount(
       param.role === 'creator' || param.role === 'editor' ? 1 : 0
     );
+  }
+
+  async selectRange({ start, end }: { start: CellProps; end: CellProps }) {
+    const startCell = await this.cell.get({ index: start.index, columnHeader: start.columnHeader });
+    const endCell = await this.cell.get({ index: end.index, columnHeader: end.columnHeader });
+    const page = await this.dashboard.get().page();
+    await startCell.hover();
+    await page.mouse.down();
+    await endCell.hover();
+    await page.mouse.up();
+  }
+
+  async selectedCount() {
+    return this.get().locator('.cell.active').count();
+  }
+
+  async copyWithKeyboard() {
+    // retry to avoid flakiness, until text is copied to clipboard
+    //
+    let text = '';
+    let retryCount = 5;
+    while (text === '') {
+      await this.get().press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
+      await this.verifyToast({ message: 'Copied to clipboard' });
+      text = await this.getClipboardText();
+
+      // retry if text is empty till count is reached
+      retryCount--;
+      if (0 === retryCount) {
+        break;
+      }
+    }
+    return text;
+  }
+
+  async copyWithMouse({ index, columnHeader }: CellProps) {
+    // retry to avoid flakiness, until text is copied to clipboard
+    //
+    let text = '';
+    let retryCount = 5;
+    while (text === '') {
+      await this.cell.get({ index, columnHeader }).click({ button: 'right' });
+      await this.get().page().getByTestId('context-menu-item-copy').click();
+      await this.verifyToast({ message: 'Copied to clipboard' });
+      text = await this.getClipboardText();
+
+      // retry if text is empty till count is reached
+      retryCount--;
+      if (0 === retryCount) {
+        break;
+      }
+    }
+    return text;
   }
 }

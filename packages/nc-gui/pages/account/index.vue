@@ -79,6 +79,18 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                 <div class="select-none">App Store</div>
               </div>
             </a-menu-item>
+            <a-menu-item
+              v-if="isUIAllowed('license')"
+              key="license"
+              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+              @click="navigateTo('/account/license')"
+            >
+              <div class="flex items-center space-x-2">
+                <MdiKey />
+
+                <div class="select-none">License</div>
+              </div>
+            </a-menu-item>
           </a-menu>
         </div>
       </a-layout-sider>

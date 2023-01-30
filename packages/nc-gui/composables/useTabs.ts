@@ -17,7 +17,7 @@ const [setup, use] = useInjectionState(() => {
 
   const router = useRouter()
 
-  const { tables } = useProject()
+  const { bases, tables } = useProject()
 
   const projectType = $computed(() => route.params.projectType as string)
 
@@ -29,13 +29,23 @@ const [setup, use] = useInjectionState(() => {
       if (routeName.startsWith('projectType-projectId-index-index-type-title-viewTitle') && tables.value.length) {
         const tab: TabItem = { type: route.params.type as TabType, title: route.params.title as string }
 
-        const currentTable = tables.value.find((t) => t.title === tab.title)
+        const currentTable = tables.value.find((t) => t.id === tab.title || t.title === tab.title)
 
         if (!currentTable) return -1
+
+        const currentBase = bases.value.find((b) => b.id === currentTable.base_id)
 
         tab.id = currentTable.id
 
         let index = tabs.value.findIndex((t) => t.id === tab.id)
+
+        tab.title = currentTable.title
+
+        tab.meta = currentTable.meta
+
+        // append base alias to tab title if duplicate titles exist on other bases
+        if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+          tab.title = `${tab.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
 
         if (index === -1) {
           tab.sortsState = tab.sortsState || new Map()
@@ -81,6 +91,15 @@ const [setup, use] = useInjectionState(() => {
     }
     // if tab not found add it
     else {
+      const currentTable = tables.value.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
+      const currentBase = bases.value.find((b) => b.id === currentTable?.base_id)
+
+      tabMeta.meta = currentTable?.meta
+
+      // append base alias to tab title if duplicate titles exist on other bases
+      if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+        tabMeta.title = `${tabMeta.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
+
       tabs.value = [...(tabs.value || []), tabMeta]
       activeTabIndex.value = tabs.value.length - 1
     }
@@ -111,13 +130,9 @@ const [setup, use] = useInjectionState(() => {
   function navigateToTab(tab: TabItem) {
     switch (tab.type) {
       case TabType.TABLE:
-        return navigateTo(
-          `/${projectType}/${route.params.projectId}/table/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
-        )
+        return navigateTo(`/${projectType}/${route.params.projectId}/table/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
       case TabType.VIEW:
-        return navigateTo(
-          `/${projectType}/${route.params.projectId}/view/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
-        )
+        return navigateTo(`/${projectType}/${route.params.projectId}/view/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
       case TabType.AUTH:
         return navigateTo(`/${projectType}/${route.params.projectId}/auth`)
     }
@@ -131,10 +146,10 @@ const [setup, use] = useInjectionState(() => {
 
       Object.assign(tab, newTabItemProps)
 
-      if (isActive && tab.title)
+      if (isActive && tab.id)
         router.replace({
           params: {
-            title: tab.title,
+            title: tab.id,
           },
         })
     }

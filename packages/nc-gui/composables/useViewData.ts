@@ -4,6 +4,7 @@ import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
   NOCO,
+  NavigateDir,
   computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
@@ -18,6 +19,8 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
+  useRoute,
+  useRouter,
   useSharedView,
   useSmartsheetStoreOrThrow,
   useUIPermission,
@@ -44,12 +47,18 @@ export function useViewData(
 
   const { api, isLoading, error } = useApi()
 
+  const router = useRouter()
+
+  const route = useRoute()
+
   const { appInfo } = $(useGlobal())
 
   const { getMeta } = useMetas()
 
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
+
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
+
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
 
   const galleryData = ref<GalleryType>()
@@ -64,13 +73,15 @@ export function useViewData(
 
   const { project, isSharedBase } = useProject()
 
-  const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
+  const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
   const { $api, $e } = useNuxtApp()
 
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
   const { isUIAllowed } = useUIPermission()
+
+  const routeQuery = $computed(() => route.query as Record<string, string>)
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -203,8 +214,10 @@ export function useViewData(
   }
 
   async function loadGalleryData() {
-    if (!viewMeta?.value?.id || isPublic.value) return
-    galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
+    if (!viewMeta?.value?.id) return
+    galleryData.value = isPublic.value
+      ? (sharedView.value?.view as GalleryType)
+      : await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
   async function insertRow(
@@ -264,7 +277,7 @@ export function useViewData(
         project?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        id,
+        encodeURIComponent(id),
         {
           // if value is undefined treat it as null
           [property]: toUpdate.row[property] ?? null,
@@ -275,7 +288,7 @@ export function useViewData(
         // }
       )
       // audit
-      $api.utils.auditRowUpdate(id, {
+      $api.utils.auditRowUpdate(encodeURIComponent(id), {
         fk_model_id: metaValue?.id as string,
         column_name: property,
         row_id: id,
@@ -292,6 +305,7 @@ export function useViewData(
           if (
             col.uidt === UITypes.Formula ||
             col.uidt === UITypes.QrCode ||
+            col.uidt === UITypes.Barcode ||
             col.uidt === UITypes.Rollup ||
             col.au ||
             col.cdf?.includes(' on update ')
@@ -464,6 +478,47 @@ export function useViewData(
     }
   }
 
+  const navigateToSiblingRow = async (dir: NavigateDir) => {
+    // get current expanded row index
+    const expandedRowIndex = formattedData.value.findIndex(
+      (row: Row) => routeQuery.rowId === extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+    )
+
+    // calculate next row index based on direction
+    let siblingRowIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+
+    const currentPage = paginationData?.value?.page || 1
+
+    // if next row index is less than 0, go to previous page and point to last element
+    if (siblingRowIndex < 0) {
+      // if first page, do nothing
+      if (currentPage === 1) return message.info(t('msg.info.noMoreRecords'))
+
+      await changePage(currentPage - 1)
+      siblingRowIndex = formattedData.value.length - 1
+
+      // if next row index is greater than total rows in current view
+      // then load next page of formattedData and set next row index to 0
+    } else if (siblingRowIndex >= formattedData.value.length) {
+      if (paginationData?.value?.isLastPage) return message.info(t('msg.info.noMoreRecords'))
+
+      await changePage(currentPage + 1)
+      siblingRowIndex = 0
+    }
+
+    // extract the row id of the sibling row
+    const rowId = extractPkFromRow(formattedData.value[siblingRowIndex].row, meta.value?.columns as ColumnType[])
+
+    if (rowId) {
+      router.push({
+        query: {
+          ...routeQuery,
+          rowId,
+        },
+      })
+    }
+  }
+
   return {
     error,
     isLoading,
@@ -491,5 +546,6 @@ export function useViewData(
     loadAggCommentsCount,
     removeLastEmptyRow,
     removeRowIfNew,
+    navigateToSiblingRow,
   }
 }

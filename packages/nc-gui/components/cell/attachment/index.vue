@@ -60,6 +60,7 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
+  getAttachmentUrl,
 } = useProvideAttachmentCell(updateModelValue)
 
 watch(
@@ -97,10 +98,19 @@ const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
 /** on new value, reparse our stored attachments */
 watch(
   () => modelValue,
-  (nextModel) => {
+  async (nextModel) => {
     if (nextModel) {
       try {
-        const nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
+        let nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
+
+        // reconstruct the url
+        // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
+        nextAttachments = await Promise.all(
+          nextAttachments.map(async (attachment: any) => ({
+            ...attachment,
+            url: await getAttachmentUrl(attachment),
+          })),
+        )
 
         if (isPublic.value && isForm.value) {
           storedFiles.value = nextAttachments

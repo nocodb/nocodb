@@ -42,7 +42,9 @@ const applyChangesPriorityOrder = [
 type MetaDiff = {
   title?: string;
   table_name: string;
+  base_id: string;
   type: ModelTypes;
+  meta?: any;
   detectedChanges: Array<MetaDiffChange>;
 };
 
@@ -120,7 +122,7 @@ async function getMetaDiff(
   const tableList: Array<{ tn: string }> = (
     await sqlClient.tableList()
   )?.data?.list?.filter((t) => {
-    if (project?.prefix) {
+    if (project?.prefix && base.is_meta) {
       return t.tn?.startsWith(project?.prefix);
     }
     return true;
@@ -157,6 +159,7 @@ async function getMetaDiff(
     if (oldMetaIdx === -1) {
       changes.push({
         table_name: table.tn,
+        base_id: base.id,
         type: ModelTypes.TABLE,
         detectedChanges: [
           {
@@ -174,7 +177,9 @@ async function getMetaDiff(
 
     const tableProp: MetaDiff = {
       title: oldMeta.title,
+      meta: oldMeta.meta,
       table_name: table.tn,
+      base_id: base.id,
       type: ModelTypes.TABLE,
       detectedChanges: [],
     };
@@ -245,6 +250,8 @@ async function getMetaDiff(
   for (const model of oldTableMetas) {
     changes.push({
       table_name: model.table_name,
+      meta: model.meta,
+      base_id: base.id,
       type: ModelTypes.TABLE,
       detectedChanges: [
         {
@@ -417,7 +424,7 @@ async function getMetaDiff(
       return v;
     })
     .filter((t) => {
-      if (project?.prefix) {
+      if (project?.prefix && base.is_meta) {
         return t.tn?.startsWith(project?.prefix);
       }
       return true;
@@ -430,6 +437,7 @@ async function getMetaDiff(
     if (oldMetaIdx === -1) {
       changes.push({
         table_name: view.tn,
+        base_id: base.id,
         type: ModelTypes.VIEW,
         detectedChanges: [
           {
@@ -447,7 +455,9 @@ async function getMetaDiff(
 
     const tableProp: MetaDiff = {
       title: oldMeta.title,
+      meta: oldMeta.meta,
       table_name: view.tn,
+      base_id: base.id,
       type: ModelTypes.VIEW,
       detectedChanges: [],
     };
@@ -514,6 +524,8 @@ async function getMetaDiff(
   for (const model of oldViewMetas) {
     changes.push({
       table_name: model.table_name,
+      meta: model.meta,
+      base_id: base.id,
       type: ModelTypes.TABLE,
       detectedChanges: [
         {
@@ -532,18 +544,237 @@ async function getMetaDiff(
 
 export async function metaDiff(req, res) {
   const project = await Project.getWithInfo(req.params.projectId);
-  const base = project.bases[0];
+  let changes = [];
+  for (const base of project.bases) {
+    try {
+      // @ts-ignore
+      const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+      changes = changes.concat(await getMetaDiff(sqlClient, project, base));
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
-  // @ts-ignore
+  res.json(changes);
+}
+
+export async function baseMetaDiff(req, res) {
+  const project = await Project.getWithInfo(req.params.projectId);
+  const base = await Base.get(req.params.baseId);
+  let changes = [];
+
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
-  const changes = await getMetaDiff(sqlClient, project, base);
+  changes = await getMetaDiff(sqlClient, project, base);
 
   res.json(changes);
 }
 
 export async function metaDiffSync(req, res) {
   const project = await Project.getWithInfo(req.params.projectId);
-  const base = project.bases[0];
+  for (const base of project.bases) {
+    const virtualColumnInsert: Array<() => Promise<void>> = [];
+
+    // @ts-ignore
+    const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+    const changes = await getMetaDiff(sqlClient, project, base);
+
+    /* Get all relations */
+    // const relations = (await sqlClient.relationListAll())?.data?.list;
+
+    for (const { table_name, detectedChanges } of changes) {
+      // reorder changes to apply relation remove changes
+      // before column remove to avoid foreign key constraint error
+      detectedChanges.sort((a, b) => {
+        return (
+          applyChangesPriorityOrder.indexOf(b.type) -
+          applyChangesPriorityOrder.indexOf(a.type)
+        );
+      });
+
+      for (const change of detectedChanges) {
+        switch (change.type) {
+          case MetaDiffType.TABLE_NEW:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+
+              mapDefaultPrimaryValue(columns);
+
+              const model = await Model.insert(project.id, base.id, {
+                table_name: table_name,
+                title: getTableNameAlias(
+                  table_name,
+                  base.is_meta ? project.prefix : '',
+                  base
+                ),
+                type: ModelTypes.TABLE,
+              });
+
+              for (const column of columns) {
+                await Column.insert({
+                  uidt: getColumnUiType(base, column),
+                  fk_model_id: model.id,
+                  ...column,
+                  title: getColumnNameAlias(column.column_name, base),
+                });
+              }
+            }
+            break;
+          case MetaDiffType.VIEW_NEW:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+
+              mapDefaultPrimaryValue(columns);
+
+              const model = await Model.insert(project.id, base.id, {
+                table_name: table_name,
+                title: getTableNameAlias(table_name, project.prefix, base),
+                type: ModelTypes.VIEW,
+              });
+
+              for (const column of columns) {
+                await Column.insert({
+                  uidt: getColumnUiType(base, column),
+                  fk_model_id: model.id,
+                  ...column,
+                  title: getColumnNameAlias(column.column_name, base),
+                });
+              }
+            }
+            break;
+          case MetaDiffType.TABLE_REMOVE:
+          case MetaDiffType.VIEW_REMOVE:
+            {
+              await change.model.delete();
+            }
+            break;
+          case MetaDiffType.TABLE_COLUMN_ADD:
+          case MetaDiffType.VIEW_COLUMN_ADD:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+              const column = columns.find((c) => c.cn === change.cn);
+              column.uidt = getColumnUiType(base, column);
+              //todo: inflection
+              column.title = getColumnNameAlias(column.cn, base);
+              await Column.insert({ fk_model_id: change.id, ...column });
+            }
+            // update old
+            // populateParams.tableNames.push({ tn });
+            // populateParams.oldMetas[tn] = oldMetas.find(m => m.tn === tn);
+
+            break;
+          case MetaDiffType.TABLE_COLUMN_TYPE_CHANGE:
+          case MetaDiffType.VIEW_COLUMN_TYPE_CHANGE:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+              const column = columns.find((c) => c.cn === change.cn);
+              const metaFact = ModelXcMetaFactory.create(
+                { client: base.type },
+                {}
+              );
+              column.uidt = metaFact.getUIDataType(column);
+              column.title = change.column.title;
+              await Column.update(change.column.id, column);
+            }
+            break;
+          case MetaDiffType.TABLE_COLUMN_REMOVE:
+          case MetaDiffType.VIEW_COLUMN_REMOVE:
+            await change.column.delete();
+            break;
+          case MetaDiffType.TABLE_RELATION_REMOVE:
+          case MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE:
+            await change.column.delete();
+            break;
+          case MetaDiffType.TABLE_RELATION_ADD:
+            {
+              virtualColumnInsert.push(async () => {
+                const parentModel = await Model.getByIdOrName({
+                  project_id: base.project_id,
+                  base_id: base.id,
+                  table_name: change.rtn,
+                });
+                const childModel = await Model.getByIdOrName({
+                  project_id: base.project_id,
+                  base_id: base.id,
+                  table_name: change.tn,
+                });
+                const parentCol = await parentModel
+                  .getColumns()
+                  .then((cols) =>
+                    cols.find((c) => c.column_name === change.rcn)
+                  );
+                const childCol = await childModel
+                  .getColumns()
+                  .then((cols) =>
+                    cols.find((c) => c.column_name === change.cn)
+                  );
+
+                await Column.update(childCol.id, {
+                  ...childCol,
+                  uidt: UITypes.ForeignKey,
+                  system: true,
+                });
+
+                if (change.relationType === RelationTypes.BELONGS_TO) {
+                  const title = getUniqueColumnAliasName(
+                    childModel.columns,
+                    `${parentModel.title || parentModel.table_name}`
+                  );
+                  await Column.insert<LinkToAnotherRecordColumn>({
+                    uidt: UITypes.LinkToAnotherRecord,
+                    title,
+                    fk_model_id: childModel.id,
+                    fk_related_model_id: parentModel.id,
+                    type: RelationTypes.BELONGS_TO,
+                    fk_parent_column_id: parentCol.id,
+                    fk_child_column_id: childCol.id,
+                    virtual: false,
+                  });
+                } else if (change.relationType === RelationTypes.HAS_MANY) {
+                  const title = getUniqueColumnAliasName(
+                    childModel.columns,
+                    `${childModel.title || childModel.table_name} List`
+                  );
+                  await Column.insert<LinkToAnotherRecordColumn>({
+                    uidt: UITypes.LinkToAnotherRecord,
+                    title,
+                    fk_model_id: parentModel.id,
+                    fk_related_model_id: childModel.id,
+                    type: RelationTypes.HAS_MANY,
+                    fk_parent_column_id: parentCol.id,
+                    fk_child_column_id: childCol.id,
+                    virtual: false,
+                  });
+                }
+              });
+            }
+            break;
+        }
+      }
+    }
+
+    await NcHelp.executeOperations(virtualColumnInsert, base.type);
+
+    // populate m2m relations
+    await extractAndGenerateManyToManyRelations(await base.getModels());
+  }
+
+  Tele.emit('evt', { evt_type: 'metaDiff:synced' });
+
+  res.json({ msg: 'success' });
+}
+
+export async function baseMetaDiffSync(req, res) {
+  const project = await Project.getWithInfo(req.params.projectId);
+  const base = await Base.get(req.params.baseId);
+
   const virtualColumnInsert: Array<() => Promise<void>> = [];
 
   // @ts-ignore
@@ -554,15 +785,6 @@ export async function metaDiffSync(req, res) {
   // const relations = (await sqlClient.relationListAll())?.data?.list;
 
   for (const { table_name, detectedChanges } of changes) {
-    // reorder changes to apply relation remove changes
-    // before column remove to avoid foreign key constraint error
-    detectedChanges.sort((a, b) => {
-      return (
-        applyChangesPriorityOrder.indexOf(b.type) -
-        applyChangesPriorityOrder.indexOf(a.type)
-      );
-    });
-
     for (const change of detectedChanges) {
       switch (change.type) {
         case MetaDiffType.TABLE_NEW:
@@ -575,7 +797,11 @@ export async function metaDiffSync(req, res) {
 
             const model = await Model.insert(project.id, base.id, {
               table_name: table_name,
-              title: getTableNameAlias(table_name, project.prefix, base),
+              title: getTableNameAlias(
+                table_name,
+                base.is_meta ? project.prefix : '',
+                base
+              ),
               type: ModelTypes.TABLE,
             });
 
@@ -729,7 +955,7 @@ export async function metaDiffSync(req, res) {
   // populate m2m relations
   await extractAndGenerateManyToManyRelations(await base.getModels());
 
-  Tele.emit('evt', { evt_type: 'metaDiff:synced' });
+  Tele.emit('evt', { evt_type: 'baseMetaDiff:synced' });
 
   res.json({ msg: 'success' });
 }
@@ -874,5 +1100,15 @@ router.post(
   '/api/v1/db/meta/projects/:projectId/meta-diff',
   metaApiMetrics,
   ncMetaAclMw(metaDiffSync, 'metaDiffSync')
+);
+router.get(
+  '/api/v1/db/meta/projects/:projectId/meta-diff/:baseId',
+  metaApiMetrics,
+  ncMetaAclMw(baseMetaDiff, 'baseMetaDiff')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/meta-diff/:baseId',
+  metaApiMetrics,
+  ncMetaAclMw(baseMetaDiffSync, 'baseMetaDiffSync')
 );
 export default router;

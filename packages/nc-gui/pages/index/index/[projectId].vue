@@ -2,6 +2,7 @@
 import type { Form } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import type { VNodeRef } from '@vue/runtime-core'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -15,9 +16,7 @@ import {
 
 const route = useRoute()
 
-const { loadProject, updateProject, isLoading } = useProject()
-
-loadProject(false)
+const { project, loadProject, updateProject, isLoading } = useProject()
 
 const nameValidationRules = [
   {
@@ -25,7 +24,7 @@ const nameValidationRules = [
     message: 'Project name is required',
   },
   projectTitleValidator,
-]
+] as RuleObject[]
 
 const form = ref<typeof Form>()
 
@@ -42,6 +41,12 @@ const renameProject = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+onBeforeMount(async () => {
+  await loadProject(false)
+
+  formState.title = project.value?.title
+})
 
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>

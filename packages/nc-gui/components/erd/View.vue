@@ -4,7 +4,7 @@ import { UITypes } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
 import { reactive, ref, useMetas, useProject, watch } from '#imports'
 
-const { table } = defineProps<{ table?: TableType }>()
+const props = defineProps<{ table?: TableType; baseId?: string }>()
 
 const { tables: projectTables } = useProject()
 
@@ -18,9 +18,10 @@ const config = reactive<ERDConfig>({
   showPkAndFk: true,
   showViews: false,
   showAllColumns: true,
-  singleTableMode: !!table,
+  singleTableMode: !!props.table,
   showMMTables: false,
   showJunctionTableNames: false,
+  isFullScreen: false,
 })
 
 const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
@@ -34,14 +35,13 @@ const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
 }
 
 const populateTables = async () => {
-  let localTables: TableType[]
-
-  if (table) {
+  let localTables: TableType[] = []
+  if (props.table) {
     // if table is provided only get the table and its related tables
     localTables = projectTables.value.filter(
       (t) =>
-        t.id === table.id ||
-        table.columns?.find(
+        t.id === props.table.id ||
+        props.table.columns?.find(
           (column) =>
             column.uidt === UITypes.LinkToAnotherRecord &&
             (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,
@@ -59,11 +59,15 @@ const populateTables = async () => {
         config.showMMTables ||
         (!config.showMMTables && !t.mm) ||
         // Show mm table if it's the selected table
-        t.id === table?.id,
+        t.id === props.table?.id,
     )
     .filter((t) => config.singleTableMode || (!config.showViews && t.type !== 'view') || config.showViews)
 
   isLoading = false
+}
+
+const toggleFullScreen = () => {
+  config.isFullScreen = !config.isFullScreen
 }
 
 watch([metas, projectTables], populateTables, {
@@ -76,6 +80,8 @@ watch(config, populateTables, {
   deep: true,
 })
 
+const filteredTables = computed(() => tables.value.filter((t) => !props.baseId || t.base_id === props.baseId))
+
 watch(
   () => config.showAllColumns,
   () => {
@@ -85,15 +91,24 @@ watch(
 </script>
 
 <template>
-  <div class="w-full" style="height: inherit" :class="[`nc-erd-vue-flow${config.singleTableMode ? '-single-table' : ''}`]">
+  <div
+    class="w-full bg-white"
+    :class="{
+      'z-100 h-screen w-screen fixed top-0 left-0 right-0 bottom-0': config.isFullScreen,
+      'nc-erd-vue-flow-single-table': config.singleTableMode,
+      'nc-erd-vue-flow': !config.singleTableMode,
+    }"
+    :style="!config.isFullScreen ? 'height: inherit' : ''"
+  >
     <div class="relative h-full">
-      <LazyErdFlow :tables="tables" :config="config">
+      <LazyErdFlow :tables="filteredTables" :config="config">
         <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50">
           <div class="h-full w-full flex flex-col justify-center items-center">
             <a-spin size="large" />
           </div>
         </GeneralOverlay>
 
+        <ErdFullScreenToggle :config="config" @toggle-full-screen="toggleFullScreen" />
         <ErdConfigPanel :config="config" />
         <ErdHistogramPanel v-if="!config.singleTableMode" />
       </LazyErdFlow>

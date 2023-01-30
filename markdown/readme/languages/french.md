@@ -34,18 +34,6 @@ Transformez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb en un
 
 
 # Essayez rapidement
-### Déploiement en 1 Clic
-
-#### Heroku
-Avant de le faire, assurez-vous que vous avez un compte Heroku. Par défaut, un add-on Heroku Postgres sera utilisé comme meta database. Vous pouvez voir la string pour se connecter définie en tant que `DATABASE_URL` en naviguant dans Heroku App Settings et en sélectionnant Config Vars.
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a>
-<br>
 
 ### Utilisez Docker
 ```bash

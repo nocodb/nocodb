@@ -108,8 +108,9 @@ const deleteLink = async (id: string) => {
 
       <!-- View name -->
       <a-table-column key="title" :title="$t('labels.viewName')" data-index="title">
-        <template #default="{ text }">
-          <div class="text-xs" :title="text">
+        <template #default="{ text, record }">
+          <div class="text-xs flex items-center gap-1" :title="text">
+            <GeneralViewIcon class="w-5" :meta="record" />
             {{ text }}
           </div>
         </template>

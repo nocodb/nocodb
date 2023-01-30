@@ -21,7 +21,7 @@ const booleanOptions = [
 const aggBooleanOptions: any = booleanOptions.reduce((obj, o) => ({ ...obj, ...o }), {})
 
 const getColVal = (row: any, col?: number) => {
-  return row && col ? row[col] : row
+  return row && col !== undefined ? row[col] : row
 }
 
 export const isCheckboxType: any = (values: [], col?: number) => {
@@ -64,7 +64,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
         : [],
     )
 
-    const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim().toLowerCase()))]
+    const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim()))]
 
     if (uniqueVals.length > maxSelectOptionsAllowed) {
       // too many options are detected, convert the column to SingleLineText instead
@@ -81,7 +81,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
       colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
     }
   } else {
-    const uniqueVals = [...new Set(colData.map((v: any) => v.toString().trim().toLowerCase()))]
+    const uniqueVals = [...new Set(colData.map((v: any) => v.toString().trim()))]
 
     if (uniqueVals.length > maxSelectOptionsAllowed) {
       // too many options are detected, convert the column to SingleLineText instead

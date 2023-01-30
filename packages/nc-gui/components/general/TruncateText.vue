@@ -41,7 +41,5 @@ const shortName = computed(() =>
   <div v-else class="w-full" data-testid="truncate-label">
     <slot />
   </div>
-  <div ref="text" class="hidden">
-    <slot />
-  </div>
+  <div ref="text" class="hidden"><slot /></div>
 </template>

@@ -69,7 +69,12 @@
     "betaNote": "هذه الميزة حاليا في بيتا.",
     "moreInfo": "المزيد من المعلومات تجدها هنا",
     "logs": "السجلات",
-    "groupingField": "Grouping Field"
+    "groupingField": "Grouping Field",
+    "insertAfter": "Insert After",
+    "insertBefore": "Insert Before",
+    "hideField": "Hide Field",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending"
   },
   "objects": {
     "project": "مشروع",
@@ -199,7 +204,9 @@
     "quickImportFrom": "استيراد سريع من",
     "quickImport": "استيراد سريع",
     "advancedSettings": "الإعدادات المتقدمة",
-    "codeSnippet": "كتلة برمجية"
+    "codeSnippet": "كتلة برمجية",
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",
@@ -242,7 +249,10 @@
     "sqlOutput": "إخراج SQL",
     "addOption": "إضافة خيار",
     "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "وظيفة التجميع",
     "dbCreateIfNotExists": "قاعدة البيانات: إنشاء إذا لم يكن موجودا",
     "clientKey": "مفتاح العميل",
@@ -268,6 +278,7 @@
     "selectUserRole": "حدد دور المستخدم",
     "childTable": "جدول فرعي",
     "childColumn": "عمود فرعي",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "عند التحديث",
     "onDelete": "عند الحذف",
     "account": "حساب",
@@ -302,7 +313,9 @@
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "بالتسجيل، أنت توافق على شروط الخدمة",
     "welcomeToNc": "مرحبا بكم في NocoDB!",
-    "inviteOnlySignup": "Allow signup only using invite url"
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -490,12 +503,16 @@
   },
   "msg": {
     "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
         "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
       }
     },
     "info": {
+      "pasteNotSupported": "Paste operation is not supported on the active cell",
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
@@ -613,7 +630,10 @@
       "deleteViewConfirmation": "هل أنت متأكد من أنك تريد حذف هذا العرض؟",
       "deleteTableConfirmation": "هل تريد حذف الجدول",
       "showM2mTables": "إظهار جداول M2M",
-      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
+      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",

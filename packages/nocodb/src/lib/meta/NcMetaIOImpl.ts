@@ -77,10 +77,6 @@ export default class NcMetaIOImpl extends NcMetaIO {
   constructor(app: Noco, config: NcConfig, trx = null) {
     super(app, config);
 
-    if (this.config?.meta?.db?.client === 'sqlite3') {
-      this.config.meta.db.useNullAsDefault = true;
-    }
-
     if (this.config?.meta?.db) {
       this.connection = trx || XKnex(this.config?.meta?.db);
     } else {
@@ -472,6 +468,13 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
   async startTransaction(): Promise<NcMetaIO> {
     const trx = await this.connection.transaction();
+
+    // todo: Extend transaction class to add our custom properties
+    Object.assign(trx, {
+      clientType: this.connection.clientType,
+      searchPath: (this.connection as any).searchPath,
+    });
+
     return new NcMetaIOImpl(this.app, this.config, trx);
   }
 

@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import {
-  computed,
-  currencyCodes,
-  currencyLocales,
-  useProject,
-  useVModel,
-  validateCurrencyCode,
-  validateCurrencyLocale,
-} from '#imports'
+import { computed, currencyCodes, currencyLocales, useVModel, validateCurrencyCode, validateCurrencyLocale } from '#imports'
 
 interface Option {
   label: string
@@ -49,13 +41,11 @@ const validators = {
   ],
 }
 
-const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, isPg } = useColumnCreateStoreOrThrow()
 
 setAdditionalValidations({
   ...validators,
 })
-
-const { isPg } = useProject()
 
 const currencyList = currencyCodes || []
 
@@ -64,7 +54,7 @@ const currencyLocaleList = currencyLocales() || []
 const isMoney = computed(() => vModel.value.dt === 'money')
 
 const message = computed(() => {
-  if (isMoney.value && isPg) return "PostgreSQL 'money' type has own currency settings"
+  if (isMoney.value && isPg.value) return "PostgreSQL 'money' type has own currency settings"
   return ''
 })
 

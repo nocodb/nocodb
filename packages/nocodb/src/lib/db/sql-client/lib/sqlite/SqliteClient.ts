@@ -19,6 +19,8 @@ class SqliteClient extends KnexClient {
   private _version: any;
 
   constructor(connectionConfig) {
+    // sqlite does not support inserting default values and knex fires a warning without this flag
+    connectionConfig.connection.useNullAsDefault = true;
     super(connectionConfig);
     this.sqlClient = knex(connectionConfig.connection);
     this.queries = queries;
@@ -1548,7 +1550,11 @@ class SqliteClient extends KnexClient {
         }
       }
 
-      const pkQuery = this.alterTablePK(args.columns, args.originalColumns, upQuery);
+      const pkQuery = this.alterTablePK(
+        args.columns,
+        args.originalColumns,
+        upQuery
+      );
 
       await this.sqlClient.raw('PRAGMA foreign_keys = OFF;');
       await this.sqlClient.raw('PRAGMA legacy_alter_table = ON;');
@@ -1565,14 +1571,16 @@ class SqliteClient extends KnexClient {
 
         if (pkQuery) {
           await trx.schema.alterTable(args.table, (table) => {
-            for (const pk of pkQuery.oldPks.filter((el) => !pkQuery.newPks.includes(el))) {
+            for (const pk of pkQuery.oldPks.filter(
+              (el) => !pkQuery.newPks.includes(el)
+            )) {
               table.dropPrimary(pk);
             }
-    
+
             for (const pk of pkQuery.dropPks) {
               table.dropColumn(pk);
             }
-    
+
             if (pkQuery.newPks.length) {
               table.primary(pkQuery.newPks);
             }
@@ -1947,7 +1955,7 @@ class SqliteClient extends KnexClient {
         newPks,
         oldPks,
         dropPks,
-      }
+      };
     } else {
       return false;
     }
@@ -2003,34 +2011,50 @@ class SqliteClient extends KnexClient {
         [t, o.cn, `${o.cno}_nc_${suffix}`],
         shouldSanitize
       );
-      
-      let addNewColumnQuery = ''
-      addNewColumnQuery += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
+
+      let addNewColumnQuery = '';
+      addNewColumnQuery += this.genQuery(
+        ` ADD ?? ${n.dt}`,
+        [n.cn],
+        shouldSanitize
+      );
       addNewColumnQuery += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      addNewColumnQuery += n.cdf ? ` DEFAULT ${n.cdf}` : !n.rqd ? ' ' : ` DEFAULT ''`;
+      addNewColumnQuery += n.cdf
+        ? ` DEFAULT ${n.cdf}`
+        : !n.rqd
+        ? ' '
+        : ` DEFAULT ''`;
       addNewColumnQuery += n.rqd ? ` NOT NULL` : ' ';
-      addNewColumnQuery = this.genQuery(`ALTER TABLE ?? ${addNewColumnQuery};`, [t], shouldSanitize);
+      addNewColumnQuery = this.genQuery(
+        `ALTER TABLE ?? ${addNewColumnQuery};`,
+        [t],
+        shouldSanitize
+      );
 
-      let updateNewColumnQuery = this.genQuery(`UPDATE ?? SET ?? = ??;`, [t, n.cn, `${o.cno}_nc_${suffix}`], shouldSanitize);
+      let updateNewColumnQuery = this.genQuery(
+        `UPDATE ?? SET ?? = ??;`,
+        [t, n.cn, `${o.cno}_nc_${suffix}`],
+        shouldSanitize
+      );
 
-      let dropOldColumnQuery = this.genQuery(`ALTER TABLE ?? DROP COLUMN ??;`, [t, `${o.cno}_nc_${suffix}`], shouldSanitize);
+      let dropOldColumnQuery = this.genQuery(
+        `ALTER TABLE ?? DROP COLUMN ??;`,
+        [t, `${o.cno}_nc_${suffix}`],
+        shouldSanitize
+      );
 
       query = `${backupOldColumnQuery}${addNewColumnQuery}${updateNewColumnQuery}${dropOldColumnQuery}`;
     } else if (change === 0) {
       query = existingQuery ? ',' : '';
       query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf
-        ? ` DEFAULT ${n.cdf}`
-        : ' ';
+      query += n.cdf ? ` DEFAULT ${n.cdf}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf
-        ? ` DEFAULT ${n.cdf}`
-        : !n.rqd ? ' ' : ` DEFAULT ''`;
+      query += n.cdf ? ` DEFAULT ${n.cdf}` : !n.rqd ? ' ' : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {

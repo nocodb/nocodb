@@ -1,1 +1,1 @@
-export * from './QrCodeRules';
+export * from './QrAndBarcodeRules';

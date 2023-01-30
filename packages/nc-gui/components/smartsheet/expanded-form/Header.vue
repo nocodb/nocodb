@@ -77,7 +77,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 <template>
   <div class="flex p-2 items-center gap-2 p-4 nc-expanded-form-header">
     <h5 class="text-lg font-weight-medium flex items-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
-      <mdi-table-arrow-right :style="{ color: iconColor }" />
+      <GeneralTableIcon :style="{ color: iconColor }" :meta="meta" class="mx-2" />
 
       <template v-if="meta">
         {{ meta.title }}
@@ -155,5 +155,3 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     </a-dropdown-button>
   </div>
 </template>
-
-<style scoped></style>

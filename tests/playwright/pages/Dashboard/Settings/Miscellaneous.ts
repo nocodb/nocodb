@@ -1,4 +1,3 @@
-import { expect } from '@playwright/test';
 import { SettingsPage } from '.';
 import BasePage from '../../Base';
 
@@ -11,10 +10,15 @@ export class MiscSettingsPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Miscellaneous"]`);
+    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Misc"]`);
   }
 
   async clickShowM2MTables() {
-    await this.get().locator('input[type="checkbox"]').click();
+    const clickAction = this.get().locator('input[type="checkbox"]').first().click();
+    await this.waitForResponse({
+      uiAction: clickAction,
+      requestUrlPathToMatch: 'tables?includeM2M',
+      httpMethodsToMatch: ['GET'],
+    });
   }
 }

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { getRelationName } from './utils'
 import { MetaInj, inject, ref, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
 
 const props = defineProps<{
@@ -24,11 +26,6 @@ setAdditionalValidations({
   rollup_function: [{ required: true, message: 'Required' }],
 })
 
-const relationNames = {
-  mm: 'Many To Many',
-  hm: 'Has Many',
-}
-
 const aggrFunctionsList = [
   { text: 'count', value: 'count' },
   { text: 'min', value: 'min' },
@@ -45,19 +42,24 @@ if (!vModel.value.fk_rollup_column_id) vModel.value.fk_rollup_column_id = null
 if (!vModel.value.rollup_function) vModel.value.rollup_function = null
 
 const refTables = $computed(() => {
-  if (!tables || !tables.length) {
+  if (!tables || !tables.length || !meta || !meta.columns) {
     return []
   }
 
-  return (
-    meta?.columns
-      ?.filter((c: any) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions.type !== 'bt' && !c.system)
-      .map((c) => ({
-        col: c.colOptions,
-        column: c,
-        ...tables.find((t) => t.id === (c.colOptions as any)?.fk_related_model_id),
-      })) ?? []
-  )
+  const _refTables = meta.columns
+    .filter(
+      (c) =>
+        c.uidt === UITypes.LinkToAnotherRecord &&
+        (c.colOptions as LinkToAnotherRecordType).type !== 'bt' &&
+        !c.system &&
+        c.base_id === meta?.base_id,
+    )
+    .map((c) => ({
+      col: c.colOptions,
+      column: c,
+      ...tables.find((t) => t.id === (c.colOptions as any)?.fk_related_model_id),
+    }))
+  return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })
 
 const columns = $computed(() => {
@@ -67,24 +69,24 @@ const columns = $computed(() => {
     return []
   }
 
-  return metas[selectedTable.id].columns.filter((c: any) => !isVirtualCol(c.uidt) && !isSystemColumn(c))
+  return metas[selectedTable.id].columns.filter((c: ColumnType) => !isVirtualCol(c.uidt as UITypes) && !isSystemColumn(c))
 })
 </script>
 
 <template>
   <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
     <div class="w-full flex flex-row space-x-2">
-      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.childTable')" v-bind="validateInfos.fk_relation_column_id">
+      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.linkToAnotherRecord')" v-bind="validateInfos.fk_relation_column_id">
         <a-select
           v-model:value="vModel.fk_relation_column_id"
           dropdown-class-name="!w-64 nc-dropdown-relation-table"
           @change="onDataTypeChange"
         >
-          <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.col.fk_column_id">
+          <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
               <div class="font-semibold text-xs">{{ table.column.title }}</div>
               <div class="text-[0.65rem] text-gray-600">
-                ({{ relationNames[table.col.type] }} {{ table.title || table.table_name }})
+                ({{ getRelationName(table.col.type) }} {{ table.title || table.table_name }})
               </div>
             </div>
           </a-select-option>

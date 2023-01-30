@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onKeyStroke } from '@vueuse/core'
 import type { CSSProperties } from '@vue/runtime-dom'
-import { controlledRef, ref, useElementHover, watch } from '#imports'
+import { controlledRef, ref, useAttrs, useElementHover, watch } from '#imports'
 
 interface Props {
   // Key to be pressed on hover to trigger the tooltip
@@ -22,6 +22,8 @@ const showTooltip = controlledRef(false, {
 })
 
 const isHovering = useElementHover(() => el.value)
+
+const attrs = useAttrs()
 
 const isKeyPressed = ref(false)
 
@@ -73,6 +75,11 @@ watch([isHovering, () => modifierKey, () => disabled], ([hovering, key, isDisabl
     showTooltip.value = true
   }
 })
+
+const divStyles = $computed(() => ({
+  style: attrs.style as CSSProperties,
+  class: attrs.class as string,
+}))
 </script>
 
 <template>
@@ -81,7 +88,7 @@ watch([isHovering, () => modifierKey, () => disabled], ([hovering, key, isDisabl
       <slot name="title" />
     </template>
 
-    <div ref="el" class="w-full" :class="$attrs.class" :style="$attrs.style">
+    <div ref="el" class="w-full" v-bind="divStyles">
       <slot />
     </div>
   </a-tooltip>

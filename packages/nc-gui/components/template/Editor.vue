@@ -30,7 +30,8 @@ import {
 } from '#imports'
 import { TabType } from '~/lib'
 
-const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse } = defineProps<Props>()
+const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId } =
+  defineProps<Props>()
 
 const emit = defineEmits(['import'])
 
@@ -45,6 +46,7 @@ interface Props {
   importColumns: any[]
   importDataOnly: boolean
   maxRowsToParse: number
+  baseId: string
 }
 
 interface Option {
@@ -64,7 +66,9 @@ const { $api } = useNuxtApp()
 
 const { addTab } = useTabs()
 
-const { sqlUi, project, loadTables } = useProject()
+const { sqlUis, project, loadTables } = useProject()
+
+const sqlUi = ref(sqlUis.value[baseId] || Object.values(sqlUis.value)[0])
 
 const hasSelectColumn = ref<boolean[]>([])
 
@@ -395,7 +399,7 @@ async function importTemplate() {
     try {
       isImporting.value = true
 
-      const tableName = meta.value?.title
+      const tableId = meta.value?.id
       const projectName = project.value.title!
 
       await Promise.all(
@@ -427,15 +431,17 @@ async function importTemplate() {
                         input = null
                       }
                     } else if (v.uidt === UITypes.Date) {
-                      input = parseStringDate(input, v.meta.date_format)
+                      if (input) {
+                        input = parseStringDate(input, v.meta.date_format)
+                      }
                     }
                     res[col.destCn] = input
                   }
                   return res
                 }, {}),
               )
-              await $api.dbTableRow.bulkCreate('noco', projectName, tableName!, batchData)
-              updateImportTips(projectName, tableName!, progress, total)
+              await $api.dbTableRow.bulkCreate('noco', projectName, tableId!, batchData)
+              updateImportTips(projectName, tableId!, progress, total)
               progress += batchData.length
             }
           })(key),
@@ -495,24 +501,24 @@ async function importTemplate() {
             }
           }
         }
-
-        const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
+        const createdTable = await $api.base.tableCreate(project?.value?.id as string, baseId as string, {
           table_name: table.table_name,
           // leave title empty to get a generated one based on table_name
           title: '',
           columns: table.columns || [],
         })
-        table.title = tableMeta.title
+        table.id = createdTable.id
+        table.title = createdTable.title
 
         // open the first table after import
         if (tab.id === '' && tab.title === '') {
-          tab.id = tableMeta.id as string
-          tab.title = tableMeta.title as string
+          tab.id = createdTable.id as string
+          tab.title = createdTable.title as string
         }
 
         // set primary value
-        if (tableMeta?.columns?.[0]?.id) {
-          await $api.dbTableColumn.primaryColumnSet(tableMeta.columns[0].id as string)
+        if (createdTable?.columns?.[0]?.id) {
+          await $api.dbTableColumn.primaryColumnSet(createdTable.columns[0].id as string)
         }
       }
       // bulk insert data
@@ -532,7 +538,7 @@ async function importTemplate() {
                 for (let i = 0; i < data.length; i += offset) {
                   updateImportTips(projectName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                  await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.title, batchData)
+                  await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.id, batchData)
                   progress += batchData.length
                 }
                 updateImportTips(projectName, tableMeta.title, total, total)
@@ -693,7 +699,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                   size="large"
                   hide-details
                   :bordered="false"
-                  @click="$event.stopPropagation()"
+                  @click.stop
                   @blur="handleEditableTnChange(tableIdx)"
                   @keydown.enter="handleEditableTnChange(tableIdx)"
                 />
@@ -749,14 +755,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-input
-                      :ref="
-                        (el) => {
-                          inputRefs[record.key] = el
-                        }
-                      "
-                      v-model:value="record.column_name"
-                    />
+                    <a-input :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)" v-model:value="record.column_name" />
                   </a-form-item>
                 </template>
 

@@ -12,6 +12,7 @@ export default class SyncSource {
   deleted?: boolean;
   order?: number;
   project_id?: string;
+  base_id?: string;
   fk_user_id?: string;
 
   constructor(syncSource: Partial<SyncSource>) {
@@ -37,15 +38,16 @@ export default class SyncSource {
     return syncSource && new SyncSource(syncSource);
   }
 
-  static async list(projectId: string, ncMeta = Noco.ncMeta) {
+  static async list(projectId: string, baseId?: string, ncMeta = Noco.ncMeta) {
+    const condition = baseId
+      ? { project_id: projectId, base_id: baseId }
+      : { project_id: projectId };
     const syncSources = await ncMeta.metaList(
       null,
       null,
       MetaTable.SYNC_SOURCE,
       {
-        condition: {
-          project_id: projectId,
-        },
+        condition,
         orderBy: {
           created_at: 'asc',
         },
@@ -77,6 +79,7 @@ export default class SyncSource {
       type: syncSource?.type,
       details: syncSource?.details,
       project_id: syncSource?.project_id,
+      base_id: syncSource?.base_id,
       fk_user_id: syncSource?.fk_user_id,
     };
 
@@ -107,6 +110,7 @@ export default class SyncSource {
       'deleted',
       'order',
       'project_id',
+      'base_id',
     ]);
 
     if (updateObj.details && typeof updateObj.details === 'object') {

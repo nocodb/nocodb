@@ -10,8 +10,11 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
-  viewIcons,
 } from '#imports'
+
+const props = defineProps<{
+  baseId: string
+}>()
 
 const { t } = useI18n()
 
@@ -32,8 +35,9 @@ const searchInput = $ref('')
 const filteredTables = computed(() =>
   tables.filter(
     (el) =>
-      (typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
-      (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase())),
+      el?.base_id === props.baseId &&
+      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
+        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase()))),
   ),
 )
 
@@ -154,12 +158,24 @@ const columns = [
           </template>
 
           <template #bodyCell="{ record, column }">
-            <div v-if="column.name === 'table_name'">{{ record._ptn }}</div>
+            <div v-if="column.name === 'table_name'">
+              <div class="flex items-center gap-1">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon
+                    :meta="{ meta: record.table_meta, type: record.ptype }"
+                    class="text-gray-500"
+                  ></GeneralTableIcon>
+                </div>
+                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record._ptn }}</span>
+              </div>
+            </div>
 
             <div v-if="column.name === 'view_name'">
-              <div class="flex items-center">
-                <component :is="viewIcons[record.type].icon" :class="`text-${viewIcons[record.type].color} mr-1`" />
-                {{ record.title }}
+              <div class="flex items-center gap-1">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralViewIcon :meta="record" class="text-gray-500"></GeneralViewIcon>
+                </div>
+                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.title }}</span>
               </div>
             </div>
 

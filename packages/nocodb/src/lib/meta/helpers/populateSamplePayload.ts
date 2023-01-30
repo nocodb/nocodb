@@ -84,12 +84,12 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.SingleLineText:
       {
-        return 'Text';
+        return 'Sample Text';
       }
       break;
     case UITypes.LongText:
       {
-        return 'Long text';
+        return 'Sample Long text';
       }
       break;
     case UITypes.Attachment:
@@ -189,7 +189,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.Formula:
       {
-        return 'output';
+        return 'Sample Output';
       }
       break;
     case UITypes.Rollup:

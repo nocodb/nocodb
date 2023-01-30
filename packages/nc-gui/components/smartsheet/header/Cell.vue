@@ -2,7 +2,12 @@
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import { ColumnInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; required?: boolean | number; hideMenu?: boolean }>()
+interface Props {
+  column: ColumnType
+  required?: boolean | number
+  hideMenu?: boolean
+}
+const props = defineProps<Props>()
 
 const hideMenu = toRef(props, 'hideMenu')
 

@@ -225,23 +225,26 @@ const hideField = async () => {
         <template v-if="column.uidt !== UITypes.LinkToAnotherRecord || column.colOptions.type !== RelationTypes.BELONGS_TO">
           <a-divider class="!my-0" />
           <a-menu-item @click="sortByColumn('asc')">
-            <div class="nc-column-insert-after nc-header-menu-item">
+            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
               <MdiSortAscending class="text-primary" />
-              Sort Ascending
+              <!-- Sort Ascending -->
+              {{ $t('general.sortAsc') }}
             </div>
           </a-menu-item>
           <a-menu-item @click="sortByColumn('desc')">
-            <div class="nc-column-insert-before nc-header-menu-item">
+            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
               <MdiSortDescending class="text-primary" />
-              Sort Descending
+              <!-- Sort Descending -->
+              {{ $t('general.sortDesc') }}
             </div>
           </a-menu-item>
         </template>
         <a-divider class="!my-0" />
         <a-menu-item @click="hideField">
-          <div class="nc-column-insert-before nc-header-menu-item">
+          <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <MdiEyeOffOutline class="text-primary" />
-            Hide Field
+            <!-- Hide Field -->
+            {{ $t('general.hideField') }}
           </div>
         </a-menu-item>
 
@@ -251,21 +254,24 @@ const hideField = async () => {
           v-if="column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.Lookup && !column.pk"
           @click="duplicateColumn"
         >
-          <div class="nc-column-duplicate nc-header-menu-item">
+          <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <MdiFileReplaceOutline class="text-primary" />
-            Duplicate
+            <!-- Duplicate -->
+            {{ t('general.duplicate') }}
           </div>
         </a-menu-item>
         <a-menu-item @click="addColumn()">
-          <div class="nc-column-insert-after nc-header-menu-item">
+          <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
             <MdiTableColumnPlusAfter class="text-primary" />
-            Insert After
+            <!-- Insert After -->
+            {{ t('general.insertAfter') }}
           </div>
         </a-menu-item>
         <a-menu-item @click="addColumn(true)">
-          <div class="nc-column-insert-before nc-header-menu-item">
+          <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
             <MdiTableColumnPlusBefore class="text-primary" />
-            Insert before
+            <!-- Insert Before -->
+            {{ t('general.insertBefore') }}
           </div>
         </a-menu-item>
         <a-divider class="!my-0" />

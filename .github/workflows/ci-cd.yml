@@ -18,6 +18,7 @@ on:
             - "packages/nc-gui/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
+            - "tests/playwright/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

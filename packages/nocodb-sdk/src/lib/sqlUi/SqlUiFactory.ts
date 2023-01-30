@@ -5,6 +5,7 @@ import { MysqlUi } from './MysqlUi';
 import { OracleUi } from './OracleUi';
 import { PgUi } from './PgUi';
 import { SqliteUi } from './SqliteUi';
+import { SnowflakeUi } from './SnowflakeUi';
 
 // import {YugabyteUi} from "./YugabyteUi";
 // import {TidbUi} from "./TidbUi";
@@ -40,6 +41,10 @@ export class SqlUiFactory {
       // if (connectionConfig.meta.dbtype === "yugabyte")
       //   return Yugabyte;
       return PgUi;
+    }
+
+    if (connectionConfig.client === 'snowflake') {
+      return SnowflakeUi;
     }
 
     throw new Error('Database not supported');

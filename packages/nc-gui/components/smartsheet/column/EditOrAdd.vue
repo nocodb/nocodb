@@ -14,6 +14,7 @@ import {
   uiTypes,
   useColumnCreateStoreOrThrow,
   useEventListener,
+  useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -37,6 +38,8 @@ const { getMeta } = useMetas()
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
+
+const { appInfo } = useGlobal()
 
 const meta = inject(MetaInj, ref())
 
@@ -133,7 +136,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 <template>
   <div
     class="w-[400px] bg-gray-50 shadow p-4 overflow-auto border"
-    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
+    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula, '!w-[500px]': formState.uidt === UITypes.Attachment }"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
@@ -171,12 +174,14 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
         <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
+        <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
         <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
         <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
         <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
         <LazySmartsheetColumnLookupOptions v-if="!isEdit && formState.uidt === UITypes.Lookup" v-model:value="formState" />
         <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+        <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
         <LazySmartsheetColumnRollupOptions v-if="!isEdit && formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <LazySmartsheetColumnLinkedToAnotherRecordOptions
           v-if="!isEdit && formState.uidt === UITypes.LinkToAnotherRecord"
@@ -209,6 +214,11 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               {{ `Accept only valid ${formState.uidt}` }}
             </span>
           </a-checkbox>
+
+          <LazySmartsheetColumnAttachmentOptions
+            v-if="appInfo.ee && formState.uidt === UITypes.Attachment"
+            v-model:value="formState"
+          />
 
           <LazySmartsheetColumnAdvancedOptions v-model:value="formState" />
         </div>

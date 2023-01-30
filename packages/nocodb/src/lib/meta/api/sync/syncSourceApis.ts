@@ -4,17 +4,25 @@ import SyncSource from '../../../models/SyncSource';
 import { Tele } from 'nc-help';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
+import Project from '../../../models/Project';
 
 export async function syncSourceList(req: Request, res: Response) {
   // todo: pagination
-  res.json(new PagedResponseImpl(await SyncSource.list(req.params.projectId)));
+  res.json(
+    new PagedResponseImpl(
+      await SyncSource.list(req.params.projectId, req.params.baseId)
+    )
+  );
 }
 
 export async function syncCreate(req: Request, res: Response) {
   Tele.emit('evt', { evt_type: 'webhooks:created' });
+  const project = await Project.getWithInfo(req.params.projectId);
+
   const sync = await SyncSource.insert({
     ...req.body,
     fk_user_id: (req as any).user.id,
+    base_id: req.params.baseId ? req.params.baseId : project.bases[0].id,
     project_id: req.params.projectId,
   });
   res.json(sync);
@@ -39,6 +47,14 @@ router.get(
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/syncs',
+  ncMetaAclMw(syncCreate, 'syncSourceCreate')
+);
+router.get(
+  '/api/v1/db/meta/projects/:projectId/syncs/:baseId',
+  ncMetaAclMw(syncSourceList, 'syncSourceList')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/syncs/:baseId',
   ncMetaAclMw(syncCreate, 'syncSourceCreate')
 );
 router.delete(

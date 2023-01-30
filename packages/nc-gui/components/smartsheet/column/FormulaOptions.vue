@@ -2,8 +2,8 @@
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
-import type { ColumnType } from 'nocodb-sdk'
-import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
+import type { ColumnType, FormulaType } from 'nocodb-sdk'
+import { UITypes, jsepCurlyHook, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import {
   MetaInj,
   NcAutocompleteTree,
@@ -26,7 +26,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
-const uiTypesNotSupportedInFormulas = [UITypes.QrCode]
+const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
 
 const vModel = useVModel(props, 'value', emit)
 
@@ -231,6 +231,63 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             (v: any) => {
               if (!['day', 'week', 'month', 'year'].includes(v)) {
                 typeErrors.add('The third parameter of DATEADD() should have the value either "day", "week", "month" or "year"')
+              }
+            },
+            typeErrors,
+          )
+        } else if (parsedTree.callee.name === 'DATETIME_DIFF') {
+          // parsedTree.arguments[0] = date
+          validateAgainstType(
+            parsedTree.arguments[0],
+            formulaTypes.DATE,
+            (v: any) => {
+              if (!validateDateWithUnknownFormat(v)) {
+                typeErrors.add('The first parameter of DATETIME_DIFF() should have date value')
+              }
+            },
+            typeErrors,
+          )
+          // parsedTree.arguments[1] = date
+          validateAgainstType(
+            parsedTree.arguments[1],
+            formulaTypes.DATE,
+            (v: any) => {
+              if (!validateDateWithUnknownFormat(v)) {
+                typeErrors.add('The second parameter of DATETIME_DIFF() should have date value')
+              }
+            },
+            typeErrors,
+          )
+          // parsedTree.arguments[2] = ["milliseconds" | "ms" | "seconds" | "s" | "minutes" | "m" | "hours" | "h" | "days" | "d" | "weeks" | "w" | "months" | "M" | "quarters" | "Q" | "years" | "y"]
+          validateAgainstType(
+            parsedTree.arguments[2],
+            formulaTypes.STRING,
+            (v: any) => {
+              if (
+                ![
+                  'milliseconds',
+                  'ms',
+                  'seconds',
+                  's',
+                  'minutes',
+                  'm',
+                  'hours',
+                  'h',
+                  'days',
+                  'd',
+                  'weeks',
+                  'w',
+                  'months',
+                  'M',
+                  'quarters',
+                  'Q',
+                  'years',
+                  'y',
+                ].includes(v)
+              ) {
+                typeErrors.add(
+                  'The third parameter of DATETIME_DIFF() should have value either "milliseconds", "ms", "seconds", "s", "minutes", "m", "hours", "h", "days", "d", "weeks", "w", "months", "M", "quarters", "Q", "years", or "y"',
+                )
               }
             },
             typeErrors,
@@ -604,7 +661,16 @@ function scrollToSelectedOption() {
 }
 
 // set default value
-vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
+if ((column.value?.colOptions as any)?.formula_raw) {
+  vModel.value.formula_raw =
+    substituteColumnIdWithAliasInFormula(
+      (column.value?.colOptions as FormulaType)?.formula,
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as any)?.formula_raw,
+    ) || ''
+} else {
+  vModel.value.formula_raw = ''
+}
 
 // set additional validations
 setAdditionalValidations({

@@ -21,7 +21,7 @@ export class ToolbarSortPage extends BasePage {
     ).toHaveText(direction);
   }
 
-  async addSort({
+  async add({
     columnTitle,
     isAscending,
     isLocallySaved,
@@ -67,7 +67,7 @@ export class ToolbarSortPage extends BasePage {
   }
 
   // todo: remove this opening sort menu logic
-  async resetSort() {
+  async reset() {
     // open sort menu
     await this.toolbar.clickSort();
 

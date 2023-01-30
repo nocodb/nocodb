@@ -1266,6 +1266,172 @@
         }
       }
     },
+    "/api/v1/db/meta/projects/{projectId}/bases/{baseId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Base read",
+        "operationId": "base-read",
+        "description": "Read project base details",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "xc-auth",
+            "description": "Auth token"
+          }
+        ],
+        "tags": [
+          "Base"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Base delete",
+        "operationId": "base-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      },
+      "patch": {
+        "summary": "Base update",
+        "operationId": "base-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/bases/": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Base list",
+        "operationId": "base-list",
+        "description": "Get project base list",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "xc-auth",
+            "description": "Auth token"
+          }
+        ],
+        "tags": [
+          "Base"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Base create",
+        "operationId": "base-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Base"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "boolean",
+                        "default": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/shared": {
       "parameters": [
         {
@@ -1558,6 +1724,103 @@
         ]
       }
     },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "table-list",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/TableList"
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "xc-auth"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "page"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "pageSize"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "includeM2M"
+          }
+        ],
+        "tags": [
+          "Base"
+        ]
+      },
+      "post": {
+        "summary": "",
+        "operationId": "table-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
     "/api/v1/db/meta/tables/{tableId}": {
       "parameters": [
         {
@@ -1708,7 +1971,8 @@
                   },
                   "project_id": {
                     "type": "string"
-                  }
+                  },
+                  "meta": {}
                 }
               }
             }
@@ -1840,7 +2104,7 @@
         ]
       },
       "delete": {
-        "summary": "",
+        "summary": "Column Delete",
         "operationId": "db-table-column-delete",
         "responses": {
           "200": {
@@ -1849,6 +2113,18 @@
         },
         "tags": [
           "DB table column"
+        ]
+      },
+      "get": {
+        "summary": "Column Get",
+        "operationId": "db-table-column-get",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB Table Column"
         ]
       }
     },
@@ -1929,6 +2205,7 @@
                   "order": {
                     "type": "number"
                   },
+                  "meta": {},
                   "title": {
                     "type": "string"
                   },
@@ -2747,6 +3024,44 @@
         }
       }
     },
+    "/api/v1/db/meta/grids/{viewId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-view-grid-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Grid"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/grids/{gridId}/grid-columns": {
       "parameters": [
         {
@@ -3039,6 +3354,61 @@
         "parameters": [],
         "tags": [
           "Project"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "base-meta-diff-sync",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      },
+      "get": {
+        "summary": "",
+        "operationId": "base-meta-diff-get",
+        "parameters": [],
+        "tags": [
+          "Base"
         ],
         "responses": {
           "200": {
@@ -3555,6 +3925,13 @@
             "in": "query",
             "name": "nested",
             "description": "Query params for nested data"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
           }
         ],
         "responses": {
@@ -5205,6 +5582,9 @@
                       "properties": {
                         "relatedMetas": {},
                         "client": {
+                          "type": "string"
+                        },
+                        "base_id": {
                           "type": "string"
                         },
                         "columns": {
@@ -6944,6 +7324,12 @@
           },
           "inflection_table": {
             "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "enabled": {
+            "type": "boolean"
           }
         }
       },
@@ -7040,8 +7426,8 @@
         "examples": [
           {
             "id": "string",
-            "fk_project_id": "string",
-            "fk_base_id": "string",
+            "project_id": "string",
+            "base_id": "string",
             "title": "string",
             "alias": "string",
             "type": "string",
@@ -7107,10 +7493,10 @@
           "id": {
             "type": "string"
           },
-          "fk_project_id": {
+          "project_id": {
             "type": "string"
           },
-          "fk_base_id": {
+          "base_id": {
             "type": "string"
           },
           "table_name": {
@@ -7155,15 +7541,13 @@
           "slug": {
             "type": "string"
           },
-          "project_id": {
-            "type": "string"
-          },
           "mm": {
             "type": [
               "boolean",
               "number"
             ]
-          }
+          },
+          "meta": {}
         },
         "required": [
           "table_name",
@@ -7261,6 +7645,7 @@
           "uuid": {
             "type": "string"
           },
+          "meta": {},
           "show_system_fields": {
             "type": "boolean"
           },
@@ -7502,7 +7887,8 @@
             "items": {
               "$ref": "#/components/schemas/Column"
             }
-          }
+          },
+          "meta": {}
         },
         "required": [
           "table_name",
@@ -8160,6 +8546,9 @@
               "locked",
               "personal"
             ]
+          },
+          "row_height": {
+            "type": "number"
           }
         },
         "description": ""
@@ -8667,7 +9056,11 @@
           },
           "icon": {
             "type": "string"
-          }
+          },
+          "path": {
+            "type": "string"
+          },
+          "data": {}
         }
       },
       "Webhook": {

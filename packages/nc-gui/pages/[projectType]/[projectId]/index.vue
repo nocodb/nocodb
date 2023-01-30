@@ -59,7 +59,9 @@ const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { has
 
 const dialogOpen = ref(false)
 
-const openDialogKey = ref<string>()
+const openDialogKey = ref<string>('')
+
+const dataSourcesState = ref<string>('')
 
 const dropdownOpen = ref(false)
 
@@ -73,10 +75,13 @@ const logout = () => {
   navigateTo('/signin')
 }
 
-function toggleDialog(value?: boolean, key?: string) {
+function toggleDialog(value?: boolean, key?: string, dsState?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
-  openDialogKey.value = key
+  openDialogKey.value = key || ''
+  dataSourcesState.value = dsState || ''
 }
+
+provide(ToggleDialogInj, toggleDialog)
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {
@@ -213,6 +218,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         // ALT + ,
         if (isUIAllowed('settings') && !isDrawerOrModalExist()) {
           e.preventDefault()
+          $e('c:shortcut', { key: 'ALT + ,' })
           toggleDialog(true, 'teamAndAuth')
         }
         break
@@ -223,6 +229,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.key) {
       case '/':
         if (!isDrawerOrModalExist()) {
+          $e('c:shortcut', { key: 'CTRL + /' })
           openKeyboardShortcutDialog()
         }
         break
@@ -232,7 +239,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <NuxtLayout id="content">
+  <NuxtLayout>
     <template #sidebar>
       <a-layout-sider
         ref="sidebar"
@@ -557,12 +564,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </div>
 
-        <LazyDashboardTreeView />
+        <LazyDashboardTreeView @create-base-dlg="toggleDialog(true, 'dataSources')" />
       </a-layout-sider>
     </template>
 
     <div>
-      <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" />
+      <LazyDashboardSettingsModal
+        v-model:model-value="dialogOpen"
+        v-model:open-key="openDialogKey"
+        v-model:data-sources-state="dataSourcesState"
+      />
 
       <NuxtPage :page-key="$route.params.projectId" />
 

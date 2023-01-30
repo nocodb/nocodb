@@ -124,7 +124,7 @@ const closeAddColumnDropdown = () => {
       <span class="name" style="white-space: nowrap" :title="column.title"> {{ column.title }}</span>
     </a-tooltip>
 
-    <span v-if="isVirtualColRequired(column, meta.columns) || required" class="text-red-500">&nbsp;*</span>
+    <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
 
     <template v-if="!hideMenu">
       <div class="flex-1" />

@@ -35,7 +35,7 @@ body:
 - type: textarea
   attributes:
     label: Project Details
-    description: Where to find it ? (See [YouTube video](https://www.youtube.com/watch?v=AUSNN-RCwhE) or [Docs](https://docs.nocodb.com/FAQs#how-to-check-my-project-info-))
+    description: Click on top left icon and click `Copy Project Info`. (See [YouTube video](https://www.youtube.com/watch?v=AUSNN-RCwhE) or [Docs](https://docs.nocodb.com/FAQs#how-to-check-my-project-info-))
     placeholder: |
       or provide the following info
       ```

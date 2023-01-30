@@ -69,7 +69,12 @@
     "betaNote": "此功能仍在测试中。",
     "moreInfo": "点击此处了解更多信息。",
     "logs": "日志",
-    "groupingField": "分组字段"
+    "groupingField": "分组字段",
+    "insertAfter": "Insert After",
+    "insertBefore": "Insert Before",
+    "hideField": "Hide Field",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending"
   },
   "objects": {
     "project": "项目",
@@ -199,7 +204,9 @@
     "quickImportFrom": "快速导入从",
     "quickImport": "快速导入",
     "advancedSettings": "高级设置",
-    "codeSnippet": "代码片段"
+    "codeSnippet": "代码片段",
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",
@@ -242,7 +249,10 @@
     "sqlOutput": "SQL输出",
     "addOption": "添加选项",
     "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "汇总功能",
     "dbCreateIfNotExists": "数据库 : 如果不存在则创建",
     "clientKey": "客户端 Key",
@@ -268,6 +278,7 @@
     "selectUserRole": "选择用户角色",
     "childTable": "子表",
     "childColumn": "子列",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "更新",
     "onDelete": "删除",
     "account": "帐户",
@@ -302,7 +313,9 @@
     "signInWithGoogle": "使用 Google 登录",
     "agreeToTos": "注册即表明您同意服务条款",
     "welcomeToNc": "欢迎来到NocoDB！",
-    "inviteOnlySignup": "Allow signup only using invite url"
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "创建项目",
@@ -490,12 +503,16 @@
   },
   "msg": {
     "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
         "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
       }
     },
     "info": {
+      "pasteNotSupported": "Paste operation is not supported on the active cell",
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
@@ -613,7 +630,10 @@
       "deleteViewConfirmation": "您确定要删除此视图？",
       "deleteTableConfirmation": "您想要删除该表吗？",
       "showM2mTables": "Show M2M Tables",
-      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
+      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "搜索： {search} 没有发现匹配的结果",

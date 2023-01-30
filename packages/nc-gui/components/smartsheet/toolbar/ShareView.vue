@@ -86,9 +86,16 @@ const genShareLink = async () => {
   if (!view.value?.id) return
 
   const response = (await $api.dbViewShare.create(view.value.id)) as SharedView
+
   const meta = isString(response.meta) ? JSON.parse(response.meta) : response.meta
 
   shared.value = { ...response, meta }
+
+  if (shared.value.type === ViewTypes.KANBAN) {
+    const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
+    shared.value.meta = { ...shared.value.meta, groupingFieldColumn: groupingFieldColumn.value }
+    await updateSharedViewMeta(true)
+  }
 
   passwordProtected.value = !!shared.value.password && shared.value.password !== ''
 
@@ -133,7 +140,7 @@ async function saveTheme() {
 
 // const saveTransitionDuration = useDebounceFn(updateSharedViewMeta, 1000, { maxWait: 2000 })
 
-async function updateSharedViewMeta() {
+async function updateSharedViewMeta(silentMessage = false) {
   try {
     const meta = shared.value.meta && isString(shared.value.meta) ? JSON.parse(shared.value.meta) : shared.value.meta
 
@@ -141,7 +148,7 @@ async function updateSharedViewMeta() {
       meta,
     })
 
-    message.success(t('msg.success.updated'))
+    if (!silentMessage) message.success(t('msg.success.updated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -196,6 +203,26 @@ watch(passwordProtected, (value) => {
 const { locale } = useI18n()
 
 const isRtl = computed(() => isRtlLang(locale.value as any))
+
+const iframeCode = computed(() => {
+  if (!sharedViewUrl.value) return
+
+  return `<iframe class="nc-embed"
+  src="${sharedViewUrl.value}?embed"
+  frameborder="0"
+  width="100%"
+  height="700"
+  style="background: transparent; border: 1px solid #ddd"></iframe>`
+})
+
+const copyIframeCode = async () => {
+  if (iframeCode.value) {
+    await copy(iframeCode.value)
+
+    // Copied to clipboard
+    message.success(t('msg.info.copiedToClipboard'))
+  }
+}
 </script>
 
 <template>
@@ -228,13 +255,20 @@ const isRtl = computed(() => isRtlLang(locale.value as any))
         data-testid="nc-modal-share-view__link"
         class="share-link-box !bg-primary !bg-opacity-5 ring-1 ring-accent ring-opacity-100"
       >
-        <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
+        <div class="flex-1 h-min text-xs text-gray-500">{{ sharedViewUrl }}</div>
 
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
-          <MdiOpenInNew class="text-sm text-gray-500 mt-2" />
+          <MdiOpenInNew class="text-sm text-gray-500" />
         </a>
 
         <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+      </div>
+
+      <div
+        class="flex gap-1 items-center pb-1 text-gray-500 cursor-pointer font-weight-medium mb-2 mt-4 pl-1"
+        @click="copyIframeCode"
+      >
+        <MdiCodeTags class="text-gray-500" /> Embed this view in your site
       </div>
 
       <div class="px-1 mt-2 flex flex-col gap-3">
@@ -352,7 +386,7 @@ const isRtl = computed(() => isRtlLang(locale.value as any))
 
 <style scoped>
 .share-link-box {
-  @apply flex p-2 w-full items-center items-center gap-1 bg-gray-100 rounded;
+  @apply flex p-2 w-full items-center items-center gap-2 bg-gray-100 rounded;
 }
 
 :deep(.ant-collapse-header) {

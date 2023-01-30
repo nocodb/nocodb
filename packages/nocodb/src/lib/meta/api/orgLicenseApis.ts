@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_LICENSE_KEY } from '../../constants';
 import Store from '../../models/Store';
+import Noco from '../../Noco';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 
@@ -13,7 +14,7 @@ async function licenseGet(_req, res) {
 
 async function licenseSet(req, res) {
   await Store.saveOrUpdate({ value: req.body.key, key: NC_LICENSE_KEY });
-
+  await Noco.loadEEState();
   res.json({ msg: 'License key saved' });
 }
 

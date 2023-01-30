@@ -1596,6 +1596,7 @@ export class PgUi {
         break;
       case 'Checkbox':
         colProp.dt = 'bool';
+        colProp.cdf = 'false';
         break;
       case 'MultiSelect':
         colProp.dt = 'text';
@@ -1662,6 +1663,7 @@ export class PgUi {
         break;
       case 'Rating':
         colProp.dt = 'smallint';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'character varying';

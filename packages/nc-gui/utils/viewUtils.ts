@@ -1,5 +1,5 @@
 import { ViewTypes } from 'nocodb-sdk'
-import { themeV2Colors } from '~/utils'
+import { themeV2Colors } from '#imports'
 
 import MdiGridIcon from '~icons/mdi/grid-large'
 import MdiFormIcon from '~icons/mdi/form-select'
@@ -40,4 +40,10 @@ export function applyLanguageDirection(dir: typeof rtl | typeof ltr) {
 
 export function applyNonSelectable() {
   document.body.classList.add('non-selectable')
+}
+
+export const getViewIcon = (key?: string | number) => {
+  if (!key) return
+
+  return viewIcons[key]
 }

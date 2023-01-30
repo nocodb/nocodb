@@ -140,6 +140,27 @@ export class ViewSidebarPage extends BasePage {
     await this.verifyToast({ message: 'View created successfully' });
   }
 
+  async changeViewIcon({ title, icon }: { title: string; icon: string }) {
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
+
+    await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
+    await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
+
+    await this.rootPage.getByTestId('nc-emoji-container').isHidden();
+    await expect(
+      this.get().locator(`[data-testid="view-sidebar-view-${title}"] [data-testid="nc-icon-emojione:${icon}"]`)
+    ).toHaveCount(1);
+  }
+
+  async verifyTabIcon({ title, icon }: { title: string; icon: string }) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await expect(
+      this.rootPage.locator(
+        `[data-testid="nc-tab-title"]:has-text("${title}") [data-testid="nc-tab-icon-emojione:${icon}"]`
+      )
+    ).toBeVisible();
+  }
+
   async validateRoleAccess(param: { role: string }) {
     const count = param.role === 'creator' ? 1 : 0;
     await expect(this.createGridButton).toHaveCount(count);

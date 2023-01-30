@@ -1,7 +1,7 @@
 ---
 title: 'Sync Schema'
 description: 'Schema changes made to database from outside NocoDB GUI can be synced'
-position: 610
+position: 613
 category: 'Product'
 menuTitle: 'Sync Schema'
 ---

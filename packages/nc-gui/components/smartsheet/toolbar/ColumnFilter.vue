@@ -256,7 +256,7 @@ defineExpose({
               class="nc-filter-value-select"
               :column="getColumn(filter)"
               :filter="filter"
-              @updateFilterValue="
+              @update-filter-value="
                 (value) => {
                   filter.value = value
                   saveOrUpdate(filter, i)

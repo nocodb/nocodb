@@ -241,7 +241,13 @@ useEventListener(document, 'click', handleClose)
       </a-tag>
     </a-select-option>
     <a-select-option
-      v-if="searchVal && isOptionMissing && !isPublic && !disableOptionCreation && (hasRole('owner', true) || hasRole('creator', true))"
+      v-if="
+        searchVal &&
+        isOptionMissing &&
+        !isPublic &&
+        !disableOptionCreation &&
+        (hasRole('owner', true) || hasRole('creator', true))
+      "
       :key="searchVal"
       :value="searchVal"
     >

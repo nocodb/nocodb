@@ -318,7 +318,13 @@ const onTagClick = (e: Event, onClose: Function) => {
     </a-select-option>
 
     <a-select-option
-      v-if="searchVal && isOptionMissing && !isPublic && !disableOptionCreation && (hasRole('owner', true) || hasRole('creator', true))"
+      v-if="
+        searchVal &&
+        isOptionMissing &&
+        !isPublic &&
+        !disableOptionCreation &&
+        (hasRole('owner', true) || hasRole('creator', true))
+      "
       :key="searchVal"
       :value="searchVal"
     >

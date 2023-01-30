@@ -103,14 +103,18 @@ export async function uploadViaURL(req: Request, res: Response) {
         url
       );
 
+      let attachmentPath;
+
+      // if `url` is null, then it is local attachment
       if (!attachmentUrl) {
-        attachmentUrl = `${(req as any).ncSiteUrl}/download/${filePath.join(
-          '/'
-        )}/${fileName}`;
+        // then store the attachement path only
+        // url will be constructued in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 
       return {
-        url: attachmentUrl,
+        ...(url ? { url: attachmentUrl } : {}),
+        ...(attachmentPath ? { path: attachmentPath } : {}),
         title: fileName,
         mimetype: urlMeta.mimetype,
         size: urlMeta.size,

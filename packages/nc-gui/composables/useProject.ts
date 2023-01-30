@@ -86,6 +86,10 @@ const [setup, use] = useInjectionState(() => {
     return getBaseType(baseId) === 'pg'
   }
 
+  function isXcdbBase(baseId?: string) {
+    return bases.value.find((base) => base.id === baseId)?.is_meta
+  }
+
   const isSharedBase = computed(() => projectType === 'base')
 
   async function loadProjectMetaInfo(force?: boolean) {
@@ -195,6 +199,7 @@ const [setup, use] = useInjectionState(() => {
     reset,
     isLoading,
     lastOpenedViewMap,
+    isXcdbBase,
   }
 }, 'useProject')
 

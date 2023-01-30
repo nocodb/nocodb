@@ -158,13 +158,18 @@ export default class View implements ViewType {
           ],
         }
       );
-      view.meta = parseMetaProp(view);
-      // todo: cache - titleOrId can be viewId so we need a different scope here
-      await NocoCache.set(
-        `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
-        view.id
-      );
-      await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:${view.id}`, view);
+      if (view) {
+        view.meta = parseMetaProp(view);
+        // todo: cache - titleOrId can be viewId so we need a different scope here
+        await NocoCache.set(
+          `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
+          view.id
+        );
+        await NocoCache.set(
+          `${CacheScope.VIEW}:${fk_model_id}:${view.id}`,
+          view
+        );
+      }
       return view && new View(view);
     }
     return viewId && this.get(viewId?.id || viewId);

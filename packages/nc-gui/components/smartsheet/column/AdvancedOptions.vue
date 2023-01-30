@@ -70,13 +70,11 @@ vModel.value.au = !!vModel.value.au
           />
         </a-form-item>
 
-        <a-form-item label="UN" :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)"
-                     @change="onAlter">
+        <a-form-item label="UN" :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
           <a-checkbox v-model:checked="vModel.un" class="nc-column-checkbox-UN" />
         </a-form-item>
 
-        <a-form-item label="AU" :disabled="sqlUi.colPropAuDisabled(vModel) || !sqlUi.columnEditable(vModel)"
-                     @change="onAlter">
+        <a-form-item label="AU" :disabled="sqlUi.colPropAuDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
           <a-checkbox v-model:checked="vModel.au" class="nc-column-checkbox-AU" />
         </a-form-item>
       </div>

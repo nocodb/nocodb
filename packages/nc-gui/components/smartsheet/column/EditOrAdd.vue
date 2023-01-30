@@ -20,6 +20,7 @@ import {
   useNuxtApp,
   watchEffect,
 } from '#imports'
+import { useProject } from '~/composables/useProject'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -34,6 +35,8 @@ const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeCh
   useColumnCreateStoreOrThrow()
 
 const { getMeta } = useMetas()
+
+const { isXcdbBase } = useProject()
 
 const { t } = useI18n()
 
@@ -223,7 +226,10 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             v-model:value="formState"
           />
 
-          <LazySmartsheetColumnAdvancedOptions :advancedDBOptions="advancedDBOptions" v-model:value="formState" />
+          <LazySmartsheetColumnAdvancedOptions
+            v-model:value="formState"
+            :advanced-d-b-options="advancedDBOptions && !isXcdbBase(meta.base_id)"
+          />
         </div>
       </Transition>
 

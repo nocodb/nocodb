@@ -473,24 +473,24 @@ watch(
   }
 
   div.info-callout {
-    @apply px-2 py-2 rounded-md border-l-3;
-    border-color: #2696db;
+    @apply px-2 py-2 rounded-md border-1;
+    border-color: rgb(166, 222, 254);
     background-color: rgb(230, 246, 255);
     color: #666;
     margin: 1em 0;
   }
 
   div.tip-callout {
-    @apply px-2 py-2 rounded-md border-l-3;
-    border-color: #fcbe3a;
+    @apply px-2 py-2 rounded-md border-1;
+    border-color: #fee088;
     background-color: #fef7d7;
     color: #666;
     margin: 1em 0;
   }
 
   div.warning-callout {
-    @apply px-2 py-2 rounded-md border-l-3;
-    border-color: #ff4a3f;
+    @apply px-2 py-2 rounded-md border-1;
+    border-color: #ffa58b;
     background-color: #ffe7d8;
     color: #666;
     margin: 1em 0;

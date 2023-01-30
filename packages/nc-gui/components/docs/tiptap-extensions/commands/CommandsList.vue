@@ -15,8 +15,8 @@ import MdiFormatColorText from '~icons/mdi/format-color-text'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import MdiFormatQuoteOpen from '~icons/mdi/format-quote-open'
 import IcOutlineInfo from '~icons/ic/outline-info'
-import IcRoundStar from '~icons/ic/round-star'
-import IcRoundWarning from '~icons/ic/round-warning'
+import IcRoundStar from '~icons/ic/round-star-outline'
+import IcRoundWarning from '~icons/ph/warning-circle-bold'
 
 interface Props {
   command: Function

@@ -71,7 +71,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { sqlUis } = useProject()
 
-    const sqlUi = ref(meta.value?.base_id ? sqlUis.value[meta.value?.base_id] : Object.values(sqlUis.value)[0])
+    const sqlUi = ref(
+      (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType)?.base_id!] : Object.values(sqlUis.value)[0],
+    )
 
     const xWhere = computed(() => {
       let where
@@ -198,6 +200,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
         for (const record of data.value.list) {
           for (const attachmentColumn of attachmentColumns.value) {
+            // attachment column can be hidden
+            if (!record[attachmentColumn!]) continue
             const oldAttachment = JSON.parse(record[attachmentColumn!])
             const newAttachment = []
             for (const attachmentObj of oldAttachment) {

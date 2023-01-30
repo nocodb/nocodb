@@ -1,0 +1,166 @@
+name: "PR Release - Optimized"
+
+on:
+  pull_request:
+    # opened: pull request is created
+    # reopened: closed pull request is reopened
+    # synchronize: commit(s) pushed to the pull request
+    # ready_for_review: non PR release
+    # closed: pull request is closed, used to delete uffizzi previews
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+    paths:
+      - "packages/nocodb-sdk/**"
+      - "packages/nc-gui/**"
+      - "packages/nc-plugin/**"
+      - "packages/nocodb/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-docker-image-and-publish:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
+    runs-on: 'ubuntu-latest'
+    env:
+      working-directory: ./packages/nocodb
+    steps:
+      # enrich tag for pr release
+      - name: set-tag
+        id: tag-step
+        run: |
+          # Get current date
+          CURRENT_DATE=$(date +"%Y%m%d")
+          CURRENT_TIME=$(date +"%H%M")
+          # Get current PR number
+          PR_NUMBER=${{github.event.number}}
+          # Get current version
+          CURRENT_VERSION=$(curl -fs https://docs.nocodb.com/releases | grep article | grep div | grep h2 | grep 'id\="[^"]*' -o | cut -c 5- | cut -d\: -f1)
+          # Construct tag name
+          TAG_NAME=pr-${PR_NUMBER}-${CURRENT_DATE}-${CURRENT_TIME}
+          echo "TARGET_TAG=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+      - name: verify-tag
+        run: |
+          echo ${{ steps.tag-step.outputs.TARGET_TAG }}
+          echo ${{ steps.tag-step.outputs.CURRENT_VERSION }}
+
+
+      - name: build nocodb-sdk
+        run: |
+          # build nocodb-sdk
+
+          cd packages/nocodb-sdk &&
+          npm ci && npm run build
+      - name: build nc-gui and copy to nocodb
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=16384"
+          # generate static build of nc-gui
+          cd packages/nc-gui &&
+          npm ci &&
+          npm run generate &&
+
+          # copy build to nocodb
+          rsync -rvzh ./dist/ ../nocodb/docker/nc-gui/
+
+
+      - name: build nocodb
+        run: |
+          # build nocodb ( pack nocodb-sdk and nc-gui )
+          cd packages/nocodb && npm install &&
+          EE=true ./node_modules/.bin/webpack --config webpack.pr-build.config.js &&
+          # remove nocodb-sdk since it's packed with the build
+          npm uninstall --save nocodb-sdk
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nocohub
+          IMAGE_TAG: ${{ github.event.inputs.tag }}
+          CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
+          COMMIT_HASH: ${{ github.sha }}
+#        run: |
+#          cd packages/nocodb &&
+#          docker build -f Dockerfile-pr-build $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+
+
+
+      - name: Get Docker Repository
+        id: get-docker-repository
+        run: |
+          DOCKER_REPOSITORY=nocodb
+          DOCKER_BUILD_TAG=${{ steps.tag-step.outputs.CURRENT_VERSION }}
+
+          if [[ ${{ github.event.inputs.currentVersion || inputs.currentVersion || 'N/A' }} != 'N/A' ]]; then
+            DOCKER_BUILD_TAG=${{ github.event.inputs.currentVersion || inputs.currentVersion }}-${{ github.event.inputs.tag || inputs.tag }}
+          fi
+
+          if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then
+            DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
+          else
+            DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
+          fi
+
+          echo "DOCKER_REPOSITORY=${DOCKER_REPOSITORY}" >> $GITHUB_OUTPUT
+          echo "DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG}" >> $GITHUB_OUTPUT
+          echo "DOCKER_BUILD_LATEST_TAG=${DOCKER_BUILD_LATEST_TAG}" >> $GITHUB_OUTPUT
+          echo DOCKER_REPOSITORY: ${DOCKER_REPOSITORY}
+          echo DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
+          echo DOCKER_BUILD_LATEST_TAG: ${DOCKER_BUILD_LATEST_TAG}
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.15.0
+
+      - uses: bahmutov/npm-install@v1
+        with:
+          working-directory: ${{ env.working-directory }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2.1.0
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2.2.1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.1.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3.2.0
+        with:
+          context: ${{ env.working-directory }}
+          build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          push: true
+          file:
+          tags: |
+            nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache

@@ -96,7 +96,7 @@ export async function uploadViaURL(req: Request, res: Response) {
     req.body?.map?.(async (urlMeta) => {
       const { url, fileName: _fileName } = urlMeta;
 
-      const fileName = `${nanoid(6)}${_fileName || url.split('/').pop()}`;
+      const fileName = `${nanoid(18)}${_fileName || url.split('/').pop()}`;
 
       let attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
         slash(path.join(destPath, fileName)),

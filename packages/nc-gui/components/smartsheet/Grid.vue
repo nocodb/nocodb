@@ -458,7 +458,6 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  console.log(row, col)
   if (!hasEditPermission || editEnabled || isView) {
     return
   }

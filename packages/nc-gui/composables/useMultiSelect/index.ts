@@ -1,5 +1,4 @@
 import type { MaybeRef } from '@vueuse/core'
-import type { HTMLElement } from 'happy-dom'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Cell } from './cellRange'

@@ -45,7 +45,7 @@ const { copy } = useCopy()
 
 const { dashboardUrl } = $(useDashboard())
 
-const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
+let usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -81,6 +81,11 @@ onMounted(() => {
   }
 })
 
+const close = () => {
+  emit('closed')
+  usersData = { role: ProjectRole.Viewer }
+}
+
 const saveUser = async () => {
   $e('a:user:invite', { role: usersData.role })
 
@@ -96,7 +101,7 @@ const saveUser = async () => {
         project_id: project.value.id,
         projectName: project.value.title,
       })
-      emit('closed')
+      close()
     } else {
       const res = await $api.auth.projectUserAdd(project.value.id, {
         roles: usersData.role,
@@ -136,16 +141,24 @@ const clickInviteMore = () => {
   usersData.emails = undefined
 }
 
-const emailField = (inputEl: typeof Input) => {
-  inputEl?.$el?.focus()
-}
+const emailField = ref<typeof Input>()
 
 useActiveKeyupListener(
   computed(() => show),
   (e: KeyboardEvent) => {
-    console.log(e.key)
     if (e.key === 'Escape') {
-      emit('closed')
+      close()
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => show,
+  async (val) => {
+    if (val) {
+      await nextTick()
+      emailField.value?.$el?.focus()
     }
   },
   { immediate: true },
@@ -161,7 +174,7 @@ useActiveKeyupListener(
     :closable="false"
     width="max(50vw, 44rem)"
     wrap-class-name="nc-modal-invite-user-and-share-base"
-    @cancel="emit('closed')"
+    @cancel="close()"
   >
     <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
@@ -171,7 +184,7 @@ useActiveKeyupListener(
           type="text"
           class="!rounded-md mr-1 -mt-1.5"
           data-testid="invite-user-and-share-base-modal-close-btn"
-          @click="emit('closed')"
+          @click="close()"
         >
           <template #icon>
             <MaterialSymbolsCloseRounded class="flex mx-auto" />
@@ -245,7 +258,7 @@ useActiveKeyupListener(
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
 
                     <a-input
-                      :ref="emailField"
+                      ref="emailField"
                       v-model:value="usersData.emails"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"

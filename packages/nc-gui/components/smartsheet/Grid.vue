@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType, GridType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { querySelector } from 'ultrahtml/selector'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,

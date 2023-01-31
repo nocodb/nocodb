@@ -189,6 +189,13 @@ const toggleMenu = (e: Event) => {
   }
   isOpen.value = editAllowed.value && !isOpen.value
 }
+
+// prevent propagation of keydown event if select is open
+const onKeydown = (e: KeyboardEvent) => {
+  if (isOpen.value && (active.value || editable.value)) {
+    e.stopPropagation()
+  }
+}
 </script>
 
 <template>
@@ -206,7 +213,7 @@ const toggleMenu = (e: Event) => {
       :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
       :show-search="isOpen && (active || editable)"
       @select="isOpen = false"
-      @keydown.stop
+      @keydown="onKeydown($event)"
       @search="search"
     >
       <a-select-option

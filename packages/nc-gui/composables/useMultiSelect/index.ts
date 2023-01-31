@@ -377,7 +377,7 @@ export function useMultiSelect(
 
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
-  useEventListener(tbodyEl, 'keydown', handleKeyDown)
+  useEventListener(document, 'keydown', handleKeyDown)
   useEventListener(tbodyEl, 'mouseup', handleMouseUp)
 
   return {

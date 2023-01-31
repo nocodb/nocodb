@@ -205,7 +205,8 @@
     "quickImport": "Quick Import",
     "advancedSettings": "Ezarpen aurreratuak",
     "codeSnippet": "Kode-zatiak",
-    "keyboardShortcut": "Teklatuko laster-markak"
+    "keyboardShortcut": "Teklatuko laster-markak",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Sortzailea:",

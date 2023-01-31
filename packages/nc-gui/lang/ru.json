@@ -205,7 +205,8 @@
     "quickImport": "Быстрый импорт",
     "advancedSettings": "Расширенные настройки",
     "codeSnippet": "Сниппет кода",
-    "keyboardShortcut": "Горячие клавиши"
+    "keyboardShortcut": "Горячие клавиши",
+    "generateRandomName": "Сгенерировать случайное имя"
   },
   "labels": {
     "createdBy": "Автор",

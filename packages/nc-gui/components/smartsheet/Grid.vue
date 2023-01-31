@@ -101,9 +101,9 @@ const tbodyEl = ref<HTMLElement>()
 const gridWrapper = ref<HTMLElement>()
 const tableHead = ref<HTMLElement>()
 
-const isAddingColumnAllowed = !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value
+const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
-const isAddingEmptyRowAllowed = !isView && !isLocked.value && hasEditPermission && !isSqlView.value
+const isAddingEmptyRowAllowed = $computed(() => !isView && !isLocked.value && hasEditPermission && !isSqlView.value)
 
 const {
   isLoading,

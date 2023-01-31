@@ -205,7 +205,8 @@
     "quickImport": "Quick Import",
     "advancedSettings": "Cài đặt Nâng cao",
     "codeSnippet": "Thư viện mã",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Đã tạo bởi",

@@ -9056,7 +9056,11 @@
           },
           "icon": {
             "type": "string"
-          }
+          },
+          "path": {
+            "type": "string"
+          },
+          "data": {}
         }
       },
       "Webhook": {

@@ -103,12 +103,12 @@ jobs:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
   # Close all issues with target tags 'Status: Ready for Next Release'
-  close-issues:
-    needs: [release-docker, process-input]
-    uses: ./.github/workflows/release-close-issue.yml
-    with:
-      issue_label: '🚀 Status: Ready for Next Release'
-      version: ${{ needs.process-input.outputs.target_tag }}
+  # close-issues:
+  #   needs: [release-docker, process-input]
+  #   uses: ./.github/workflows/release-close-issue.yml
+  #   with:
+  #     issue_label: '🚀 Status: Ready for Next Release'
+  #     version: ${{ needs.process-input.outputs.target_tag }}
 
   # Publish Docs
   publish-docs:

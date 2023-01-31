@@ -27,7 +27,7 @@ services:
         - "-h"
         - localhost
       timeout: 20s
-    image: "mysql:5.7"
+    image: "mysql:8.0.32"
     restart: always
     volumes: 
       - "db_data:/var/lib/mysql"

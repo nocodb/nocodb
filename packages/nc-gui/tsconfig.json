@@ -19,9 +19,5 @@
       "@nuxt/image-edge"
     ]
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    ".output"
-  ]
+  "exclude": ["node_modules", "dist", ".output"]
 }

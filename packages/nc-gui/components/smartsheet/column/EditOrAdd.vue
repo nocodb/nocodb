@@ -201,7 +201,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
       <div
         v-if="!isVirtualCol(formState.uidt)"
-        class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
+        class="text-xs cursor-pointer text-gray-500 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
         @dblclick="advancedDbOptions = !advancedDbOptions"
       >

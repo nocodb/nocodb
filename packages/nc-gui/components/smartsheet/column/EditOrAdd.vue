@@ -18,7 +18,6 @@ import {
   useI18n,
   useMetas,
   useNuxtApp,
-  useProject,
   watchEffect,
 } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
@@ -35,8 +34,6 @@ const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeCh
   useColumnCreateStoreOrThrow()
 
 const { getMeta } = useMetas()
-
-const { isXcdbBase } = useProject()
 
 const { t } = useI18n()
 
@@ -201,7 +198,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
       <div
         v-if="!isVirtualCol(formState.uidt)"
-        class="text-xs cursor-pointer text-gray-500 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
+        class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
         @dblclick="advancedDbOptions = !advancedDbOptions"
       >
@@ -226,10 +223,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             v-model:value="formState"
           />
 
-          <LazySmartsheetColumnAdvancedOptions
-            v-model:value="formState"
-            :advanced-db-options="advancedDbOptions && !isXcdbBase(meta.base_id)"
-          />
+          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" :advanced-db-options="advancedDbOptions" />
         </div>
       </Transition>
 

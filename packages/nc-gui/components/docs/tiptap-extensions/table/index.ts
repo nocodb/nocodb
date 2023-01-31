@@ -1,0 +1,161 @@
+import Table from '@tiptap/extension-table'
+import type { EditorState } from 'prosemirror-state'
+import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
+import type { DecorationSource, EditorView } from 'prosemirror-view'
+import { Decoration, DecorationSet } from 'prosemirror-view'
+import type { Node } from 'prosemirror-model'
+import { CellSelection, TableMap, addColumn, addRow } from '@tiptap/prosemirror-tables'
+
+export default Table.extend({
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('table'),
+        view() {
+          return {
+            update: async (view, prevState) => {
+              // set createColumnButton height to the table height
+              const createColumnButtons = document.querySelectorAll('[tiptap-table-create-column-id] > button')
+              const tables = document.querySelectorAll('[data-placeholder="table"]')
+              if (createColumnButtons.length) {
+                let index = 0
+                createColumnButtons.forEach((createColumnButton: any) => {
+                  const table = tables[index]
+                  if (table) {
+                    createColumnButton.style.height = `${(table as any).offsetHeight}px`
+                    index += 1
+                  }
+                })
+              }
+            },
+          }
+        },
+
+        state: {
+          // Initialize the plugin's internal state.
+          init() {
+            const state: {
+              decorationId?: string | null
+            } = {}
+
+            return state
+          },
+
+          // Apply changes to the plugin state from a view transaction.
+          apply(transaction, prev, oldState, state) {
+            const next = { ...prev }
+
+            const decorationId = `id_${Math.floor(Math.random() * 0xffffffff)}`
+
+            next.decorationId = prev.decorationId ? prev.decorationId : decorationId
+
+            return next
+          },
+        },
+
+        props: {
+          decorations(state: EditorState) {
+            const decorations: Decoration[] = []
+            const { doc } = state
+            const stateExt = this.getState(state)
+            if (!stateExt) return
+
+            doc.descendants((node: Node, pos: any) => {
+              if (node.type.name !== 'table') return
+
+              const decorationTable = Decoration.node(pos, pos + node.nodeSize, {
+                'class': 'relative',
+                'data-placeholder': 'table',
+                'data-decoration-id': pos,
+                'nodeName': 'div',
+              })
+              const createColumnDecoration = Decoration.widget(pos, (view: EditorView, getPos: () => number | undefined) => {
+                // console.log('widget', view, getPos())
+                const createColumnDiv = document.createElement('div')
+                createColumnDiv.className = 'relative h-full tiptap-table-create-column'
+                // Set html attributes to the div with the data-decoration-id
+                createColumnDiv.attributes.setNamedItem(document.createAttribute('tiptap-table-create-column-id'))
+                createColumnDiv.setAttribute('tiptap-table-create-column-id', `${pos}`)
+
+                const createColumnButton = document.createElement('button')
+                createColumnButton.className =
+                  'px-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 top-0 -right-4 z-10 absolute rounded-sm '
+                createColumnButton.style.right = '-1.4rem'
+                // set the height of the button to the height of the table
+                // createColumnButton.style.height = `${view.dom.querySelector(`[data-decoration-id="${pos}"]`)?.clientHeight}px`
+                createColumnButton.innerHTML = '+'
+                createColumnDiv.appendChild(createColumnButton)
+
+                createColumnDiv.style.opacity = '0'
+                createColumnDiv.addEventListener('mouseover', () => {
+                  createColumnDiv.style.opacity = '0.7'
+                })
+                createColumnDiv.addEventListener('mouseout', () => {
+                  createColumnDiv.style.opacity = '0'
+                })
+
+                createColumnButton.addEventListener('mousedown', () => {
+                  const state = view.state
+                  const tableNode = state.doc.nodeAt(pos)
+                  const columnCount = tableNode?.child(0).childCount
+                  const map = TableMap.get(tableNode!)
+                  const rowInfo = { tableStart: pos, map, table: tableNode }
+
+                  view.dispatch(addColumn(state.tr, rowInfo as any, columnCount!))
+                })
+
+                return createColumnDiv
+              })
+
+              const createRowDecoration = Decoration.widget(pos + node.nodeSize, (view: EditorView) => {
+                const createRowDiv = document.createElement('div')
+                createRowDiv.className = 'w-full mb-2 mt-1'
+                // Set html attributes to the div with the data-decoration-id
+                createRowDiv.attributes.setNamedItem(document.createAttribute('tiptap-table-create-row-id'))
+                createRowDiv.setAttribute('tiptap-table-create-row-id', `${pos}`)
+
+                const createRowButton = document.createElement('button')
+                createRowButton.className = 'w-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-sm text-center'
+                // set the height of the button to the height of the table
+                // createRowButton.style.height = `${view.dom.querySelector(`[data-decoration-id="${pos}"]`)?.clientHeight}px`
+                createRowButton.textContent = '+'
+                createRowDiv.appendChild(createRowButton)
+
+                createRowDiv.style.opacity = '0'
+                createRowDiv.addEventListener('mouseover', () => {
+                  createRowDiv.style.opacity = '0.7'
+                })
+                createRowDiv.addEventListener('mouseout', () => {
+                  createRowDiv.style.opacity = '0'
+                })
+
+                createRowButton.addEventListener('mousedown', () => {
+                  const state = view.state
+                  const tableNode = state.doc.nodeAt(pos)
+
+                  const posOfTableEnd = pos + tableNode?.nodeSize
+
+                  // TODO: Simplify this
+                  const lastCellNodePos = 1
+                  const map = TableMap.get(tableNode!)
+                  const rect = map.rectBetween(lastCellNodePos, lastCellNodePos)
+                  const rowInfo = { ...rect, tableStart: posOfTableEnd - 1, map, table: tableNode }
+
+                  view.dispatch(addRow(state.tr, rowInfo as any, 0))
+                })
+
+                return createRowDiv
+              })
+
+              decorations.push(createColumnDecoration)
+              decorations.push(decorationTable)
+              decorations.push(createRowDecoration)
+            })
+
+            return DecorationSet.create(doc, decorations) as DecorationSource
+          },
+        },
+      }),
+    ]
+  },
+})

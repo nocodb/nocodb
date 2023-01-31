@@ -13,6 +13,11 @@ import MdiCodeSnippet from '~icons/mdi/code-braces'
 import MdiImageMultipleOutline from '~icons/mdi/image-multiple-outline'
 import MdiFormatColorText from '~icons/mdi/format-color-text'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
+import MdiFormatQuoteOpen from '~icons/mdi/format-quote-open'
+import IcOutlineInfo from '~icons/ic/outline-info'
+import IcRoundStar from '~icons/ic/round-star-outline'
+import IcRoundWarning from '~icons/ph/warning-circle-bold'
+import MdiTable from '~icons/mdi/table'
 
 interface Props {
   command: Function
@@ -76,6 +81,15 @@ const items = [
     iconClass: '',
   },
   {
+    title: 'Quote',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('blockquote').run()
+    },
+    icon: MdiFormatQuoteOpen,
+    iconClass: '',
+  },
+  {
     title: 'Image',
     class: 'text-xs',
     command: () => {
@@ -127,6 +141,43 @@ const items = [
     hasDivider: true,
   },
   {
+    title: 'Info notice',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('infoCallout').run()
+    },
+    icon: IcOutlineInfo,
+    iconClass: '',
+  },
+  {
+    title: 'Tip notice',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('tipCallout').run()
+    },
+    icon: IcRoundStar,
+    iconClass: '',
+  },
+  {
+    title: 'Warning notice',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('warningCallout').run()
+    },
+    icon: IcRoundWarning,
+    iconClass: '',
+    hasDivider: true,
+  },
+  {
+    title: 'Table',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run()
+    },
+    icon: MdiTable,
+    iconClass: '',
+  },
+  {
     title: 'Divider',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
@@ -153,7 +204,8 @@ const filterItems = computed(() => {
 
 const selectedIndex = ref(0)
 
-const selectItem = (index: number) => {
+const selectItem = (title: string) => {
+  const index = items.findIndex((item) => item.title === title)
   command(items[index])
 }
 
@@ -170,7 +222,8 @@ const onHover = (index: number) => {
 }
 
 const enterHandler = () => {
-  selectItem(selectedIndex.value)
+  const item = filterItems.value[selectedIndex.value]
+  selectItem(item.title)
 }
 
 function onKeyDown({ event }: { event: KeyboardEvent }) {
@@ -232,7 +285,7 @@ defineExpose({
 <template>
   <div class="items">
     <template v-if="filterItems.length">
-      <template v-for="(item, index) in filterItems" :key="index">
+      <template v-for="(item, index) in filterItems" :key="item.title">
         <a-button
           class="item !flex !flex-row !items-center"
           :class="{
@@ -241,7 +294,7 @@ defineExpose({
           }"
           type="text"
           :loading="loadingOperationName === item.title"
-          @click="selectItem(index)"
+          @click="selectItem(item.title)"
           @mouseenter="() => onHover(index)"
         >
           <input
@@ -259,7 +312,7 @@ defineExpose({
             </div>
           </div>
         </a-button>
-        <div v-if="item.hasDivider" class="divider"></div>
+        <div v-if="item.hasDivider && filterItems.length === items.length" class="divider"></div>
       </template>
     </template>
     <div v-else class="item">No result</div>
@@ -271,10 +324,11 @@ defineExpose({
   @apply px-1 py-0.5
   position: relative;
   border-radius: 0.5rem;
-  background: #fff;
   color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
   font-size: 0.9rem;
+  @apply bg-gray-50;
+
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -293,9 +347,10 @@ defineExpose({
   border: 1px solid transparent;
   padding: 0.3rem 0.75rem;
   margin: 0.2rem 0;
+  @apply !transition-none;
 
   &.is-selected {
-    @apply border-gray-100 !bg-gray-50;
+    @apply border-gray-200 !bg-gray-100;
   }
 }
 </style>

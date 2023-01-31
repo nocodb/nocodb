@@ -178,6 +178,7 @@ const hasExtraPadding = $computed(() => {
       :is="filterType ? componentMap[filterType] : Text"
       v-model="filterInput"
       :disabled="filter.readOnly"
+      placeholder="Enter a value"
       :column="column"
       class="flex"
       v-bind="componentProps"

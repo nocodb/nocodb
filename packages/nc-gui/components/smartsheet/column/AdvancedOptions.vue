@@ -97,9 +97,18 @@ vModel.value.au = !!vModel.value.au
       <a-input v-model:value="vModel.dtxs" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
     </a-form-item>
 
-    <a-form-item :label="$t('placeholder.defaultValue')">
+<!--    <a-form-item :label="$t('placeholder.defaultValue')">
       <a-textarea v-model:value="vModel.cdf" auto-size @input="onAlter(2, true)" />
       <span class="text-gray-400 text-xs">{{ sampleValue }}</span>
-    </a-form-item>
+    </a-form-item>-->
+
+
+<!--    <a-form-item :label="$t('placeholder.defaultValue')">-->
+      <LazySmartsheetColumnDefaultValue v-model:value="vModel.cdf" v-model:column="vModel" auto-size @input="onAlter(2, true)" />
+<!--      <span class="text-gray-400 text-xs">{{ sampleValue }}</span>-->
+<!--    </a-form-item>-->
+
+
+
   </div>
 </template>

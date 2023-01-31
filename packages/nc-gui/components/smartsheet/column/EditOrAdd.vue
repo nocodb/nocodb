@@ -141,7 +141,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
-        <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
+        <a-form-item  v-bind="validateInfos.title">
           <a-input
             ref="antInput"
             v-model:value="formState.title"
@@ -153,7 +153,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
         <a-form-item
           v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
-          :label="$t('labels.columnType')"
+
         >
           <a-select
             v-model:value="formState.uidt"
@@ -196,7 +196,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
       <div
         v-if="!isVirtualCol(formState.uidt)"
-        class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
+        class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}

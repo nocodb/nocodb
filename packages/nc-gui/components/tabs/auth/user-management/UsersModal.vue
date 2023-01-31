@@ -148,6 +148,7 @@ useActiveKeyupListener(
       emit('closed')
     }
   },
+  { immediate: true },
 )
 </script>
 

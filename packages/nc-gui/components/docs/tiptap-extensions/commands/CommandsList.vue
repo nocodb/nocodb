@@ -17,6 +17,7 @@ import MdiFormatQuoteOpen from '~icons/mdi/format-quote-open'
 import IcOutlineInfo from '~icons/ic/outline-info'
 import IcRoundStar from '~icons/ic/round-star-outline'
 import IcRoundWarning from '~icons/ph/warning-circle-bold'
+import MdiTable from '~icons/mdi/table'
 
 interface Props {
   command: Function
@@ -166,6 +167,15 @@ const items = [
     icon: IcRoundWarning,
     iconClass: '',
     hasDivider: true,
+  },
+  {
+    title: 'Table',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run()
+    },
+    icon: MdiTable,
+    iconClass: '',
   },
   {
     title: 'Divider',

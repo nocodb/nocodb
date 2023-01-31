@@ -11,6 +11,10 @@ import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import TableRow from '@tiptap/extension-table-row'
+import Table from './tiptap-extensions/table'
 import { History } from './tiptap-extensions/history'
 import suggestion from './tiptap-extensions/commands/suggestion'
 import { createImageExtension } from './tiptap-extensions/images/node'
@@ -106,6 +110,12 @@ const editor = useEditor({
     InfoCallout,
     WarningCallout,
     TipCallout,
+    Table.configure({
+      resizable: true,
+    }),
+    TableRow,
+    TableHeader,
+    TableCell,
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -494,6 +504,70 @@ watch(
     background-color: #ffe7d8;
     color: #666;
     margin: 1em 0;
+  }
+
+  table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+
+    td,
+    th {
+      min-width: 1em;
+      border: 2px solid #ced4da;
+      padding: 3px 5px;
+      vertical-align: top;
+      box-sizing: border-box;
+      position: relative;
+
+      > * {
+        margin-bottom: 0;
+      }
+    }
+
+    th {
+      font-weight: bold;
+      text-align: left;
+      background-color: #f1f3f5;
+    }
+
+    .selectedCell:after {
+      z-index: 2;
+      position: absolute;
+      content: '';
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background: rgba(200, 200, 255, 0.4);
+      pointer-events: none;
+    }
+
+    .column-resize-handle {
+      position: absolute;
+      right: -2px;
+      top: 0;
+      bottom: -2px;
+      width: 4px;
+      background-color: #adf;
+      pointer-events: none;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .tableWrapper {
+    padding: 1rem 0;
+    overflow-x: auto;
+  }
+
+  .resize-cursor {
+    cursor: ew-resize;
+    cursor: col-resize;
   }
 }
 </style>

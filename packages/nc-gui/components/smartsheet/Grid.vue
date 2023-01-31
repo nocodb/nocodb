@@ -709,7 +709,7 @@ const rowHeight = computed(() => {
           @contextmenu="showContextMenu"
         >
           <thead ref="tableHead">
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
+            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px] !z-4">
               <th data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">

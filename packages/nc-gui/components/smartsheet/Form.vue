@@ -665,7 +665,7 @@ watch(view, (nextView) => {
                     :rules="[
                       {
                         required: isRequired(element, element.required),
-                        message: `${element.label ? element.label : element.title} is required`,
+                        message: `${element.label || element.title} is required`,
                       },
                     ]"
                   >
@@ -687,7 +687,7 @@ watch(view, (nextView) => {
                     :rules="[
                       {
                         required: isRequired(element, element.required),
-                        message: `${element.label ? element.label : element.title} is required`,
+                        message: `${element.label || element.title} is required`,
                       },
                     ]"
                   >

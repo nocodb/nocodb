@@ -1,10 +1,12 @@
 <script lang="ts" setup>
+import { onUnmounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
+  CellClickHookInj,
   ColumnInj,
   IsKanbanInj,
   ReadonlyInj,
@@ -16,7 +18,6 @@ import {
   onMounted,
   reactive,
   ref,
-  useEventListener,
   useMetas,
   useProject,
   useRoles,
@@ -143,8 +144,6 @@ onMounted(() => {
     return []
   })
 })
-
-useEventListener(document, 'click', handleClose)
 
 watch(
   () => modelValue,
@@ -273,14 +272,28 @@ const onTagClick = (e: Event, onClose: Function) => {
     onClose()
   }
 }
+
+
+const cellClickHook = inject(CellClickHookInj)
+
+const toggleMenu = () => {
+  if (cellClickHook) return
+  isOpen.value = editAllowed.value && !isOpen.value
+}
+
+const cellClickHookHandler = () => {
+  isOpen.value = editAllowed.value && !isOpen.value
+}
+onMounted(() => {
+  cellClickHook?.on(cellClickHookHandler)
+})
+onUnmounted(() => {
+  cellClickHook?.on(cellClickHookHandler)
+})
 </script>
 
 <template>
-  <div
-    class="nc-multi-select h-full w-full flex items-center"
-    :class="{ 'read-only': readOnly }"
-    @click="isOpen = editAllowed && !isOpen"
-  >
+  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <a-select
       ref="aselect"
       v-model:value="vModel"

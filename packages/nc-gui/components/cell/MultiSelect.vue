@@ -114,13 +114,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql(column.value.base_id)
         ? modelValue.split(',').sort((a, b) => {
-          const opa = options.value.find((el) => el.title === a)
-          const opb = options.value.find((el) => el.title === b)
-          if (opa && opb) {
-            return opa.order! - opb.order!
-          }
-          return 0
-        })
+            const opa = options.value.find((el) => el.title === a)
+            const opb = options.value.find((el) => el.title === b)
+            if (opa && opb) {
+              return opa.order! - opb.order!
+            }
+            return 0
+          })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -233,7 +233,7 @@ async function addIfMissingAndSave() {
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
         if (!isMysql(column.value.base_id)) {
-          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, '\'')
+          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
 
@@ -276,8 +276,11 @@ const onTagClick = (e: Event, onClose: Function) => {
 </script>
 
 <template>
-  <div class="nc-multi-select h-full w-full flex items-center"
-       @click="isOpen = editAllowed && !isOpen" :class="{ 'read-only': readOnly }">
+  <div
+    class="nc-multi-select h-full w-full flex items-center"
+    :class="{ 'read-only': readOnly }"
+    @click="isOpen = editAllowed && !isOpen"
+  >
     <a-select
       ref="aselect"
       v-model:value="vModel"
@@ -287,9 +290,8 @@ const onTagClick = (e: Event, onClose: Function) => {
       clear-icon
       show-search
       :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel.length === 0))"
-      :open="isOpen && (active || editable)"
-      @update:open="isOpen = $event"
-      :disabled="readOnly || !(active || editable)"
+      :open="isOpen && editAllowed"
+      :disabled="readOnly || !editAllowed"
       :class="{ '!ml-[-8px]': readOnly, 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
       @search="search"
@@ -303,17 +305,17 @@ const onTagClick = (e: Event, onClose: Function) => {
         @click.stop
       >
         <a-tag class="rounded-tag" :color="op.color">
-        <span
-          :style="{
-            'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-              ? '#fff'
-              : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-            'font-size': '13px',
-          }"
-          :class="{ 'text-sm': isKanban }"
-        >
-          {{ op.title }}
-        </span>
+          <span
+            :style="{
+              'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                ? '#fff'
+                : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ op.title }}
+          </span>
         </a-tag>
       </a-select-option>
 
@@ -336,34 +338,34 @@ const onTagClick = (e: Event, onClose: Function) => {
           class="rounded-tag nc-selected-option"
           :style="{ display: 'flex', alignItems: 'center' }"
           :color="options.find((el) => el.title === val)?.color"
-          :closable="editAllowed && (active || editable) && (vModel.length > 1 || !column?.rqd)"
+          :closable="editAllowed && (vModel.length > 1 || !column?.rqd)"
           :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
           @click="onTagClick($event, onClose)"
           @close="onClose"
         >
-        <span
-          :style="{
-            'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
-              level: 'AA',
-              size: 'large',
-            })
-              ? '#fff'
-              : tinycolor
-                  .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
-                  .toHex8String(),
-            'font-size': '13px',
-          }"
-          :class="{ 'text-sm': isKanban }"
-        >
-          {{ val }}
-        </span>
+          <span
+            :style="{
+              'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
+                level: 'AA',
+                size: 'large',
+              })
+                ? '#fff'
+                : tinycolor
+                    .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
+                    .toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ val }}
+          </span>
         </a-tag>
       </template>
     </a-select>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .ms-close-icon {
   color: rgba(0, 0, 0, 0.25);
   cursor: pointer;
@@ -407,5 +409,12 @@ const onTagClick = (e: Event, onClose: Function) => {
 
 :deep(.ant-select-selection-overflow) {
   @apply flex-nowrap;
+}
+
+.nc-multi-select:not(.read-only) {
+  :deep(.ant-select-selector),
+  :deep(.ant-select-selector input) {
+    @apply "!cursor-pointer";
+  }
 }
 </style>

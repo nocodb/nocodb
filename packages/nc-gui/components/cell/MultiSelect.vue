@@ -198,6 +198,11 @@ useSelectedCellKeyupListener(active, (e) => {
   }
 })
 
+// close dropdown list on escape
+useSelectedCellKeyupListener(isOpen, (e) => {
+  if (e.key === 'Escape') isOpen.value = false
+})
+
 const activeOptCreateInProgress = ref(0)
 
 async function addIfMissingAndSave() {
@@ -442,7 +447,7 @@ useEventListener(document, 'click', handleClose, true)
   }
 }
 
-:deep(.ant-select-selector){
+:deep(.ant-select-selector) {
   @apply !px-0;
 }
 </style>

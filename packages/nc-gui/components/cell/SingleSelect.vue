@@ -16,10 +16,10 @@ import {
   enumColor,
   extractSdkResponseErrorMsg,
   inject,
+  isDrawerOrModalExist,
   ref,
   useRoles,
   useSelectedCellKeyupListener,
-  isDrawerOrModalExist,
   watch,
 } from '#imports'
 
@@ -133,6 +133,11 @@ useSelectedCellKeyupListener(active, (e) => {
   }
 })
 
+// close dropdown list on escape
+useSelectedCellKeyupListener(isOpen, (e) => {
+  if (e.key === 'Escape') isOpen.value = false
+})
+
 async function addIfMissingAndSave() {
   if (!searchVal.value || isPublic.value) return false
 
@@ -224,8 +229,6 @@ onUnmounted(() => {
   cellClickHook?.on(cellClickHookHandler)
 })
 
-
-
 const handleClose = (e: MouseEvent) => {
   if (isOpen.value && aselect.value && !aselect.value.$el.contains(e.target)) {
     isOpen.value = false
@@ -310,7 +313,7 @@ useEventListener(document, 'click', handleClose, true)
   }
 }
 
-:deep(.ant-select-selector){
+:deep(.ant-select-selector) {
   @apply !px-0;
 }
 </style>

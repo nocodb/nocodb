@@ -36,7 +36,12 @@ interface Props {
   useMetaFields?: boolean
   rowId?: string
   view?: ViewType
+  showNextPrevIcons?: boolean
 }
+
+const props = defineProps<Props>()
+
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
 const row = ref(props.row)
 
@@ -138,7 +143,7 @@ export default {
   <a-drawer
     v-model:visible="isExpanded"
     :footer="null"
-    width="min(90vw,1000px)"
+    width="min(90vw,800px)"
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"
@@ -146,7 +151,22 @@ export default {
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
-    <div class="!bg-gray-100 rounded flex-1">
+    <div class="!bg-gray-100 rounded flex-1 relative">
+      <template v-if="props.showNextPrevIcons">
+        <a-tooltip placement="bottom">
+          <template #title>
+            {{ $t('labels.nextRow') }}
+          </template>
+          <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
+        </a-tooltip>
+        <a-tooltip placement="bottom">
+          <template #title>
+            {{ $t('labels.prevRow') }}
+          </template>
+          <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
+        </a-tooltip>
+      </template>
+
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">
@@ -212,5 +232,16 @@ export default {
 .nc-form-wrapper {
   max-height: max(calc(100vh - 65px), 600px);
   height: max-content !important;
+}
+
+.nc-prev-arrow,
+.nc-next-arrow {
+  @apply absolute opacity-70 rounded-full transition-transform transition-background transition-opacity transform bg-white hover:(bg-gray-200) active:(scale-125 opacity-100) text-xl;
+}
+.nc-prev-arrow {
+  @apply left-4 top-4;
+}
+.nc-next-arrow {
+  @apply right-4 top-4;
 }
 </style>

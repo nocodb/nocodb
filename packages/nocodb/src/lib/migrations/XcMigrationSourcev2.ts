@@ -13,7 +13,8 @@ import * as nc_023_map_view from './v2/nc_023_map_view';
 import * as nc_022_qr_code_column_type from './v2/nc_022_qr_code_column_type';
 import * as nc_023_multiple_source from './v2/nc_023_multiple_source';
 import * as nc_024_barcode_column_type from './v2/nc_024_barcode_column_type';
-import * as nc_025_map_view_column from './v2/nc_025_map_view_column';
+import * as nc_025_add_row_height from './v2/nc_025_add_row_height';
+import * as nc_026_map_view_column from './v2/nc_026_map_view_column';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -38,7 +39,8 @@ export default class XcMigrationSourcev2 {
       'nc_022_qr_code_column_type',
       'nc_023_multiple_source',
       'nc_024_barcode_column_type',
-      'nc_025_map_view_column',
+      'nc_025_add_row_height',
+      'nc_026_map_view_column',
     ]);
   }
 
@@ -78,8 +80,10 @@ export default class XcMigrationSourcev2 {
         return nc_023_multiple_source;
       case 'nc_024_barcode_column_type':
         return nc_024_barcode_column_type;
-      case 'nc_025_map_view_column':
-        return nc_025_map_view_column;
+      case 'nc_025_add_row_height':
+        return nc_025_add_row_height;
+      case 'nc_026_map_view_column':
+        return nc_026_map_view_column;
     }
   }
 }

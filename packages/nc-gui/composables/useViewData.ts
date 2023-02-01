@@ -1,9 +1,20 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  Api,
+  AttachmentType,
+  ColumnType,
+  FormColumnType,
+  FormType,
+  GalleryType,
+  PaginatedType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
   NOCO,
+  NavigateDir,
   computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
@@ -18,6 +29,8 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
+  useRoute,
+  useRouter,
   useSharedView,
   useSmartsheetStoreOrThrow,
   useUIPermission,
@@ -43,6 +56,10 @@ export function useViewData(
   const { t } = useI18n()
 
   const { api, isLoading, error } = useApi()
+
+  const router = useRouter()
+
+  const route = useRoute()
 
   const { appInfo } = $(useGlobal())
 
@@ -73,6 +90,12 @@ export function useViewData(
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
   const { isUIAllowed } = useUIPermission()
+
+  const attachmentColumns = computed(() =>
+    (meta.value?.columns as ColumnType[])?.filter((c) => c.uidt === UITypes.Attachment).map((c) => c.title),
+  )
+
+  const routeQuery = $computed(() => route.query as Record<string, string>)
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -178,6 +201,28 @@ export function useViewData(
     }
   }
 
+  // TODO: refactor
+  async function getAttachmentUrl(item: AttachmentType) {
+    const path = item?.path
+    // if path doesn't exist, use `item.url`
+    if (path) {
+      // try ${appInfo.value.ncSiteUrl}/${item.path} first
+      const url = `${appInfo.ncSiteUrl}/${item.path}`
+      try {
+        const res = await fetch(url)
+        if (res.ok) {
+          // use `url` if it is accessible
+          return Promise.resolve(url)
+        }
+      } catch {
+        // for some cases, `url` is not accessible as expected
+        // do nothing here
+      }
+    }
+    // if it fails, use the original url
+    return Promise.resolve(item.url)
+  }
+
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
     if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     const response = !isPublic.value
@@ -189,7 +234,27 @@ export function useViewData(
           where: where?.value,
         })
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
-    formattedData.value = formatData(response.list)
+    // reconstruct the url
+    // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
+    const records = []
+    for (const record of response.list) {
+      for (const attachmentColumn of attachmentColumns.value) {
+        // attachment column can be hidden
+        if (!record[attachmentColumn!]) continue
+        const oldAttachment =
+          typeof record[attachmentColumn!] === 'string' ? JSON.parse(record[attachmentColumn!]) : record[attachmentColumn!]
+        const newAttachment = []
+        for (const attachmentObj of oldAttachment) {
+          newAttachment.push({
+            ...attachmentObj,
+            url: await getAttachmentUrl(attachmentObj),
+          })
+        }
+        record[attachmentColumn!] = newAttachment
+      }
+      records.push(record)
+    }
+    formattedData.value = formatData(records)
     paginationData.value = response.pageInfo
 
     // to cater the case like when querying with a non-zero offset
@@ -446,7 +511,7 @@ export function useViewData(
           order: (fieldById[c.id] && fieldById[c.id].order) || order++,
           id: fieldById[c.id] && fieldById[c.id].id,
         }))
-        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>
+        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
     } catch (e: any) {
       return message.error(`${t('msg.error.setFormDataFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
@@ -466,6 +531,47 @@ export function useViewData(
 
     if (index > -1 && row.rowMeta.new) {
       formattedData.value.splice(index, 1)
+    }
+  }
+
+  const navigateToSiblingRow = async (dir: NavigateDir) => {
+    // get current expanded row index
+    const expandedRowIndex = formattedData.value.findIndex(
+      (row: Row) => routeQuery.rowId === extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+    )
+
+    // calculate next row index based on direction
+    let siblingRowIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+
+    const currentPage = paginationData?.value?.page || 1
+
+    // if next row index is less than 0, go to previous page and point to last element
+    if (siblingRowIndex < 0) {
+      // if first page, do nothing
+      if (currentPage === 1) return message.info(t('msg.info.noMoreRecords'))
+
+      await changePage(currentPage - 1)
+      siblingRowIndex = formattedData.value.length - 1
+
+      // if next row index is greater than total rows in current view
+      // then load next page of formattedData and set next row index to 0
+    } else if (siblingRowIndex >= formattedData.value.length) {
+      if (paginationData?.value?.isLastPage) return message.info(t('msg.info.noMoreRecords'))
+
+      await changePage(currentPage + 1)
+      siblingRowIndex = 0
+    }
+
+    // extract the row id of the sibling row
+    const rowId = extractPkFromRow(formattedData.value[siblingRowIndex].row, meta.value?.columns as ColumnType[])
+
+    if (rowId) {
+      router.push({
+        query: {
+          ...routeQuery,
+          rowId,
+        },
+      })
     }
   }
 
@@ -496,5 +602,6 @@ export function useViewData(
     loadAggCommentsCount,
     removeLastEmptyRow,
     removeRowIfNew,
+    navigateToSiblingRow,
   }
 }

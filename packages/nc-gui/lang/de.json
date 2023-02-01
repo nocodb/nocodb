@@ -111,8 +111,8 @@
       "editor": "Bearbeiter",
       "commenter": "Kommentator",
       "viewer": "Zuschauer",
-      "orgLevelCreator": "Organization Level Creator",
-      "orgLevelViewer": "Organization Level Viewer"
+      "orgLevelCreator": "Organisationsebene Schöpfer",
+      "orgLevelViewer": "Betrachter der Organisationsebene"
     },
     "sqlVIew": "SQL Ansicht"
   },
@@ -206,7 +206,8 @@
     "quickImport": "Schnell Importieren",
     "advancedSettings": "Erweiterte Einstellungen",
     "codeSnippet": "Code Ausschnitt",
-    "keyboardShortcut": "Tastenkürzel"
+    "keyboardShortcut": "Tastenkürzel",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Erstellt von",
@@ -249,10 +250,10 @@
     "sqlOutput": "SQL-Ausgabe",
     "addOption": "Option hinzufügen",
     "qrCodeValueColumn": "Spalte mit QR-Code",
-    "barcodeValueColumn": "Column with Barcode value",
-    "barcodeFormat": "Barcode format",
+    "barcodeValueColumn": "Spalte mit Barcode-Wert",
+    "barcodeFormat": "Barcode-Format",
     "qrCodeValueTooLong": "Zu viele Zeichen für einen QR-Code",
-    "barcodeValueTooLong": "Too many characters for a barcode",
+    "barcodeValueTooLong": "Zu viele Zeichen für einen Barcode",
     "aggregateFunction": "Globale Funktion",
     "dbCreateIfNotExists": "Datenbank: Erstellen, falls nicht vorhanden",
     "clientKey": "Client-Schlüssel",
@@ -278,7 +279,7 @@
     "selectUserRole": "Benutzerrolle auswählen",
     "childTable": "Child-Tabelle",
     "childColumn": "Child-Spalte",
-    "linkToAnotherRecord": "Link to another record",
+    "linkToAnotherRecord": "Link zu einem anderen Datensatz",
     "onUpdate": "Update",
     "onDelete": "Löschen",
     "account": "Benutzerkonto",
@@ -290,15 +291,15 @@
     "apiKey": "API Schlüssel",
     "sharedBase": "Geteilte Basis",
     "importData": "Daten Importieren",
-    "importSecondaryViews": "Import Secondary Views",
-    "importRollupColumns": "Import Rollup Columns",
-    "importLookupColumns": "Import Lookup Columns",
-    "importAttachmentColumns": "Import Attachment Columns",
-    "importFormulaColumns": "Import Formula Columns",
+    "importSecondaryViews": "Sekundäre Ansichten importieren",
+    "importRollupColumns": "Rollup-Spalten importieren",
+    "importLookupColumns": "Suchspalten importieren",
+    "importAttachmentColumns": "Spalten für Anhänge importieren",
+    "importFormulaColumns": "Formelspalten importieren",
     "noData": "Keine Daten",
     "goToDashboard": "Zum Dashboard gehen",
     "importing": "Wird importiert",
-    "flattenNested": "Flatten Nested",
+    "flattenNested": "Verflachen Verschachtelt",
     "downloadAllowed": "Download erlaubt",
     "weAreHiring": "Wir stellen ein!",
     "primaryKey": "Primärschlüssel",
@@ -313,7 +314,9 @@
     "signInWithGoogle": "Mit Google einloggen",
     "agreeToTos": "Mit Ihrer Anmeldung stimmen Sie den allgemeinen Nutzungsbedingungen zu",
     "welcomeToNc": "Willkommen bei NocoDB!",
-    "inviteOnlySignup": "Anmeldung nur über Einladungs-URL zulassen"
+    "inviteOnlySignup": "Anmeldung nur über Einladungs-URL zulassen",
+    "nextRow": "Nächste Reihe",
+    "prevRow": "Vorherige Reihe"
   },
   "activity": {
     "createProject": "Projekt erstellen",
@@ -365,7 +368,7 @@
     "deleteUser": "Benutzer vom Projekt entfernen",
     "resendInvite": "Einladungs-Email erneut versenden",
     "copyInviteURL": "Einladungs-URL kopieren",
-    "copyPasswordResetURL": "Copy password reset URL",
+    "copyPasswordResetURL": "Kopieren Sie die URL zum Zurücksetzen des Passworts",
     "newRole": "Neue Rolle",
     "reloadRoles": "Rollen neu laden",
     "nextPage": "Nächste Seite",
@@ -429,26 +432,26 @@
     "addUserToProject": "Benutzer zum Projekt hinzufügen",
     "getApiSnippet": "zeige API Snippet",
     "clearCell": "Zelle leeren",
-    "addFilterGroup": "Add Filter Group",
-    "linkRecord": "Link record",
-    "addNewRecord": "Add new record",
+    "addFilterGroup": "Filtergruppe hinzufügen",
+    "linkRecord": "Link-Datensatz",
+    "addNewRecord": "Neuen Datensatz hinzufügen",
     "useConnectionUrl": "Verbindungs-URL verwenden",
-    "toggleCommentsDraw": "Toggle comments draw",
-    "expandRecord": "Expand Record",
+    "toggleCommentsDraw": "Kommentare umschalten zeichnen",
+    "expandRecord": "Datensatz erweitern",
     "deleteRecord": "Datensatz löschen",
     "erd": {
       "showColumns": "Spalten anzeigen",
       "showPkAndFk": "Primäre und fremde Schlüssel anzeigen",
       "showSqlViews": "SQL-Ansichten anzeigen",
-      "showMMTables": "Show Many to Many tables",
-      "showJunctionTableNames": "Show Junction Table Names"
+      "showMMTables": "Viele-zu-viele-Tabellen anzeigen",
+      "showJunctionTableNames": "Namen der Kreuzungstabellen anzeigen"
     },
     "kanban": {
       "collapseStack": "Stapel einklappen",
       "deleteStack": "Stapel löschen",
-      "stackedBy": "Stacked By",
-      "chooseGroupingField": "Choose a Grouping Field",
-      "addOrEditStack": "Add / Edit Stack"
+      "stackedBy": "Gestapelt von",
+      "chooseGroupingField": "Wählen Sie ein Gruppierungsfeld",
+      "addOrEditStack": "Stapel hinzufügen / bearbeiten"
     }
   },
   "tooltip": {
@@ -502,18 +505,18 @@
   "msg": {
     "warning": {
       "barcode": {
-        "renderError": "Barcode error - please check compatibility between input and barcode type"
+        "renderError": "Barcode-Fehler - bitte überprüfen Sie die Kompatibilität zwischen Eingabe und Barcode-Typ"
       },
       "nonEditableFields": {
-        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
-        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+        "computedFieldUnableToClear": "Warnung: Berechnetes Feld - Text kann nicht gelöscht werden",
+        "qrFieldsCannotBeDirectlyChanged": "Warnung: QR-Felder können nicht direkt geändert werden."
       }
     },
     "info": {
-      "pasteNotSupported": "Paste operation is not supported on the active cell",
+      "pasteNotSupported": "Der Vorgang Einfügen wird auf der aktiven Zelle nicht unterstützt",
       "roles": {
-        "orgCreator": "Creator can create new projects and access any invited project.",
-        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+        "orgCreator": "Der Ersteller kann neue Projekte erstellen und auf alle eingeladenen Projekte zugreifen.",
+        "orgViewer": "Betrachter können keine neuen Projekte erstellen, aber sie können auf alle eingeladenen Projekte zugreifen."
       },
       "footerInfo": "Zeilen pro Seite",
       "upload": "Datei zum Hochladen auswählen",
@@ -608,15 +611,15 @@
         "credentials": "Wo zu finden?"
       },
       "import": {
-        "clickOrDrag": "Click or drag file to this area to upload"
+        "clickOrDrag": "Klicken oder ziehen Sie die Datei zum Hochladen in diesen Bereich"
       },
-      "metaDataRecreated": "Table metadata recreated successfully",
+      "metaDataRecreated": "Metadaten der Tabelle erfolgreich neu erstellt",
       "invalidCredentials": "Ungültige Anmeldeinformationen",
-      "downloadingMoreFiles": "Downloading more files",
+      "downloadingMoreFiles": "Herunterladen weiterer Dateien",
       "copiedToClipboard": "In die Zwischenablage kopiert",
-      "requriedFieldsCantBeMoved": "Required field can't be moved",
-      "updateNotAllowedWithoutPK": "Update not allowed for table which doesn't have primary key",
-      "autoIncFieldNotEditable": "Auto increment field is not editable",
+      "requriedFieldsCantBeMoved": "Erforderliches Feld kann nicht verschoben werden",
+      "updateNotAllowedWithoutPK": "Update nicht erlaubt für Tabelle ohne Primärschlüssel",
+      "autoIncFieldNotEditable": "Das Feld für die automatische Erhöhung ist nicht editierbar",
       "editingPKnotSupported": "Bearbeiten des Primärschlüssels nicht unterstützt",
       "deletedCache": "Cache erfolgreich gelöscht",
       "cacheEmpty": "Cache ist leer",
@@ -628,9 +631,10 @@
       "deleteViewConfirmation": "Sind Sie sicher, dass Sie diese Ansicht löschen möchten?",
       "deleteTableConfirmation": "Möchten Sie die Tabelle löschen",
       "showM2mTables": "M2M Tabellen anzeigen",
-      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
-      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
+      "deleteKanbanStackConfirmation": "Wenn Sie diesen Stapel löschen, wird auch die Auswahloption \"{stackToBeDeleted}\" von der Seite \"{groupingField}\" entfernt. Die Datensätze werden in den nicht kategorisierten Stapel verschoben.",
+      "computedFieldEditWarning": "Berechnetes Feld: Der Inhalt ist schreibgeschützt. Verwenden Sie das Menü \"Spalten bearbeiten\", um das Feld neu zu konfigurieren.",
+      "computedFieldDeleteWarning": "Berechnetes Feld: Inhalt ist schreibgeschützt. Inhalt kann nicht gelöscht werden.",
+      "noMoreRecords": "Keine weiteren Aufzeichnungen"
     },
     "error": {
       "searchProject": "Ihre Suche nach {search} fand keine Ergebnisse",
@@ -657,25 +661,25 @@
       "internalError": "Interner Fehler aufgetreten",
       "templateGeneratorNotFound": "Template-Generator kann nicht gefunden werden!",
       "fileUploadFailed": "Fehler beim Hochladen der Datei",
-      "primaryColumnUpdateFailed": "Failed to update primary column",
-      "formDescriptionTooLong": "Data too long for Form Description",
-      "columnsRequired": "Following columns are required",
-      "selectAtleastOneColumn": "At least one column has to be selected",
-      "columnDescriptionNotFound": "Cannot find the destination column for",
-      "duplicateMappingFound": "Duplicate mapping found, please remove one of the mapping",
-      "nullValueViolatesNotNull": "Null value violates not-null constraint",
-      "sourceHasInvalidNumbers": "Source data contains some invalid numbers",
-      "sourceHasInvalidBoolean": "Source data contains some invalid boolean values",
+      "primaryColumnUpdateFailed": "Aktualisierung der Primärspalte fehlgeschlagen",
+      "formDescriptionTooLong": "Daten zu lang für Formular Beschreibung",
+      "columnsRequired": "Die folgenden Spalten sind erforderlich",
+      "selectAtleastOneColumn": "Mindestens eine Spalte muss ausgewählt werden",
+      "columnDescriptionNotFound": "Kann die Zielspalte nicht finden für",
+      "duplicateMappingFound": "Doppelte Zuordnung gefunden, bitte entfernen Sie eine der Zuordnungen",
+      "nullValueViolatesNotNull": "Nullwert verstößt gegen Nicht-Null-Beschränkung",
+      "sourceHasInvalidNumbers": "Quelldaten enthalten einige ungültige Zahlen",
+      "sourceHasInvalidBoolean": "Quelldaten enthalten einige ungültige boolesche Werte",
       "invalidForm": "Ungültiges Formular",
-      "formValidationFailed": "Form validation failed",
-      "youHaveBeenSignedOut": "You have been signed out",
-      "failedToLoadList": "Failed to load list",
-      "failedToLoadChildrenList": "Failed to load children list",
+      "formValidationFailed": "Formularüberprüfung fehlgeschlagen",
+      "youHaveBeenSignedOut": "Sie sind abgemeldet worden",
+      "failedToLoadList": "Liste konnte nicht geladen werden",
+      "failedToLoadChildrenList": "Liste der Kinder konnte nicht geladen werden",
       "deleteFailed": "Löschen fehlgeschlagen",
-      "unlinkFailed": "Unlink failed",
-      "rowUpdateFailed": "Row update failed",
+      "unlinkFailed": "Unlink fehlgeschlagen",
+      "rowUpdateFailed": "Zeilenaktualisierung fehlgeschlagen",
       "deleteRowFailed": "Fehler beim Löschen der Zeile",
-      "setFormDataFailed": "Failed to set form data",
+      "setFormDataFailed": "Formulardaten konnten nicht gesetzt werden",
       "formViewUpdateFailed": "Fehler beim Aktualisieren der Formularansicht",
       "tableNameRequired": "Tabellenname ist erforderlich",
       "nameShouldStartWithAnAlphabetOr_": "Name muss mit einem Buchstaben oder _ beginnen",
@@ -685,14 +689,14 @@
       "projectNameCannotStartWithSpace": "Projektname darf nicht mit einem Leerzeichen beginnen",
       "requiredField": "Pflichtfeld",
       "ipNotAllowed": "IP nicht erlaubt",
-      "targetFileIsNotAnAcceptedFileType": "Target file is not an accepted file type",
+      "targetFileIsNotAnAcceptedFileType": "Zieldatei ist kein akzeptierter Dateityp",
       "theAcceptedFileTypeIsCsv": "Der akzeptierte Dateityp ist .csv",
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Die akzeptierten Dateitypen sind .xls, .xlsx, .xlsm, .ods, .ots",
-      "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
-      "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty.",
-      "projectNotAccessible": "Project not accessible",
-      "copyToClipboardError": "Failed to copy to clipboard"
+      "parameterKeyCannotBeEmpty": "Parameterschlüssel darf nicht leer sein",
+      "duplicateParameterKeysAreNotAllowed": "Doppelte Parameterschlüssel sind nicht erlaubt",
+      "fieldRequired": "{value} kann nicht leer sein.",
+      "projectNotAccessible": "Projekt nicht zugänglich",
+      "copyToClipboardError": "Kopieren in die Zwischenablage fehlgeschlagen"
     },
     "toast": {
       "exportMetadata": "Projektmetadaten erfolgreich exportiert",
@@ -712,39 +716,39 @@
       "futureRelease": "Kommt bald!"
     },
     "success": {
-      "columnDuplicated": "Column duplicated successfully",
-      "updatedUIACL": "Updated UI ACL for tables successfully",
+      "columnDuplicated": "Spalte erfolgreich dupliziert",
+      "updatedUIACL": "UI ACL für Tabellen erfolgreich aktualisiert",
       "pluginUninstalled": "Plugin erfolgreich deinstalliert",
       "pluginSettingsSaved": "Plugin-Einstellungen erfolgreich gespeichert",
       "pluginTested": "Plugin-Einstellungen erfolgreich getestet",
       "tableRenamed": "Tabelle erfolgreich umbenannt",
       "viewDeleted": "Ansicht erfolgreich gelöscht",
-      "primaryColumnUpdated": "Successfully updated as primary column",
-      "tableDataExported": "Successfully exported all table data",
-      "updated": "Successfully updated",
-      "sharedViewDeleted": "Deleted shared view successfully",
-      "userDeleted": "User deleted successfully",
+      "primaryColumnUpdated": "Erfolgreich als Primärspalte aktualisiert",
+      "tableDataExported": "Erfolgreich alle Tabellendaten exportiert",
+      "updated": "Erfolgreich aktualisiert",
+      "sharedViewDeleted": "Gemeinsame Ansicht erfolgreich gelöscht",
+      "userDeleted": "Benutzer erfolgreich gelöscht",
       "viewRenamed": "Ansicht erfolgreich umbenannt",
       "tokenGenerated": "Token erfolgreich generiert",
       "tokenDeleted": "Token erfolgreich gelöscht",
       "userAddedToProject": "Benutzer erfolgreich zum Projekt hinzugefügt",
-      "userAdded": "Successfully added user",
+      "userAdded": "Erfolgreich hinzugefügter Benutzer",
       "userDeletedFromProject": "Benutzer erfolgreich aus dem Projekt gelöscht",
       "inviteEmailSent": "Einladungs-E-Mail erfolgreich gesendet",
       "inviteURLCopied": "Einladungslink wurde in Zwischenablage kopiert",
-      "passwordResetURLCopied": "Password reset URL copied to clipboard",
-      "shareableURLCopied": "Copied shareable base URL to clipboard!",
-      "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
+      "passwordResetURLCopied": "URL zum Zurücksetzen des Passworts in die Zwischenablage kopiert",
+      "shareableURLCopied": "Kopieren Sie die Basis-URL für die Freigabe in die Zwischenablage!",
+      "embeddableHTMLCodeCopied": "Kopierter, einbettbarer HTML-Code!",
       "userDetailsUpdated": "Benutzerdaten erfolgreich aktualisiert",
-      "tableDataImported": "Successfully imported table data",
-      "webhookUpdated": "Webhook details updated successfully",
-      "webhookDeleted": "Hook deleted successfully",
-      "webhookTested": "Webhook tested successfully",
+      "tableDataImported": "Erfolgreich importierte Tabellendaten",
+      "webhookUpdated": "Webhook-Details erfolgreich aktualisiert",
+      "webhookDeleted": "Haken erfolgreich gelöscht",
+      "webhookTested": "Webhook erfolgreich getestet",
       "columnUpdated": "Spalte aktualisiert",
       "columnCreated": "Spalte erstellt",
       "passwordChanged": "Kennwort erfolgreich geändert. Bitte melden Sie sich erneut an.",
-      "settingsSaved": "Settings saved successfully",
-      "roleUpdated": "Role updated successfully"
+      "settingsSaved": "Einstellungen erfolgreich gespeichert",
+      "roleUpdated": "Rolle erfolgreich aktualisiert"
     }
   }
 }

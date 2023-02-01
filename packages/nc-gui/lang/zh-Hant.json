@@ -205,7 +205,8 @@
     "quickImport": "快速匯入",
     "advancedSettings": "進階設定",
     "codeSnippet": "程式碼片段",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",
@@ -312,7 +313,9 @@
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
-    "inviteOnlySignup": "只接受使用邀請連結進行註冊"
+    "inviteOnlySignup": "只接受使用邀請連結進行註冊",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "建立專案",
@@ -629,7 +632,8 @@
       "showM2mTables": "顯示多對多資料表",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "您的搜尋 {search} 找不到結果",

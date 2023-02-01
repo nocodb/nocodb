@@ -1,21 +1,31 @@
 import { expect } from '@playwright/test';
-import { SettingsPage } from '.';
-import BasePage from '../../Base';
+import BasePage from '../Base';
+import { AccountPage } from './index';
 
-export class AppStoreSettingsPage extends BasePage {
-  private readonly settings: SettingsPage;
+export class AccountAppStorePage extends BasePage {
+  private accountPage: AccountPage;
 
-  constructor(settings: SettingsPage) {
-    super(settings.rootPage);
-    this.settings = settings;
+  constructor(accountPage: AccountPage) {
+    super(accountPage.rootPage);
+    this.accountPage = accountPage;
+  }
+
+  async goto() {
+    await this.rootPage.goto('/#/account/apps', { waitUntil: 'networkidle' });
+  }
+
+  async waitUntilContentLoads() {
+    return this.rootPage.waitForResponse(
+      resp => resp.url().includes('api/v1/db/meta/plugins') && resp.status() === 200
+    );
   }
 
   get() {
-    return this.settings.get().locator(`[data-testid="nc-settings-subtab-appStore"]`);
+    return this.accountPage.get().locator(`[data-testid="nc-settings-subtab-appStore"]`);
   }
 
   async install({ name }: { name: string }) {
-    const card = await this.settings.get().locator(`.nc-app-store-card-${name}`);
+    const card = await this.accountPage.get().locator(`.nc-app-store-card-${name}`);
     await card.click();
 
     // todo: Hack to solve the issue when if the test installing a plugin fails, the next test will fail because the plugin is already installed
@@ -48,7 +58,7 @@ export class AppStoreSettingsPage extends BasePage {
   }
 
   async uninstall(param: { name: string }) {
-    const card = this.settings.get().locator(`.nc-app-store-card-${param.name}`);
+    const card = this.accountPage.get().locator(`.nc-app-store-card-${param.name}`);
 
     // await card.scrollIntoViewIfNeeded();
     await card.click();

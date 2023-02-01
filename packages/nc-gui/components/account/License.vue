@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { useNuxtApp } from '#app'
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, useApi } from '#imports'
+import { extractSdkResponseErrorMsg, useApi, useGlobal } from '#imports'
 
 const { api, isLoading } = useApi()
 
-const {$e} = useNuxtApp()
+const { $e } = useNuxtApp()
+
+const { loadAppInfo } = useGlobal()
 
 let key = $ref('')
 
@@ -22,6 +24,7 @@ const setLicense = async () => {
   try {
     await api.orgLicense.set({ key: key })
     message.success('License key updated')
+    await loadAppInfo()
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -29,17 +32,16 @@ const setLicense = async () => {
 }
 
 loadLicense()
-
 </script>
 
 <template>
   <div class="h-full overflow-y-scroll scrollbar-thin-dull">
     <div class="text-xl mt-4 mb-8 text-center font-weight-bold">License</div>
     <div class="mx-auto w-150">
-    <div>
-      <a-textarea v-model:value="key" placeholder="License key" class="!mt-2 !max-w-[600px]"></a-textarea>
-    </div>
-   <div class="text-center"> <a-button class="mt-4" @click="setLicense" type="primary">Save license key</a-button></div>
+      <div>
+        <a-textarea v-model:value="key" placeholder="License key" class="!mt-2 !max-w-[600px]"></a-textarea>
+      </div>
+      <div class="text-center"><a-button class="mt-4" @click="setLicense" type="primary">Save license key</a-button></div>
     </div>
   </div>
 </template>

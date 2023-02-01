@@ -12,6 +12,7 @@ import { Tele } from 'nc-help';
 import extractProjectIdAndAuthenticate from '../helpers/extractProjectIdAndAuthenticate';
 import catchError, { NcError } from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
+import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
@@ -41,7 +42,6 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
   NcError.badRequest('Upload not allowed');
 };
 
-// const storageAdapter = new Local();
 export async function upload(req: Request, res: Response) {
   const filePath = sanitizeUrlPath(
     req.query?.path?.toString()?.split('/') || ['']
@@ -49,23 +49,28 @@ export async function upload(req: Request, res: Response) {
   const destPath = path.join('nc', 'uploads', ...filePath);
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
   const attachments = await Promise.all(
     (req as any).files?.map(async (file) => {
-      const fileName = `${nanoid(6)}${path.extname(file.originalname)}`;
+      const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
 
       let url = await storageAdapter.fileCreate(
         slash(path.join(destPath, fileName)),
         file
       );
 
+      let attachmentPath;
+
+      // if `url` is null, then it is local attachment
       if (!url) {
-        url = `${(req as any).ncSiteUrl}/download/${filePath.join(
-          '/'
-        )}/${fileName}`;
+        // then store the attachement path only
+        // url will be constructued in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 
       return {
-        url,
+        ...(url ? { url } : {}),
+        ...(attachmentPath ? { path: attachmentPath } : {}),
         title: file.originalname,
         mimetype: file.mimetype,
         size: file.size,
@@ -86,24 +91,30 @@ export async function uploadViaURL(req: Request, res: Response) {
   const destPath = path.join('nc', 'uploads', ...filePath);
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
   const attachments = await Promise.all(
     req.body?.map?.(async (urlMeta) => {
       const { url, fileName: _fileName } = urlMeta;
-      const fileName = `${nanoid(6)}${_fileName || url.split('/').pop()}`;
+
+      const fileName = `${nanoid(18)}${_fileName || url.split('/').pop()}`;
 
       let attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
         slash(path.join(destPath, fileName)),
         url
       );
 
+      let attachmentPath;
+
+      // if `attachmentUrl` is null, then it is local attachment
       if (!attachmentUrl) {
-        attachmentUrl = `${(req as any).ncSiteUrl}/download/${filePath.join(
-          '/'
-        )}/${fileName}`;
+        // then store the attachement path only
+        // url will be constructued in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 
       return {
-        url: attachmentUrl,
+        ...(attachmentUrl ? { url: attachmentUrl } : {}),
+        ...(attachmentPath ? { path: attachmentPath } : {}),
         title: fileName,
         mimetype: urlMeta.mimetype,
         size: urlMeta.size,
@@ -119,12 +130,12 @@ export async function uploadViaURL(req: Request, res: Response) {
 
 export async function fileRead(req, res) {
   try {
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
-    // const type = mimetypes[path.extname(req.s.fileName).slice(1)] || 'text/plain';
+    // get the local storage adapter to display local attachments
+    const storageAdapter = new Local();
     const type =
       mimetypes[path.extname(req.params?.[0]).split('/').pop().slice(1)] ||
       'text/plain';
-    // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
+
     const img = await storageAdapter.fileRead(
       slash(
         path.join(
@@ -192,6 +203,7 @@ router.post(
     catchError(upload),
   ]
 );
+
 router.post(
   '/api/v1/db/storage/upload-by-url',
 
@@ -201,6 +213,7 @@ router.post(
     catchError(uploadViaURL),
   ]
 );
+
 router.get(/^\/download\/(.+)$/, catchError(fileRead));
 
 export default router;

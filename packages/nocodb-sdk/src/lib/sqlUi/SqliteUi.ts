@@ -788,9 +788,8 @@ export class SqliteUi {
         colProp.dt = 'text';
         break;
       case 'Checkbox':
-        // colProp.dt = 'tinyint';
-        // colProp.dtxp = 1;
         colProp.dt = 'boolean';
+        colProp.cdf = '0';
         break;
       case 'MultiSelect':
         colProp.dt = 'text';
@@ -857,6 +856,7 @@ export class SqliteUi {
         break;
       case 'Rating':
         colProp.dt = 'integer';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'varchar';

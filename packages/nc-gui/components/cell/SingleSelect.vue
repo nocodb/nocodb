@@ -1,10 +1,12 @@
 <script lang="ts" setup>
+import { onUnmounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
+  CellClickHookInj,
   ColumnInj,
   EditModeInj,
   IsFormInj,
@@ -180,19 +182,6 @@ const search = () => {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
 
-const toggleMenu = (e: Event) => {
-  // todo: refactor
-  // check clicked element is clear icon
-  if (
-    (e.target as HTMLElement)?.classList.contains('ant-select-clear') ||
-    (e.target as HTMLElement)?.closest('.ant-select-clear')
-  ) {
-    vModel.value = ''
-    return
-  }
-  isOpen.value = editAllowed.value && !isOpen.value
-}
-
 // prevent propagation of keydown event if select is open
 const onKeydown = (e: KeyboardEvent) => {
   if (isOpen.value && (active.value || editable.value)) {
@@ -206,6 +195,33 @@ const onKeydown = (e: KeyboardEvent) => {
 const onSelect = () => {
   isOpen.value = false
 }
+
+const cellClickHook = inject(CellClickHookInj)
+
+const toggleMenu = (e: Event) => {
+  if (cellClickHook) return
+
+  // todo: refactor
+  // check clicked element is clear icon
+  if (
+    (e.target as HTMLElement)?.classList.contains('ant-select-clear') ||
+    (e.target as HTMLElement)?.closest('.ant-select-clear')
+  ) {
+    vModel.value = ''
+    return
+  }
+  isOpen.value = editAllowed.value && !isOpen.value
+}
+
+const cellClickHookHandler = () => {
+  isOpen.value = editAllowed.value && !isOpen.value
+}
+onMounted(() => {
+  cellClickHook?.on(cellClickHookHandler)
+})
+onUnmounted(() => {
+  cellClickHook?.on(cellClickHookHandler)
+})
 </script>
 
 <template>

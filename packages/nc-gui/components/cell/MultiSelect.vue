@@ -273,7 +273,6 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-
 const cellClickHook = inject(CellClickHookInj)
 
 const toggleMenu = () => {

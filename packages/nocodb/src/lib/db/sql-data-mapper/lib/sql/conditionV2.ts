@@ -396,7 +396,9 @@ const parseConditionV2 = async (
             else if (filter.value === 'empty')
               qb = qb.where(customWhereClause || field, '');
             else if (filter.value === 'notempty')
-              qb = qb.whereNot(customWhereClause || field, '');
+              qb = qb
+                .whereNot(customWhereClause || field, '')
+                .orWhereNull(field);
             else if (filter.value === 'true')
               qb = qb.where(customWhereClause || field, true);
             else if (filter.value === 'false')

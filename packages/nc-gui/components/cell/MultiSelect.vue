@@ -289,7 +289,7 @@ const onTagClick = (e: Event, onClose: Function) => {
       :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel.length === 0))"
       :open="isOpen && (active || editable)"
       @update:open="isOpen = $event"
-      :disabled="readOnly"
+      :disabled="readOnly || !(active || editable)"
       :class="{ '!ml-[-8px]': readOnly, 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
       @search="search"

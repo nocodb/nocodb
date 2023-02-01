@@ -252,9 +252,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         theme="light"
       >
         <div
-          style="height: var(--header-height)"
+          style="height: var(--header-height); border-bottom-width: 1px"
           :class="isOpen ? 'pl-4' : ''"
-          class="flex items-center !bg-primary text-white px-1 gap-1"
+          class="flex items-center !bg-white-500  text-primary px-1 gap-1 border-gray-200"
         >
           <div
             v-if="isOpen && !isSharedBase"
@@ -267,7 +267,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
             </a-tooltip>
           </div>
 

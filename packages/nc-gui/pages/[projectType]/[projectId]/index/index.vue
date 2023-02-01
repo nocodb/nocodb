@@ -31,7 +31,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div class="flex items-end !min-h-[var(--header-height)] !bg-primary nc-tab-bar">
+      <div class="flex items-end !min-h-[var(--header-height)] !bg-white-500 nc-tab-bar border-gray-200" style="border-bottom-width: 1px">
         <div
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
@@ -112,19 +112,27 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
     }
 
     & > .ant-tabs-nav-wrap > .ant-tabs-nav-list {
-      & > .ant-tabs-tab-active {
-        @apply font-weight-medium;
-      }
 
       & > .ant-tabs-tab {
-        @apply border-0;
+        @apply border-0 !text-sm py-1.5 font-weight-medium ml-1;
+        border-top-right-radius: 8px;
+        border-top-left-radius: 8px;
+        border-top: 2px solid white;
+        border-left: 2px solid white;
+        border-right: 2px solid white;
       }
+
+      & > .ant-tabs-tab-active {
+        @apply  relative bg-primary bg-opacity-20 w-full h-full;
+        border-color: currentColor;
+      }
+
 
       & > .ant-tabs-tab:not(.ant-tabs-tab-active) {
         //@apply bg-gray-100 text-gray-500;
-        @apply bg-white/10 text-white/90;
+        @apply bg-gray-100 text-gray-500 border-gray-100;
         .ant-tabs-tab-remove {
-          @apply !text-white;
+          //@apply !text-default;
         }
       }
     }

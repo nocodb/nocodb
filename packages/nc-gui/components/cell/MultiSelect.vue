@@ -114,13 +114,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql(column.value.base_id)
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el) => el.title === a)
-            const opb = options.value.find((el) => el.title === b)
-            if (opa && opb) {
-              return opa.order! - opb.order!
-            }
-            return 0
-          })
+          const opa = options.value.find((el) => el.title === a)
+          const opb = options.value.find((el) => el.title === b)
+          if (opa && opb) {
+            return opa.order! - opb.order!
+          }
+          return 0
+        })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -233,7 +233,7 @@ async function addIfMissingAndSave() {
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
         if (!isMysql(column.value.base_id)) {
-          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
+          updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, '\'')
         }
       }
 
@@ -276,32 +276,33 @@ const onTagClick = (e: Event, onClose: Function) => {
 </script>
 
 <template>
-  <a-select
-    ref="aselect"
-    v-model:value="vModel"
-    v-model:open="isOpen"
-    mode="multiple"
-    class="w-full overflow-hidden"
-    :bordered="false"
-    clear-icon
-    show-search
-    :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel.length === 0))"
-    :open="isOpen && (active || editable)"
-    :disabled="readOnly"
-    :class="{ '!ml-[-8px]': readOnly, 'caret-transparent': !hasEditRoles }"
-    :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
-    @search="search"
-    @keydown.stop
-    @click="isOpen = editAllowed && !isOpen"
-  >
-    <a-select-option
-      v-for="op of options"
-      :key="op.id || op.title"
-      :value="op.title"
-      :data-testid="`select-option-${column.title}-${rowIndex}`"
-      @click.stop
+  <div class="nc-multi-select h-full w-full flex items-center"
+       @click="isOpen = editAllowed && !isOpen" :class="{ 'read-only': readOnly }">
+    <a-select
+      ref="aselect"
+      v-model:value="vModel"
+      mode="multiple"
+      class="w-full overflow-hidden"
+      :bordered="false"
+      clear-icon
+      show-search
+      :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel.length === 0))"
+      :open="isOpen && (active || editable)"
+      @update:open="isOpen = $event"
+      :disabled="readOnly"
+      :class="{ '!ml-[-8px]': readOnly, 'caret-transparent': !hasEditRoles }"
+      :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
+      @search="search"
+      @keydown.stop
     >
-      <a-tag class="rounded-tag" :color="op.color">
+      <a-select-option
+        v-for="op of options"
+        :key="op.id || op.title"
+        :value="op.title"
+        :data-testid="`select-option-${column.title}-${rowIndex}`"
+        @click.stop
+      >
+        <a-tag class="rounded-tag" :color="op.color">
         <span
           :style="{
             'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -313,33 +314,33 @@ const onTagClick = (e: Event, onClose: Function) => {
         >
           {{ op.title }}
         </span>
-      </a-tag>
-    </a-select-option>
+        </a-tag>
+      </a-select-option>
 
-    <a-select-option
-      v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
-      :key="searchVal"
-      :value="searchVal"
-    >
-      <div class="flex gap-2 text-gray-500 items-center h-full">
-        <MdiPlusThick class="min-w-4" />
-        <div class="text-xs whitespace-normal">
-          Create new option named <strong>{{ searchVal }}</strong>
-        </div>
-      </div>
-    </a-select-option>
-
-    <template #tagRender="{ value: val, onClose }">
-      <a-tag
-        v-if="options.find((el) => el.title === val)"
-        class="rounded-tag nc-selected-option"
-        :style="{ display: 'flex', alignItems: 'center' }"
-        :color="options.find((el) => el.title === val)?.color"
-        :closable="editAllowed && (active || editable) && (vModel.length > 1 || !column?.rqd)"
-        :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
-        @click="onTagClick($event, onClose)"
-        @close="onClose"
+      <a-select-option
+        v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
+        :key="searchVal"
+        :value="searchVal"
       >
+        <div class="flex gap-2 text-gray-500 items-center h-full">
+          <MdiPlusThick class="min-w-4" />
+          <div class="text-xs whitespace-normal">
+            Create new option named <strong>{{ searchVal }}</strong>
+          </div>
+        </div>
+      </a-select-option>
+
+      <template #tagRender="{ value: val, onClose }">
+        <a-tag
+          v-if="options.find((el) => el.title === val)"
+          class="rounded-tag nc-selected-option"
+          :style="{ display: 'flex', alignItems: 'center' }"
+          :color="options.find((el) => el.title === val)?.color"
+          :closable="editAllowed && (active || editable) && (vModel.length > 1 || !column?.rqd)"
+          :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
+          @click="onTagClick($event, onClose)"
+          @close="onClose"
+        >
         <span
           :style="{
             'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
@@ -356,9 +357,10 @@ const onTagClick = (e: Event, onClose: Function) => {
         >
           {{ val }}
         </span>
-      </a-tag>
-    </template>
-  </a-select>
+        </a-tag>
+      </template>
+    </a-select>
+  </div>
 </template>
 
 <style scoped>

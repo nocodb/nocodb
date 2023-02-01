@@ -15,15 +15,15 @@ import {
   extractSdkResponseErrorMsg,
   h,
   inject,
+  isDrawerOrModalExist,
   onMounted,
   reactive,
   ref,
+  useEventListener,
   useMetas,
   useProject,
-  useEventListener,
   useRoles,
   useSelectedCellKeyupListener,
-  isDrawerOrModalExist,
   watch,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
@@ -286,10 +286,14 @@ onUnmounted(() => {
   cellClickHook?.on(cellClickHookHandler)
 })
 
-
-
 const handleClose = (e: MouseEvent) => {
-  if (isOpen.value && aselect.value && !aselect.value.$el.contains(e.target)) {
+  // close dropdown if clicked outside of dropdown
+  if (
+    isOpen.value &&
+    aselect.value &&
+    !aselect.value.$el.contains(e.target) &&
+    !document.querySelector('.nc-dropdown-multi-select-cell')?.contains(e.target as Node)
+  ) {
     isOpen.value = false
   }
 }

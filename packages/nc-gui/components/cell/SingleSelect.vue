@@ -224,6 +224,8 @@ onUnmounted(() => {
   cellClickHook?.on(cellClickHookHandler)
 })
 
+
+
 const handleClose = (e: MouseEvent) => {
   if (isOpen.value && aselect.value && !aselect.value.$el.contains(e.target)) {
     isOpen.value = false

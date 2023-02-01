@@ -127,12 +127,6 @@ const selectedTitles = computed(() =>
     : [],
 )
 
-const handleClose = (e: MouseEvent) => {
-  if (aselect.value && !aselect.value.$el.contains(e.target)) {
-    isOpen.value = false
-  }
-}
-
 onMounted(() => {
   selectedIds.value = selectedTitles.value.flatMap((el) => {
     const item = options.value.find((op) => op.title === el)

@@ -254,7 +254,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <div
           style="height: var(--header-height); border-bottom-width: 1px"
           :class="isOpen ? 'pl-4' : ''"
-          class="flex items-center !bg-white-500 text-primary px-1 gap-1 border-gray-200 nc-sidebar-header"
+          class="flex items-center !bg-white-500 text-primary px-1 gap-1 border-gray-150 nc-sidebar-header"
         >
           <div
             v-if="isOpen && !isSharedBase"

@@ -374,6 +374,8 @@ export function useMultiSelect(
     }
   }
 
+  const resetSelectedRange = () => selectedRange.clear()
+
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
   useEventListener(document, 'keydown', handleKeyDown)
@@ -389,5 +391,6 @@ export function useMultiSelect(
     activeCell,
     handleCellClick,
     tbodyEl,
+    resetSelectedRange,
   }
 }

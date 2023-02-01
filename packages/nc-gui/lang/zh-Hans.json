@@ -432,7 +432,7 @@
     "getApiSnippet": "生成代码",
     "clearCell": "清除单元格内容",
     "addFilterGroup": "添加筛选器组",
-    "linkRecord": "链接记录",
+    "linkRecord": "关联到其他记录",
     "addNewRecord": "新增记录",
     "useConnectionUrl": "使用连接 URL",
     "toggleCommentsDraw": "切换评论视图",

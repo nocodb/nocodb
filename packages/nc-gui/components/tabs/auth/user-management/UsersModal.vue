@@ -174,7 +174,7 @@ watch(
     :closable="false"
     width="max(50vw, 44rem)"
     wrap-class-name="nc-modal-invite-user-and-share-base"
-    @cancel="close()"
+    @cancel="close"
   >
     <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
@@ -184,7 +184,7 @@ watch(
           type="text"
           class="!rounded-md mr-1 -mt-1.5"
           data-testid="invite-user-and-share-base-modal-close-btn"
-          @click="close()"
+          @click="close"
         >
           <template #icon>
             <MaterialSymbolsCloseRounded class="flex mx-auto" />

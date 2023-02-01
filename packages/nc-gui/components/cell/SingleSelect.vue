@@ -195,6 +195,9 @@ const onKeydown = (e: KeyboardEvent) => {
   if (isOpen.value && (active.value || editable.value)) {
     e.stopPropagation()
   }
+  if (e.key === 'Enter') {
+    e.stopPropagation()
+  }
 }
 </script>
 

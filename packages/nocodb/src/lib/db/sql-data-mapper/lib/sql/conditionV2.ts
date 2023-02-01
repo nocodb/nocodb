@@ -284,21 +284,28 @@ const parseConditionV2 = async (
             });
             break;
           case 'like':
-            if (column.uidt === UITypes.Formula) {
-              [field, val] = [val, field];
-              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
+            if (!val) {
+              // val is empty -> all values including empty strings but NULL
+              qb.where(field, '');
+              qb.orWhereNotNull(field);
             } else {
-              val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
-            }
-            if (qb?.client?.config?.client === 'pg') {
-              qb = qb.whereRaw('??::text ilike ?', [field, val]);
-            } else {
-              qb = qb.where(field, 'like', val);
+              if (column.uidt === UITypes.Formula) {
+                [field, val] = [val, field];
+                val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
+              } else {
+                val =
+                  val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+              }
+              if (qb?.client?.config?.client === 'pg') {
+                qb = qb.whereRaw('??::text ilike ?', [field, val]);
+              } else {
+                qb = qb.where(field, 'like', val);
+              }
             }
             break;
           case 'nlike':
             if (!val) {
-              // val is empty -> include all values but empty strings
+              // val is empty -> all values including NULL but empty strings
               qb.whereNot(field, '');
               qb.orWhereNull(field);
             } else {

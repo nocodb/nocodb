@@ -70,8 +70,8 @@
     "moreInfo": "点击此处了解更多信息。",
     "logs": "日志",
     "groupingField": "分组字段",
-    "insertAfter": "Insert After",
-    "insertBefore": "Insert Before",
+    "insertAfter": "在右侧插入列",
+    "insertBefore": "在左侧插入列",
     "hideField": "隐藏字段",
     "sortAsc": "升序",
     "sortDesc": "降序"
@@ -86,7 +86,7 @@
     "column": "列",
     "columns": "列",
     "page": "页",
-    "pages": "页面",
+    "pages": "页",
     "record": "记录",
     "records": "记录",
     "webhook": "Webhook.",
@@ -176,8 +176,8 @@
     "personalView": "个人视图",
     "appStore": "软件商店",
     "teamAndAuth": "团队和认证",
-    "rolesUserMgmt": "权限和成员管理",
-    "userMgmt": "成员管理",
+    "rolesUserMgmt": "角色和用户管理",
+    "userMgmt": "用户管理",
     "apiTokenMgmt": "API 令牌管理",
     "rolesMgmt": "角色管理",
     "projMeta": "项目基础信息",
@@ -275,10 +275,10 @@
       "followNocodb": "关注 NocoDB"
     },
     "docReference": "参考文档",
-    "selectUserRole": "选择成员权限",
+    "selectUserRole": "选择用户角色",
     "childTable": "子表",
     "childColumn": "子列",
-    "linkToAnotherRecord": "Link to another record",
+    "linkToAnotherRecord": "关联到其他表",
     "onUpdate": "更新时",
     "onDelete": "删除时",
     "account": "帐户",
@@ -291,8 +291,8 @@
     "sharedBase": "分享项目",
     "importData": "导入数据",
     "importSecondaryViews": "导入次要视图",
-    "importRollupColumns": "Import Rollup Columns",
-    "importLookupColumns": "Import Lookup Columns",
+    "importRollupColumns": "导入聚合列",
+    "importLookupColumns": "导入查询列",
     "importAttachmentColumns": "导入附件列",
     "importFormulaColumns": "导入公式列",
     "noData": "暂无数据",
@@ -314,8 +314,8 @@
     "agreeToTos": "注册即表明您同意服务条款",
     "welcomeToNc": "欢迎来到NocoDB！",
     "inviteOnlySignup": "只能通过邀请链接注册账户",
-    "nextRow": "Next Row",
-    "prevRow": "Previous Row"
+    "nextRow": "下一行",
+    "prevRow": "上一行"
   },
   "activity": {
     "createProject": "创建项目",
@@ -328,7 +328,7 @@
     "deleteProject": "删除项目",
     "refreshProject": "刷新项目",
     "saveProject": "保存项目",
-    "deleteKanbanStack": "Delete stack?",
+    "deleteKanbanStack": "是否删除此类别？",
     "createProjectExtended": {
       "extDB": "新建 <br>从外部数据库",
       "excel": "从 Excel 创建项目",
@@ -360,14 +360,14 @@
     "invite": "邀请",
     "inviteMore": "邀请更多",
     "inviteTeam": "邀请团队",
-    "inviteUser": "邀请新成员",
+    "inviteUser": "邀请用户",
     "inviteToken": "邀请令牌",
-    "newUser": "新用户",
-    "editUser": "编辑成员",
-    "deleteUser": "从项目中踢出成员",
+    "newUser": "创建用户",
+    "editUser": "编辑用户",
+    "deleteUser": "从项目中踢出用户",
     "resendInvite": "重新发送邀请邮件",
     "copyInviteURL": "复制邀请链接",
-    "copyPasswordResetURL": "Copy password reset URL",
+    "copyPasswordResetURL": "复制密码重置网址",
     "newRole": "新建权限组",
     "reloadRoles": "重新加载权限组",
     "nextPage": "下一页",
@@ -384,7 +384,7 @@
     "addRow": "添加新行",
     "saveRow": "保存行",
     "saveAndExit": "保存并退出",
-    "saveAndStay": "Save & Stay",
+    "saveAndStay": "保存并留在此页",
     "insertRow": "插入新行",
     "deleteRow": "删除行",
     "deleteSelectedRow": "删除所选行",
@@ -428,7 +428,7 @@
     "editConnJson": "编辑链接 JSON",
     "sponsorUs": "赞助我们",
     "sendEmail": "发送邮件",
-    "addUserToProject": "添加成员到项目",
+    "addUserToProject": "添加用户到项目",
     "getApiSnippet": "生成代码",
     "clearCell": "清除单元格内容",
     "addFilterGroup": "添加筛选器组",
@@ -446,11 +446,11 @@
       "showJunctionTableNames": "显示关联表名称"
     },
     "kanban": {
-      "collapseStack": "Collapse Stack",
-      "deleteStack": "Delete Stack",
-      "stackedBy": "Stacked By",
+      "collapseStack": "折叠此类别",
+      "deleteStack": "删除此类别",
+      "stackedBy": "分类依据为",
       "chooseGroupingField": "选择分组字段",
-      "addOrEditStack": "Add / Edit Stack"
+      "addOrEditStack": "添加/编辑分类标签"
     }
   },
   "tooltip": {
@@ -464,7 +464,7 @@
       "light": "它是黑色吗？ （^⇧b）"
     },
     "addTable": "添加新表",
-    "inviteMore": "邀请更多成员",
+    "inviteMore": "邀请更多用户",
     "toggleNavDraw": "切换导航抽屉",
     "reloadApiToken": "重新加载API令牌",
     "generateNewApiToken": "生成新的 API 令牌",
@@ -504,7 +504,7 @@
   "msg": {
     "warning": {
       "barcode": {
-        "renderError": "Barcode error - please check compatibility between input and barcode type"
+        "renderError": "条形码错误 - 请注意输入数据和条形码类型之间的兼容性"
       },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
@@ -514,8 +514,8 @@
     "info": {
       "pasteNotSupported": "Paste operation is not supported on the active cell",
       "roles": {
-        "orgCreator": "Creator can create new projects and access any invited project.",
-        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+        "orgCreator": "创始人可以创建新项目，访问受邀项目。",
+        "orgViewer": "游客不能创建新项目，仅允许访问受邀项目。"
       },
       "footerInfo": "每页行驶",
       "upload": "选择文件以上传",
@@ -535,7 +535,7 @@
       "deleteProject": "你想删除这个项目吗？",
       "shareBasePrivate": "产生公开共享的只读基础",
       "shareBasePublic": "互联网上的任何人都可以查看",
-      "userInviteNoSMTP": "看起来你还没有配置邮件！请复制上面的邀请链接并将其发送给",
+      "userInviteNoSMTP": "你还没有配置邮箱！请复制上面的邀请链接并将其发送给",
       "dragDropHide": "在此处拖放字段以隐藏",
       "formInput": "输入表单输入标签",
       "formHelpText": "添加一些帮助文本",
@@ -563,7 +563,7 @@
       "editorDesc": "可以编辑记录但无法更改数据库/字段的结构。",
       "commenterDesc": "可以查看和评论，但无法编辑任何内容",
       "viewerDesc": "可以查看记录但无法编辑任何内容",
-      "addUser": "添加新成员",
+      "addUser": "添加新用户",
       "staticRoleInfo": "不允许修改系统权限",
       "exportZip": "以 zip 格式下载项目元数据。",
       "importZip": "导入 zip 格式的项目元数据并重新启动。",
@@ -602,7 +602,7 @@
         "calendar": "添加日历视图"
       },
       "tablesMetadataInSync": "表元数据同步",
-      "addMultipleUsers": "您可以添加多个逗号（，）分隔的电子邮件",
+      "addMultipleUsers": "可以使用多个英文逗号 (,) 分隔邮箱地址",
       "enterTableName": "输入表名",
       "addDefaultColumns": "添加默认列",
       "tableNameInDb": "数据库中保存的表名",
@@ -630,17 +630,17 @@
       "deleteViewConfirmation": "您确定要删除此视图？",
       "deleteTableConfirmation": "您想要删除该表吗？",
       "showM2mTables": "显示中间表",
-      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
+      "deleteKanbanStackConfirmation": "删除这个类别标签也将从 \"{groupingField}\"中删除选择选项 \"{stackToBeDeleted}\"。这类记录将移到未分类的类别中。",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
       "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
-      "noMoreRecords": "No more records"
+      "noMoreRecords": "暂无数据"
     },
     "error": {
       "searchProject": "搜索： {search} 没有发现匹配的结果",
       "invalidChar": "文件夹路径中的字符无效。",
       "invalidDbCredentials": "无效的数据库凭据。",
       "unableToConnectToDb": "无法连接到数据库，请检查您的数据库是否已启动。",
-      "userDoesntHaveSufficientPermission": "用户不存在或具有创建架构的足够权限。",
+      "userDoesntHaveSufficientPermission": "用户不存在或无权创建模式。",
       "dbConnectionStatus": "数据库参数无效",
       "dbConnectionFailed": "连接失败:",
       "signUpRules": {
@@ -694,8 +694,8 @@
       "parameterKeyCannotBeEmpty": "参数键不能为空",
       "duplicateParameterKeysAreNotAllowed": "不允许重复的参数键",
       "fieldRequired": "{value} 不能为空。",
-      "projectNotAccessible": "Project not accessible",
-      "copyToClipboardError": "Failed to copy to clipboard"
+      "projectNotAccessible": "无权访问此项目",
+      "copyToClipboardError": "未能复制到剪贴板"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",
@@ -715,7 +715,7 @@
       "futureRelease": "即将推出！"
     },
     "success": {
-      "columnDuplicated": "Column duplicated successfully",
+      "columnDuplicated": "此列的副本创建成功",
       "updatedUIACL": "已成功更新表的 UI ACL",
       "pluginUninstalled": "插件卸载成功",
       "pluginSettingsSaved": "插件设置保存成功",
@@ -726,19 +726,19 @@
       "tableDataExported": "成功导出所有表内数据",
       "updated": "更新成功",
       "sharedViewDeleted": "共享视图删除成功",
-      "userDeleted": "User deleted successfully",
+      "userDeleted": "删除用户成功",
       "viewRenamed": "视图重命名成功",
       "tokenGenerated": "令牌生成成功",
-      "tokenDeleted": "Token deleted successfully",
-      "userAddedToProject": "添加用户到项目成功",
-      "userAdded": "Successfully added user",
-      "userDeletedFromProject": "从项目中删除用户成功",
+      "tokenDeleted": "成功删除令牌",
+      "userAddedToProject": "添加用户成功",
+      "userAdded": "添加用户成功",
+      "userDeletedFromProject": "踢出用户成功",
       "inviteEmailSent": "邀请邮件发送成功",
       "inviteURLCopied": "邀请URL已复制到剪贴板",
-      "passwordResetURLCopied": "Password reset URL copied to clipboard",
+      "passwordResetURLCopied": "密码重置网址已复制到剪贴板",
       "shareableURLCopied": "已将可共享的基础URL复制到剪贴板！",
       "embeddableHTMLCodeCopied": "已复制可嵌入的 HTML 代码！",
-      "userDetailsUpdated": "成功更新用户详细信息",
+      "userDetailsUpdated": "成功更新用户详情",
       "tableDataImported": "成功导入表数据",
       "webhookUpdated": "Webhook 详细信息更新成功",
       "webhookDeleted": "Hook 删除成功",
@@ -746,8 +746,8 @@
       "columnUpdated": "列已更新",
       "columnCreated": "已创建列",
       "passwordChanged": "密码修改成功。请重新登录。",
-      "settingsSaved": "Settings saved successfully",
-      "roleUpdated": "Role updated successfully"
+      "settingsSaved": "设置保存成功",
+      "roleUpdated": "权限已更新"
     }
   }
 }

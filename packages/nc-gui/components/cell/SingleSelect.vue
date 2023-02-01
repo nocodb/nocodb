@@ -309,4 +309,8 @@ useEventListener(document, 'click', handleClose, true)
     @apply !cursor-pointer;
   }
 }
+
+:deep(.ant-select-selector){
+  @apply !px-0;
+}
 </style>

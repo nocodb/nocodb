@@ -314,7 +314,7 @@ useEventListener(document, 'click', handleClose, true)
       :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel.length === 0))"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
-      :class="{ '!ml-[-8px]': readOnly, 'caret-transparent': !hasEditRoles }"
+      :class="{ 'caret-transparent': !hasEditRoles }"
       :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
       @search="search"
       @keydown.stop
@@ -438,5 +438,9 @@ useEventListener(document, 'click', handleClose, true)
   :deep(.ant-select-selector input) {
     @apply "!cursor-pointer";
   }
+}
+
+:deep(.ant-select-selector){
+  @apply !px-0;
 }
 </style>

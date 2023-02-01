@@ -19,6 +19,6 @@ onMounted(() => {
 
 <template>
   <div ref="wrapper">
-    <text-clamp :key="key" class="w-full h-full break-all" :text="`${props.value || ''}`" :max-lines="props.lines" />
+    <text-clamp :key="key" class="w-full h-full break-all" :text="`${props.value || ' '}`" :max-lines="props.lines" />
   </div>
 </template>

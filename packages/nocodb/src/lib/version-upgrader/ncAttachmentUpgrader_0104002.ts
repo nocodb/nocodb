@@ -7,12 +7,15 @@ import { XKnex } from '../db/sql-data-mapper/index';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { BaseType, UITypes } from 'nocodb-sdk';
 
-// after 0101002 upgrader, the attachment object would be unexpectedly saved when switching views after updating a singleSelect field
+// after 0101002 upgrader, the attachment object would become broken when
+// (1) switching views after updating a singleSelect field
 // since `url` will be enriched the attachment cell, and `saveOrUpdateRecords` in Grid.vue will be triggered
 // in this way, the attachment value will be corrupted like
 // {"{\"path\":\"download/noco/xcdb2/attachment2/a/JRubxMQgPlcumdm3jL.jpeg\",\"title\":\"haha.jpeg\",\"mimetype\":\"image/jpeg\",\"size\":6494,\"url\":\"http://localhost:8080/download/noco/xcdb2/attachment2/a/JRubxMQgPlcumdm3jL.jpeg\"}"}
 // while the expected one is
 // [{"path":"download/noco/xcdb2/attachment2/a/JRubxMQgPlcumdm3jL.jpeg","title":"haha.jpeg","mimetype":"image/jpeg","size":6494}]
+// (2) or reordering attachments
+// since the incoming value is not string, the value will be broken
 // hence, this upgrader is to revert back these corrupted values
 
 function getTnPath(knex: XKnex, tb: Model) {

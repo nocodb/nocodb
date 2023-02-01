@@ -20,8 +20,10 @@ import {
   ref,
   useMetas,
   useProject,
+  useEventListener,
   useRoles,
   useSelectedCellKeyupListener,
+  isDrawerOrModalExist,
   watch,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
@@ -186,7 +188,7 @@ useSelectedCellKeyupListener(active, (e) => {
         break
       }
       // toggle only if char key pressed
-      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1) {
+      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
         e.stopPropagation()
         isOpen.value = true
       }
@@ -283,6 +285,16 @@ onMounted(() => {
 onUnmounted(() => {
   cellClickHook?.on(cellClickHookHandler)
 })
+
+
+
+const handleClose = (e: MouseEvent) => {
+  if (isOpen.value && aselect.value && !aselect.value.$el.contains(e.target)) {
+    isOpen.value = false
+  }
+}
+
+useEventListener(document, 'click', handleClose, true)
 </script>
 
 <template>
@@ -414,7 +426,7 @@ onUnmounted(() => {
 }
 
 :deep(.ant-select-selection-overflow) {
-  @apply flex-nowrap;
+  @apply flex-nowrap overflow-hidden;
 }
 
 .nc-multi-select:not(.read-only) {

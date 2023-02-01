@@ -7,6 +7,7 @@ import {
   ActiveCellInj,
   ColumnInj,
   EditModeInj,
+  IsFormInj,
   IsKanbanInj,
   ReadonlyInj,
   computed,
@@ -44,6 +45,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const { $api } = useNuxtApp()
 
 const searchVal = ref()
@@ -78,7 +81,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => hasEditRoles.value && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
 
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
@@ -199,10 +202,14 @@ const onKeydown = (e: KeyboardEvent) => {
     e.stopPropagation()
   }
 }
+
+const onSelect = () => {
+  isOpen.value = false
+}
 </script>
 
 <template>
-  <div class="h-full w-full flex items-center" @click="toggleMenu">
+  <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
     <a-select
       ref="aselect"
       v-model:value="vModel"
@@ -211,11 +218,11 @@ const onKeydown = (e: KeyboardEvent) => {
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
       :open="isOpen && (active || editable)"
-      :disabled="readOnly"
+      :disabled="readOnly || !(active || editable)"
       :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
-      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && (active || editable) ? 'active' : ''}`"
       :show-search="isOpen && (active || editable)"
-      @select="isOpen = false"
+      @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"
     >
@@ -267,5 +274,12 @@ const onKeydown = (e: KeyboardEvent) => {
 
 :deep(.ant-select-clear) {
   opacity: 1;
+}
+
+.nc-single-select:not(.read-only) {
+  :deep(.ant-select-selector),
+  :deep(.ant-select-selector input) {
+    @apply !cursor-pointer;
+  }
 }
 </style>

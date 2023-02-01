@@ -4,7 +4,7 @@ import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
 import type { DecorationSource, EditorView } from 'prosemirror-view'
 import { Decoration, DecorationSet } from 'prosemirror-view'
 import type { Node } from 'prosemirror-model'
-import { CellSelection, TableMap, addColumn, addRow } from '@tiptap/prosemirror-tables'
+import { TableMap, addColumn, addRow, columnResizing } from '@tiptap/prosemirror-tables'
 
 export default Table.extend({
   addProseMirrorPlugins() {
@@ -80,7 +80,7 @@ export default Table.extend({
                 const createColumnButton = document.createElement('button')
                 createColumnButton.className =
                   'px-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 top-0 -right-4 z-10 absolute rounded-sm '
-                createColumnButton.style.right = '-1.4rem'
+                createColumnButton.style.right = '-1.3rem'
                 // set the height of the button to the height of the table
                 // createColumnButton.style.height = `${view.dom.querySelector(`[data-decoration-id="${pos}"]`)?.clientHeight}px`
                 createColumnButton.innerHTML = '+'
@@ -156,6 +156,18 @@ export default Table.extend({
           },
         },
       }),
+      columnResizing({
+        handleWidth: this.options.handleWidth,
+        cellMinWidth: this.options.cellMinWidth,
+        View: this.options.View,
+        // TODO: PR for @types/prosemirror-tables
+        // @ts-expect-error (incorrect type)
+        lastColumnResizable: this.options.lastColumnResizable,
+      }),
     ]
+  },
+}).configure({
+  HTMLAttributes: {
+    class: '',
   },
 })

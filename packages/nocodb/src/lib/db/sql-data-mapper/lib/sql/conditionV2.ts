@@ -297,20 +297,34 @@ const parseConditionV2 = async (
             }
             break;
           case 'nlike':
-            if (column.uidt === UITypes.Formula) {
-              [field, val] = [val, field];
-              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
+            if (!val) {
+              // val is empty -> include all values but empty strings
+              qb.whereNot(field, '');
+              qb.orWhereNull(field);
             } else {
-              val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
-            }
-            qb.where((nestedQb) => {
-              if (qb?.client?.config?.client === 'pg') {
-                nestedQb.whereRaw('??::text not ilike ?', [field, val]);
+              if (column.uidt === UITypes.Formula) {
+                [field, val] = [val, field];
+                val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
               } else {
-                nestedQb.whereNot(field, 'like', val);
+                val =
+                  val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
               }
-              nestedQb.orWhereNull(field);
-            });
+              qb.where((nestedQb) => {
+                if (qb?.client?.config?.client === 'pg') {
+                  nestedQb.whereRaw('??::text not ilike ?', [field, val]);
+                } else {
+                  nestedQb.whereNot(field, 'like', val);
+                }
+                if (val !== '%%') {
+                  // if value is not empty, empty or null should be included
+                  nestedQb.orWhere(field, '');
+                  nestedQb.orWhereNull(field);
+                } else {
+                  // if value is empty, then only null is included
+                  nestedQb.orWhereNull(field);
+                }
+              });
+            }
             break;
           case 'allof':
           case 'anyof':

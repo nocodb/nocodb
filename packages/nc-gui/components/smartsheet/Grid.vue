@@ -495,7 +495,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 
-onClickOutside(smartTable, (e) => {
+onClickOutside(tbodyEl, (e) => {
   // do nothing if context menu was open
   if (contextMenu.value) return
 

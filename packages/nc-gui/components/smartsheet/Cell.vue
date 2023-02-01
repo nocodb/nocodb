@@ -145,7 +145,7 @@ const isNumericField = computed(() => {
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
-      { 'nc-grid-numeric-cell': isGrid && isNumericField },
+      { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
     ]"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"

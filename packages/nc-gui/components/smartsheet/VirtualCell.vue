@@ -55,7 +55,7 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
 <template>
   <div
     class="nc-virtual-cell w-full flex items-center"
-    :class="{ 'text-right justify-end': isGrid && isRollup(column) }"
+    :class="{ 'text-right justify-end': isGrid && !isForm && isRollup(column) }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >

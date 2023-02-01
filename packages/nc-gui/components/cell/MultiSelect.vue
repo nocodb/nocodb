@@ -47,6 +47,8 @@ const editable = inject(EditModeInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const selectedIds = ref<string[]>([])
 
 const aselect = ref<typeof AntSelect>()
@@ -88,7 +90,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => hasEditRoles.value && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
 
 const vModel = computed({
   get: () => {

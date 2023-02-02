@@ -101,13 +101,13 @@ export const comparisonOpList = (
     text: 'is null',
     value: 'null',
     ignoreVal: true,
-    excludedTypes: [...numericUITypes, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator],
+    excludedTypes: [...numericUITypes, UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator],
   },
   {
     text: 'is not null',
     value: 'notnull',
     ignoreVal: true,
-    excludedTypes: [...numericUITypes, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator],
+    excludedTypes: [...numericUITypes, UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator],
   },
   {
     text: 'contains all of',

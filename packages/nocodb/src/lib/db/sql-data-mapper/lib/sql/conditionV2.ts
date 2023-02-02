@@ -436,7 +436,7 @@ const parseConditionV2 = async (
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
             }
-            qb = qb.whereNot(field, val);
+            qb = qb.whereNot(field, val).orWhereNull(field);
             break;
           case 'null':
             qb = qb.whereNull(customWhereClause || field);

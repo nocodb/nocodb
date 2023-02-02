@@ -322,4 +322,8 @@ useEventListener(document, 'click', handleClose, true)
 :deep(.ant-select-selection-search-input) {
   @apply !text-xs;
 }
+
+:deep(.ant-select-clear > span){
+  @apply block
+}
 </style>

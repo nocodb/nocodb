@@ -17,9 +17,12 @@ const TableHeader = TiptapTableHeader.extend({
             const { doc } = state
 
             let tableNode: Node | undefined
-
+            let tablePos = 0
             doc.descendants((node: Node, pos: any) => {
-              if (node.type.name === 'table') tableNode = node
+              if (node.type.name === 'table') {
+                tableNode = node
+                tablePos = pos
+              }
               if (node.type.name !== 'tableHeader') return
 
               if (tableNode?.firstChild?.childCount === 1) return
@@ -30,7 +33,7 @@ const TableHeader = TiptapTableHeader.extend({
                 'col-pos': pos.toString(),
               })
 
-              const decorationDeleteRow = Decoration.widget(pos + 2, (view: EditorView) => deleteColumnButton(view, pos))
+              const decorationDeleteRow = Decoration.widget(tablePos, (view: EditorView) => deleteColumnButton(view, pos))
 
               decorations.push(decorationDeleteRow)
               decorations.push(decorationTable)
@@ -52,7 +55,7 @@ function deleteColumnButton(view: EditorView, pos: number) {
   deleteColumnButtonWrapper.style.width = '3rem'
   const deleteColumnButton = document.createElement('button')
 
-  deleteColumnButton.setAttribute('class', 'flex bg-gray-100 my-1 rounded-md')
+  deleteColumnButton.setAttribute('class', 'flex bg-gray-100 my-1 rounded-sm')
   deleteColumnButton.style.paddingLeft = 'calc(50% - 2rem)'
   deleteColumnButton.style.paddingRight = 'calc(50% - 2rem)'
   deleteColumnButton.textContent = '-'

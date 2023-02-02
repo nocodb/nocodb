@@ -18,9 +18,12 @@ const TableRow = TiptapTableRow.extend({
             const { doc } = state
 
             let tableNode: Node | undefined
-
+            let tablePos = 0
             doc.descendants((node: Node, pos: any) => {
-              if (node.type.name === 'table') tableNode = node
+              if (node.type.name === 'table') {
+                tableNode = node
+                tablePos = pos
+              }
               if (node.type.name !== 'tableRow') return
               if (node.firstChild?.type.name === 'tableHeader') return
 
@@ -32,7 +35,7 @@ const TableRow = TiptapTableRow.extend({
                 'row-pos': pos.toString(),
               })
 
-              const decorationDeleteRow = Decoration.widget(pos + 2, (view: EditorView) => deleteRowButton(view, pos))
+              const decorationDeleteRow = Decoration.widget(tablePos, (view: EditorView) => deleteRowButton(view, pos))
 
               decorations.push(decorationDeleteRow)
               decorations.push(decorationTable)
@@ -53,7 +56,7 @@ function deleteRowButton(view: EditorView, pos: number) {
   deleteRowButtonWrapper.style.width = '1rem'
   const deleteRowButton = document.createElement('button')
 
-  deleteRowButton.setAttribute('class', 'flex absolute bg-gray-100 my-1 px-2 rounded-md')
+  deleteRowButton.setAttribute('class', 'flex absolute bg-gray-100 my-1 px-2 rounded-sm')
   deleteRowButton.textContent = '-'
 
   deleteRowButton.style.opacity = '0'

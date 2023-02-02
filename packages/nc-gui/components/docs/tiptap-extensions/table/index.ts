@@ -15,14 +15,28 @@ export default Table.extend({
           return {
             update: async (view, prevState) => {
               // set createColumnButton height to the table height
-              const createColumnButtons = document.querySelectorAll('[tiptap-table-create-column-id] > button')
-              const tables = document.querySelectorAll('[data-placeholder="table"]')
+              const createColumnButtons = document.querySelectorAll('[tiptap-table-create-column-id]')
+              const tables = document.querySelectorAll('[data-placeholder="table"] tbody')
+
               if (createColumnButtons.length) {
                 let index = 0
                 createColumnButtons.forEach((createColumnButton: any) => {
                   const table = tables[index]
                   if (table) {
                     createColumnButton.style.height = `${(table as any).offsetHeight}px`
+                    createColumnButton.style.left = `${(table as any).offsetWidth + 5}px`
+                    index += 1
+                  }
+                })
+              }
+
+              const createRowButtons = document.querySelectorAll('[tiptap-table-create-row-id]')
+              if (createRowButtons.length) {
+                let index = 0
+                createRowButtons.forEach((createRowButton: any) => {
+                  const table = tables[index]
+                  if (table) {
+                    createRowButton.style.width = `${(table as any).offsetWidth + 1}px`
                     index += 1
                   }
                 })
@@ -77,20 +91,17 @@ export default Table.extend({
                 'data-decoration-id': pos,
                 'nodeName': 'div',
               })
-              const createColumnDecoration = Decoration.widget(pos, (view: EditorView, getPos: () => number | undefined) => {
+              const createColumnDecoration = Decoration.widget(pos + 1, (view: EditorView, getPos: () => number | undefined) => {
                 // console.log('widget', view, getPos())
                 const createColumnDiv = document.createElement('div')
-                createColumnDiv.className = 'relative h-full tiptap-table-create-column'
+                createColumnDiv.className = 'absolute h-full tiptap-table-create-column'
                 // Set html attributes to the div with the data-decoration-id
                 createColumnDiv.attributes.setNamedItem(document.createAttribute('tiptap-table-create-column-id'))
                 createColumnDiv.setAttribute('tiptap-table-create-column-id', `${pos}`)
 
                 const createColumnButton = document.createElement('button')
                 createColumnButton.className =
-                  'px-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 top-0 -right-4 z-10 absolute rounded-sm '
-                createColumnButton.style.right = '-1.3rem'
-                // set the height of the button to the height of the table
-                // createColumnButton.style.height = `${view.dom.querySelector(`[data-decoration-id="${pos}"]`)?.clientHeight}px`
+                  'px-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 top-0 -right-4 z-10  rounded-sm h-full'
                 createColumnButton.innerHTML = '+'
                 createColumnDiv.appendChild(createColumnButton)
 

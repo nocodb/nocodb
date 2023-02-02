@@ -526,6 +526,7 @@ watch(
 
     td,
     th {
+      position: relative;
       min-width: 1em;
       border: 1px solid #e5e5e5;
       padding: 3px 5px;

@@ -40,6 +40,25 @@ export default Table.extend({
                   modifyRowsButton.style.height = `${(rowDom as any).offsetHeight}px`
                 }
               }
+
+              // set modify column button
+              const modifyColumnButtons = document.querySelectorAll('[tiptap-table-modify-column]')
+              const colDoms = document.querySelectorAll('[col-pos]')
+
+              let widthOffset = 0
+              for (let i = 0; i < modifyColumnButtons.length; i++) {
+                const modifyColumnButton = modifyColumnButtons[i]
+                const colDom = colDoms[i]
+                const modifyColumnButtonWidth = modifyColumnButton?.clientWidth
+
+                if (modifyColumnButton && colDom) {
+                  modifyColumnButton.style.left = `${widthOffset}px`
+                  modifyColumnButton.style.top = `-${(colDom as any).offsetHeight}px`
+                  modifyColumnButton.style.height = `${(colDom as any).offsetHeight}px`
+                  modifyColumnButton.style.width = `${(colDom as any).offsetWidth}px`
+                  widthOffset = widthOffset + (colDom as any).offsetWidth
+                }
+              }
             },
           }
         },
@@ -53,7 +72,7 @@ export default Table.extend({
               if (node.type.name !== 'table') return
 
               const decorationTable = Decoration.node(pos, pos + node.nodeSize, {
-                'class': 'relative',
+                'class': 'relative mt-4',
                 'data-placeholder': 'table',
                 'data-decoration-id': pos,
                 'nodeName': 'div',

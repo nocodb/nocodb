@@ -83,7 +83,6 @@ function deleteRowButton(view: EditorView, pos: number) {
       }
     })
 
-    // TODO: Simplify this
     const map = TableMap.get(tableNode!)
     const currentNodeIndexInTableMap = map.map.indexOf(pos)
     const lastCellInRowTableMapIndex = currentNodeIndexInTableMap + map.width - 1
@@ -98,7 +97,7 @@ function deleteRowButton(view: EditorView, pos: number) {
   return deleteRowButtonWrapper
 }
 
-export function deleteRow(state: EditorState, rowInfo: any, dispatch?: (tr: Transaction) => void): boolean {
+function deleteRow(state: EditorState, rowInfo: any, dispatch?: (tr: Transaction) => void): boolean {
   if (dispatch) {
     const tr = state.tr
     const rect = rowInfo

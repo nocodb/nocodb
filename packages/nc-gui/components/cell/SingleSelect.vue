@@ -208,8 +208,6 @@ const onSelect = () => {
 const cellClickHook = inject(CellClickHookInj)
 
 const toggleMenu = (e: Event) => {
-  if (cellClickHook) return
-
   // todo: refactor
   // check clicked element is clear icon
   if (
@@ -217,8 +215,9 @@ const toggleMenu = (e: Event) => {
     (e.target as HTMLElement)?.closest('.ant-select-clear')
   ) {
     vModel.value = ''
-    return
+    return e.stopPropagation()
   }
+  if (cellClickHook) return
   isOpen.value = editAllowed.value && !isOpen.value
 }
 

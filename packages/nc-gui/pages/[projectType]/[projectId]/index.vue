@@ -606,11 +606,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 }
 
 .nc-sidebar-header {
-  //@apply relative;
-  //&::after{
-  //  //@apply absolute content-[''] -right-1 top-0 w-1 h-full bg-inherit;
-  //}
-
-  @apply border-gray-150 !bg-gray-50;
+  @apply border-[var(--navbar-border)] !bg-[var(--navbar-bg)];
 }
 </style>

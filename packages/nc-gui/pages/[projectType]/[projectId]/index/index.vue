@@ -113,7 +113,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 
     & > .ant-tabs-nav-wrap > .ant-tabs-nav-list {
       & > .ant-tabs-tab {
-        @apply border-0 !text-sm py-1.5 font-weight-medium  z-2;
+        @apply border-0 !text-sm py-2 font-weight-medium  z-2;
         border-top-right-radius: 8px;
         border-top-left-radius: 8px;
         border-top: 1px solid white;
@@ -163,17 +163,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 
   &,
   :deep(.ant-tabs-tab:not(.ant-tabs-tab-active)) {
-    background: linear-gradient(0deg, #e5e7eb 1px, rgb(249, 250, 251) 1px) !important;
+    background: linear-gradient(0deg, var(--navbar-border) 1px, var(--navbar-bg) 1px) !important;
   }
 }
-
-//:deep(.ant-tabs-nav-list), :deep(.ant-tabs-nav),:deep(.ant-tabs-nav-wrap), :deep(.ant-tabs), :deep(.nc-tab-bar) {
-//  overflow-y: visible !important;
-//}
-//
-//:deep(.ant-tabs),:deep(.ant-tabs-nav-wrap){
-//  overflow-x: hidden !important;
-//  overflow-y: visible !important;
-//  overflow: visible !important;
-//}
 </style>

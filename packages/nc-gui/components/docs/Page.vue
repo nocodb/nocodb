@@ -11,9 +11,9 @@ import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
-import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
-import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import { TableRow } from './tiptap-extensions/table/row'
 import Table from './tiptap-extensions/table'
 import { History } from './tiptap-extensions/history'
 import suggestion from './tiptap-extensions/commands/suggestion'
@@ -531,7 +531,6 @@ watch(
       padding: 3px 5px;
       vertical-align: top;
       box-sizing: border-box;
-      position: relative;
 
       > * {
         margin-bottom: 0;

@@ -27,38 +27,27 @@ export default Table.extend({
                   }
                 })
               }
+
+              // set modify rows button height to the table height
+              const modifyRowsButtons = document.querySelectorAll('[tiptap-table-modify-row]')
+              const rowsDom = document.querySelectorAll('[row-pos]')
+              for (let i = 0; i < modifyRowsButtons.length; i++) {
+                const modifyRowsButton = modifyRowsButtons[i]
+                const rowDom = rowsDom[i]
+
+                if (modifyRowsButton && rowDom) {
+                  modifyRowsButton.style.top = `${(rowDom as any).offsetHeight * (i + 1)}px`
+                  modifyRowsButton.style.height = `${(rowDom as any).offsetHeight}px`
+                }
+              }
             },
           }
-        },
-
-        state: {
-          // Initialize the plugin's internal state.
-          init() {
-            const state: {
-              decorationId?: string | null
-            } = {}
-
-            return state
-          },
-
-          // Apply changes to the plugin state from a view transaction.
-          apply(transaction, prev, oldState, state) {
-            const next = { ...prev }
-
-            const decorationId = `id_${Math.floor(Math.random() * 0xffffffff)}`
-
-            next.decorationId = prev.decorationId ? prev.decorationId : decorationId
-
-            return next
-          },
         },
 
         props: {
           decorations(state: EditorState) {
             const decorations: Decoration[] = []
             const { doc } = state
-            const stateExt = this.getState(state)
-            if (!stateExt) return
 
             doc.descendants((node: Node, pos: any) => {
               if (node.type.name !== 'table') return

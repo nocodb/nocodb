@@ -354,8 +354,8 @@ const parseConditionV2 = async (
             {
               // Condition for filter, without negation
               const condition = (builder: Knex.QueryBuilder) => {
-                const items = val.split(',').map((item) => item.trim());
-                for (let i = 0; i < items.length; i++) {
+                const items = val?.split(',').map((item) => item.trim());
+                for (let i = 0; i < items?.length; i++) {
                   let sql;
                   const bindings = [field, `%,${items[i]},%`];
                   if (qb?.client?.config?.client === 'pg') {

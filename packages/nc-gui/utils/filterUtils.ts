@@ -24,34 +24,34 @@ export const comparisonOpList: {
   {
     text: 'is equal',
     value: 'eq',
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect],
   },
   {
     text: 'is not equal',
     value: 'neq',
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect],
   },
   {
     text: 'is like',
     value: 'like',
-    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.Collaborator, ...numericUITypes],
+    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
   {
     text: 'is not like',
     value: 'nlike',
-    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.Collaborator, ...numericUITypes],
+    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
   {
     text: 'is empty',
     value: 'empty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.Collaborator, ...numericUITypes],
+    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
   {
     text: 'is not empty',
     value: 'notempty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.Collaborator, ...numericUITypes],
+    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
   {
     text: 'is null',

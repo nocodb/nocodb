@@ -455,4 +455,8 @@ useEventListener(document, 'click', handleClose, true)
 :deep(.ant-select-selector) {
   @apply !px-0;
 }
+
+:deep(.ant-select-selection-search-input) {
+  @apply !text-xs;
+}
 </style>

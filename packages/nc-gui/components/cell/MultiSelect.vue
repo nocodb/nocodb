@@ -304,7 +304,7 @@ const handleClose = (e: MouseEvent) => {
     isOpen.value &&
     aselect.value &&
     !aselect.value.$el.contains(e.target) &&
-    !document.querySelector('.nc-dropdown-multi-select-cell')?.contains(e.target as Node)
+    !document.querySelector('.nc-dropdown-multi-select-cell.active')?.contains(e.target as Node)
   ) {
     isOpen.value = false
   }

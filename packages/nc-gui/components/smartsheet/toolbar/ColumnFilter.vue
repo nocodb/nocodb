@@ -215,7 +215,6 @@ defineExpose({
                 {{ op.text }}
               </a-select-option>
             </a-select>
-
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
@@ -225,7 +224,6 @@ defineExpose({
               @click.stop
               @change="selectFilterField(filter, i)"
             />
-
             <a-select
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
@@ -238,7 +236,7 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <template v-for="compOp of comparisonOpList" :key="compOp.value">
+              <template v-for="compOp of comparisonOpList(getColumn(filter).uidt)" :key="compOp.value">
                 <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
                   {{ compOp.text }}
                 </a-select-option>

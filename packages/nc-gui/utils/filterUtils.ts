@@ -1,14 +1,24 @@
 import { UITypes } from 'nocodb-sdk'
 
-const numericUITypes = [UITypes.Duration, UITypes.Currency, UITypes.Percent, UITypes.Number, UITypes.Rating, UITypes.Rollup]
+const numericUITypes: UITypes[] = [
+  UITypes.Duration,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Rating,
+  UITypes.Rollup,
+]
 
-export const comparisonOpList: {
+export const comparisonOpList = (
+  fieldUiType: UITypes,
+): {
   text: string
   value: string
   ignoreVal?: boolean
   includedTypes?: UITypes[]
   excludedTypes?: UITypes[]
-}[] = [
+}[] => [
   {
     text: 'is checked',
     value: 'checked',
@@ -22,12 +32,12 @@ export const comparisonOpList: {
     includedTypes: [UITypes.Checkbox],
   },
   {
-    text: 'is equal',
+    text: numericUITypes.includes(fieldUiType) ? '=' : 'is equal',
     value: 'eq',
     excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },
   {
-    text: 'is not equal',
+    text: numericUITypes.includes(fieldUiType) ? '!=' : 'is not equal',
     value: 'neq',
     excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },

@@ -101,11 +101,13 @@ export const comparisonOpList = (
     text: 'is null',
     value: 'null',
     ignoreVal: true,
+    excludedTypes: [...numericUITypes],
   },
   {
     text: 'is not null',
     value: 'notnull',
     ignoreVal: true,
+    excludedTypes: [...numericUITypes],
   },
   {
     text: 'contains all of',

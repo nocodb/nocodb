@@ -11,7 +11,7 @@ const onClick = () => {
 <template>
   <div :class="{ 'nc-active-btn': isOpen }">
     <a-button size="small" class="nc-toggle-right-navbar" @click="onClick">
-      <div class="flex items-center gap-1 text-xs text-gray-500" :class="{ 'text-gray-500': !isOpen }">
+      <div class="flex items-center gap-1 text-[0.6rem] text-gray-500" :class="{ 'text-gray-500': !isOpen }">
         <AntDesignMenuUnfoldOutlined v-if="isOpen" />
 
         <AntDesignMenuFoldOutlined v-else />

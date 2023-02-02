@@ -254,7 +254,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <div
           style="height: var(--header-height); border-bottom-width: 1px"
           :class="isOpen ? 'pl-4' : ''"
-          class="flex items-center !bg-white-500 text-primary px-1 gap-1 border-gray-150 nc-sidebar-header"
+          class="flex items-center text-primary px-1 gap-1 nc-sidebar-header"
         >
           <div
             v-if="isOpen && !isSharedBase"
@@ -605,10 +605,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   @apply py-0;
 }
 
-.nc-sidebar-header{
-  @apply relative;
-  &::after{
-    @apply absolute content-[''] -right-1 top-0 w-1 h-full bg-white;
-  }
+.nc-sidebar-header {
+  //@apply relative;
+  //&::after{
+  //  //@apply absolute content-[''] -right-1 top-0 w-1 h-full bg-inherit;
+  //}
+
+  @apply border-gray-150 !bg-gray-50;
 }
 </style>

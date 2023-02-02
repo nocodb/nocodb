@@ -31,7 +31,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div class="flex items-end !min-h-[var(--header-height)] !bg-white-500 nc-tab-bar border-gray-150" style="border-bottom-width: 1px">
+      <div class="flex items-end !min-h-[var(--header-height)] !bg-white-500 nc-tab-bar">
         <div
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
@@ -44,7 +44,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           />
         </div>
 
-        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
+        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs min-w-[500px]" type="editable-card" @edit="onEdit">
           <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>
               <div class="flex items-center gap-2" data-testid="nc-tab-title">
@@ -78,8 +78,8 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           </div>
         </div>
 
-        <LazyGeneralShareBaseButton />
-        <LazyGeneralFullScreen class="nc-fullscreen-icon" />
+        <LazyGeneralShareBaseButton class="mb-1px" />
+        <LazyGeneralFullScreen class="nc-fullscreen-icon mb-1px" />
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
@@ -108,29 +108,34 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
     }
 
     .ant-tabs-nav-more {
-      @apply text-white;
+      @apply py-1.5;
     }
 
     & > .ant-tabs-nav-wrap > .ant-tabs-nav-list {
-
       & > .ant-tabs-tab {
-        @apply border-0 !text-sm py-1.5 font-weight-medium ml-1;
+        @apply border-0 !text-sm py-1.5 font-weight-medium  z-2;
         border-top-right-radius: 8px;
         border-top-left-radius: 8px;
-        border-top: 2px solid white;
-        border-left: 2px solid white;
-        border-right: 2px solid white;
+        border-top: 1px solid white;
+        border-left: 1px solid white;
+        border-right: 1px solid white;
+        @apply !border-gray-200;
+        & + .ant-tabs-tab {
+          @apply ml-1;
+        }
       }
 
       & > .ant-tabs-tab-active {
-        @apply  relative bg-primary bg-opacity-20 w-full h-full;
-        border-color: currentColor;
+        @apply relative bg-white w-full h-full overflow-y-visible;
+        &:after {
+          @apply absolute content-[''] left-0 -bottom-[1px] w-full h-[1px] bg-inherit z-100;
+        }
       }
-
 
       & > .ant-tabs-tab:not(.ant-tabs-tab-active) {
         //@apply bg-gray-100 text-gray-500;
-        @apply bg-gray-100 text-gray-500 border-gray-100;
+        @apply bg-gray-50 text-gray-500;
+
         .ant-tabs-tab-remove {
           //@apply !text-default;
         }
@@ -149,7 +154,26 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
   @apply !border-none;
 }
 
-:deep(.ant-tabs-tab-remove) {
-  @apply flex mt-[2px];
+.nc-tab-bar {
+  @apply border-gray-150 !bg-gray-50 relative z-1;
+
+  :deep(.ant-tabs-tab-remove) {
+    @apply flex mt-[2px];
+  }
+
+  &,
+  :deep(.ant-tabs-tab:not(.ant-tabs-tab-active)) {
+    background: linear-gradient(0deg, #e5e7eb 1px, rgb(249, 250, 251) 1px) !important;
+  }
 }
+
+//:deep(.ant-tabs-nav-list), :deep(.ant-tabs-nav),:deep(.ant-tabs-nav-wrap), :deep(.ant-tabs), :deep(.nc-tab-bar) {
+//  overflow-y: visible !important;
+//}
+//
+//:deep(.ant-tabs),:deep(.ant-tabs-nav-wrap){
+//  overflow-x: hidden !important;
+//  overflow-y: visible !important;
+//  overflow: visible !important;
+//}
 </style>

@@ -273,15 +273,29 @@ const parseConditionV2 = async (
         let [field, val] = [_field, _val];
         switch (filter.comparison_op) {
           case 'eq':
-            qb = qb.where(field, val);
+            if (qb?.client?.config?.client === 'mysql2') {
+              // mysql is case-insensitive, turn to case-sensitive
+              qb = qb.whereRaw('BINARY ?? = ?', [field, val]);
+            } else {
+              qb = qb.where(field, val);
+            }
             break;
           case 'neq':
           case 'not':
-            qb = qb.where((nestedQb) => {
-              nestedQb
-                .whereNot(field, val)
-                .orWhereNull(customWhereClause ? _val : _field);
-            });
+            if (qb?.client?.config?.client === 'mysql2') {
+              // mysql is case-insensitive, turn to case-sensitive
+              qb = qb.where((nestedQb) => {
+                nestedQb
+                  .whereRaw('BINARY ?? != ?', [field, val])
+                  .orWhereNull(customWhereClause ? _val : _field);
+              });
+            } else {
+              qb = qb.where((nestedQb) => {
+                nestedQb
+                  .whereNot(field, val)
+                  .orWhereNull(customWhereClause ? _val : _field);
+              });
+            }
             break;
           case 'like':
             if (!val) {

@@ -107,7 +107,6 @@ const vModel = computed({
         syncValue()
       } else if (!isManualSaved(column.value)) {
         emit('save')
-        currentRow.value.rowMeta.changed = true
       }
     }
   },

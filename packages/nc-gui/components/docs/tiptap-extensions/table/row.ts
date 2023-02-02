@@ -24,18 +24,23 @@ const TableRow = TiptapTableRow.extend({
                 tableNode = node
                 tablePos = pos
               }
+
+              const { tablePos: localTablePos, pos: localPos } = structuredClone({ tablePos, pos })
+
               if (node.type.name !== 'tableRow') return
               if (node.firstChild?.type.name === 'tableHeader') return
 
               if (tableNode?.childCount === 2) return
 
               // check if the node is on the first row
-              const decorationTable = Decoration.node(pos, pos + node.nodeSize, {
+              const decorationTable = Decoration.node(localPos, localPos + node.nodeSize, {
                 'class': '',
-                'row-pos': pos.toString(),
+                'row-pos': localPos.toString(),
               })
 
-              const decorationDeleteRow = Decoration.widget(tablePos, (view: EditorView) => deleteRowButton(view, pos))
+              const decorationDeleteRow = Decoration.widget(tablePos, (view: EditorView) =>
+                deleteRowButton(view, localPos, localTablePos),
+              )
 
               decorations.push(decorationDeleteRow)
               decorations.push(decorationTable)
@@ -48,16 +53,19 @@ const TableRow = TiptapTableRow.extend({
   },
 })
 
-function deleteRowButton(view: EditorView, pos: number) {
+function deleteRowButton(view: EditorView, rowPos: number, tablePos: number) {
   const deleteRowButtonWrapper = document.createElement('div')
-  deleteRowButtonWrapper.setAttribute('tiptap-table-modify-row', pos.toString())
-  deleteRowButtonWrapper.setAttribute('class', 'flex flex-row justify-center absolute')
-  deleteRowButtonWrapper.style.left = '-1.5rem'
+  deleteRowButtonWrapper.setAttribute('tiptap-table-modify-row', rowPos.toString())
+  deleteRowButtonWrapper.setAttribute('tiptap-table-modify-row-table-pos', tablePos.toString())
+  deleteRowButtonWrapper.setAttribute('class', 'flex flex-col justify-center absolute')
+  deleteRowButtonWrapper.style.left = '-1.6rem'
   deleteRowButtonWrapper.style.width = '1rem'
   const deleteRowButton = document.createElement('button')
 
-  deleteRowButton.setAttribute('class', 'flex absolute bg-gray-100 my-1 px-2 rounded-sm')
+  deleteRowButton.setAttribute('class', 'flex absolute bg-gray-100 px-2 rounded-sm h-full')
   deleteRowButton.textContent = '-'
+  // deleteRowButton.style.paddingTop = 'calc(250%)'
+  // deleteRowButton.style.paddingBottom = 'calc(250%)'
 
   deleteRowButton.style.opacity = '0'
   deleteRowButton.addEventListener('mouseover', () => {
@@ -71,23 +79,23 @@ function deleteRowButton(view: EditorView, pos: number) {
     const state = view.state
     // find nearest table node
 
-    const currentNode = state.doc.nodeAt(pos)
     let tableNode: Node | undefined
     let tableFound = false
     let tablePos = 0
-    state.doc.descendants((node: Node, pos: number) => {
+    state.doc.descendants((node: Node, docNodePos: number) => {
       if (!tableFound && node.type.name === 'table') {
         tableNode = node
-        tablePos = pos
+        tablePos = docNodePos
       }
 
-      if (pos > currentNode?.pos) {
+      if (docNodePos > rowPos) {
         tableFound = true
       }
     })
 
+    const relativeRowPos = rowPos - tablePos
     const map = TableMap.get(tableNode!)
-    const currentNodeIndexInTableMap = map.map.indexOf(pos)
+    const currentNodeIndexInTableMap = map.map.indexOf(relativeRowPos)
     const lastCellInRowTableMapIndex = currentNodeIndexInTableMap + map.width - 1
 
     const rect = map.rectBetween(map.map[currentNodeIndexInTableMap], map.map[lastCellInRowTableMapIndex])

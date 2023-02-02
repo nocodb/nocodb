@@ -16,12 +16,17 @@ export default Table.extend({
             update: async (view, prevState) => {
               // set createColumnButton height to the table height
               const createColumnButtons = document.querySelectorAll('[tiptap-table-create-column-id]')
-              const tables = document.querySelectorAll('[data-placeholder="table"] tbody')
+              const tables = document.querySelectorAll('[data-placeholder="table"]')
+              const tablesInner = document.querySelectorAll('[data-placeholder="table"] tbody')
+              const prosemirrorWrapper = document.querySelector('.ProseMirror')
+              if (!prosemirrorWrapper) return
+
+              const prosemirrorWrapperY = prosemirrorWrapper.getBoundingClientRect().top
 
               if (createColumnButtons.length) {
                 let index = 0
                 createColumnButtons.forEach((createColumnButton: any) => {
-                  const table = tables[index]
+                  const table = tablesInner[index]
                   if (table) {
                     createColumnButton.style.height = `${(table as any).offsetHeight}px`
                     createColumnButton.style.left = `${(table as any).offsetWidth + 5}px`
@@ -34,7 +39,7 @@ export default Table.extend({
               if (createRowButtons.length) {
                 let index = 0
                 createRowButtons.forEach((createRowButton: any) => {
-                  const table = tables[index]
+                  const table = tablesInner[index]
                   if (table) {
                     createRowButton.style.width = `${(table as any).offsetWidth + 1}px`
                     index += 1
@@ -42,37 +47,54 @@ export default Table.extend({
                 })
               }
 
-              // set modify rows button height to the table height
-              const modifyRowsButtons = document.querySelectorAll('[tiptap-table-modify-row]')
-              const rowsDom = document.querySelectorAll('[row-pos]')
-              for (let i = 0; i < modifyRowsButtons.length; i++) {
-                const modifyRowsButton = modifyRowsButtons[i]
-                const rowDom = rowsDom[i]
+              for (const table of tables) {
+                const tableId = table.getAttribute('data-decoration-id')
+                const tableY = table.getBoundingClientRect().top
+                const headerDom = document.querySelector(`[data-decoration-id="${tableId}"] tr`)
+                if (!headerDom) continue
 
-                if (modifyRowsButton && rowDom) {
-                  modifyRowsButton.style.top = `${(rowDom as any).offsetHeight * (i + 1)}px`
-                  modifyRowsButton.style.height = `${(rowDom as any).offsetHeight}px`
+                const anchorY = tableY - prosemirrorWrapperY + (headerDom ? headerDom.getBoundingClientRect().height : 0)
+
+                const modifyRowsButtons = document.querySelectorAll(`[tiptap-table-modify-row-table-pos="${tableId}"]`)
+                const rowsDom = Array.from(document.querySelectorAll(`[data-decoration-id="${tableId}"] [row-pos]`))
+
+                for (let i = 0; i < modifyRowsButtons.length; i++) {
+                  const modifyRowsButton = modifyRowsButtons[i]
+                  const cumalativeRowsHeight = rowsDom.slice(0, i).reduce((acc, rowDom) => {
+                    return acc + (rowDom as any).offsetHeight
+                  }, 0)
+                  const rowDom = rowsDom[i]
+                  if (modifyRowsButton && rowDom) {
+                    modifyRowsButton.style.top = `${anchorY + cumalativeRowsHeight}px`
+                    modifyRowsButton.style.height = `${(rowDom as any).offsetHeight}px`
+                  }
+                }
+
+                const modifyColumnButtons = document.querySelectorAll(`[tiptap-table-modify-column-table-pos="${tableId}"]`)
+                const colDoms = document.querySelectorAll(`[data-decoration-id="${tableId}"] [col-pos]`)
+
+                console.log({
+                  modifyColumnButtons,
+                  colDoms,
+                })
+
+                let widthOffset = 0
+                for (let i = 0; i < modifyColumnButtons.length; i++) {
+                  const modifyColumnButton = modifyColumnButtons[i]
+                  const colDom = colDoms[i]
+                  const modifyColumnButtonWidth = modifyColumnButton?.clientWidth
+
+                  if (modifyColumnButton && colDom) {
+                    modifyColumnButton.style.left = `${widthOffset}px`
+                    modifyColumnButton.style.top = `${anchorY - headerDom.clientHeight - 30}px`
+                    // modifyColumnButton.style.height = `${36}px`
+                    modifyColumnButton.style.width = `${(colDom as any).offsetWidth}px`
+                    widthOffset = widthOffset + (colDom as any).offsetWidth
+                  }
                 }
               }
 
               // set modify column button
-              const modifyColumnButtons = document.querySelectorAll('[tiptap-table-modify-column]')
-              const colDoms = document.querySelectorAll('[col-pos]')
-
-              let widthOffset = 0
-              for (let i = 0; i < modifyColumnButtons.length; i++) {
-                const modifyColumnButton = modifyColumnButtons[i]
-                const colDom = colDoms[i]
-                const modifyColumnButtonWidth = modifyColumnButton?.clientWidth
-
-                if (modifyColumnButton && colDom) {
-                  modifyColumnButton.style.left = `${widthOffset}px`
-                  modifyColumnButton.style.top = `-${(colDom as any).offsetHeight}px`
-                  modifyColumnButton.style.height = `${(colDom as any).offsetHeight}px`
-                  modifyColumnButton.style.width = `${(colDom as any).offsetWidth}px`
-                  widthOffset = widthOffset + (colDom as any).offsetWidth
-                }
-              }
             },
           }
         },

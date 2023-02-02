@@ -23,17 +23,21 @@ const TableHeader = TiptapTableHeader.extend({
                 tableNode = node
                 tablePos = pos
               }
+
+              const { tablePos: localTablePos, pos: localPos } = structuredClone({ tablePos, pos })
               if (node.type.name !== 'tableHeader') return
 
               if (tableNode?.firstChild?.childCount === 1) return
 
               // check if the node is on the first row
-              const decorationTable = Decoration.node(pos, pos + node.nodeSize, {
+              const decorationTable = Decoration.node(localPos, localPos + node.nodeSize, {
                 'class': '',
-                'col-pos': pos.toString(),
+                'col-pos': localPos.toString(),
               })
 
-              const decorationDeleteRow = Decoration.widget(tablePos, (view: EditorView) => deleteColumnButton(view, pos))
+              const decorationDeleteRow = Decoration.widget(localTablePos, (view: EditorView) =>
+                deleteColumnButton(view, localPos, localTablePos),
+              )
 
               decorations.push(decorationDeleteRow)
               decorations.push(decorationTable)
@@ -47,17 +51,18 @@ const TableHeader = TiptapTableHeader.extend({
   },
 })
 
-function deleteColumnButton(view: EditorView, pos: number) {
+function deleteColumnButton(view: EditorView, colPos: number, tablePos: number) {
   const deleteColumnButtonWrapper = document.createElement('div')
-  deleteColumnButtonWrapper.setAttribute('tiptap-table-modify-column', pos.toString())
+  deleteColumnButtonWrapper.setAttribute('tiptap-table-modify-column', colPos.toString())
+  deleteColumnButtonWrapper.setAttribute('tiptap-table-modify-column-table-pos', tablePos.toString())
   deleteColumnButtonWrapper.setAttribute('class', 'flex flex-row justify-center absolute')
   deleteColumnButtonWrapper.style.left = '-1.5rem'
   deleteColumnButtonWrapper.style.width = '3rem'
   const deleteColumnButton = document.createElement('button')
 
-  deleteColumnButton.setAttribute('class', 'flex bg-gray-100 my-1 rounded-sm')
-  deleteColumnButton.style.paddingLeft = 'calc(50% - 2rem)'
-  deleteColumnButton.style.paddingRight = 'calc(50% - 2rem)'
+  deleteColumnButton.setAttribute('class', 'flex bg-gray-100 my-1 rounded-sm w-full')
+  deleteColumnButton.style.paddingLeft = 'calc(50%)'
+  deleteColumnButton.style.paddingRight = 'calc(50%)'
   deleteColumnButton.textContent = '-'
 
   deleteColumnButton.style.opacity = '0'
@@ -72,23 +77,23 @@ function deleteColumnButton(view: EditorView, pos: number) {
     const state = view.state
     // find nearest table node
 
-    const currentNode = state.doc.nodeAt(pos)
     let tableNode: Node | undefined
     let tableFound = false
     let tablePos = 0
-    state.doc.descendants((node: Node, pos: number) => {
+    state.doc.descendants((node: Node, docNodePos: number) => {
       if (!tableFound && node.type.name === 'table') {
         tableNode = node
-        tablePos = pos
+        tablePos = docNodePos
       }
 
-      if (pos > currentNode?.pos) {
+      if (docNodePos > colPos) {
         tableFound = true
       }
     })
 
+    const relativeColumnPos = colPos - tablePos
     const map = TableMap.get(tableNode!)
-    const currentNodeIndexInTableMap = map.map.indexOf(pos - 1)
+    const currentNodeIndexInTableMap = map.map.indexOf(relativeColumnPos - 1)
 
     const rect = map.rectBetween(map.map[currentNodeIndexInTableMap], map.map[currentNodeIndexInTableMap])
     const columnInfo = { ...rect, bottom: rect.bottom, tableStart: tablePos, map, table: tableNode }

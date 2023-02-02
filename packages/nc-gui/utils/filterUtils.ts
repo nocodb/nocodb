@@ -10,6 +10,24 @@ const numericUITypes: UITypes[] = [
   UITypes.Rollup,
 ]
 
+const getEqText = (fieldUiType: UITypes) => {
+  if (numericUITypes.includes(fieldUiType)) {
+    return '='
+  } else if ([UITypes.SingleSelect, UITypes.Collaborator].includes(fieldUiType)) {
+    return 'is'
+  }
+  return 'is equal'
+}
+
+const getNeqText = (fieldUiType: UITypes) => {
+  if (numericUITypes.includes(fieldUiType)) {
+    return '!='
+  } else if ([UITypes.SingleSelect, UITypes.Collaborator].includes(fieldUiType)) {
+    return 'is not'
+  }
+  return 'is not equal'
+}
+
 export const comparisonOpList = (
   fieldUiType: UITypes,
 ): {
@@ -32,12 +50,12 @@ export const comparisonOpList = (
     includedTypes: [UITypes.Checkbox],
   },
   {
-    text: numericUITypes.includes(fieldUiType) ? '=' : 'is equal',
+    text: getEqText(fieldUiType),
     value: 'eq',
     excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },
   {
-    text: numericUITypes.includes(fieldUiType) ? '!=' : 'is not equal',
+    text: getNeqText(fieldUiType),
     value: 'neq',
     excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },

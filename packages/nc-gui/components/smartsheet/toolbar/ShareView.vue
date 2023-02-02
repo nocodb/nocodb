@@ -237,7 +237,7 @@ const copyIframeCode = async () => {
       <div class="flex items-center gap-1">
         <MdiOpenInNew />
         <!-- Share View -->
-        <span class="!text-sm font-weight-normal"> {{ $t('activity.shareView') }}</span>
+        <span class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>
     </a-button>
 

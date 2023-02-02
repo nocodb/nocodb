@@ -323,7 +323,7 @@ useEventListener(document, 'click', handleClose, true)
   @apply !text-xs;
 }
 
-:deep(.ant-select-clear > span){
-  @apply block
+:deep(.ant-select-clear > span) {
+  @apply block;
 }
 </style>

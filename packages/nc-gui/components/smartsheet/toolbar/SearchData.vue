@@ -83,8 +83,9 @@ function onPressEnter() {
     </a-input>
   </div>
 </template>
+
 <style scoped>
-:deep(input::placeholder){
-  @apply !text-xs
+:deep(input::placeholder) {
+  @apply !text-xs;
 }
 </style>

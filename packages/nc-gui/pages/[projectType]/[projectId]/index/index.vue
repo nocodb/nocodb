@@ -114,12 +114,10 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
     & > .ant-tabs-nav-wrap > .ant-tabs-nav-list {
       & > .ant-tabs-tab {
         @apply border-0 !text-sm py-2 font-weight-medium  z-2;
+
         border-top-right-radius: 8px;
         border-top-left-radius: 8px;
-        border-top: 1px solid white;
-        border-left: 1px solid white;
-        border-right: 1px solid white;
-        @apply !border-[var(--navbar-border)];
+
         & + .ant-tabs-tab {
           @apply ml-1;
         }
@@ -127,6 +125,12 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 
       & > .ant-tabs-tab-active {
         @apply relative bg-white w-full h-full overflow-y-visible;
+
+        border-top: 1px solid white;
+        border-left: 1px solid white;
+        border-right: 1px solid white;
+        @apply !border-[var(--navbar-border)];
+
         &:after {
           @apply absolute content-[''] left-0 -bottom-[1px] w-full h-[1px] bg-inherit z-100;
         }
@@ -160,9 +164,10 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
     @apply flex mt-[2px];
   }
 
-  &,
+  background: linear-gradient(0deg, var(--navbar-border) 1px, var(--navbar-bg) 1px) !important;
+
   :deep(.ant-tabs-tab:not(.ant-tabs-tab-active)) {
-    background: linear-gradient(0deg, var(--navbar-border) 1px, var(--navbar-bg) 1px) !important;
+    background: linear-gradient(0deg, var(--navbar-border) 1px, #f2f2f2 1px) !important;
   }
 }
 </style>

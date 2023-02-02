@@ -24,12 +24,12 @@ export const comparisonOpList: {
   {
     text: 'is equal',
     value: 'eq',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect],
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },
   {
     text: 'is not equal',
     value: 'neq',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect],
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },
   {
     text: 'is like',
@@ -45,13 +45,27 @@ export const comparisonOpList: {
     text: 'is empty',
     value: 'empty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
+    excludedTypes: [
+      UITypes.Checkbox,
+      UITypes.SingleSelect,
+      UITypes.MultiSelect,
+      UITypes.Collaborator,
+      UITypes.Attachment,
+      ...numericUITypes,
+    ],
   },
   {
     text: 'is not empty',
     value: 'notempty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
+    excludedTypes: [
+      UITypes.Checkbox,
+      UITypes.SingleSelect,
+      UITypes.MultiSelect,
+      UITypes.Collaborator,
+      UITypes.Attachment,
+      ...numericUITypes,
+    ],
   },
   {
     text: 'is null',

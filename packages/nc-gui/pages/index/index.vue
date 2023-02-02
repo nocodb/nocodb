@@ -18,7 +18,7 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
       </div>
 
       <div class="min-w-2/4 xl:max-w-2/4 w-full mx-auto">
-        <NuxtPage />
+        <NuxtPage :transition="false" />
       </div>
 
       <div

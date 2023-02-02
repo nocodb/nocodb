@@ -53,8 +53,8 @@ body:
 
 - type: textarea
   attributes:
-    label: Attachements
-    description: Add any relevant attachemnts here
+    label: Attachments
+    description: Add any relevant attachment here
     placeholder: |
       > Drag & drop relevant image or videos
   validations:

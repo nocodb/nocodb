@@ -5,6 +5,7 @@ import {
   CellValueInj,
   ColumnInj,
   IsFormInj,
+  IsGridInj,
   RowInj,
   inject,
   isBarcode,
@@ -40,7 +41,10 @@ provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
 
+const isGrid = inject(IsGridInj, ref(false))
+
 const isForm = inject(IsFormInj, ref(false))
+
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)
 
@@ -50,7 +54,8 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
 
 <template>
   <div
-    class="nc-virtual-cell w-full"
+    class="nc-virtual-cell w-full flex items-center"
+    :class="{ 'text-right justify-end': isGrid && !isForm && isRollup(column) }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >

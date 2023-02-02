@@ -97,13 +97,12 @@ const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
-const tbodyEl = ref<HTMLElement>()
 const gridWrapper = ref<HTMLElement>()
 const tableHead = ref<HTMLElement>()
 
-const isAddingColumnAllowed = !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value
+const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
-const isAddingEmptyRowAllowed = !isView && !isLocked.value && hasEditPermission && !isSqlView.value
+const isAddingEmptyRowAllowed = $computed(() => !isView && !isLocked.value && hasEditPermission && !isSqlView.value)
 
 const {
   isLoading,
@@ -182,6 +181,8 @@ const {
   clearSelectedRange,
   copyValue,
   isCellActive,
+  tbodyEl,
+  resetSelectedRange,
 } = useMultiSelect(
   meta,
   fields,
@@ -279,6 +280,17 @@ const {
           if (isAddingEmptyRowAllowed) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
+            activeCell.row = data.value.length - 1
+            activeCell.col = 0
+            resetSelectedRange()
+            makeEditable(data.value[activeCell.row], fields.value[activeCell.col])
+            nextTick(() => {
+              ;(
+                document.querySelector('td.cell.active')?.querySelector('input,textarea') as
+                  | HTMLInputElement
+                  | HTMLTextAreaElement
+              )?.focus()
+            })
           }
           break
         }
@@ -483,7 +495,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 
-onClickOutside(smartTable, (e) => {
+onClickOutside(tbodyEl, (e) => {
   // do nothing if context menu was open
   if (contextMenu.value) return
 
@@ -558,11 +570,14 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
       currentRow.rowMeta.changed = false
       continue
     }
+
     /** if existing row check updated cell and invoke update method */
     if (currentRow.rowMeta.changed) {
       currentRow.rowMeta.changed = false
       for (const field of (args.metaValue || meta.value)?.columns ?? []) {
-        if (isVirtualCol(field)) continue
+        // `url` would be enriched in attachment during listing
+        // hence it would consider as a change while it is not necessary to update
+        if (isVirtualCol(field) || field.uidt === UITypes.Attachment) continue
         if (field.title! in currentRow.row && currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
           await updateOrSaveRow(currentRow, field.title!, {}, args)
         }
@@ -699,7 +714,7 @@ const rowHeight = computed(() => {
           @contextmenu="showContextMenu"
         >
           <thead ref="tableHead">
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
+            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px] !z-4">
               <th data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
@@ -830,6 +845,8 @@ const rowHeight = computed(() => {
                     :class="{
                       'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
+                      'align-middle': !rowHeight || rowHeight === 1,
+                      'align-top': rowHeight && rowHeight !== 1,
                     }"
                     :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                     :data-key="rowIndex + columnObj.id"
@@ -982,7 +999,7 @@ const rowHeight = computed(() => {
 
   td:not(:first-child) > div {
     overflow: hidden;
-    @apply flex px-1;
+    @apply flex px-1 h-auto;
   }
 
   table,

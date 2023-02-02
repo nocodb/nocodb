@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { ColumnType, GridType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
-  ActiveViewInj,
   ColumnInj,
   EditModeInj,
   IsFormInj,
@@ -61,8 +60,6 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled'])
 
-const view = inject(ActiveViewInj, ref())
-
 const column = toRef(props, 'column')
 
 const active = toRef(props, 'active', false)
@@ -78,6 +75,8 @@ provide(ActiveCellInj, active)
 provide(ReadonlyInj, readOnly)
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -110,7 +109,6 @@ const vModel = computed({
         syncValue()
       } else if (!isManualSaved(column.value)) {
         emit('save')
-        currentRow.value.rowMeta.changed = true
       }
     }
   },
@@ -128,32 +126,25 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   if (!isForm.value) e.stopImmediatePropagation()
 }
 
-const rowHeight = computed(() => {
-  if ((view.value?.view as GridType)?.row_height !== undefined) {
-    switch ((view.value?.view as GridType)?.row_height) {
-      case 0:
-        return 1
-      case 1:
-        return 2
-      case 2:
-        return 4
-      case 3:
-        return 6
-      default:
-        return 1
-    }
-  }
+const isNumericField = computed(() => {
+  return (
+    isInt(column.value, abstractType.value) ||
+    isFloat(column.value, abstractType.value) ||
+    isDecimal(column.value) ||
+    isCurrency(column.value) ||
+    isPercent(column.value) ||
+    isDuration(column.value)
+  )
 })
 </script>
 
 <template>
   <div
-    class="nc-cell w-full"
+    class="nc-cell w-full h-full"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
-      { 'm-y-auto !h-auto': !rowHeight || rowHeight === 1 },
-      { '!h-full': rowHeight && rowHeight !== 1 },
+      { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
     ]"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
@@ -190,3 +181,12 @@ const rowHeight = computed(() => {
     </template>
   </div>
 </template>
+
+<style scoped lang="scss">
+.nc-grid-numeric-cell {
+  @apply text-right;
+  :deep(input) {
+    @apply text-right;
+  }
+}
+</style>

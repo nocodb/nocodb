@@ -7,24 +7,16 @@ import { XKnex } from '../db/sql-data-mapper/index';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { BaseType, UITypes } from 'nocodb-sdk';
 
-// before 0.103.0, an attachment object was like
-// [{
-//   "url": "http://localhost:8080/download/noco/xcdb/Sheet-1/title5/39A410.jpeg",
-//   "title": "foo.jpeg",
-//   "mimetype": "image/jpeg",
-//   "size": 6494
-// }]
-// in this way, if the base url is changed, the url will be broken
-// this upgrader is to convert the existing local attachment object to the following format
-// [{
-//   "url": "http://localhost:8080/download/noco/xcdb/Sheet-1/title5/39A410.jpeg",
-//   "path": "download/noco/xcdb/Sheet-1/title5/39A410.jpeg",
-//   "title": "foo.jpeg",
-//   "mimetype": "image/jpeg",
-//   "size": 6494
-// }]
-// the new url will be constructed by `${ncSiteUrl}/${path}` in UI. the old url will be used for fallback
-// while other non-local attachments will remain unchanged
+// after 0101002 upgrader, the attachment object would become broken when
+// (1) switching views after updating a singleSelect field
+// since `url` will be enriched the attachment cell, and `saveOrUpdateRecords` in Grid.vue will be triggered
+// in this way, the attachment value will be corrupted like
+// {"{\"path\":\"download/noco/xcdb2/attachment2/a/JRubxMQgPlcumdm3jL.jpeg\",\"title\":\"haha.jpeg\",\"mimetype\":\"image/jpeg\",\"size\":6494,\"url\":\"http://localhost:8080/download/noco/xcdb2/attachment2/a/JRubxMQgPlcumdm3jL.jpeg\"}"}
+// while the expected one is
+// [{"path":"download/noco/xcdb2/attachment2/a/JRubxMQgPlcumdm3jL.jpeg","title":"haha.jpeg","mimetype":"image/jpeg","size":6494}]
+// (2) or reordering attachments
+// since the incoming value is not string, the value will be broken
+// hence, this upgrader is to revert back these corrupted values
 
 function getTnPath(knex: XKnex, tb: Model) {
   const schema = (knex as any).searchPath?.();
@@ -112,57 +104,46 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         const records = await knex(getTnPath(knex, model)).select();
 
         for (const record of records) {
+          const where = primaryKeys
+            .map((key) => {
+              return { [key]: record[key] };
+            })
+            .reduce((acc, val) => Object.assign(acc, val), {});
           for (const attachmentColumn of attachmentColumns) {
-            let attachmentMeta: Array<{
-              url: string;
-            }>;
-
-            // if parsing failed ignore the cell
-            try {
-              attachmentMeta =
-                typeof record[attachmentColumn] === 'string'
-                  ? JSON.parse(record[attachmentColumn])
-                  : record[attachmentColumn];
-            } catch {}
-
-            // if cell data is not an array, ignore it
-            if (!Array.isArray(attachmentMeta)) {
-              continue;
-            }
-
-            if (attachmentMeta) {
-              const newAttachmentMeta = [];
-              for (const attachment of attachmentMeta) {
-                if ('url' in attachment && typeof attachment.url === 'string') {
-                  const match = attachment.url.match(/^(.*)\/download\/(.*)$/);
-                  if (match) {
-                    // e.g. http://localhost:8080/download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png
-                    // match[1] = http://localhost:8080
-                    // match[2] = download/noco/xcdb/Sheet-1/title5/ee2G8p_nute_gunray.png
-                    const path = `download/${match[2]}`;
-
-                    newAttachmentMeta.push({
-                      ...attachment,
-                      path,
-                    });
-                  } else {
-                    // keep it as it is
-                    newAttachmentMeta.push(attachment);
+            if (typeof record[attachmentColumn] === 'string') {
+              // potentially corrupted
+              try {
+                JSON.parse(record[attachmentColumn]);
+                // it works fine - skip
+                continue;
+              } catch {
+                try {
+                  // corrupted
+                  let corruptedAttachment = record[attachmentColumn];
+                  // replace the first and last character with `[` and `]`
+                  // and parse it again
+                  corruptedAttachment = JSON.parse(
+                    `[${corruptedAttachment.slice(
+                      1,
+                      corruptedAttachment.length - 1
+                    )}]`
+                  );
+                  let newAttachmentMeta = [];
+                  for (const attachment of corruptedAttachment) {
+                    newAttachmentMeta.push(JSON.parse(attachment));
                   }
+                  updateRecords.push(
+                    await knex(getTnPath(knex, model))
+                      .update({
+                        [attachmentColumn]: JSON.stringify(newAttachmentMeta),
+                      })
+                      .where(where)
+                  );
+                } catch {
+                  // if parsing failed ignore the cell
+                  continue;
                 }
               }
-              const where = primaryKeys
-                .map((key) => {
-                  return { [key]: record[key] };
-                })
-                .reduce((acc, val) => Object.assign(acc, val), {});
-              updateRecords.push(
-                await knex(getTnPath(knex, model))
-                  .update({
-                    [attachmentColumn]: JSON.stringify(newAttachmentMeta),
-                  })
-                  .where(where)
-              );
             }
           }
         }

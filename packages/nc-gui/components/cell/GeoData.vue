@@ -73,8 +73,8 @@ const onClickSetCurrentLocation = () => {
     <template #overlay>
       <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
         <a-form-item>
-          <div class="mb-2 mt-4 bg-pink-50 flex">
-            <div>{{ $t('labels.lat') }}</div>
+          <div class="flex mt-4 items-center mx-2">
+            <div class="mr-2">{{ $t('labels.lat') }}:</div>
             <a-input
               v-model:value="formState.latitude"
               type="number"
@@ -89,31 +89,33 @@ const onClickSetCurrentLocation = () => {
           </div>
         </a-form-item>
 
-        <a-form-item class="input-lng">
-          <template #label>
-            <div>{{ $t('labels.lng') }}</div>
-          </template>
-          <a-input
-            v-model:value="formState.longitude"
-            type="number"
-            step="0.0000001"
-            required
-            :min="-180"
-            :max="180"
-            @keydown.stop
-            @selectstart.capture.stop
-            @mousedown.stop
-          />
+        <a-form-item>
+          <div class="flex items-center mx-2">
+            <div class="mr-2">{{ $t('labels.lng') }}:</div>
+            <a-input
+              v-model:value="formState.longitude"
+              type="number"
+              step="0.0000001"
+              required
+              :min="-180"
+              :max="180"
+              @keydown.stop
+              @selectstart.capture.stop
+              @mousedown.stop
+            />
+          </div>
         </a-form-item>
         <a-form-item>
-          <div class="flex set-location-group">
+          <div class="flex items-center mr-2">
             <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }" />
             <a-button class="ml-2" @click="onClickSetCurrentLocation">{{ $t('labels.yourLocation') }}</a-button>
           </div>
         </a-form-item>
-        <a-form-item class="btn-group-cancel-submit">
-          <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
-          <a-button type="primary" html-type="submit">{{ $t('general.submit') }}</a-button>
+        <a-form-item>
+          <div class="ml-auto mr-2">
+            <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
+            <a-button type="primary" html-type="submit">{{ $t('general.submit') }}</a-button>
+          </div>
         </a-form-item>
       </a-form>
     </template>
@@ -128,28 +130,10 @@ input[type='number']:focus {
 input[type='number'] {
   width: 180px;
 }
-
-.input-lat {
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  margin-right: 0.5rem;
-  margin-left: 0.5rem;
-}
-.input-lng {
-  margin-right: 0.5rem;
-  margin-left: 0.5rem;
-}
-
-.btn-group-cancel-submit {
-  margin-left: auto;
-  margin-bottom: 0;
+.ant-form-item {
+  margin-bottom: 1rem;
 }
 .ant-dropdown-menu {
   align-items: flex-end;
-}
-
-.set-location-group {
-  align-items: center;
-  margin-right: 0.5rem;
 }
 </style>

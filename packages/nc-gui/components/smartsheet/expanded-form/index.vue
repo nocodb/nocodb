@@ -25,7 +25,7 @@ import type { Row } from '~/lib'
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel'])
+const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
 interface Props {
   modelValue?: boolean
@@ -38,10 +38,6 @@ interface Props {
   view?: ViewType
   showNextPrevIcons?: boolean
 }
-
-const props = defineProps<Props>()
-
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
 const row = ref(props.row)
 

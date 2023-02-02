@@ -1,5 +1,7 @@
 import { UITypes } from 'nocodb-sdk'
 
+const numericUITypes = [UITypes.Duration, UITypes.Currency, UITypes.Percent, UITypes.Number, UITypes.Rating, UITypes.Rollup]
+
 export const comparisonOpList: {
   text: string
   value: string
@@ -82,21 +84,21 @@ export const comparisonOpList: {
   {
     text: '>',
     value: 'gt',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
+    includedTypes: [...numericUITypes],
   },
   {
     text: '<',
     value: 'lt',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
+    includedTypes: [...numericUITypes],
   },
   {
     text: '>=',
     value: 'gte',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
+    includedTypes: [...numericUITypes],
   },
   {
     text: '<=',
     value: 'lte',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
+    includedTypes: [...numericUITypes],
   },
 ]

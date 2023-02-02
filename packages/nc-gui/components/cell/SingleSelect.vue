@@ -119,6 +119,9 @@ useSelectedCellKeyupListener(active, (e) => {
         isOpen.value = true
       }
       break
+    // skip space bar key press since it's used for expand row
+    case ' ':
+      break
     default:
       if (!editAllowed.value) {
         e.preventDefault()

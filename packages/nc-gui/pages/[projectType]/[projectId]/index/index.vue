@@ -34,11 +34,11 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
       <div class="flex items-end !min-h-[var(--header-height)] !bg-white-500 nc-tab-bar">
         <div
           v-if="!isOpen"
-          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
+          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3 mb-1"
         >
           <MdiMenu
             v-e="['c:grid:toggle-navdraw']"
-            class="cursor-pointer transform transition-transform duration-500 text-white"
+            class="cursor-pointer transform transition-transform duration-500 text-gray-500/80 hover:text-gray-500"
             :class="{ 'rotate-180': !isOpen }"
             @click="toggle(!isOpen)"
           />
@@ -133,11 +133,10 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
       }
 
       & > .ant-tabs-tab:not(.ant-tabs-tab-active) {
-        //@apply bg-gray-100 text-gray-500;
         @apply bg-gray-50 text-gray-500;
 
         .ant-tabs-tab-remove {
-          //@apply !text-default;
+          @apply !text-default;
         }
       }
     }

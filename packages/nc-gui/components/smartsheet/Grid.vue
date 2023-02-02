@@ -97,7 +97,6 @@ const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
-const tbodyEl = ref<HTMLElement>()
 const gridWrapper = ref<HTMLElement>()
 const tableHead = ref<HTMLElement>()
 
@@ -182,6 +181,8 @@ const {
   clearSelectedRange,
   copyValue,
   isCellActive,
+  tbodyEl,
+  resetSelectedRange,
 } = useMultiSelect(
   meta,
   fields,
@@ -279,6 +280,17 @@ const {
           if (isAddingEmptyRowAllowed) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
+            activeCell.row = data.value.length - 1
+            activeCell.col = 0
+            resetSelectedRange()
+            makeEditable(data.value[activeCell.row], fields.value[activeCell.col])
+            nextTick(() => {
+              ;(
+                document.querySelector('td.cell.active')?.querySelector('input,textarea') as
+                  | HTMLInputElement
+                  | HTMLTextAreaElement
+              )?.focus()
+            })
           }
           break
         }
@@ -702,7 +714,7 @@ const rowHeight = computed(() => {
           @contextmenu="showContextMenu"
         >
           <thead ref="tableHead">
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
+            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px] !z-4">
               <th data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">

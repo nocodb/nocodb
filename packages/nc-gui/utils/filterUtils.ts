@@ -24,10 +24,12 @@ export const comparisonOpList: {
   {
     text: 'is equal',
     value: 'eq',
+    excludedTypes: [UITypes.Checkbox],
   },
   {
     text: 'is not equal',
     value: 'neq',
+    excludedTypes: [UITypes.Checkbox],
   },
   {
     text: 'is like',

@@ -236,7 +236,7 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <template v-for="compOp of comparisonOpList(getColumn(filter).uidt)" :key="compOp.value">
+              <template v-for="compOp of comparisonOpList(getColumn(filter)?.uidt)" :key="compOp.value">
                 <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
                   {{ compOp.text }}
                 </a-select-option>

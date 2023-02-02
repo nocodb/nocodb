@@ -158,6 +158,8 @@ watch(
 )
 
 watch(isOpen, (n, _o) => {
+  if (!n) searchVal.value = ''
+
   if (editAllowed.value) {
     if (!n) {
       aselect.value?.$el?.querySelector('input')?.blur()
@@ -321,7 +323,7 @@ useEventListener(document, 'click', handleClose, true)
       :bordered="false"
       clear-icon
       show-search
-      :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel.length === 0))"
+      :show-arrow="editAllowed && !readOnly"
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"

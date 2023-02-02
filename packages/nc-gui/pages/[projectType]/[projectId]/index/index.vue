@@ -119,7 +119,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
         border-top: 1px solid white;
         border-left: 1px solid white;
         border-right: 1px solid white;
-        @apply !border-gray-200;
+        @apply !border-[var(--navbar-border)];
         & + .ant-tabs-tab {
           @apply ml-1;
         }

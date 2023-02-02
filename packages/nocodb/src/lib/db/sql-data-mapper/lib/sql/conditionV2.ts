@@ -274,8 +274,22 @@ const parseConditionV2 = async (
         switch (filter.comparison_op) {
           case 'eq':
             if (qb?.client?.config?.client === 'mysql2') {
-              // mysql is case-insensitive, turn to case-sensitive
-              qb = qb.whereRaw('BINARY ?? = ?', [field, val]);
+              if (
+                [
+                  UITypes.Duration,
+                  UITypes.Currency,
+                  UITypes.Percent,
+                  UITypes.Number,
+                  UITypes.Decimal,
+                  UITypes.Rating,
+                  UITypes.Rollup,
+                ].includes(column.uidt)
+              ) {
+                qb = qb.where(field, val);
+              } else {
+                // mysql is case-insensitive for strings, turn to case-sensitive
+                qb = qb.whereRaw('BINARY ?? = ?', [field, val]);
+              }
             } else {
               qb = qb.where(field, val);
             }
@@ -283,12 +297,30 @@ const parseConditionV2 = async (
           case 'neq':
           case 'not':
             if (qb?.client?.config?.client === 'mysql2') {
-              // mysql is case-insensitive, turn to case-sensitive
-              qb = qb.where((nestedQb) => {
-                nestedQb
-                  .whereRaw('BINARY ?? != ?', [field, val])
-                  .orWhereNull(customWhereClause ? _val : _field);
-              });
+              if (
+                [
+                  UITypes.Duration,
+                  UITypes.Currency,
+                  UITypes.Percent,
+                  UITypes.Number,
+                  UITypes.Decimal,
+                  UITypes.Rating,
+                  UITypes.Rollup,
+                ].includes(column.uidt)
+              ) {
+                qb = qb.where((nestedQb) => {
+                  nestedQb
+                    .whereNot(field, val)
+                    .orWhereNull(customWhereClause ? _val : _field);
+                });
+              } else {
+                // mysql is case-insensitive for strings, turn to case-sensitive
+                qb = qb.where((nestedQb) => {
+                  nestedQb
+                    .whereRaw('BINARY ?? != ?', [field, val])
+                    .orWhereNull(customWhereClause ? _val : _field);
+                });
+              }
             } else {
               qb = qb.where((nestedQb) => {
                 nestedQb

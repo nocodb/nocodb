@@ -1,9 +1,13 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, ref, useSmartsheetStoreOrThrow } from '#imports'
+import { CellClickHookInj, createEventHook, onBeforeUnmount, onMounted, ref, useSmartsheetStoreOrThrow } from '#imports'
 
 const { cellRefs } = useSmartsheetStoreOrThrow()
 
 const el = ref<HTMLTableDataCellElement>()
+
+const cellClickHook = createEventHook()
+
+provide(CellClickHookInj, cellClickHook)
 
 onMounted(() => {
   cellRefs.value.push(el.value!)
@@ -18,7 +22,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <td ref="el">
+  <td ref="el" @click="cellClickHook.trigger($event)">
     <slot />
   </td>
 </template>

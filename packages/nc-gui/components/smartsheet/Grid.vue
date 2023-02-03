@@ -284,10 +284,9 @@ const {
             activeCell.col = 0
             resetSelectedRange()
             nextTick(() => {
-              ;(document.querySelector('td.cell.active') as
-                  | HTMLInputElement
-                  | HTMLTextAreaElement
-              )?.scrollIntoView({ behavior: 'smooth' })
+              ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
+                behavior: 'smooth',
+              })
             })
           }
           break

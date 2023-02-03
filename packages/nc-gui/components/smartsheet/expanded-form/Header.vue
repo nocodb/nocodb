@@ -12,7 +12,7 @@ import {
 
 const props = defineProps<{ view?: ViewType }>()
 
-const emit = defineEmits(['cancel'])
+const emit = defineEmits(['cancel', 'duplicateRow'])
 
 const route = useRoute()
 
@@ -72,6 +72,23 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
+
+
+const showDeleteRowModal = ref(false)
+
+const { deleteRowById } = useViewData(meta, ref(props.view))
+
+const onDeleteRowClick = () => {
+  showDeleteRowModal.value = true
+}
+
+const onConfirmDeleteRowClick = async () => {
+  showDeleteRowModal.value = false
+  await deleteRowById(primaryKey.value)
+  reloadTrigger.trigger()
+  emit('cancel')
+  message.success('Row deleted')
+}
 </script>
 
 <template>
@@ -126,6 +143,37 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         {{ $t('general.close') }}
       </div>
     </a-button>
+
+    <a-dropdown>
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
+        <div class="flex gap-1 items-center">
+          <!-- More -->
+          <span class="!text-sm font-weight-medium">{{ $t('general.more') }}</span>
+
+          <MdiMenuDown class="text-grey" />
+        </div>
+      </a-button>
+
+      <template #overlay>
+        <div class="bg-gray-50 py-2 shadow-lg !border">
+          <div>
+            <div v-e="['a:actions:duplicate-row']" class="nc-menu-item" @click="emit('duplicateRow')">
+              <MdiContentCopy class="text-gray-500" />
+              {{ $t('activity.duplicateRow') }}
+            </div>
+
+            <a-modal v-model:visible="showDeleteRowModal" title="Delete row?" @ok="onConfirmDeleteRowClick">
+              <p>Are you sure you want to delete this row?</p>
+            </a-modal>
+
+            <div v-e="['a:actions:delete-row']" class="nc-menu-item" @click="onDeleteRowClick" disabled="true">
+              <MdiDelete class="text-gray-500" />
+              {{ $t('activity.deleteRow') }}
+            </div>
+          </div>
+        </div>
+      </template>
+    </a-dropdown>
 
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
       <template #overlay>

@@ -49,6 +49,7 @@ const {
   galleryData,
   changePage,
   addEmptyRow,
+  deleteRow,
   navigateToSiblingRow,
 } = useViewData(meta, view)
 
@@ -80,6 +81,9 @@ const isRowEmpty = (record: any, col: any) => {
 
   return Array.isArray(val) && val.length === 0
 }
+
+// const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
+const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const attachments = (record: any): Attachment[] => {
   try {
@@ -168,85 +172,134 @@ watch(view, async (nextView) => {
     await loadGalleryData()
   }
 })
+
+const { isUIAllowed } = useUIPermission()
+const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
+// TODO: extract this code (which is duplicated in grid and gallery) into a separate component
+const _contextMenu = ref(false)
+const contextMenu = computed({
+  get: () => _contextMenu.value,
+  set: (val) => {
+    if (hasEditPermission) {
+      _contextMenu.value = val
+    }
+  },
+})
+const contextMenuTarget = ref<{ row: number } | null>(null)
+
+const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
+  if (isSqlView.value) return
+  e.preventDefault()
+  if (target) {
+    contextMenuTarget.value = target
+  }
+}
+
+
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full overflow-auto nc-gallery" data-testid="nc-gallery-wrapper">
-    <div class="nc-gallery-container grid gap-2 my-4 px-3">
-      <div v-for="record in data" :key="`record-${record.row.id}`">
-        <LazySmartsheetRow :row="record">
-          <a-card
-            hoverable
-            class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-            :data-testid="`nc-gallery-card-${record.row.id}`"
-            @click="expandFormClick($event, record)"
-          >
-            <template v-if="galleryData?.fk_cover_image_col_id" #cover>
-              <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel" arrows>
-                <template #customPaging>
-                  <a>
-                    <div class="pt-[12px]">
-                      <div></div>
+    <a-dropdown
+      v-model:visible="contextMenu"
+      :trigger="isSqlView ? [] : ['contextmenu']"
+      overlay-class-name="nc-dropdown-grid-context-menu"
+    >
+      <template #overlay>
+        <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
+          <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
+            <div v-e="['a:row:delete']" class="nc-project-menu-item">
+              <!-- Delete Row -->
+              {{ $t('activity.deleteRow') }}
+            </div>
+          </a-menu-item>
+
+          <a-menu-item v-if="contextMenuTarget" @click="openNewRecordFormHook.trigger()">
+            <div v-e="['a:row:insert']" class="nc-project-menu-item">
+              <!-- Insert New Row -->
+              {{ $t('activity.insertRow') }}
+            </div>
+          </a-menu-item>
+        </a-menu>
+      </template>
+      <div class="nc-gallery-container grid gap-2 my-4 px-3">
+        <!-- v-for="(row, rowIndex) of data -->
+        <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
+          <LazySmartsheetRow :row="record">
+            <a-card
+              hoverable
+              class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
+              :data-testid="`nc-gallery-card-${record.row.id}`"
+              @click="expandFormClick($event, record)"
+              @contextmenu="showContextMenu($event, { row: rowIndex })"
+            >
+              <template v-if="galleryData?.fk_cover_image_col_id" #cover>
+                <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel" arrows>
+                  <template #customPaging>
+                    <a>
+                      <div class="pt-[12px]">
+                        <div></div>
+                      </div>
+                    </a>
+                  </template>
+
+                  <template #prevArrow>
+                    <div style="z-index: 1"></div>
+                  </template>
+
+                  <template #nextArrow>
+                    <div style="z-index: 1"></div>
+                  </template>
+
+                  <LazyNuxtImg
+                    v-for="(attachment, index) in attachments(record)"
+                    :key="`carousel-${record.row.id}-${index}`"
+                    quality="90"
+                    placeholder
+                    class="h-52 object-contain"
+                    :src="attachment.url"
+                  />
+                </a-carousel>
+
+                <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
+              </template>
+
+              <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
+                <div
+                  v-if="!isRowEmpty(record, col) || isLTAR(col.uidt)"
+                  class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
+                >
+                  <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
+                    <div class="w-full text-gray-600">
+                      <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+
+                      <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                     </div>
-                  </a>
-                </template>
+                  </div>
 
-                <template #prevArrow>
-                  <div style="z-index: 1"></div>
-                </template>
+                  <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(col)"
+                      v-model="record.row[col.title]"
+                      :column="col"
+                      :row="record"
+                    />
 
-                <template #nextArrow>
-                  <div style="z-index: 1"></div>
-                </template>
-
-                <LazyNuxtImg
-                  v-for="(attachment, index) in attachments(record)"
-                  :key="`carousel-${record.row.id}-${index}`"
-                  quality="90"
-                  placeholder
-                  class="h-52 object-contain"
-                  :src="attachment.url"
-                />
-              </a-carousel>
-
-              <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
-            </template>
-
-            <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
-              <div
-                v-if="!isRowEmpty(record, col) || isLTAR(col.uidt)"
-                class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
-              >
-                <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
-                  <div class="w-full text-gray-600">
-                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-
-                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                    <LazySmartsheetCell
+                      v-else
+                      v-model="record.row[col.title]"
+                      :column="col"
+                      :edit-enabled="false"
+                      :read-only="true"
+                    />
                   </div>
                 </div>
-
-                <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-                  <LazySmartsheetVirtualCell
-                    v-if="isVirtualCol(col)"
-                    v-model="record.row[col.title]"
-                    :column="col"
-                    :row="record"
-                  />
-
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="record.row[col.title]"
-                    :column="col"
-                    :edit-enabled="false"
-                    :read-only="true"
-                  />
-                </div>
               </div>
-            </div>
-          </a-card>
-        </LazySmartsheetRow>
+            </a-card>
+          </LazySmartsheetRow>
+        </div>
       </div>
-    </div>
+    </a-dropdown>
 
     <div class="flex-1" />
 

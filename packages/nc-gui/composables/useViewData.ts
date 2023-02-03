@@ -603,5 +603,6 @@ export function useViewData(
     removeLastEmptyRow,
     removeRowIfNew,
     navigateToSiblingRow,
+    deleteRowById,
   }
 }

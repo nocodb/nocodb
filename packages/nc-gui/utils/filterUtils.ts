@@ -29,14 +29,14 @@ const getNeqText = (fieldUiType: UITypes) => {
 }
 
 const getLikeText = (fieldUiType: UITypes) => {
-  if (UITypes.Attachment) {
+  if (fieldUiType === UITypes.Attachment) {
     return 'filenames contain'
   }
   return 'is like'
 }
 
 const getNotLikeText = (fieldUiType: UITypes) => {
-  if (UITypes.Attachment) {
+  if (fieldUiType === UITypes.Attachment) {
     return "filenames doesn't contain"
   }
   return 'is not like'

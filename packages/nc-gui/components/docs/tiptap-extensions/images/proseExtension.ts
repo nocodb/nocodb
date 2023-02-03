@@ -59,7 +59,6 @@ export const dropImagePlugin = (upload: UploadFn) => {
       handleDOMEvents: {
         drop: (view, event) => {
           const hasFiles = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length
-          console.log('handleDOMEvents', { event, view })
 
           if (!hasFiles) return false
 

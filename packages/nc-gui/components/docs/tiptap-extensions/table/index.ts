@@ -5,8 +5,10 @@ import type { DecorationSource, EditorView } from 'prosemirror-view'
 import { Decoration, DecorationSet } from 'prosemirror-view'
 import type { Node } from 'prosemirror-model'
 import { TableMap, addColumn, addRow, columnResizing } from '@tiptap/prosemirror-tables'
+import { TableNodeView } from './TableNodeView'
 
 export default Table.extend({
+  draggable: true,
   addProseMirrorPlugins() {
     return [
       new Plugin({
@@ -55,34 +57,13 @@ export default Table.extend({
 
                 const anchorY = tableY - prosemirrorWrapperY + (headerDom ? headerDom.getBoundingClientRect().height : 0)
 
-                const modifyRowsButtons = document.querySelectorAll(`[tiptap-table-modify-row-table-pos="${tableId}"]`)
-                const rowsDom = Array.from(document.querySelectorAll(`[data-decoration-id="${tableId}"] [row-pos]`))
-
-                for (let i = 0; i < modifyRowsButtons.length; i++) {
-                  const modifyRowsButton = modifyRowsButtons[i]
-                  const cumalativeRowsHeight = rowsDom.slice(0, i).reduce((acc, rowDom) => {
-                    return acc + (rowDom as any).offsetHeight
-                  }, 0)
-                  const rowDom = rowsDom[i]
-                  if (modifyRowsButton && rowDom) {
-                    modifyRowsButton.style.top = `${anchorY + cumalativeRowsHeight}px`
-                    modifyRowsButton.style.height = `${(rowDom as any).offsetHeight}px`
-                  }
-                }
-
                 const modifyColumnButtons = document.querySelectorAll(`[tiptap-table-modify-column-table-pos="${tableId}"]`)
                 const colDoms = document.querySelectorAll(`[data-decoration-id="${tableId}"] [col-pos]`)
-
-                console.log({
-                  modifyColumnButtons,
-                  colDoms,
-                })
 
                 let widthOffset = 0
                 for (let i = 0; i < modifyColumnButtons.length; i++) {
                   const modifyColumnButton = modifyColumnButtons[i]
                   const colDom = colDoms[i]
-                  const modifyColumnButtonWidth = modifyColumnButton?.clientWidth
 
                   if (modifyColumnButton && colDom) {
                     modifyColumnButton.style.left = `${widthOffset}px`
@@ -211,4 +192,5 @@ export default Table.extend({
   HTMLAttributes: {
     class: '',
   },
+  View: TableNodeView,
 })

@@ -88,6 +88,7 @@ declare module '@vue/runtime-core' {
     ClarityImageLine: typeof import('~icons/clarity/image-line')['default']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
     EvaEmailOutline: typeof import('~icons/eva/email-outline')['default']
+    IcBaselineDragIndicator: typeof import('~icons/ic/baseline-drag-indicator')['default']
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']
     IcOutlineInsertDriveFile: typeof import('~icons/ic/outline-insert-drive-file')['default']
     IcRoundEdit: typeof import('~icons/ic/round-edit')['default']

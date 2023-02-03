@@ -25,7 +25,14 @@ const isImageNode = computed(() => {
   // check if active node is a text node
   return activeNode?.type?.name === 'image'
 })
+
 const isImageNodeDebounced = ref(isImageNode.value)
+const showMenu = computed(() => {
+  return !(
+    isImageNodeDebounced.value ||
+    (editor?.isActive('table') && !editor?.isActive('tableCell') && !editor?.isActive('tableHeader'))
+  )
+})
 
 const expandText = async () => {
   if (isMagicExpandLoading.value) return
@@ -83,7 +90,7 @@ watchDebounced(
 
 <template>
   <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }">
-    <div v-if="!isImageNodeDebounced" class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1">
+    <div v-if="showMenu" class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1">
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"

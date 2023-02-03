@@ -11,7 +11,6 @@ const TableRow = TiptapTableRow.extend({
     return [
       new Plugin({
         key: new PluginKey('tableRow'),
-
         props: {
           decorations(state: EditorState) {
             const decorations: Decoration[] = []
@@ -38,7 +37,7 @@ const TableRow = TiptapTableRow.extend({
                 'row-pos': localPos.toString(),
               })
 
-              const decorationDeleteRow = Decoration.widget(tablePos, (view: EditorView) =>
+              const decorationDeleteRow = Decoration.widget(pos, (view: EditorView) =>
                 deleteRowButton(view, localPos, localTablePos),
               )
 
@@ -59,10 +58,12 @@ function deleteRowButton(view: EditorView, rowPos: number, tablePos: number) {
   deleteRowButtonWrapper.setAttribute('tiptap-table-modify-row-table-pos', tablePos.toString())
   deleteRowButtonWrapper.setAttribute('class', 'flex flex-col justify-center absolute')
   deleteRowButtonWrapper.style.left = '-1.6rem'
-  deleteRowButtonWrapper.style.width = '1rem'
+  deleteRowButtonWrapper.style.width = '1.4rem'
+
   const deleteRowButton = document.createElement('button')
 
-  deleteRowButton.setAttribute('class', 'flex absolute bg-gray-100 px-2 rounded-sm h-full')
+  deleteRowButton.setAttribute('class', 'docs-table-delete-row flex bg-gray-100 px-2 rounded-sm h-full')
+  deleteRowButton.setAttribute('docs-table-delete-row', rowPos.toString())
   deleteRowButton.textContent = '-'
   // deleteRowButton.style.paddingTop = 'calc(250%)'
   // deleteRowButton.style.paddingBottom = 'calc(250%)'

@@ -283,6 +283,12 @@ const {
             activeCell.row = data.value.length - 1
             activeCell.col = 0
             resetSelectedRange()
+            nextTick(() => {
+              ;(document.querySelector('td.cell.active') as
+                  | HTMLInputElement
+                  | HTMLTextAreaElement
+              )?.scrollIntoView({ behavior: 'smooth' })
+            })
           }
           break
         }

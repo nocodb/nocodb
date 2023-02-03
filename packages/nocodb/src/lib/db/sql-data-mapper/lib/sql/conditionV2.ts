@@ -271,6 +271,15 @@ const parseConditionV2 = async (
 
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
+        if (
+          [UITypes.Date, UITypes.DateTime].includes(column.uidt) &&
+          !val &&
+          ['is', 'isnot'].includes(filter.comparison_op)
+        ) {
+          // for date & datetime,
+          // val cannot be empty for non-is & non-isnot filters
+          return;
+        }
         switch (filter.comparison_op) {
           case 'eq':
             if (qb?.client?.config?.client === 'mysql2') {

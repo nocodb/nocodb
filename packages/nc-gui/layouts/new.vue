@@ -49,7 +49,7 @@ export default {
       <div class="flex w-full h-full items-center">
         <div class="flex-1 min-w-0 w-50">
           <nuxt-link :to="isPublic ? '' : '/'">
-            <img src="~/assets/img/brand/nocodb-full-color.png" class="h-10" />
+            <img src="~/assets/img/brand/nocodb-full-color.png" class="h-11" />
           </nuxt-link>
         </div>
 

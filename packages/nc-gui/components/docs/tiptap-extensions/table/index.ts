@@ -4,7 +4,7 @@ import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
 import type { DecorationSource, EditorView } from 'prosemirror-view'
 import { Decoration, DecorationSet } from 'prosemirror-view'
 import type { Node } from 'prosemirror-model'
-import { CellSelection, TableMap, addColumn, addRow } from '@tiptap/prosemirror-tables'
+import { TableMap, addColumn, addRow, columnResizing } from '@tiptap/prosemirror-tables'
 
 export default Table.extend({
   addProseMirrorPlugins() {
@@ -15,74 +15,115 @@ export default Table.extend({
           return {
             update: async (view, prevState) => {
               // set createColumnButton height to the table height
-              const createColumnButtons = document.querySelectorAll('[tiptap-table-create-column-id] > button')
+              const createColumnButtons = document.querySelectorAll('[tiptap-table-create-column-id]')
               const tables = document.querySelectorAll('[data-placeholder="table"]')
+              const tablesInner = document.querySelectorAll('[data-placeholder="table"] tbody')
+              const prosemirrorWrapper = document.querySelector('.ProseMirror')
+              if (!prosemirrorWrapper) return
+
+              const prosemirrorWrapperY = prosemirrorWrapper.getBoundingClientRect().top
+
               if (createColumnButtons.length) {
                 let index = 0
                 createColumnButtons.forEach((createColumnButton: any) => {
-                  const table = tables[index]
+                  const table = tablesInner[index]
                   if (table) {
                     createColumnButton.style.height = `${(table as any).offsetHeight}px`
+                    createColumnButton.style.left = `${(table as any).offsetWidth + 5}px`
                     index += 1
                   }
                 })
               }
+
+              const createRowButtons = document.querySelectorAll('[tiptap-table-create-row-id]')
+              if (createRowButtons.length) {
+                let index = 0
+                createRowButtons.forEach((createRowButton: any) => {
+                  const table = tablesInner[index]
+                  if (table) {
+                    createRowButton.style.width = `${(table as any).offsetWidth + 1}px`
+                    index += 1
+                  }
+                })
+              }
+
+              for (const table of tables) {
+                const tableId = table.getAttribute('data-decoration-id')
+                const tableY = table.getBoundingClientRect().top
+                const headerDom = document.querySelector(`[data-decoration-id="${tableId}"] tr`)
+                if (!headerDom) continue
+
+                const anchorY = tableY - prosemirrorWrapperY + (headerDom ? headerDom.getBoundingClientRect().height : 0)
+
+                const modifyRowsButtons = document.querySelectorAll(`[tiptap-table-modify-row-table-pos="${tableId}"]`)
+                const rowsDom = Array.from(document.querySelectorAll(`[data-decoration-id="${tableId}"] [row-pos]`))
+
+                for (let i = 0; i < modifyRowsButtons.length; i++) {
+                  const modifyRowsButton = modifyRowsButtons[i]
+                  const cumalativeRowsHeight = rowsDom.slice(0, i).reduce((acc, rowDom) => {
+                    return acc + (rowDom as any).offsetHeight
+                  }, 0)
+                  const rowDom = rowsDom[i]
+                  if (modifyRowsButton && rowDom) {
+                    modifyRowsButton.style.top = `${anchorY + cumalativeRowsHeight}px`
+                    modifyRowsButton.style.height = `${(rowDom as any).offsetHeight}px`
+                  }
+                }
+
+                const modifyColumnButtons = document.querySelectorAll(`[tiptap-table-modify-column-table-pos="${tableId}"]`)
+                const colDoms = document.querySelectorAll(`[data-decoration-id="${tableId}"] [col-pos]`)
+
+                console.log({
+                  modifyColumnButtons,
+                  colDoms,
+                })
+
+                let widthOffset = 0
+                for (let i = 0; i < modifyColumnButtons.length; i++) {
+                  const modifyColumnButton = modifyColumnButtons[i]
+                  const colDom = colDoms[i]
+                  const modifyColumnButtonWidth = modifyColumnButton?.clientWidth
+
+                  if (modifyColumnButton && colDom) {
+                    modifyColumnButton.style.left = `${widthOffset}px`
+                    modifyColumnButton.style.top = `${anchorY - headerDom.clientHeight - 30}px`
+                    // modifyColumnButton.style.height = `${36}px`
+                    modifyColumnButton.style.width = `${(colDom as any).offsetWidth}px`
+                    widthOffset = widthOffset + (colDom as any).offsetWidth
+                  }
+                }
+              }
+
+              // set modify column button
             },
           }
-        },
-
-        state: {
-          // Initialize the plugin's internal state.
-          init() {
-            const state: {
-              decorationId?: string | null
-            } = {}
-
-            return state
-          },
-
-          // Apply changes to the plugin state from a view transaction.
-          apply(transaction, prev, oldState, state) {
-            const next = { ...prev }
-
-            const decorationId = `id_${Math.floor(Math.random() * 0xffffffff)}`
-
-            next.decorationId = prev.decorationId ? prev.decorationId : decorationId
-
-            return next
-          },
         },
 
         props: {
           decorations(state: EditorState) {
             const decorations: Decoration[] = []
             const { doc } = state
-            const stateExt = this.getState(state)
-            if (!stateExt) return
 
             doc.descendants((node: Node, pos: any) => {
               if (node.type.name !== 'table') return
 
               const decorationTable = Decoration.node(pos, pos + node.nodeSize, {
-                'class': 'relative',
+                'class': 'relative mt-4',
                 'data-placeholder': 'table',
                 'data-decoration-id': pos,
                 'nodeName': 'div',
               })
-              const createColumnDecoration = Decoration.widget(pos, (view: EditorView, getPos: () => number | undefined) => {
+              const createColumnDecoration = Decoration.widget(pos + 1, (view: EditorView, getPos: () => number | undefined) => {
                 // console.log('widget', view, getPos())
                 const createColumnDiv = document.createElement('div')
-                createColumnDiv.className = 'relative h-full tiptap-table-create-column'
+                createColumnDiv.className = 'absolute h-full tiptap-table-create-column'
                 // Set html attributes to the div with the data-decoration-id
                 createColumnDiv.attributes.setNamedItem(document.createAttribute('tiptap-table-create-column-id'))
                 createColumnDiv.setAttribute('tiptap-table-create-column-id', `${pos}`)
 
                 const createColumnButton = document.createElement('button')
                 createColumnButton.className =
-                  'px-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 top-0 -right-4 z-10 absolute rounded-sm '
-                createColumnButton.style.right = '-1.4rem'
-                // set the height of the button to the height of the table
-                // createColumnButton.style.height = `${view.dom.querySelector(`[data-decoration-id="${pos}"]`)?.clientHeight}px`
+                  'px-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 top-0 -right-4 z-10  rounded-sm h-full'
                 createColumnButton.innerHTML = '+'
                 createColumnDiv.appendChild(createColumnButton)
 
@@ -156,6 +197,18 @@ export default Table.extend({
           },
         },
       }),
+      columnResizing({
+        handleWidth: this.options.handleWidth,
+        cellMinWidth: this.options.cellMinWidth,
+        View: this.options.View,
+        // TODO: PR for @types/prosemirror-tables
+        // @ts-expect-error (incorrect type)
+        lastColumnResizable: this.options.lastColumnResizable,
+      }),
     ]
+  },
+}).configure({
+  HTMLAttributes: {
+    class: '',
   },
 })

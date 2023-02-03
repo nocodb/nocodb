@@ -12,8 +12,8 @@ import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
-import TableRow from '@tiptap/extension-table-row'
+import { TableHeader } from './tiptap-extensions/table/header'
+import { TableRow } from './tiptap-extensions/table/row'
 import Table from './tiptap-extensions/table'
 import { History } from './tiptap-extensions/history'
 import suggestion from './tiptap-extensions/commands/suggestion'
@@ -219,30 +219,34 @@ watch(
 <template>
   <a-layout-content>
     <div v-if="openedPage" class="nc-docs-page overflow-y-auto h-full">
-      <div class="mx-20 px-6 mt-12 flex flex-col gap-y-4">
-        <div class="flex flex-row justify-between items-center">
-          <a-breadcrumb v-if="breadCrumbs.length >= 0" class="!px-2">
-            <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
-              <NuxtLink
-                class="!text-gray-400 !hover:text-black docs-breadcrumb-item"
-                :to="href"
-                :class="{
-                  '!text-black !underline-current': index === breadCrumbs.length - 1,
-                  '!underline-transparent !hover:underline-transparent': index !== breadCrumbs.length - 1,
-                }"
-              >
-                {{ title }}
-              </NuxtLink>
-            </a-breadcrumb-item>
-          </a-breadcrumb>
-          <div v-else class="flex"></div>
-          <div v-if="!isPublic" class="flex flex-row items-center"></div>
-        </div>
-
+      <div class="flex flex-row justify-between items-center ml-14 mt-8">
+        <a-breadcrumb v-if="breadCrumbs.length > 1" class="!px-2">
+          <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
+            <NuxtLink
+              class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
+              :to="href"
+              :class="{
+                '!text-gray-600 ': index === breadCrumbs.length - 1,
+                '!text-gray-400 ': index !== breadCrumbs.length - 1,
+              }"
+            >
+              {{ title }}
+            </NuxtLink>
+          </a-breadcrumb-item>
+        </a-breadcrumb>
+        <div v-else class="flex"></div>
+        <div v-if="!isPublic" class="flex flex-row items-center"></div>
+      </div>
+      <div
+        class="mx-auto px-6 pt-8 flex flex-col"
+        :style="{
+          maxWidth: '60vw',
+        }"
+      >
         <a-input
           ref="titleInputRef"
           v-model:value="title"
-          class="!text-4xl font-semibold !px-1.5"
+          class="!text-5xl font-semibold !px-1.5 !mb-6"
           :bordered="false"
           :readonly="isPublic"
           :placeholder="openedPage.title"
@@ -506,6 +510,13 @@ watch(
     margin: 1em 0;
   }
 
+  .column-resize-handle {
+    background-color: #e3e5ff !important;
+    width: 6px;
+    cursor: col-resize;
+    z-index: 1;
+  }
+
   table {
     border-collapse: collapse;
     table-layout: fixed;
@@ -515,22 +526,26 @@ watch(
 
     td,
     th {
+      position: relative;
       min-width: 1em;
-      border: 2px solid #ced4da;
+      border: 1px solid #e5e5e5;
       padding: 3px 5px;
       vertical-align: top;
       box-sizing: border-box;
-      position: relative;
 
       > * {
         margin-bottom: 0;
       }
     }
 
+    td {
+      margin-left: 0px;
+    }
+
     th {
-      font-weight: bold;
+      @apply font-semibold;
       text-align: left;
-      background-color: #f1f3f5;
+      background-color: #fafbfb;
     }
 
     .selectedCell:after {
@@ -561,7 +576,6 @@ watch(
   }
 
   .tableWrapper {
-    padding: 1rem 0;
     overflow-x: auto;
   }
 

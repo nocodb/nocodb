@@ -13,7 +13,7 @@ const numericUITypes: UITypes[] = [
 const getEqText = (fieldUiType: UITypes) => {
   if (numericUITypes.includes(fieldUiType)) {
     return '='
-  } else if ([UITypes.SingleSelect, UITypes.Collaborator].includes(fieldUiType)) {
+  } else if ([UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord].includes(fieldUiType)) {
     return 'is'
   }
   return 'is equal'
@@ -22,7 +22,7 @@ const getEqText = (fieldUiType: UITypes) => {
 const getNeqText = (fieldUiType: UITypes) => {
   if (numericUITypes.includes(fieldUiType)) {
     return '!='
-  } else if ([UITypes.SingleSelect, UITypes.Collaborator].includes(fieldUiType)) {
+  } else if ([UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord].includes(fieldUiType)) {
     return 'is not'
   }
   return 'is not equal'
@@ -122,6 +122,7 @@ export const comparisonOpList = (
       UITypes.MultiSelect,
       UITypes.Collaborator,
       UITypes.Attachment,
+      UITypes.LinkToAnotherRecord,
     ],
   },
   {
@@ -135,6 +136,7 @@ export const comparisonOpList = (
       UITypes.MultiSelect,
       UITypes.Collaborator,
       UITypes.Attachment,
+      UITypes.LinkToAnotherRecord,
     ],
   },
   {

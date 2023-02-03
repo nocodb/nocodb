@@ -24,7 +24,7 @@ onMounted(() => {
 <template>
   <div ref="wrapper">
     <text-clamp
-      :key="key + props.value"
+      :key="`clamp-${key}-${props.value?.toString().length || 0}`"
       class="w-full h-full break-all"
       :text="`${props.value || ''}`"
       :max-lines="props.lines"

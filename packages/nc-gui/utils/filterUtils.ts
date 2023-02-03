@@ -94,6 +94,7 @@ export const comparisonOpList = (
       UITypes.Collaborator,
       UITypes.Attachment,
       UITypes.LinkToAnotherRecord,
+      UITypes.Lookup,
       ...numericUITypes,
     ],
   },
@@ -108,6 +109,7 @@ export const comparisonOpList = (
       UITypes.Collaborator,
       UITypes.Attachment,
       UITypes.LinkToAnotherRecord,
+      UITypes.Lookup,
       ...numericUITypes,
     ],
   },
@@ -123,6 +125,7 @@ export const comparisonOpList = (
       UITypes.Collaborator,
       UITypes.Attachment,
       UITypes.LinkToAnotherRecord,
+      UITypes.Lookup,
     ],
   },
   {
@@ -137,6 +140,7 @@ export const comparisonOpList = (
       UITypes.Collaborator,
       UITypes.Attachment,
       UITypes.LinkToAnotherRecord,
+      UITypes.Lookup,
     ],
   },
   {

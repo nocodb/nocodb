@@ -283,13 +283,10 @@ const {
             activeCell.row = data.value.length - 1
             activeCell.col = 0
             resetSelectedRange()
-            makeEditable(data.value[activeCell.row], fields.value[activeCell.col])
             nextTick(() => {
-              ;(
-                document.querySelector('td.cell.active')?.querySelector('input,textarea') as
-                  | HTMLInputElement
-                  | HTMLTextAreaElement
-              )?.focus()
+              ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
+                behavior: 'smooth',
+              })
             })
           }
           break

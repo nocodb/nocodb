@@ -25,8 +25,6 @@ const rowValue = (column: ColumnType, index: number) => {
 };
 
 const rowMixedValue = (column: ColumnType, index: number) => {
-  console.log(column.uidt, index);
-
   // Array of country names
   const countries = [
     'Afghanistan',

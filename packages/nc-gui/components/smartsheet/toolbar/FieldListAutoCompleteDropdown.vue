@@ -2,7 +2,7 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, computed, inject, ref, resolveComponent } from '#imports'
+import { FieldsInj, computed, inject, ref, resolveComponent } from '#imports'
 
 const { modelValue, isSort } = defineProps<{
   modelValue?: string
@@ -11,7 +11,7 @@ const { modelValue, isSort } = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const meta = inject(MetaInj, ref())
+const fields = inject(FieldsInj, ref())
 
 const localValue = computed({
   get: () => modelValue,
@@ -19,7 +19,7 @@ const localValue = computed({
 })
 
 const options = computed<SelectProps['options']>(() =>
-  meta.value?.columns
+  fields.value
     ?.filter((c: ColumnType) => {
       if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode) {
         return false
@@ -48,6 +48,11 @@ const options = computed<SelectProps['options']>(() =>
 )
 
 const filterOption = (input: string, option: any) => option.label.toLowerCase()?.includes(input.toLowerCase())
+
+// when a new filter is created, select a field by default
+if (!localValue.value) {
+  localValue.value = (options.value?.[0].value as string) || ''
+}
 </script>
 
 <template>

@@ -28,6 +28,20 @@ const getNeqText = (fieldUiType: UITypes) => {
   return 'is not equal'
 }
 
+const getLikeText = (fieldUiType: UITypes) => {
+  if (UITypes.Attachment) {
+    return 'filenames contain'
+  }
+  return 'is like'
+}
+
+const getNotLikeText = (fieldUiType: UITypes) => {
+  if (UITypes.Attachment) {
+    return "filenames doesn't contain"
+  }
+  return 'is not like'
+}
+
 export const comparisonOpList = (
   fieldUiType: UITypes,
 ): {
@@ -60,12 +74,12 @@ export const comparisonOpList = (
     excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },
   {
-    text: 'is like',
+    text: getLikeText(fieldUiType),
     value: 'like',
     excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
   {
-    text: 'is not like',
+    text: getNotLikeText(fieldUiType),
     value: 'nlike',
     excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
@@ -101,13 +115,27 @@ export const comparisonOpList = (
     text: 'is null',
     value: 'null',
     ignoreVal: true,
-    excludedTypes: [...numericUITypes, UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator],
+    excludedTypes: [
+      ...numericUITypes,
+      UITypes.Checkbox,
+      UITypes.SingleSelect,
+      UITypes.MultiSelect,
+      UITypes.Collaborator,
+      UITypes.Attachment,
+    ],
   },
   {
     text: 'is not null',
     value: 'notnull',
     ignoreVal: true,
-    excludedTypes: [...numericUITypes, UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator],
+    excludedTypes: [
+      ...numericUITypes,
+      UITypes.Checkbox,
+      UITypes.SingleSelect,
+      UITypes.MultiSelect,
+      UITypes.Collaborator,
+      UITypes.Attachment,
+    ],
   },
   {
     text: 'contains all of',

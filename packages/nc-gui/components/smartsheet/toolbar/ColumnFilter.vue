@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FilterType } from 'nocodb-sdk'
+import type { FilterType, UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
@@ -105,11 +105,6 @@ const getColumn = (filter: Filter) => {
   return columns.value?.find((col) => col.id === filter.fk_column_id)
 }
 
-const selectFilterField = (filter: Filter, index: number) => {
-  filter.value = null
-  saveOrUpdate(filter, index)
-}
-
 const applyChanges = async (hookId?: string, _nested = false) => {
   await sync(hookId, _nested)
 
@@ -135,6 +130,18 @@ const isComparisonOpAllowed = (filter: FilterType, compOp: typeof comparisonOpLi
     return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
   }
   return true
+}
+
+const selectFilterField = (filter: Filter, index: number) => {
+  // when we change the field,
+  // the corresponding default filter operator needs to be changed as well
+  // since the existing one may not be supported for the new field
+  // e.g. `eq` operator is not supported in checkbox field
+  // hence, get the first option of the supported operators of the new field
+  filter.comparison_op = comparisonOpList(getColumn(filter)!.uidt as UITypes).filter((compOp) =>
+    isComparisonOpAllowed(filter, compOp),
+  )?.[0].value
+  saveOrUpdate(filter, index)
 }
 
 defineExpose({

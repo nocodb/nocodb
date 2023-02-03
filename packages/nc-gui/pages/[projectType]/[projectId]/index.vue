@@ -252,9 +252,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         theme="light"
       >
         <div
-          style="height: var(--header-height)"
+          style="height: var(--header-height); border-bottom-width: 1px"
           :class="isOpen ? 'pl-4' : ''"
-          class="flex items-center !bg-primary text-white px-1 gap-1"
+          class="flex items-center text-primary px-1 gap-1 nc-sidebar-header"
         >
           <div
             v-if="isOpen && !isSharedBase"
@@ -267,7 +267,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
             </a-tooltip>
           </div>
 
@@ -589,7 +589,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 .nc-left-sidebar {
   .nc-sidebar-left-toggle-icon {
-    @apply opacity-0 transition-opactity duration-200 transition-color text-white/80 hover:text-white/100;
+    @apply opacity-0 transition-opactity duration-200 transition-color text-gray-500/80 hover:text-gray-500/100;
 
     .nc-left-sidebar {
       @apply !border-r-0;
@@ -603,5 +603,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 :deep(.ant-dropdown-menu-submenu-title) {
   @apply py-0;
+}
+
+.nc-sidebar-header {
+  @apply border-[var(--navbar-border)] !bg-[var(--navbar-bg)];
 }
 </style>

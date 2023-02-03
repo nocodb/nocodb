@@ -6,6 +6,8 @@
   --header-height: 42px;
   --toolbar-height: 48px;
   --tw-text-opacity: 1;
+  --navbar-bg: #FAFAFA;
+  --navbar-border: #e0e0e0;
 }
 
 .ant-layout-header {
@@ -301,5 +303,11 @@ a {
   @apply text-gray-300 italic;
   input::placeholder {
     @apply text-gray-300 italic;
+  }
+}
+
+.ant-btn-loading-icon{
+  & > span {
+    @apply block bg-red-500
   }
 }

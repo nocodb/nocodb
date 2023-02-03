@@ -151,7 +151,7 @@ useMenuCloseOnEsc(open)
           <MdiEyeOffOutline />
 
           <!-- Fields -->
-          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
+          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
 

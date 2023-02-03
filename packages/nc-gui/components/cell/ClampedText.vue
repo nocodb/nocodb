@@ -8,9 +8,13 @@ const wrapper = ref()
 
 const key = ref(0)
 
+const debouncedRefresh = useDebounceFn(() => {
+  key.value++
+}, 500)
+
 onMounted(() => {
   const observer = new ResizeObserver(() => {
-    key.value++
+    debouncedRefresh()
   })
 
   observer.observe(wrapper.value)

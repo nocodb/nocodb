@@ -17,6 +17,7 @@ import {
   ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
+  RowHeightInj,
   SmartsheetStoreEvents,
   computed,
   createEventHook,
@@ -362,6 +363,23 @@ function scrollToCell(row?: number | null, col?: number | null) {
   }
 }
 
+const rowHeight = computed(() => {
+  if ((view.value?.view as GridType)?.row_height !== undefined) {
+    switch ((view.value?.view as GridType)?.row_height) {
+      case 0:
+        return 1
+      case 1:
+        return 2
+      case 2:
+        return 4
+      case 3:
+        return 6
+      default:
+        return 1
+    }
+  }
+})
+
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
@@ -373,6 +391,8 @@ provide(IsGridInj, ref(true))
 provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
+
+provide(RowHeightInj, rowHeight)
 
 const disableUrlOverlay = ref(false)
 provide(CellUrlDisableOverlayInj, disableUrlOverlay)
@@ -672,23 +692,6 @@ const closeAddColumnDropdown = () => {
   columnOrder.value = null
   addColumnDropdown.value = false
 }
-
-const rowHeight = computed(() => {
-  if ((view.value?.view as GridType)?.row_height !== undefined) {
-    switch ((view.value?.view as GridType)?.row_height) {
-      case 0:
-        return 1
-      case 1:
-        return 2
-      case 2:
-        return 4
-      case 3:
-        return 6
-      default:
-        return 1
-    }
-  }
-})
 </script>
 
 <template>

@@ -117,10 +117,16 @@ const applyChanges = async (hookId?: string, _nested = false) => {
   }
 }
 
-const isComparisonOpAllowed = (filter: FilterType, compOp: typeof comparisonOpList[number]) => {
-  // show current selected value in list even if not allowed
-  if (filter.comparison_op === compOp.value) return true
-
+const isComparisonOpAllowed = (
+  filter: FilterType,
+  compOp: {
+    text: string
+    value: string
+    ignoreVal?: boolean
+    includedTypes?: UITypes[]
+    excludedTypes?: UITypes[]
+  },
+) => {
   // include allowed values only if selected column type matches
   if (compOp.includedTypes) {
     return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
@@ -141,6 +147,8 @@ const selectFilterField = (filter: Filter, index: number) => {
   filter.comparison_op = comparisonOpList(getColumn(filter)!.uidt as UITypes).filter((compOp) =>
     isComparisonOpAllowed(filter, compOp),
   )?.[0].value
+  // reset filter value as well
+  filter.value = ""
   saveOrUpdate(filter, index)
 }
 

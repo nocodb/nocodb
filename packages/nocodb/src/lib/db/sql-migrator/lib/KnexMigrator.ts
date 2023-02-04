@@ -309,7 +309,7 @@ export default class KnexMigrator extends SqlMigrator {
         await this._readProjectJson(projJsonFilePath);
         this.emit('Migrator for project initalised successfully');
       } else if (NcConfigFactory.hasDbUrl()) {
-        this.project = NcConfigFactory.make();
+        this.project = await NcConfigFactory.make();
       } else {
         args.type = args.type || 'sqlite';
 

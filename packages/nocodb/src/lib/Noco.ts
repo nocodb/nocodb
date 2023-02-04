@@ -114,32 +114,6 @@ export default class Noco {
     this.router = express.Router();
     this.projectRouter = express.Router();
 
-    /* prepare config */
-    Noco.config = this.config = NcConfigFactory.make();
-
-    /******************* setup : start *******************/
-    this.env = '_noco'; //process.env['NODE_ENV'] || this.config.workingEnv || 'dev';
-    this.config.workingEnv = this.env;
-
-    this.config.type = 'docker';
-    if (!this.config.toolDir) {
-      this.config.toolDir = process.cwd();
-    }
-
-    // this.ncToolApi = new NcToolGui(this.config);
-    // if (server) {
-    //   server.set('view engine', 'ejs');
-    // }
-
-    const NcMetaImpl = process.env.EE ? NcMetaImplEE : NcMetaImplCE;
-    // const NcMetaMgr = process.env.EE ? NcMetaMgrEE : NcMetaMgrCE;
-
-    Noco._ncMeta = new NcMetaImpl(this, this.config);
-    // this.metaMgr = new NcMetaMgr(this, this.config, Noco._ncMeta);
-    // this.metaMgrv2 = new NcMetaMgrv2(this, this.config, Noco._ncMeta);
-
-    /******************* setup : end *******************/
-
     /******************* prints : start *******************/
     // this.sumTable = new Table({
     //   head: ['#DBs', '#Tables',
@@ -169,6 +143,32 @@ export default class Noco {
     server?: http.Server,
     _app?: express.Express
   ) {
+    /* prepare config */
+    Noco.config = this.config = await NcConfigFactory.make();
+
+    /******************* setup : start *******************/
+    this.env = '_noco'; //process.env['NODE_ENV'] || this.config.workingEnv || 'dev';
+    this.config.workingEnv = this.env;
+
+    this.config.type = 'docker';
+    if (!this.config.toolDir) {
+      this.config.toolDir = process.cwd();
+    }
+
+    // this.ncToolApi = new NcToolGui(this.config);
+    // if (server) {
+    //   server.set('view engine', 'ejs');
+    // }
+
+    const NcMetaImpl = process.env.EE ? NcMetaImplEE : NcMetaImplCE;
+    // const NcMetaMgr = process.env.EE ? NcMetaMgrEE : NcMetaMgrCE;
+
+    Noco._ncMeta = new NcMetaImpl(this, this.config);
+    // this.metaMgr = new NcMetaMgr(this, this.config, Noco._ncMeta);
+    // this.metaMgrv2 = new NcMetaMgrv2(this, this.config, Noco._ncMeta);
+
+    /******************* setup : end *******************/
+
     // @ts-ignore
     const {
       progressCallback,
@@ -278,6 +278,7 @@ export default class Noco {
       instance: getInstance,
     });
     Tele.emit('evt_app_started', await User.count());
+    console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
     weAreHiring();
     return this.router;
   }

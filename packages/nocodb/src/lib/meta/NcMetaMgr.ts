@@ -522,7 +522,7 @@ export default class NcMetaMgr {
 
         if (projectConfig?.prefix) {
           const metaProjConfig =
-            NcConfigFactory.makeProjectConfigFromConnection(
+            await NcConfigFactory.makeProjectConfigFromConnection(
               this.config?.meta?.db,
               args.args.projectType
             );
@@ -1605,7 +1605,7 @@ export default class NcMetaMgr {
           break;
         case 'projectCreateByOneClick':
           {
-            const config = NcConfigFactory.makeProjectConfigFromUrl(
+            const config = await NcConfigFactory.makeProjectConfigFromUrl(
               process.env.NC_DB,
               args.args.projectType
             );
@@ -1638,7 +1638,7 @@ export default class NcMetaMgr {
           break;
         case 'projectCreateByWebWithXCDB': {
           await this.checkIsUserAllowedToCreateProject(req);
-          const config = NcConfigFactory.makeProjectConfigFromConnection(
+          const config = await NcConfigFactory.makeProjectConfigFromConnection(
             this.config?.meta?.db,
             args.args.projectType
           );

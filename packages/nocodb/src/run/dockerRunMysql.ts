@@ -28,8 +28,7 @@ process.env[`NC_DB`] = `mysql2://localhost:3306?u=root&p=password&d=${metaDb}`;
 // process.env[`DEBUG`] = 'xc*';
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, () => {
-    console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
+  const httpServer = server.listen(process.env.PORT || 8080, async () => {
+    server.use(await Noco.init({}, httpServer, server));
   });
-  server.use(await Noco.init({}, httpServer, server));
 })().catch((e) => console.log(e));

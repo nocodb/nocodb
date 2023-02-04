@@ -299,7 +299,7 @@ export default class SqlMgr {
           this.currentProjectConnections[connectionKey] =
             SqlClientFactory.create({
               ...connectionConfig,
-              knex: NcConnectionMgr.get({
+              knex: await NcConnectionMgr.get({
                 dbAlias: this.currentProjectJson.envs[env].db[i].meta.dbAlias,
                 env: env,
                 config: args,

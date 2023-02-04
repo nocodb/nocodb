@@ -1291,8 +1291,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
     this.models[viewName] = this.getBaseModel(newMeta);
   }
 
-  public getDbDriver(): XKnex {
-    this.initDbDriver();
+  public async getDbDriver(): Promise<XKnex> {
+    await this.initDbDriver();
     return this.dbDriver;
   }
 
@@ -1669,8 +1669,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
     await this.cronJob.init();
   }
 
-  protected initDbDriver(): void {
-    this.dbDriver = NcConnectionMgr.get({
+  protected async initDbDriver(): Promise<void> {
+    this.dbDriver = await NcConnectionMgr.get({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,

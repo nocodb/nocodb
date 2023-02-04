@@ -86,7 +86,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.log('loadRoutes');
     const t = process.hrtime();
 
-    this.initDbDriver();
+    await this.initDbDriver();
 
     // todo: change condition
     if (this.connectionConfig.meta.reset) {

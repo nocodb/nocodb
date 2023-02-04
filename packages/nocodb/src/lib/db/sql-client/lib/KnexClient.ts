@@ -2838,7 +2838,7 @@ class KnexClient extends SqlClient {
     console.log('in knex SeedInit');
 
     try {
-      mkdirp.sync(args.seedsFolder);
+      await mkdirp(args.seedsFolder);
     } catch (e) {
       log.ppe(e, _func);
       throw e;

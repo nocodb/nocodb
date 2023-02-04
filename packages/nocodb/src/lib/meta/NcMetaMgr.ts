@@ -702,7 +702,7 @@ export default class NcMetaMgr {
           'meta'
         );
 
-        mkdirp.sync(metaFolder);
+        await mkdirp(metaFolder);
 
         // const client = await this.projectGetSqlClient(args);
         const dbAlias = this.getDbAlias(args);

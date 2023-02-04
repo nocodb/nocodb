@@ -180,7 +180,7 @@ export default class Noco {
     log('Initializing app');
 
     // create tool directory if missing
-    mkdirp.sync(this.config.toolDir);
+    await mkdirp(this.config.toolDir);
 
     this.initSentry();
     NocoCache.init();

@@ -10,7 +10,7 @@ import debug from 'debug';
 import * as express from 'express';
 import { Router } from 'express';
 import importFresh from 'import-fresh';
-import morgan from 'morgan';
+// import morgan from 'morgan';
 import NcToolGui from 'nc-lib-gui';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
@@ -34,7 +34,7 @@ import { RestApiBuilder } from './v1-legacy/rest/RestApiBuilder';
 import RestAuthCtrlCE from './v1-legacy/rest/RestAuthCtrl';
 import RestAuthCtrlEE from './v1-legacy/rest/RestAuthCtrlEE';
 import mkdirp from 'mkdirp';
-import MetaAPILogger from './meta/MetaAPILogger';
+// import MetaAPILogger from './meta/MetaAPILogger';
 import NcUpgrader from './version-upgrader/NcUpgrader';
 import NcMetaMgrv2 from './meta/NcMetaMgrv2';
 import NocoCache from './cache/NocoCache';
@@ -224,7 +224,7 @@ export default class Noco {
         limit: process.env.NC_REQUEST_BODY_SIZE || '50mb',
       })
     );
-    this.router.use(morgan('tiny'));
+    // this.router.use(morgan('tiny'));
     this.router.use(express.static(path.join(__dirname, './public')));
 
     this.router.use((req: any, _res, next) => {
@@ -239,7 +239,7 @@ export default class Noco {
       req.ncProjectId = req.ncProjectId || req.params.project_id;
       next();
     });
-    this.router.use(MetaAPILogger.mw);
+    // this.router.use(MetaAPILogger.mw);
 
     /******************* Middlewares : end *******************/
 

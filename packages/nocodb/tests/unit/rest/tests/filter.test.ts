@@ -25,7 +25,11 @@ async function retrieveRecordsAndValidate(
 ) {
   let expectedRecords = [];
   let toFloat = false;
-  if (['Number', 'Decimal', 'Currency', 'Percent', 'Rating'].includes(title)) {
+  if (
+    ['Number', 'Decimal', 'Currency', 'Percent', 'Duration', 'Rating'].includes(
+      title
+    )
+  ) {
     toFloat = true;
   }
 
@@ -429,6 +433,20 @@ function filterNumberBased() {
       { comparison_op: 'lte', value: '44' },
     ];
     await verifyFilters('Percent', columns[4].id, filterList);
+  });
+
+  it('Type: Duration', async () => {
+    let filterList = [
+      { comparison_op: 'eq', value: '10' },
+      { comparison_op: 'neq', value: '10' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'gt', value: '50' },
+      { comparison_op: 'gte', value: '50' },
+      { comparison_op: 'lt', value: '50' },
+      { comparison_op: 'lte', value: '50' },
+    ];
+    await verifyFilters('Duration', columns[5].id, filterList);
   });
 
   it('Type: Rating', async () => {

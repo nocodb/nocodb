@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { promisify } from 'util';
 import { Client as MinioClient } from 'minio';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
@@ -84,7 +85,7 @@ export default class Minio implements IStorageAdapterV2 {
         originalname: 'temp.txt',
         size: '',
       });
-      fs.unlinkSync(tempFile);
+      await promisify(fs.unlink)(tempFile);
       return true;
     } catch (e) {
       throw e;

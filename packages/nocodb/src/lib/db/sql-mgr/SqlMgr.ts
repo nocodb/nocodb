@@ -20,9 +20,6 @@ import Result from '../util/Result';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 20);
 const log = new Debug('SqlMgr');
 
-const writeFileAsync = promisify(fs.writeFile);
-const readFileAsync = promisify(fs.readFile);
-
 const ToolOps = {
   DB_TABLE_LIST: 'tableList',
   DB_VIEW_LIST: 'viewList',
@@ -443,7 +440,7 @@ export default class SqlMgr {
     console.log(args);
 
     try {
-      fs.unlinkSync(path.join(this.currentProjectFolder, 'config.xc.json'));
+      await promisify(fs.unlink)(path.join(this.currentProjectFolder, 'config.xc.json'));
 
       args.folder = args.folder || args.project.folder;
       args.folder = path.dirname(args.folder);
@@ -1102,13 +1099,13 @@ export default class SqlMgr {
   public async projectChangeEnv(args) {
     try {
       const xcConfig = JSON.parse(
-        await readFileAsync(
+        await promisify(fs.readFile)(
           path.join(this.currentProjectFolder, 'config.xc.json'),
           'utf8'
         )
       );
       xcConfig.workingEnv = args.env;
-      await writeFileAsync(
+      await promisify(fs.writeFile)(
         path.join(this.currentProjectFolder, 'config.xc.json'),
         JSON.stringify(xcConfig, null, 2)
       );
@@ -1361,7 +1358,7 @@ export default class SqlMgr {
           break;
         case ToolOps.WRITE_FILE:
           console.log('Within WRITE_FILE handler', args);
-          result = await writeFileAsync(args.args.path, args.args.data);
+          result = await promisify(fs.writeFile)(args.args.path, args.args.data);
           break;
 
         case ToolOps.REST_API_CALL:

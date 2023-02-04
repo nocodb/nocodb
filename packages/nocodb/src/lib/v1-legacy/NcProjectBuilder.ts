@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 
 import axios from 'axios';
 import { Router } from 'express';
@@ -718,7 +719,7 @@ export default class NcProjectBuilder {
             connectionConfig.meta.dbAlias,
             'migrations'
           );
-          if (!fs.existsSync(migrationFolder)) {
+          if (!await promisify(fs.exists)(migrationFolder)) {
             await migrator.init({
               folder: this.app.getToolDir(),
               env: this.appConfig.workingEnv,

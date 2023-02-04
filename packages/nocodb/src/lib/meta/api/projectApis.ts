@@ -27,6 +27,7 @@ import { extractAndGenerateManyToManyRelations } from './metaDiffApis';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { extractPropsAndSanitize } from '../helpers/extractProps';
 import NcConfigFactory from '../../utils/NcConfigFactory';
+import { promisify } from 'util';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -121,8 +122,8 @@ async function projectCreate(req: Request<any, any>, res) {
         '1234567890abcdefghijklmnopqrstuvwxyz',
         14
       );
-      if (!fs.existsSync(`${toolDir}/nc_minimal_dbs`)) {
-        fs.mkdirSync(`${toolDir}/nc_minimal_dbs`);
+      if (!await promisify(fs.exists)(`${toolDir}/nc_minimal_dbs`)) {
+        await promisify(fs.mkdir)(`${toolDir}/nc_minimal_dbs`);
       }
       const dbId = nanoidv2();
       const projectTitle = DOMPurify.sanitize(projectBody.title);

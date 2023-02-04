@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 
 import * as Sentry from '@sentry/node';
 import bodyParser from 'body-parser';
@@ -459,7 +460,7 @@ export default class Noco {
             connectionConfig.meta.dbAlias,
             'migrations'
           );
-          if (!fs.existsSync(migrationFolder)) {
+          if (!await promisify(fs.exists)(migrationFolder)) {
             await migrator.init({
               folder: this.config?.toolDir,
               env: this.env,

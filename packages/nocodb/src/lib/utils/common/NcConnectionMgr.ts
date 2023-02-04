@@ -8,8 +8,6 @@ import { Knex } from 'knex';
 import NcMetaIO from '../../meta/NcMetaIO';
 import { defaultConnectionConfig } from '../NcConfigFactory';
 
-const readFileAsync = promisify(fs.readFile);
-
 export default class NcConnectionMgr {
   private static connectionRefs: {
     [projectId: string]: {
@@ -76,7 +74,7 @@ export default class NcConnectionMgr {
           connectionConfig.connection.ssl.caFilePath &&
           !connectionConfig.connection.ssl.ca
         ) {
-          connectionConfig.connection.ssl.ca = await readFileAsync(
+          connectionConfig.connection.ssl.ca = await promisify(fs.readFile)(
             connectionConfig.connection.ssl.caFilePath
           ).toString();
         }
@@ -84,7 +82,7 @@ export default class NcConnectionMgr {
           connectionConfig.connection.ssl.keyFilePath &&
           !connectionConfig.connection.ssl.key
         ) {
-          connectionConfig.connection.ssl.key = await readFileAsync(
+          connectionConfig.connection.ssl.key = await promisify(fs.readFile)(
             connectionConfig.connection.ssl.keyFilePath
           ).toString();
         }
@@ -92,7 +90,7 @@ export default class NcConnectionMgr {
           connectionConfig.connection.ssl.certFilePath &&
           !connectionConfig.connection.ssl.cert
         ) {
-          connectionConfig.connection.ssl.cert = await readFileAsync(
+          connectionConfig.connection.ssl.cert = await promisify(fs.readFile)(
             connectionConfig.connection.ssl.certFilePath
           ).toString();
         }

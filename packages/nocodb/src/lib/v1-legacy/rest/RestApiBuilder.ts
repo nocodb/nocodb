@@ -44,10 +44,6 @@ import { MetaTable } from '../../utils/globals';
 const log = debug('nc:api:rest');
 const NC_CUSTOM_ROUTE_KEY = '__xc_custom';
 
-const globAsync = promisify(glob);
-const writeFileAsync = promisify(fs.writeFile);
-const readFileAsync = promisify(fs.readFile);
-
 export class RestApiBuilder extends BaseApiBuilder<Noco> {
   public readonly type = 'rest';
   private controllers: {
@@ -2608,7 +2604,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         'swagger'
       );
       await mkdirp(swaggerFilePath);
-      await writeFileAsync(
+      await promisify(fs.writeFile)(
         path.join(swaggerFilePath, 'swagger.json'),
         JSON.stringify(swaggerDoc)
       );
@@ -2653,7 +2649,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         scheme,
         scheme === 'http' ? 'https' : 'http',
       ];
-      await globAsync(
+      await promisify(glob)(
           path.join(
             this.app.getToolDir(),
             'nc',
@@ -2664,7 +2660,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
           )
         )
         .forEach(async (jsonFile) => {
-          const swaggerJson = JSON.parse(await readFileAsync(jsonFile, 'utf8'));
+          const swaggerJson = JSON.parse(await promisify(fs.readFile)(jsonFile, 'utf8'));
           swaggerBaseDocument.tags.push(...swaggerJson.tags);
           Object.assign(swaggerBaseDocument.paths, swaggerJson.paths);
           Object.assign(
@@ -2733,7 +2729,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       'swagger'
     );
     const swaggerJson = JSON.parse(
-      await readFileAsync(path.join(swaggerFilePath, 'swagger.json'), 'utf8')
+      await promisify(fs.readFile)(path.join(swaggerFilePath, 'swagger.json'), 'utf8')
     );
 
     /* remove tags, paths and keys */
@@ -2799,7 +2795,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }
     }
 
-    await writeFileAsync(
+    await promisify(fs.writeFile)(
       path.join(swaggerFilePath, 'swagger.json'),
       JSON.stringify(swaggerJson)
     );

@@ -9,10 +9,6 @@ import NcConfigFactory from '../../../../utils/NcConfigFactory';
 
 import axios from 'axios';
 
-const writeFileAsync = promisify(fs.writeFile)
-const readFileAsync = promisify(fs.readFile)
-const unlinkAsync = promisify(fs.unlink)
-
 export default class Local implements IStorageAdapterV2 {
   constructor() {}
 
@@ -20,9 +16,9 @@ export default class Local implements IStorageAdapterV2 {
     const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
     try {
       await mkdirp(path.dirname(destPath));
-      const data = await readFileAsync(file.path)
-      await writeFileAsync(destPath, data);
-      await unlinkAsync(file.path);
+      const data = await promisify(fs.readFile)(file.path)
+      await promisify(fs.writeFile)(destPath, data);
+      await promisify(fs.unlink)(file.path);
       // await fs.promises.rename(file.path, destPath);
     } catch (e) {
       throw e;

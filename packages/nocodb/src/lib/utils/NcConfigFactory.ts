@@ -19,8 +19,6 @@ const {
   animals,
 } = require('unique-names-generator');
 
-const readFileAsync = promisify(fs.readFile);
-
 const driverClientMapping = {
   mysql: 'mysql2',
   mariadb: 'mysql2',
@@ -124,11 +122,11 @@ export default class NcConfigFactory implements NcConfig {
     } else if (process.env.NC_DB_JSON_FILE) {
       const filePath = process.env.NC_DB_JSON_FILE;
 
-      if (!fs.existsSync(filePath)) {
+      if (!await promisify(fs.exists)(filePath)) {
         throw new Error(`NC_DB_JSON_FILE not found: ${filePath}`);
       }
 
-      const fileContent = await readFileAsync(filePath, { encoding: 'utf8' });
+      const fileContent = await promisify(fs.readFile)(filePath, { encoding: 'utf8' });
       ncConfig.meta.db = JSON.parse(fileContent);
     }
 
@@ -381,12 +379,12 @@ export default class NcConfigFactory implements NcConfig {
       typeof dbConfig?.connection?.ssl === 'object'
     ) {
       if (dbConfig.connection.ssl.caFilePath && !dbConfig.connection.ssl.ca) {
-        dbConfig.connection.ssl.ca = await readFileAsync(
+        dbConfig.connection.ssl.ca = await promisify(fs.readFile)(
           dbConfig.connection.ssl.caFilePath
         ).toString();
       }
       if (dbConfig.connection.ssl.keyFilePath && !dbConfig.connection.ssl.key) {
-        dbConfig.connection.ssl.key = await readFileAsync(
+        dbConfig.connection.ssl.key = await promisify(fs.readFile)(
           dbConfig.connection.ssl.keyFilePath
         ).toString();
       }
@@ -394,7 +392,7 @@ export default class NcConfigFactory implements NcConfig {
         dbConfig.connection.ssl.certFilePath &&
         !dbConfig.connection.ssl.cert
       ) {
-        dbConfig.connection.ssl.cert = await readFileAsync(
+        dbConfig.connection.ssl.cert = await promisify(fs.readFile)(
           dbConfig.connection.ssl.certFilePath
         ).toString();
       }
@@ -642,7 +640,7 @@ export default class NcConfigFactory implements NcConfig {
 
   public static async jdbcToXcUrl() {
     if (process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE) {
-      const database_url = await readFileAsync(
+      const database_url = await promisify(fs.readFile)(
         process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
         'utf-8'
       );

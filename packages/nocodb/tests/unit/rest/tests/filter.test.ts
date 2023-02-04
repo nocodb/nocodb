@@ -3,15 +3,8 @@ import init from '../../init';
 import { createProject } from '../../factory/project';
 import Project from '../../../../src/lib/models/Project';
 import { createTable } from '../../factory/table';
-import { isSqlite } from '../../init/db';
 import { UITypes } from 'nocodb-sdk';
-import {
-  createBulkRows,
-  generateDefaultRowAttributes,
-  generateMixedRowAttributes,
-  rowMixedValue,
-  listRow,
-} from '../../factory/row';
+import { createBulkRows, rowMixedValue, listRow } from '../../factory/row';
 import Model from '../../../../src/lib/models/Model';
 import { expect } from 'chai';
 import request from 'supertest';
@@ -28,9 +21,94 @@ async function retrieveRecordsAndValidate(
     status: string;
     logical_op: string;
   },
-  expectedRecords: any[],
   title: string
 ) {
+  let expectedRecords = [];
+  let toFloat = false;
+  if (['Number', 'Decimal', 'Currency', 'Percent', 'Rating'].includes(title)) {
+    toFloat = true;
+  }
+
+  // case for all comparison operators
+  switch (filter.comparison_op) {
+    case 'eq':
+      expectedRecords = unfilteredRecords.filter(
+        (record) =>
+          (toFloat ? parseFloat(record[title]) : record[title]) ===
+          (toFloat ? parseFloat(filter.value) : filter.value)
+      );
+      break;
+    case 'neq':
+      expectedRecords = unfilteredRecords.filter(
+        (record) =>
+          (toFloat ? parseFloat(record[title]) : record[title]) !==
+          (toFloat ? parseFloat(filter.value) : filter.value)
+      );
+      break;
+    case 'null':
+      expectedRecords = unfilteredRecords.filter(
+        (record) => record[title] === null
+      );
+      break;
+    case 'notnull':
+      expectedRecords = unfilteredRecords.filter(
+        (record) => record[title] !== null
+      );
+      break;
+    case 'empty':
+      expectedRecords = unfilteredRecords.filter(
+        (record) => record[title] === ''
+      );
+      break;
+    case 'notempty':
+      expectedRecords = unfilteredRecords.filter(
+        (record) => record[title] !== ''
+      );
+      break;
+    case 'like':
+      expectedRecords = unfilteredRecords.filter((record) =>
+        record[title]?.includes(filter.value)
+      );
+      break;
+    case 'nlike':
+      expectedRecords = unfilteredRecords.filter(
+        (record) => !record[title]?.includes(filter.value)
+      );
+      break;
+    case 'gt':
+      expectedRecords = unfilteredRecords.filter(
+        (record) =>
+          (toFloat ? parseFloat(record[title]) : record[title]) >
+            (toFloat ? parseFloat(filter.value) : filter.value) &&
+          record[title] !== null
+      );
+      break;
+    case 'gte':
+      expectedRecords = unfilteredRecords.filter(
+        (record) =>
+          (toFloat ? parseFloat(record[title]) : record[title]) >=
+            (toFloat ? parseFloat(filter.value) : filter.value) &&
+          record[title] !== null
+      );
+      break;
+    case 'lt':
+      expectedRecords = unfilteredRecords.filter(
+        (record) =>
+          (toFloat ? parseFloat(record[title]) : record[title]) <
+            (toFloat ? parseFloat(filter.value) : filter.value) &&
+          record[title] !== null
+      );
+      break;
+    case 'lte':
+      expectedRecords = unfilteredRecords.filter(
+        (record) =>
+          (toFloat ? parseFloat(record[title]) : record[title]) <=
+            (toFloat ? parseFloat(filter.value) : filter.value) &&
+          record[title] !== null
+      );
+      break;
+  }
+
   // retrieve filtered records
   const response = await request(context.app)
     .get(`/api/v1/db/data/noco/${project.id}/${table.id}`)
@@ -70,13 +148,23 @@ let table: Model;
 let columns: any[];
 let unfilteredRecords: any[] = [];
 
-function filterTextBased() {
-  // let context;
-  // let project: Project;
-  // let table: Model;
-  // let columns: any[];
-  // let unfilteredRecords: any[] = [];
+async function verifyFilters(dataType, columnId, filterList) {
+  const filter = {
+    fk_column_id: columnId,
+    status: 'create',
+    logical_op: 'and',
+    comparison_op: '',
+    value: '',
+  };
 
+  for (let i = 0; i < filterList.length; i++) {
+    filter.comparison_op = filterList[i].comparison_op;
+    filter.value = filterList[i].value;
+    await retrieveRecordsAndValidate(filter, dataType);
+  }
+}
+
+function filterTextBased() {
   // prepare data for test cases
   beforeEach(async function () {
     context = await init();
@@ -143,402 +231,74 @@ function filterTextBased() {
     expect(unfilteredRecords.length).to.equal(400);
   });
 
-  // async function retrieveRecordsAndValidate(
-  //   filter: {
-  //     comparison_op: string;
-  //     value: string;
-  //     fk_column_id: any;
-  //     status: string;
-  //     logical_op: string;
-  //   },
-  //   expectedRecords: any[]
-  // ) {
-  //   // retrieve filtered records
-  //   const response = await request(context.app)
-  //     .get(`/api/v1/db/data/noco/${project.id}/${table.id}`)
-  //     .set('xc-auth', context.token)
-  //     .query({
-  //       filterArrJson: JSON.stringify([filter]),
-  //     })
-  //     .expect(200);
-  //
-  //   // validate
-  //   if (debugMode) {
-  //     if (response.body.pageInfo.totalRows !== expectedRecords.length) {
-  //       console.log(`Failed for filter: ${JSON.stringify(filter)}`);
-  //       console.log(`Expected: ${expectedRecords.length}`);
-  //       console.log(`Actual: ${response.body.pageInfo.totalRows}`);
-  //       throw new Error('fix me!');
-  //     }
-  //     response.body.list.forEach((row, index) => {
-  //       if (row[columns[1].title] !== expectedRecords[index].SingleLineText) {
-  //         console.log(`Failed for filter: ${JSON.stringify(filter)}`);
-  //         console.log(`Expected: ${expectedRecords[index].SingleLineText}`);
-  //         console.log(`Actual: ${row[columns[1].title]}`);
-  //         throw new Error('fix me!');
-  //       }
-  //     });
-  //   } else {
-  //     expect(response.body.pageInfo.totalRows).to.equal(expectedRecords.length);
-  //     response.body.list.forEach((row, index) => {
-  //       expect(row[columns[1].title] !== expectedRecords[index].SingleLineText);
-  //     });
-  //   }
-  // }
-
   it('Type: Single Line Text', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, empty, notempty, like, nlike
-
-    const dataType = 'SingleLineText';
-
-    const filter = {
-      fk_column_id: columns[1].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: 'Afghanistan',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === 'Afghanistan'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== 'Afghanistan'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: empty
-    filter.comparison_op = 'empty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === ''
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notempty
-    filter.comparison_op = 'notempty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== ''
-    );
-    //TBD await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: like
-    filter.comparison_op = 'like';
-    filter.value = 'Au';
-    expectedRecords = unfilteredRecords.filter((record) =>
-      record[dataType]?.includes('Au')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: nlike
-    filter.comparison_op = 'nlike';
-    filter.value = 'Au';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => !record[dataType]?.includes('Au')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+    let filterList = [
+      { comparison_op: 'eq', value: 'Afghanistan' },
+      { comparison_op: 'neq', value: 'Afghanistan' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'empty', value: '' },
+      // { comparison_op: 'notempty', value: '' },
+      { comparison_op: 'like', value: 'Au' },
+      { comparison_op: 'nlike', value: 'Au' },
+    ];
+    await verifyFilters('SingleLineText', columns[1].id, filterList);
   });
 
-  it('Type: LongText', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, empty, notempty, like, nlike
-
-    const dataType = 'MultiLineText';
-
-    const filter = {
-      fk_column_id: columns[2].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: 'Aberdeen, United Kingdom',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === 'Aberdeen, United Kingdom'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== 'Aberdeen, United Kingdom'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: empty
-    filter.comparison_op = 'empty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === ''
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notempty
-    filter.comparison_op = 'notempty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== ''
-    );
-    //TBD await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: like
-    filter.comparison_op = 'like';
-    filter.value = 'abad';
-    expectedRecords = unfilteredRecords.filter((record) =>
-      record[dataType]?.includes('abad')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: nlike
-    filter.comparison_op = 'nlike';
-    filter.value = 'abad';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => !record[dataType]?.includes('abad')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+  it('Type: Multi Line Text', async () => {
+    let filterList = [
+      { comparison_op: 'eq', value: 'Aberdeen, United Kingdom' },
+      { comparison_op: 'neq', value: 'Aberdeen, United Kingdom' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'empty', value: '' },
+      // { comparison_op: 'notempty', value: '' },
+      { comparison_op: 'like', value: 'abad' },
+      { comparison_op: 'nlike', value: 'abad' },
+    ];
+    await verifyFilters('MultiLineText', columns[2].id, filterList);
   });
 
   it('Type: Email', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, empty, notempty, like, nlike
-
-    const dataType = 'Email';
-
-    const filter = {
-      fk_column_id: columns[3].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: 'leota@hotmail.com',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === 'leota@hotmail.com'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== 'leota@hotmail.com'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: empty
-    filter.comparison_op = 'empty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === ''
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notempty
-    filter.comparison_op = 'notempty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== ''
-    );
-    //TBD await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: like
-    filter.comparison_op = 'like';
-    filter.value = 'cox.net';
-    expectedRecords = unfilteredRecords.filter((record) =>
-      record[dataType]?.includes('cox.net')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: nlike
-    filter.comparison_op = 'nlike';
-    filter.value = 'cox.net';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => !record[dataType]?.includes('cox.net')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+    let filterList = [
+      { comparison_op: 'eq', value: 'leota@hotmail.com' },
+      { comparison_op: 'neq', value: 'leota@hotmail.com' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'empty', value: '' },
+      // { comparison_op: 'notempty', value: '' },
+      { comparison_op: 'like', value: 'cox.net' },
+      { comparison_op: 'nlike', value: 'cox.net' },
+    ];
+    await verifyFilters('Email', columns[3].id, filterList);
   });
 
   it('Type: Phone', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, empty, notempty, like, nlike
-
-    const dataType = 'Phone';
-
-    const filter = {
-      fk_column_id: columns[4].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: '504-621-8927',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === '504-621-8927'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== '504-621-8927'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: empty
-    filter.comparison_op = 'empty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === ''
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notempty
-    filter.comparison_op = 'notempty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== ''
-    );
-    //TBD await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: like
-    filter.comparison_op = 'like';
-    filter.value = '504';
-    expectedRecords = unfilteredRecords.filter((record) =>
-      record[dataType]?.includes('504')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: nlike
-    filter.comparison_op = 'nlike';
-    filter.value = '504';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => !record[dataType]?.includes('504')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+    let filterList = [
+      { comparison_op: 'eq', value: '504-621-8927' },
+      { comparison_op: 'neq', value: '504-621-8927' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'empty', value: '' },
+      // { comparison_op: 'notempty', value: '' },
+      { comparison_op: 'like', value: '504' },
+      { comparison_op: 'nlike', value: '504' },
+    ];
+    await verifyFilters('Phone', columns[4].id, filterList);
   });
 
-  it('Type: URL', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, empty, notempty, like, nlike
-
-    const dataType = 'Url';
-
-    const filter = {
-      fk_column_id: columns[5].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: 'https://www.youtube.com',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === 'https://www.youtube.com'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== 'https://www.youtube.com'
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: empty
-    filter.comparison_op = 'empty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === ''
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notempty
-    filter.comparison_op = 'notempty';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== ''
-    );
-    //TBD await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: like
-    filter.comparison_op = 'like';
-    filter.value = 'e.com';
-    expectedRecords = unfilteredRecords.filter((record) =>
-      record[dataType]?.includes('e.com')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: nlike
-    filter.comparison_op = 'nlike';
-    filter.value = 'e.com';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => !record[dataType]?.includes('e.com')
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+  it('Type: Url', async () => {
+    let filterList = [
+      { comparison_op: 'eq', value: 'https://www.youtube.com' },
+      { comparison_op: 'neq', value: 'https://www.youtube.com' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'empty', value: '' },
+      // { comparison_op: 'notempty', value: '' },
+      { comparison_op: 'like', value: 'e.com' },
+      { comparison_op: 'nlike', value: 'e.com' },
+    ];
+    await verifyFilters('Url', columns[5].id, filterList);
   });
 }
 
@@ -616,361 +376,73 @@ function filterNumberBased() {
   });
 
   it('Type: Number', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, like, nlike, >, >=, <, <=
-
-    const dataType = 'Number';
-
-    const filter = {
-      fk_column_id: columns[1].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: '33',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === 33
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== 33
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >
-    filter.comparison_op = 'gt';
-    filter.value = '44';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] > 44 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >=
-    filter.comparison_op = 'gte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] >= 44 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <
-    filter.comparison_op = 'lt';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] < 44 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <=
-    filter.comparison_op = 'lte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] <= 44 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+    let filterList = [
+      { comparison_op: 'eq', value: '33' },
+      { comparison_op: 'neq', value: '33' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'gt', value: '44' },
+      { comparison_op: 'gte', value: '44' },
+      { comparison_op: 'lt', value: '44' },
+      { comparison_op: 'lte', value: '44' },
+    ];
+    await verifyFilters('Number', columns[1].id, filterList);
   });
 
   it('Type: Decimal', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, like, nlike, >, >=, <, <=
-
-    const dataType = 'Decimal';
-
-    const filter = {
-      fk_column_id: columns[2].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: '33.3',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => parseFloat(record[dataType]) === 33.3
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => parseFloat(record[dataType]) !== 33.3
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >
-    filter.comparison_op = 'gt';
-    filter.value = '44.26';
-    expectedRecords = unfilteredRecords.filter(
-      (record) =>
-        parseFloat(record[dataType]) > 44.26 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >=
-    filter.comparison_op = 'gte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) =>
-        parseFloat(record[dataType]) >= 44.26 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <
-    filter.comparison_op = 'lt';
-    expectedRecords = unfilteredRecords.filter(
-      (record) =>
-        parseFloat(record[dataType]) < 44.26 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <=
-    filter.comparison_op = 'lte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) =>
-        parseFloat(record[dataType]) <= 44.26 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+    let filterList = [
+      { comparison_op: 'eq', value: '33.3' },
+      { comparison_op: 'neq', value: '33.3' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'gt', value: '44.26' },
+      { comparison_op: 'gte', value: '44.26' },
+      { comparison_op: 'lt', value: '44.26' },
+      { comparison_op: 'lte', value: '44.26' },
+    ];
+    await verifyFilters('Decimal', columns[2].id, filterList);
   });
 
   it('Type: Currency', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, like, nlike, >, >=, <, <=
-
-    const dataType = 'Currency';
-
-    const filter = {
-      fk_column_id: columns[3].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: '33.3',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => parseFloat(record[dataType]) === 33.3
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => parseFloat(record[dataType]) !== 33.3
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >
-    filter.comparison_op = 'gt';
-    filter.value = '44.26';
-    expectedRecords = unfilteredRecords.filter(
-      (record) =>
-        parseFloat(record[dataType]) > 44.26 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >=
-    filter.comparison_op = 'gte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) =>
-        parseFloat(record[dataType]) >= 44.26 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <
-    filter.comparison_op = 'lt';
-    expectedRecords = unfilteredRecords.filter(
-      (record) =>
-        parseFloat(record[dataType]) < 44.26 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <=
-    filter.comparison_op = 'lte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) =>
-        parseFloat(record[dataType]) <= 44.26 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+    let filterList = [
+      { comparison_op: 'eq', value: '33.3' },
+      { comparison_op: 'neq', value: '33.3' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'gt', value: '44.26' },
+      { comparison_op: 'gte', value: '44.26' },
+      { comparison_op: 'lt', value: '44.26' },
+      { comparison_op: 'lte', value: '44.26' },
+    ];
+    await verifyFilters('Decimal', columns[3].id, filterList);
   });
 
   it('Type: Percent', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, like, nlike, >, >=, <, <=
-
-    const dataType = 'Percent';
-
-    const filter = {
-      fk_column_id: columns[4].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: '33',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === 33
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== 33
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >
-    filter.comparison_op = 'gt';
-    filter.value = '44';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] > 44 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >=
-    filter.comparison_op = 'gte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] >= 44 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <
-    filter.comparison_op = 'lt';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] < 44 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <=
-    filter.comparison_op = 'lte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] <= 44 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+    let filterList = [
+      { comparison_op: 'eq', value: '33' },
+      { comparison_op: 'neq', value: '33' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'gt', value: '44' },
+      { comparison_op: 'gte', value: '44' },
+      { comparison_op: 'lt', value: '44' },
+      { comparison_op: 'lte', value: '44' },
+    ];
+    await verifyFilters('Percent', columns[4].id, filterList);
   });
 
   it('Type: Rating', async () => {
-    // filter types to be verified
-    // eq, neq, null, notnull, like, nlike, >, >=, <, <=
-
-    const dataType = 'Rating';
-
-    const filter = {
-      fk_column_id: columns[6].id,
-      status: 'create',
-      logical_op: 'and',
-      comparison_op: 'eq',
-      value: '3',
-    };
-
-    let expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === 3
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: neq
-    filter.comparison_op = 'neq';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== 3
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: null
-    filter.comparison_op = 'null';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] === null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: notnull
-    filter.comparison_op = 'notnull';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >
-    filter.comparison_op = 'gt';
-    filter.value = '2';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] > 2 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: >=
-    filter.comparison_op = 'gte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] >= 2 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <
-    filter.comparison_op = 'lt';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] < 2 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
-
-    // filter: <=
-    filter.comparison_op = 'lte';
-    expectedRecords = unfilteredRecords.filter(
-      (record) => record[dataType] <= 2 && record[dataType] !== null
-    );
-    await retrieveRecordsAndValidate(filter, expectedRecords, dataType);
+    let filterList = [
+      { comparison_op: 'eq', value: '3' },
+      { comparison_op: 'neq', value: '3' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'gt', value: '2' },
+      { comparison_op: 'gte', value: '2' },
+      { comparison_op: 'lt', value: '2' },
+      { comparison_op: 'lte', value: '2' },
+    ];
+    await verifyFilters('Rating', columns[6].id, filterList);
   });
 }
 

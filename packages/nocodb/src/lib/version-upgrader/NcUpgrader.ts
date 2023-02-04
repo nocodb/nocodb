@@ -52,6 +52,7 @@ export default class NcUpgrader {
       const configObj: NcConfig = JSON.parse(config.value);
       if (configObj.version !== process.env.NC_VERSION) {
         oldVersion = configObj.version;
+        let fromVersion = configObj.version;
         for (const version of NC_VERSIONS) {
           // compare current version and old version
           if (version.name <= configObj.version) {
@@ -87,22 +88,19 @@ export default class NcUpgrader {
             );
 
             await upgrderCtx.ncMeta.commit();
-            Tele.emit('evt', {
-              evt_type: 'appMigration:upgraded',
-              from: oldVersion,
-              to: process.env.NC_VERSION,
-            });
+            fromVersion = version.name;
           } catch (e) {
             await upgrderCtx.ncMeta.rollback(e);
             Tele.emit('evt', {
               evt_type: 'appMigration:failed',
-              from: oldVersion,
+              current: oldVersion,
+              from: fromVersion,
               to: process.env.NC_VERSION,
               msg: e.message,
               err: e?.stack?.split?.('\n').slice(0, 2).join('\n'),
             });
             console.log(
-              getUpgradeErrorLog(e, oldVersion, process.env.NC_VERSION)
+              getUpgradeErrorLog(e, fromVersion, process.env.NC_VERSION)
             );
             throw e;
           }
@@ -113,6 +111,12 @@ export default class NcUpgrader {
           }
         }
         config.version = process.env.NC_VERSION;
+
+        Tele.emit('evt', {
+          evt_type: 'appMigration:upgraded',
+          from: oldVersion,
+          to: process.env.NC_VERSION,
+        });
       }
     } else {
       this.log(`upgrade : Inserting config to meta database`);

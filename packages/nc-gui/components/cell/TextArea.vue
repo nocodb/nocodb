@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { GridType } from 'nocodb-sdk'
 import type { VNodeRef } from '@vue/runtime-core'
-import { ActiveViewInj, EditModeInj, inject, useVModel } from '#imports'
+import { EditModeInj, RowHeightInj, inject, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -11,30 +10,13 @@ const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject(EditModeInj)
 
-const { showNull } = useGlobal()
+const rowHeight = inject(RowHeightInj)
 
-const view = inject(ActiveViewInj, ref())
+const { showNull } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
 const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
-
-const rowHeight = computed(() => {
-  if ((view.value?.view as GridType)?.row_height !== undefined) {
-    switch ((view.value?.view as GridType)?.row_height) {
-      case 0:
-        return 1
-      case 1:
-        return 2
-      case 2:
-        return 4
-      case 3:
-        return 6
-      default:
-        return 1
-    }
-  }
-})
 </script>
 
 <template>

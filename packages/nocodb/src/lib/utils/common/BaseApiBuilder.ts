@@ -187,8 +187,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return this.connectionConfig?.meta?.dbAlias;
   }
 
-  public getSqlClient(): any {
-    return NcConnectionMgr.getSqlClient({
+  public async getSqlClient(): Promise<any> {
+    return await NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
@@ -1676,7 +1676,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       config: this.config,
       projectId: this.projectId,
     });
-    this.sqlClient = NcConnectionMgr.getSqlClient({
+    this.sqlClient = await NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
@@ -3064,7 +3064,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     );
     const colListRef = {};
     const tableList =
-      (await this.getSqlClient()?.tableList())?.data?.list || [];
+      (await (await this.getSqlClient())?.tableList())?.data?.list || [];
 
     colListRef[tableName] = await this.getColumnList(tableName);
 

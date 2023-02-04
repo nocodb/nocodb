@@ -1554,7 +1554,7 @@ export default class NcMetaMgr {
           break;
 
         case 'testConnection':
-          result = await SqlClientFactory.create(args.args).testConnection();
+          result = await (await SqlClientFactory.create(args.args)).testConnection();
           break;
         case 'xcProjectGetConfig':
           result = await this.xcMeta.projectGetById(this.getProjectId(args));
@@ -2907,9 +2907,9 @@ export default class NcMetaMgr {
     }
   }
 
-  protected projectGetSqlClient(args) {
+  protected async projectGetSqlClient(args) {
     const builder = this.getBuilder(args);
-    return builder?.getSqlClient();
+    return await builder?.getSqlClient();
   }
 
   protected getBuilder(args): RestApiBuilder | GqlApiBuilder {
@@ -3443,8 +3443,8 @@ export default class NcMetaMgr {
   }
 
   // @ts-ignore
-  protected getSqlClient(project_id: string, dbAlias: string) {
-    return this.app?.projectBuilders
+  protected async getSqlClient(project_id: string, dbAlias: string) {
+    return await this.app?.projectBuilders
       ?.find((pb) => pb?.id === project_id)
       ?.apiBuilders?.find((builder) => builder.dbAlias === dbAlias)
       ?.getSqlClient();
@@ -4253,7 +4253,7 @@ export default class NcMetaMgr {
         return { data: { list: columns } };
       }
 
-      return this.projectGetSqlClient(args).columnList(args.args);
+      return (await this.projectGetSqlClient(args)).columnList(args.args);
     } catch (e) {
       throw e;
     }
@@ -4598,7 +4598,7 @@ export default class NcMetaMgr {
         {}
       );
 
-      const sqlClient = this.projectGetSqlClient(args);
+      const sqlClient = await this.projectGetSqlClient(args);
 
       switch (args.args.type) {
         case 'table':

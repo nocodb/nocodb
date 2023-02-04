@@ -141,7 +141,7 @@ export default class NcConnectionMgr {
     return config?.envs?.[env]?.db?.find((db) => db?.meta?.dbAlias === dbAlias);
   }
 
-  public static getSqlClient({
+  public static async getSqlClient({
     projectId,
     dbAlias = 'db',
     env = '_noco',
@@ -151,14 +151,14 @@ export default class NcConnectionMgr {
     env: string;
     config: NcConfig;
     projectId: string;
-  }): any {
+  }): Promise<any> {
     const knex = this.get({
       dbAlias,
       env,
       config,
       projectId,
     });
-    return SqlClientFactory.create({
+    return await SqlClientFactory.create({
       knex,
       ...this.getConnectionConfig(config, env, dbAlias),
     });

@@ -626,7 +626,7 @@ export default class NcProjectBuilder {
         i++;
       } else if (db.meta?.allSchemas) {
         /* get all schemas and create APIs for all of them */
-        const sqlClient = SqlClientFactory.create({
+        const sqlClient = await SqlClientFactory.create({
           ...db,
           connection: { ...db.connection, database: undefined },
         });
@@ -697,7 +697,7 @@ export default class NcProjectBuilder {
 
       for (const connectionConfig of dbs) {
         try {
-          const sqlClient = NcConnectionMgr.getSqlClient({
+          const sqlClient = await NcConnectionMgr.getSqlClient({
             dbAlias: connectionConfig?.meta?.dbAlias,
             env: this.config.env,
             config: this.config,

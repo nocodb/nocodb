@@ -152,7 +152,7 @@ export default class SqlMgr {
   //   return this._project;
   // }
   public async testConnection(args = {}) {
-    const client = SqlClientFactory.create(args);
+    const client = await SqlClientFactory.create(args);
     return client.testConnection();
   }
 
@@ -301,7 +301,7 @@ export default class SqlMgr {
           const connectionKey = `${env}_${this.currentProjectJson.envs[env].db[i].meta.dbAlias}`;
 
           this.currentProjectConnections[connectionKey] =
-            SqlClientFactory.create({
+            await SqlClientFactory.create({
               ...connectionConfig,
               knex: await NcConnectionMgr.get({
                 dbAlias: this.currentProjectJson.envs[env].db[i].meta.dbAlias,
@@ -361,7 +361,7 @@ export default class SqlMgr {
     }
 
     if ('client' in connectionConfig) {
-      const data = SqlClientFactory.create(connectionConfig);
+      const data = await SqlClientFactory.create(connectionConfig);
       this.currentProjectConnections[connectionKey] = data;
       // console.log(data);
       return data;

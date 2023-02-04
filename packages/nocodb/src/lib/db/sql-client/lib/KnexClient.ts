@@ -586,27 +586,6 @@ class KnexClient extends SqlClient {
     if (connectionConfig.knex) {
       this.sqlClient = connectionConfig.knex;
     } else {
-      // console.log('KnexClient',this.connectionConfig);
-      if (
-        this.connectionConfig.connection.ssl &&
-        typeof this.connectionConfig.connection.ssl === 'object'
-      ) {
-        if (this.connectionConfig.connection.ssl.caFilePath) {
-          this.connectionConfig.connection.ssl.ca = fs
-            .readFileSync(this.connectionConfig.connection.ssl.caFilePath)
-            .toString();
-        }
-        if (this.connectionConfig.connection.ssl.keyFilePath) {
-          this.connectionConfig.connection.ssl.key = fs
-            .readFileSync(this.connectionConfig.connection.ssl.keyFilePath)
-            .toString();
-        }
-        if (this.connectionConfig.connection.ssl.certFilePath) {
-          this.connectionConfig.connection.ssl.cert = fs
-            .readFileSync(this.connectionConfig.connection.ssl.certFilePath)
-            .toString();
-        }
-      }
       const tmpConnectionConfig =
         connectionConfig.client === 'sqlite3'
           ? connectionConfig.connection
@@ -620,10 +599,10 @@ class KnexClient extends SqlClient {
     this.evt = new Emit();
   }
 
-  _validateInput() {
+  async _validateInput() {
     try {
       const packageJson = JSON.parse(
-        fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8')
+        await promisify(fs.readFile)(path.join(process.cwd(), 'package.json'), 'utf8')
       );
       return (
         packageJson.name === 'nocodb' || 'nocodb' in packageJson.dependencies
@@ -632,10 +611,10 @@ class KnexClient extends SqlClient {
     return true;
   }
 
-  validateInput() {
+  async validateInput() {
     try {
       if (!('___ext' in KnexClient)) {
-        KnexClient.___ext = this._validateInput();
+        KnexClient.___ext = await this._validateInput();
       }
       if (!KnexClient.___ext) {
         Tele.emit('evt', {

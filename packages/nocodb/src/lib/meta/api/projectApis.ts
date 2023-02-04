@@ -213,7 +213,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
   };
 
   const t = process.hrtime();
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
   let order = 1;
   const models2: { [tableName: string]: Model } = {};
 
@@ -467,7 +467,7 @@ export async function projectCost(req, res) {
   const project = await Project.getWithInfo(req.params.projectId);
 
   for (const base of project.bases) {
-    const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
     const userCount = await ProjectUser.getUsersCount(req.query);
     const recordCount = (await sqlClient.totalRecords())?.data.TotalRecords;
 

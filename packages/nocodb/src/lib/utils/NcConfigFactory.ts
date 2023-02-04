@@ -584,7 +584,7 @@ export default class NcConfigFactory implements NcConfig {
 
   public static async metaDbCreateIfNotExist(args: NcConfig) {
     if (args.meta?.db?.client === 'sqlite3') {
-      const metaSqlClient = SqlClientFactory.create({
+      const metaSqlClient = await SqlClientFactory.create({
         ...args.meta.db,
         connection: args.meta.db,
       });
@@ -592,7 +592,7 @@ export default class NcConfigFactory implements NcConfig {
         database: args.meta.db?.connection?.filename,
       });
     } else {
-      const metaSqlClient = SqlClientFactory.create(args.meta.db);
+      const metaSqlClient = await SqlClientFactory.create(args.meta.db);
       await metaSqlClient.createDatabaseIfNotExists(args.meta.db?.connection);
       await metaSqlClient.knex.destroy();
     }

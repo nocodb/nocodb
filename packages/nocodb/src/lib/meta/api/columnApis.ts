@@ -50,6 +50,16 @@ export enum Altered {
   UPDATE_COLUMN = 8,
 }
 
+// generate unique foreign key constraint name for foreign key
+const generateFkConstraintName = (parent: TableType, child: TableType) => {
+  const constraintName = `fk_${parent.table_name
+    .replace(/\W+/g, '_')
+    .slice(0, 10)}_${child.table_name
+    .replace(/\W+/g, '_')
+    .slice(0, 10)}_${randomID(15)}`;
+  return constraintName;
+};
+
 async function createHmAndBtColumn(
   child: Model,
   parent: Model,
@@ -316,6 +326,7 @@ export async function columnAdd(
                 onUpdate: 'NO ACTION',
                 type: 'real',
                 parentColumn: parent.primaryKey.column_name,
+                foreignKeyName: generateFkConstraintName(parent, child), //generateFkConstraintName()
               });
             }
 
@@ -407,6 +418,7 @@ export async function columnAdd(
               parentTable: parent.table_name,
               parentColumn: parentPK.column_name,
               type: 'real',
+              foreignKeyName: generateFkConstraintName(parent, child),
             };
             const rel2Args = {
               ...req.body,
@@ -415,6 +427,7 @@ export async function columnAdd(
               parentTable: child.table_name,
               parentColumn: childPK.column_name,
               type: 'real',
+              foreignKeyName: generateFkConstraintName(parent, child),
             };
 
             await sqlMgr.sqlOpPlus(base, 'relationCreate', rel1Args);

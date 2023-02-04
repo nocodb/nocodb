@@ -148,7 +148,7 @@ const selectFilterField = (filter: Filter, index: number) => {
     isComparisonOpAllowed(filter, compOp),
   )?.[0].value
   // reset filter value as well
-  filter.value = ""
+  filter.value = ''
   saveOrUpdate(filter, index)
 }
 
@@ -276,7 +276,7 @@ defineExpose({
 
             <LazySmartsheetToolbarFilterInput
               v-else
-              class="nc-filter-value-select"
+              class="nc-filter-value-select min-w-[120px]"
               :column="getColumn(filter)"
               :filter="filter"
               @update-filter-value="

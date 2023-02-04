@@ -7,6 +7,7 @@ import {
   IsFormInj,
   IsGridInj,
   RowInj,
+  SaveRowInj,
   inject,
   isBarcode,
   isBt,
@@ -30,7 +31,7 @@ const props = defineProps<{
   active?: boolean
 }>()
 
-const emit = defineEmits(['update:modelValue', 'navigate'])
+const emit = defineEmits(['update:modelValue', 'navigate', 'save'])
 
 const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
@@ -40,6 +41,7 @@ provide(ColumnInj, column)
 provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
+provide(SaveRowInj, () => emit('save'))
 
 const isGrid = inject(IsGridInj, ref(false))
 

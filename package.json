@@ -17,7 +17,7 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "fs": "0.0.1-security",
-    "lerna": "^3.20.1",
+    "lerna": "^6.4.1",
     "husky": "^8.0.0",
     "xlsx": "^0.17.4"
   },

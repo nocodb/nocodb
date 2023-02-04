@@ -25,7 +25,8 @@ const column = inject(ColumnInj)!
 
 let isTimeInvalid = $ref(false)
 
-const dateFormat = isMysql(column.value.base_id) || isOracle(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+const dateFormat =
+  isMysql(column.value.base_id) || isOracle(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
 const localState = $computed({
   get() {

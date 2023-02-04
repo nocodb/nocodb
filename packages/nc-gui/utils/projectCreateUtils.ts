@@ -54,7 +54,8 @@ const testDataBaseNames = {
 }
 
 export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
-  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE || db.client === ClientType.ORACLEDB) return db.connection?.database
+  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE || db.client === ClientType.ORACLEDB)
+    return db.connection?.database
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames]
 }
 

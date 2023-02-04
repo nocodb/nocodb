@@ -111,6 +111,32 @@ async function retrieveRecordsAndValidate(
           record[title] !== null
       );
       break;
+    case 'anyof':
+      expectedRecords = unfilteredRecords.filter((record) => {
+        const values = filter.value.split(',');
+        const recordValue = record[title]?.split(',');
+        return values.some((value) => recordValue?.includes(value));
+      });
+      break;
+    case 'nanyof':
+      expectedRecords = unfilteredRecords.filter((record) => {
+        const values = filter.value.split(',');
+        const recordValue = record[title]?.split(',');
+        return !values.some((value) => recordValue?.includes(value));
+      });
+      break;
+    case 'allof':
+      expectedRecords = unfilteredRecords.filter((record) => {
+        const values = filter.value.split(',');
+        return values.every((value) => record[title]?.includes(value));
+      });
+      break;
+    case 'nallof':
+      expectedRecords = unfilteredRecords.filter((record) => {
+        const values = filter.value.split(',');
+        return !values.every((value) => record[title]?.includes(value));
+      });
+      break;
   }
 
   // retrieve filtered records
@@ -464,7 +490,90 @@ function filterNumberBased() {
   });
 }
 
+function filterSelectBased() {
+  // prepare data for test cases
+  beforeEach(async function () {
+    context = await init();
+    project = await createProject(context);
+    table = await createTable(context, project, {
+      table_name: 'selectBased',
+      title: 'selectBased',
+      columns: [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+        },
+        {
+          column_name: 'SingleSelect',
+          title: 'SingleSelect',
+          uidt: UITypes.SingleSelect,
+          dtxp: "'jan','feb','mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'",
+        },
+        {
+          column_name: 'MultiSelect',
+          title: 'MultiSelect',
+          uidt: UITypes.MultiSelect,
+          dtxp: "'jan','feb','mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'",
+        },
+      ],
+    });
+
+    columns = await table.getColumns();
+
+    let rowAttributes = [];
+    for (let i = 0; i < 400; i++) {
+      let row = {
+        SingleSelect: rowMixedValue(columns[1], i),
+        MultiSelect: rowMixedValue(columns[2], i),
+      };
+      rowAttributes.push(row);
+    }
+
+    await createBulkRows(context, {
+      project,
+      table,
+      values: rowAttributes,
+    });
+    unfilteredRecords = await listRow({ project, table });
+
+    // verify length of unfiltered records to be 400
+    expect(unfilteredRecords.length).to.equal(400);
+  });
+
+  it('Type: Single select', async () => {
+    let filterList = [
+      { comparison_op: 'eq', value: 'jan' },
+      { comparison_op: 'neq', value: 'jan' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'like', value: 'j' },
+      { comparison_op: 'nlike', value: 'j' },
+      { comparison_op: 'anyof', value: 'jan,feb,mar' },
+      { comparison_op: 'nanyof', value: 'jan,feb,mar' },
+    ];
+    await verifyFilters('SingleSelect', columns[1].id, filterList);
+  });
+
+  it('Type: Multi select', async () => {
+    let filterList = [
+      { comparison_op: 'eq', value: 'jan,feb,mar' },
+      { comparison_op: 'neq', value: 'jan,feb,mar' },
+      { comparison_op: 'null', value: '' },
+      { comparison_op: 'notnull', value: '' },
+      { comparison_op: 'like', value: 'jan' },
+      { comparison_op: 'nlike', value: 'jan' },
+      { comparison_op: 'anyof', value: 'jan,feb,mar' },
+      { comparison_op: 'nanyof', value: 'jan,feb,mar' },
+      { comparison_op: 'allof', value: 'jan,feb,mar' },
+      { comparison_op: 'nallof', value: 'jan,feb,mar' },
+    ];
+    await verifyFilters('MultiSelect', columns[2].id, filterList);
+  });
+}
+
 export default function () {
   describe('Filter: Text based', filterTextBased);
   describe('Filter: Numerical', filterNumberBased);
+  describe('Filter: Select based', filterSelectBased);
 }

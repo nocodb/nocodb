@@ -128,6 +128,31 @@ const rowMixedValue = (column: ColumnType, index: number) => {
     null,
   ];
 
+  const singleSelect = [
+    'jan',
+    'feb',
+    'mar',
+    'apr',
+    'may',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'oct',
+    'nov',
+    'dec',
+    null,
+  ];
+
+  const multiSelect = [
+    'jan,feb,mar',
+    'apr,may,jun',
+    'jul,aug,sep',
+    'oct,nov,dec',
+    'jan,feb,mar',
+    null,
+  ];
+
   switch (column.uidt) {
     case UITypes.Number:
     case UITypes.Percent:
@@ -151,6 +176,10 @@ const rowMixedValue = (column: ColumnType, index: number) => {
       return '2020-01-01';
     case UITypes.URL:
       return urls[index % urls.length];
+    case UITypes.SingleSelect:
+      return singleSelect[index % singleSelect.length];
+    case UITypes.MultiSelect:
+      return multiSelect[index % multiSelect.length];
     default:
       return `test-${index}`;
   }

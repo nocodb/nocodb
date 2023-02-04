@@ -47,6 +47,9 @@ const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
 const NOCO_RELEASE = 'NOCO_RELEASE';
 
+const writeFileAsync = promisify(fs.writeFile);
+const readFileAsync = promisify(fs.readFile);
+
 export default class NcMetaMgr {
   public projectConfigs = {};
   public readonly pluginMgr: NcPluginMgr;
@@ -439,7 +442,7 @@ export default class NcMetaMgr {
       for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
         if (fs.existsSync(path.join(metaFolder, `${tn}.json`))) {
           const data = JSON.parse(
-            fs.readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8')
+            await readFileAsync(path.join(metaFolder, `${tn}.json`), 'utf8')
           );
           for (const row of data) {
             delete row.id;
@@ -495,7 +498,7 @@ export default class NcMetaMgr {
         throw new Error('Missing project config file');
       }
 
-      const projectDetailsJSON: any = fs.readFileSync(
+      const projectDetailsJSON: any = await readFileAsync(
         path.join(this.config.toolDir, 'uploads', projectConfigPath),
         'utf8'
       );
@@ -618,7 +621,7 @@ export default class NcMetaMgr {
 
       if (projectConfigPath) {
         // read project config and extract project id
-        let projectConfig: any = fs.readFileSync(
+        let projectConfig: any = await readFileAsync(
           path.join(this.config?.toolDir, projectConfigPath),
           'utf8'
         );
@@ -709,7 +712,7 @@ export default class NcMetaMgr {
         for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
           // const metaData = await client.knex(tn).select();
           const metaData = await this.xcMeta.metaList(projectId, dbAlias, tn);
-          fs.writeFileSync(
+          await writeFileAsync(
             path.join(metaFolder, `${tn}.json`),
             JSON.stringify(metaData, null, 2)
           );
@@ -720,7 +723,7 @@ export default class NcMetaMgr {
           true
         );
         projectMetaData.key = this.config?.auth?.jwt?.secret;
-        fs.writeFileSync(
+        await writeFileAsync(
           path.join(metaFolder, `nc_project.json`),
           JSON.stringify(projectMetaData, null, 2)
         );

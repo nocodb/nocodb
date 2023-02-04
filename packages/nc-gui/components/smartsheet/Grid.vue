@@ -864,6 +864,7 @@ const rowHeight = computed(() => {
                         :row="row"
                         :read-only="readOnly"
                         @navigate="onNavigate"
+                        @save="updateOrSaveRow(row, '', state)"
                       />
 
                       <LazySmartsheetCell

@@ -16,7 +16,7 @@ import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
-  if (!req['user']?.id) {
+  if (!req['user']) {
     NcError.unauthorized('Unauthorized');
   }
 
@@ -25,6 +25,7 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
     if (
       req['user'].roles?.includes(OrgUserRoles.SUPER_ADMIN) ||
       req['user'].roles?.includes(OrgUserRoles.CREATOR) ||
+      (req['user'].isPublicBase && req['user'].roles?.includes(ProjectRoles.EDITOR)) ||
       // if viewer then check at-least one project have editor or higher role
       // todo: cache
       !!(await Noco.ncMeta

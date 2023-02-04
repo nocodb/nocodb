@@ -7,6 +7,7 @@ import tableTests from './tests/table.test';
 import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
 import attachmentTests from './tests/attachment.test';
+import filterTest from './tests/filter.test';
 
 function restTests() {
   authTests();
@@ -17,6 +18,7 @@ function restTests() {
   viewRowTests();
   columnTypeSpecificTests();
   attachmentTests();
+  filterTest();
 }
 
 export default function () {

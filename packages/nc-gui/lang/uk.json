@@ -159,8 +159,8 @@
   "filterOperation": {
     "isEqual": "дорівнює",
     "isNotEqual": "не дорівнює",
-    "isLike": "схоже",
-    "isNot like": "не схоже",
+    "isLike": "містить",
+    "isNot like": "не містить",
     "isEmpty": "пусте",
     "isNotEmpty": "не пусте",
     "isNull": "рівне null",

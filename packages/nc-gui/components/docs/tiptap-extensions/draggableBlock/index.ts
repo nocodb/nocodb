@@ -1,6 +1,5 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
-import type { EditorView } from 'prosemirror-view'
 import { Plugin, TextSelection } from 'prosemirror-state'
 import DraggableBlockComponent from './draggable-block.vue'
 
@@ -46,6 +45,15 @@ export const DraggableBlock = Node.create<DBlockOptions>({
 
   renderHTML({ HTMLAttributes }) {
     return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'd-block' }), 0]
+  },
+
+  onSelectionUpdate(data) {
+    // If cursor is inside the node, we make the node focused
+    if (!data) return
+
+    const { editor } = data
+
+    focusCurrentDraggableBlock(editor.state)
   },
 
   addProseMirrorPlugins() {
@@ -132,6 +140,28 @@ export const DraggableBlock = Node.create<DBlockOptions>({
 
         if (parent.type.name !== 'dBlock') return false
 
+        // Skip if suggestion is active
+        const activeNodeText: string | undefined = parent.firstChild?.content?.content?.[0]?.text
+        if (activeNodeText?.startsWith('/')) return false
+
+        // If active node is the last node in the doc, add a new node
+        if (to === doc.nodeSize - 4) {
+          console.log('to', to, doc.nodeSize - 4)
+          return editor
+            .chain()
+            .insertContentAt(to, {
+              type: 'paragraph',
+              content: [
+                {
+                  type: 'text',
+                  text: '/',
+                },
+              ],
+            })
+            .focus(from + 5)
+            .run()
+        }
+
         let currentActiveNodeTo = -1
 
         doc.descendants((node, pos) => {
@@ -146,20 +176,36 @@ export const DraggableBlock = Node.create<DBlockOptions>({
           return false
         })
 
-        const content = doc.slice(from, currentActiveNodeTo)?.toJSON().content
-
         return editor
           .chain()
-          .insertContentAt(
-            { from, to: currentActiveNodeTo },
-            {
-              type: this.name,
-              content,
-            },
-          )
           .focus(from + 4)
           .run()
       },
     }
   },
 })
+
+function focusCurrentDraggableBlock(state, nodeIndex: number | null = null) {
+  const node = state.doc.nodeAt(state.selection.from - 1)
+  if (!node) return
+
+  let totalSize = 0
+  if (!nodeIndex) {
+    nodeIndex = 0
+    for (const rootNode of state.doc.content.content) {
+      totalSize += rootNode.nodeSize
+      if (totalSize >= state.selection.from) {
+        break
+      }
+      nodeIndex++
+    }
+  }
+
+  const dbBlockDom = document.querySelectorAll('.draggable-block-wrapper')
+  for (let i = 0; i < dbBlockDom.length; i++) {
+    dbBlockDom[i].classList.remove('focused')
+    if (i === nodeIndex) {
+      dbBlockDom[i].classList.add('focused')
+    }
+  }
+}

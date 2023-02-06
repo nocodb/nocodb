@@ -38,7 +38,7 @@ export default {
 </script>
 
 <template>
-  <NodeViewWrapper class="vue-component group">
+  <NodeViewWrapper class="vue-component group draggable-block-wrapper">
     <div class="flex flex-row gap-0.5 group w-full relative" tiptap-draghandle-wrapper="true">
       <div type="button" class="block-button cursor-pointer" :class="{ '!mt-8.5': isTable }" @click="createNodeAfter">
         <MdiPlus />
@@ -54,14 +54,20 @@ export default {
         <IcBaselineDragIndicator :tiptap-draghandle="true" />
       </div>
 
-      <NodeViewContent class="node-view-content w-full ml-0.5" :class="{ 'ml-1': isTable }" />
+      <NodeViewContent class="node-view-drag-content w-full ml-0.5" :class="{ 'ml-1': isTable }" />
     </div>
   </NodeViewWrapper>
 </template>
 
 <style lang="scss" scoped>
 .block-button {
-  @apply opacity-0 group-hover:opacity-100 hover:bg-gray-50 rounded-sm text-lg py-0.5 h-6 mt-3;
+  @apply opacity-0 group-hover:opacity-100 !group-focus:opacity-100 !group-active:opacity-100 hover:bg-gray-50 rounded-sm text-lg py-0.5 h-6 mt-3;
   color: rgb(203, 203, 203);
+}
+
+.draggable-block-wrapper.focused {
+  .block-button {
+    @apply opacity-100;
+  }
 }
 </style>

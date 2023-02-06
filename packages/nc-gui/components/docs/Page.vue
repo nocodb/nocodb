@@ -4,7 +4,6 @@ import BulletList from '@tiptap/extension-bullet-list'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
-import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
@@ -16,7 +15,7 @@ import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
-import TableCell from '@tiptap/extension-table-cell'
+import { TableCell } from './tiptap-extensions/table/TableCell'
 import { TableHeader } from './tiptap-extensions/table/header'
 import { TableRow } from './tiptap-extensions/table/row'
 import Table from './tiptap-extensions/table'
@@ -546,21 +545,25 @@ watch(
     width: 100%;
     margin: 0;
     overflow: visible;
+    tbody {
+      overflow: visible;
+    }
     td,
     th {
       position: relative;
       min-width: 1em;
       border: 1px solid #e5e5e5;
-      padding: 3px 5px;
       vertical-align: top;
       box-sizing: border-box;
-
+      overflow: visible !important;
+      height: 20px;
       > * {
         margin-bottom: 0;
       }
     }
 
     td {
+      overflow: visible !important;
       border-top: 0;
     }
 
@@ -584,10 +587,10 @@ watch(
     p {
       margin: 0;
     }
-  }
 
-  .tableWrapper {
-    overflow-x: auto;
+    tr.ProseMirror-selectednode {
+      @apply bg-primary-selected;
+    }
   }
 
   .resize-cursor {

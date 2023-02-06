@@ -9,6 +9,8 @@ import { TableNodeView } from './TableNodeView'
 
 export default Table.extend({
   draggable: true,
+  allowTableNodeSelection: true,
+  resizable: true,
   addProseMirrorPlugins() {
     return [
       new Plugin({

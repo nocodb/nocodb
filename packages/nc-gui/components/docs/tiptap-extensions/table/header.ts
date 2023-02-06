@@ -39,7 +39,6 @@ const TableHeader = TiptapTableHeader.extend({
                 deleteColumnButton(view, localPos, localTablePos),
               )
 
-              decorations.push(decorationDeleteRow)
               decorations.push(decorationTable)
             })
 

@@ -1,14 +1,15 @@
-import { VueNodeViewRenderer } from '@tiptap/vue-3'
-
 import { Node, mergeAttributes } from '@tiptap/core'
-import TableHeaderNodeView from './table-header.vue'
+import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import { Plugin, PluginKey } from 'prosemirror-state'
+import TableCellNodeView from './table-cell.vue'
 
-export interface TableHeaderOptions {
+export interface TableCellOptions {
   HTMLAttributes: Record<string, any>
 }
-export const TableHeader = Node.create<TableHeaderOptions>({
-  name: 'tableHeader',
-  selectable: true,
+
+export const TableCell = Node.create<TableCellOptions>({
+  name: 'tableCell',
+
   addOptions() {
     return {
       HTMLAttributes: {},
@@ -16,6 +17,9 @@ export const TableHeader = Node.create<TableHeaderOptions>({
   },
 
   content: 'block+',
+
+  draggable: false,
+  selectable: false,
 
   addAttributes() {
     return {
@@ -37,19 +41,25 @@ export const TableHeader = Node.create<TableHeaderOptions>({
     }
   },
 
-  tableRole: 'header_cell',
-
-  isolating: true,
+  tableRole: 'cell',
 
   parseHTML() {
-    return [{ tag: 'th' }]
+    return [{ tag: 'td' }]
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['th', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
+    return ['td', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
   },
 
   addNodeView() {
-    return VueNodeViewRenderer(TableHeaderNodeView)
+    return VueNodeViewRenderer(TableCellNodeView)
+  },
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('tableCell'),
+        props: {},
+      }),
+    ]
   },
 })

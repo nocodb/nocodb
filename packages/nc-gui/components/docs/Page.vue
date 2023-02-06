@@ -4,14 +4,18 @@ import BulletList from '@tiptap/extension-bullet-list'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
-import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
+import Paragraph from '@tiptap/extension-paragraph'
+import Text from '@tiptap/extension-text'
+import DropCursor from '@tiptap/extension-dropcursor'
+import ListItem from '@tiptap/extension-list-item'
+import Bold from '@tiptap/extension-bold'
 import Strike from '@tiptap/extension-strike'
 import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
-import TableCell from '@tiptap/extension-table-cell'
+import { TableCell } from './tiptap-extensions/table/TableCell'
 import { TableHeader } from './tiptap-extensions/table/header'
 import { TableRow } from './tiptap-extensions/table/row'
 import Table from './tiptap-extensions/table'
@@ -22,6 +26,8 @@ import Commands from './tiptap-extensions/commands'
 import { InfoCallout } from './tiptap-extensions/callouts/info'
 import { WarningCallout } from './tiptap-extensions/callouts/warning'
 import { TipCallout } from './tiptap-extensions/callouts/tip'
+import { DraggableBlock } from './tiptap-extensions/draggableBlock'
+import { Document } from './tiptap-extensions/document'
 import type { PageSidebarNode } from '~~/composables/docs/useDocs'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
@@ -74,11 +80,22 @@ const breadCrumbs = computed(() => {
 
 const editor = useEditor({
   extensions: [
-    StarterKit.configure({
-      history: false,
-    }),
+    Document,
+    DraggableBlock,
+    // StarterKit.configure({
+    //   history: false,
+    // }),
+    Paragraph,
+    Text,
     Strike,
     Heading,
+    ListItem,
+    Bold,
+    DropCursor.configure({
+      width: 2,
+      class: 'notitap-dropcursor',
+      color: 'skyblue',
+    }),
     Commands.configure({
       suggestion,
     }),
@@ -115,7 +132,11 @@ const editor = useEditor({
     }),
     TableRow,
     TableHeader,
-    TableCell,
+    TableCell.configure({
+      HTMLAttributes: {
+        class: 'nc-docs-tiptap-table-cell relative',
+      },
+    }),
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -150,6 +171,7 @@ watch(editor, () => {
   if (!editor.value) return
 
   editor.value.commands.setContent(content.value)
+  document.tipTapEditor = editor.value
 })
 
 const onTitleKeyDown = (e: KeyboardEvent) => {
@@ -264,7 +286,7 @@ watch(
             @click="editor!.chain().focus().insertContent('/').run()"
           />
         </FloatingMenu>
-        <EditorContent v-if="!isLoading" :editor="editor" class="px-2" />
+        <EditorContent v-if="!isLoading" :editor="editor" class="px-2 -ml-12.5" />
         <div
           v-if="!isLoading && openedPageInternal?.children?.length !== 0"
           class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
@@ -522,24 +544,27 @@ watch(
     table-layout: fixed;
     width: 100%;
     margin: 0;
-    overflow: hidden;
-
+    overflow: visible;
+    tbody {
+      overflow: visible;
+    }
     td,
     th {
       position: relative;
       min-width: 1em;
       border: 1px solid #e5e5e5;
-      padding: 3px 5px;
       vertical-align: top;
       box-sizing: border-box;
-
+      overflow: visible !important;
+      height: 20px;
       > * {
         margin-bottom: 0;
       }
     }
 
     td {
-      margin-left: 0px;
+      overflow: visible !important;
+      border-top: 0;
     }
 
     th {
@@ -548,24 +573,13 @@ watch(
       background-color: #fafbfb;
     }
 
-    .selectedCell:after {
-      z-index: 2;
-      position: absolute;
-      content: '';
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      background: rgba(200, 200, 255, 0.4);
-      pointer-events: none;
-    }
-
     .column-resize-handle {
       position: absolute;
-      right: -2px;
+      right: 0px;
       top: 0;
       bottom: -2px;
-      width: 4px;
+      width: 0px;
+      outline: 2px solid #e3e5ff;
       background-color: #adf;
       pointer-events: none;
     }
@@ -573,10 +587,10 @@ watch(
     p {
       margin: 0;
     }
-  }
 
-  .tableWrapper {
-    overflow-x: auto;
+    tr.ProseMirror-selectednode {
+      @apply bg-primary-selected;
+    }
   }
 
   .resize-cursor {

@@ -321,14 +321,15 @@ defineExpose({
 
 <style lang="scss" scoped>
 .items {
-  @apply px-1 py-0.5
+  @apply px-1 my-0.5;
   position: relative;
   border-radius: 0.5rem;
   color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
   font-size: 0.9rem;
   @apply bg-gray-50;
-
+  max-height: 50vh;
+  overflow-y: overlay;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -351,6 +352,51 @@ defineExpose({
 
   &.is-selected {
     @apply border-gray-200 !bg-gray-100;
+  }
+}
+
+.items {
+  // scrollbar reduce width and gray color
+  &::-webkit-scrollbar {
+    width: 2px;
+    @apply;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+    @apply my-2;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: #f6f6f600;
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f6f6f600;
+  }
+}
+.items:hover {
+  // scrollbar reduce width and gray color
+  &::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  /* Track */
+  &::-webkit-scrollbar-track {
+    background: #f6f6f600 !important;
+  }
+
+  /* Handle */
+  &::-webkit-scrollbar-thumb {
+    background: rgb(215, 215, 215);
+  }
+
+  /* Handle on hover */
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgb(203, 203, 203);
   }
 }
 </style>

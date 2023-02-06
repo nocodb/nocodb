@@ -23,6 +23,9 @@ WORKDIR /usr/src/app
 
 # install node-gyp dependencies
 RUN apk add --no-cache python3 make g++
+RUN mkdir /usr/src/appEntry/public/
+RUN mkdir /usr/src/appEntry/public/js/
+RUN mkdir /usr/src/appEntry/public/css/
 
 # Copy application dependency manifests to the container image.
 # A wildcard is used to ensure both package.json AND package-lock.json are copied.
@@ -31,6 +34,9 @@ COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
 #COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
+COPY ./src/lib/public/css/*.css /usr/src/appEntry/public/css/
+COPY ./src/lib/public/js/*.js /usr/src/appEntry/public/js/
+COPY ./src/lib/public/favicon.ico /usr/src/appEntry/public/
 
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,

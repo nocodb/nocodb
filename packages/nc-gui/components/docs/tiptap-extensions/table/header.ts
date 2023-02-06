@@ -1,127 +1,55 @@
-import TiptapTableHeader from '@tiptap/extension-table-header'
-import type { EditorState, Transaction } from 'prosemirror-state'
-import { Plugin, PluginKey } from 'prosemirror-state'
-import type { EditorView } from 'prosemirror-view'
-import { Decoration, DecorationSet } from 'prosemirror-view'
-import type { Node } from 'prosemirror-model'
-import { TableMap, removeColumn, selectedRect } from '@tiptap/prosemirror-tables'
+import { VueNodeViewRenderer } from '@tiptap/vue-3'
 
-const TableHeader = TiptapTableHeader.extend({
-  addProseMirrorPlugins() {
-    return [
-      new Plugin({
-        key: new PluginKey('tableHeader'),
-        props: {
-          decorations(state: EditorState) {
-            const decorations: Decoration[] = []
-            const { doc } = state
+import { Node, mergeAttributes } from '@tiptap/core'
+import TableHeaderNodeView from './table-header.vue'
 
-            let tableNode: Node | undefined
-            let tablePos = 0
-            doc.descendants((node: Node, pos: any) => {
-              if (node.type.name === 'table') {
-                tableNode = node
-                tablePos = pos
-              }
+export interface TableHeaderOptions {
+  HTMLAttributes: Record<string, any>
+}
+export const TableHeader = Node.create<TableHeaderOptions>({
+  name: 'tableHeader',
+  selectable: true,
+  addOptions() {
+    return {
+      HTMLAttributes: {},
+    }
+  },
 
-              const { tablePos: localTablePos, pos: localPos } = structuredClone({ tablePos, pos })
-              if (node.type.name !== 'tableHeader') return
+  content: 'block+',
 
-              if (tableNode?.firstChild?.childCount === 1) return
+  addAttributes() {
+    return {
+      colspan: {
+        default: 1,
+      },
+      rowspan: {
+        default: 1,
+      },
+      colwidth: {
+        default: null,
+        parseHTML: (element) => {
+          const colwidth = element.getAttribute('colwidth')
+          const value = colwidth ? [parseInt(colwidth, 10)] : null
 
-              // check if the node is on the first row
-              const decorationTable = Decoration.node(localPos, localPos + node.nodeSize, {
-                'class': '',
-                'col-pos': localPos.toString(),
-              })
-
-              const decorationDeleteRow = Decoration.widget(localTablePos, (view: EditorView) =>
-                deleteColumnButton(view, localPos, localTablePos),
-              )
-
-              decorations.push(decorationTable)
-            })
-
-            return DecorationSet.create(doc, decorations)
-          },
+          return value
         },
-      }),
-    ]
+      },
+    }
+  },
+
+  tableRole: 'header_cell',
+
+  isolating: true,
+
+  parseHTML() {
+    return [{ tag: 'th' }]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['th', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
+  },
+
+  addNodeView() {
+    return VueNodeViewRenderer(TableHeaderNodeView)
   },
 })
-
-function deleteColumnButton(view: EditorView, colPos: number, tablePos: number) {
-  const deleteColumnButtonWrapper = document.createElement('div')
-  deleteColumnButtonWrapper.setAttribute('tiptap-table-modify-column', colPos.toString())
-  deleteColumnButtonWrapper.setAttribute('tiptap-table-modify-column-table-pos', tablePos.toString())
-  deleteColumnButtonWrapper.setAttribute('class', 'flex flex-row justify-center absolute')
-  deleteColumnButtonWrapper.style.left = '-1.5rem'
-  deleteColumnButtonWrapper.style.width = '3rem'
-  const deleteColumnButton = document.createElement('button')
-
-  deleteColumnButton.setAttribute('class', 'flex bg-gray-100 my-1 rounded-sm w-full')
-  deleteColumnButton.style.paddingLeft = 'calc(50%)'
-  deleteColumnButton.style.paddingRight = 'calc(50%)'
-  deleteColumnButton.textContent = '-'
-
-  deleteColumnButton.style.opacity = '0'
-  deleteColumnButton.addEventListener('mouseover', () => {
-    deleteColumnButton.style.opacity = '0.7'
-  })
-  deleteColumnButton.addEventListener('mouseout', () => {
-    deleteColumnButton.style.opacity = '0'
-  })
-
-  deleteColumnButton.addEventListener('mousedown', () => {
-    const state = view.state
-    // find nearest table node
-
-    let tableNode: Node | undefined
-    let tableFound = false
-    let tablePos = 0
-    state.doc.descendants((node: Node, docNodePos: number) => {
-      if (!tableFound && node.type.name === 'table') {
-        tableNode = node
-        tablePos = docNodePos
-      }
-
-      if (docNodePos > colPos) {
-        tableFound = true
-      }
-    })
-
-    const relativeColumnPos = colPos - tablePos
-    const map = TableMap.get(tableNode!)
-    const currentNodeIndexInTableMap = map.map.indexOf(relativeColumnPos - 1)
-
-    const rect = map.rectBetween(map.map[currentNodeIndexInTableMap], map.map[currentNodeIndexInTableMap])
-    const columnInfo = { ...rect, bottom: rect.bottom, tableStart: tablePos, map, table: tableNode }
-
-    deleteColumn(state, columnInfo, view.dispatch)
-  })
-
-  deleteColumnButtonWrapper.appendChild(deleteColumnButton)
-  return deleteColumnButtonWrapper
-}
-
-export function deleteColumn(state: EditorState, columnInfo: any, dispatch?: (tr: Transaction) => void): boolean {
-  if (dispatch) {
-    const rect = columnInfo
-    const tr = state.tr
-    if (rect.left === 0 && rect.right === rect.map.width) return false
-    for (let i = rect.right - 1; ; i--) {
-      removeColumn(tr, rect, i)
-      if (i === rect.left) break
-      const table = rect.tableStart ? tr.doc.nodeAt(rect.tableStart - 1) : tr.doc
-      if (!table) {
-        throw new RangeError('No table found')
-      }
-      rect.table = table
-      rect.map = TableMap.get(table)
-    }
-    dispatch(tr)
-  }
-  return true
-}
-
-export { TableHeader }

@@ -154,6 +154,7 @@ declare module '@vue/runtime-core' {
     MdiArrowExpand: typeof import('~icons/mdi/arrow-expand')['default']
     MdiArrowLeft: typeof import('~icons/mdi/arrow-left')['default']
     MdiArrowLeftBold: typeof import('~icons/mdi/arrow-left-bold')['default']
+    MdiArrowRight: typeof import('~icons/mdi/arrow-right')['default']
     MdiArrowULeftBottom: typeof import('~icons/mdi/arrow-u-left-bottom')['default']
     MdiArrowUp: typeof import('~icons/mdi/arrow-up')['default']
     MdiArrowUpBoldOutline: typeof import('~icons/mdi/arrow-up-bold-outline')['default']

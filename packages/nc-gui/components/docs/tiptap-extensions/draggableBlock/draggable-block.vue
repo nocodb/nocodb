@@ -40,13 +40,13 @@ export default {
 <template>
   <NodeViewWrapper class="vue-component group draggable-block-wrapper">
     <div class="flex flex-row gap-0.5 group w-full relative" tiptap-draghandle-wrapper="true">
-      <div type="button" class="block-button cursor-pointer" :class="{ '!mt-8.5': isTable }" @click="createNodeAfter">
+      <div type="button" class="block-button cursor-pointer" :class="{ '!mt-9': isTable }" @click="createNodeAfter">
         <MdiPlus />
       </div>
       <div
         class="block-button cursor-move"
         contenteditable="false"
-        :class="{ '!mt-8.5': isTable }"
+        :class="{ '!mt-9': isTable }"
         :draggable="true"
         :data-drag-handle="true"
         :tiptap-draghandle="true"

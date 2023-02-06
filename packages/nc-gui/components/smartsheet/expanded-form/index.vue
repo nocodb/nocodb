@@ -190,10 +190,12 @@ export default {
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">
-            <a-spin v-if="duplicatingRowInProgress" class="!flex items-center" />
+            <div v-if="duplicatingRowInProgress" class="flex items-center justify-center h-[100px]">
+              <a-spin size="large" />
+            </div>
             <div
+              v-else
               v-for="(col, i) of fields"
-              v-if="!duplicatingRowInProgress"
               v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
               :key="col.title"
               class="mt-2 py-2"

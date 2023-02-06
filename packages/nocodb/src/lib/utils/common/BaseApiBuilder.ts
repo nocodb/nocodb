@@ -188,7 +188,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   public async getSqlClient(): Promise<any> {
-    return await NcConnectionMgr.getSqlClient({
+    return NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,

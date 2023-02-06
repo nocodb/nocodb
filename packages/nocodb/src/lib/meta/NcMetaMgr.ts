@@ -2904,9 +2904,9 @@ export default class NcMetaMgr {
     }
   }
 
-  protected async projectGetSqlClient(args) {
+  protected async projectGetSqlClient(args): Promise<any> {
     const builder = this.getBuilder(args);
-    return await builder?.getSqlClient();
+    return builder?.getSqlClient();
   }
 
   protected getBuilder(args): RestApiBuilder | GqlApiBuilder {
@@ -3441,7 +3441,7 @@ export default class NcMetaMgr {
 
   // @ts-ignore
   protected async getSqlClient(project_id: string, dbAlias: string) {
-    return await this.app?.projectBuilders
+    return this.app?.projectBuilders
       ?.find((pb) => pb?.id === project_id)
       ?.apiBuilders?.find((builder) => builder.dbAlias === dbAlias)
       ?.getSqlClient();

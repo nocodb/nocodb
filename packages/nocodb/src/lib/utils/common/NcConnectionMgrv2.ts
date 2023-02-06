@@ -151,7 +151,7 @@ export default class NcConnectionMgrv2 {
 
   public static async getSqlClient(base: Base, _knex = null): Promise<any> {
     const knex = _knex || this.get(base);
-    return await SqlClientFactory.create({
+    return SqlClientFactory.create({
       knex,
       ...base.getConnectionConfig(),
     });

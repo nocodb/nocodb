@@ -156,7 +156,7 @@ export default class NcConnectionMgr {
       config,
       projectId,
     });
-    return await SqlClientFactory.create({
+    return SqlClientFactory.create({
       knex,
       ...this.getConnectionConfig(config, env, dbAlias),
     });

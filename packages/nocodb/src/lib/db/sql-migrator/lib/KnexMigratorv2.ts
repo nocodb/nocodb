@@ -429,7 +429,7 @@ export default class KnexMigratorv2 {
   }
 
   protected async getSqlClient(base: Base): Promise<any> {
-    return await NcConnectionMgrv2.getSqlClient(base);
+    return NcConnectionMgrv2.getSqlClient(base);
   }
 
   async _cleanDbWithSql(connectionConfig) {

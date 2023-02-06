@@ -25,6 +25,6 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
     return this.ncMeta.knex || Noco.ncMeta.knex;
   }
   protected async getSqlClient(base: Base): Promise<any> {
-    return this.sqlClient || await NcConnectionMgrv2.getSqlClient(base);
+    return this.sqlClient || NcConnectionMgrv2.getSqlClient(base);
   }
 }

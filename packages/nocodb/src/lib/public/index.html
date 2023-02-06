@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>HOME</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
-    <title>NocoDB</title>
-    <link href="/css/fonts.roboto.css" rel="stylesheet">
-    <link href="/css/materialdesignicons.5.x.min.css" rel="stylesheet">
-    <link href="/css/vuetify.2.x.min.css" rel="stylesheet">
 
 
     <style>
@@ -229,18 +229,18 @@
 
                             <h2 class="my-5 title grey--text text--darken-2">Instant APIs on any Database</h2>
                             <div class="d-flex justify-center mt-2 mb-10">
-                                    <ul class="flex-shrink-1 text-left">
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/graphql-apis/graphql-authentication">
-                                            Authentication</a></li>
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/graphql-apis/graphql-acl"> Access
-                                            Control</a></li>
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/database-design">
-                                            Database Design</a></li>
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/api-client"> API
-                                            Client</a></li>
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/sql-editor"> Database
-                                            Client</a></li>
-                                    </ul>
+                                <ul class="flex-shrink-1 text-left">
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/graphql-apis/graphql-authentication">
+                                        Authentication</a></li>
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/graphql-apis/graphql-acl"> Access
+                                        Control</a></li>
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/database-design">
+                                        Database Design</a></li>
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/api-client"> API
+                                        Client</a></li>
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/sql-editor"> Database
+                                        Client</a></li>
+                                </ul>
                             </div>
 
 
@@ -603,47 +603,47 @@
 
     </div>
 </div>
-<script src="/js/vue.2.6.14.min.js"></script>
-<script src="/js/vuetify.2.x.min.js"></script>
-<script src="/js/axios.0.19.2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
 
 
-  var app = new Vue({
-    el: '#app',
-    data: {
-      routes: [],
-      graphql: false
-    },
-    methods: {
-      getshareUrl() {
+    var app = new Vue({
+        el: '#app',
+        data: {
+            routes: [],
+            graphql: false
+        },
+        methods: {
+            getshareUrl() {
 
-      }
-    },
-    vuetify: new Vuetify(),
-    created() {
-      console.log('created')
-      axios.get('/routes')
-        .then((response) => {
-          this.routes = response.data;
-        })
-        .catch(function (error) {
-          // handle error
-          console.log(error);
-        })
-        .finally(function () {
-          // always executed
-        });
+            }
+        },
+        vuetify: new Vuetify(),
+        created() {
+            console.log('created')
+            axios.get('/routes')
+                .then((response) => {
+                    this.routes = response.data;
+                })
+                .catch(function (error) {
+                    // handle error
+                    console.log(error);
+                })
+                .finally(function () {
+                    // always executed
+                });
+        }
+    });
+
+    const cont = document.querySelector('#cont');
+    const loader = document.querySelector('#loader');
+
+    window.onload = function () {
+        loader.style.display = 'none';
+        cont.style.display = 'block';
     }
-  });
-
-  const cont = document.querySelector('#cont');
-  const loader = document.querySelector('#loader');
-
-  window.onload = function () {
-    loader.style.display = 'none';
-    cont.style.display = 'block';
-  }
 
 </script>
 

@@ -210,7 +210,7 @@ export function initStrategies(router): void {
 
           if (!user.salt) {
             return done({
-              msg: `Please sign up with the invite token first!`,
+              msg: `Please sign up with the invite token first or reset the password by clicking Forgot your password.`,
             });
           }
 

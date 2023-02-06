@@ -18,7 +18,7 @@ export default (ncSiteUrl: string): string => `<!DOCTYPE html>
 </head>
 <body>
 <div id="redoc"></div>
-<script src="/js/redoc.standalone.min.js"></script>
+<script src="${ncSiteUrl}/js/redoc.standalone.min.js"></script>
 <script>
   let initialLocalStorage = {}
   

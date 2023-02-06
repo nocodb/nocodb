@@ -162,7 +162,11 @@ export default class GqlAuthResolver {
             if (!user) {
               return done({ msg: `Email ${email} is not registered!` });
             }
-
+            if (!user.salt) {
+              return done({
+                msg: `Please sign up with the invite token first!`,
+              });
+            }
             const hashedPassword = await promisify(bcrypt.hash)(
               password,
               user.salt

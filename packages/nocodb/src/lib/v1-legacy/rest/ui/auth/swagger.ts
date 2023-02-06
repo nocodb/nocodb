@@ -2,9 +2,9 @@ export default `<!DOCTYPE html>
 <html>
 <head>
     <title>API Docs</title>
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="/css/swagger-ui-bundle.4.5.2.min.css"/>
-    <script src="/js/swagger-ui-bundle.4.5.2.min.js"></script>
+    <link rel="shortcut icon" href="<%- ncPublicUrl %>/favicon.ico" />
+    <link rel="stylesheet" href="<%- ncPublicUrl %>/css/swagger-ui-bundle.4.5.2.min.css"/>
+    <script src="<%- ncPublicUrl %>/js/swagger-ui-bundle.4.5.2.min.js"></script>
 </head>
 <body>
 <div id="app">

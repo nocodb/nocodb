@@ -138,6 +138,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/password/reset/:token', async function (req, res) {
       res.send(
         ejs.render((await import('./ui/auth/resetPassword')).default, {
+          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
           token: JSON.stringify(req.params?.token),
           baseUrl: `/`,
         })
@@ -146,6 +147,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/email/verify/:token', async (req, res) => {
       res.send(
         ejs.render((await import('./ui/auth/emailVerify')).default, {
+          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
           token: JSON.stringify(req.params?.token),
           baseUrl: `/`,
         })
@@ -155,6 +157,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/signin', async (_req, res) => {
       res.send(
         ejs.render((await import('./ui/auth/signin')).default, {
+          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
           baseUrl: `/`,
         })
       );
@@ -163,6 +166,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/signup', async (_req, res) => {
       res.render(
         ejs.render((await import('./ui/auth/signup')).default, {
+          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
           baseUrl: `/`,
         })
       );

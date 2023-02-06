@@ -1,11 +1,11 @@
-export default `<!DOCTYPE html>
+export default (ncSiteUrl: string): string => `<!DOCTYPE html>
 <html>
 <head>
     <title>NocoDB API Documentation</title>
     <!-- needed for adaptive design -->
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="/css/fonts.montserrat.css" rel="stylesheet">
+    <link href="${ncSiteUrl}/css/fonts.montserrat.css" rel="stylesheet">
     <!--
     Redoc doesn't change outer page styles
     -->

@@ -85,12 +85,14 @@ export default class GqlAuthResolver {
 
     this.app.router.get('/password/reset/:token', function (req, res) {
       res.render(__dirname + '/auth/resetPassword', {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         token: JSON.stringify(req.params?.token),
         baseUrl: `/api/${apiPrefix}/`,
       });
     });
     this.app.router.get('/email/verify/:token', function (req, res) {
       res.render(__dirname + '/auth/emailVerify', {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         token: JSON.stringify(req.params?.token),
         baseUrl: `/api/${apiPrefix}/`,
       });
@@ -98,12 +100,14 @@ export default class GqlAuthResolver {
 
     this.app.router.get('/signin', function (_req, res) {
       res.render(__dirname + '/auth/signin', {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         baseUrl: `/api/${apiPrefix}/`,
       });
     });
 
     this.app.router.get('/signup', function (_req, res) {
       res.render(__dirname + '/auth/signup', {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         baseUrl: `/api/${apiPrefix}/`,
       });
     });

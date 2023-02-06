@@ -61,15 +61,17 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }))
 
     async function syncCount() {
-      if (!isPublic.value) {
-        const { count } = await $api.dbViewRow.count(
-          NOCO,
-          project?.value?.title as string,
-          meta?.value?.id as string,
-          viewMeta?.value?.id as string,
-        )
-        paginationData.value.totalRows = count
-      }
+      // const shouldUpdateRowsCounter = !isPublic.value
+      // if (shouldUpdateRowsCounter) {
+      const { count } = await $api.dbViewRow.count(
+        NOCO,
+        project?.value?.title as string,
+        meta?.value?.id as string,
+        viewMeta?.value?.id as string,
+      )
+      console.log('in Sync')
+      paginationData.value.totalRows = count
+      // }
     }
 
     async function loadMapMeta() {

@@ -189,7 +189,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
 
     addMarker(lat, long, row)
   })
-  syncCount()
+  // syncCount()
 })
 
 watch(view, async (nextView) => {
@@ -201,7 +201,7 @@ watch(view, async (nextView) => {
 
 const count = computed(() => paginationData.value.totalRows)
 
-syncCount()
+// syncCount()
 </script>
 
 <template>

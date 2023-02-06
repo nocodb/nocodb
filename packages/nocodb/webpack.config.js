@@ -46,9 +46,11 @@ module.exports = {
     new webpack.EnvironmentPlugin([
       'EE'
     ]),
-    new CopyPlugin([
-      { from: 'src/lib/public', to: 'public' }
-    ])
+    new CopyPlugin({
+      patterns: [
+        { from: 'src/lib/public', to: 'public' },
+      ]
+    })
     // new JavaScriptObfuscator({
     //   rotateStringArray: true,
     //   splitStrings: true,

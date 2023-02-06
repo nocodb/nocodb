@@ -23,9 +23,6 @@ WORKDIR /usr/src/app
 
 # install node-gyp dependencies
 RUN apk add --no-cache python3 make g++
-RUN mkdir /usr/src/appEntry/public/
-RUN mkdir /usr/src/appEntry/public/js/
-RUN mkdir /usr/src/appEntry/public/css/
 
 # Copy application dependency manifests to the container image.
 # A wildcard is used to ensure both package.json AND package-lock.json are copied.

@@ -1,8 +1,7 @@
+import fileNotFoundImgSrc from '~/assets/img/file-not-found.png'
+
 const useAttachment = () => {
   const { appInfo } = useGlobal()
-
-  // TODO: not hardcode _nuxt
-  const fileNotFoundImgSrc = `/_nuxt/assets/img/file-not-found.png`
 
   const getAttachmentSrc = (item: Record<string, any>) => {
     if (item?.data) {

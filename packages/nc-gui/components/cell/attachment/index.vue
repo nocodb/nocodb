@@ -42,6 +42,8 @@ const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
+const { appInfo } = useGlobal()
+
 const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
 
 const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
@@ -60,7 +62,6 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
-  getAttachmentUrl,
 } = useProvideAttachmentCell(updateModelValue)
 
 watch(
@@ -95,22 +96,27 @@ const { state: rowState } = useSmartsheetRowStoreOrThrow()
 
 const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
 
+const getImgSrc = (item: Record<string, any>) => {
+  if (item.data) {
+    return item.data
+  } else if (item.path) {
+    return `${appInfo.value.ncSiteUrl}/${item.path}`
+  }
+  return item.url
+}
+
+const showFallback = (evt: any, item: Record<string, any>) => {
+  evt.onerror = null
+  evt.target.src = item.url
+}
+
 /** on new value, reparse our stored attachments */
 watch(
   () => modelValue,
   async (nextModel) => {
     if (nextModel) {
       try {
-        let nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
-
-        // reconstruct the url
-        // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
-        nextAttachments = await Promise.all(
-          nextAttachments.map(async (attachment: any) => ({
-            ...attachment,
-            url: await getAttachmentUrl(attachment),
-          })),
-        )
+        const nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
 
         if (isPublic.value && isForm.value) {
           storedFiles.value = nextAttachments
@@ -230,15 +236,16 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
 
-            <template v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)">
+            <template v-if="isImage(item.title, item.mimetype ?? item.type) && getImgSrc(item)">
               <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
                 <LazyNuxtImg
                   quality="75"
                   placeholder
                   fit="cover"
                   :alt="item.title || `#${i}`"
-                  :src="item.url || item.data"
+                  :src="getImgSrc(item)"
                   class="max-w-full max-h-full"
+                  :onerror="(e) => showFallback(e, item)"
                 />
               </div>
             </template>

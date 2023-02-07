@@ -201,18 +201,6 @@ export function useViewData(
     }
   }
 
-  // TODO: refactor
-  async function getAttachmentUrl(item: AttachmentType) {
-    const path = item?.path
-    // if path doesn't exist, use `item.url`
-    if (path) {
-      // try ${appInfo.value.ncSiteUrl}/${item.path} first
-      return Promise.resolve(`${appInfo.ncSiteUrl}/${item.path}`)
-    }
-    // if it fails, use the original url
-    return Promise.resolve(item.url)
-  }
-
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
     if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     const response = !isPublic.value
@@ -224,27 +212,7 @@ export function useViewData(
           where: where?.value,
         })
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
-    // reconstruct the url
-    // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
-    const records = []
-    for (const record of response.list) {
-      for (const attachmentColumn of attachmentColumns.value) {
-        // attachment column can be hidden
-        if (!record[attachmentColumn!]) continue
-        const oldAttachment =
-          typeof record[attachmentColumn!] === 'string' ? JSON.parse(record[attachmentColumn!]) : record[attachmentColumn!]
-        const newAttachment = []
-        for (const attachmentObj of oldAttachment) {
-          newAttachment.push({
-            ...attachmentObj,
-            url: await getAttachmentUrl(attachmentObj),
-          })
-        }
-        record[attachmentColumn!] = newAttachment
-      }
-      records.push(record)
-    }
-    formattedData.value = formatData(records)
+    formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
 
     // to cater the case like when querying with a non-zero offset

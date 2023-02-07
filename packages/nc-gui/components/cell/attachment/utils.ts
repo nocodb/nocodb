@@ -229,20 +229,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       ;(await import('file-saver')).saveAs(item.url || item.data, item.title)
     }
 
-    /** construct the attachment url
-     * See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
-     * */
-    async function getAttachmentUrl(item: AttachmentType) {
-      const path = item?.path
-      // if path doesn't exist, use `item.url`
-      if (path) {
-        // try ${appInfo.value.ncSiteUrl}/${item.path} first
-        return Promise.resolve(`${appInfo.value.ncSiteUrl}/${item.path}`)
-      }
-      // if it fails, use the original url
-      return Promise.resolve(item.url)
-    }
-
     const FileIcon = (icon: string) => {
       switch (icon) {
         case 'mdi-pdf-box':
@@ -284,7 +270,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       storedFiles,
       bulkDownloadFiles,
       defaultAttachmentMeta,
-      getAttachmentUrl,
     }
   },
   'useAttachmentCell',

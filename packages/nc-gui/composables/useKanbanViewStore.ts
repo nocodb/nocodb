@@ -144,17 +144,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         rowMeta: {},
       }))
 
-    async function getAttachmentUrl(item: AttachmentType) {
-      const path = item?.path
-      // if path doesn't exist, use `item.url`
-      if (path) {
-        // try ${appInfo.value.ncSiteUrl}/${item.path} first
-        return Promise.resolve(`${appInfo.value.ncSiteUrl}/${item.path}`)
-      }
-      // if it fails, use the original url
-      return Promise.resolve(item.url)
-    }
-
     async function loadKanbanData() {
       if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
         return
@@ -183,28 +172,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
 
       for (const data of groupData) {
-        const records = []
         const key = data.key
-        // TODO: optimize
-        // reconstruct the url
-        // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
-        for (const record of data.value.list) {
-          for (const attachmentColumn of attachmentColumns.value) {
-            // attachment column can be hidden
-            if (!record[attachmentColumn!]) continue
-            const oldAttachment = JSON.parse(record[attachmentColumn!])
-            const newAttachment = []
-            for (const attachmentObj of oldAttachment) {
-              newAttachment.push({
-                ...attachmentObj,
-                url: await getAttachmentUrl(attachmentObj),
-              })
-            }
-            record[attachmentColumn!] = newAttachment
-          }
-          records.push(record)
-        }
-        formattedData.value.set(key, formatData(records))
+        formattedData.value.set(key, formatData(data.value.list))
         countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
       }
     }

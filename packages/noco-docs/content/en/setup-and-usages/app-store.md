@@ -8,7 +8,7 @@ menuTitle: 'Team & Settings > App Store'
 
 ## Overview
 
-To access it, click the down arrow button next to Project Name on the top left side, then select `Team & Settings` and clicking `App Store`.
+To access it, click the down arrow button next to Project Name on the top left side, then select `Account Settings` and clicking `App Store`.
 
 <img width="322" alt="image" src="https://user-images.githubusercontent.com/35857179/194856648-67936db0-ee4d-4060-be3d-af9f86ef8fc6.png"> | <img width="471" alt="image" src="https://user-images.githubusercontent.com/35857179/203266301-064a6706-828b-457c-ab7b-868ba66d67e6.png">
 |--|--|

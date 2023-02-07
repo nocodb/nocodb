@@ -7,6 +7,8 @@ menuTitle: 'Upgrading'
 link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme=dark
 ---
 
+By default, if `NC_DB` is not specified upon [installation](), then SQLite will be used to restore your meta data. We suggest users to [separate the meta data and user data in different databases](). 
+
 ## Docker
 
 ### Find, Stop & Delete NocoDB Docker Container 
@@ -19,6 +21,8 @@ docker stop <YOUR_CONTAINER_ID>
 # delete NocoDB container
 docker rm <YOUR_CONTAINER_ID>
 ```
+
+Note: Deleting your docker container without setting `NC_DB` or mounting to a persistent volume for a default SQLite database will result in losing your data. See examples below.
 
 ### Find & Remove NocoDB Docker Image
 

@@ -2,6 +2,8 @@
 import type { Editor, Range } from '@tiptap/vue-3'
 import showdown from 'showdown'
 import { generateJSON } from '@tiptap/html'
+import { createTable } from '@tiptap/extension-table'
+import { TextSelection } from 'prosemirror-state'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'
@@ -172,7 +174,16 @@ const items = [
     title: 'Table',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 2, withHeaderRow: true }).run()
+      editor.chain().focus().deleteRange(range).run()
+      const node = createTable(editor.schema, 3, 3, true)
+      const tr = editor.state.tr
+
+      const offset = tr.selection.anchor + 1
+      tr.replaceWith(tr.selection.anchor - 1, tr.selection.anchor, node)
+        .scrollIntoView()
+        .setSelection(TextSelection.near(tr.doc.resolve(offset)))
+
+      editor.view.dispatch(tr)
     },
     icon: MdiTable,
     iconClass: '',

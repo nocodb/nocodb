@@ -1,39 +1,53 @@
-<script>
+<script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
+import { NodeSelection } from 'prosemirror-state'
 
-export default {
-  components: {
-    NodeViewWrapper,
-    NodeViewContent,
-  },
-  props: nodeViewProps,
-  computed: {
-    isTable() {
-      const { content } = this.node.content
+const { node, getPos, editor } = defineProps(nodeViewProps)
 
-      return content[0].type.name === 'table'
-    },
-  },
-  methods: {
-    createNodeAfter() {
-      const pos = this.getPos() + this.node.nodeSize
+const dragClicked = ref(false)
+const optionsPopoverRef = ref()
 
-      this.editor.commands.insertContentAt(pos, {
-        type: 'dBlock',
+const isTable = computed(() => {
+  const { content } = node.content as any
+
+  return content[0].type.name === 'table'
+})
+
+const createNodeAfter = () => {
+  const pos = getPos() + node.nodeSize
+
+  editor.commands.insertContentAt(pos, {
+    type: 'dBlock',
+    content: [
+      {
+        type: 'paragraph',
         content: [
           {
-            type: 'paragraph',
-            content: [
-              {
-                type: 'text',
-                text: '/',
-              },
-            ],
+            type: 'text',
+            text: '/',
           },
         ],
-      })
-    },
-  },
+      },
+    ],
+  })
+}
+
+const onDragClick = () => {
+  dragClicked.value = !dragClicked.value
+  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos())))
+  const wrapperDom = document.querySelector('.draggable-block-wrapper.focused')
+  wrapperDom?.classList.add('selected')
+}
+
+onClickOutside(optionsPopoverRef, () => {
+  dragClicked.value = false
+  const wrapperDom = document.querySelector('.draggable-block-wrapper.selected')
+  wrapperDom?.classList.remove('selected')
+})
+
+const deleteNode = () => {
+  editor.commands.deleteRange(editor.state.selection)
+  dragClicked.value = false
 }
 </script>
 
@@ -43,13 +57,35 @@ export default {
       <div type="button" class="block-button cursor-pointer" :class="{ '!mt-9': isTable }" @click="createNodeAfter">
         <MdiPlus />
       </div>
+
       <div
-        class="block-button cursor-move"
+        ref="optionsPopoverRef"
+        class="flex flex-col absolute -left-15 bg-gray-100 rounded-md p-1 text-sm z-40"
+        :class="{
+          'hidden': !dragClicked,
+          'visible': dragClicked,
+          'top-7.5': isTable,
+          'top-1.5': !isTable,
+        }"
+        :contenteditable="false"
+      >
+        <div
+          class="flex flex-row justify-between cursor-pointer items-center gap-x-1 hover:bg-gray-200 p-1 rounded-md"
+          @click="deleteNode"
+        >
+          <MdiDeleteOutline />
+          <div class="flex">Delete</div>
+        </div>
+      </div>
+
+      <div
+        class="block-button cursor-pointer group"
         contenteditable="false"
         :class="{ '!mt-9': isTable }"
         :draggable="true"
         :data-drag-handle="true"
         :tiptap-draghandle="true"
+        @click="onDragClick"
       >
         <IcBaselineDragIndicator :tiptap-draghandle="true" />
       </div>

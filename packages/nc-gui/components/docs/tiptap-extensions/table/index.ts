@@ -1,15 +1,14 @@
 import Table from '@tiptap/extension-table'
 import type { EditorState } from 'prosemirror-state'
 import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
+import { TableMap, addColumn, addRow, columnResizing } from '@tiptap/prosemirror-tables'
 import type { DecorationSource, EditorView } from 'prosemirror-view'
 import { Decoration, DecorationSet } from 'prosemirror-view'
 import type { Node } from 'prosemirror-model'
-import { TableMap, addColumn, addRow, columnResizing } from '@tiptap/prosemirror-tables'
 import { TableNodeView } from './TableNodeView'
 
 export default Table.extend({
   draggable: true,
-  allowTableNodeSelection: true,
   resizable: true,
   addProseMirrorPlugins() {
     return [
@@ -181,12 +180,12 @@ export default Table.extend({
         },
       }),
       columnResizing({
-        handleWidth: this.options.handleWidth,
+        handleWidth: 4,
         cellMinWidth: this.options.cellMinWidth,
         View: this.options.View,
         // TODO: PR for @types/prosemirror-tables
         // @ts-expect-error (incorrect type)
-        lastColumnResizable: this.options.lastColumnResizable,
+        lastColumnResizable: false,
       }),
     ]
   },

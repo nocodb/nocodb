@@ -145,10 +145,17 @@ const editor = useEditor({
   },
   editorProps: {
     handleKeyDown: (view, event) => {
-      if (event.altKey) {
+      if (event.altKey && ['KeyM', 'KeyN', 'KeyB'].includes(event.code)) {
         event.preventDefault()
-        editor?.value?.commands.blur()
-        return
+
+        const { from, to } = view.state.selection
+
+        editor.value?.commands.blur()
+
+        setTimeout(() => {
+          view.dispatch(view.state.tr.deleteRange(from, to + 1))
+        }, 0)
+        return true
       }
       return false
     },
@@ -373,6 +380,33 @@ watch(
     outline: none;
   }
 
+  .draggable-block-wrapper.selected {
+    th,
+    tr {
+      @apply !bg-primary-selected;
+    }
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    li,
+    td,
+    th,
+    blockquote,
+    pre,
+    code,
+    img {
+      @apply !bg-primary-selected;
+    }
+
+    .node-view-drag-content > ul {
+      @apply !bg-primary-selected;
+    }
+  }
+
   div[contenteditable='false'].ProseMirror {
     user-select: text !important;
   }
@@ -577,11 +611,11 @@ watch(
       position: absolute;
       right: 0px;
       top: 0;
-      bottom: -2px;
-      width: 0px;
-      outline: 2px solid #e3e5ff;
-      background-color: #adf;
-      pointer-events: none;
+      bottom: 0px;
+      margin-top: 1px;
+      margin-bottom: 1px;
+      width: 4px;
+      outline: 1px solid #e3e5ff;
     }
 
     p {

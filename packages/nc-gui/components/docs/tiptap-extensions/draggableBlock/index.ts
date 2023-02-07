@@ -186,7 +186,8 @@ export const DraggableBlock = Node.create<DBlockOptions>({
 })
 
 function focusCurrentDraggableBlock(state, nodeIndex: number | null = null) {
-  const node = state.doc.nodeAt(state.selection.from - 1)
+  const node = state.doc.nodeAt(state.selection.from)
+
   if (!node) return
 
   let totalSize = 0
@@ -194,7 +195,7 @@ function focusCurrentDraggableBlock(state, nodeIndex: number | null = null) {
     nodeIndex = 0
     for (const rootNode of state.doc.content.content) {
       totalSize += rootNode.nodeSize
-      if (totalSize >= state.selection.from) {
+      if (totalSize > state.selection.from) {
         break
       }
       nodeIndex++

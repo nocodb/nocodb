@@ -246,7 +246,7 @@ test.describe('Filter Tests: Numerical', () => {
 // Text based filters
 //
 
-test.describe.only('Filter Tests: Text based', () => {
+test.describe('Filter Tests: Text based', () => {
   async function textBasedFilterTest(dataType, eqString, isLikeString) {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'textBased' });

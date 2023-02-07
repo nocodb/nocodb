@@ -92,9 +92,27 @@ export class ToolbarFilterPage extends BasePage {
       let fillFilter: any = null;
       switch (dataType) {
         case UITypes.Rating:
-          await this.get('.nc-filter-value-select')
+          await this.get()
             .locator('.ant-rate-star > div')
             .nth(parseInt(value) - 1)
+            .click();
+          break;
+        case UITypes.MultiSelect:
+          await this.get().locator('.nc-filter-value-select').click();
+          // eslint-disable-next-line no-case-declarations
+          const v = value.split(',');
+          for (let i = 0; i < v.length; i++) {
+            await this.rootPage
+              .locator(`.nc-dropdown-multi-select-cell`)
+              .locator(`.nc-select-option-MultiSelect-${v[i]}`)
+              .click();
+          }
+          break;
+        case UITypes.SingleSelect:
+          await this.get().locator('.nc-filter-value-select').click();
+          await this.rootPage
+            .locator(`.nc-dropdown-single-select-cell`)
+            .locator(`.nc-select-option-SingleSelect-${value}`)
             .click();
           break;
         default:

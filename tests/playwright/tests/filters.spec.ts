@@ -22,7 +22,14 @@ const skipList = {
   Email: ['is blank', 'is not blank'],
   PhoneNumber: ['is blank', 'is not blank'],
   URL: ['is blank', 'is not blank'],
-  SingleSelect: ['is blank', 'is not blank', 'contains all of', 'does not contain all of'],
+  SingleSelect: [
+    'is blank',
+    'is not blank',
+    'contains all of',
+    'does not contain all of',
+    'contains any of',
+    'does not contain any of',
+  ],
   MultiSelect: ['is blank', 'is not blank', 'is', 'is not'],
 };
 
@@ -74,6 +81,9 @@ async function verifyFilter(param: {
   // Reset filter
   await toolbar.filter.reset();
 }
+
+// Number based filters
+//
 
 test.describe('Filter Tests: Numerical', () => {
   async function numBasedFilterTest(dataType, eqString, isLikeString) {
@@ -405,5 +415,145 @@ test.describe('Filter Tests: Text based', () => {
 
   test('Filter: URL', async () => {
     await textBasedFilterTest('URL', 'https://www.youtube.com', 'e.com');
+  });
+});
+
+// Select Based
+//
+
+test.describe('Filter Tests: Select based', () => {
+  async function selectBasedFilterTest(dataType, is, anyof, allof) {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'selectBased' });
+
+    const filterList = [
+      {
+        op: 'is',
+        value: is,
+        rowCount: records.list.filter(r => r[dataType] === is).length,
+      },
+      {
+        op: 'is not',
+        value: is,
+        rowCount: records.list.filter(r => r[dataType] !== is).length,
+      },
+      {
+        op: 'contains any of',
+        value: anyof,
+        rowCount: records.list.filter(r => {
+          const values = anyof.split(',');
+          const recordValue = r[dataType]?.split(',');
+          return values.some(value => recordValue?.includes(value));
+        }).length,
+      },
+      {
+        op: 'contains all of',
+        value: allof,
+        rowCount: records.list.filter(r => {
+          const values = allof.split(',');
+          return values.every(value => r[dataType]?.includes(value));
+        }).length,
+      },
+      {
+        op: 'does not contain any of',
+        value: anyof,
+        rowCount: records.list.filter(r => {
+          const values = anyof.split(',');
+          const recordValue = r[dataType]?.split(',');
+          return !values.some(value => recordValue?.includes(value));
+        }).length,
+      },
+      {
+        op: 'does not contain all of',
+        value: allof,
+        rowCount: records.list.filter(r => {
+          const values = allof.split(',');
+          return !values.every(value => r[dataType]?.includes(value));
+        }).length,
+      },
+      {
+        op: 'is blank',
+        value: '',
+        rowCount: records.list.filter(r => r[dataType] === '' || r[dataType] === null).length,
+      },
+      {
+        op: 'is not blank',
+        value: '',
+        rowCount: records.list.filter(r => r[dataType] !== '' && r[dataType] !== null).length,
+      },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: filterList[i].op,
+        value: filterList[i].value,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
+  }
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page });
+    dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.grid.toolbar;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'SingleSelect',
+        title: 'SingleSelect',
+        uidt: UITypes.SingleSelect,
+        dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+      },
+      {
+        column_name: 'MultiSelect',
+        title: 'MultiSelect',
+        uidt: UITypes.MultiSelect,
+        dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'selectBased',
+        title: 'selectBased',
+        columns: columns,
+      });
+
+      const rowAttributes = [];
+      for (let i = 0; i < 400; i++) {
+        const row = {
+          SingleSelect: rowMixedValue(columns[1], i),
+          MultiSelect: rowMixedValue(columns[2], i),
+        };
+        rowAttributes.push(row);
+      }
+
+      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+  test('Filter: Single Select', async () => {
+    await selectBasedFilterTest('SingleSelect', 'jan', 'jan,feb,mar', '');
+  });
+
+  test('Filter: Multi Select', async () => {
+    await selectBasedFilterTest('MultiSelect', '', 'jan,feb,mar', 'jan,feb,mar');
   });
 });

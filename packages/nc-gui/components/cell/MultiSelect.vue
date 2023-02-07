@@ -337,6 +337,7 @@ useEventListener(document, 'click', handleClose, true)
         :key="op.id || op.title"
         :value="op.title"
         :data-testid="`select-option-${column.title}-${rowIndex}`"
+        :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
         <a-tag class="rounded-tag" :color="op.color">

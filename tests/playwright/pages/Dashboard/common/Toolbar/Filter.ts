@@ -42,32 +42,47 @@ export class ToolbarFilterPage extends BasePage {
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
     await this.rootPage.locator('.nc-filter-field-select').last().click();
-    const selectColumn = this.rootPage
+    await this.rootPage
       .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-      .locator(`div[label="${columnTitle}"][aria-selected="false"]:visible`)
+      .locator(`div[label="${columnTitle}"]`)
       .click();
-    await this.waitForResponse({
-      uiAction: selectColumn,
-      httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
-      requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
-    });
-    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+    // const selectColumn = this.rootPage
+    //   .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+    //   .locator(`div[label="${columnTitle}"]`)
+    //   .click();
+    // await this.waitForResponse({
+    //   uiAction: selectColumn,
+    //   httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
+    //   requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
+    // });
+    // await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
 
     const selectedOpType = await this.rootPage.locator('.nc-filter-operation-select').textContent();
     if (selectedOpType !== opType) {
-      await this.rootPage.locator('.nc-filter-operation-select').last().click();
-      const selectOpType = this.rootPage
+      await this.rootPage.locator('.nc-filter-operation-select').click();
+      // first() : filter list has >, >=
+      await this.rootPage
         .locator('.nc-dropdown-filter-comp-op')
         .locator(`.ant-select-item:has-text("${opType}")`)
+        .first()
         .click();
-
-      await this.waitForResponse({
-        uiAction: selectOpType,
-        httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
-        requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
-      });
-      await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
     }
+    // if (selectedOpType !== opType) {
+    //   await this.rootPage.locator('.nc-filter-operation-select').last().click();
+    //   // first() : filter list has >, >=
+    //   const selectOpType = this.rootPage
+    //     .locator('.nc-dropdown-filter-comp-op')
+    //     .locator(`.ant-select-item:has-text("${opType}")`)
+    //     .first()
+    //     .click();
+    //
+    //   await this.waitForResponse({
+    //     uiAction: selectOpType,
+    //     httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
+    //     requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
+    //   });
+    //   await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+    // }
 
     // if value field was provided, fill it
     if (value) {

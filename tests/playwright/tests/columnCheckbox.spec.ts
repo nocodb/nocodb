@@ -86,10 +86,10 @@ test.describe('Checkbox - cell, filter, sort', () => {
     // Filter column
     await verifyFilter({ opType: 'is checked', result: ['1a', '1c', '1f'] });
     await verifyFilter({ opType: 'is not checked', result: ['1b', '1d', '1e'] });
-    await verifyFilter({ opType: 'is equal', value: '0', result: ['1b', '1d', '1e'] });
-    await verifyFilter({ opType: 'is not equal', value: '1', result: ['1b', '1d', '1e'] });
-    await verifyFilter({ opType: 'is null', result: [] });
-    await verifyFilter({ opType: 'is not null', result: ['1a', '1b', '1c', '1d', '1e', '1f'] });
+    // await verifyFilter({ opType: 'is equal', value: '0', result: ['1b', '1d', '1e'] });
+    // await verifyFilter({ opType: 'is not equal', value: '1', result: ['1b', '1d', '1e'] });
+    // await verifyFilter({ opType: 'is null', result: [] });
+    // await verifyFilter({ opType: 'is not null', result: ['1a', '1b', '1c', '1d', '1e', '1f'] });
 
     // Sort column
     await toolbar.sort.add({

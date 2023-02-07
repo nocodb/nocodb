@@ -14,6 +14,7 @@ import {
   message,
   ref,
   useApi,
+  useAttachment,
   useFileDialog,
   useI18n,
   useInjectionState,
@@ -59,6 +60,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const { appInfo } = useGlobal()
 
     const { t } = useI18n()
+
+    const { getAttachmentSrc } = useAttachment()
 
     const defaultAttachmentMeta = {
       ...(appInfo.value.ee && {
@@ -226,7 +229,33 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** download a file */
     async function downloadFile(item: AttachmentType) {
-      ;(await import('file-saver')).saveAs(item.url || item.data, item.title)
+      const src = getAttachmentSrc(item)
+      await fetch(src)
+        .then((res) => {
+          if (!res.ok || res.headers.get('Content-Type') !== item.mimetype) {
+            throw new Error('Failed to download file')
+          }
+          res.blob()
+        })
+        .then(async (_) => {
+          ;(await import('file-saver')).saveAs(src, item.title)
+        })
+        .catch(async (_) => {
+          const fallbackSrc = item.url!
+          await fetch(fallbackSrc)
+            .then((res) => {
+              if (!res.ok || res.headers.get('Content-Type') !== item.mimetype) {
+                throw new Error('Failed to download file')
+              }
+              res.blob()
+            })
+            .then(async (_) => {
+              ;(await import('file-saver')).saveAs(fallbackSrc, item.title)
+            })
+            .catch(async (e) => {
+              message.error(e.message)
+            })
+        })
     }
 
     const FileIcon = (icon: string) => {

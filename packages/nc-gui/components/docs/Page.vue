@@ -145,10 +145,17 @@ const editor = useEditor({
   },
   editorProps: {
     handleKeyDown: (view, event) => {
-      if (event.altKey) {
+      if (event.altKey && ['KeyM', 'KeyN', 'KeyB'].includes(event.code)) {
         event.preventDefault()
-        editor?.value?.commands.blur()
-        return
+
+        const { from, to } = view.state.selection
+
+        editor.value?.commands.blur()
+
+        setTimeout(() => {
+          view.dispatch(view.state.tr.deleteRange(from, to + 1))
+        }, 0)
+        return true
       }
       return false
     },

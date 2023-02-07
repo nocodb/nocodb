@@ -141,7 +141,10 @@ onKeyStroke(
   (e) => {
     const shortCut = shortCuts.find((shortCut) => shortCut.condition(e))
     if (shortCut) {
-      shortCut.action(e)
+      // This hack to prevent having artifacts on the page when pressing the shortcut. On page we delete the artifact so should not excute the shortcut till then
+      setTimeout(() => {
+        shortCut.action(e)
+      }, 100)
     }
   },
   { eventName: 'keydown' },

@@ -2,7 +2,7 @@
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { isImage, openLink, ref, useDropZone, useUIPermission, watch } from '#imports'
+import { isImage, openLink, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -37,6 +37,8 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, re
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
+
+const { getAttachmentSrc, getBackgroundImage } = useAttachment()
 
 onKeyDown('Escape', () => {
   modalVisible.value = false
@@ -159,8 +161,8 @@ function onRemoveFileClick(title: any, i: number) {
               class="nc-attachment h-full w-full flex items-center justify-center"
             >
               <div
-                v-if="isImage(item.title, item.mimetype)"
-                :style="{ backgroundImage: `url('${item.url || item.data}')` }"
+                v-if="isImage(item.title, item.mimetype) && getAttachmentSrc(item)"
+                :style="{ backgroundImage: getBackgroundImage(item) }"
                 class="w-full h-full bg-contain bg-center bg-no-repeat"
                 @click.stop="onClick(item)"
               />
@@ -170,10 +172,10 @@ function onRemoveFileClick(title: any, i: number) {
                 v-else-if="item.icon"
                 height="150"
                 width="150"
-                @click.stop="openLink(item.url || item.data)"
+                @click.stop="openLink(getAttachmentSrc(item))"
               />
 
-              <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openLink(item.url || item.data)" />
+              <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openLink(getAttachmentSrc(item))" />
             </div>
           </a-card>
 

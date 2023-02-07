@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
-import { computed, isImage, onClickOutside, ref } from '#imports'
+import { computed, isImage, onClickOutside, ref, useAttachment } from '#imports'
 
 const { selectedImage, visibleItems, downloadFile } = useAttachmentCell()!
 
 const carouselRef = ref()
 
 const imageItems = computed(() => visibleItems.value.filter((item) => isImage(item.title, item.mimetype)))
+
+const { getAttachmentSrc, showFallback, getBackgroundImage } = useAttachment()
 
 /** navigate to previous image on button click */
 onKeyDown(
@@ -87,14 +89,14 @@ onClickOutside(carouselRef, () => {
                 placeholder
                 class="!block"
                 :alt="imageItems[props.i].title || `#${props.i}`"
-                :src="imageItems[props.i].url || imageItems[props.i].data"
+                :src="getAttachmentSrc(imageItems[props.i])"
+                :onerror="(e) => showFallback(e, imageItems[props.i])"
               />
             </a>
           </template>
-
-          <div v-for="item of imageItems" :key="item.url">
+          <div v-for="item of imageItems" :key="getAttachmentSrc(item)">
             <div
-              :style="{ backgroundImage: `url('${item.url || item.data}')` }"
+              :style="{ backgroundImage: getBackgroundImage(item) }"
               class="min-w-70vw min-h-70vh w-full h-full bg-contain bg-center bg-no-repeat"
             />
           </div>

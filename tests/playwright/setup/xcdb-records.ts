@@ -96,7 +96,11 @@ const rowMixedValue = (column: ColumnType, index: number) => {
 
   const multiSelect = ['jan,feb,mar', 'apr,may,jun', 'jul,aug,sep', 'oct,nov,dec', 'jan,feb,mar', null];
 
+  const checkbox = [true, false, false, true, false, true, false, false, true, true];
+
   switch (column.uidt) {
+    case UITypes.Checkbox:
+      return checkbox[index % checkbox.length];
     case UITypes.Number:
     case UITypes.Percent:
       return numbers[index % numbers.length];

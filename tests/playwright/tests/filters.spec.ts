@@ -572,3 +572,84 @@ test.describe('Filter Tests: Select based', () => {
     await selectBasedFilterTest('MultiSelect', '', 'jan,feb,mar', 'jan,feb,mar');
   });
 });
+
+test.describe('Filter Tests: AddOn', () => {
+  async function addOnFilterTest(dataType) {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'addOnTypes' });
+
+    const filterList = [
+      {
+        op: 'is checked',
+        value: null,
+        rowCount: records.list.filter(r => r[dataType] === 1).length,
+      },
+      {
+        op: 'is not checked',
+        value: null,
+        rowCount: records.list.filter(r => r[dataType] !== 1).length,
+      },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: filterList[i].op,
+        value: filterList[i].value,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
+  }
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page });
+    dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.grid.toolbar;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Checkbox',
+        title: 'Checkbox',
+        uidt: UITypes.Checkbox,
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'addOnTypes',
+        title: 'addOnTypes',
+        columns: columns,
+      });
+
+      const rowAttributes = [];
+      for (let i = 0; i < 400; i++) {
+        const row = {
+          Checkbox: rowMixedValue(columns[1], i),
+        };
+        rowAttributes.push(row);
+      }
+
+      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 400 });
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+  test('Filter: Checkbox', async () => {
+    await addOnFilterTest('Checkbox');
+  });
+});

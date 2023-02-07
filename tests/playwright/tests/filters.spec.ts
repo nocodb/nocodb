@@ -36,7 +36,13 @@ async function validateRowArray(param) {
   // }
 }
 
-async function verifyFilter(param: { column: string; opType: string; value?: string; result: { rowCount: number } }) {
+async function verifyFilter(param: {
+  column: string;
+  opType: string;
+  value?: string;
+  result: { rowCount: number };
+  dataType?: string;
+}) {
   // if opType was included in skip list, skip it
   if (skipList[param.column]?.includes(param.opType)) {
     return;
@@ -48,6 +54,7 @@ async function verifyFilter(param: { column: string; opType: string; value?: str
     opType: param.opType,
     value: param.value,
     isLocallySaved: false,
+    dataType: param?.dataType,
   });
   await toolbar.clickFilter();
 
@@ -411,6 +418,76 @@ test.describe('Filter Tests: Numerical', () => {
         opType: filterList[i].op,
         value: filterList[i].value,
         result: { rowCount: filterList[i].rowCount },
+      });
+    }
+  });
+
+  test('Filter: Rating', async () => {
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'numberBased' });
+    const dataType = 'Rating';
+
+    const filterList = [
+      {
+        op: '=',
+        value: '3',
+        rowCount: records.list.filter(r => r[dataType] === 3).length,
+      },
+      {
+        op: '!=',
+        value: '3',
+        rowCount: records.list.filter(r => r[dataType] !== 3).length,
+      },
+      {
+        op: 'is null',
+        value: '',
+        rowCount: records.list.filter(r => r[dataType] === null).length,
+      },
+      {
+        op: 'is not null',
+        value: '',
+        rowCount: records.list.filter(r => r[dataType] !== null).length,
+      },
+      {
+        op: 'is blank',
+        value: '',
+        rowCount: records.list.filter(r => r[dataType] === null).length,
+      },
+      {
+        op: 'is not blank',
+        value: '',
+        rowCount: records.list.filter(r => r[dataType] !== null).length,
+      },
+      {
+        op: '>',
+        value: '2',
+        rowCount: records.list.filter(r => r[dataType] > 2 && r[dataType] != null).length,
+      },
+      {
+        op: '>=',
+        value: '2',
+        rowCount: records.list.filter(r => r[dataType] >= 2 && r[dataType] != null).length,
+      },
+      {
+        op: '<',
+        value: '2',
+        rowCount: records.list.filter(r => r[dataType] < 2 && r[dataType] != null).length,
+      },
+      {
+        op: '<=',
+        value: '2',
+        rowCount: records.list.filter(r => r[dataType] <= 2 && r[dataType] != null).length,
+      },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: filterList[i].op,
+        value: filterList[i].value,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: dataType,
       });
     }
   });

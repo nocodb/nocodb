@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import BasePage from '../../../Base';
 import { ToolbarPage } from './index';
+import { UITypes } from 'nocodb-sdk';
 
 export class ToolbarFilterPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -33,11 +34,13 @@ export class ToolbarFilterPage extends BasePage {
     opType,
     value,
     isLocallySaved,
+    dataType,
   }: {
     columnTitle: string;
     opType: string;
     value?: string;
     isLocallySaved: boolean;
+    dataType?: string;
   }) {
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
@@ -86,14 +89,25 @@ export class ToolbarFilterPage extends BasePage {
 
     // if value field was provided, fill it
     if (value) {
-      const fillFilter = this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
-      await this.waitForResponse({
-        uiAction: fillFilter,
-        httpMethodsToMatch: ['GET'],
-        requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
-      });
-      await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
-      await this.toolbar.parent.waitLoading();
+      let fillFilter: any = null;
+      switch (dataType) {
+        case UITypes.Rating:
+          await this.get('.nc-filter-value-select')
+            .locator('.ant-rate-star > div')
+            .nth(parseInt(value) - 1)
+            .click();
+          break;
+        default:
+          fillFilter = this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
+          await this.waitForResponse({
+            uiAction: fillFilter,
+            httpMethodsToMatch: ['GET'],
+            requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+          });
+          await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+          await this.toolbar.parent.waitLoading();
+          break;
+      }
     }
   }
 

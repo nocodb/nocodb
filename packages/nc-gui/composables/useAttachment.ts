@@ -17,25 +17,13 @@ const useAttachment = () => {
 
   // try `${appInfo.value.ncSiteUrl}/${item.path}`
   // if it fails -> try item.url
-  // if it fails -> try default image
+  // if it fails -> use default image
   const showFallback = async (evt: any, item: Record<string, any>) => {
+    const possibleSources = [`${appInfo.value.ncSiteUrl}/${item.path}`, item.url, fileNotFoundImgSrc]
     evt.onerror = null
-    if (item?.url) {
-      await fetch(item.url)
-        .then((res) => {
-          if (!res.ok || res.headers.get('Content-Type') !== item.mimetype) {
-            throw new Error('Failed to load the file')
-          }
-        })
-        .then((_) => {
-          evt.target.src = item.url
-        })
-        .catch((_) => {
-          evt.target.src = fileNotFoundImgSrc
-        })
-    } else {
-      evt.target.src = fileNotFoundImgSrc
-    }
+    const i = possibleSources.indexOf(evt.target.getAttribute('src'))
+    if (i === -1) return
+    evt.target.src = possibleSources[i + 1]
   }
 
   const getBackgroundImage = (item: Record<string, any>) => {

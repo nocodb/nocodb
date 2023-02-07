@@ -373,6 +373,33 @@ watch(
     outline: none;
   }
 
+  .draggable-block-wrapper.selected {
+    th,
+    tr {
+      @apply !bg-primary-selected;
+    }
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    li,
+    td,
+    th,
+    blockquote,
+    pre,
+    code,
+    img {
+      @apply !bg-primary-selected;
+    }
+
+    .node-view-drag-content > ul {
+      @apply !bg-primary-selected;
+    }
+  }
+
   div[contenteditable='false'].ProseMirror {
     user-select: text !important;
   }

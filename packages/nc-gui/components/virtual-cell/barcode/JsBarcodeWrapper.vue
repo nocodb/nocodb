@@ -10,18 +10,18 @@ const props = defineProps({
 
 const emit = defineEmits(['onClickBarcode'])
 
-const barcodeSvgRef = ref<HTMLElement>()
+const barcodeImgRef = ref<HTMLElement>()
 const errorForCurrentInput = ref(false)
 
 const generate = () => {
   try {
-    JsBarcode(barcodeSvgRef.value, String(props.barcodeValue), {
+    JsBarcode(barcodeImgRef.value, String(props.barcodeValue), {
       format: props.barcodeFormat,
     })
     if (props.customStyle) {
-      if (barcodeSvgRef.value) {
+      if (barcodeImgRef.value) {
         for (const key in props.customStyle) {
-          barcodeSvgRef.value.style.setProperty(key, props.customStyle[key])
+          barcodeImgRef.value.style.setProperty(key, props.customStyle[key])
         }
       }
     }
@@ -42,6 +42,13 @@ onMounted(generate)
 </script>
 
 <template>
-  <svg v-show="!errorForCurrentInput" ref="barcodeSvgRef" class="w-full" data-testid="barcode" @click="onBarcodeClick"></svg>
+  <img
+    v-show="!errorForCurrentInput"
+    ref="barcodeImgRef"
+    alt="barcode"
+    class="w-full"
+    data-testid="barcode"
+    @click="onBarcodeClick"
+  />
   <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
 </template>

@@ -97,6 +97,7 @@ watchDebounced(
   {
     debounce: 100,
     maxWait: 600,
+    immediate: true,
   },
 )
 </script>

@@ -26,13 +26,8 @@ const useAttachment = () => {
     evt.target.src = possibleSources[i + 1]
   }
 
-  const getBackgroundImage = (item: Record<string, any>) => {
-    return `url('${getAttachmentSrc(item)}'), url(${item.url}), url(${fileNotFoundImgSrc})`
-  }
-
   return {
     getAttachmentSrc,
-    getBackgroundImage,
     fileNotFoundImgSrc,
     showFallback,
   }

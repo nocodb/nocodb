@@ -1034,6 +1034,34 @@ const closeAddColumnDropdown = () => {
   //  z-index:4;
   //  @apply absolute !w-[10px] !h-[10px] !right-[-5px] !bottom-[-5px] bg-primary;
   //}
+
+  thead th:nth-child(1) {
+    position: sticky !important;
+    left: 0;
+    z-index: 5;
+  }
+
+  tbody td:nth-child(1) {
+    position: sticky !important;
+    left: 0;
+    z-index: 4;
+    background: white;
+  }
+
+  thead th:nth-child(2) {
+    position: sticky !important;
+    left: 80px;
+    z-index: 5;
+    @apply border-r-2 border-r-gray-300;
+  }
+
+  tbody td:nth-child(2) {
+    position: sticky !important;
+    left: 80px;
+    z-index: 4;
+    background: white;
+    @apply shadow-lg border-r-2 border-r-gray-300;
+  }
 }
 
 :deep {

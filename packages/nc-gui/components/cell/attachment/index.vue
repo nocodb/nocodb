@@ -12,6 +12,7 @@ import {
   nextTick,
   openLink,
   ref,
+  useAttachment,
   useDropZone,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
@@ -42,11 +43,11 @@ const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const { appInfo } = useGlobal()
-
 const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
 
 const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
+
+const { getAttachmentSrc, showFallback } = useAttachment()
 
 const {
   isPublic,
@@ -95,20 +96,6 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, is
 const { state: rowState } = useSmartsheetRowStoreOrThrow()
 
 const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
-
-const getImgSrc = (item: Record<string, any>) => {
-  if (item.data) {
-    return item.data
-  } else if (item.path) {
-    return `${appInfo.value.ncSiteUrl}/${item.path}`
-  }
-  return item.url
-}
-
-const showFallback = (evt: any, item: Record<string, any>) => {
-  evt.onerror = null
-  evt.target.src = item.url
-}
 
 /** on new value, reparse our stored attachments */
 watch(
@@ -236,14 +223,14 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
 
-            <template v-if="isImage(item.title, item.mimetype ?? item.type) && getImgSrc(item)">
+            <template v-if="isImage(item.title, item.mimetype ?? item.type) && getAttachmentSrc(item)">
               <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
                 <LazyNuxtImg
                   quality="75"
                   placeholder
                   fit="cover"
                   :alt="item.title || `#${i}`"
-                  :src="getImgSrc(item)"
+                  :src="getAttachmentSrc(item)"
                   class="max-w-full max-h-full"
                   :onerror="(e) => showFallback(e, item)"
                 />

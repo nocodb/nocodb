@@ -17,6 +17,7 @@ import {
   onBeforeMount,
   onBeforeUnmount,
   provide,
+  useAttachment,
   useKanbanViewStoreOrThrow,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
@@ -54,6 +55,8 @@ const stackIdxToBeDeleted = ref(0)
 const route = useRoute()
 
 const router = useRouter()
+
+const { getAttachmentSrc, showFallback } = useAttachment()
 
 const {
   loadKanbanData,
@@ -312,20 +315,6 @@ watch(view, async (nextView) => {
     }
   }
 })
-
-const getImgSrc = (item: Record<string, any>) => {
-  if (item.data) {
-    return item.data
-  } else if (item.path) {
-    return `${appInfo.ncSiteUrl}/${item.path}`
-  }
-  return item.url
-}
-
-const showFallback = (evt: any, item: Record<string, any>) => {
-  evt.onerror = null
-  evt.target.src = item.url
-}
 </script>
 
 <template>
@@ -476,7 +465,7 @@ const showFallback = (evt: any, item: Record<string, any>) => {
                                       quality="90"
                                       placeholder
                                       class="h-52 object-cover"
-                                      :src="getImgSrc(attachment)"
+                                      :src="getAttachmentSrc(attachment)"
                                       :onerror="(e) => showFallback(e, attachment)"
                                     />
                                   </a-carousel>

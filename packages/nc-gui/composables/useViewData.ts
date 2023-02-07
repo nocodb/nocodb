@@ -1,15 +1,5 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import type {
-  Api,
-  AttachmentType,
-  ColumnType,
-  FormColumnType,
-  FormType,
-  GalleryType,
-  PaginatedType,
-  TableType,
-  ViewType,
-} from 'nocodb-sdk'
+import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -90,10 +80,6 @@ export function useViewData(
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
   const { isUIAllowed } = useUIPermission()
-
-  const attachmentColumns = computed(() =>
-    (meta.value?.columns as ColumnType[])?.filter((c) => c.uidt === UITypes.Attachment).map((c) => c.title),
-  )
 
   const routeQuery = $computed(() => route.query as Record<string, string>)
 

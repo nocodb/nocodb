@@ -1,15 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type {
-  Api,
-  AttachmentType,
-  ColumnType,
-  KanbanType,
-  SelectOptionType,
-  SelectOptionsType,
-  TableType,
-  ViewType,
-} from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import {
   IsPublicInj,
@@ -25,7 +15,6 @@ import {
   ref,
   useApi,
   useFieldQuery,
-  useGlobal,
   useI18n,
   useInjectionState,
   useNuxtApp,
@@ -54,8 +43,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const { project } = useProject()
 
     const { $e, $api } = useNuxtApp()
-
-    const { appInfo } = useGlobal()
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -90,10 +77,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
       return where
     })
-
-    const attachmentColumns = computed(() =>
-      (meta.value?.columns as ColumnType[])?.filter((c) => c.uidt === UITypes.Attachment).map((c) => c.title),
-    )
 
     provide(SharedViewPasswordInj, password)
 

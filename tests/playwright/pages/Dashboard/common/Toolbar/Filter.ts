@@ -91,6 +91,9 @@ export class ToolbarFilterPage extends BasePage {
     if (value) {
       let fillFilter: any = null;
       switch (dataType) {
+        case UITypes.Duration:
+          await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
+          break;
         case UITypes.Rating:
           await this.get()
             .locator('.ant-rate-star > div')

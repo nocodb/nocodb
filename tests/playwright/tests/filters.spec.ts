@@ -17,6 +17,7 @@ const skipList = {
   Percent: ['is null', 'is not null', 'is blank', 'is not blank'],
   Currency: ['is null', 'is not null', 'is blank', 'is not blank'],
   Rating: ['is null', 'is not null', 'is blank', 'is not blank'],
+  Duration: ['is null', 'is not null', 'is blank', 'is not blank'],
   SingleLineText: ['is blank', 'is not blank'],
   MultiLineText: ['is blank', 'is not blank'],
   Email: ['is blank', 'is not blank'],
@@ -90,16 +91,24 @@ test.describe('Filter Tests: Numerical', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
 
+    let eqStringDerived = eqString;
+    let isLikeStringDerived = isLikeString;
+    if (dataType === 'Duration') {
+      // convert from hh:mm to seconds
+      eqStringDerived = parseInt(eqString.split(':')[0]) * 3600 + parseInt(eqString.split(':')[1]) * 60;
+      isLikeStringDerived = parseInt(isLikeString.split(':')[0]) * 3600 + parseInt(isLikeString.split(':')[1]) * 60;
+    }
+
     const filterList = [
       {
         op: '=',
         value: eqString,
-        rowCount: records.list.filter(r => r[dataType] === parseFloat(eqString)).length,
+        rowCount: records.list.filter(r => r[dataType] === parseFloat(eqStringDerived)).length,
       },
       {
         op: '!=',
         value: eqString,
-        rowCount: records.list.filter(r => r[dataType] !== parseFloat(eqString)).length,
+        rowCount: records.list.filter(r => r[dataType] !== parseFloat(eqStringDerived)).length,
       },
       {
         op: 'is null',
@@ -124,22 +133,24 @@ test.describe('Filter Tests: Numerical', () => {
       {
         op: '>',
         value: isLikeString,
-        rowCount: records.list.filter(r => r[dataType] > parseFloat(isLikeString) && r[dataType] != null).length,
+        rowCount: records.list.filter(r => r[dataType] > parseFloat(isLikeStringDerived) && r[dataType] != null).length,
       },
       {
         op: '>=',
         value: isLikeString,
-        rowCount: records.list.filter(r => r[dataType] >= parseFloat(isLikeString) && r[dataType] != null).length,
+        rowCount: records.list.filter(r => r[dataType] >= parseFloat(isLikeStringDerived) && r[dataType] != null)
+          .length,
       },
       {
         op: '<',
         value: isLikeString,
-        rowCount: records.list.filter(r => r[dataType] < parseFloat(isLikeString) && r[dataType] != null).length,
+        rowCount: records.list.filter(r => r[dataType] < parseFloat(isLikeStringDerived) && r[dataType] != null).length,
       },
       {
         op: '<=',
         value: isLikeString,
-        rowCount: records.list.filter(r => r[dataType] <= parseFloat(isLikeString) && r[dataType] != null).length,
+        rowCount: records.list.filter(r => r[dataType] <= parseFloat(isLikeStringDerived) && r[dataType] != null)
+          .length,
       },
     ];
 
@@ -250,6 +261,10 @@ test.describe('Filter Tests: Numerical', () => {
 
   test('Filter: Rating', async () => {
     await numBasedFilterTest('Rating', '3', '2');
+  });
+
+  test('Filter: Duration', async () => {
+    await numBasedFilterTest('Duration', '00:01', '01:03');
   });
 });
 

@@ -39,7 +39,7 @@ const rowMixedValue = (column: ColumnType, index: number) => {
   // Array of random integers, not more than 10000
   const numbers = [33, null, 456, 333, 267, 34, 8754, 3234, 44, 33, null];
   const decimals = [33.3, 456.34, 333.3, null, 267.5674, 34.0, 8754.0, 3234.547, 44.2647, 33.98, null];
-  const duration = [10, 20, 30, 40, 50, 60, null, 70, 80, 90, null];
+  const duration = [60, 120, 180, 3600, 3660, 3720, null, 3780, 60, 120, null];
   const rating = [0, 1, 2, 3, null, 0, 4, 5, 0, 1, null];
 
   // Array of random sample email strings (not more than 100 characters)

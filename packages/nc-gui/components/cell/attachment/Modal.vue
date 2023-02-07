@@ -38,7 +38,7 @@ const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
-const { getAttachmentSrc, getBackgroundImage } = useAttachment()
+const { getAttachmentSrc, showFallback } = useAttachment()
 
 onKeyDown('Escape', () => {
   modalVisible.value = false
@@ -158,12 +158,13 @@ function onRemoveFileClick(title: any, i: number) {
 
             <div
               :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
-              class="nc-attachment h-full w-full flex items-center justify-center"
+              class="nc-attachment h-full w-full flex items-center justify-center overflow-hidden"
             >
-              <div
-                v-if="isImage(item.title, item.mimetype) && getAttachmentSrc(item)"
-                :style="{ backgroundImage: getBackgroundImage(item) }"
-                class="w-full h-full bg-contain bg-center bg-no-repeat"
+              <LazyNuxtImg
+                v-if="isImage(item.title, item.mimetype)"
+                :src="getAttachmentSrc(item)"
+                class="max-w-full max-h-full margin-auto justify-center"
+                :onerror="(e) => showFallback(e, item)"
                 @click.stop="onClick(item)"
               />
 

@@ -9,7 +9,7 @@ const carouselRef = ref()
 
 const imageItems = computed(() => visibleItems.value.filter((item) => isImage(item.title, item.mimetype)))
 
-const { getAttachmentSrc, showFallback, getBackgroundImage } = useAttachment()
+const { getAttachmentSrc, showFallback } = useAttachment()
 
 /** navigate to previous image on button click */
 onKeyDown(
@@ -95,10 +95,7 @@ onClickOutside(carouselRef, () => {
             </a>
           </template>
           <div v-for="item of imageItems" :key="getAttachmentSrc(item)">
-            <div
-              :style="{ backgroundImage: getBackgroundImage(item) }"
-              class="min-w-70vw min-h-70vh w-full h-full bg-contain bg-center bg-no-repeat"
-            />
+            <LazyNuxtImg :src="getAttachmentSrc(item)" class="max-w-70vw max-h-70vh" :onerror="(e) => showFallback(e, item)" />
           </div>
         </a-carousel>
       </div>

@@ -577,11 +577,11 @@ watch(
       position: absolute;
       right: 0px;
       top: 0;
-      bottom: -2px;
-      width: 0px;
-      outline: 2px solid #e3e5ff;
-      background-color: #adf;
-      pointer-events: none;
+      bottom: 0px;
+      margin-top: 1px;
+      margin-bottom: 1px;
+      width: 4px;
+      outline: 1px solid #e3e5ff;
     }
 
     p {

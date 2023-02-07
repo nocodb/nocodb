@@ -10,6 +10,16 @@ export default {
     NodeViewContent,
   },
   props: nodeViewProps,
+  data() {
+    return {
+      isFirstCell: false,
+    }
+  },
+  mounted() {
+    const el = this.$el as HTMLElement
+    // check if the cell is the first cell in the row
+    this.isFirstCell = el.previousElementSibling === null
+  },
   methods: {
     selectRowNode() {
       const state: EditorState = this.editor.state
@@ -41,6 +51,7 @@ export default {
   <NodeViewWrapper class="vue-component group relative p-0" as="td">
     <div class="group table-cell overflow-visible flex">
       <div
+        v-if="isFirstCell"
         class="flex flex-col justify-center absolute h-full -left-3 z-50 min-w-4 min-h-4 !group-[.table-cell]:hover:opacity-100"
       >
         <a-popover placement="left" overlay-class-name="docs-table-row-options">

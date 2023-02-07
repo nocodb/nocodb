@@ -41,20 +41,20 @@ export default {
       <div
         class="flex flex-row justify-center absolute h-full z-50 -top-4 !w-full justify-center min-w-4 min-h-4 !group-[.table-cell]:hover:opacity-100"
       >
-        <a-popover placement="bottom" overlay-class-name="docs-table-row-options">
+        <a-popover placement="top" overlay-class-name="docs-table-row-options">
           <template #content>
             <div class="flex flex-row items-center text-sm gap-y-1">
-              <a-tooltip title="Add row left" placement="bottom" overlay-class-name="docs-table-row-options ">
+              <a-tooltip title="Add column left" placement="top" overlay-class-name="docs-table-row-options ">
                 <div class="button" @click="insertColumnBefore">
                   <MdiArrowLeft />
                 </div>
               </a-tooltip>
-              <a-tooltip title="Delete column" placement="bottom" overlay-class-name="docs-table-row-options ">
+              <a-tooltip title="Delete column" placement="top" overlay-class-name="docs-table-row-options ">
                 <div class="button !hover:text-red-400" @click="deleteColumn">
                   <MdiDeleteOutline />
                 </div>
               </a-tooltip>
-              <a-tooltip title="Add column right" placement="bottom" overlay-class-name="docs-table-row-options ">
+              <a-tooltip title="Add column right" placement="top" overlay-class-name="docs-table-row-options ">
                 <div class="button" @click="insertColumnAfter">
                   <MdiArrowRight />
                 </div>
@@ -63,7 +63,6 @@ export default {
           </template>
           <div
             class="flex flex-row justify-center items-center border-gray-200 border-1 bg-white hover:bg-gray-100 rounded-md column-drag-handle cursor-move hidden"
-            contenteditable="false"
             @mouseover="selectColumn"
           >
             <IcBaselineDragIndicator class="" />
@@ -71,7 +70,7 @@ export default {
         </a-popover>
       </div>
 
-      <NodeViewContent class="node-view-content py-1.5 px-3" />
+      <NodeViewContent class="node-view-content my-1.5 mx-3" />
     </div>
   </NodeViewWrapper>
 </template>

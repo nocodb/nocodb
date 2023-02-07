@@ -714,7 +714,7 @@ const closeAddColumnDropdown = () => {
           @contextmenu="showContextMenu"
         >
           <thead ref="tableHead">
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px] !z-4">
+            <tr class="nc-grid-header">
               <th data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
@@ -993,6 +993,7 @@ const closeAddColumnDropdown = () => {
 
   td,
   th {
+    @apply border-gray-200 border-solid border-b border-r;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
@@ -1003,11 +1004,9 @@ const closeAddColumnDropdown = () => {
     @apply flex px-1 h-auto;
   }
 
-  table,
-  td,
-  th {
-    @apply !border-1;
-    border-collapse: collapse;
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   td {
@@ -1027,7 +1026,7 @@ const closeAddColumnDropdown = () => {
 
   // todo: replace with css variable
   td.active::after {
-    @apply border-2 border-solid text-primary border-current bg-primary bg-opacity-5;
+    @apply border-1 border-solid text-primary border-current bg-primary bg-opacity-5;
   }
 
   //td.active::before {
@@ -1081,7 +1080,7 @@ const closeAddColumnDropdown = () => {
   position: sticky;
   top: -1px;
 
-  @apply z-1;
+  @apply z-10 bg-gray-100;
 
   &:hover {
     .nc-no-label {

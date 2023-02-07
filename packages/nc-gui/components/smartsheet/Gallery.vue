@@ -168,6 +168,22 @@ watch(view, async (nextView) => {
     await loadGalleryData()
   }
 })
+
+const { appInfo } = useGlobal()
+
+const getImgSrc = (item: Record<string, any>) => {
+  if (item.data) {
+    return item.data
+  } else if (item.path) {
+    return `${appInfo.value.ncSiteUrl}/${item.path}`
+  }
+  return item.url
+}
+
+const showFallback = (evt: any, item: Record<string, any>) => {
+  evt.onerror = null
+  evt.target.src = item.url
+}
 </script>
 
 <template>
@@ -205,7 +221,8 @@ watch(view, async (nextView) => {
                   quality="90"
                   placeholder
                   class="h-52 object-contain"
-                  :src="attachment.url"
+                  :src="getImgSrc(attachment)"
+                  :onerror="(e) => showFallback(e, attachment)"
                 />
               </a-carousel>
 

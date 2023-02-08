@@ -232,15 +232,22 @@ const expectedRecords = [
   { index: 2, columnHeader: 'Phone', value: '648482415405' },
 ];
 
+// const sqliteExpectedRecords = [
+//   { index: 0, columnHeader: 'Address', value: '669 Firozabad Loop' },
+//   { index: 1, columnHeader: 'Address', value: '48 Maracabo Place' },
+//   { index: 2, columnHeader: 'Address', value: '44 Najafabad Way' },
+//   { index: 0, columnHeader: 'PostalCode', value: '92265' },
+//   { index: 1, columnHeader: 'PostalCode', value: '1570' },
+//   { index: 2, columnHeader: 'PostalCode', value: '61391' },
+// ];
 const sqliteExpectedRecords = [
-  { index: 0, columnHeader: 'Address', value: '669 Firozabad Loop' },
-  { index: 1, columnHeader: 'Address', value: '48 Maracabo Place' },
-  { index: 2, columnHeader: 'Address', value: '44 Najafabad Way' },
-  { index: 0, columnHeader: 'PostalCode', value: '92265' },
-  { index: 1, columnHeader: 'PostalCode', value: '1570' },
-  { index: 2, columnHeader: 'PostalCode', value: '61391' },
+  { index: 0, columnHeader: 'Address', value: '217 Botshabelo Place' },
+  { index: 1, columnHeader: 'Address', value: '17 Kabul Boulevard' },
+  { index: 2, columnHeader: 'Address', value: '1888 Kabul Drive' },
+  { index: 0, columnHeader: 'PostalCode', value: '49521' },
+  { index: 1, columnHeader: 'PostalCode', value: '38594' },
+  { index: 2, columnHeader: 'PostalCode', value: '20936' },
 ];
-
 const expectedRecords2 = [
   { index: 0, columnHeader: 'Address', value: '1661 Abha Drive' },
   { index: 1, columnHeader: 'Address', value: '1993 Tabuk Lane' },
@@ -273,8 +280,8 @@ const expectedVirtualRecords = [
 ];
 
 const sqliteExpectedVirtualRecords = [
-  { index: 0, columnHeader: 'Customer List', count: 1, value: ['1'] },
+  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
   { index: 1, columnHeader: 'Customer List', count: 1, value: ['1'] },
-  { index: 0, columnHeader: 'City', count: 1, value: ['al-Ayn'] },
-  { index: 1, columnHeader: 'City', count: 1, value: ['Talavera'] },
+  { index: 0, columnHeader: 'City', count: 1, value: ['Davao'] },
+  { index: 1, columnHeader: 'City', count: 1, value: ['Nagareyama'] },
 ];

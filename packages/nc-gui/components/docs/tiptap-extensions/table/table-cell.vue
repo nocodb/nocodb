@@ -2,7 +2,7 @@
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { NodeSelection, TextSelection } from 'prosemirror-state'
-import { addRowAfter, addRowBefore } from '@tiptap/prosemirror-tables'
+import { addRowAfter, addRowBefore, goToNextCell } from '@tiptap/prosemirror-tables'
 
 export default {
   components: {
@@ -48,16 +48,31 @@ export default {
     insertRowBefore() {
       const state: EditorState = this.editor.state
       const { from } = state.selection
+      const parentRow = state.doc.resolve(this.getPos()).parent
 
       this.editor.view.dispatch(state.tr.setSelection(TextSelection.create(this.editor.state.doc, from + 1, from + 1)))
       addRowBefore(this.editor.state, this.editor.view.dispatch)
+      const cellCount = parentRow.childCount
+      for (let i = 0; i < cellCount; i++) {
+        setTimeout(() => {
+          goToNextCell(-1)(this.editor.state, this.editor.view.dispatch)
+        }, 0)
+      }
     },
     insertRowAfter() {
       this.selectRow()
       const state: EditorState = this.editor.state
       const { from } = state.selection
+      const parentRow = state.doc.resolve(this.getPos()).parent
+
       this.editor.view.dispatch(state.tr.setSelection(TextSelection.create(this.editor.state.doc, from + 1, from + 1)))
       addRowAfter(this.editor.state, this.editor.view.dispatch)
+      const cellCount = parentRow.childCount
+      for (let i = 0; i < cellCount; i++) {
+        setTimeout(() => {
+          goToNextCell(1)(this.editor.state, this.editor.view.dispatch)
+        }, 0)
+      }
     },
   },
 }

@@ -2,7 +2,7 @@
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { NodeSelection, TextSelection } from 'prosemirror-state'
-import { CellSelection, addColumnAfter, addColumnBefore, deleteColumn, goToNextCell } from '@tiptap/prosemirror-tables'
+import { CellSelection, addColumnAfter, addColumnBefore, deleteColumn, goTo, goToNextCell } from '@tiptap/prosemirror-tables'
 
 export default {
   components: {
@@ -46,11 +46,19 @@ export default {
       this.selectColumn()
 
       addColumnBefore(this.editor.state, this.editor.view.dispatch)
+      // focus the created column
+      setTimeout(() => {
+        goToNextCell(-1)(this.editor.state, this.editor.view.dispatch)
+      }, 0)
     },
     insertColumnAfter() {
       this.selectColumn()
 
       addColumnAfter(this.editor.state, this.editor.view.dispatch)
+      // focus the created column
+      setTimeout(() => {
+        goToNextCell(1)(this.editor.state, this.editor.view.dispatch)
+      })
     },
   },
 }

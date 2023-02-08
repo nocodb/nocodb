@@ -102,20 +102,28 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 
         <!-- Render normal cell -->
         <template v-else>
-          <!-- For attachment cell avoid adding chip style -->
           <div
-            v-for="(v, i) of arrValue"
-            :key="i"
+            v-if="isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object'"
             class="min-w-max"
-            :class="{
-              'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(lookupColumn),
-              ' border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
-                lookupColumn.uidt,
-              ),
-            }"
           >
-            <LazySmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" :virtual="true" />
+            <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" />
           </div>
+          <!-- For attachment cell avoid adding chip style -->
+          <template v-else>
+            <div
+              v-for="(v, i) of arrValue"
+              :key="i"
+              class="min-w-max"
+              :class="{
+                'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(lookupColumn),
+                'border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
+                  lookupColumn.uidt,
+                ),
+              }"
+            >
+              <LazySmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" :virtual="true" />
+            </div>
+          </template>
         </template>
       </template>
     </div>

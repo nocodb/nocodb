@@ -452,10 +452,13 @@ watch(
 
   h2 {
     font-size: 1.5rem;
+    margin-top: 0.25em;
+    margin-bottom: 1em;
   }
 
   h3 {
     font-size: 1.35rem;
+    margin-top: 0.3em;
   }
 
   h4 {
@@ -518,6 +521,7 @@ watch(
   }
 
   ul {
+    margin-top: 0.85rem;
     padding-left: 1rem;
     // bullet color black
     color: #000;

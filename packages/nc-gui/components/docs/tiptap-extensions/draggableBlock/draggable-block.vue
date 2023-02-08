@@ -60,22 +60,22 @@ const deleteNode = () => {
 
       <div
         ref="optionsPopoverRef"
-        class="flex flex-col absolute -left-15 bg-gray-100 rounded-md p-1 text-sm z-40"
+        class="flex flex-col absolute -left-10 bg-gray-100 rounded-md p-1 text-sm z-40"
         :class="{
           'hidden': !dragClicked,
           'visible': dragClicked,
-          'top-7.5': isTable,
-          'top-1.5': !isTable,
+          'top-8': isTable,
+          'top-2': !isTable,
         }"
         :contenteditable="false"
       >
         <div
-          class="flex flex-row justify-between cursor-pointer items-center gap-x-1 hover:bg-gray-200 p-1 rounded-md"
+          class="flex flex-row justify-between cursor-pointer items-center gap-x-1 hover:bg-gray-200 p-1 rounded-md z-10"
           @click="deleteNode"
         >
           <MdiDeleteOutline />
-          <div class="flex">Delete</div>
         </div>
+        <div class="w-2 h-2 absolute -right-1 top-3 bg-gray-100" :style="{ transform: 'rotate(45deg)' }"></div>
       </div>
 
       <div

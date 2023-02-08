@@ -217,7 +217,6 @@ export class GridPage extends BasePage {
       await this.rootPage.waitForTimeout(500);
       i++;
     }
-    console.log('recordCnt', parseInt(recordCnt), 'count', count);
     expect(parseInt(recordCnt)).toEqual(count);
   }
 

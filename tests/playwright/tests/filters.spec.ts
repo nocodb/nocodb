@@ -330,7 +330,6 @@ test.describe('Filter Tests: Text based', () => {
     ];
 
     for (let i = 0; i < filterList.length; i++) {
-      console.log(`${dataType} Filter: ${filterList[i].op} ${filterList[i].value}`);
       await verifyFilter({
         column: dataType,
         opType: filterList[i].op,

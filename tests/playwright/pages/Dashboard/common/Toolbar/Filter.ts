@@ -49,7 +49,7 @@ export class ToolbarFilterPage extends BasePage {
       await this.rootPage.locator('.nc-filter-field-select').last().click();
       await this.rootPage
         .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-        .locator(`div[label="${columnTitle}"]`)
+        .locator(`div[label="${columnTitle}"]:visible`)
         .click();
     }
 

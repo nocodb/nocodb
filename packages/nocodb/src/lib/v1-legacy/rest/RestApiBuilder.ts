@@ -2649,7 +2649,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         scheme,
         scheme === 'http' ? 'https' : 'http',
       ];
-      await promisify(glob)(
+      (
+        await promisify(glob)(
           path.join(
             this.app.getToolDir(),
             'nc',
@@ -2659,15 +2660,14 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
             'swagger.json'
           )
         )
-        .forEach(async (jsonFile) => {
-          const swaggerJson = JSON.parse(await promisify(fs.readFile)(jsonFile, 'utf8'));
-          swaggerBaseDocument.tags.push(...swaggerJson.tags);
-          Object.assign(swaggerBaseDocument.paths, swaggerJson.paths);
-          Object.assign(
-            swaggerBaseDocument.definitions,
-            swaggerJson.definitions
-          );
-        });
+      ).forEach(async (jsonFile) => {
+        const swaggerJson = JSON.parse(
+          await promisify(fs.readFile)(jsonFile, 'utf8')
+        );
+        swaggerBaseDocument.tags.push(...swaggerJson.tags);
+        Object.assign(swaggerBaseDocument.paths, swaggerJson.paths);
+        Object.assign(swaggerBaseDocument.definitions, swaggerJson.definitions);
+      });
       res.json(swaggerBaseDocument);
     });
   }
@@ -2729,7 +2729,10 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       'swagger'
     );
     const swaggerJson = JSON.parse(
-      await promisify(fs.readFile)(path.join(swaggerFilePath, 'swagger.json'), 'utf8')
+      await promisify(fs.readFile)(
+        path.join(swaggerFilePath, 'swagger.json'),
+        'utf8'
+      )
     );
 
     /* remove tags, paths and keys */

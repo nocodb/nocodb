@@ -27,6 +27,7 @@ import { extractAndGenerateManyToManyRelations } from './metaDiffApis';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { extractPropsAndSanitize } from '../helpers/extractProps';
 import NcConfigFactory from '../../utils/NcConfigFactory';
+import { promisify } from 'util';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -121,8 +122,8 @@ async function projectCreate(req: Request<any, any>, res) {
         '1234567890abcdefghijklmnopqrstuvwxyz',
         14
       );
-      if (!fs.existsSync(`${toolDir}/nc_minimal_dbs`)) {
-        fs.mkdirSync(`${toolDir}/nc_minimal_dbs`);
+      if (!await promisify(fs.exists)(`${toolDir}/nc_minimal_dbs`)) {
+        await promisify(fs.mkdir)(`${toolDir}/nc_minimal_dbs`);
       }
       const dbId = nanoidv2();
       const projectTitle = DOMPurify.sanitize(projectBody.title);
@@ -213,7 +214,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
   };
 
   const t = process.hrtime();
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
   let order = 1;
   const models2: { [tableName: string]: Model } = {};
 
@@ -467,7 +468,7 @@ export async function projectCost(req, res) {
   const project = await Project.getWithInfo(req.params.projectId);
 
   for (const base of project.bases) {
-    const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
     const userCount = await ProjectUser.getUsersCount(req.query);
     const recordCount = (await sqlClient.totalRecords())?.data.TotalRecords;
 

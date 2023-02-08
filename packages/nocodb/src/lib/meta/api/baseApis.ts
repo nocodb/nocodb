@@ -119,7 +119,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
   };
 
   const t = process.hrtime();
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
   let order = 1;
   const models2: { [tableName: string]: Model } = {};
 

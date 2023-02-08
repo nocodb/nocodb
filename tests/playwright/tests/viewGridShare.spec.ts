@@ -3,7 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
 import { isMysql, isPg, isSqlite } from '../setup/db';
 
-test.describe('Shared view', () => {
+test.describe.only('Shared view', () => {
   let dashboard: DashboardPage;
   let context: any;
 

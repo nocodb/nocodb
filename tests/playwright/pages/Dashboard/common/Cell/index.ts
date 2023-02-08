@@ -102,7 +102,7 @@ export class CellPageObject extends BasePage {
             index,
             columnHeader,
           }).allInnerTexts();
-          return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
+          return innerTexts;
         })
         .toContain(text);
     };

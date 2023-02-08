@@ -188,7 +188,7 @@ useMenuCloseOnEsc(open)
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
               <div
-                v-show="filteredFieldList.includes(field)"
+                v-if="filteredFieldList.slice(1).includes(field)"
                 :key="field.id"
                 class="px-2 py-1 flex items-center"
                 :data-testid="`nc-fields-menu-${field.title}`"
@@ -210,6 +210,32 @@ useMenuCloseOnEsc(open)
                 <div class="flex-1" />
 
                 <MdiDrag class="cursor-move" />
+              </div>
+            </template>
+            <template #header>
+              <div
+                v-if="filteredFieldList[0]"
+                v-show="filteredFieldList[0]"
+                :key="`pv-${filteredFieldList[0].id}`"
+                class="px-2 py-1 flex items-center"
+                :data-testid="`nc-fields-menu-${filteredFieldList[0].title}`"
+                @click.stop
+              >
+                <a-tooltip placement="bottom">
+                  <template #title>
+                    <span class="text-sm">Primary Value</span>
+                  </template>
+
+                  <MdiTableKey class="text-xs" />
+                </a-tooltip>
+
+                <div class="flex items-center px-[8px]">
+                  <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
+
+                  <span>{{ filteredFieldList[0].title }}</span>
+                </div>
+
+                <div class="flex-1" />
               </div>
             </template>
           </Draggable>

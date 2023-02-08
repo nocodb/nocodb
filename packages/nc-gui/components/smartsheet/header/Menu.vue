@@ -74,6 +74,8 @@ const setAsPrimaryValue = async () => {
 
     await getMeta(meta?.value?.id as string, true)
 
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
     // Successfully updated as primary column
     message.success(t('msg.success.primaryColumnUpdated'))
 

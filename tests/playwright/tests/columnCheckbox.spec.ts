@@ -26,6 +26,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
       opType: param.opType,
       value: param.value,
       isLocallySaved: false,
+      dataType: 'Checkbox',
     });
     await toolbar.clickFilter();
 

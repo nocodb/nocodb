@@ -35,7 +35,16 @@ export class ToolbarSortPage extends BasePage {
 
     await this.get().locator(`button:has-text("Add Sort Option")`).click();
 
-    await this.rootPage.locator('.nc-sort-field-select').last().click();
+    // read content of the dropdown
+    const col = await this.rootPage.locator('.nc-sort-field-select').textContent();
+    if (col !== columnTitle) {
+      await this.rootPage.locator('.nc-sort-field-select').last().click();
+      await this.rootPage
+        .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+        .locator(`div[label="${columnTitle}"]`)
+        .last()
+        .click();
+    }
 
     // network request will be triggered only after dir-select is clicked
     //

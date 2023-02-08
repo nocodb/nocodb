@@ -546,12 +546,15 @@ watch(
     font-style: italic;
   }
 
+  div.callout-wrapper {
+    @apply my-2.5;
+  }
+
   div.info-callout {
     @apply px-2 py-2 rounded-md border-1;
     border-color: rgb(166, 222, 254);
     background-color: rgb(230, 246, 255);
     color: #666;
-    margin: 1em 0;
   }
 
   div.tip-callout {
@@ -559,7 +562,6 @@ watch(
     border-color: #fee088;
     background-color: #fef7d7;
     color: #666;
-    margin: 1em 0;
   }
 
   div.warning-callout {
@@ -567,7 +569,6 @@ watch(
     border-color: #ffa58b;
     background-color: #ffe7d8;
     color: #666;
-    margin: 1em 0;
   }
 
   .column-resize-handle {

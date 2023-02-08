@@ -1,4 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core'
+import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import CalloutComponent from './callout.vue'
 
 export interface WarningCalloutOptions {
   HTMLAttributes: Record<string, any>
@@ -10,7 +12,7 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
   addOptions() {
     return {
       HTMLAttributes: {
-        class: 'warning-callout items-baseline relative',
+        class: 'warning-callout items-baseline',
       },
     }
   },
@@ -18,42 +20,15 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
 
   group: 'block',
 
-  defining: true,
-
-  topNode: true,
-
   parseHTML() {
-    return [
-      {
-        tag: 'div.warning-callout',
-        contentElement: (element: HTMLElement) => {
-          return element.querySelector('.warning-callout-text')
-        },
-      },
-    ] as any
+    return [{ tag: 'div[data-type="warning-callout"]' }]
   },
 
   renderHTML({ HTMLAttributes }) {
-    // With icon and text
-    return [
-      'div',
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
-      [
-        'div',
-        {
-          class: 'warning-callout-icon pr-2',
-        },
-        [
-          'img',
-          {
-            src: `${import.meta.env.BASE_URL}/assets/img/error-icon.svg`,
-            alt: 'warning',
-            style: 'color: #FF4A3F; min-width: 1rem; width: 1rem; position: absolute; top: 0.75rem; left: 0.5rem; margin',
-            draggable: 'false',
-          },
-        ],
-      ],
-      ['div', { class: 'warning-callout-text text-base ml-6' }, 0],
-    ]
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'warning-callout' }), 0]
+  },
+
+  addNodeView() {
+    return VueNodeViewRenderer(CalloutComponent)
   },
 })

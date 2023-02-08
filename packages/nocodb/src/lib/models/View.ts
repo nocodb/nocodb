@@ -1091,14 +1091,16 @@ export default class View implements ViewType {
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
 
-    const primary_value_column = await ncMeta.metaGet2(null, null, MetaTable.COLUMNS, {
-      fk_model_id: view.fk_model_id,
-      pv: true,
-    })
+    if (view.type === ViewTypes.GRID) {
+      const primary_value_column = await ncMeta.metaGet2(null, null, MetaTable.COLUMNS, {
+        fk_model_id: view.fk_model_id,
+        pv: true,
+      })
 
-    // keep primary_value_column always visible
-    if (primary_value_column) {
-      ignoreColdIds.push(primary_value_column.id)
+      // keep primary_value_column always visible
+      if (primary_value_column) {
+        ignoreColdIds.push(primary_value_column.id)
+      }
     }
 
     // get existing cache

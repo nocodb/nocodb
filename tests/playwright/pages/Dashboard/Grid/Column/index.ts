@@ -386,5 +386,8 @@ export class ColumnPageObject extends BasePage {
       )
       .first()
       .isVisible();
+    
+    // close sort menu
+    await this.grid.toolbar.clickSort();
   }
 }

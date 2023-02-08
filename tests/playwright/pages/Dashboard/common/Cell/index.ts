@@ -117,8 +117,11 @@ export class CellPageObject extends BasePage {
           columnHeader,
         }).allInnerTexts();
         const cellText = typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
-        console.log('cellText', cellText, 'text', text);
-        if (cellText.includes(text)) {
+        console.log('cellText', cellText, 'text', text, 'cellText[0]', cellText[0]);
+        console.log('cellText.includes(text)', cellText.includes(text));
+        console.log('cellText[0].includes(text)', cellText[0].includes(text));
+
+        if (cellText.includes(text) || cellText[0].includes(text)) {
           return;
         }
         await this.rootPage.waitForTimeout(1000);

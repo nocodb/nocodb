@@ -20,7 +20,7 @@ process.env.NC_DB = url;
     await app.init({
       async afterMetaMigrationInit(): Promise<void> {
         if (!(await app.ncMeta.projectList())?.length) {
-          const config = NcConfigFactory.makeProjectConfigFromUrl(url);
+          const config = await NcConfigFactory.makeProjectConfigFromUrl(url);
           const project = await app.ncMeta.projectCreate(
             config.title,
             config,

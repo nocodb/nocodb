@@ -1930,7 +1930,7 @@ class MysqlClient extends KnexClient {
     console.log('in mysql SeedInit');
 
     try {
-      mkdirp.sync(args.seedsFolder);
+      await mkdirp(args.seedsFolder);
 
       const seedSettings = path.join(args.seedsFolder, '__xseeds.json');
       await promisify(jsonfile.writeFile)(

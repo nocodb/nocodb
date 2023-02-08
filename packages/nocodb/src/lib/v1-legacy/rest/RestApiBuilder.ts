@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 
 import autoBind from 'auto-bind';
 import debug from 'debug';
@@ -86,7 +87,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.log('loadRoutes');
     const t = process.hrtime();
 
-    this.initDbDriver();
+    await this.initDbDriver();
 
     // todo: change condition
     if (this.connectionConfig.meta.reset) {
@@ -371,7 +372,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     });
 
     if (tables?.length) {
-      this.swaggerUpdate({
+      await this.swaggerUpdate({
         addApis: swaggerDoc,
       });
     } else {
@@ -995,7 +996,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     }
 
     if (args.tableNames && args.tableNames.length) {
-      this.swaggerUpdate({
+      await this.swaggerUpdate({
         addApis: swaggerDoc,
       });
     } else {
@@ -1099,7 +1100,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       await this.xcTablesRowDelete(tn, extras);
 
       delete this.routers[tn];
-      this.swaggerUpdate({
+      await this.swaggerUpdate({
         deleteTags: [tn],
       });
     } catch (e) {
@@ -1122,7 +1123,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
 
       delete this.routers[viewName];
 
-      this.swaggerUpdate({
+      await this.swaggerUpdate({
         deleteTags: [viewName],
       });
     } catch (e) {
@@ -2367,7 +2368,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.log(`onFunctionCreate : Update function and procedure routes`);
     this.procedureCtrl.functionsSet(functions);
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({
+    await this.swaggerUpdate({
       addApis: { paths: this.procedureCtrl.getSwaggerObj().paths },
     });
   }
@@ -2387,7 +2388,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       this.routers.___procedure.stack.length
     );
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({
+    await this.swaggerUpdate({
       addApis: this.procedureCtrl.getSwaggerObj(),
       deleteTags: ['Procedures', 'Functions'],
     });
@@ -2422,7 +2423,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     this.log(`onProcedureCreate : Update function and procedure routes`);
     this.procedureCtrl.proceduresSet(procedures);
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({
+    await this.swaggerUpdate({
       addApis: { paths: this.procedureCtrl.getSwaggerObj().paths },
     });
   }
@@ -2442,7 +2443,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       this.routers.___procedure.stack.length
     );
     this.procedureCtrl.mapRoutes(this.routers.___procedure, this.customRoutes);
-    this.swaggerUpdate({
+    await this.swaggerUpdate({
       addApis: this.procedureCtrl.getSwaggerObj(),
       deleteTags: ['Procedures', 'Functions'],
     });
@@ -2602,8 +2603,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         this.getDbAlias(),
         'swagger'
       );
-      mkdirp.sync(swaggerFilePath);
-      fs.writeFileSync(
+      await mkdirp(swaggerFilePath);
+      await promisify(fs.writeFile)(
         path.join(swaggerFilePath, 'swagger.json'),
         JSON.stringify(swaggerDoc)
       );
@@ -2648,8 +2649,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
         scheme,
         scheme === 'http' ? 'https' : 'http',
       ];
-      glob
-        .sync(
+      await promisify(glob)(
           path.join(
             this.app.getToolDir(),
             'nc',
@@ -2659,8 +2659,8 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
             'swagger.json'
           )
         )
-        .forEach((jsonFile) => {
-          const swaggerJson = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
+        .forEach(async (jsonFile) => {
+          const swaggerJson = JSON.parse(await promisify(fs.readFile)(jsonFile, 'utf8'));
           swaggerBaseDocument.tags.push(...swaggerJson.tags);
           Object.assign(swaggerBaseDocument.paths, swaggerJson.paths);
           Object.assign(
@@ -2709,7 +2709,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
   }
 
   // @ts-ignore
-  private swaggerUpdate(args: {
+  private async swaggerUpdate(args: {
     deleteApis?: any;
     addApis?: any;
     deleteTags?: string[];
@@ -2729,7 +2729,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       'swagger'
     );
     const swaggerJson = JSON.parse(
-      fs.readFileSync(path.join(swaggerFilePath, 'swagger.json'), 'utf8')
+      await promisify(fs.readFile)(path.join(swaggerFilePath, 'swagger.json'), 'utf8')
     );
 
     /* remove tags, paths and keys */
@@ -2795,7 +2795,7 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
       }
     }
 
-    fs.writeFileSync(
+    await promisify(fs.writeFile)(
       path.join(swaggerFilePath, 'swagger.json'),
       JSON.stringify(swaggerJson)
     );

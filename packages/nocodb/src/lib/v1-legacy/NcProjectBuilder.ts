@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 
 import axios from 'axios';
 import { Router } from 'express';
@@ -626,7 +627,7 @@ export default class NcProjectBuilder {
         i++;
       } else if (db.meta?.allSchemas) {
         /* get all schemas and create APIs for all of them */
-        const sqlClient = SqlClientFactory.create({
+        const sqlClient = await SqlClientFactory.create({
           ...db,
           connection: { ...db.connection, database: undefined },
         });
@@ -697,7 +698,7 @@ export default class NcProjectBuilder {
 
       for (const connectionConfig of dbs) {
         try {
-          const sqlClient = NcConnectionMgr.getSqlClient({
+          const sqlClient = await NcConnectionMgr.getSqlClient({
             dbAlias: connectionConfig?.meta?.dbAlias,
             env: this.config.env,
             config: this.config,
@@ -718,7 +719,7 @@ export default class NcProjectBuilder {
             connectionConfig.meta.dbAlias,
             'migrations'
           );
-          if (!fs.existsSync(migrationFolder)) {
+          if (!await promisify(fs.exists)(migrationFolder)) {
             await migrator.init({
               folder: this.app.getToolDir(),
               env: this.appConfig.workingEnv,

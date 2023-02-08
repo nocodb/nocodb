@@ -1,6 +1,7 @@
 import fs from 'fs';
 import parseDbUrl from 'parse-database-url';
 import { URL } from 'url';
+import { promisify } from 'util';
 
 import {
   AuthConfig,
@@ -89,8 +90,8 @@ const knownQueryParams = [
 ];
 
 export default class NcConfigFactory implements NcConfig {
-  public static make(): NcConfig {
-    this.jdbcToXcUrl();
+  public static async make(): Promise<NcConfig> {
+    await this.jdbcToXcUrl();
 
     const ncConfig = new NcConfigFactory();
 
@@ -115,17 +116,17 @@ export default class NcConfigFactory implements NcConfig {
     }
 
     if (process.env.NC_DB) {
-      ncConfig.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
+      ncConfig.meta.db = await this.metaUrlToDbConfig(process.env.NC_DB);
     } else if (process.env.NC_DB_JSON) {
       ncConfig.meta.db = JSON.parse(process.env.NC_DB_JSON);
     } else if (process.env.NC_DB_JSON_FILE) {
       const filePath = process.env.NC_DB_JSON_FILE;
 
-      if (!fs.existsSync(filePath)) {
+      if (!await promisify(fs.exists)(filePath)) {
         throw new Error(`NC_DB_JSON_FILE not found: ${filePath}`);
       }
 
-      const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
+      const fileContent = await promisify(fs.readFile)(filePath, { encoding: 'utf8' });
       ncConfig.meta.db = JSON.parse(fileContent);
     }
 
@@ -291,7 +292,7 @@ export default class NcConfigFactory implements NcConfig {
       .replace(/[ -]/g, '_');
   }
 
-  static metaUrlToDbConfig(urlString) {
+  static async metaUrlToDbConfig(urlString) {
     const url = new URL(urlString);
 
     let dbConfig;
@@ -378,29 +379,29 @@ export default class NcConfigFactory implements NcConfig {
       typeof dbConfig?.connection?.ssl === 'object'
     ) {
       if (dbConfig.connection.ssl.caFilePath && !dbConfig.connection.ssl.ca) {
-        dbConfig.connection.ssl.ca = fs
-          .readFileSync(dbConfig.connection.ssl.caFilePath)
-          .toString();
+        dbConfig.connection.ssl.ca = await promisify(fs.readFile)(
+          dbConfig.connection.ssl.caFilePath
+        ).toString();
       }
       if (dbConfig.connection.ssl.keyFilePath && !dbConfig.connection.ssl.key) {
-        dbConfig.connection.ssl.key = fs
-          .readFileSync(dbConfig.connection.ssl.keyFilePath)
-          .toString();
+        dbConfig.connection.ssl.key = await promisify(fs.readFile)(
+          dbConfig.connection.ssl.keyFilePath
+        ).toString();
       }
       if (
         dbConfig.connection.ssl.certFilePath &&
         !dbConfig.connection.ssl.cert
       ) {
-        dbConfig.connection.ssl.cert = fs
-          .readFileSync(dbConfig.connection.ssl.certFilePath)
-          .toString();
+        dbConfig.connection.ssl.cert = await promisify(fs.readFile)(
+          dbConfig.connection.ssl.certFilePath
+        ).toString();
       }
     }
 
     return dbConfig;
   }
 
-  public static makeProjectConfigFromUrl(url, type?: string): NcConfig {
+  public static async makeProjectConfigFromUrl(url, type?: string): Promise<NcConfig> {
     const config = new NcConfigFactory();
     const dbConfig = this.urlToDbConfig(url, '', config, type);
     // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
@@ -430,7 +431,7 @@ export default class NcConfigFactory implements NcConfig {
     }
 
     if (process.env.NC_DB) {
-      config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
+      config.meta.db = await this.metaUrlToDbConfig(process.env.NC_DB);
     }
 
     if (process.env.NC_TRY) {
@@ -482,10 +483,10 @@ export default class NcConfigFactory implements NcConfig {
     return config;
   }
 
-  public static makeProjectConfigFromConnection(
+  public static async makeProjectConfigFromConnection(
     dbConnectionConfig: any,
     type?: string
-  ): NcConfig {
+  ): Promise<NcConfig> {
     const config = new NcConfigFactory();
     let dbConfig = dbConnectionConfig;
 
@@ -545,7 +546,7 @@ export default class NcConfigFactory implements NcConfig {
     }
 
     if (process.env.NC_DB) {
-      config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
+      config.meta.db = await this.metaUrlToDbConfig(process.env.NC_DB);
     }
 
     if (process.env.NC_TRY) {
@@ -584,7 +585,7 @@ export default class NcConfigFactory implements NcConfig {
 
   public static async metaDbCreateIfNotExist(args: NcConfig) {
     if (args.meta?.db?.client === 'sqlite3') {
-      const metaSqlClient = SqlClientFactory.create({
+      const metaSqlClient = await SqlClientFactory.create({
         ...args.meta.db,
         connection: args.meta.db,
       });
@@ -592,7 +593,7 @@ export default class NcConfigFactory implements NcConfig {
         database: args.meta.db?.connection?.filename,
       });
     } else {
-      const metaSqlClient = SqlClientFactory.create(args.meta.db);
+      const metaSqlClient = await SqlClientFactory.create(args.meta.db);
       await metaSqlClient.createDatabaseIfNotExists(args.meta.db?.connection);
       await metaSqlClient.knex.destroy();
     }
@@ -637,9 +638,9 @@ export default class NcConfigFactory implements NcConfig {
     this.envs = { _noco: { db: [] } };
   }
 
-  public static jdbcToXcUrl() {
+  public static async jdbcToXcUrl() {
     if (process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE) {
-      const database_url = fs.readFileSync(
+      const database_url = await promisify(fs.readFile)(
         process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
         'utf-8'
       );

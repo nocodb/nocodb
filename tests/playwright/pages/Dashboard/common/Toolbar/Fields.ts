@@ -31,12 +31,12 @@ export class ToolbarFieldsPage extends BasePage {
     await this.toolbar.clickFields();
   }
 
-  async verify({ title, checked }: { title: string; checked: boolean }) {
+  async verify({ title, checked }: { title: string; checked?: boolean }) {
     const checkbox = this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]');
 
     if (checked) {
       await expect(checkbox).toBeChecked();
-    } else {
+    } else if (checked === false) {
       await expect(checkbox).not.toBeChecked();
     }
   }

@@ -176,6 +176,14 @@ export const DraggableBlock = Node.create<DBlockOptions>({
           return false
         })
 
+        const nextNode = editor.state.doc.nodeAt(from + 4)
+        if (nextNode?.type.name === 'tableRow') {
+          return editor
+            .chain()
+            .focus(from + 6)
+            .run()
+        }
+
         return editor
           .chain()
           .focus(from + 4)

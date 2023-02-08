@@ -95,8 +95,8 @@ watchDebounced(
     showMenuDebounced.value = value
   },
   {
-    debounce: 100,
-    maxWait: 600,
+    debounce: 200,
+    maxWait: 800,
     immediate: true,
   },
 )

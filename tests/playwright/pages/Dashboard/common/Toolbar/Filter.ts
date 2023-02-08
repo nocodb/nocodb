@@ -44,11 +44,17 @@ export class ToolbarFilterPage extends BasePage {
   }) {
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
-    await this.rootPage.locator('.nc-filter-field-select').last().click();
-    await this.rootPage
-      .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-      .locator(`div[label="${columnTitle}"]`)
-      .click();
+    const selectedField = await this.rootPage.locator('.nc-filter-field-select').textContent();
+    if (selectedField !== columnTitle) {
+      await this.rootPage.locator('.nc-filter-field-select').last().click();
+      await this.rootPage
+        .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+        .locator(`div[label="${columnTitle}"]`)
+        .click();
+    }
+
+    // network request will be triggered only after filter value is configured
+    //
     // const selectColumn = this.rootPage
     //   .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
     //   .locator(`div[label="${columnTitle}"]`)

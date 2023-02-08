@@ -36,17 +36,20 @@ export class ToolbarSortPage extends BasePage {
     await this.get().locator(`button:has-text("Add Sort Option")`).click();
 
     await this.rootPage.locator('.nc-sort-field-select').last().click();
-    const selectColumn = this.rootPage
-      .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-      .locator(`div[label="${columnTitle}"]`)
-      .last()
-      .click();
-    await this.waitForResponse({
-      uiAction: selectColumn,
-      httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
-      requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/sorts`,
-    });
-    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+
+    // network request will be triggered only after dir-select is clicked
+    //
+    // const selectColumn = this.rootPage
+    //   .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+    //   .locator(`div[label="${columnTitle}"]`)
+    //   .last()
+    //   .click();
+    // await this.waitForResponse({
+    //   uiAction: selectColumn,
+    //   httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
+    //   requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/sorts`,
+    // });
+    // await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
 
     await this.rootPage.locator('.nc-sort-dir-select').last().click();
     const selectSortDirection = this.rootPage

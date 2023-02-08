@@ -101,6 +101,7 @@ test.describe('Shared view', () => {
      **/
 
     // create new sort & filter criteria in shared view
+    await sharedPage.grid.toolbar.sort.reset();
     await sharedPage.grid.toolbar.sort.add({
       columnTitle: 'Address',
       isAscending: true,
@@ -232,12 +233,12 @@ const expectedRecords = [
 ];
 
 const sqliteExpectedRecords = [
-  { index: 0, columnHeader: 'Address', value: '217 Botshabelo Place' },
-  { index: 1, columnHeader: 'Address', value: '17 Kabul Boulevard' },
-  { index: 2, columnHeader: 'Address', value: '1888 Kabul Drive' },
-  { index: 0, columnHeader: 'PostalCode', value: '49521' },
-  { index: 1, columnHeader: 'PostalCode', value: '38594' },
-  { index: 2, columnHeader: 'PostalCode', value: '20936' },
+  { index: 0, columnHeader: 'Address', value: '669 Firozabad Loop' },
+  { index: 1, columnHeader: 'Address', value: '48 Maracabo Place' },
+  { index: 2, columnHeader: 'Address', value: '44 Najafabad Way' },
+  { index: 0, columnHeader: 'PostalCode', value: '92265' },
+  { index: 1, columnHeader: 'PostalCode', value: '1570' },
+  { index: 2, columnHeader: 'PostalCode', value: '61391' },
 ];
 
 const expectedRecords2 = [
@@ -272,8 +273,8 @@ const expectedVirtualRecords = [
 ];
 
 const sqliteExpectedVirtualRecords = [
-  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
+  { index: 0, columnHeader: 'Customer List', count: 1, value: ['1'] },
   { index: 1, columnHeader: 'Customer List', count: 1, value: ['1'] },
-  { index: 0, columnHeader: 'City', count: 1, value: ['Davao'] },
-  { index: 1, columnHeader: 'City', count: 1, value: ['Nagareyama'] },
+  { index: 0, columnHeader: 'City', count: 1, value: ['al-Ayn'] },
+  { index: 1, columnHeader: 'City', count: 1, value: ['Talavera'] },
 ];

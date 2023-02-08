@@ -8,7 +8,7 @@ link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme
 ---
 
 By default, if `NC_DB` is not specified upon 
-<a href="./installation" target="_blank">installation</a>, then SQLite will be used to restore your meta data. We suggest users to separate the meta data and user data in different databases as pictured in our <a href="../engineering/architecture" target="_blank">architecture</a>. 
+<a href="./installation" target="_blank">installation</a>, then SQLite will be used to store metadata. We suggest users to separate the metadata and user data in different databases as pictured in our <a href="../engineering/architecture" target="_blank">architecture</a>. 
 
 ## Docker
 

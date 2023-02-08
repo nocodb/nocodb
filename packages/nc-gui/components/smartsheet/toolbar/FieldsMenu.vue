@@ -188,7 +188,7 @@ useMenuCloseOnEsc(open)
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
               <div
-                v-if="filteredFieldList.slice(1).includes(field)"
+                v-if="filteredFieldList.slice(activeView?.type === ViewTypes.GRID ? 1 : 0).includes(field)"
                 :key="field.id"
                 class="px-2 py-1 flex items-center"
                 :data-testid="`nc-fields-menu-${field.title}`"
@@ -212,7 +212,7 @@ useMenuCloseOnEsc(open)
                 <MdiDrag class="cursor-move" />
               </div>
             </template>
-            <template #header>
+            <template v-if="activeView?.type === ViewTypes.GRID" #header>
               <div
                 v-if="filteredFieldList[0]"
                 v-show="filteredFieldList[0]"

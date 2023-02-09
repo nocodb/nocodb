@@ -106,10 +106,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 
         <!-- Render normal cell -->
         <template v-else>
-          <div
-            v-if="isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object'"
-            class="min-w-max"
-          >
+          <div v-if="isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object'">
             <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
           </div>
           <!-- For attachment cell avoid adding chip style -->

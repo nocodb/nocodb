@@ -65,7 +65,7 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { getAttachmentSrc, showFallback } = useAttachment()
+const { getPossibleAttachmentSrc } = useAttachment()
 
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
 
@@ -202,14 +202,11 @@ watch(view, async (nextView) => {
                   <div style="z-index: 1"></div>
                 </template>
 
-                <LazyNuxtImg
+                <LazyCellAttachmentImage
                   v-for="(attachment, index) in attachments(record)"
                   :key="`carousel-${record.row.id}-${index}`"
-                  quality="90"
-                  placeholder
                   class="h-52 object-contain"
-                  :src="getAttachmentSrc(attachment)"
-                  :onerror="(e) => showFallback(e, attachment)"
+                  :src="getPossibleAttachmentSrc(attachment)"
                 />
               </a-carousel>
 

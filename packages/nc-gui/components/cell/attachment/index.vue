@@ -10,7 +10,6 @@ import {
   inject,
   isImage,
   nextTick,
-  openLink,
   ref,
   useAttachment,
   useDropZone,
@@ -47,7 +46,7 @@ const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
 
 const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
 
-const { getAttachmentSrc, showFallback } = useAttachment()
+const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
 
 const {
   isPublic,
@@ -223,21 +222,13 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
 
-            <template v-if="isImage(item.title, item.mimetype ?? item.type) && getAttachmentSrc(item)">
+            <template v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
-                <LazyNuxtImg
-                  quality="75"
-                  placeholder
-                  fit="cover"
-                  :alt="item.title || `#${i}`"
-                  :src="getAttachmentSrc(item)"
-                  class="max-w-full max-h-full"
-                  :onerror="(e) => showFallback(e, item)"
-                />
+                <LazyCellAttachmentImage :alt="item.title || `#${i}`" :src="getPossibleAttachmentSrc(item)" />
               </div>
             </template>
 
-            <div v-else class="nc-attachment flex items-center justify-center" @click="openLink(item.url || item.data)">
+            <div v-else class="nc-attachment flex items-center justify-center" @click="openAttachment(item)">
               <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
               <IcOutlineInsertDriveFile v-else />

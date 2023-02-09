@@ -9,7 +9,7 @@ const carouselRef = ref()
 
 const imageItems = computed(() => visibleItems.value.filter((item) => isImage(item.title, item.mimetype)))
 
-const { getAttachmentSrc, showFallback } = useAttachment()
+const { getPossibleAttachmentSrc } = useAttachment()
 
 /** navigate to previous image on button click */
 onKeyDown(
@@ -84,18 +84,15 @@ onClickOutside(carouselRef, () => {
 
           <template #customPaging="props">
             <a>
-              <LazyNuxtImg
-                quality="90"
-                placeholder
+              <LazyCellAttachmentImage
                 class="!block"
                 :alt="imageItems[props.i].title || `#${props.i}`"
-                :src="getAttachmentSrc(imageItems[props.i])"
-                :onerror="(e) => showFallback(e, imageItems[props.i])"
+                :src="getPossibleAttachmentSrc(imageItems[props.i])"
               />
             </a>
           </template>
-          <div v-for="item of imageItems" :key="getAttachmentSrc(item)">
-            <LazyNuxtImg :src="getAttachmentSrc(item)" class="max-w-70vw max-h-70vh" :onerror="(e) => showFallback(e, item)" />
+          <div v-for="(item, idx) of imageItems" :key="idx">
+            <LazyCellAttachmentImage :src="getPossibleAttachmentSrc(item)" class="max-w-70vw max-h-70vh" />
           </div>
         </a-carousel>
       </div>

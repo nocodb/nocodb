@@ -16,10 +16,10 @@ const onError = () => index.value++
     v-if="index < props.src.length"
     class="m-auto"
     :src="props.src[index]"
-    :onerror="onError"
     :alt="props?.alt || ''"
     placeholder
     quality="75"
+    @error="onError"
   />
   <MdiFileImageBox v-else />
 </template>

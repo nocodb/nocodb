@@ -187,6 +187,20 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         ncMeta,
         migrateToBlankFilter
       );
+    } else if (col.uidt === UITypes.Lookup) {
+      actions = await removeArithmeticFilters(filter, actions, ncMeta);
+      actions = await removeEmptyFilters(
+        filter,
+        actions,
+        ncMeta,
+        migrateToBlankFilter
+      );
+      actions = await removeNullFilters(
+        filter,
+        actions,
+        ncMeta,
+        migrateToBlankFilter
+      );
     }
   }
   await Promise.all(actions);

@@ -3,13 +3,14 @@ import Column from '../../../models/Column';
 import Model from '../../../models/Model';
 import NcHelp from '../../../utils/NcHelp';
 import Base from '../../../models/Base';
+import View from '../../../models/View';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import getTableNameAlias, { getColumnNameAlias } from '../../helpers/getTableName';
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import getColumnUiType from '../../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../../helpers/mapDefaultPrimaryValue';
 import { extractAndGenerateManyToManyRelations } from '../metaDiffApis';
-import { ModelTypes, UITypes } from 'nocodb-sdk';
+import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { IGNORE_TABLES } from '../../../utils/common/BaseApiBuilder';
 
 export async function populateMeta(base: Base, project: Project): Promise<any> {
@@ -24,7 +25,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
   };
 
   const t = process.hrtime();
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
   let order = 1;
   const models2: { [tableName: string]: Model } = {};
 
@@ -253,6 +254,18 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
   });
 
   await NcHelp.executeOperations(viewMetasInsert, base.type);
+
+  // fix pv column for created grid views
+  const models = await Model.list({ project_id: project.id, base_id: base.id });
+
+  for (const model of models) {
+    const views = await model.getViews()
+    for (const view of views) {
+      if (view.type === ViewTypes.GRID) {
+        await View.fixPVColumnForView(view.id);
+      }
+    }
+  }
 
   const t1 = process.hrtime(t);
   const t2 = t1[0] + t1[1] / 1000000000;

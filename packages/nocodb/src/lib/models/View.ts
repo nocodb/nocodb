@@ -1184,6 +1184,9 @@ export default class View implements ViewType {
     if (primary_value_column_meta) {
       const primary_value_column = view_columns.find((col) => col.fk_column_id === primary_value_column_meta.id);
       const primary_value_column_index = view_columns.findIndex((col) => col.fk_column_id === primary_value_column_meta.id);
+      const view_orders = view_columns.map((col) => col.order);
+      const view_min_order = Math.min(...view_orders);
+
       // if primary_value_column is not visible, make it visible
       if (!primary_value_column.show) {
         await ncMeta.metaUpdate(
@@ -1199,7 +1202,7 @@ export default class View implements ViewType {
         );
       }
 
-      if (primary_value_column.order < 2) {
+      if (primary_value_column.order === view_min_order && view_orders.filter((o) => o === view_min_order).length === 1) {
         // if primary_value_column is in first order do nothing
         return;
       } else {

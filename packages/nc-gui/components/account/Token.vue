@@ -81,14 +81,18 @@ const generateToken = async () => {
   $e('a:api-token:generate')
 }
 
-const copyToken = (token: string | undefined) => {
+const copyToken = async (token: string | undefined) => {
   if (!token) return
 
-  copy(token)
-  // Copied to clipboard
-  message.info(t('msg.info.copiedToClipboard'))
+  try {
+    await copy(token)
+    // Copied to clipboard
+    message.info(t('msg.info.copiedToClipboard'))
 
-  $e('c:api-token:copy')
+    $e('c:api-token:copy')
+  } catch (e) {
+    message.error(e.message)
+  }
 }
 
 const descriptionInput = (el) => {

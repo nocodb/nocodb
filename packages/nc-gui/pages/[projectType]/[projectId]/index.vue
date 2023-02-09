@@ -52,7 +52,7 @@ const { clearTabs, addTab } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
-const { copy } = useCopy()
+const { copy } = useCopy(true)
 
 // create a new sidebar state
 const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: false })
@@ -128,15 +128,17 @@ const copyProjectInfo = async () => {
   try {
     await loadProjectMetaInfo()
 
-    await copy(
-      Object.entries(projectMetaInfo.value!)
-        .map(([k, v]) => `${k}: **${v}**`)
-        .join('\n'),
-    )
-
-    // Copied to clipboard
-    message.info(t('msg.info.copiedToClipboard'))
-  } catch (e: any) {
+    if (
+      await copy(
+        Object.entries(projectMetaInfo.value!)
+          .map(([k, v]) => `${k}: **${v}**`)
+          .join('\n'),
+      )
+    ) {
+      // Copied to clipboard
+      message.info(t('msg.info.copiedToClipboard'))
+    }
+  } catch (e) {
     console.error(e)
     message.error(e.message)
   }
@@ -144,9 +146,10 @@ const copyProjectInfo = async () => {
 
 const copyAuthToken = async () => {
   try {
-    await copy(token.value!)
-    // Copied to clipboard
-    message.info(t('msg.info.copiedToClipboard'))
+    if (await copy(token.value!)) {
+      // Copied to clipboard
+      message.info(t('msg.info.copiedToClipboard'))
+    }
   } catch (e: any) {
     console.error(e)
     message.error(e.message)

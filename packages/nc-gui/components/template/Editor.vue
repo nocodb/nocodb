@@ -501,16 +501,12 @@ async function importTemplate() {
             }
           }
         }
-        const createdTable = await $api.base.tableCreate(
-          project.value?.id as string,
-          (baseId || project.value?.bases?.[0].id)!,
-          {
-            table_name: table.table_name,
-            // leave title empty to get a generated one based on table_name
-            title: '',
-            columns: table.columns || [],
-          },
-        )
+        const createdTable = await $api.base.tableCreate(project.value?.id as string, (baseId || project.value?.bases?.[0].id)!, {
+          table_name: table.table_name,
+          // leave title empty to get a generated one based on table_name
+          title: '',
+          columns: table.columns || [],
+        })
         table.id = createdTable.id
         table.title = createdTable.title
 

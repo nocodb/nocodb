@@ -1,6 +1,9 @@
-import { useClipboard } from '#imports'
+import { Modal } from 'ant-design-vue'
+import { useClipboard, useI18n } from '#imports'
 
-export const useCopy = () => {
+export const useCopy = (showDialogIfFailed = false) => {
+  const { t } = useI18n()
+
   /** fallback for copy if clipboard api is not supported */
   const copyFallback = async (text: string, retryCount = 0): Promise<boolean> => {
     try {
@@ -12,7 +15,15 @@ export const useCopy = () => {
       document.body.removeChild(textAreaEl)
       if (!result && retryCount < 3) {
         // retry if copy failed
-        return new Promise((resolve) => setTimeout(() => resolve(copyFallback(text, retryCount + 1)), 100))
+        return new Promise((resolve, reject) =>
+          setTimeout(
+            () =>
+              copyFallback(text, retryCount + 1)
+                .then(resolve)
+                .catch(reject),
+            100,
+          ),
+        )
       }
 
       if (!result) {
@@ -20,8 +31,15 @@ export const useCopy = () => {
       }
       return result
     } catch (e) {
-      throw new Error('Clipboard copy failed, please copy it from console log')
-      console.log(text)
+      if (!showDialogIfFailed) throw new Error(t('msg.error.copyToClipboardError'))
+
+      Modal.info({
+        title: 'Copy failed, please manually copy it from here',
+        content: text,
+        class: 'nc-copy-failed-modal',
+        width: '550px',
+      })
+      return false
     }
   }
 
@@ -32,12 +50,10 @@ export const useCopy = () => {
       if (isSupported.value) {
         await _copy(text)
         return true
-      } else {
-        return copyFallback(text)
       }
-    } catch (e) {
-      return copyFallback(text)
-    }
+    } catch {}
+
+    return copyFallback(text)
   }
 
   return { copy }

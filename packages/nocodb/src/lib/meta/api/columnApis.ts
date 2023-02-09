@@ -52,6 +52,9 @@ export enum Altered {
 
 // generate unique foreign key constraint name for foreign key
 const generateFkConstraintName = (parent: TableType, child: TableType) => {
+  // generate a unique constraint name by taking first 10 chars of parent and child table name (by replacing all non word chars with _)
+  // and appending a random string of 15 chars maximum length.
+  // In database constraint name can be upto 64 chars and here we are generating a name of maximum 40 chars
   const constraintName = `fk_${parent.table_name
     .replace(/\W+/g, '_')
     .slice(0, 10)}_${child.table_name
@@ -326,7 +329,7 @@ export async function columnAdd(
                 onUpdate: 'NO ACTION',
                 type: 'real',
                 parentColumn: parent.primaryKey.column_name,
-                foreignKeyName: generateFkConstraintName(parent, child), //generateFkConstraintName()
+                foreignKeyName: generateFkConstraintName(parent, child),
               });
             }
 

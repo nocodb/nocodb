@@ -1,4 +1,8 @@
-export default (ncSiteUrl: string): string => `<!DOCTYPE html>
+export default ({
+  ncSiteUrl,
+}: {
+  ncSiteUrl: string;
+}): string => `<!DOCTYPE html>
 <html>
 <head>
     <title>NocoDB API Documentation</title>

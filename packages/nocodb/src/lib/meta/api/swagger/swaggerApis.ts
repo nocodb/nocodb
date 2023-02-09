@@ -38,12 +38,12 @@ async function swaggerJson(req, res) {
   res.json(swagger);
 }
 
-function swaggerHtml(req, res) {
-  res.send(getSwaggerHtml(req.ncSiteUrl));
+function swaggerHtml(_, res) {
+  res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
 }
 
-function redocHtml(req, res) {
-  res.send(getRedocHtml(req.ncSiteUrl));
+function redocHtml(_, res) {
+  res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
 }
 
 const router = Router({ mergeParams: true });

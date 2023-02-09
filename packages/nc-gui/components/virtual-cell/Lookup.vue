@@ -6,7 +6,6 @@ import {
   CellValueInj,
   ColumnInj,
   MetaInj,
-  ReadonlyInj,
   computed,
   inject,
   isAttachment,
@@ -27,7 +26,7 @@ const cellValue = inject(CellValueInj, ref())
 
 const relationColumn = computed(
   () =>
-    meta.value?.columns?.find((c) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
+    meta.value?.columns?.find((c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
       | (ColumnType & {
           colOptions: LinkToAnotherRecordType | undefined
         })
@@ -36,7 +35,7 @@ const relationColumn = computed(
 
 watch(
   relationColumn,
-  async (relationCol) => {
+  async (relationCol: { colOptions: LinkToAnotherRecordType }) => {
     if (relationCol && relationCol.colOptions) await getMeta(relationCol.colOptions.fk_related_model_id!)
   },
   { immediate: true },

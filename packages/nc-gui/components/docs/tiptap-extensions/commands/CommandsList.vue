@@ -20,6 +20,7 @@ import IcOutlineInfo from '~icons/ic/outline-info'
 import IcRoundStar from '~icons/ic/round-star-outline'
 import IcRoundWarning from '~icons/ph/warning-circle-bold'
 import MdiTable from '~icons/mdi/table'
+import MdiYoutube from '~icons/mdi/youtube'
 
 interface Props {
   command: Function
@@ -31,6 +32,9 @@ const { command, query, editor } = defineProps<Props>()
 
 const { magicOutline, openedPage } = useDocs()
 
+const isLinkInputFormState = ref(false)
+const linkInputRef = ref()
+const linkUrl = ref('')
 const fileInput = ref()
 const loadingOperationName = ref('')
 
@@ -39,6 +43,13 @@ const onFilePicked = (event: any) => {
   const file = files[0]
 
   ;(editor.chain().focus() as any).setImage({ src: file, clearCurrentNode: true }).run()
+}
+
+const insertLink = () => {
+  isLinkInputFormState.value = false
+  editor.chain().focus().setExternalContent({
+    url: linkUrl.value,
+  })
 }
 
 const items = [
@@ -199,6 +210,16 @@ const items = [
     hasDivider: true,
   },
   {
+    title: 'Youtube',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormState.value = true
+    },
+    icon: MdiYoutube,
+    iconClass: '',
+    hasDivider: true,
+  },
+  {
     title: 'Outline page',
     class: 'text-xs',
     command: ({ editor }: { editor: Editor }) => {
@@ -288,6 +309,12 @@ watch(items, () => {
   selectedIndex.value = 0
 })
 
+watch(linkInputRef, (value) => {
+  if (value) {
+    value.focus()
+  }
+})
+
 defineExpose({
   onKeyDown,
 })
@@ -295,7 +322,22 @@ defineExpose({
 
 <template>
   <div class="items">
-    <template v-if="filterItems.length">
+    <template v-if="isLinkInputFormState">
+      <div class="flex flex-col w-64">
+        <div class="w-6 rounded-md my-1 p-1 cursor-pointer hover:bg-gray-200" @click="isLinkInputFormState = false">
+          <MdiArrowLeft />
+        </div>
+        <input
+          ref="linkInputRef"
+          v-model="linkUrl"
+          class="w-full my-1 py-1 px-2 border-0 bg-gray-100 text-sm rounded-md focus:outline-none !focus:shadow-none !focus:ring-warmGray-50"
+          type="text"
+          placeholder="Enter link"
+          @keydown.enter="insertLink"
+        />
+      </div>
+    </template>
+    <template v-else-if="filterItems.length">
       <template v-for="(item, index) in filterItems" :key="item.title">
         <a-button
           class="item !flex !flex-row !items-center"

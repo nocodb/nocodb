@@ -18,6 +18,7 @@ import {
   createEventHook,
   extractPkFromRow,
   inject,
+  isImage,
   isLTAR,
   nextTick,
   onMounted,
@@ -202,12 +203,14 @@ watch(view, async (nextView) => {
                   <div style="z-index: 1"></div>
                 </template>
 
-                <LazyCellAttachmentImage
-                  v-for="(attachment, index) in attachments(record)"
-                  :key="`carousel-${record.row.id}-${index}`"
-                  class="h-52 object-contain"
-                  :src="getPossibleAttachmentSrc(attachment)"
-                />
+                <template v-for="(attachment, index) in attachments(record)">
+                  <LazyCellAttachmentImage
+                    v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
+                    :key="`carousel-${record.row.id}-${index}`"
+                    class="h-52 object-contain"
+                    :src="getPossibleAttachmentSrc(attachment)"
+                  />
+                </template>
               </a-carousel>
 
               <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />

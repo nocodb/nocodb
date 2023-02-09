@@ -1,0 +1,21 @@
+{    
+    "name": "nocohub-001-cp",    
+    "autoScalingGroupProvider": {
+        "autoScalingGroupArn": "arn:aws:autoscaling:us-east-2:249717198246:autoScalingGroup:9481301f-2990-4dd9-93df-3886cc2f2d60:autoScalingGroupName/nocohub-001-t3small-for-ecs-temp-10",
+        "managedScaling": {
+            "status": "ENABLED",
+            "targetCapacity": 100,
+            "minimumScalingStepSize": 1,
+            "maximumScalingStepSize": 10000,
+            "instanceWarmupPeriod": 300
+        },
+        "managedTerminationProtection": "DISABLED"
+    },
+    "tags": [
+        {
+            "key": "nocohub-001",
+            "value": "true"
+        }
+    ]
+}
+

@@ -1,7 +1,7 @@
 {
-   "MaxCapacity": 9,
+   "MaxCapacity": 8,
    "MinCapacity": 1,
-   "ResourceId": "service/nocohub-001/nocohub-service-cli",
+   "ResourceId": "service/nocohub-001-a/nocohub-service",
    "RoleARN": "arn:aws:iam::249717198246:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
    "ScalableDimension": "ecs:service:DesiredCount",
    "ServiceNamespace": "ecs",

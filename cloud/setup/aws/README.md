@@ -28,6 +28,8 @@ aws autoscaling  create-auto-scaling-group --auto-scaling-group-name nocohub-001
 `
 
 ## step 6: ecs 
+- create cluster using UI along with asg as capacity provider (it is found that creating through cli in erroneous and instances wont come up. this needs to be followed up with aws)
+[alternatively use fargate as capacity provider]
 - create task definition \
 `aws ecs register-task-definition --family  nocohub-001-task-definition --region us-east-2 --cli-input-json file://task_definition_ec2.json`
 - create serivce with capacityProviderStrategy, CODE_DEPLOY \
@@ -47,8 +49,8 @@ aws autoscaling  create-auto-scaling-group --auto-scaling-group-name nocohub-001
 `aws deploy  create-deployment-group --region us-east-2 --cli-input-json file://cd-deployment-group.json`
 - create deployment, use it in script 
     ```
-    AWS_APPLICATION_NAME=nocohub-001
-    AWS_DEPLOYMENT_GROUP_NAME=cd-2
+    AWS_APPLICATION_NAME=nocohub-001-cd
+    AWS_DEPLOYMENT_GROUP_NAME=nocohub-service
     CONTAINER_NAME="nocohub"
     AWS_TASK_DEFINITION_ARN="arn:aws:ecs:us-east-2:249717198246:task-definition/nocohub-001-task-definition:3"
     APPSPEC=$(echo '{"version":1,"Resources":[{"TargetService":{"Type":"AWS::ECS::Service","Properties":{"TaskDefinition":"'${AWS_TASK_DEFINITION_ARN}'","LoadBalancerInfo":{"ContainerName":"'${CONTAINER_NAME}'","ContainerPort":8080}}}}]}' | jq -Rs .)

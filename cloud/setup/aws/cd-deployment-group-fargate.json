@@ -1,8 +1,29 @@
 {
-        "applicationName": "nocohub-001-cd",        
-        "deploymentGroupName": "nocohub-service",
+        "applicationName": "AppECS-nocohub-001-nocohub-001-cd-fargate",
+        "deploymentGroupName": "nocohub-001-fargate",
         "deploymentConfigName": "CodeDeployDefault.ECSLinear10PercentEvery1Minutes",
-        "serviceRoleArn": "arn:aws:iam::249717198246:role/nocohub-codedeploy",        
+        
+        "autoScalingGroups": [],
+
+        "serviceRoleArn": "arn:aws:iam::249717198246:role/nocohub-codedeploy",
+        "targetRevision": {
+            "revisionType": "AppSpecContent",
+            "appSpecContent": {
+                "sha256": "3dccc47bb3b691063ea90e807000adeab70a844370b5b869240bbbdba1e18053"
+            }
+        },
+        "triggerConfigurations": [],
+        "alarmConfiguration": {
+            "enabled": false,
+            "ignorePollAlarmFailure": false,
+            "alarms": []
+        },
+        "autoRollbackConfiguration": {
+            "enabled": true,
+            "events": [
+                "DEPLOYMENT_FAILURE"
+            ]
+        },
         "deploymentStyle": {
             "deploymentType": "BLUE_GREEN",
             "deploymentOption": "WITH_TRAFFIC_CONTROL"
@@ -11,7 +32,7 @@
         "blueGreenDeploymentConfiguration": {
             "terminateBlueInstancesOnDeploymentSuccess": {
                 "action": "TERMINATE",
-                "terminationWaitTimeInMinutes": 1
+                "terminationWaitTimeInMinutes": 0
             },
             "deploymentReadyOption": {
                 "actionOnTimeout": "CONTINUE_DEPLOYMENT",
@@ -23,10 +44,10 @@
                 {
                     "targetGroups": [
                         {
-                            "name": "nocohub-001-ecs-target-group"
+                            "name": "nocohub-001-fargate-1"
                         },
                         {
-                            "name": "nocohub-001-ecs-target-group-2"
+                            "name": "nocohub-001-fargate-2"
                         }
                     ],
                     "prodTrafficRoute": {
@@ -39,8 +60,8 @@
         },        
         "ecsServices": [
             {
-                "serviceName": "nocohub-service",
+                "serviceName": "nocohub-001-fargate",
                 "clusterName": "nocohub-001-a"
             }
         ]
-}
+    }

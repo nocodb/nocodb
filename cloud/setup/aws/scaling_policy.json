@@ -1,7 +1,7 @@
 {
     "PolicyName": "cpu_cli_manual",
     "ServiceNamespace": "ecs",
-    "ResourceId": "service/nocohub-001/nocohub-service-cli",
+    "ResourceId": "service/nocohub-001-a/nocohub-service",
     "ScalableDimension": "ecs:service:DesiredCount",
     "PolicyType": "TargetTrackingScaling"
 }

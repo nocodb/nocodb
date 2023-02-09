@@ -1,6 +1,6 @@
 {    
-    "serviceName": "nocohub-001-cd-fargate-TEST",
-    "cluster": "nocohub-001",
+    "serviceName": "nocohub-001-fargate",
+    "cluster": "nocohub-001-a",
     "loadBalancers": [
         {
             "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:249717198246:targetgroup/nocohub-001-fargate-1/ca7fbc7784f980f4",

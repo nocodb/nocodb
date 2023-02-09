@@ -1,11 +1,11 @@
 {    
-        "AutoScalingGroupName": "nocohub-001-t3small-for-ecs",        
+        "AutoScalingGroupName": "nocohub-001-t3small-for-ecs-temp-10",        
         "LaunchTemplate": {
-            "LaunchTemplateId": "lt-0322463d2aa50a198",            
+            "LaunchTemplateId": "lt-08c1d87f2559e500e",            
             "Version": "$Default"
         },
         "MinSize": 1,
-        "MaxSize": 12,
+        "MaxSize": 2,
         "DesiredCapacity": 1,
         "DefaultCooldown": 300,
         "AvailabilityZones": [
@@ -15,14 +15,14 @@
         ],
         "LoadBalancerNames": [],
         "TargetGroupARNs": [
-            "arn:aws:elasticloadbalancing:us-east-2:249717198246:targetgroup/nocohub-001-ecs-target-group/65afd18ce54b8c81"
+            "arn:aws:elasticloadbalancing:us-east-2:249717198246:targetgroup/nocohub-001-ecs-target-group/65afd18ce54b8c81"            
         ],
         "HealthCheckType": "EC2",
         "HealthCheckGracePeriod": 300,                        
         "VPCZoneIdentifier": "subnet-0f815721f89468e42,subnet-082a8e3d794066249,subnet-02a16be8d48549012",       
         "Tags": [
             {
-                "ResourceId": "nocohub-001-t3small-for-ecs",
+                "ResourceId": "nocohub-001-t3small-for-ecs-temp-10",
                 "ResourceType": "auto-scaling-group",
                 "Key": "AmazonECSManaged",
                 "Value": "",

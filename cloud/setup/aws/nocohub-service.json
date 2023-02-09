@@ -1,6 +1,6 @@
 {
-    "serviceName": "nocohub-service-cli",
-    "cluster": "nocohub-001",
+    "serviceName": "nocohub-service",
+    "cluster": "nocohub-001-a",
     "loadBalancers": [
       {
         "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:249717198246:targetgroup/nocohub-001-ecs-target-group/65afd18ce54b8c81",
@@ -12,12 +12,12 @@
     "desiredCount": 1,
     "capacityProviderStrategy": [
       {
-        "capacityProvider": "nocohub-001-ecs-t3micro",
+        "capacityProvider": "Infra-ECS-Cluster-nocohub-001-a-dacc1b18-EC2CapacityProvider-9O4bIYBOunVE",
         "weight": 1,
         "base": 0
       }
     ],
-    "taskDefinition": "arn:aws:ecs:us-east-2:249717198246:task-definition/nocohub-001-task-definition:2",
+    "taskDefinition": "arn:aws:ecs:us-east-2:249717198246:task-definition/nocohub-001-task-definition:3",
     "deploymentConfiguration": {
       "maximumPercent": 200,
       "minimumHealthyPercent": 100

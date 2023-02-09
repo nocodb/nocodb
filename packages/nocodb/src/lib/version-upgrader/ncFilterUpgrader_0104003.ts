@@ -9,8 +9,9 @@ import { UITypes } from 'nocodb-sdk';
 // this upgrader is to remove those unsupported filters / migrate to the correct filter
 // changes:
 // - remove `>`, `<`, `>=`, `<=` for text-based columns
-// - remove `like`, `null`, and `empty` for numeric-based columns - migrate to `blank` from `null` and `empty`
+// - remove `like`, `null`, and `empty` for numeric-based / singleSelect columns - migrate to `blank` from `null` and `empty`
 // - remove `is null`, `is not null` for checkbox columns - migrate `equal` and `not equal` to `checked` and `not checked`
+// - remove `like`, `null`, `equal` and `empty` for multiSelect columns
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
@@ -46,7 +47,6 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         UITypes.Rollup,
         // select fields
         UITypes.SingleSelect,
-        UITypes.MultiSelect,
       ].includes(col.uidt)
     ) {
       if (['like', 'nlike'].includes(filter.comparison_op)) {
@@ -61,10 +61,25 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       }
     } else if (col.uidt === UITypes.Checkbox) {
       if (['eq', 'neq'].includes(filter.comparison_op)) {
+        actions.push(await Filter.delete(filter, ncMeta));
         // TODO: migrate to `checked` or `not-checked`
       } else if (['null', 'notnull'].includes(filter.comparison_op)) {
         // remove `is null`, `is not null`
         actions.push(await Filter.delete(filter, ncMeta));
+      }
+    } else if (col.uidt === UITypes.MultiSelect) {
+      if (['eq', 'neq'].includes(filter.comparison_op)) {
+        // TODO: migrate to "contains any of" or "contains all of"
+        // TODO: migrate to "doesnt contain any of" or "doesnt contain all of"
+      } else if (['like', 'nlike'].includes(filter.comparison_op)) {
+        // remove `is like`, `is not like`
+        actions.push(await Filter.delete(filter, ncMeta));
+      } else if (
+        ['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)
+      ) {
+        // remove `is null`, `is not null`, `is empty`, `is not empty`
+        actions.push(await Filter.delete(filter, ncMeta));
+        // TODO: migrate to blank / not blank
       }
     }
   }

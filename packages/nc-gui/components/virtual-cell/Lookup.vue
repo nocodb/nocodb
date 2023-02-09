@@ -92,12 +92,17 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
               :edit-enabled="false"
               :model-value="v"
               :column="lookupColumn"
-              :readOnly="true"
+              :read-only="true"
             />
           </template>
 
-          <LazySmartsheetVirtualCell v-else :edit-enabled="false"
-                                     :readOnly="true" :model-value="arrValue" :column="lookupColumn" />
+          <LazySmartsheetVirtualCell
+            v-else
+            :edit-enabled="false"
+            :read-only="true"
+            :model-value="arrValue"
+            :column="lookupColumn"
+          />
         </div>
 
         <!-- Render normal cell -->
@@ -106,8 +111,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
             v-if="isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object'"
             class="min-w-max"
           >
-            <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false"
-                                :readOnly="true" />
+            <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
           </div>
           <!-- For attachment cell avoid adding chip style -->
           <template v-else>
@@ -122,8 +126,13 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                 ),
               }"
             >
-              <LazySmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" :virtual="true"
-                                  :readOnly="true" />
+              <LazySmartsheetCell
+                :model-value="v"
+                :column="lookupColumn"
+                :edit-enabled="false"
+                :virtual="true"
+                :read-only="true"
+              />
             </div>
           </template>
         </template>

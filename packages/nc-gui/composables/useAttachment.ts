@@ -1,34 +1,39 @@
-import fileNotFoundImgSrc from '~/assets/img/file-not-found.png'
+import { mimeTypes, openLink, useGlobal } from '#imports'
 
 const useAttachment = () => {
   const { appInfo } = useGlobal()
 
-  const getAttachmentSrc = (item: Record<string, any>) => {
-    if (item?.data) {
-      return item.data
-    } else if (item?.path) {
-      return `${appInfo.value.ncSiteUrl}/${item.path}`
-    } else if (item?.url) {
-      return item.url
-    }
-    return fileNotFoundImgSrc
+  const getPossibleAttachmentSrc = (item: Record<string, any>) => {
+    const res: string[] = []
+    if (item?.path) res.push(`${appInfo.value.ncSiteUrl}/${item.path}`)
+    if (item?.url) res.push(item.url)
+    return res
   }
 
-  // try `${appInfo.value.ncSiteUrl}/${item.path}`
-  // if it fails -> try item.url
-  // if it fails -> use default image
-  const showFallback = async (evt: any, item: Record<string, any>) => {
-    const possibleSources = [`${appInfo.value.ncSiteUrl}/${item.path}`, item.url, fileNotFoundImgSrc]
-    evt.onerror = null
-    const i = possibleSources.indexOf(evt.target.getAttribute('src'))
-    if (i === -1) return
-    evt.target.src = possibleSources[i + 1]
+  const getAttachmentSrc = async (item: Record<string, any>) => {
+    if (item?.data) {
+      return item.data
+    }
+    const sources = getPossibleAttachmentSrc(item)
+    const mimeType = mimeTypes[item?.mimetype?.split('/')?.pop() || 'txt']
+    for (const source of sources) {
+      // test if the source is accessible or not
+      const res = await fetch(source)
+      if (res.ok && res.headers.get('Content-Type') === mimeType) {
+        return source
+      }
+    }
+    return null
+  }
+
+  const openAttachment = async (item: Record<string, any>) => {
+    openLink(await getAttachmentSrc(item))
   }
 
   return {
     getAttachmentSrc,
-    fileNotFoundImgSrc,
-    showFallback,
+    getPossibleAttachmentSrc,
+    openAttachment,
   }
 }
 

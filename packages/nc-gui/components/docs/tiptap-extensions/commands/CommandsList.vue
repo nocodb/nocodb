@@ -17,10 +17,11 @@ import MdiFormatColorText from '~icons/mdi/format-color-text'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import MdiFormatQuoteOpen from '~icons/mdi/format-quote-open'
 import IcOutlineInfo from '~icons/ic/outline-info'
+import IcOutlineCode from '~icons/ic/outline-code'
 import IcRoundStar from '~icons/ic/round-star-outline'
 import IcRoundWarning from '~icons/ph/warning-circle-bold'
 import MdiTable from '~icons/mdi/table'
-import MdiYoutube from '~icons/mdi/youtube'
+import LogosYoutubeIcon from '~icons/logos/youtube-icon'
 
 interface Props {
   command: Function
@@ -51,6 +52,12 @@ const insertLink = () => {
   isLinkInputFormErrored.value = false
   // validate link
   if (!isValidURL(linkUrl.value)) {
+    isLinkInputFormErrored.value = true
+    return
+  }
+
+  const url = new URL(linkUrl.value)
+  if (isLinkInputFormType.value === 'youtube' && !(url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com')) {
     isLinkInputFormErrored.value = true
     return
   }
@@ -220,13 +227,23 @@ const items = [
     hasDivider: true,
   },
   {
+    title: 'Embed iframe',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'externalContent'
+      isLinkInputFormState.value = true
+    },
+    icon: IcOutlineCode,
+    iconClass: '',
+  },
+  {
     title: 'Youtube',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       isLinkInputFormType.value = 'youtube'
       isLinkInputFormState.value = true
     },
-    icon: MdiYoutube,
+    icon: LogosYoutubeIcon,
     iconClass: '',
     hasDivider: true,
   },
@@ -358,7 +375,9 @@ defineExpose({
           @keydown.enter="insertLink"
         />
         <div v-if="isLinkInputFormErrored" class="flex flex-row pl-1.5 pr-1 pb-1 text-xs text-red-500">
-          Given link is not valid
+          Given
+          <span v-if="isLinkInputFormType !== 'externalContent'" class="capitalize px-1">{{ isLinkInputFormType }}</span>
+          link is not valid
         </div>
       </div>
     </template>

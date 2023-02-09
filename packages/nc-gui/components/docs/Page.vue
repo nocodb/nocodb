@@ -303,7 +303,7 @@ watch(
           <div
             v-for="page of openedPageInternal?.children"
             :key="page.id"
-            class="flex flex-row items-center gap-x-2 cursor-pointer"
+            class="flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
             @click="openPage(page)"
           >
             <MdiFileDocumentOutline class="flex" />

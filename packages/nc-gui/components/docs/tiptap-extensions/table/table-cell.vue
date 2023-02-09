@@ -14,6 +14,7 @@ export default {
     return {
       isFirstCell: false,
       dragAnchorSelected: false,
+      isDragging: false,
     }
   },
   mounted() {
@@ -84,15 +85,22 @@ export default {
       <div
         v-if="isFirstCell"
         class="flex flex-col justify-center absolute h-full -left-3 z-50 min-w-4 min-h-4 !group-[.table-cell]:hover:opacity-100"
+        @mouseenter="isDragging = false"
       >
         <div
-          class="flex border-gray-200 border-1 bg-white hover:bg-gray-100 py-0.5 rounded-md row-drag-handle hidden cursor-move"
+          class="flex border-gray-200 border-1 bg-white hover:bg-gray-100 py-0.5 rounded-md row-drag-handle hidden"
+          :class="{
+            '!opacity-0 cursor-move': isDragging,
+            'cursor-pointer': !isDragging,
+          }"
           contenteditable="false"
           @mouseenter="toggleRowSelection"
           @mouseleave="toggleRowSelection"
+          @mousedown="isDragging = true"
+          @mouseup="isDragging = false"
         >
           <IcBaselineDragIndicator class="" />
-          <template v-if="dragAnchorSelected">
+          <template v-if="dragAnchorSelected && !isDragging">
             <div
               class="absolute flex flex-col text-sm gap-y-1 -left-10 -top-7 bg-gray-100 p-1 rounded-md row-drag-handle hidden z-10"
             >
@@ -120,7 +128,6 @@ export default {
           </template>
         </div>
       </div>
-
       <NodeViewContent class="node-view-content py-1.5 px-3" />
     </div>
   </NodeViewWrapper>

@@ -12,7 +12,6 @@ import {
   inject,
   isImage,
   message,
-  mimeTypes,
   ref,
   useApi,
   useAttachment,
@@ -230,40 +229,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** download a file */
     async function downloadFile(item: AttachmentType) {
-      const src = getAttachmentSrc(item)
-      const mimeType = mimeTypes[item?.mimetype?.split('/')?.pop() || 'txt']
-      // test if the first source is accessible or not
-      await fetch(src)
-        .then((res) => {
-          // if not accessible or the content type doesn't match
-          // then throw the error to trigger the fallback source
-          if (!res.ok || res.headers.get('Content-Type') !== mimeType) {
-            throw new Error('Failed to download file')
-          }
-          // if accessible, then call blob()
-          res.blob()
-        })
-        .then(async (_) => {
-          // save the file from the first source
-          ;(await import('file-saver')).saveAs(src, item.title)
-        })
-        .catch(async (_) => {
-          // try the fallback source with similar logic
-          const fallbackSrc = item.url!
-          await fetch(fallbackSrc)
-            .then((res) => {
-              if (!res.ok || res.headers.get('Content-Type') !== mimeType) {
-                throw new Error('Failed to download file')
-              }
-              res.blob()
-            })
-            .then(async (_) => {
-              ;(await import('file-saver')).saveAs(fallbackSrc, item.title)
-            })
-            .catch(async (e) => {
-              message.error(e.message)
-            })
-        })
+      const src = await getAttachmentSrc(item)
+      if (src) {
+        ;(await import('file-saver')).saveAs(src, item.title)
+      } else {
+        message.error('Failed to download file')
+      }
     }
 
     const FileIcon = (icon: string) => {

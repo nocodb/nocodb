@@ -156,6 +156,7 @@ const duplicateColumn = async () => {
 
     await $api.dbTableColumn.create(meta!.value!.id!, {
       ...columnCreatePayload,
+      pv: false,
       column_order: {
         order: newColumnOrder,
         view_id: view.value?.id as string,
@@ -243,7 +244,7 @@ const hideField = async () => {
           </a-menu-item>
         </template>
         <a-divider class="!my-0" />
-        <a-menu-item @click="hideField">
+        <a-menu-item v-if="!column?.pv" @click="hideField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <MdiEyeOffOutline class="text-primary" />
             <!-- Hide Field -->
@@ -270,7 +271,7 @@ const hideField = async () => {
             {{ t('general.insertAfter') }}
           </div>
         </a-menu-item>
-        <a-menu-item @click="addColumn(true)">
+        <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
             <MdiTableColumnPlusBefore class="text-primary" />
             <!-- Insert Before -->
@@ -289,7 +290,7 @@ const hideField = async () => {
           </div>
         </a-menu-item>
 
-        <a-menu-item @click="deleteColumn">
+        <a-menu-item v-if="!column?.pv" @click="deleteColumn">
           <div class="nc-column-delete nc-header-menu-item">
             <MdiDeleteOutline class="text-error" />
             <!-- Delete -->

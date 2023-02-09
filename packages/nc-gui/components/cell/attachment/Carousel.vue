@@ -83,13 +83,13 @@ onClickOutside(carouselRef, () => {
           </template>
 
           <template #customPaging="props">
-            <a>
+            <div class="cursor-pointer h-full">
               <LazyCellAttachmentImage
-                class="!block"
+                class="!block margin-auto h-full w-full"
                 :alt="imageItems[props.i].title || `#${props.i}`"
                 :src="getPossibleAttachmentSrc(imageItems[props.i])"
               />
-            </a>
+            </div>
           </template>
           <div v-for="(item, idx) of imageItems" :key="idx">
             <LazyCellAttachmentImage :src="getPossibleAttachmentSrc(item)" class="max-w-70vw max-h-70vh" />

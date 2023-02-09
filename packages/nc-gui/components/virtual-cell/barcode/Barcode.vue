@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
-import type { GridType } from 'nocodb-sdk'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
-import { ActiveViewInj } from '#imports'
+import { RowHeightInj } from '#imports'
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100
-
-const view = inject(ActiveViewInj, ref())
 
 const cellValue = inject(CellValueInj)
 
@@ -35,22 +32,7 @@ const showBarcode = computed(() => barcodeValue?.value.length > 0 && !tooManyCha
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
 
-const rowHeight = computed(() => {
-  if ((view.value?.view as GridType)?.row_height !== undefined) {
-    switch ((view.value?.view as GridType)?.row_height) {
-      case 0:
-        return 1
-      case 1:
-        return 2
-      case 2:
-        return 4
-      case 3:
-        return 6
-      default:
-        return 1
-    }
-  }
-})
+const rowHeight = inject(RowHeightInj)
 </script>
 
 <template>
@@ -65,10 +47,22 @@ const rowHeight = computed(() => {
     <JsBarcodeWrapper v-if="showBarcode" :barcode-value="barcodeValue" :barcode-format="barcodeMeta.barcodeFormat" />
   </a-modal>
   <JsBarcodeWrapper
-    v-if="showBarcode"
+    v-if="showBarcode && rowHeight"
     :barcode-value="barcodeValue"
     :barcode-format="barcodeMeta.barcodeFormat"
     :custom-style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
+    @on-click-barcode="showBarcodeModal"
+  >
+    <template #barcodeRenderError>
+      <div class="text-left text-wrap mt-2 text-[#e65100] text-xs" data-testid="barcode-invalid-input-message">
+        {{ $t('msg.warning.barcode.renderError') }}
+      </div>
+    </template>
+  </JsBarcodeWrapper>
+  <JsBarcodeWrapper
+    v-else-if="showBarcode"
+    :barcode-value="barcodeValue"
+    :barcode-format="barcodeMeta.barcodeFormat"
     @on-click-barcode="showBarcodeModal"
   >
     <template #barcodeRenderError>

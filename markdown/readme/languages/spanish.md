@@ -182,7 +182,7 @@ docker-compose up -d
 
 ## Variables de entorno
 
-Por favor diríjase a [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+Por favor diríjase a [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
 
 # Configuración de desarollo
 

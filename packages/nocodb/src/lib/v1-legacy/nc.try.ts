@@ -19,7 +19,7 @@ export default async function (dbUrl): Promise<void> {
     server.use(
       await app.init({
         async afterMetaMigrationInit(): Promise<void> {
-          const config = NcConfigFactory.makeProjectConfigFromUrl(dbUrl);
+          const config = await NcConfigFactory.makeProjectConfigFromUrl(dbUrl);
           await app.ncMeta.projectCreate(
             'Dvdrental (Sample SQLite Database)',
             config,

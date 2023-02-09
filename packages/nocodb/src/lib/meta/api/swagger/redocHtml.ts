@@ -1,11 +1,15 @@
-export default `<!DOCTYPE html>
+export default ({
+  ncSiteUrl,
+}: {
+  ncSiteUrl: string;
+}): string => `<!DOCTYPE html>
 <html>
 <head>
     <title>NocoDB API Documentation</title>
     <!-- needed for adaptive design -->
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+    <link href="${ncSiteUrl}/css/fonts.montserrat.css" rel="stylesheet">
     <!--
     Redoc doesn't change outer page styles
     -->
@@ -18,7 +22,7 @@ export default `<!DOCTYPE html>
 </head>
 <body>
 <div id="redoc"></div>
-<script src="https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js"></script>
+<script src="${ncSiteUrl}/js/redoc.standalone.min.js"></script>
 <script>
   let initialLocalStorage = {}
   

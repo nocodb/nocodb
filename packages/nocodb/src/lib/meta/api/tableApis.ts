@@ -148,7 +148,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
   const sqlClientType = sqlClient.clientType;
@@ -295,7 +295,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
   const sqlClientType = sqlClient.clientType;

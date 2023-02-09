@@ -218,7 +218,7 @@ const expectedRecords = [
   {
     index: 1,
     columnHeader: 'Address',
-    value: '1892 Nabereznyje Telny Lane',
+    value: '1892 Nabereznyje Telny',
   },
   { index: 2, columnHeader: 'Address', value: '1993 Tabuk Lane' },
   { index: 0, columnHeader: 'District', value: 'West Bengali' },

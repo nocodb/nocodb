@@ -33,6 +33,8 @@ const { command, query, editor } = defineProps<Props>()
 const { magicOutline, openedPage } = useDocs()
 
 const isLinkInputFormState = ref(false)
+const isLinkInputFormErrored = ref(false)
+const isLinkInputFormType = ref('')
 const linkInputRef = ref()
 const linkUrl = ref('')
 const fileInput = ref()
@@ -46,10 +48,18 @@ const onFilePicked = (event: any) => {
 }
 
 const insertLink = () => {
-  isLinkInputFormState.value = false
+  isLinkInputFormErrored.value = false
+  // validate link
+  if (!isValidURL(linkUrl.value)) {
+    isLinkInputFormErrored.value = true
+    return
+  }
+
   editor.chain().focus().setExternalContent({
     url: linkUrl.value,
+    type: isLinkInputFormType.value,
   })
+  isLinkInputFormState.value = false
 }
 
 const items = [
@@ -213,6 +223,7 @@ const items = [
     title: 'Youtube',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'youtube'
       isLinkInputFormState.value = true
     },
     icon: MdiYoutube,
@@ -315,6 +326,17 @@ watch(linkInputRef, (value) => {
   }
 })
 
+watch(linkUrl, () => {
+  isLinkInputFormErrored.value = false
+})
+
+watch(isLinkInputFormState, () => {
+  if (!isLinkInputFormState.value) {
+    linkUrl.value = ''
+    isLinkInputFormErrored.value = false
+  }
+})
+
 defineExpose({
   onKeyDown,
 })
@@ -323,7 +345,7 @@ defineExpose({
 <template>
   <div class="items">
     <template v-if="isLinkInputFormState">
-      <div class="flex flex-col w-64">
+      <div class="flex flex-col w-64 mx-1 mt-1 mb-1">
         <div class="w-6 rounded-md my-1 p-1 cursor-pointer hover:bg-gray-200" @click="isLinkInputFormState = false">
           <MdiArrowLeft />
         </div>
@@ -335,6 +357,9 @@ defineExpose({
           placeholder="Enter link"
           @keydown.enter="insertLink"
         />
+        <div v-if="isLinkInputFormErrored" class="flex flex-row pl-1.5 pr-1 pb-1 text-xs text-red-500">
+          Given link is not valid
+        </div>
       </div>
     </template>
     <template v-else-if="filterItems.length">

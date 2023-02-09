@@ -7,7 +7,7 @@ declare module '@tiptap/core' {
       /**
        * Toggle a heading node
        */
-      setExternalContent: (options: { url: string }) => ReturnType
+      setExternalContent: (options: { url: string; type: string }) => ReturnType
     }
   }
 }
@@ -18,6 +18,7 @@ export const ExternalContent = Node.create({
   defaultOptions: {
     inline: false,
     HTMLAttributes: {},
+    type: 'externalContent',
   },
 
   inline() {
@@ -53,6 +54,9 @@ export const ExternalContent = Node.create({
       allowfullscreen: {
         default: 'allowfullscreen',
       },
+      type: {
+        default: 'externalContent',
+      },
     }
   },
 
@@ -73,7 +77,7 @@ export const ExternalContent = Node.create({
   },
   addCommands() {
     return {
-      setExternalContent: (options: { url: string }) => (editor: Editor) => {
+      setExternalContent: (options: { url: string; type: string }) => (editor: Editor) => {
         const selectionRange = editor.state.selection
         const suggestionNodeParentNodeSize = editor.state.doc.resolve(selectionRange.$from.pos - 1).parent.firstChild!.nodeSize!
 
@@ -82,7 +86,7 @@ export const ExternalContent = Node.create({
           to: selectionRange.$from.pos,
         })
 
-        const node = editor.state.schema.nodes.externalContent.create({ src: options.url })
+        const node = editor.state.schema.nodes.externalContent.create({ src: options.url, type: options.type })
         const tr = editor.state.tr.insert(editor.state.selection.$from.pos - 1, node)
         editor.view.dispatch(tr)
       },

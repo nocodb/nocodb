@@ -970,10 +970,10 @@ export class MssqlUi {
         colProp.cdf = '0';
         break;
       case 'MultiSelect':
-        colProp.dt = 'text';
+        colProp.dt = 'nvarchar';
         break;
       case 'SingleSelect':
-        colProp.dt = 'text';
+        colProp.dt = 'nvarchar';
         break;
       case 'Collaborator':
         colProp.dt = 'varchar';
@@ -1099,10 +1099,10 @@ export class MssqlUi {
         return ['bigint', 'bit', 'int', 'tinyint'];
 
       case 'MultiSelect':
-        return ['text', 'ntext'];
+        return ['varchar', 'nvarchar', 'text', 'ntext'];
 
       case 'SingleSelect':
-        return ['text', 'ntext'];
+        return ['varchar', 'nvarchar', 'text', 'ntext'];
 
       case 'Year':
         return ['int'];

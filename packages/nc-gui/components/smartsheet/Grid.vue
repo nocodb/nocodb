@@ -715,8 +715,8 @@ const closeAddColumnDropdown = () => {
         >
           <thead ref="tableHead">
             <tr class="nc-grid-header">
-              <th data-testid="grid-id-column">
-                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" data-testid="nc-check-all">
+              <th class="w-[80px]" data-testid="grid-id-column">
+                <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
@@ -997,6 +997,10 @@ const closeAddColumnDropdown = () => {
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
+  }
+
+  th {
+    @apply bg-gray-100;
   }
 
   td:not(:first-child) > div {

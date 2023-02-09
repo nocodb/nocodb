@@ -83,7 +83,7 @@ onClickOutside(carouselRef, () => {
           </template>
 
           <template #customPaging="props">
-            <div class="cursor-pointer h-full">
+            <div class="cursor-pointer h-full nc-attachment-img-wrapper">
               <LazyCellAttachmentImage
                 class="!block margin-auto h-full w-full"
                 :alt="imageItems[props.i].title || `#${props.i}`"
@@ -141,5 +141,9 @@ onClickOutside(carouselRef, () => {
 }
 .ant-carousel :deep(.custom-slick-arrow:hover) {
   opacity: 0.5;
+}
+
+.nc-attachment-img-wrapper {
+  width: fit-content !important;
 }
 </style>

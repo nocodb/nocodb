@@ -14,7 +14,7 @@ const onError = () => index.value++
 <template>
   <LazyNuxtImg
     v-if="index < props.src.length"
-    class="nc-attachment-img"
+    class="m-auto"
     :src="props.src[index]"
     :onerror="onError"
     :alt="props?.alt || ''"
@@ -23,10 +23,3 @@ const onError = () => index.value++
   />
   <MdiFileImageBox v-else />
 </template>
-
-<style scoped lang="scss">
-.nc-attachment-img {
-  width: fit-content !important;
-  @apply m-auto;
-}
-</style>

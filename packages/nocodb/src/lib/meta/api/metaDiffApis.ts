@@ -548,7 +548,7 @@ export async function metaDiff(req, res) {
   for (const base of project.bases) {
     try {
       // @ts-ignore
-      const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+      const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
       changes = changes.concat(await getMetaDiff(sqlClient, project, base));
     } catch (e) {
       console.log(e);
@@ -563,7 +563,7 @@ export async function baseMetaDiff(req, res) {
   const base = await Base.get(req.params.baseId);
   let changes = [];
 
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
   changes = await getMetaDiff(sqlClient, project, base);
 
   res.json(changes);
@@ -575,7 +575,7 @@ export async function metaDiffSync(req, res) {
     const virtualColumnInsert: Array<() => Promise<void>> = [];
 
     // @ts-ignore
-    const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
     const changes = await getMetaDiff(sqlClient, project, base);
 
     /* Get all relations */
@@ -778,7 +778,7 @@ export async function baseMetaDiffSync(req, res) {
   const virtualColumnInsert: Array<() => Promise<void>> = [];
 
   // @ts-ignore
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
   const changes = await getMetaDiff(sqlClient, project, base);
 
   /* Get all relations */

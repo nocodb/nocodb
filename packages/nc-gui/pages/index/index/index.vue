@@ -132,9 +132,13 @@ onBeforeMount(loadProjects)
 const { copy } = useCopy()
 
 const copyProjectMeta = async () => {
-  const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
-  copy(JSON.stringify(aggregatedMetaInfo))
-  message.info('Copied aggregated project meta to clipboard')
+  try {
+    const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
+    await copy(JSON.stringify(aggregatedMetaInfo))
+    message.info('Copied aggregated project meta to clipboard')
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 </script>
 

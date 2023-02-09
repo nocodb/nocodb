@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 
 import mkdirp from 'mkdirp';
 
@@ -14,10 +15,10 @@ export default class Local implements IStorageAdapterV2 {
   public async fileCreate(key: string, file: XcFile): Promise<any> {
     const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
     try {
-      mkdirp.sync(path.dirname(destPath));
-      const data = await fs.readFileSync(file.path);
-      await fs.writeFileSync(destPath, data);
-      fs.unlinkSync(file.path);
+      await mkdirp(path.dirname(destPath));
+      const data = await promisify(fs.readFile)(file.path)
+      await promisify(fs.writeFile)(destPath, data);
+      await promisify(fs.unlink)(file.path);
       // await fs.promises.rename(file.path, destPath);
     } catch (e) {
       throw e;
@@ -41,8 +42,8 @@ export default class Local implements IStorageAdapterV2 {
             origin: 'https://www.airtable.com/',
           },
         })
-        .then((response) => {
-          mkdirp.sync(path.dirname(destPath));
+        .then(async (response) => {
+          await mkdirp(path.dirname(destPath));
           const file = fs.createWriteStream(destPath);
           // close() is async, call cb after close completes
           file.on('finish', () => {

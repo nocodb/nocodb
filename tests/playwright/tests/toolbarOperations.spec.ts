@@ -91,6 +91,7 @@ test.describe('Toolbar operations (GRID)', () => {
     for (let i = 0; i < rowHeight.length; i++) {
       await toolbar.clickRowHeight();
       await toolbar.rowHeight.click({ title: rowHeight[i].title });
+      await new Promise(resolve => setTimeout(resolve, 150));
       await dashboard.grid.rowPage.getRecordHeight(0).then(height => {
         expect(height).toBe(rowHeight[i].height);
       });

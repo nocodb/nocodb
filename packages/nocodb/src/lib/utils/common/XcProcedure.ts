@@ -10,8 +10,8 @@ export default class XcProcedure {
   public async callFunction(name: string, args: any[]) {
     try {
       if (this.builder.getDbType() === 'mssql') {
-        const result = await this.builder
-          .getDbDriver()
+        const result = await (await this.builder
+          .getDbDriver())
           .raw(
             `select dbo.??(${new Array(args.length)
               .fill('?')
@@ -20,8 +20,8 @@ export default class XcProcedure {
           );
         return result[0];
       } else {
-        const result = await this.builder
-          .getDbDriver()
+        const result = await (await this.builder
+          .getDbDriver())
           .raw(
             `select ??(${new Array(args.length).fill('?').join(',')}) as ??`,
             [name, ...args, name]
@@ -65,7 +65,7 @@ export default class XcProcedure {
       ) {
         const knexRef = args.reduce(
           (knex, val, i) => knex.raw(`SET @var${i}=?`, [val]),
-          this.builder.getDbDriver().schema
+          (await this.builder.getDbDriver()).schema
         );
         const count = args.length;
         const result = await knexRef.raw(
@@ -76,8 +76,8 @@ export default class XcProcedure {
         );
         return [result[count][0][0]];
       } else if (this.builder.getDbType() === 'pg') {
-        const result = await this.builder
-          .getDbDriver()
+        const result = await (await this.builder
+          .getDbDriver())
           .raw(`Call ??(${new Array(args.length).fill('?').join(',')})`, [
             name,
             ...args,

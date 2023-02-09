@@ -662,7 +662,12 @@ watch(view, (nextView) => {
                     v-if="isVirtualCol(element)"
                     :name="element.title"
                     class="!mb-0"
-                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
+                    :rules="[
+                      {
+                        required: isRequired(element, element.required),
+                        message: `${element.label || element.title} is required`,
+                      },
+                    ]"
                   >
                     <LazySmartsheetVirtualCell
                       v-model="formState[element.title]"
@@ -679,7 +684,12 @@ watch(view, (nextView) => {
                     v-else
                     :name="element.title"
                     class="!mb-0"
-                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
+                    :rules="[
+                      {
+                        required: isRequired(element, element.required),
+                        message: `${element.label || element.title} is required`,
+                      },
+                    ]"
                   >
                     <LazySmartsheetCell
                       v-model="formState[element.title]"

@@ -47,7 +47,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const _base of bases) {
     const base = new Base(_base);
 
-    // skip if the prodect_id is missing
+    // skip if the project_id is missing
     if (!base.project_id) {
       continue;
     }

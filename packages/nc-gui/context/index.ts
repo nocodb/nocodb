@@ -21,6 +21,7 @@ export const IsLockedInj: InjectionKey<Ref<boolean>> = Symbol('is-locked-injecti
 export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection')
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
+export const RowHeightInj: InjectionKey<ComputedRef<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 /** when bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
@@ -32,3 +33,5 @@ export const SharedViewPasswordInj: InjectionKey<Ref<string | null>> = Symbol('s
 export const CellUrlDisableOverlayInj: InjectionKey<Ref<boolean>> = Symbol('cell-url-disable-url')
 export const DropZoneRef: InjectionKey<Ref<Element | undefined>> = Symbol('drop-zone-ref')
 export const ToggleDialogInj: InjectionKey<Function> = Symbol('toggle-dialog-injection')
+export const CellClickHookInj: InjectionKey<EventHook<MouseEvent> | undefined> = Symbol('cell-click-injection')
+export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')

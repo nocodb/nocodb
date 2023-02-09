@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { promisify } from 'util';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import AWS from 'aws-sdk';
 import request from 'request';
@@ -40,7 +41,7 @@ export default class ScalewayObjectStorage implements IStorageAdapterV2 {
         originalname: 'temp.txt',
         size: '',
       });
-      fs.unlinkSync(tempFile);
+      await promisify(fs.unlink)(tempFile);
       return true;
     } catch (e) {
       throw e;

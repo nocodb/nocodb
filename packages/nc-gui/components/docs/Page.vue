@@ -28,6 +28,7 @@ import { WarningCallout } from './tiptap-extensions/callouts/warning'
 import { TipCallout } from './tiptap-extensions/callouts/tip'
 import { DraggableBlock } from './tiptap-extensions/draggableBlock'
 import { Document } from './tiptap-extensions/document'
+import { ExternalContent } from './tiptap-extensions/external-content'
 import type { PageSidebarNode } from '~~/composables/docs/useDocs'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
@@ -137,6 +138,7 @@ const editor = useEditor({
         class: 'nc-docs-tiptap-table-cell relative',
       },
     }),
+    ExternalContent,
   ],
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
@@ -635,6 +637,10 @@ watch(
   .resize-cursor {
     cursor: ew-resize;
     cursor: col-resize;
+  }
+
+  .external-content-wrapper {
+    @apply bg-gray-100 my-2;
   }
 }
 </style>

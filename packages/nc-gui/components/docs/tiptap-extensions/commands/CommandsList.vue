@@ -17,10 +17,11 @@ import MdiFormatColorText from '~icons/mdi/format-color-text'
 import PhSparkleFill from '~icons/ph/sparkle-fill'
 import MdiFormatQuoteOpen from '~icons/mdi/format-quote-open'
 import IcOutlineInfo from '~icons/ic/outline-info'
+import IcOutlineCode from '~icons/ic/outline-code'
 import IcRoundStar from '~icons/ic/round-star-outline'
 import IcRoundWarning from '~icons/ph/warning-circle-bold'
 import MdiTable from '~icons/mdi/table'
-import MdiYoutube from '~icons/mdi/youtube'
+import LogosYoutubeIcon from '~icons/logos/youtube-icon'
 
 interface Props {
   command: Function
@@ -51,6 +52,12 @@ const insertLink = () => {
   isLinkInputFormErrored.value = false
   // validate link
   if (!isValidURL(linkUrl.value)) {
+    isLinkInputFormErrored.value = true
+    return
+  }
+
+  const url = new URL(linkUrl.value)
+  if (isLinkInputFormType.value === 'youtube' && !(url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com')) {
     isLinkInputFormErrored.value = true
     return
   }
@@ -220,13 +227,23 @@ const items = [
     hasDivider: true,
   },
   {
+    title: 'Embed iframe',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'externalContent'
+      isLinkInputFormState.value = true
+    },
+    icon: IcOutlineCode,
+    iconClass: '',
+  },
+  {
     title: 'Youtube',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       isLinkInputFormType.value = 'youtube'
       isLinkInputFormState.value = true
     },
-    icon: MdiYoutube,
+    icon: LogosYoutubeIcon,
     iconClass: '',
     hasDivider: true,
   },
@@ -358,7 +375,9 @@ defineExpose({
           @keydown.enter="insertLink"
         />
         <div v-if="isLinkInputFormErrored" class="flex flex-row pl-1.5 pr-1 pb-1 text-xs text-red-500">
-          Given link is not valid
+          Given
+          <span v-if="isLinkInputFormType !== 'externalContent'" class="capitalize px-1">{{ isLinkInputFormType }}</span>
+          link is not valid
         </div>
       </div>
     </template>
@@ -399,16 +418,16 @@ defineExpose({
 
 <style lang="scss" scoped>
 .items {
-  @apply px-1 my-0.5;
+  @apply px-1 my-0.5 w-48;
   position: relative;
   border-radius: 0.5rem;
   color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
   font-size: 0.9rem;
   @apply bg-gray-50;
-  max-height: 50vh;
+  max-height: 16rem;
   overflow-y: overlay;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 10px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0px 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 .divider {
@@ -437,33 +456,11 @@ defineExpose({
   // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
     width: 2px;
-    @apply;
   }
 
   /* Track */
   &::-webkit-scrollbar-track {
-    background: #f6f6f600 !important;
     @apply my-2;
-  }
-
-  /* Handle */
-  &::-webkit-scrollbar-thumb {
-    background: #f6f6f600;
-  }
-
-  /* Handle on hover */
-  &::-webkit-scrollbar-thumb:hover {
-    background: #f6f6f600;
-  }
-}
-.items:hover {
-  // scrollbar reduce width and gray color
-  &::-webkit-scrollbar {
-    width: 2px;
-  }
-
-  /* Track */
-  &::-webkit-scrollbar-track {
     background: #f6f6f600 !important;
   }
 

@@ -4,6 +4,7 @@ import showdown from 'showdown'
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
+import { youtubeUrlToEmbedUrl } from './urlHelper'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'
@@ -57,9 +58,16 @@ const insertLink = () => {
   }
 
   const url = new URL(linkUrl.value)
-  if (isLinkInputFormType.value === 'youtube' && !(url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com')) {
+  if (
+    isLinkInputFormType.value === 'youtube' &&
+    !(url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com' || url.hostname === 'youtu.be')
+  ) {
     isLinkInputFormErrored.value = true
     return
+  }
+
+  if (isLinkInputFormType.value === 'youtube') {
+    linkUrl.value = youtubeUrlToEmbedUrl(linkUrl.value)
   }
 
   editor.chain().focus().setExternalContent({
@@ -362,7 +370,7 @@ defineExpose({
 <template>
   <div class="items">
     <template v-if="isLinkInputFormState">
-      <div class="flex flex-col w-64 mx-1 mt-1 mb-1">
+      <div class="flex flex-col w-44 mx-1 mt-1 mb-1">
         <div class="w-6 rounded-md my-1 p-1 cursor-pointer hover:bg-gray-200" @click="isLinkInputFormState = false">
           <MdiArrowLeft />
         </div>

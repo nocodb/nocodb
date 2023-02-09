@@ -75,6 +75,17 @@ export default {
         }, 0)
       }
     },
+    mouseDownHandler(e: MouseEvent) {
+      let targetEl = e.target as HTMLElement
+      targetEl = targetEl.nodeName === 'path' ? targetEl.parentElement! : targetEl
+      if (!targetEl.classList.contains('row-drag-handle') && !targetEl.classList.contains('row-drag-handle-button')) {
+        return
+      }
+      this.isDragging = true
+    },
+    mouseUpHandler() {
+      this.isDragging = false
+    },
   },
 }
 </script>
@@ -96,26 +107,26 @@ export default {
           contenteditable="false"
           @mouseenter="toggleRowSelection"
           @mouseleave="toggleRowSelection"
-          @mousedown="isDragging = true"
-          @mouseup="isDragging = false"
+          @mousedown="mouseDownHandler"
+          @mouseup="mouseUpHandler"
         >
-          <IcBaselineDragIndicator class="" />
+          <IcBaselineDragIndicator class="row-drag-handle-button" />
           <template v-if="dragAnchorSelected && !isDragging">
             <div
               class="absolute flex flex-col text-sm gap-y-1 -left-10 -top-7 bg-gray-100 p-1 rounded-md row-drag-handle hidden z-10"
             >
               <a-tooltip title="Add row above" placement="left" overlay-class-name="docs-table-row-options ">
-                <div class="button" @click.stop="insertRowBefore">
+                <div class="button" @click="insertRowBefore">
                   <MdiArrowUp />
                 </div>
               </a-tooltip>
               <a-tooltip title="Delete row" placement="left" overlay-class-name="docs-table-row-options ">
-                <div class="button !hover:text-red-400" @click.stop="deleteRow">
+                <div class="button !hover:text-red-400" @click="deleteRow">
                   <MdiDeleteOutline />
                 </div>
               </a-tooltip>
               <a-tooltip title="Add row below" placement="left" overlay-class-name="docs-table-row-options ">
-                <div class="button" @click.stop="insertRowAfter">
+                <div class="button" @click="insertRowAfter">
                   <MdiArrowDown />
                 </div>
               </a-tooltip>
@@ -124,7 +135,7 @@ export default {
               class="absolute w-2 h-2 bg-gray-100 -left-3 top-3 row-drag-handle hidden"
               :style="{ transform: 'rotate(45deg)' }"
             ></div>
-            <div class="absolute -left-5.5 -top-6 w-6 h-20 cursor-default row-drag-handle hidden"></div>
+            <div class="absolute -left-4.5 -top-6 w-6 h-20 cursor-default row-drag-handle hidden"></div>
           </template>
         </div>
       </div>

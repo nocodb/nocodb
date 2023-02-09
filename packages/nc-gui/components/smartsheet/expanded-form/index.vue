@@ -260,7 +260,7 @@ export default {
 
 .nc-prev-arrow,
 .nc-next-arrow {
-  @apply absolute opacity-70 rounded-full transition-transform transition-background transition-opacity transform bg-white hover: (bg-gray-200) active:(scale-125 opacity-100) text-xl;
+  @apply absolute opacity-70 rounded-full transition-transform transition-background transition-opacity transform bg-white hover:(bg-gray-200) active:(scale-125 opacity-100) text-xl;
 }
 
 .nc-prev-arrow {

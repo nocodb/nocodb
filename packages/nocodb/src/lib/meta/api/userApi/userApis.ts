@@ -533,7 +533,7 @@ const mapRoutes = (router) => {
     '/user/password/change',
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
-  router.post('/auth/token/refresh', ncMetaAclMw(refreshToken, 'refreshToken'));
+  router.post('/auth/token/refresh', catchError(refreshToken));
 
   /* Google auth apis */
 
@@ -572,10 +572,7 @@ const mapRoutes = (router) => {
     '/api/v1/db/auth/password/change',
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
-  router.post(
-    '/api/v1/db/auth/token/refresh',
-    ncMetaAclMw(refreshToken, 'refreshToken')
-  );
+  router.post('/api/v1/db/auth/token/refresh', catchError(refreshToken));
   router.get(
     '/api/v1/db/auth/password/reset/:tokenId',
     catchError(renderPasswordReset)
@@ -606,10 +603,7 @@ const mapRoutes = (router) => {
     '/api/v1/auth/password/change',
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
-  router.post(
-    '/api/v1/auth/token/refresh',
-    ncMetaAclMw(refreshToken, 'refreshToken')
-  );
+  router.post('/api/v1/auth/token/refresh', catchError(refreshToken));
   // respond with password reset page
   router.get('/auth/password/reset/:tokenId', catchError(renderPasswordReset));
 };

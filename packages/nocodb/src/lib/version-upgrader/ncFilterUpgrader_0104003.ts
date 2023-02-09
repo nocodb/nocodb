@@ -35,6 +35,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       }
     } else if (
       [
+        // numeric fields
         UITypes.Duration,
         UITypes.Currency,
         UITypes.Percent,
@@ -42,6 +43,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         UITypes.Decimal,
         UITypes.Rating,
         UITypes.Rollup,
+        // select fields
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
       ].includes(col.uidt)
     ) {
       if (['like', 'nlike'].includes(filter.comparison_op)) {

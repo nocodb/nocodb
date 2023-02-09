@@ -12,7 +12,7 @@ import { UITypes } from 'nocodb-sdk';
 // - remove `like`, `null`, and `empty` for numeric-based / singleSelect columns - migrate to `blank` from `null` and `empty`
 // - remove `is null`, `is not null` for checkbox columns - migrate `equal` and `not equal` to `checked` and `not checked`
 // - remove `like`, `null`, `equal` and `empty` for multiSelect columns
-// - remove `>`, `<`, `>=`, `<=`, `is empty`, `is not empty`, `is equal`, `is not equal` for attachment columns
+// - remove `>`, `<`, `>=`, `<=`, `is empty`, `is not empty`, `is equal`, `is not equal` for attachment / LTAR columns
 
 const removeEqualFilters = async (
   filter,
@@ -172,6 +172,20 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         actions,
         ncMeta,
         migrateToCheckboxFilter
+      );
+    } else if (col.uidt === UITypes.LinkToAnotherRecord) {
+      actions = await removeArithmeticFilters(filter, actions, ncMeta);
+      actions = await removeEmptyFilters(
+        filter,
+        actions,
+        ncMeta,
+        migrateToBlankFilter
+      );
+      actions = await removeNullFilters(
+        filter,
+        actions,
+        ncMeta,
+        migrateToBlankFilter
       );
     }
   }

@@ -631,15 +631,22 @@ export default class View implements ViewType {
     }
     const updateObj = extractProps(colData, ['order', 'show']);
 
-    const primary_value_column = await ncMeta.metaGet2(null, null, MetaTable.COLUMNS, {
-      fk_model_id: view.fk_model_id,
-      pv: true,
-    });
+    // keep primary_value_column always visible and first in grid view
+    if (view.type === ViewTypes.GRID) {
+      const primary_value_column_meta = await ncMeta.metaGet2(null, null, MetaTable.COLUMNS, {
+        fk_model_id: view.fk_model_id,
+        pv: true,
+      });
 
-    // keep primary_value_column always visible and first
-    if (primary_value_column && primary_value_column.id === colId) {
-      updateObj.order = 1;
-      updateObj.show = true;
+      const primary_value_column = await ncMeta.metaGet2(null, null, MetaTable.GRID_VIEW_COLUMNS, {
+        fk_view_id: view.id,
+        fk_column_id: primary_value_column_meta.id,
+      });
+      
+      if (primary_value_column && primary_value_column.id === colId) {
+        updateObj.order = 1;
+        updateObj.show = true;
+      }
     }
 
     // get existing cache

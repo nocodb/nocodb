@@ -511,6 +511,7 @@ async function renderPasswordReset(req, res): Promise<any> {
   try {
     res.send(
       ejs.render((await import('./ui/auth/resetPassword')).default, {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         token: JSON.stringify(req.params.tokenId),
         baseUrl: `/`,
       })

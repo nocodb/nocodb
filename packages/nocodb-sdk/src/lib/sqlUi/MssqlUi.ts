@@ -971,9 +971,11 @@ export class MssqlUi {
         break;
       case 'MultiSelect':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 4000;
         break;
       case 'SingleSelect':
         colProp.dt = 'nvarchar';
+        colProp.dtxp = 4000;
         break;
       case 'Collaborator':
         colProp.dt = 'varchar';

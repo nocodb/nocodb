@@ -12,6 +12,7 @@ import { UITypes } from 'nocodb-sdk';
 // - remove `like`, `null`, and `empty` for numeric-based / singleSelect columns - migrate to `blank` from `null` and `empty`
 // - remove `is null`, `is not null` for checkbox columns - migrate `equal` and `not equal` to `checked` and `not checked`
 // - remove `like`, `null`, `equal` and `empty` for multiSelect columns
+// - remove `>`, `<`, `>=`, `<=`, `is empty`, `is not empty`, `is equal`, `is not equal` for attachment columns
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
@@ -80,6 +81,17 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         // remove `is null`, `is not null`, `is empty`, `is not empty`
         actions.push(await Filter.delete(filter, ncMeta));
         // TODO: migrate to blank / not blank
+      }
+    } else if (col.uidt === UITypes.Attachment) {
+      // remove `>`, `<`, `>=`, `<=`
+      // remove `is empty`, `is not empty`
+      // remove `is equal`, `is not equal`
+      if (
+        ['gt', 'lt', 'gte', 'lte', 'empty', 'notempty', 'eq', 'neq'].includes(
+          filter.comparison_op
+        )
+      ) {
+        actions.push(await Filter.delete(filter, ncMeta));
       }
     }
   }

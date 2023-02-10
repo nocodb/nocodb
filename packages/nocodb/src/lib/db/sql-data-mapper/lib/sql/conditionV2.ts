@@ -480,7 +480,6 @@ const parseConditionV2 = async (
           case 'lte':
             qb = qb.where(field, customWhereClause ? '>=' : '<=', val);
             break;
-
           case 'empty':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
@@ -498,6 +497,14 @@ const parseConditionV2 = async (
             break;
           case 'notnull':
             qb = qb.whereNotNull(customWhereClause || field);
+            break;
+          case 'blank':
+            qb = qb.whereNull(customWhereClause || field).orWhere(field, '');
+            break;
+          case 'notblank':
+            qb = qb
+              .whereNotNull(customWhereClause || field)
+              .whereNot(field, '');
             break;
           case 'checked':
             qb = qb.where(customWhereClause || field, true);

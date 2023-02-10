@@ -1978,6 +1978,8 @@ export default async (
     doesNotContain: 'nlike',
     isAnyOf: 'anyof',
     isNoneOf: 'nanyof',
+    '|': 'anyof',
+    '&': 'allof',
   };
 
   async function nc_configureFilters(viewId, f) {
@@ -2017,6 +2019,9 @@ export default async (
         datatype === UITypes.SingleSelect ||
         datatype === UITypes.MultiSelect
       ) {
+        if (filter.operator === 'doesNotContain') {
+          filter.operator = 'isNoneOf';
+        }
         // if array, break it down to multiple filters
         if (Array.isArray(filter.value)) {
           const fx = {

@@ -2,7 +2,7 @@ import { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
 import Column from '../models/Column';
 import Filter from '../models/Filter';
-import { UITypes } from 'nocodb-sdk';
+import { UITypes, SelectOptionsType } from 'nocodb-sdk';
 
 // as of 0.104.3, almost all filter operators are available to all column types
 // while some of them aren't supposed to be shown
@@ -63,6 +63,66 @@ const migrateToBlankFilter = async (filter, actions: any[], ncMeta) => {
         {
           ...filter,
           comparision_op: 'notblank',
+        },
+        ncMeta
+      )
+    );
+  }
+  return actions;
+};
+
+const migrateMultiSelectEq = async (
+  filter,
+  actions: any[],
+  col: Column,
+  ncMeta
+) => {
+  // only allow eq / neq
+  if (!['eq', 'neq'].includes(filter.comparision_op)) return actions;
+  // if there is no value -> delete this filter
+  if (!filter.value) {
+    actions.push(await Filter.delete(filter, ncMeta));
+    return actions;
+  }
+  // options inputted from users
+  const options = filter.value.split(',');
+  // retrieve the possible col options
+  const colOptions = (await col.getColOptions()) as SelectOptionsType;
+  // only include valid options as the input value becomes dropdown type now
+  let validOptions = [];
+  for (const option of options) {
+    if (colOptions.options.includes(option)) {
+      validOptions.push(option);
+    }
+  }
+  const newFilterValue = validOptions.join(',');
+  // if all inputted options are invalid -> delete this filter
+  if (!newFilterValue) {
+    actions.push(await Filter.delete(filter, ncMeta));
+    return actions;
+  }
+  if (filter.comparision_op === 'eq') {
+    // migrate to `contains all of`
+    actions.push(
+      await Filter.update(
+        filter.id,
+        {
+          ...filter,
+          comparision_op: 'anyof',
+          value: newFilterValue,
+        },
+        ncMeta
+      )
+    );
+  } else if (filter.comparision_op === 'neq') {
+    // migrate to `doesn't contain all of`
+    actions.push(
+      await Filter.update(
+        filter.id,
+        {
+          ...filter,
+          comparision_op: 'nanyof',
+          value: newFilterValue,
         },
         ncMeta
       )
@@ -174,11 +234,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     } else if (col.uidt === UITypes.Checkbox) {
       actions = await migrateToCheckboxFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.MultiSelect) {
-      // TODO: migrate to "contains any of" or "contains all of"
-      // TODO: migrate to "doesnt contain any of" or "doesnt contain all of"
-      // actions = await removeEqualFilters(filter, actions, ncMeta);
       actions = await removeLikeFilters(filter, actions, ncMeta);
       actions = await migrateToBlankFilter(filter, actions, ncMeta);
+      actions = await migrateMultiSelectEq(filter, actions, col, ncMeta);
     } else if (col.uidt === UITypes.Attachment) {
       actions = await removeArithmeticFilters(filter, actions, ncMeta);
       actions = await removeEqualFilters(filter, actions, ncMeta);

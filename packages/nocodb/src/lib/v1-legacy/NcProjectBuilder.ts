@@ -719,7 +719,7 @@ export default class NcProjectBuilder {
             connectionConfig.meta.dbAlias,
             'migrations'
           );
-          if (!await promisify(fs.exists)(migrationFolder)) {
+          if (!(await promisify(fs.exists)(migrationFolder))) {
             await migrator.init({
               folder: this.app.getToolDir(),
               env: this.appConfig.workingEnv,

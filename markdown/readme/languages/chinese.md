@@ -201,7 +201,7 @@ docker-compose up -d
 
 ## 环境变量
 
-参见[环境变量](https://docs.nocodb.com/getting-started/installation#environment-variables)
+参见[环境变量](https://docs.nocodb.com/getting-started/environment-variables)
 
 # 开发
 

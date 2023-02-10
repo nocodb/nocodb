@@ -7,6 +7,18 @@ import { defaultColumns } from '../../factory/column';
 import Model from '../../../../src/lib/models/Model';
 import { expect } from 'chai';
 
+// Test case list
+// 1. Get table list
+// 2. Create table
+// 3. Create table with same table name
+// 4. Create table with same title
+// 5. Create table with title length more than the limit
+// 6. Create table with title having leading white space
+// 7. Update table
+// 8. Delete table
+// 9. Get table
+// 10. Reorder table
+
 function tableTest() {
   let context;
   let project;

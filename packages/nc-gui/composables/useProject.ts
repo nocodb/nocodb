@@ -1,7 +1,6 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
-import { useRoute } from 'vue-router'
 import {
   ClientType,
   computed,
@@ -12,6 +11,7 @@ import {
   useInjectionState,
   useNuxtApp,
   useRoles,
+  useRoute,
   useRouter,
   useTheme,
 } from '#imports'
@@ -84,6 +84,10 @@ const [setup, use] = useInjectionState(() => {
 
   function isPg(baseId?: string) {
     return getBaseType(baseId) === 'pg'
+  }
+
+  function isXcdbBase(baseId?: string) {
+    return bases.value.find((base) => base.id === baseId)?.is_meta
   }
 
   const isSharedBase = computed(() => projectType === 'base')
@@ -195,6 +199,7 @@ const [setup, use] = useInjectionState(() => {
     reset,
     isLoading,
     lastOpenedViewMap,
+    isXcdbBase,
   }
 }, 'useProject')
 

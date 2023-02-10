@@ -29,11 +29,11 @@ export default class SqlMgrv2 {
     return this;
   }
 
-  public migrator(_base: Base) {
+  public async migrator(_base: Base) {
     return this._migrator;
   }
   public static async testConnection(args = {}) {
-    const client = SqlClientFactory.create(args);
+    const client = await SqlClientFactory.create(args);
     return client.testConnection();
   }
 
@@ -52,7 +52,7 @@ export default class SqlMgrv2 {
     log.api(`${func}:args:`, base, op, opArgs);
 
     // create sql client for this operation
-    const client = this.getSqlClient(base);
+    const client = await this.getSqlClient(base);
 
     // do sql operation
     const data = await client[op](opArgs);
@@ -75,7 +75,7 @@ export default class SqlMgrv2 {
     log.api(`${func}:args:`, base, op, opArgs);
 
     // create sql client for this operation
-    const sqlClient = this.getSqlClient(base); //await this.projectGetSqlClient(args);
+    const sqlClient = await this.getSqlClient(base); //await this.projectGetSqlClient(args);
 
     // do sql operation
     const sqlMigrationStatements = await sqlClient[op](opArgs);
@@ -118,7 +118,7 @@ export default class SqlMgrv2 {
     return sqlMigrationStatements;
   }
 
-  protected getSqlClient(base: Base) {
+  protected async getSqlClient(base: Base): Promise<any> {
     return NcConnectionMgrv2.getSqlClient(base);
   }
 }

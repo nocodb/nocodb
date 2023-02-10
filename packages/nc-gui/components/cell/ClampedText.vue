@@ -8,9 +8,13 @@ const wrapper = ref()
 
 const key = ref(0)
 
+const debouncedRefresh = useDebounceFn(() => {
+  key.value++
+}, 500)
+
 onMounted(() => {
   const observer = new ResizeObserver(() => {
-    key.value++
+    debouncedRefresh()
   })
 
   observer.observe(wrapper.value)
@@ -19,6 +23,11 @@ onMounted(() => {
 
 <template>
   <div ref="wrapper">
-    <text-clamp :key="key" class="w-full h-full break-all" :text="`${props.value || ''}`" :max-lines="props.lines" />
+    <text-clamp
+      :key="`clamp-${key}-${props.value?.toString().length || 0}`"
+      class="w-full h-full break-all"
+      :text="`${props.value || ''}`"
+      :max-lines="props.lines"
+    />
   </div>
 </template>

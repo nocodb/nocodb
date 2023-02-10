@@ -94,11 +94,14 @@ const recreate = async () => {
 
 const copyUrl = async () => {
   if (!url) return
+  try {
+    await copy(url)
 
-  await copy(url)
-
-  // Copied shareable base url to clipboard!
-  message.success(t('msg.success.shareableURLCopied'))
+    // Copied shareable base url to clipboard!
+    message.success(t('msg.success.shareableURLCopied'))
+  } catch (e) {
+    message.error(e.message)
+  }
 
   $e('c:shared-base:copy-url')
 }
@@ -111,10 +114,10 @@ const navigateToSharedBase = () => {
   $e('c:shared-base:open-url')
 }
 
-const generateEmbeddableIframe = () => {
+const generateEmbeddableIframe = async () => {
   if (!url) return
-
-  copy(`<iframe
+  try {
+    await copy(`<iframe
 class="nc-embed"
 src="${url}?embed"
 frameborder="0"
@@ -122,9 +125,11 @@ width="100%"
 height="700"
 style="background: transparent; border: 1px solid #ddd"></iframe>`)
 
-  // Copied embeddable html code!
-  message.success(t('msg.success.embeddableHTMLCodeCopied'))
-
+    // Copied embeddable html code!
+    message.success(t('msg.success.embeddableHTMLCodeCopied'))
+  } catch (e) {
+    message.error(e.message)
+  }
   $e('c:shared-base:copy-embed-frame')
 }
 

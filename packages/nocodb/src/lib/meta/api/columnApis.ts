@@ -674,7 +674,7 @@ export async function columnAdd(
           ],
         };
 
-        const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+        const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
         const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
         await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 

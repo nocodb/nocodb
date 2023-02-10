@@ -76,18 +76,22 @@ test.describe('Multi select', () => {
       multiSelect: true,
     });
 
-    await grid.column.selectOption.editOption({ index: 2, columnTitle: 'MultiSelect', newOption: 'New Option 3' });
+    await grid.column.selectOption.editOption({
+      index: 2,
+      columnTitle: 'MultiSelect',
+      newOption: 'MultiSelect New Option 3',
+    });
     await grid.cell.selectOption.verify({
       index: 0,
       columnHeader: 'MultiSelect',
-      option: 'New Option 3',
+      option: 'MultiSelect New Option 3',
       multiSelect: true,
     });
 
     await grid.cell.selectOption.verifyOptions({
       index: 0,
       columnHeader: 'MultiSelect',
-      options: ['Option 1', 'Option 2', 'New Option 3'],
+      options: ['Option 1', 'Option 2', 'MultiSelect New Option 3'],
     });
 
     await grid.deleteRow(0);

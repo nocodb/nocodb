@@ -33,13 +33,16 @@ const openNewTokenModal = () => {
   $e('c:api-token:generate')
 }
 
-const copyToken = (token: string | undefined) => {
+const copyToken = async (token: string | undefined) => {
   if (!token) return
 
-  copy(token)
-  // Copied to clipboard
-  message.info(t('msg.info.copiedToClipboard'))
-
+  try {
+    await copy(token)
+    // Copied to clipboard
+    message.info(t('msg.info.copiedToClipboard'))
+  } catch (e) {
+    message.error(e.message)
+  }
   $e('c:api-token:copy')
 }
 
@@ -145,8 +148,8 @@ onMounted(() => {
         <div class="flex flex-row justify-center mt-2 text-center w-full text-base">This action will remove this API Token</div>
 
         <div class="flex mt-6 justify-center space-x-2">
-          <a-button @click="showDeleteTokenModal = false"> {{ $t('general.cancel') }} </a-button>
-          <a-button type="primary" danger @click="deleteToken()"> {{ $t('general.confirm') }} </a-button>
+          <a-button @click="showDeleteTokenModal = false"> {{ $t('general.cancel') }}</a-button>
+          <a-button type="primary" danger @click="deleteToken()"> {{ $t('general.confirm') }}</a-button>
         </div>
       </div>
     </a-modal>
@@ -205,7 +208,7 @@ onMounted(() => {
               </a-tooltip>
 
               <a-tooltip placement="bottom">
-                <template #title> {{ $t('general.copy') }} </template>
+                <template #title> {{ $t('general.copy') }}</template>
 
                 <a-button type="text" class="!rounded-md" @click="copyToken(item.token)">
                   <template #icon>

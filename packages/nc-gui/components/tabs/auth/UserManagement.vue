@@ -140,13 +140,16 @@ const resendInvite = async (user: User) => {
   $e('a:user:resend-invite')
 }
 
-const copyInviteUrl = (user: User) => {
+const copyInviteUrl = async (user: User) => {
   if (!user.invite_token) return
+  try {
+    await copy(`${dashboardUrl}#/signup/${user.invite_token}`)
 
-  copy(`${dashboardUrl}#/signup/${user.invite_token}`)
-
-  // Invite URL copied to clipboard
-  message.success(t('msg.success.inviteURLCopied'))
+    // Invite URL copied to clipboard
+    message.success(t('msg.success.inviteURLCopied'))
+  } catch (e) {
+    message.error(e.message)
+  }
   $e('c:user:copy-url')
 }
 

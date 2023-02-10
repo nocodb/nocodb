@@ -72,7 +72,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const { sqlUis } = useProject()
 
     const sqlUi = ref(
-      (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType)?.base_id!] : Object.values(sqlUis.value)[0],
+      (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
     )
 
     const xWhere = computed(() => {

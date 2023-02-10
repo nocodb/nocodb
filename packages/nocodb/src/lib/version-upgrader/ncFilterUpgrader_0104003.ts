@@ -96,6 +96,42 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
         ncMeta
       )
     );
+  } else if (filter.comparision_op === 'eq') {
+    if (['true', 'True', '1', 'T', 'Y'].includes(filter.value)) {
+      // migrate to checked
+      actions.push(
+        await Filter.update(
+          filter.id,
+          {
+            ...filter,
+            comparision_op: 'checked',
+            value: '',
+          },
+          ncMeta
+        )
+      );
+    } else {
+      // invalid value - good to delete
+      actions.push(await Filter.delete(filter, ncMeta));
+    }
+  } else if (filter.comparision_op === 'neq') {
+    if (['false', 'False', '0', 'F', 'N'].includes(filter.value)) {
+      // migrate to not checked
+      actions.push(
+        await Filter.update(
+          filter.id,
+          {
+            ...filter,
+            comparision_op: 'notchecked',
+            value: '',
+          },
+          ncMeta
+        )
+      );
+    } else {
+      // invalid value - good to delete
+      actions.push(await Filter.delete(filter, ncMeta));
+    }
   }
   return actions;
 };
@@ -136,7 +172,6 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       actions = await removeLikeFilters(filter, actions, ncMeta);
       actions = await migrateToBlankFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.Checkbox) {
-      actions = await removeEqualFilters(filter, actions, ncMeta);
       actions = await migrateToCheckboxFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.MultiSelect) {
       // TODO: migrate to "contains any of" or "contains all of"

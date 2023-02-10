@@ -117,7 +117,7 @@ watchDebounced(
         type="text"
         :class="{ 'is-active': editor.isActive('italic') }"
         class="menu-button"
-        @click="editor!.chain().focus().toggleItalic().run()"
+        @click=";(editor!.chain().focus() as any).toggleItalic().run()"
       >
         <MdiFormatItalic />
       </a-button>

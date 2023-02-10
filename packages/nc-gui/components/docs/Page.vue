@@ -312,36 +312,39 @@ onMounted(() => {
 <template>
   <a-layout-content>
     <div v-if="openedPage" class="nc-docs-page overflow-y-auto h-full" @scroll="selectActiveHeading">
-      <div
-        class="absolute top-2 right-4 p-1 cursor-pointer rounded-md"
-        :class="{
-          'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
-          'bg-white hover:bg-gray-100': !showPageSubHeadings,
-        }"
-        @click="showPageSubHeadings = !showPageSubHeadings"
-      >
-        <AlignRightIcon />
-      </div>
-      <div
-        v-if="showPageSubHeadings && !isPagesSubHeadingsLoading && pageSubHeadings.length > 0"
-        class="absolute top-16 right-0 pt-3 pr-12 flex flex-col w-54"
-      >
-        <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
-        <a
-          v-for="(subHeading, index) in pageSubHeadings"
-          :key="index"
-          :href="`#${subHeading.text}`"
-          class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all"
+      <template v-if="pageSubHeadings.length > 0">
+        <div
+          class="absolute top-2 right-4 p-1 cursor-pointer rounded-md"
           :class="{
-            'font-semibold text-primary': subHeading.active,
-            '!text-gray-700': !subHeading.active,
-            'ml-4': subHeading.type === 'h2',
-            'ml-8': subHeading.type === 'h3',
+            'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
+            'bg-white hover:bg-gray-100': !showPageSubHeadings,
           }"
+          @click="showPageSubHeadings = !showPageSubHeadings"
         >
-          {{ subHeading.text }}
-        </a>
-      </div>
+          <AlignRightIcon />
+        </div>
+        <div
+          v-if="showPageSubHeadings && !isPagesSubHeadingsLoading"
+          class="absolute top-16 right-0 pt-3 pr-12 flex flex-col w-54"
+        >
+          <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
+          <a
+            v-for="(subHeading, index) in pageSubHeadings"
+            :key="index"
+            :href="`#${subHeading.text}`"
+            class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all"
+            :class="{
+              'font-semibold text-primary': subHeading.active,
+              '!text-gray-700': !subHeading.active,
+              'ml-4': subHeading.type === 'h2',
+              'ml-8': subHeading.type === 'h3',
+            }"
+          >
+            {{ subHeading.text }}
+          </a>
+        </div>
+      </template>
+
       <div class="flex flex-row justify-between items-center ml-14 mt-8">
         <a-breadcrumb v-if="breadCrumbs.length > 1" class="!px-2">
           <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">

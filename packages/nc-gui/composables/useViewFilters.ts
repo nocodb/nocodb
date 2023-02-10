@@ -1,7 +1,11 @@
-import type { FilterType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import type { SelectProps } from 'ant-design-vue'
+import { LinkToAnotherRecordType, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
+  FieldsInj,
   IsPublicInj,
+  MetaInj,
   computed,
   extractSdkResponseErrorMsg,
   inject,
@@ -44,6 +48,8 @@ export function useViewFilters(
 
   const tabMeta = inject(TabMetaInj, ref({ filterState: new Map(), sortsState: new Map() } as TabItem))
 
+  const fields = inject(FieldsInj, ref())
+
   const filters = computed<Filter[]>({
     get: () => {
       return nestedMode.value ? currentFilters! : _filters.value
@@ -68,11 +74,60 @@ export function useViewFilters(
   // nonDeletedFilters are those filters that are not deleted physically & virtually
   const nonDeletedFilters = computed(() => filters.value.filter((f) => f.status !== 'delete'))
 
-  const placeholderFilter: Filter = {
-    comparison_op: 'eq',
-    value: '',
-    status: 'create',
-    logical_op: 'and',
+  const options = computed<SelectProps['options']>(() =>
+    fields.value?.filter((c: ColumnType) => {
+      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode) {
+        return false
+      } else {
+        const isVirtualSystemField = c.colOptions && c.system
+        return !isVirtualSystemField
+      }
+    }),
+  )
+
+  const meta = inject(MetaInj, ref())
+
+  const isComparisonOpAllowed = (
+    filter: FilterType,
+    compOp: {
+      text: string
+      value: string
+      ignoreVal?: boolean
+      includedTypes?: UITypes[]
+      excludedTypes?: UITypes[]
+    },
+  ) => {
+    // include allowed values only if selected column type matches
+    if (compOp.includedTypes) {
+      return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
+    }
+    // include not allowed values only if selected column type not matches
+    else if (compOp.excludedTypes) {
+      return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
+    }
+    return true
+  }
+
+  const types = computed(() => {
+    if (!meta.value?.columns?.length) {
+      return {}
+    }
+
+    return meta.value?.columns?.reduce((obj: any, col: any) => {
+      obj[col.id] = col.uidt
+      return obj
+    }, {})
+  })
+
+  const placeholderFilter = (): Filter => {
+    return {
+      comparison_op: comparisonOpList(options.value[0].uidt as UITypes).filter((compOp) =>
+        isComparisonOpAllowed({ fk_column_id: options.value[0].id }, compOp),
+      )?.[0].value,
+      value: '',
+      status: 'create',
+      logical_op: 'and',
+    }
   }
 
   const loadFilters = async (hookId?: string) => {
@@ -97,7 +152,7 @@ export function useViewFilters(
           filters.value = await $api.dbTableFilter.read(view.value!.id!)
         }
       }
-    } catch (e: any) {
+    } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -129,7 +184,7 @@ export function useViewFilters(
       }
 
       reloadData?.()
-    } catch (e: any) {
+    } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -153,7 +208,7 @@ export function useViewFilters(
             await $api.dbTableFilter.delete(filter.id)
             reloadData?.()
             filters.value.splice(i, 1)
-          } catch (e: any) {
+          } catch (e) {
             console.log(e)
             message.error(await extractSdkResponseErrorMsg(e))
           }
@@ -191,7 +246,7 @@ export function useViewFilters(
           fk_parent_id: parentId,
         })
       }
-    } catch (e: any) {
+    } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -202,12 +257,12 @@ export function useViewFilters(
   const saveOrUpdateDebounced = useDebounceFn(saveOrUpdate, 500)
 
   const addFilter = () => {
-    filters.value.push({ ...placeholderFilter })
+    filters.value.push({ ...placeholderFilter() })
     $e('a:filter:add', { length: filters.value.length })
   }
 
   const addFilterGroup = async () => {
-    const child = { ...placeholderFilter }
+    const child = { ...placeholderFilter() }
     const placeHolderGroupFilter: Filter = {
       is_group: true,
       status: 'create',
@@ -234,7 +289,7 @@ export function useViewFilters(
 
       return metas?.value?.[view?.value?.fk_model_id as string]?.columns?.length || 0
     },
-    async (nextColsLength, oldColsLength) => {
+    async (nextColsLength: number, oldColsLength: number) => {
       if (nextColsLength && nextColsLength < oldColsLength) await loadFilters()
     },
   )
@@ -249,5 +304,6 @@ export function useViewFilters(
     addFilter,
     addFilterGroup,
     saveOrUpdateDebounced,
+    isComparisonOpAllowed,
   }
 }

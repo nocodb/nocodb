@@ -261,7 +261,9 @@ defineExpose({
             <span
               v-if="
                 filter.comparison_op &&
-                ['null', 'notnull', 'checked', 'notchecked', 'empty', 'notempty'].includes(filter.comparison_op)
+                ['null', 'notnull', 'checked', 'notchecked', 'empty', 'notempty', 'blank', 'notblank'].includes(
+                  filter.comparison_op,
+                )
               "
               :key="`span${i}`"
             />

@@ -16,7 +16,7 @@ export default class Local implements IStorageAdapterV2 {
     const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
     try {
       await mkdirp(path.dirname(destPath));
-      const data = await promisify(fs.readFile)(file.path)
+      const data = await promisify(fs.readFile)(file.path);
       await promisify(fs.writeFile)(destPath, data);
       await promisify(fs.unlink)(file.path);
       // await fs.promises.rename(file.path, destPath);

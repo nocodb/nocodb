@@ -207,7 +207,8 @@ export default async (
     // store copy of airtable schema globally
     g_aTblSchema = file.tableSchemas;
 
-    if (debugMode) await writeJsonFileAsync('aTblSchema.json', ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync('aTblSchema.json', ft, { spaces: 2 });
 
     return file;
   }
@@ -219,7 +220,8 @@ export default async (
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
 
-    if (debugMode) await writeJsonFileAsync(`${viewId}.json`, ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync(`${viewId}.json`, ft, { spaces: 2 });
     return ft.view;
   }
 

@@ -460,7 +460,7 @@ export default class Noco {
             connectionConfig.meta.dbAlias,
             'migrations'
           );
-          if (!await promisify(fs.exists)(migrationFolder)) {
+          if (!(await promisify(fs.exists)(migrationFolder))) {
             await migrator.init({
               folder: this.config?.toolDir,
               env: this.env,

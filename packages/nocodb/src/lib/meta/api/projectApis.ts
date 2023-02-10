@@ -122,7 +122,7 @@ async function projectCreate(req: Request<any, any>, res) {
         '1234567890abcdefghijklmnopqrstuvwxyz',
         14
       );
-      if (!await promisify(fs.exists)(`${toolDir}/nc_minimal_dbs`)) {
+      if (!(await promisify(fs.exists)(`${toolDir}/nc_minimal_dbs`))) {
         await promisify(fs.mkdir)(`${toolDir}/nc_minimal_dbs`);
       }
       const dbId = nanoidv2();

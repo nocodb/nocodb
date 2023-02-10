@@ -602,7 +602,10 @@ class KnexClient extends SqlClient {
   async _validateInput() {
     try {
       const packageJson = JSON.parse(
-        await promisify(fs.readFile)(path.join(process.cwd(), 'package.json'), 'utf8')
+        await promisify(fs.readFile)(
+          path.join(process.cwd(), 'package.json'),
+          'utf8'
+        )
       );
       return (
         packageJson.name === 'nocodb' || 'nocodb' in packageJson.dependencies

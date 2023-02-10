@@ -23,7 +23,7 @@ process.env[`DEBUG`] = 'xc*';
 (async () => {
   const httpServer = server.listen(process.env.PORT || 8080, async () => {
     server.use(await Noco.init({}, httpServer, server));
-    
+
     if (!(await User.getByEmail('user@nocodb.com'))) {
       const response = await axios.post(
         `http://localhost:${process.env.PORT || 8080}/api/v1/auth/user/signup`,

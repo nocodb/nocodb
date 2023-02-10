@@ -59,8 +59,8 @@ const openedPage = computed<PageSidebarNode | undefined>({
     _openedPage.value = value
   },
 })
+
 const showPageSubHeadings = ref(isPublic.value)
-const isPagesSubHeadingsLoading = ref(true)
 const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean }>>([])
 let lastPageScrollTime = 0
 let topHeaderHeight = 60
@@ -85,23 +85,28 @@ const breadCrumbs = computed(() => {
   return [bookBreadcrumb, ...pagesBreadcrumbs]
 })
 
-const selectActiveHeading = () => {
+const selectActiveSubHeading = () => {
   if (pageSubHeadings.value.length === 0) return
 
-  if (Date.now() - lastPageScrollTime < 20) return
+  if (Date.now() - lastPageScrollTime < 100) return
   lastPageScrollTime = Date.now()
 
-  const headingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
+  const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
 
-  const headingsThatCouldBeActive = [...headingDoms]
+  const subHeadingsThatCouldBeActive = [...subHeadingDoms]
+    // Filter out subheadings which are below the viewport
     .filter((h) => {
-      const headingDomRect = (h as HTMLElement).getBoundingClientRect()
-      return headingDomRect.top < window.innerHeight
+      const subHeadingDomRect = (h as HTMLElement).getBoundingClientRect()
+      return subHeadingDomRect.top < window.innerHeight
     })
+
+    // Filter out the subheadings which are below the top header(nocohub topbar) within 30px below it
     .filter((h) => (h as HTMLElement).getBoundingClientRect().top - topHeaderHeight - 30 < 0)
+
+    // So we have the subheadings which are above the top header and nearest to the viewport
     .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
-  const activeHeading = headingsThatCouldBeActive[headingsThatCouldBeActive.length - 1] as HTMLElement
-  if (!activeHeading) return
+
+  const activeHeading = subHeadingsThatCouldBeActive[subHeadingsThatCouldBeActive.length - 1] as HTMLElement
 
   pageSubHeadings.value = pageSubHeadings.value.map((subHeading) => {
     subHeading.active = subHeading.text === activeHeading?.innerText && subHeading.type === activeHeading?.nodeName.toLowerCase()
@@ -115,18 +120,17 @@ const selectActiveHeading = () => {
 }
 
 const populatedPageSubheading = () => {
-  const headingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
+  const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
 
   pageSubHeadings.value = []
-  for (let i = 0; i < headingDoms.length; i++) {
-    const headingDom = headingDoms[i] as HTMLElement
+  for (let i = 0; i < subHeadingDoms.length; i++) {
+    const headingDom = subHeadingDoms[i] as HTMLElement
     pageSubHeadings.value.push({
       type: headingDom.nodeName.toLowerCase(),
       text: headingDom.innerText,
       active: i === 0,
     })
   }
-  isPagesSubHeadingsLoading.value = false
 }
 
 const editor = useEditor({
@@ -195,7 +199,7 @@ const editor = useEditor({
 
     openedPage.value.content = editor.getHTML()
     populatedPageSubheading()
-    selectActiveHeading()
+    selectActiveSubHeading()
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -311,7 +315,7 @@ onMounted(() => {
 
 <template>
   <a-layout-content>
-    <div v-if="openedPage" class="nc-docs-page overflow-y-auto h-full" @scroll="selectActiveHeading">
+    <div v-if="openedPage" class="nc-docs-page overflow-y-auto h-full" @scroll="selectActiveSubHeading">
       <template v-if="pageSubHeadings.length > 0">
         <div
           class="absolute top-2 right-4 p-1 cursor-pointer rounded-md"
@@ -323,10 +327,7 @@ onMounted(() => {
         >
           <AlignRightIcon />
         </div>
-        <div
-          v-if="showPageSubHeadings && !isPagesSubHeadingsLoading"
-          class="absolute top-16 right-0 pt-3 pr-12 flex flex-col w-54"
-        >
+        <div v-if="showPageSubHeadings" class="absolute top-16 right-0 pt-3 pr-12 flex flex-col w-54">
           <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
           <a
             v-for="(subHeading, index) in pageSubHeadings"

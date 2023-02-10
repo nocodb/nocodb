@@ -27,8 +27,12 @@ export default class NcUpgrader {
   public static async upgrade(ctx: NcUpgraderCtx): Promise<any> {
     this.log(`upgrade : Started`);
 
-    // app version when upgrade started
-    let oldVersion;
+    // upgrader version when upgrade started
+    let prevVersion;
+    // last successfully applied upgrader version
+    let currentVersion;
+    // latest available upgrader version
+    const latestVersion = process.env.NC_VERSION;
 
     const NC_VERSIONS: any[] = [
       { name: '0009000', handler: null },
@@ -66,10 +70,9 @@ export default class NcUpgrader {
         throw e;
       }
 
-      if (configObj.version !== process.env.NC_VERSION) {
-        oldVersion = configObj.version;
-        // last successfully upgraded version
-        let fromVersion = configObj.version;
+      if (configObj.version !== latestVersion) {
+        prevVersion = configObj.version;
+        currentVersion = configObj.version;
         for (const version of NC_VERSIONS) {
           // compare current version and old version
           if (version.name <= configObj.version) {
@@ -105,44 +108,42 @@ export default class NcUpgrader {
             );
 
             await upgrderCtx.ncMeta.commit();
-            fromVersion = version.name;
+            currentVersion = version.name;
           } catch (e) {
             await upgrderCtx.ncMeta.rollback(e);
             Tele.emit('evt', {
               evt_type: 'appMigration:failed',
-              // app version when upgrade started
-              current: oldVersion,
-              // last successfully upgraded version
-              from: fromVersion,
-              // latest upgrade version available
-              to: process.env.NC_VERSION,
+              prev: prevVersion,
+              from: currentVersion,
+              to: latestVersion,
               msg: e.message,
               err: e?.stack?.split?.('\n').slice(0, 2).join('\n'),
             });
             console.log(
-              getUpgradeErrorLog(e, fromVersion, process.env.NC_VERSION)
+              getUpgradeErrorLog(e, currentVersion, latestVersion, prevVersion)
             );
             throw e;
           }
           // todo: backup data
 
-          if (version.name === process.env.NC_VERSION) {
+          if (version.name === latestVersion) {
             break;
           }
         }
-        config.version = process.env.NC_VERSION;
+        config.version = latestVersion;
 
         Tele.emit('evt', {
           evt_type: 'appMigration:upgraded',
-          from: oldVersion,
-          to: process.env.NC_VERSION,
+          prev: prevVersion,
+          from: prevVersion,
+          to: latestVersion,
         });
       }
     } else {
       this.log(`upgrade : Inserting config to meta database`);
       const configObj: any = {};
       const isOld = (await ctx.ncMeta.projectList())?.length;
-      configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
+      configObj.version = isOld ? '0009000' : latestVersion;
       await ctx.ncMeta.metaInsert('', '', MetaTable.STORE, {
         key: NcUpgrader.STORE_KEY,
         value: JSON.stringify(configObj),
@@ -160,11 +161,11 @@ export default class NcUpgrader {
 
 function getUpgradeErrorLog(
   e: Error,
-  fromVersion: string,
-  newVersion: string,
-  oldVersion: string
+  currentVersion: string,
+  latestVersion: string,
+  prevVersion: string
 ) {
-  const errorTitle = `Migration from ${fromVersion} (old version: ${oldVersion}) to ${newVersion} failed`;
+  const errorTitle = `Migration from ${currentVersion} (old version: ${prevVersion}) to ${latestVersion} failed`;
 
   return boxen(
     `Error

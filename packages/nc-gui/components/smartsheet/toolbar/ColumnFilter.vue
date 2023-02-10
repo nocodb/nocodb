@@ -52,6 +52,7 @@ const {
   addFilterGroup,
   sync,
   saveOrUpdateDebounced,
+  isComparisonOpAllowed,
 } = useViewFilters(
   activeView,
   parentId,
@@ -115,27 +116,6 @@ const applyChanges = async (hookId?: string, _nested = false) => {
       await nestedFilter.applyChanges(hookId, true)
     }
   }
-}
-
-const isComparisonOpAllowed = (
-  filter: FilterType,
-  compOp: {
-    text: string
-    value: string
-    ignoreVal?: boolean
-    includedTypes?: UITypes[]
-    excludedTypes?: UITypes[]
-  },
-) => {
-  // include allowed values only if selected column type matches
-  if (compOp.includedTypes) {
-    return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
-  }
-  // include not allowed values only if selected column type not matches
-  else if (compOp.excludedTypes) {
-    return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
-  }
-  return true
 }
 
 const selectFilterField = (filter: Filter, index: number) => {

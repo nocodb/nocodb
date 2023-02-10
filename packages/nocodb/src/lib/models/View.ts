@@ -898,7 +898,16 @@ export default class View implements ViewType {
 
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.VIEWS, updateObj, viewId);
-    return this.get(viewId);
+
+    const view = await this.get(viewId);
+
+    if (view.type === ViewTypes.GRID) {
+      if ('show_system_fields' in updateObj) {
+        await View.fixPVColumnForView(viewId, ncMeta);
+      }
+    }
+
+    return view;
   }
 
   // @ts-ignore

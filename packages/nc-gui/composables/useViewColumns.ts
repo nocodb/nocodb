@@ -162,7 +162,10 @@ export function useViewColumns(
             .update(view.value.id, {
               show_system_fields: v,
             })
-            .finally(() => reloadData?.())
+            .finally(() => {
+              loadViewColumns()
+              reloadData?.()
+            })
         }
         view.value.show_system_fields = v
       }

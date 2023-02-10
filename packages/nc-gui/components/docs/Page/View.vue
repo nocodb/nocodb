@@ -1,34 +1,6 @@
 <script lang="ts" setup>
 import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
-import BulletList from '@tiptap/extension-bullet-list'
-import HorizontalRule from '@tiptap/extension-horizontal-rule'
-import TaskItem from '@tiptap/extension-task-item'
-import TaskList from '@tiptap/extension-task-list'
-import Underline from '@tiptap/extension-underline'
-import Paragraph from '@tiptap/extension-paragraph'
-import Text from '@tiptap/extension-text'
-import DropCursor from '@tiptap/extension-dropcursor'
-import ListItem from '@tiptap/extension-list-item'
-import Bold from '@tiptap/extension-bold'
-import Strike from '@tiptap/extension-strike'
-import Placeholder from '@tiptap/extension-placeholder'
-import CodeBlock from '@tiptap/extension-code-block'
-import Blockquote from '@tiptap/extension-blockquote'
-import { TableCell } from './tiptap-extensions/table/TableCell'
-import { TableHeader } from './tiptap-extensions/table/header'
-import { TableRow } from './tiptap-extensions/table/row'
-import Table from './tiptap-extensions/table'
-import { History } from './tiptap-extensions/history'
-import suggestion from './tiptap-extensions/commands/suggestion'
-import { createImageExtension } from './tiptap-extensions/images/node'
-import Commands from './tiptap-extensions/commands'
-import { InfoCallout } from './tiptap-extensions/callouts/info'
-import { WarningCallout } from './tiptap-extensions/callouts/warning'
-import { TipCallout } from './tiptap-extensions/callouts/tip'
-import { DraggableBlock } from './tiptap-extensions/draggableBlock'
-import { Document } from './tiptap-extensions/document'
-import { ExternalContent } from './tiptap-extensions/external-content'
-import { Heading } from './tiptap-extensions/heading'
+import tiptapExtensions from './tiptap-extensions'
 import type { PageSidebarNode } from '~~/composables/docs/useDocs'
 import AlignRightIcon from '~icons/tabler/align-right'
 
@@ -42,7 +14,6 @@ const {
   openedNestedPagesOfBook,
   nestedUrl,
   bookUrl,
-  uploadFile,
   fetchPage,
   openPage,
 } = useDocs()
@@ -134,63 +105,7 @@ const populatedPageSubheading = () => {
 }
 
 const editor = useEditor({
-  extensions: [
-    Document,
-    DraggableBlock,
-    Paragraph,
-    Text,
-    Strike,
-    Heading,
-    ListItem,
-    Bold,
-    DropCursor.configure({
-      width: 2,
-      class: 'notitap-dropcursor',
-      color: 'skyblue',
-    }),
-    Commands.configure({
-      suggestion,
-    }),
-    Placeholder.configure({
-      placeholder: 'Press / to open the command menu or start writing',
-    }),
-    BulletList,
-    TaskList.configure({
-      HTMLAttributes: {
-        class: 'nc-docs-task-list',
-      },
-    }),
-    TaskItem.configure({
-      nested: true,
-    }),
-    HorizontalRule.configure({
-      HTMLAttributes: {
-        class: 'nc-docs-horizontal-rule',
-      },
-    }),
-    CodeBlock,
-    createImageExtension(async (image) => {
-      const { url } = await uploadFile(image)
-      return url
-    }),
-    Underline,
-    History,
-    Blockquote,
-    InfoCallout,
-    WarningCallout,
-    TipCallout,
-    Table.configure({
-      resizable: true,
-    }),
-    TableRow,
-    TableHeader,
-    TableCell.configure({
-      HTMLAttributes: {
-        class: 'nc-docs-tiptap-table-cell relative',
-      },
-    }),
-    ExternalContent,
-  ],
+  extensions: tiptapExtensions(),
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
 
@@ -239,7 +154,6 @@ watch(editor, () => {
   if (!editor.value) return
 
   editor.value.commands.setContent(content.value)
-  document.tipTapEditor = editor.value
 })
 
 const onTitleKeyDown = (e: KeyboardEvent) => {
@@ -268,7 +182,7 @@ watchDebounced(
   },
 )
 
-// todo: Hack to focus on title when its edited since on edit route is changed
+// todo: Hack to focus on title when its edited since on editing title, route is changed
 watch(titleInputRef, (el) => {
   if (!isTitleInputRefLoaded.value && !openedPage.value?.new) {
     isTitleInputRefLoaded.value = true

@@ -26,7 +26,6 @@ import {
   useProject,
 } from '#imports'
 import type { Filter } from '~/lib'
-import SingleSelect from '~/components/cell/SingleSelect.vue'
 import MultiSelect from '~/components/cell/MultiSelect.vue'
 import DatePicker from '~/components/cell/DatePicker.vue'
 import YearPicker from '~/components/cell/YearPicker.vue'
@@ -51,13 +50,17 @@ interface Emits {
 }
 
 const props = defineProps<Props>()
+
 const emit = defineEmits<Emits>()
 
 const column = toRef(props, 'column')
+
 const editEnabled = ref(true)
 
 provide(ColumnInj, column)
+
 provide(EditModeInj, readonly(editEnabled))
+
 provide(ReadonlyInj, ref(false))
 
 const checkTypeFunctions = {
@@ -109,7 +112,8 @@ const booleanOptions = [
 ]
 
 const componentMap: Partial<Record<FilterType, any>> = {
-  isSingleSelect: SingleSelect,
+  // use MultiSelect for SingleSelect columns for anyof / nanyof filters
+  isSingleSelect: MultiSelect,
   isMultiSelect: MultiSelect,
   isDate: DatePicker,
   isYear: YearPicker,

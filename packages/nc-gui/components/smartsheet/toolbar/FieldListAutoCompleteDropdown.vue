@@ -2,7 +2,7 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { FieldsInj, computed, inject, ref, resolveComponent } from '#imports'
+import { MetaInj, FieldsInj, computed, inject, ref, resolveComponent } from '#imports'
 
 const { modelValue, isSort } = defineProps<{
   modelValue?: string
@@ -10,6 +10,8 @@ const { modelValue, isSort } = defineProps<{
 }>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
 
@@ -19,9 +21,9 @@ const localValue = computed({
 })
 
 const options = computed<SelectProps['options']>(() =>
-  fields.value
+  meta.value?.columns
     ?.filter((c: ColumnType) => {
-      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode) {
+      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
         return false
       } else if (isSort) {
         /** ignore hasmany and manytomany relations if it's using within sort menu */

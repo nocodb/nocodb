@@ -74,9 +74,11 @@ export function useViewFilters(
   // nonDeletedFilters are those filters that are not deleted physically & virtually
   const nonDeletedFilters = computed(() => filters.value.filter((f) => f.status !== 'delete'))
 
+  const meta = inject(MetaInj, ref())
+
   const options = computed<SelectProps['options']>(() =>
-    fields.value?.filter((c: ColumnType) => {
-      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode) {
+    meta.value?.columns?.filter((c: ColumnType) => {
+      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
         return false
       } else {
         const isVirtualSystemField = c.colOptions && c.system
@@ -84,8 +86,6 @@ export function useViewFilters(
       }
     }),
   )
-
-  const meta = inject(MetaInj, ref())
 
   const isComparisonOpAllowed = (
     filter: FilterType,

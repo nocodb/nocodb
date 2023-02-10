@@ -59,7 +59,7 @@ const onPublicMount = async () => {
     book: books.value[0],
   })
 
-  await navigateToFirstPage()
+  if (slugs.length === 1) await navigateToFirstPage()
 
   await openChildPageOfRootPages()
 }

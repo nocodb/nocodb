@@ -137,9 +137,6 @@ const editor = useEditor({
   extensions: [
     Document,
     DraggableBlock,
-    // StarterKit.configure({
-    //   history: false,
-    // }),
     Paragraph,
     Text,
     Strike,
@@ -382,7 +379,7 @@ onMounted(() => {
           @keydown="onTitleKeyDown"
         />
 
-        <DocsTiptapExtensionsSelectedBubbleMenu v-if="editor" :editor="editor" />
+        <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
         <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
           <MdiPlus
             class="hover:cursor-pointer hover:bg-gray-50 rounded-md"

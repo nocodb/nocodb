@@ -1,9 +1,8 @@
 import type { ColumnType, FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
-import { LinkToAnotherRecordType, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import {
-  FieldsInj,
   IsPublicInj,
   MetaInj,
   computed,
@@ -48,8 +47,6 @@ export function useViewFilters(
 
   const tabMeta = inject(TabMetaInj, ref({ filterState: new Map(), sortsState: new Map() } as TabItem))
 
-  const fields = inject(FieldsInj, ref())
-
   const filters = computed<Filter[]>({
     get: () => {
       return nestedMode.value ? currentFilters! : _filters.value
@@ -87,6 +84,17 @@ export function useViewFilters(
     }),
   )
 
+  const types = computed(() => {
+    if (!meta.value?.columns?.length) {
+      return {}
+    }
+
+    return meta.value?.columns?.reduce((obj: any, col: any) => {
+      obj[col.id] = col.uidt
+      return obj
+    }, {})
+  })
+
   const isComparisonOpAllowed = (
     filter: FilterType,
     compOp: {
@@ -107,17 +115,6 @@ export function useViewFilters(
     }
     return true
   }
-
-  const types = computed(() => {
-    if (!meta.value?.columns?.length) {
-      return {}
-    }
-
-    return meta.value?.columns?.reduce((obj: any, col: any) => {
-      obj[col.id] = col.uidt
-      return obj
-    }, {})
-  })
 
   const placeholderFilter = (): Filter => {
     return {

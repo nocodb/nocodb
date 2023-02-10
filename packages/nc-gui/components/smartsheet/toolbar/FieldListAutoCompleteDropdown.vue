@@ -2,7 +2,7 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, FieldsInj, computed, inject, ref, resolveComponent } from '#imports'
+import { MetaInj, computed, inject, ref, resolveComponent } from '#imports'
 
 const { modelValue, isSort } = defineProps<{
   modelValue?: string
@@ -12,8 +12,6 @@ const { modelValue, isSort } = defineProps<{
 const emit = defineEmits(['update:modelValue'])
 
 const meta = inject(MetaInj, ref())
-
-const fields = inject(FieldsInj, ref())
 
 const localValue = computed({
   get: () => modelValue,

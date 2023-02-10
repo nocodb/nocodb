@@ -2,15 +2,14 @@
 import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
 import { useSubheading } from './utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
-import type { PageSidebarNode } from '~~/composables/docs/useDocs'
 import AlignRightIcon from '~icons/tabler/align-right'
+import type { PageSidebarNode } from '~~/lib'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
 const {
   openedPage: openedPageInternal,
   openedBook,
-  updatePage,
   updateContent,
   openedNestedPagesOfBook,
   nestedUrl,
@@ -21,18 +20,16 @@ const {
 
 const { showPageSubHeadings, pageSubHeadings, selectActiveSubHeading, populatedPageSubheadings } = useSubheading()
 
-const isLoading = ref(false)
-const isTitleInputRefLoaded = ref(false)
-const titleInputRef = ref<HTMLInputElement>()
-const openedPage = ref<PageSidebarNode | undefined>()
+// Page opened in the Page component, which is updated to the server debounce-ly
+// The main reason we have it as a separate state, is since update syncing with server is debounced
+// We will run into syncing issue if we use `openedPage`from `useDocs`, which is synced with server directly,
+const localPage = ref<PageSidebarNode | undefined>()
 
-const title = computed({
-  get: () => (openedPage.value!.new ? '' : openedPage.value?.title || ''),
-  set: (value) => {
-    openedPage.value = { ...openedPage.value!, title: value, new: false }
-  },
-})
-const content = computed(() => openedPage.value?.content || '')
+provide(DocsLocalPageInj, localPage)
+
+const isLoading = ref(false)
+
+const content = computed(() => localPage.value?.content || '')
 
 const breadCrumbs = computed(() => {
   const bookBreadcrumb = {
@@ -49,9 +46,9 @@ const breadCrumbs = computed(() => {
 const editor = useEditor({
   extensions: tiptapExtensions(),
   onUpdate: ({ editor }) => {
-    if (!openedPage.value) return
+    if (!localPage.value) return
 
-    openedPage.value.content = editor.getHTML()
+    localPage.value.content = editor.getHTML()
     populatedPageSubheadings()
     selectActiveSubHeading()
   },
@@ -81,6 +78,10 @@ const editor = useEditor({
   editable: !isPublic.value,
 })
 
+const focusEditor = () => {
+  editor?.value?.commands.focus('start')
+}
+
 watch(
   () => content.value,
   () => {
@@ -96,48 +97,11 @@ watch(editor, () => {
   editor.value?.commands.setContent(content.value)
 })
 
-const onTitleKeyDown = (e: KeyboardEvent) => {
-  if (e.altKey) {
-    e.preventDefault()
-    titleInputRef.value?.blur()
-    return
-  }
-
-  if (e.key === 'Enter') {
-    e.preventDefault()
-    editor?.value?.commands.focus('start')
-  }
-}
-
 watchDebounced(
-  () => [openedPage.value?.id, openedPage.value?.title],
-  async ([newId, newTitle], [oldId, oldTitle]) => {
-    if (newId === oldId && newTitle && newTitle.length > 0 && newTitle !== oldTitle) {
-      await updatePage({ pageId: newId!, page: { title: newTitle } as any })
-    }
-  },
-  {
-    debounce: 100,
-    maxWait: 300,
-  },
-)
-
-// todo: Hack to focus on title when its edited since on editing title, route is changed
-watch(titleInputRef, (el) => {
-  if (!isTitleInputRefLoaded.value && !openedPage.value?.new) {
-    isTitleInputRefLoaded.value = true
-    return
-  }
-
-  isTitleInputRefLoaded.value = true
-  el?.focus()
-})
-
-watchDebounced(
-  () => [openedPage.value?.id, openedPage.value?.content],
+  () => [localPage.value?.id, localPage.value?.content],
   ([newId], [oldId]) => {
-    if (!isPublic.value && openedPage.value?.id && newId === oldId) {
-      updateContent({ pageId: openedPage.value?.id, content: openedPage.value!.content })
+    if (!isPublic.value && localPage.value?.id && newId === oldId) {
+      updateContent({ pageId: localPage.value?.id, content: localPage.value!.content })
     }
   },
   {
@@ -147,11 +111,11 @@ watchDebounced(
 )
 
 watch(
-  () => openedPage.value?.id,
+  () => localPage.value?.id,
   async () => {
     isLoading.value = true
-    openedPage.value = (await fetchPage({ page: openedPage.value! })) as any
-    if (openedPageInternal.value?.new) openedPage.value!.new = true
+    localPage.value = (await fetchPage({ page: localPage.value! })) as any
+    if (openedPageInternal.value?.new) localPage.value!.new = true
     isLoading.value = false
   },
   {
@@ -162,7 +126,7 @@ watch(
 
 <template>
   <a-layout-content>
-    <div v-if="openedPage" class="nc-docs-page overflow-y-auto h-full" @scroll="selectActiveSubHeading">
+    <div v-if="localPage" class="nc-docs-page overflow-y-auto h-full" @scroll="selectActiveSubHeading">
       <template v-if="pageSubHeadings.length > 0">
         <div
           class="absolute top-2 right-4 p-1 cursor-pointer rounded-md"
@@ -218,16 +182,7 @@ watch(
           maxWidth: '40vw',
         }"
       >
-        <a-input
-          ref="titleInputRef"
-          v-model:value="title"
-          class="!text-5xl font-semibold !px-1.5 !mb-6"
-          :bordered="false"
-          :readonly="isPublic"
-          :placeholder="openedPage.title"
-          auto-size
-          @keydown="onTitleKeyDown"
-        />
+        <DocsPageTitle v-if="localPage" @focus-editor="focusEditor" />
 
         <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
         <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">

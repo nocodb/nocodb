@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
+import { useSubheading } from './utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import type { PageSidebarNode } from '~~/composables/docs/useDocs'
 import AlignRightIcon from '~icons/tabler/align-right'
@@ -18,23 +19,12 @@ const {
   openPage,
 } = useDocs()
 
-const isTitleInputRefLoaded = ref(false)
+const { showPageSubHeadings, pageSubHeadings, selectActiveSubHeading, populatedPageSubheadings } = useSubheading()
+
 const isLoading = ref(false)
+const isTitleInputRefLoaded = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
-const _openedPage = ref<PageSidebarNode | undefined>()
-const openedPage = computed<PageSidebarNode | undefined>({
-  get: () => _openedPage.value,
-  set: (value) => {
-    if (!value) return
-
-    _openedPage.value = value
-  },
-})
-
-const showPageSubHeadings = ref(isPublic.value)
-const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean }>>([])
-let lastPageScrollTime = 0
-let topHeaderHeight = 60
+const openedPage = ref<PageSidebarNode | undefined>()
 
 const title = computed({
   get: () => (openedPage.value!.new ? '' : openedPage.value?.title || ''),
@@ -56,61 +46,13 @@ const breadCrumbs = computed(() => {
   return [bookBreadcrumb, ...pagesBreadcrumbs]
 })
 
-const selectActiveSubHeading = () => {
-  if (pageSubHeadings.value.length === 0) return
-
-  if (Date.now() - lastPageScrollTime < 100) return
-  lastPageScrollTime = Date.now()
-
-  const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
-
-  const subHeadingsThatCouldBeActive = [...subHeadingDoms]
-    // Filter out subheadings which are below the viewport
-    .filter((h) => {
-      const subHeadingDomRect = (h as HTMLElement).getBoundingClientRect()
-      return subHeadingDomRect.top < window.innerHeight
-    })
-
-    // Filter out the subheadings which are below the top header(nocohub topbar) within 30px below it
-    .filter((h) => (h as HTMLElement).getBoundingClientRect().top - topHeaderHeight - 30 < 0)
-
-    // So we have the subheadings which are above the top header and nearest to the viewport
-    .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
-
-  const activeHeading = subHeadingsThatCouldBeActive[subHeadingsThatCouldBeActive.length - 1] as HTMLElement
-
-  pageSubHeadings.value = pageSubHeadings.value.map((subHeading) => {
-    subHeading.active = subHeading.text === activeHeading?.innerText && subHeading.type === activeHeading?.nodeName.toLowerCase()
-    return subHeading
-  })
-
-  const noPageActive = pageSubHeadings.value.every((subHeading) => !subHeading.active)
-  if (noPageActive) {
-    pageSubHeadings.value[0].active = true
-  }
-}
-
-const populatedPageSubheading = () => {
-  const subHeadingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
-
-  pageSubHeadings.value = []
-  for (let i = 0; i < subHeadingDoms.length; i++) {
-    const headingDom = subHeadingDoms[i] as HTMLElement
-    pageSubHeadings.value.push({
-      type: headingDom.nodeName.toLowerCase(),
-      text: headingDom.innerText,
-      active: i === 0,
-    })
-  }
-}
-
 const editor = useEditor({
   extensions: tiptapExtensions(),
   onUpdate: ({ editor }) => {
     if (!openedPage.value) return
 
     openedPage.value.content = editor.getHTML()
-    populatedPageSubheading()
+    populatedPageSubheadings()
     selectActiveSubHeading()
   },
   editorProps: {
@@ -133,7 +75,7 @@ const editor = useEditor({
   onCreate: () => {
     // todo: Hack. Find a better way to call this after editor is rendered
     setTimeout(() => {
-      populatedPageSubheading()
+      populatedPageSubheadings()
     }, 120)
   },
   editable: !isPublic.value,
@@ -151,9 +93,7 @@ watch(
 )
 
 watch(editor, () => {
-  if (!editor.value) return
-
-  editor.value.commands.setContent(content.value)
+  editor.value?.commands.setContent(content.value)
 })
 
 const onTitleKeyDown = (e: KeyboardEvent) => {
@@ -218,10 +158,6 @@ watch(
     immediate: true,
   },
 )
-
-onMounted(() => {
-  topHeaderHeight = document.querySelector('.nc-header-content')?.clientHeight || 0
-})
 </script>
 
 <template>

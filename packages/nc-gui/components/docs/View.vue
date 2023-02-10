@@ -126,7 +126,7 @@ onMounted(async () => {
 
 .nc-left-sidebar {
   .nc-sidebar-left-toggle-icon {
-    @apply opacity-0 transition-opacity duration-200 transition-color text-white/80 hover:text-white/100;
+    @apply opacity-0 transition-opacity duration-200 transition-colors text-white/80 hover:text-white/100;
 
     .nc-left-sidebar {
       @apply !border-r-0;

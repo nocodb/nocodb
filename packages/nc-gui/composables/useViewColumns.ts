@@ -26,7 +26,8 @@ export function useViewColumns(
   )
 
   const isColumnViewEssential = (column: ColumnType) => {
-    console.log('column', column)
+    // TODO: delegate this via a cleaner design pattern to map view specific check logic 
+    // (on the other hand, the logic complexity is still very low atm - might be overkill)
     return view.value?.type === ViewTypes.MAP && (view.value?.view as MapType)?.fk_geo_data_col_id === column.id
   }
 

@@ -1,4 +1,4 @@
-import { isSystemColumn } from 'nocodb-sdk'
+import { isSystemColumn, MapType, ViewTypes } from 'nocodb-sdk'
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { IsPublicInj, computed, inject, ref, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
@@ -25,7 +25,10 @@ export function useViewColumns(
     () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
   )
 
-  const isColumnViewEssential = (column: ColumnType) => column.
+  const isColumnViewEssential = (column: ColumnType) => {
+    console.log('column', column)
+    return view.value?.type === ViewTypes.MAP && (view.value?.view as MapType)?.fk_geo_data_col_id === column.id
+  }
 
   const metaColumnById = computed<Record<string, ColumnType>>(() => {
     if (!meta.value?.columns) return {}

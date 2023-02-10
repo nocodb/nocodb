@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
-import tiptapExtensions from './tiptap-extensions'
+import tiptapExtensions from '~~/utils/tiptapExtensions'
 import type { PageSidebarNode } from '~~/composables/docs/useDocs'
 import AlignRightIcon from '~icons/tabler/align-right'
 

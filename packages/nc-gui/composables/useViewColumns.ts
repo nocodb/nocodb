@@ -25,6 +25,8 @@ export function useViewColumns(
     () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
   )
 
+  const isColumnViewEssential = (column: ColumnType) => column.
+
   const metaColumnById = computed<Record<string, ColumnType>>(() => {
     if (!meta.value?.columns) return {}
 
@@ -64,6 +66,7 @@ export function useViewColumns(
             ...currentColumnField,
             order: currentColumnField.order || order++,
             system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
+            isViewEssentialField: isColumnViewEssential(column),
           }
         })
         .sort((a: Field, b: Field) => a.order - b.order)

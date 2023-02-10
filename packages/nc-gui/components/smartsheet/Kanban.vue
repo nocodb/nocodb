@@ -111,6 +111,7 @@ const isRowEmpty = (record: any, col: any) => {
 }
 
 reloadViewDataHook?.on(async () => {
+  // alert('reloadViewDataHook')
   await loadKanbanMeta()
   await loadKanbanData()
 })
@@ -131,6 +132,7 @@ const attachments = (record: any): Attachment[] => {
 const reloadAttachments = ref(false)
 
 reloadViewMetaHook?.on(async () => {
+  alert('reloadViewMetaHook')
   await loadKanbanMeta()
 
   reloadAttachments.value = true

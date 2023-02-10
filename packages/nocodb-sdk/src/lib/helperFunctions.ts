@@ -11,6 +11,9 @@ const getSystemColumnsIds = (columns) => {
 
 const getSystemColumns = (columns) => columns.filter(isSystemColumn) || [];
 
+// const isColumnEssentialForView = (col) => 
+// col && col.vie
+
 const isSystemColumn = (col) =>
   col &&
   (col.uidt === UITypes.ForeignKey ||

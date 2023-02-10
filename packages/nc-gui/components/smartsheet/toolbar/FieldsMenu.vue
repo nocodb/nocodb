@@ -198,6 +198,7 @@ useMenuCloseOnEsc(open)
                   v-model:checked="field.show"
                   v-e="['a:fields:show-hide']"
                   class="shrink"
+                  :disabled="field.isViewEssentialField"
                   @change="saveOrUpdate(field, index)"
                 >
                   <div class="flex items-center">

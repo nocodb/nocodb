@@ -34,6 +34,8 @@ export default class Filter {
     | 'notnull'
     | 'checked'
     | 'notchecked'
+    | 'blank'
+    | 'notblank'
     | 'allof'
     | 'anyof'
     | 'nallof'

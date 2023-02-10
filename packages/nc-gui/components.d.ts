@@ -311,6 +311,7 @@ declare module '@vue/runtime-core' {
     PhFileCsv: typeof import('~icons/ph/file-csv')['default']
     PhSparkleFill: typeof import('~icons/ph/sparkle-fill')['default']
     PhUploadSimpleFill: typeof import('~icons/ph/upload-simple-fill')['default']
+    RiAlignRight: typeof import('~icons/ri/align-right')['default']
     RiLineHeight: typeof import('~icons/ri/line-height')['default']
     RiTeamFill: typeof import('~icons/ri/team-fill')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

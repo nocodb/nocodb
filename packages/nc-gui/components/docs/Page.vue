@@ -11,10 +11,10 @@ import DropCursor from '@tiptap/extension-dropcursor'
 import ListItem from '@tiptap/extension-list-item'
 import Bold from '@tiptap/extension-bold'
 import Strike from '@tiptap/extension-strike'
-import Heading from '@tiptap/extension-heading'
 import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
+import { Heading } from './tiptap-extensions/heading'
 import { TableCell } from './tiptap-extensions/table/TableCell'
 import { TableHeader } from './tiptap-extensions/table/header'
 import { TableRow } from './tiptap-extensions/table/row'
@@ -30,6 +30,7 @@ import { DraggableBlock } from './tiptap-extensions/draggableBlock'
 import { Document } from './tiptap-extensions/document'
 import { ExternalContent } from './tiptap-extensions/external-content'
 import type { PageSidebarNode } from '~~/composables/docs/useDocs'
+import AlignRightIcon from '~icons/tabler/align-right'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
@@ -58,6 +59,11 @@ const openedPage = computed<PageSidebarNode | undefined>({
     _openedPage.value = value
   },
 })
+const showPageSubHeadings = ref(isPublic.value)
+const isPagesSubHeadingsLoading = ref(true)
+const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean }>>([])
+let lastPageScrollTime = 0
+let topHeaderHeight = 60
 
 const title = computed({
   get: () => (openedPage.value!.new ? '' : openedPage.value?.title || ''),
@@ -78,6 +84,50 @@ const breadCrumbs = computed(() => {
   }))
   return [bookBreadcrumb, ...pagesBreadcrumbs]
 })
+
+const selectActiveHeading = () => {
+  if (pageSubHeadings.value.length === 0) return
+
+  if (Date.now() - lastPageScrollTime < 20) return
+  lastPageScrollTime = Date.now()
+
+  const headingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
+
+  const headingsThatCouldBeActive = [...headingDoms]
+    .filter((h) => {
+      const headingDomRect = (h as HTMLElement).getBoundingClientRect()
+      return headingDomRect.top < window.innerHeight
+    })
+    .filter((h) => (h as HTMLElement).getBoundingClientRect().top - topHeaderHeight - 30 < 0)
+    .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
+  const activeHeading = headingsThatCouldBeActive[headingsThatCouldBeActive.length - 1] as HTMLElement
+  if (!activeHeading) return
+
+  pageSubHeadings.value = pageSubHeadings.value.map((subHeading) => {
+    subHeading.active = subHeading.text === activeHeading?.innerText && subHeading.type === activeHeading?.nodeName.toLowerCase()
+    return subHeading
+  })
+
+  const noPageActive = pageSubHeadings.value.every((subHeading) => !subHeading.active)
+  if (noPageActive) {
+    pageSubHeadings.value[0].active = true
+  }
+}
+
+const populatedPageSubheading = () => {
+  const headingDoms = document.querySelectorAll('.ProseMirror [data-tiptap-heading]')
+
+  pageSubHeadings.value = []
+  for (let i = 0; i < headingDoms.length; i++) {
+    const headingDom = headingDoms[i] as HTMLElement
+    pageSubHeadings.value.push({
+      type: headingDom.nodeName.toLowerCase(),
+      text: headingDom.innerText,
+      active: i === 0,
+    })
+  }
+  isPagesSubHeadingsLoading.value = false
+}
 
 const editor = useEditor({
   extensions: [
@@ -144,6 +194,8 @@ const editor = useEditor({
     if (!openedPage.value) return
 
     openedPage.value.content = editor.getHTML()
+    populatedPageSubheading()
+    selectActiveHeading()
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -161,6 +213,12 @@ const editor = useEditor({
       }
       return false
     },
+  },
+  onCreate: () => {
+    // todo: Hack. Find a better way to call this after editor is rendered
+    setTimeout(() => {
+      populatedPageSubheading()
+    }, 120)
   },
   editable: !isPublic.value,
 })
@@ -245,11 +303,45 @@ watch(
     immediate: true,
   },
 )
+
+onMounted(() => {
+  topHeaderHeight = document.querySelector('.nc-header-content')?.clientHeight || 0
+})
 </script>
 
 <template>
   <a-layout-content>
-    <div v-if="openedPage" class="nc-docs-page overflow-y-auto h-full">
+    <div v-if="openedPage" class="nc-docs-page overflow-y-auto h-full" @scroll="selectActiveHeading">
+      <div
+        class="absolute top-2 right-4 p-1 cursor-pointer rounded-md"
+        :class="{
+          'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
+          'bg-white hover:bg-gray-100': !showPageSubHeadings,
+        }"
+        @click="showPageSubHeadings = !showPageSubHeadings"
+      >
+        <AlignRightIcon />
+      </div>
+      <div
+        v-if="showPageSubHeadings && !isPagesSubHeadingsLoading && pageSubHeadings.length > 0"
+        class="absolute top-16 right-0 pt-3 pr-12 flex flex-col w-54"
+      >
+        <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
+        <a
+          v-for="(subHeading, index) in pageSubHeadings"
+          :key="index"
+          :href="`#${subHeading.text}`"
+          class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all"
+          :class="{
+            'font-semibold text-primary': subHeading.active,
+            '!text-gray-700': !subHeading.active,
+            'ml-4': subHeading.type === 'h2',
+            'ml-8': subHeading.type === 'h3',
+          }"
+        >
+          {{ subHeading.text }}
+        </a>
+      </div>
       <div class="flex flex-row justify-between items-center ml-14 mt-8">
         <a-breadcrumb v-if="breadCrumbs.length > 1" class="!px-2">
           <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
@@ -269,9 +361,10 @@ watch(
         <div v-if="!isPublic" class="flex flex-row items-center"></div>
       </div>
       <div
-        class="mx-auto px-6 pt-8 flex flex-col"
+        class="mx-auto pr-6 pt-8 flex flex-col"
         :style="{
-          maxWidth: '60vw',
+          width: '54rem',
+          maxWidth: '40vw',
         }"
       >
         <a-input

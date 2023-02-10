@@ -1976,8 +1976,8 @@ export default async (
     isNotEmpty: 'notempty',
     contains: 'like',
     doesNotContain: 'nlike',
-    isAnyOf: 'eq',
-    isNoneOf: 'neq',
+    isAnyOf: 'anyof',
+    isNoneOf: 'nanyof',
   };
 
   async function nc_configureFilters(viewId, f) {
@@ -2019,15 +2019,17 @@ export default async (
       ) {
         // if array, break it down to multiple filters
         if (Array.isArray(filter.value)) {
-          for (let i = 0; i < filter.value.length; i++) {
-            const fx = {
-              fk_column_id: columnId,
-              logical_op: f.conjunction,
-              comparison_op: filterMap[filter.operator],
-              value: await sMap.getNcNameFromAtId(filter.value[i]),
-            };
-            ncFilters.push(fx);
-          }
+          const fx = {
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filterMap[filter.operator],
+            value: (
+              await Promise.all(
+                filter.value.map(async (f) => await sMap.getNcNameFromAtId(f))
+              )
+            ).join(','),
+          };
+          ncFilters.push(fx);
         }
         // not array - add as is
         else if (filter.value) {

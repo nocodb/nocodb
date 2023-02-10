@@ -9,89 +9,95 @@ import { UITypes } from 'nocodb-sdk';
 // this upgrader is to remove those unsupported filters / migrate to the correct filter
 // changes:
 // - remove `>`, `<`, `>=`, `<=` for text-based columns
-// - remove `like`, `null`, and `empty` for numeric-based / singleSelect columns - migrate to `blank` from `null` and `empty`
-// - remove `is null`, `is not null` for checkbox columns - migrate `equal` and `not equal` to `checked` and `not checked`
-// - remove `like`, `null`, `equal` and `empty` for multiSelect columns
-// - remove `>`, `<`, `>=`, `<=`, `empty`, `equal` for attachment / LTAR columns
-// - remove `empty`, `like`, `equal`, `null` for duration columns - migrate to blank if necessary
+// - remove `like`; migrate `null`, and `empty` for numeric-based / singleSelect columns to`blank`
+// - remove `equal`; migrate `null` to `checked` for checkbox columns
+// - remove `like`; migrate `equal`, `null`, `empty` for multiSelect columns
+// - remove `>`, `<`, `>=`, `<=`; migrate `empty`, `equal`, `null` for attachment
+// - remove `>`, `<`, `>=`, `<=`; migrate `empty`, `null` for LTAR columns
+// - migrate `empty`, `null` for Lookup columns
+// - remove  `>`, `<`, `>=`, `<=`, `like`, `equal`; migrate `empty`, `null`
+// - remove `empty`, `like`, `equal`, `null` for duration columns
 
-const removeEqualFilters = async (
-  filter,
-  actions: any[],
-  ncMeta,
-  migrateFn = () => {}
-) => {
+const removeEqualFilters = async (filter, actions: any[], ncMeta) => {
   // remove `is equal`, `is not equal`
   if (['eq', 'neq'].includes(filter.comparison_op)) {
     actions.push(await Filter.delete(filter, ncMeta));
-    if (migrateFn) migrateFn();
   }
   return actions;
 };
 
-const removeArithmeticFilters = async (
-  filter,
-  actions: any[],
-  ncMeta,
-  migrateFn = () => {}
-) => {
+const removeArithmeticFilters = async (filter, actions: any[], ncMeta) => {
   // remove `>`, `<`, `>=`, `<=`
   if (['gt', 'lt', 'gte', 'lte'].includes(filter.comparison_op)) {
     actions.push(await Filter.delete(filter, ncMeta));
-    if (migrateFn) migrateFn();
   }
   return actions;
 };
 
-const removeLikeFilters = async (
-  filter,
-  actions: any[],
-  ncMeta,
-  migrateFn = () => {}
-) => {
+const removeLikeFilters = async (filter, actions: any[], ncMeta) => {
   // remove `is like`, `is not like`
   if (['like', 'nlike'].includes(filter.comparison_op)) {
     actions.push(await Filter.delete(filter, ncMeta));
-    if (migrateFn) migrateFn();
   }
   return actions;
 };
 
-const removeNullFilters = async (
-  filter,
-  actions: any[],
-  ncMeta,
-  migrateFn = () => {}
-) => {
-  // remove `is null`, `is not null`
-  if (['null', 'notnull'].includes(filter.comparison_op)) {
-    actions.push(await Filter.delete(filter, ncMeta));
-    if (migrateFn) migrateFn();
+const migrateToBlankFilter = async (filter, actions: any[], ncMeta) => {
+  if (['empty', 'null'].includes(filter.comparision_op)) {
+    // migrate to blank
+    actions.push(
+      await Filter.update(
+        filter.id,
+        {
+          ...filter,
+          comparision_op: 'blank',
+        },
+        ncMeta
+      )
+    );
+  } else if (['notempty', 'notnull'].includes(filter.comparision_op)) {
+    // migrate to not blank
+    actions.push(
+      await Filter.update(
+        filter.id,
+        {
+          ...filter,
+          comparision_op: 'notblank',
+        },
+        ncMeta
+      )
+    );
   }
   return actions;
 };
 
-const removeEmptyFilters = async (
-  filter,
-  actions: any[],
-  ncMeta,
-  migrateFn = () => {}
-) => {
-  // remove `is empty`, `is not empty`
-  if (['empty', 'notempty'].includes(filter.comparison_op))
-    if (migrateFn) migrateFn();
-  {
-    actions.push(await Filter.delete(filter, ncMeta));
+const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
+  if (['empty', 'null'].includes(filter.comparision_op)) {
+    // migrate to checked
+    actions.push(
+      await Filter.update(
+        filter.id,
+        {
+          ...filter,
+          comparision_op: 'checked',
+        },
+        ncMeta
+      )
+    );
+  } else if (['notempty', 'notnull'].includes(filter.comparision_op)) {
+    //  migrate to not checked
+    actions.push(
+      await Filter.update(
+        filter.id,
+        {
+          ...filter,
+          comparision_op: 'notchecked',
+        },
+        ncMeta
+      )
+    );
   }
   return actions;
-};
-
-const migrateToBlankFilter = async () => {
-  // TODO:
-};
-
-const migrateToCheckboxFilter = async () => {
-  // TODO
 };
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
@@ -128,94 +134,30 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       ].includes(col.uidt)
     ) {
       actions = await removeLikeFilters(filter, actions, ncMeta);
-      actions = await removeNullFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
-      actions = await removeEmptyFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
+      actions = await migrateToBlankFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.Checkbox) {
-      actions = await removeEqualFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToCheckboxFilter
-      );
-      actions = await removeNullFilters(filter, actions, ncMeta);
+      actions = await removeEqualFilters(filter, actions, ncMeta);
+      actions = await migrateToCheckboxFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.MultiSelect) {
       // TODO: migrate to "contains any of" or "contains all of"
       // TODO: migrate to "doesnt contain any of" or "doesnt contain all of"
-      actions = await removeEqualFilters(filter, actions, ncMeta);
+      // actions = await removeEqualFilters(filter, actions, ncMeta);
       actions = await removeLikeFilters(filter, actions, ncMeta);
-      actions = await removeNullFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
-      actions = await removeEmptyFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
+      actions = await migrateToBlankFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.Attachment) {
       actions = await removeArithmeticFilters(filter, actions, ncMeta);
-      actions = await removeEmptyFilters(filter, actions, ncMeta);
-      actions = await removeEqualFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToCheckboxFilter
-      );
+      actions = await removeEqualFilters(filter, actions, ncMeta);
+      actions = await migrateToBlankFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
       actions = await removeArithmeticFilters(filter, actions, ncMeta);
-      actions = await removeEmptyFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
-      actions = await removeNullFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
+      actions = await migrateToBlankFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.Lookup) {
       actions = await removeArithmeticFilters(filter, actions, ncMeta);
-      actions = await removeEmptyFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
-      actions = await removeNullFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
+      actions = await migrateToBlankFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.Duration) {
       actions = await removeLikeFilters(filter, actions, ncMeta);
-      actions = await removeEqualFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
-      actions = await removeNullFilters(
-        filter,
-        actions,
-        ncMeta,
-        migrateToBlankFilter
-      );
+      actions = await removeEqualFilters(filter, actions, ncMeta);
+      actions = await migrateToBlankFilter(filter, actions, ncMeta);
     }
   }
   await Promise.all(actions);

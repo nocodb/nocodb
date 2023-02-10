@@ -3,6 +3,7 @@ import { NcConfig } from '../../interface/config';
 import debug from 'debug';
 import NcMetaIO from '../meta/NcMetaIO';
 import { Tele } from 'nc-help';
+import { MetaTable } from '../utils/globals';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
 import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
@@ -24,7 +25,9 @@ export default class NcUpgrader {
 
   // Todo: transaction
   public static async upgrade(ctx: NcUpgraderCtx): Promise<any> {
-    this.log(`upgrade :`);
+    this.log(`upgrade : Started`);
+
+    // app version when upgrade started
     let oldVersion;
 
     const NC_VERSIONS: any[] = [
@@ -39,19 +42,33 @@ export default class NcUpgrader {
       { name: '0101002', handler: ncAttachmentUpgrader },
       { name: '0104002', handler: ncAttachmentUpgrader_0104002 },
     ];
-    if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
+    if (
+      !(await ctx.ncMeta.knexConnection?.schema?.hasTable?.(MetaTable.STORE))
+    ) {
       return;
     }
     this.log(`upgrade : Getting configuration from meta database`);
 
-    const config = await ctx.ncMeta.metaGet('', '', 'nc_store', {
+    const config = await ctx.ncMeta.metaGet('', '', MetaTable.STORE, {
       key: this.STORE_KEY,
     });
 
     if (config) {
-      const configObj: NcConfig = JSON.parse(config.value);
+      let configObj: NcConfig;
+
+      try {
+        configObj = JSON.parse(config.value);
+      } catch (e) {
+        this.log(`upgrade : Error parsing config`);
+        console.log(
+          'Parsing app config from store failed, please verify store config is a valid JSON'
+        );
+        throw e;
+      }
+
       if (configObj.version !== process.env.NC_VERSION) {
         oldVersion = configObj.version;
+        // last successfully upgraded version
         let fromVersion = configObj.version;
         for (const version of NC_VERSIONS) {
           // compare current version and old version
@@ -78,7 +95,7 @@ export default class NcUpgrader {
             await upgrderCtx.ncMeta.metaUpdate(
               '',
               '',
-              'nc_store',
+              MetaTable.STORE,
               {
                 value: JSON.stringify(config),
               },
@@ -93,8 +110,11 @@ export default class NcUpgrader {
             await upgrderCtx.ncMeta.rollback(e);
             Tele.emit('evt', {
               evt_type: 'appMigration:failed',
+              // app version when upgrade started
               current: oldVersion,
+              // last successfully upgraded version
               from: fromVersion,
+              // latest upgrade version available
               to: process.env.NC_VERSION,
               msg: e.message,
               err: e?.stack?.split?.('\n').slice(0, 2).join('\n'),
@@ -123,7 +143,7 @@ export default class NcUpgrader {
       const configObj: any = {};
       const isOld = (await ctx.ncMeta.projectList())?.length;
       configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
-      await ctx.ncMeta.metaInsert('', '', 'nc_store', {
+      await ctx.ncMeta.metaInsert('', '', MetaTable.STORE, {
         key: NcUpgrader.STORE_KEY,
         value: JSON.stringify(configObj),
       });
@@ -138,8 +158,13 @@ export default class NcUpgrader {
   }
 }
 
-function getUpgradeErrorLog(e: Error, oldVersion: string, newVersion: string) {
-  const errorTitle = `Migration from ${oldVersion} to ${newVersion} failed`;
+function getUpgradeErrorLog(
+  e: Error,
+  fromVersion: string,
+  newVersion: string,
+  oldVersion: string
+) {
+  const errorTitle = `Migration from ${fromVersion} (old version: ${oldVersion}) to ${newVersion} failed`;
 
   return boxen(
     `Error

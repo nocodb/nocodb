@@ -2,22 +2,7 @@ import { message } from 'ant-design-vue'
 import type { BookType, DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
 import { extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
-
-export interface AntSidebarNode {
-  parentNodeId?: string
-  isLeaf: boolean
-  key: string
-  style?: string | Record<string, string>
-  // If `new` is set, the page will have the title on focus
-  new?: boolean
-  isBook?: boolean
-  children?: PageSidebarNode[]
-  level?: number
-  isSelected?: boolean
-}
-
-export type PageSidebarNode = DocsPageType & AntSidebarNode
-export type PublishTreeNode = PageSidebarNode & { isSelected: boolean; key: string }
+import type { PageSidebarNode } from '~~/lib'
 
 export const PAGES_PER_PAGE_LIST = 10
 

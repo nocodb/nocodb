@@ -2,7 +2,7 @@ import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { useViewData } from '#imports'
-import type { Row, TabItem } from '~/lib'
+import type { PageSidebarNode, Row, TabItem } from '~/lib'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
@@ -34,3 +34,4 @@ export const DropZoneRef: InjectionKey<Ref<Element | undefined>> = Symbol('drop-
 export const ToggleDialogInj: InjectionKey<Function> = Symbol('toggle-dialog-injection')
 
 export const IsDocsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-docs-public-injection')
+export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')

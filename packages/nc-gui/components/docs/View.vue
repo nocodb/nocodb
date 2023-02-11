@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { onKeyStroke } from '@vueuse/core'
+import { useShortcuts } from './utils'
+
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
 const route = useRoute()
+
 const {
   fetchPublicBook,
   fetchNestedPages,
@@ -16,44 +18,13 @@ const {
   isOnlyBookOpened,
   navigateToFirstPage,
   isErrored,
-  addNewPage,
-  getParentOfPage,
 } = useDocs()
+
+useShortcuts()
 
 const { isOpen: isSidebarOpen, toggleHasSidebar: toggleSidebar } = useSidebar('nc-left-sidebar', {
   isOpen: true,
 })
-
-const shortCuts = [
-  {
-    condition: (e: KeyboardEvent) => e.code === 'KeyN' && e.altKey,
-    action: (e: KeyboardEvent) => {
-      e.preventDefault()
-      if (isPublic.value) return
-
-      addNewPage(openedPage.value?.parent_page_id)
-    },
-  },
-  {
-    condition: (e: KeyboardEvent) => e.code === 'KeyM' && e.altKey,
-    action: (e: KeyboardEvent) => {
-      e.preventDefault()
-      if (isPublic.value) return
-
-      addNewPage(openedPage.value?.id)
-    },
-  },
-  {
-    condition: (e: KeyboardEvent) => e.code === 'KeyB' && e.altKey,
-    action: (e: KeyboardEvent) => {
-      e.preventDefault()
-      if (isPublic.value) return
-
-      const parentPage = openedPage.value?.parent_page_id ? getParentOfPage(openedPage.value.parent_page_id) : null
-      addNewPage(parentPage?.parent_page_id)
-    },
-  },
-]
 
 const isLoading = ref(true)
 
@@ -62,6 +33,7 @@ const onAdminMount = async () => {
   await fetchNestedPages({
     book: books.value[0],
   })
+
   // Navigate to the first page if there is no page selected and only one book exists
   if (route.params.slugs?.length < 1 && books.value.length > 0) {
     await navigateToFirstBook()
@@ -71,39 +43,24 @@ const onAdminMount = async () => {
 }
 
 const onPublicMount = async () => {
+  // Remove trailing slash in url
   const slugs = route.params.slugs && (route.params.slugs as string[])?.filter((slug) => slug !== '')
-  if (!slugs || slugs?.length === 0) {
-    await fetchPublicBook({
-      projectId: route.params.projectId as string,
-    })
-    await navigateTo(bookUrl(books.value[0].slug!))
 
-    if (books.value.length === 0) return
-    await fetchNestedPages({
-      book: books.value[0],
-    })
-    await navigateToFirstPage()
-  } else if (slugs?.length === 1) {
-    await fetchPublicBook({
-      projectId: route.params.projectId as string,
-      slug: slugs[0],
-    })
+  await fetchPublicBook({
+    projectId: route.params.projectId as string,
+    slug: slugs?.length > 0 ? slugs[0] : undefined,
+  })
 
-    if (books.value.length === 0) return
-    await fetchNestedPages({
-      book: books.value[0],
-    })
-    await navigateToFirstPage()
-  } else {
-    await fetchPublicBook({
-      projectId: route.params.projectId as string,
-      slug: slugs[0],
-    })
-    if (books.value.length === 0) return
-    await fetchNestedPages({
-      book: books.value[0],
-    })
-  }
+  if (!slugs || slugs?.length === 0) await navigateTo(bookUrl(books.value[0].slug!))
+
+  if (books.value.length === 0) return
+
+  await fetchNestedPages({
+    book: books.value[0],
+  })
+
+  if (slugs.length === 1) await navigateToFirstPage()
+
   await openChildPageOfRootPages()
 }
 
@@ -111,10 +68,9 @@ watch(
   () => route.params.slugs,
   async (slugs) => {
     if (isPublic.value) return
+    if (slugs?.length > 0) return
 
-    if (!slugs || slugs?.length === 0) {
-      await navigateToFirstBook()
-    }
+    await navigateToFirstBook()
   },
   {
     deep: true,
@@ -133,21 +89,6 @@ watch(
   {
     immediate: true,
   },
-)
-
-// Listen to shortcuts
-onKeyStroke(
-  (e) => shortCuts.some((shortCut) => shortCut.condition(e)),
-  (e) => {
-    const shortCut = shortCuts.find((shortCut) => shortCut.condition(e))
-    if (shortCut) {
-      // This hack to prevent having artifacts on the page when pressing the shortcut. On page we delete the artifact so should not excute the shortcut till then
-      setTimeout(() => {
-        shortCut.action(e)
-      }, 100)
-    }
-  },
-  { eventName: 'keydown' },
 )
 
 onMounted(async () => {
@@ -174,7 +115,7 @@ onMounted(async () => {
     </div>
     <div v-else-if="isLoading"></div>
     <DocsBookView v-else-if="isOnlyBookOpened" :key="openedBook?.id" />
-    <DocsPage v-else-if="openedPage" :key="openedPage?.id" />
+    <DocsPageView v-else-if="openedPage" :key="openedPage?.id" />
   </NuxtLayout>
 </template>
 
@@ -185,7 +126,7 @@ onMounted(async () => {
 
 .nc-left-sidebar {
   .nc-sidebar-left-toggle-icon {
-    @apply opacity-0 transition-opacity duration-200 transition-color text-white/80 hover:text-white/100;
+    @apply opacity-0 transition-opacity duration-200 transition-colors text-white/80 hover:text-white/100;
 
     .nc-left-sidebar {
       @apply !border-r-0;

@@ -117,7 +117,7 @@ watchDebounced(
         type="text"
         :class="{ 'is-active': editor.isActive('italic') }"
         class="menu-button"
-        @click="editor!.chain().focus().toggleItalic().run()"
+        @click=";(editor!.chain().focus() as any).toggleItalic().run()"
       >
         <MdiFormatItalic />
       </a-button>
@@ -162,18 +162,6 @@ watchDebounced(
       </a-button>
 
       <div class="divider"></div>
-
-      <!-- <a-select v-model:value="colorValue" style="width: 6rem" size="small" class="flex !my-auto !mr-1">
-        <a-select-option value="Black">
-          <div class="flex flex-row items-center h-5 my-auto">
-            <MdiFormatColor class="flex mt-0.5 mr-2.5" />
-            <div class="flex my-auto">Black</div>
-          </div>
-        </a-select-option>
-      </a-select> -->
-      <!-- <a-select-option value="Red">Red</a-select-option>
-      <a-select-option value="Blue">Blue</a-select-option>
-      <a-select-option value="Yellow">Yellow</a-select-option> -->
 
       <a-button
         type="text"

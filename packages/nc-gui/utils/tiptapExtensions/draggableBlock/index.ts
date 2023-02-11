@@ -140,27 +140,8 @@ export const DraggableBlock = Node.create<DBlockOptions>({
 
         if (parent.type.name !== 'dBlock') return false
 
-        // Skip if suggestion is active
         const activeNodeText: string | undefined = parent.firstChild?.content?.content?.[0]?.text
         if (activeNodeText?.startsWith('/')) return false
-
-        // If active node is the last node in the doc, add a new node
-        if (to === doc.nodeSize - 4) {
-          console.log('to', to, doc.nodeSize - 4)
-          return editor
-            .chain()
-            .insertContentAt(to, {
-              type: 'paragraph',
-              content: [
-                {
-                  type: 'text',
-                  text: '/',
-                },
-              ],
-            })
-            .focus(from + 5)
-            .run()
-        }
 
         let currentActiveNodeTo = -1
 
@@ -176,16 +157,23 @@ export const DraggableBlock = Node.create<DBlockOptions>({
           return false
         })
 
-        const nextNode = editor.state.doc.nodeAt(from + 4)
-        if (nextNode?.type.name === 'tableRow') {
-          return editor
-            .chain()
-            .focus(from + 6)
-            .run()
-        }
+        const content = doc
+          .slice(from, currentActiveNodeTo)
+          ?.toJSON()
+          .content.map((node: any) => ({
+            ...node,
+            type: 'paragraph',
+          }))
 
         return editor
           .chain()
+          .insertContentAt(
+            { from, to: currentActiveNodeTo },
+            {
+              type: this.name,
+              content,
+            },
+          )
           .focus(from + 4)
           .run()
       },
@@ -193,21 +181,16 @@ export const DraggableBlock = Node.create<DBlockOptions>({
   },
 })
 
-function focusCurrentDraggableBlock(state, nodeIndex: number | null = null) {
-  const node = state.doc.nodeAt(state.selection.from)
-
-  if (!node) return
-
+function focusCurrentDraggableBlock(state) {
   let totalSize = 0
-  if (!nodeIndex) {
-    nodeIndex = 0
-    for (const rootNode of state.doc.content.content) {
-      totalSize += rootNode.nodeSize
-      if (totalSize > state.selection.from) {
-        break
-      }
-      nodeIndex++
+
+  let nodeIndex = 0
+  for (const rootNode of state.doc.content.content) {
+    totalSize += rootNode.nodeSize
+    if (totalSize > state.selection.from) {
+      break
     }
+    nodeIndex++
   }
 
   const dbBlockDom = document.querySelectorAll('.draggable-block-wrapper')

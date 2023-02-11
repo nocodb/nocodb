@@ -20,8 +20,7 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
 }
 
 export const isValidURL = (str: string) => {
-  return isURL(`${str}`, protocols = ['http', 'https', 'ftp', 'file'])
-}
+  return isURL(`${str}`, { protocols : ['http', 'https', 'ftp', 'file'] })
 
 export const openLink = (path: string, baseURL?: string, target = '_blank') => {
   const url = new URL(path, baseURL)

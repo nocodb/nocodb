@@ -28,6 +28,7 @@ import { DraggableBlock } from './draggableBlock'
 import { Document } from './document'
 import { ExternalContent } from './external-content'
 import { Heading } from './heading'
+import { TrailingNode } from './trailingNode'
 
 const tiptapExtensions = (): Extensions => {
   const { uploadFile } = useDocs()
@@ -88,6 +89,7 @@ const tiptapExtensions = (): Extensions => {
       },
     }),
     ExternalContent,
+    TrailingNode,
   ]
 }
 

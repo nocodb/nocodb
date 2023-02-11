@@ -157,7 +157,7 @@ watch(
         </div>
       </template>
 
-      <div class="flex flex-row justify-between items-center ml-14 mt-8">
+      <div class="flex flex-row justify-between items-center ml-14 pt-8">
         <a-breadcrumb v-if="breadCrumbs.length > 1" class="!px-2">
           <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
             <NuxtLink
@@ -272,10 +272,6 @@ watch(
 }
 
 .nc-docs-page {
-  > * + * {
-    margin-top: 0.75em;
-  }
-
   .ProseMirror-focused {
     // remove all border
     outline: none;

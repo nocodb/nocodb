@@ -357,9 +357,16 @@ const parseConditionV2 = async (
             break;
           case 'like':
             if (!val) {
-              // val is empty -> all values including empty strings but NULL
-              qb.where(field, '');
-              qb.orWhereNotNull(field);
+              if (column.uidt === UITypes.Attachment) {
+                qb = qb
+                  .orWhereNull(field)
+                  .orWhere(field, '[]')
+                  .orWhere(field, 'null');
+              } else {
+                // val is empty -> all values including empty strings but NULL
+                qb.where(field, '');
+                qb.orWhereNotNull(field);
+              }
             } else {
               if (column.uidt === UITypes.Formula) {
                 [field, val] = [val, field];
@@ -377,9 +384,15 @@ const parseConditionV2 = async (
             break;
           case 'nlike':
             if (!val) {
-              // val is empty -> all values including NULL but empty strings
-              qb.whereNot(field, '');
-              qb.orWhereNull(field);
+              if (column.uidt === UITypes.Attachment) {
+                qb.whereNot(field, '')
+                  .whereNot(field, 'null')
+                  .whereNot(field, '[]');
+              } else {
+                // val is empty -> all values including NULL but empty strings
+                qb.whereNot(field, '');
+                qb.orWhereNull(field);
+              }
             } else {
               if (column.uidt === UITypes.Formula) {
                 [field, val] = [val, field];
@@ -540,12 +553,26 @@ const parseConditionV2 = async (
             qb = qb.whereNotNull(customWhereClause || field);
             break;
           case 'blank':
-            qb = qb.whereNull(customWhereClause || field).orWhere(field, '');
+            if (column.uidt === UITypes.Attachment) {
+              qb = qb
+                .whereNull(customWhereClause || field)
+                .orWhere(field, '[]')
+                .orWhere(field, 'null');
+            } else {
+              qb = qb.whereNull(customWhereClause || field).orWhere(field, '');
+            }
             break;
           case 'notblank':
-            qb = qb
-              .whereNotNull(customWhereClause || field)
-              .whereNot(field, '');
+            if (column.uidt === UITypes.Attachment) {
+              qb = qb
+                .whereNotNull(customWhereClause || field)
+                .whereNot(field, '[]')
+                .whereNot(field, 'null');
+            } else {
+              qb = qb
+                .whereNotNull(customWhereClause || field)
+                .whereNot(field, '');
+            }
             break;
           case 'checked':
             qb = qb.where(customWhereClause || field, true);

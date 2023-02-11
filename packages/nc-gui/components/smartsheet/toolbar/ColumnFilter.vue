@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { FilterType, UITypes } from 'nocodb-sdk'
+import type { ColumnType, FilterType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
@@ -64,15 +65,36 @@ const {
 
 const localNestedFilters = ref()
 
+const columns = computed(() => meta.value?.columns)
+
+const getColumn = (filter: Filter) => {
+  return columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
+}
+
+const filterPrevComparisonOp = ref<Record<string, string>>({})
+
 const filterUpdateCondition = (filter: FilterType, i: number) => {
+  const col = getColumn(filter)
+  if (
+    col.uidt === UITypes.SingleSelect &&
+    ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value[filter.id]) &&
+    ['eq', 'neq'].includes(filter.comparison_op!)
+  ) {
+    // anyof and nanyof can allow multiple selections,
+    // while `eq` and `neq` only allow one selection
+    filter.value = ''
+  } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
+    // since `blank`, `empty`, `null` doesn't require value,
+    // hence remove the previous value
+    filter.value = ''
+  }
   saveOrUpdate(filter, i)
+  filterPrevComparisonOp.value[filter.id] = filter.comparison_op
   $e('a:filter:update', {
     logical: filter.logical_op,
     comparison: filter.comparison_op,
   })
 }
-
-const columns = computed(() => meta.value?.columns)
 
 const types = computed(() => {
   if (!meta.value?.columns?.length) {
@@ -87,7 +109,7 @@ const types = computed(() => {
 
 watch(
   () => activeView.value?.id,
-  (n, o) => {
+  (n: string, o: string) => {
     // if nested no need to reload since it will get reloaded from parent
     if (!nested && n !== o && (hookId || !webHook)) loadFilters(hookId as string)
   },
@@ -97,14 +119,10 @@ loadFilters(hookId as string)
 
 watch(
   () => nonDeletedFilters.value.length,
-  (length) => {
+  (length: number) => {
     emit('update:filtersLength', length ?? 0)
   },
 )
-
-const getColumn = (filter: Filter) => {
-  return columns.value?.find((col) => col.id === filter.fk_column_id)
-}
 
 const applyChanges = async (hookId?: string, _nested = false) => {
   await sync(hookId, _nested)
@@ -203,8 +221,8 @@ defineExpose({
               hide-details
               :disabled="filter.readOnly"
               dropdown-class-name="nc-dropdown-filter-logical-op"
-              @click.stop
               @change="filterUpdateCondition(filter, i)"
+              @click.stop
             >
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
                 {{ op.text }}
@@ -285,7 +303,7 @@ defineExpose({
 
       <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
-          <!--          Add Filter Group -->
+          <!-- Add Filter Group -->
           <MdiPlus />
           {{ $t('activity.addFilterGroup') }}
         </div>

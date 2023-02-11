@@ -49,6 +49,7 @@ const editor = useEditor({
     if (!localPage.value) return
 
     localPage.value.content = editor.getHTML()
+
     populatedPageSubheadings()
     selectActiveSubHeading()
   },
@@ -115,7 +116,9 @@ watch(
   async () => {
     isLoading.value = true
     localPage.value = (await fetchPage({ page: localPage.value! })) as any
+
     if (openedPageInternal.value?.new) localPage.value!.new = true
+
     isLoading.value = false
   },
   {

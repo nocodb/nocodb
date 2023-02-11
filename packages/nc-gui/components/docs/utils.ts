@@ -1,6 +1,6 @@
 import { onKeyStroke } from '@vueuse/core'
 
-const useShortCuts = () => {
+const useShortcuts = () => {
   const isPublic = inject(IsDocsPublicInj, ref(false))
 
   const { openedPage, addNewPage, getParentOfPage } = useDocs()
@@ -48,4 +48,4 @@ const useShortCuts = () => {
   return { shortCuts }
 }
 
-export default useShortCuts
+export { useShortcuts }

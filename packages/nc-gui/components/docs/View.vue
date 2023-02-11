@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import useShortcuts from './useShortcuts'
+import { useShortcuts } from './utils'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 

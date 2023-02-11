@@ -126,91 +126,96 @@ watch(
 
 <template>
   <a-layout-content>
-    <div v-if="localPage" class="nc-docs-page overflow-y-auto h-full" @scroll="selectActiveSubHeading">
-      <template v-if="pageSubHeadings.length > 0">
+    <div v-if="localPage" class="nc-docs-page h-full flex flex-row relative" @scroll="selectActiveSubHeading">
+      <div class="flex flex-col w-full">
+        <div class="flex flex-row justify-between items-center pl-14 pt-4">
+          <a-breadcrumb v-if="breadCrumbs.length > 1" class="!px-2">
+            <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
+              <NuxtLink
+                class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
+                :to="href"
+                :class="{
+                  '!text-gray-600 ': index === breadCrumbs.length - 1,
+                  '!text-gray-400 ': index !== breadCrumbs.length - 1,
+                }"
+              >
+                {{ title }}
+              </NuxtLink>
+            </a-breadcrumb-item>
+          </a-breadcrumb>
+          <div v-else class="flex"></div>
+          <div v-if="!isPublic" class="flex flex-row items-center"></div>
+        </div>
         <div
-          class="absolute top-2 right-4 p-1 cursor-pointer rounded-md"
-          :class="{
-            'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
-            'bg-white hover:bg-gray-100': !showPageSubHeadings,
+          class="mx-auto pr-6 pt-16 flex flex-col"
+          :style="{
+            width: '54rem',
+            maxWidth: '40vw',
           }"
-          @click="showPageSubHeadings = !showPageSubHeadings"
         >
-          <AlignRightIcon />
-        </div>
-        <div v-if="showPageSubHeadings" class="absolute top-16 right-0 pt-3 pr-12 flex flex-col w-54">
-          <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
-          <a
-            v-for="(subHeading, index) in pageSubHeadings"
-            :key="index"
-            :href="`#${subHeading.text}`"
-            class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all"
-            :class="{
-              'font-semibold text-primary': subHeading.active,
-              '!text-gray-700': !subHeading.active,
-              'ml-4': subHeading.type === 'h2',
-              'ml-8': subHeading.type === 'h3',
-            }"
-          >
-            {{ subHeading.text }}
-          </a>
-        </div>
-      </template>
+          <DocsPageTitle v-if="localPage" @focus-editor="focusEditor" />
 
-      <div class="flex flex-row justify-between items-center ml-14 pt-8">
-        <a-breadcrumb v-if="breadCrumbs.length > 1" class="!px-2">
-          <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
-            <NuxtLink
-              class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
-              :to="href"
+          <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
+          <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
+            <MdiPlus
+              class="hover:cursor-pointer hover:bg-gray-50 rounded-md"
               :class="{
-                '!text-gray-600 ': index === breadCrumbs.length - 1,
-                '!text-gray-400 ': index !== breadCrumbs.length - 1,
+                'mr-8': editor?.isActive('infoCallout') || editor?.isActive('tipCallout') || editor?.isActive('warningCallout'),
               }"
-            >
-              {{ title }}
-            </NuxtLink>
-          </a-breadcrumb-item>
-        </a-breadcrumb>
-        <div v-else class="flex"></div>
-        <div v-if="!isPublic" class="flex flex-row items-center"></div>
-      </div>
-      <div
-        class="mx-auto pr-6 pt-8 flex flex-col"
-        :style="{
-          width: '54rem',
-          maxWidth: '40vw',
-        }"
-      >
-        <DocsPageTitle v-if="localPage" @focus-editor="focusEditor" />
-
-        <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
-        <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
-          <MdiPlus
-            class="hover:cursor-pointer hover:bg-gray-50 rounded-md"
-            :class="{
-              'mr-8': editor?.isActive('infoCallout') || editor?.isActive('tipCallout') || editor?.isActive('warningCallout'),
-            }"
-            @click="editor!.chain().focus().insertContent('/').run()"
-          />
-        </FloatingMenu>
-        <EditorContent v-if="!isLoading" :editor="editor" class="px-2 -ml-12.5" />
-        <div
-          v-if="!isLoading && openedPageInternal?.children?.length !== 0"
-          class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
-        >
+              @click="editor!.chain().focus().insertContent('/').run()"
+            />
+          </FloatingMenu>
+          <EditorContent v-if="!isLoading" :editor="editor" class="px-2 -ml-12.5" />
           <div
-            v-for="page of openedPageInternal?.children"
-            :key="page.id"
-            class="flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
-            @click="openPage(page)"
+            v-if="!isLoading && openedPageInternal?.children?.length !== 0"
+            class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
           >
-            <MdiFileDocumentOutline class="flex" />
-            <div class="font-semibold text-base">
-              {{ page.title }}
+            <div
+              v-for="page of openedPageInternal?.children"
+              :key="page.id"
+              class="flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
+              @click="openPage(page)"
+            >
+              <MdiFileDocumentOutline class="flex" />
+              <div class="font-semibold text-base">
+                {{ page.title }}
+              </div>
             </div>
           </div>
         </div>
+      </div>
+      <div class="sticky top-0 pt-2.5 flex flex-col mr-3 min-w-8">
+        <template v-if="pageSubHeadings.length > 0">
+          <div class="flex flex-row justify-end cursor-pointer rounded-md">
+            <div
+              class="flex p-1 cursor-pointer rounded-md"
+              :class="{
+                'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
+                'bg-white hover:bg-gray-100': !showPageSubHeadings,
+              }"
+              @click="showPageSubHeadings = !showPageSubHeadings"
+            >
+              <AlignRightIcon />
+            </div>
+          </div>
+          <div v-if="showPageSubHeadings" class="pt-20 mr-16 flex flex-col w-full w-48">
+            <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
+            <a
+              v-for="(subHeading, index) in pageSubHeadings"
+              :key="index"
+              :href="`#${subHeading.text}`"
+              class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all"
+              :class="{
+                'font-semibold text-primary': subHeading.active,
+                '!text-gray-700': !subHeading.active,
+                'ml-4': subHeading.type === 'h2',
+                'ml-8': subHeading.type === 'h3',
+              }"
+            >
+              {{ subHeading.text }}
+            </a>
+          </div>
+        </template>
       </div>
     </div>
   </a-layout-content>
@@ -229,6 +234,7 @@ watch(
 }
 
 .nc-docs-page {
+  overflow-y: overlay;
   // scrollbar reduce width and gray color
   &::-webkit-scrollbar {
     width: 6px;

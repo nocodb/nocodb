@@ -9,7 +9,6 @@ import DropCursor from '@tiptap/extension-dropcursor'
 import ListItem from '@tiptap/extension-list-item'
 import Bold from '@tiptap/extension-bold'
 import Strike from '@tiptap/extension-strike'
-import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
@@ -29,6 +28,7 @@ import { Document } from './document'
 import { ExternalContent } from './external-content'
 import { Heading } from './heading'
 import { TrailingNode } from './trailingNode'
+import { Placeholder } from './placeholder'
 
 const tiptapExtensions = (): Extensions => {
   const { uploadFile } = useDocs()

@@ -47,6 +47,15 @@ export const DraggableBlock = Node.create<DBlockOptions>({
     return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'd-block' }), 0]
   },
 
+  onSelectionUpdate(data) {
+    // If cursor is inside the node, we make the node focused
+    if (!data) return
+
+    const { editor } = data
+
+    focusCurrentDraggableBlock(editor.state)
+  },
+
   addProseMirrorPlugins() {
     return [
       new Plugin({
@@ -171,3 +180,24 @@ export const DraggableBlock = Node.create<DBlockOptions>({
     }
   },
 })
+
+function focusCurrentDraggableBlock(state) {
+  let totalSize = 0
+
+  let nodeIndex = 0
+  for (const rootNode of state.doc.content.content) {
+    totalSize += rootNode.nodeSize
+    if (totalSize > state.selection.from) {
+      break
+    }
+    nodeIndex++
+  }
+
+  const dbBlockDom = document.querySelectorAll('.draggable-block-wrapper')
+  for (let i = 0; i < dbBlockDom.length; i++) {
+    dbBlockDom[i].classList.remove('focused')
+    if (i === nodeIndex) {
+      dbBlockDom[i].classList.add('focused')
+    }
+  }
+}

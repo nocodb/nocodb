@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
+import { Ref } from '@vue/reactivity'
 import {
   ActiveViewInj,
   IsFormInj,
@@ -238,8 +239,13 @@ async function removeAllColumns() {
   for (const col of (localColumns as Record<string, any>)?.value) {
     if (!shouldSkipColumn(col)) col.show = false
   }
+  // // const FOO = (localColumns as Ref<Record<string, any>[]>)?.value
+  // const FOO = localColumns?.value
+  //   .filter((col: Record<string, any>) => shouldSkipColumn(col))
+  //   .map((col: Record<string, any>) => col.fk_column_id)
+
   await hideAll(
-    (localColumns as Record<string, any>)?.value
+    localColumns?.value
       .filter((col: Record<string, any>) => shouldSkipColumn(col))
       .map((col: Record<string, any>) => col.fk_column_id),
   )
@@ -827,7 +833,7 @@ watch(view, (nextView) => {
     @apply px-4 min-h-[75px] w-full h-full;
 
     .nc-attachment {
-      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+      @apply md: (w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
     }
 
     .nc-attachment-cell-dropzone {

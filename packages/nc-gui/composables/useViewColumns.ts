@@ -102,27 +102,39 @@ export function useViewColumns(
     reloadData?.()
     $e('a:fields:show-all')
   }
-  const hideAll = async (ignoreIds?: any) => {
+  const hideAll = async (ignoreIds?: any[]) => {
+    console.info('isLocalMode.value', isLocalMode.value)
+    const viewEssentialColumnIds = fields.value
+      ?.filter((field: Field) => field.isViewEssentialField)
+      ?.map((field: Field) => field.fk_column_id)
+    console.info('viewEssentialColumnIds', viewEssentialColumnIds)
+
+    const mergedIgnoreIds = [...(viewEssentialColumnIds || []), ...(ignoreIds || [])]
+    console.info('mergedIgnoreIds', mergedIgnoreIds)
+
     if (isLocalMode.value) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
         show: !!field.isViewEssentialField,
       }))
-      console.log('fields.value', fields.value)
+      console.info('fields.value', fields.value)
       reloadData?.()
       return
     }
     if (view?.value?.id) {
-      if (ignoreIds) {
+      if (mergedIgnoreIds) {
+        console.info('API call with ignoreIds', mergedIgnoreIds)
         await $api.dbView.hideAllColumn(view.value.id, {
-          ignoreIds,
+          ignoreIds: mergedIgnoreIds,
         })
       } else {
         await $api.dbView.hideAllColumn(view.value.id)
       }
+      console.info('fields.value AFTER API CALL for hideAllColumn', fields.value)
     }
 
     await loadViewColumns()
+    console.info('fields.value AFTER loadViewColumns', fields.value)
     reloadData?.()
     $e('a:fields:show-all')
   }

@@ -28,6 +28,34 @@ const { loadMapData, loadMapMeta, updateMapMeta, mapMetaData, geoDataFieldColumn
 
 const mappedByDropdown = ref(false)
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
+
+// const reloadDataHook = inject(ReloadViewDataHookInj)!
+
+// const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
+
+// const rootFields = inject(FieldsInj)
+
+// const isLocked = inject(IsLockedInj, ref(false))
+
+// const isPublic = inject(IsPublicInj, ref(false))
+
+// const { $api, $e } = useNuxtApp()
+
+// const {
+//   showSystemFields,
+//   sortedAndFilteredFields,
+//   fields,
+//   filteredFieldList,
+//   filterQuery,
+//   showAll,
+//   hideAll,
+//   saveOrUpdate,
+//   metaColumnById,
+//   loadViewColumns,
+// } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+
 watch(
   () => activeView.value?.id,
   async (newVal, oldVal) => {
@@ -48,6 +76,8 @@ const geoDataMappingFieldColumnId = computed({
       await loadMapMeta()
       await loadMapData()
       ;(activeView.value?.view as MapType).fk_geo_data_col_id = val
+      await loadViewColumns()
+      // eventBus.emit(SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE)
     }
   },
 })

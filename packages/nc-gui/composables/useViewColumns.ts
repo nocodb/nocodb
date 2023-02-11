@@ -1,5 +1,5 @@
-import { isSystemColumn, MapType, ViewTypes } from 'nocodb-sdk'
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { IsPublicInj, computed, inject, ref, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
 import type { Field } from '~/lib'
@@ -25,8 +25,9 @@ export function useViewColumns(
     () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
   )
 
+  // const isColumnOrFieldViewEssential = (columnOrField: { id?: string }) => {
   const isColumnViewEssential = (column: ColumnType) => {
-    // TODO: delegate this via a cleaner design pattern to map view specific check logic 
+    // TODO: delegate this via a cleaner design pattern to map view specific check logic
     // (on the other hand, the logic complexity is still very low atm - might be overkill)
     return view.value?.type === ViewTypes.MAP && (view.value?.view as MapType)?.fk_geo_data_col_id === column.id
   }
@@ -105,8 +106,9 @@ export function useViewColumns(
     if (isLocalMode.value) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
-        show: false,
+        show: !!field.isViewEssentialField,
       }))
+      console.log('fields.value', fields.value)
       reloadData?.()
       return
     }

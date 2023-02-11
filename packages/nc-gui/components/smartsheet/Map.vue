@@ -155,12 +155,12 @@ onMounted(async () => {
 })
 
 reloadViewMetaHook?.on(async () => {
-  alert('reloadViewMetaHook')
+  // alert('reloadViewMetaHook')
   await loadMapMeta()
 })
 
 reloadViewDataHook?.on(async () => {
-  alert('reloadViewDataHook')
+  // alert('reloadViewDataHook')
   await loadMapData()
 })
 

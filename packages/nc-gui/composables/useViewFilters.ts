@@ -75,7 +75,7 @@ export function useViewFilters(
 
   const options = computed<SelectProps['options']>(() =>
     meta.value?.columns?.filter((c: ColumnType) => {
-      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
+      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.system) {
         return false
       } else {
         const isVirtualSystemField = c.colOptions && c.system

@@ -144,13 +144,18 @@ test.describe('Filter Tests: Numerical', () => {
       {
         op: '<',
         value: isLikeString,
-        rowCount: records.list.filter(r => r[dataType] < parseFloat(isLikeStringDerived) && r[dataType] != null).length,
+        rowCount:
+          dataType === 'Rating'
+            ? records.list.filter(r => r[dataType] < parseFloat(isLikeStringDerived)).length
+            : records.list.filter(r => r[dataType] < parseFloat(isLikeStringDerived) && r[dataType] != null).length,
       },
       {
         op: '<=',
         value: isLikeString,
-        rowCount: records.list.filter(r => r[dataType] <= parseFloat(isLikeStringDerived) && r[dataType] != null)
-          .length,
+        rowCount:
+          dataType === 'Rating'
+            ? records.list.filter(r => r[dataType] <= parseFloat(isLikeStringDerived)).length
+            : records.list.filter(r => r[dataType] <= parseFloat(isLikeStringDerived) && r[dataType] != null).length,
       },
     ];
 

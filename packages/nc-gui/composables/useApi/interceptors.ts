@@ -40,7 +40,6 @@ export function addAxiosInterceptors(api: Api<any>) {
       // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/token/refresh') {
         state.signOut()
-
         return Promise.reject(error)
       }
 

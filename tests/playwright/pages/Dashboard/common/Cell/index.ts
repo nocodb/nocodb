@@ -119,7 +119,7 @@ export class CellPageObject extends BasePage {
         const cellText = typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
 
         if (cellText) {
-          if (cellText.includes(text) || cellText[0].includes(text)) {
+          if (cellText?.includes(text) || cellText[0]?.includes(text)) {
             return;
           }
         }

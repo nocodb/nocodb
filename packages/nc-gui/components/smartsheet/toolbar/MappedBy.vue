@@ -77,7 +77,7 @@ const geoDataMappingFieldColumnId = computed({
       await loadMapData()
       ;(activeView.value?.view as MapType).fk_geo_data_col_id = val
       await loadViewColumns()
-      // eventBus.emit(SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE)
+      eventBus.emit(SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE)
     }
   },
 })

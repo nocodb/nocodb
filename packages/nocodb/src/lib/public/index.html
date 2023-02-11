@@ -229,18 +229,18 @@
 
                             <h2 class="my-5 title grey--text text--darken-2">Instant APIs on any Database</h2>
                             <div class="d-flex justify-center mt-2 mb-10">
-                                    <ul class="flex-shrink-1 text-left">
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/graphql-apis/graphql-authentication">
-                                            Authentication</a></li>
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/graphql-apis/graphql-acl"> Access
-                                            Control</a></li>
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/database-design">
-                                            Database Design</a></li>
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/api-client"> API
-                                            Client</a></li>
-                                        <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/sql-editor"> Database
-                                            Client</a></li>
-                                    </ul>
+                                <ul class="flex-shrink-1 text-left">
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/graphql-apis/graphql-authentication">
+                                        Authentication</a></li>
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/graphql-apis/graphql-acl"> Access
+                                        Control</a></li>
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/database-design">
+                                        Database Design</a></li>
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/api-client"> API
+                                        Client</a></li>
+                                    <li><a href="https://docs.nocodb.com/en/v0.5/desktop-app/sql-editor"> Database
+                                        Client</a></li>
+                                </ul>
                             </div>
 
 
@@ -609,41 +609,41 @@
 <script>
 
 
-  var app = new Vue({
-    el: '#app',
-    data: {
-      routes: [],
-      graphql: false
-    },
-    methods: {
-      getshareUrl() {
+    var app = new Vue({
+        el: '#app',
+        data: {
+            routes: [],
+            graphql: false
+        },
+        methods: {
+            getshareUrl() {
 
-      }
-    },
-    vuetify: new Vuetify(),
-    created() {
-      console.log('created')
-      axios.get('/routes')
-        .then((response) => {
-          this.routes = response.data;
-        })
-        .catch(function (error) {
-          // handle error
-          console.log(error);
-        })
-        .finally(function () {
-          // always executed
-        });
+            }
+        },
+        vuetify: new Vuetify(),
+        created() {
+            console.log('created')
+            axios.get('/routes')
+                .then((response) => {
+                    this.routes = response.data;
+                })
+                .catch(function (error) {
+                    // handle error
+                    console.log(error);
+                })
+                .finally(function () {
+                    // always executed
+                });
+        }
+    });
+
+    const cont = document.querySelector('#cont');
+    const loader = document.querySelector('#loader');
+
+    window.onload = function () {
+        loader.style.display = 'none';
+        cont.style.display = 'block';
     }
-  });
-
-  const cont = document.querySelector('#cont');
-  const loader = document.querySelector('#loader');
-
-  window.onload = function () {
-    loader.style.display = 'none';
-    cont.style.display = 'block';
-  }
 
 </script>
 

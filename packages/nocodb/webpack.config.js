@@ -1,6 +1,6 @@
 const nodeExternals = require('webpack-node-externals');
 const webpack = require('webpack');
-// // const CopyPlugin = require('copy-webpack-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 //
 const TerserPlugin = require('terser-webpack-plugin');
 // const JavaScriptObfuscator = require('webpack-obfuscator');
@@ -46,6 +46,11 @@ module.exports = {
     new webpack.EnvironmentPlugin([
       'EE'
     ]),
+    new CopyPlugin({
+      patterns: [
+        { from: 'src/lib/public', to: 'public' },
+      ]
+    })
     // new JavaScriptObfuscator({
     //   rotateStringArray: true,
     //   splitStrings: true,

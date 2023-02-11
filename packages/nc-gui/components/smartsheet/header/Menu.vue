@@ -162,6 +162,7 @@ const duplicateColumn = async () => {
     await getMeta(meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    reloadDataHook?.trigger()
 
     message.success(t('msg.success.columnDuplicated'))
   } catch (e) {

@@ -75,9 +75,13 @@ const renderAllowCSVDownload = (view: SharedViewType) => {
 }
 
 const copyLink = (view: SharedViewType) => {
-  copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
-  // Copied to clipboard
-  message.success(t('msg.info.copiedToClipboard'))
+  try {
+    copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
+    // Copied to clipboard
+    message.success(t('msg.info.copiedToClipboard'))
+  } catch (e) {
+    message.error(e.message)
+  }
 }
 
 const deleteLink = async (id: string) => {

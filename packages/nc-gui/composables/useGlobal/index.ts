@@ -53,7 +53,7 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
         state.jwtPayload.value.exp &&
         state.jwtPayload.value.exp - 5 * 60 < state.timestamp.value / 1000
       ),
-    async (expiring) => {
+    async (expiring: boolean) => {
       if (getters.signedIn.value && state.jwtPayload.value && expiring) {
         await actions.refreshToken()
       }

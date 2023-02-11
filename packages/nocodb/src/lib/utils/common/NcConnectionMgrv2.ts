@@ -149,7 +149,7 @@ export default class NcConnectionMgrv2 {
   //   return config?.envs?.[env]?.db?.find(db => db?.meta?.dbAlias === dbAlias);
   // }
 
-  public static getSqlClient(base: Base, _knex = null): any {
+  public static async getSqlClient(base: Base, _knex = null): Promise<any> {
     const knex = _knex || this.get(base);
     return SqlClientFactory.create({
       knex,

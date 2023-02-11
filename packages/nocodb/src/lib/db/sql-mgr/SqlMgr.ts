@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import url from 'url';
+import { promisify } from 'util';
 
 import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
@@ -148,7 +149,7 @@ export default class SqlMgr {
   //   return this._project;
   // }
   public async testConnection(args = {}) {
-    const client = SqlClientFactory.create(args);
+    const client = await SqlClientFactory.create(args);
     return client.testConnection();
   }
 
@@ -297,9 +298,9 @@ export default class SqlMgr {
           const connectionKey = `${env}_${this.currentProjectJson.envs[env].db[i].meta.dbAlias}`;
 
           this.currentProjectConnections[connectionKey] =
-            SqlClientFactory.create({
+            await SqlClientFactory.create({
               ...connectionConfig,
-              knex: NcConnectionMgr.get({
+              knex: await NcConnectionMgr.get({
                 dbAlias: this.currentProjectJson.envs[env].db[i].meta.dbAlias,
                 env: env,
                 config: args,
@@ -357,7 +358,7 @@ export default class SqlMgr {
     }
 
     if ('client' in connectionConfig) {
-      const data = SqlClientFactory.create(connectionConfig);
+      const data = await SqlClientFactory.create(connectionConfig);
       this.currentProjectConnections[connectionKey] = data;
       // console.log(data);
       return data;
@@ -439,7 +440,9 @@ export default class SqlMgr {
     console.log(args);
 
     try {
-      fs.unlinkSync(path.join(this.currentProjectFolder, 'config.xc.json'));
+      await promisify(fs.unlink)(
+        path.join(this.currentProjectFolder, 'config.xc.json')
+      );
 
       args.folder = args.folder || args.project.folder;
       args.folder = path.dirname(args.folder);
@@ -1098,13 +1101,13 @@ export default class SqlMgr {
   public async projectChangeEnv(args) {
     try {
       const xcConfig = JSON.parse(
-        fs.readFileSync(
+        await promisify(fs.readFile)(
           path.join(this.currentProjectFolder, 'config.xc.json'),
           'utf8'
         )
       );
       xcConfig.workingEnv = args.env;
-      fs.writeFileSync(
+      await promisify(fs.writeFile)(
         path.join(this.currentProjectFolder, 'config.xc.json'),
         JSON.stringify(xcConfig, null, 2)
       );
@@ -1357,7 +1360,10 @@ export default class SqlMgr {
           break;
         case ToolOps.WRITE_FILE:
           console.log('Within WRITE_FILE handler', args);
-          result = fs.writeFileSync(args.args.path, args.args.data);
+          result = await promisify(fs.writeFile)(
+            args.args.path,
+            args.args.data
+          );
           break;
 
         case ToolOps.REST_API_CALL:

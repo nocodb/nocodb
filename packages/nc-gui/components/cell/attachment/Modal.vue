@@ -148,7 +148,10 @@ function onRemoveFileClick(title: any, i: number) {
               </div>
             </a-tooltip>
 
-            <a-tooltip placement="bottom">
+            <a-tooltip
+              v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+              placement="bottom"
+            >
               <template #title> Rename File </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">

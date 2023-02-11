@@ -118,8 +118,10 @@ export class CellPageObject extends BasePage {
         }).allInnerTexts();
         const cellText = typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
 
-        if (cellText.includes(text) || cellText[0].includes(text)) {
-          return;
+        if (cellText) {
+          if (cellText.includes(text) || cellText[0].includes(text)) {
+            return;
+          }
         }
         await this.rootPage.waitForTimeout(1000);
         count++;

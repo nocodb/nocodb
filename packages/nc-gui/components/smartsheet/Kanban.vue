@@ -132,7 +132,7 @@ const attachments = (record: any): Attachment[] => {
 const reloadAttachments = ref(false)
 
 reloadViewMetaHook?.on(async () => {
-  alert('reloadViewMetaHook')
+  // alert('reloadViewMetaHook')
   await loadKanbanMeta()
 
   reloadAttachments.value = true

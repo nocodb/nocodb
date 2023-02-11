@@ -54,14 +54,14 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 
 
 eventBus.on((event) => {
-  alert('eventBus.on in FieldsMenu')
+  // alert('eventBus.on in FieldsMenu')
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
-    alert('SmartsheetStoreEvents.FIELD_RELOAD')
+    // alert('SmartsheetStoreEvents.FIELD_RELOAD')
     loadViewColumns()
   }
 
   else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
-    alert('SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE')
+    // alert('SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE')
     loadViewColumns()
   }
 })

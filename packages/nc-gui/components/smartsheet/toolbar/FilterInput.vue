@@ -112,22 +112,24 @@ const booleanOptions = [
   { value: null, label: 'unset' },
 ]
 
-const componentMap: Partial<Record<FilterType, any>> = {
-  // use MultiSelect for SingleSelect columns for anyof / nanyof filters
-  isSingleSelect: ['anyof', 'nanyof'].includes(props.filter.comparison_op) ? MultiSelect : SingleSelect,
-  isMultiSelect: MultiSelect,
-  isDate: DatePicker,
-  isYear: YearPicker,
-  isDateTime: DateTimePicker,
-  isTime: TimePicker,
-  isRating: Rating,
-  isDuration: Duration,
-  isPercent: Percent,
-  isCurrency: Currency,
-  isDecimal: Decimal,
-  isInt: Integer,
-  isFloat: Float,
-}
+const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
+  return {
+    // use MultiSelect for SingleSelect columns for anyof / nanyof filters
+    isSingleSelect: ['anyof', 'nanyof'].includes(props.filter.comparison_op) ? MultiSelect : SingleSelect,
+    isMultiSelect: MultiSelect,
+    isDate: DatePicker,
+    isYear: YearPicker,
+    isDateTime: DateTimePicker,
+    isTime: TimePicker,
+    isRating: Rating,
+    isDuration: Duration,
+    isPercent: Percent,
+    isCurrency: Currency,
+    isDecimal: Decimal,
+    isInt: Integer,
+    isFloat: Float,
+  }
+})
 
 const filterType = $computed(() => {
   return Object.keys(componentMap).find((key) => checkType(key as FilterType))

@@ -26,6 +26,7 @@ import {
   useProject,
 } from '#imports'
 import type { Filter } from '~/lib'
+import SingleSelect from '~/components/cell/SingleSelect.vue'
 import MultiSelect from '~/components/cell/MultiSelect.vue'
 import DatePicker from '~/components/cell/DatePicker.vue'
 import YearPicker from '~/components/cell/YearPicker.vue'
@@ -113,7 +114,7 @@ const booleanOptions = [
 
 const componentMap: Partial<Record<FilterType, any>> = {
   // use MultiSelect for SingleSelect columns for anyof / nanyof filters
-  isSingleSelect: MultiSelect,
+  isSingleSelect: ['anyof', 'nanyof'].includes(props.filter.comparison_op) ? MultiSelect : SingleSelect,
   isMultiSelect: MultiSelect,
   isDate: DatePicker,
   isYear: YearPicker,

@@ -41,20 +41,20 @@ export default class MapView implements MapType {
     return view && new MapView(view);
   }
 
-  public static async IsColumnBeingUsedInMapView(
-    columnId: string,
-    ncMeta = Noco.ncMeta
-  ) {
-    return (
-      (
-        await ncMeta.metaList2(null, null, MetaTable.MAP_VIEW, {
-          condition: {
-            fk_geo_data_col_id: columnId,
-          },
-        })
-      ).length > 0
-    );
-  }
+  // public static async IsColumnBeingUsedInMapView(
+  //   columnId: string,
+  //   ncMeta = Noco.ncMeta
+  // ) {
+  //   return (
+  //     (
+  //       await ncMeta.metaList2(null, null, MetaTable.MAP_VIEW, {
+  //         condition: {
+  //           fk_geo_data_col_id: columnId,
+  //         },
+  //       })
+  //     ).length > 0
+  //   );
+  // }
 
   static async insert(view: Partial<MapView>, ncMeta = Noco.ncMeta) {
     const insertObj = {
@@ -65,11 +65,19 @@ export default class MapView implements MapType {
       meta: view.meta,
     };
 
+    const viewRef = await View.get(view.fk_view_id);
+
     if (!(view.project_id && view.base_id)) {
-      const viewRef = await View.get(view.fk_view_id);
       insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
     }
+
+    // const FOOView = await View.get(o.fk_view_id);
+    // TODO: check, whether potentially also the 'o' object can
+    // be used here instead of 'FOOView' (type casting to View)
+    (await viewRef.getColumns()).find((column) => {
+      column.fk_column_id === view.fk_geo_data_col_id;
+    });
 
     await ncMeta.metaInsert2(null, null, MetaTable.MAP_VIEW, insertObj, true);
 
@@ -96,6 +104,20 @@ export default class MapView implements MapType {
       // set cache
       await NocoCache.set(key, o);
     }
+
+    const FOOView = await View.get(o.fk_view_id);
+    // TODO: check, whether potentially also the 'o' object can
+    // be used here instead of 'FOOView' (type casting to View)
+    (await FOOView.getColumns()).find((column) => {
+      column.fk_column_id === o.fk_geo_data_col_id;
+
+      // Column.update(column.fk_column_id, {
+      //   meta: JSON.stringify({
+      //     ...JSON.parse(column.meta),
+      //     isGeoData: true,
+      //   }),
+    });
+
     // update meta
     return await ncMeta.metaUpdate(null, null, MetaTable.MAP_VIEW, updateObj, {
       fk_view_id: mapId,

@@ -112,26 +112,8 @@ export default class MapView implements MapType {
       await NocoCache.set(key, o);
     }
 
-    if (body.fk_geo_data_col_id) {
-      // const fOOView = await View.get(body.fk_view_id);
+    if (body.fk_geo_data_col_id != null) {
       // TODO: check, whether potentially also the 'o' object can
-      // be used here instead of 'FOOView' (type casting to View)
-      // const mappedByColumnToShow = (await fOOView.getColumns()).find(
-      //   (column) => {
-      //     console.log('column.fk_column_id', column.fk_column_id);
-      //     console.log('body.fk_geo_data_col_id', body.fk_geo_data_col_id);
-      //     return column.fk_column_id === body.fk_geo_data_col_id;
-
-      //     // Column.update(column.fk_column_id, {
-      //     //   meta: JSON.stringify({
-      //     //     ...JSON.parse(column.meta),
-      //     //     isGeoData: true,
-      //     //   }),
-      //   }
-      // );
-
-      // mappedByColumnToShow.show = true;
-      // Column.update(mappedByColumnToShow.fk_column_id, mappedByColumnToShow);
 
       const FOO_EXISTING_COL = await Column.get({
         colId: body.fk_geo_data_col_id,

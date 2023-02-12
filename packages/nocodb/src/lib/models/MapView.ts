@@ -3,7 +3,9 @@ import { MapType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
-import Column from './Column';
+import MapViewColumn from './MapViewColumn';
+// import Column from './Column';
+// import MapViewColumn from './MapViewColumn';
 // import Column from './Column';
 
 export default class MapView implements MapType {
@@ -115,12 +117,30 @@ export default class MapView implements MapType {
     if (body.fk_geo_data_col_id != null) {
       // TODO: check, whether potentially also the 'o' object can
 
-      const FOO_EXISTING_COL = await Column.get({
-        colId: body.fk_geo_data_col_id,
-      });
-      const FOO_NEW_COL = { ...FOO_EXISTING_COL, show: true };
+      // const FOO_MAP_VIEW_COL = await MapViewColumn.get({
+      //   fk_col_id: body.fk_geo_data_col_id,
+      // });
 
-      await Column.update(body.fk_geo_data_col_id, FOO_NEW_COL);
+      // const FOO_MAP_VIEW_COLS = await View.getColumns(body.fk_geo_data_col_id);
+      // const FOO_MAP_VIEW_COL = FOO_MAP_VIEW_COLS.find((column) => column.fk_column_id === body.fk_geo_data_col_id);
+      const FOO_mapViewColumns = await MapViewColumn.list(mapId);
+      const FOO_MATCHED_mapViewColumn = FOO_mapViewColumns.find(
+        (mapViewColumn) =>
+          mapViewColumn.fk_column_id === body.fk_geo_data_col_id
+      );
+      console.log('FOO_MATCHED_mapViewColumn', FOO_MATCHED_mapViewColumn);
+      await View.updateColumn(body.fk_view_id, FOO_MATCHED_mapViewColumn.id, {
+        show: true,
+      });
+
+      // MapViewColumn.
+
+      // const FOO_EXISTING_COL = await Column.get({
+      //   colId: body.fk_geo_data_col_id,
+      // });
+      // const FOO_NEW_COL = { ...FOO_EXISTING_COL, show: true };
+
+      // await Column.update(body.fk_geo_data_col_id, FOO_NEW_COL);
     }
 
     // update meta

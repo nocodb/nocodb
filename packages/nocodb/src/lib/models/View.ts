@@ -17,7 +17,6 @@ import Filter from './Filter';
 import {
   ColumnReqType,
   isSystemColumn,
-  MapType,
   UITypes,
   ViewType,
   ViewTypes,
@@ -1166,10 +1165,15 @@ export default class View implements ViewType {
     const dataList = await NocoCache.getList(scope, [viewId]);
 
     // (view.type !== ViewTypes.MAP || (view as MapType).fk_geo_data_col_id === o
+    // if(view.type === ViewTypes.MAP){
+    //   console.log('view.type === ViewTypes.MAP');
+    //   const mapView = (await MapView.get(viewId)).fk_geo_data_col_id;
+    // }
+
     const mergedIgnoreColdIds = [
       ...ignoreColdIds,
       ...(view.type === ViewTypes.MAP
-        ? [(view as MapType).fk_geo_data_col_id]
+        ? [(await MapView.get(viewId)).fk_geo_data_col_id]
         : []),
     ];
 

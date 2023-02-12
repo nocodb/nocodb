@@ -5,30 +5,29 @@ import {
   ClientType,
   computed,
   createEventHook,
+  createSharedComposable,
   ref,
   useApi,
   useGlobal,
-  useInjectionState,
   useNuxtApp,
   useRoles,
-  useRoute,
   useRouter,
   useTheme,
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
 
-const [setup, use] = useInjectionState(() => {
+export const useProject = createSharedComposable(() => {
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()
 
-  const route = useRoute()
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
 
   const { includeM2M } = useGlobal()
 
   const { setTheme, theme } = useTheme()
-
-  const router = useRouter()
 
   const { projectRoles, loadProjectRoles } = useRoles()
 
@@ -178,6 +177,14 @@ const [setup, use] = useInjectionState(() => {
     setTheme()
   }
 
+  watch(
+    () => route.params.projectType,
+    (n) => {
+      if (!n) reset()
+    },
+    { immediate: true },
+  )
+
   return {
     project,
     bases,
@@ -201,16 +208,4 @@ const [setup, use] = useInjectionState(() => {
     lastOpenedViewMap,
     isXcdbBase,
   }
-}, 'useProject')
-
-export const provideProject = setup
-
-export function useProject() {
-  const state = use()
-
-  if (!state) {
-    return setup()
-  }
-
-  return state
-}
+})

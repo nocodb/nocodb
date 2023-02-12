@@ -3,6 +3,8 @@ import { MapType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
+import Column from './Column';
+// import Column from './Column';
 
 export default class MapView implements MapType {
   fk_view_id: string;
@@ -76,6 +78,8 @@ export default class MapView implements MapType {
     // TODO: check, whether potentially also the 'o' object can
     // be used here instead of 'FOOView' (type casting to View)
     (await viewRef.getColumns()).find((column) => {
+      console.log('column.fk_column_id', column.fk_column_id);
+      console.log('view.fk_geo_data_col_id', view.fk_geo_data_col_id);
       column.fk_column_id === view.fk_geo_data_col_id;
     });
 
@@ -105,18 +109,28 @@ export default class MapView implements MapType {
       await NocoCache.set(key, o);
     }
 
-    const FOOView = await View.get(o.fk_view_id);
-    // TODO: check, whether potentially also the 'o' object can
-    // be used here instead of 'FOOView' (type casting to View)
-    (await FOOView.getColumns()).find((column) => {
-      column.fk_column_id === o.fk_geo_data_col_id;
+    if (body.fk_geo_data_col_id) {
+      // const fOOView = await View.get(body.fk_view_id);
+      // TODO: check, whether potentially also the 'o' object can
+      // be used here instead of 'FOOView' (type casting to View)
+      // const mappedByColumnToShow = (await fOOView.getColumns()).find(
+      //   (column) => {
+      //     console.log('column.fk_column_id', column.fk_column_id);
+      //     console.log('body.fk_geo_data_col_id', body.fk_geo_data_col_id);
+      //     return column.fk_column_id === body.fk_geo_data_col_id;
 
-      // Column.update(column.fk_column_id, {
-      //   meta: JSON.stringify({
-      //     ...JSON.parse(column.meta),
-      //     isGeoData: true,
-      //   }),
-    });
+      //     // Column.update(column.fk_column_id, {
+      //     //   meta: JSON.stringify({
+      //     //     ...JSON.parse(column.meta),
+      //     //     isGeoData: true,
+      //     //   }),
+      //   }
+      // );
+
+      // mappedByColumnToShow.show = true;
+      // Column.update(mappedByColumnToShow.fk_column_id, mappedByColumnToShow);
+      Column.update(body.fk_geo_data_col_id, { show: true });
+    }
 
     // update meta
     return await ncMeta.metaUpdate(null, null, MetaTable.MAP_VIEW, updateObj, {

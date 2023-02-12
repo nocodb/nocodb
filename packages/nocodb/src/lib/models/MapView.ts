@@ -77,11 +77,14 @@ export default class MapView implements MapType {
     // const FOOView = await View.get(o.fk_view_id);
     // TODO: check, whether potentially also the 'o' object can
     // be used here instead of 'FOOView' (type casting to View)
-    (await viewRef.getColumns()).find((column) => {
+    const FOO = (await viewRef.getColumns()).find((column) => {
       console.log('column.fk_column_id', column.fk_column_id);
       console.log('view.fk_geo_data_col_id', view.fk_geo_data_col_id);
-      column.fk_column_id === view.fk_geo_data_col_id;
+      return column.fk_column_id === view.fk_geo_data_col_id;
     });
+
+    FOO.show = true;
+    // TODO: column (FOO) probably needs explicit save here
 
     await ncMeta.metaInsert2(null, null, MetaTable.MAP_VIEW, insertObj, true);
 
@@ -129,7 +132,13 @@ export default class MapView implements MapType {
 
       // mappedByColumnToShow.show = true;
       // Column.update(mappedByColumnToShow.fk_column_id, mappedByColumnToShow);
-      Column.update(body.fk_geo_data_col_id, { show: true });
+
+      const FOO_EXISTING_COL = await Column.get({
+        colId: body.fk_geo_data_col_id,
+      });
+      const FOO_NEW_COL = { ...FOO_EXISTING_COL, show: true };
+
+      await Column.update(body.fk_geo_data_col_id, FOO_NEW_COL);
     }
 
     // update meta

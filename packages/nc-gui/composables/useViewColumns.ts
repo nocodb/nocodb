@@ -71,6 +71,7 @@ export function useViewColumns(
             ...currentColumnField,
             order: currentColumnField.order || order++,
             system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
+            // show: isColumnViewEssential(column) || !!currentColumnField.show,
             isViewEssentialField: isColumnViewEssential(column),
           }
         })

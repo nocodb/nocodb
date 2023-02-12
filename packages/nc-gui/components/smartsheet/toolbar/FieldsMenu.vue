@@ -61,8 +61,8 @@ eventBus.on((event) => {
   }
 
   else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
-    // alert('SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE')
-    loadViewColumns()
+    alert('SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE')
+    // loadViewColumns()
   }
 })
 

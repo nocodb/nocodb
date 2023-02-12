@@ -1,4 +1,4 @@
-import { isSystemColumn } from 'nocodb-sdk'
+import { isSystemColumn, MapType, ViewTypes } from 'nocodb-sdk'
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { IsPublicInj, computed, inject, ref, useNuxtApp, useProject, useUIPermission, watch } from '#imports'

@@ -14,6 +14,8 @@ import {
   watch,
 } from '#imports'
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
@@ -48,6 +50,7 @@ const geoDataMappingFieldColumnId = computed({
       await loadMapMeta()
       await loadMapData()
       ;(activeView.value?.view as MapType).fk_geo_data_col_id = val
+      eventBus.emit(SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE)
     }
   },
 })

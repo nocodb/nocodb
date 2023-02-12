@@ -87,7 +87,6 @@ export enum SmartsheetStoreEvents {
   FILTER_RELOAD = 'filter-reload',
   DATA_RELOAD = 'data-reload',
   FIELD_RELOAD = 'field-reload',
-  MAPPED_BY_COLUMN_CHANGE = 'mapped-by-column-change',
   FIELD_ADD = 'field-add',
 }
 

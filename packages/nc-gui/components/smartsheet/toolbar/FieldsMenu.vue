@@ -52,45 +52,15 @@ const {
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-
 eventBus.on((event) => {
-  // alert('eventBus.on in FieldsMenu')
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
-    // alert('SmartsheetStoreEvents.FIELD_RELOAD')
     loadViewColumns()
   }
-
-  else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
-    alert('SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE')
-    // loadViewColumns()
-  }
 })
-
-// watch(
-//   () => meta.value,
-//   (v) => {
-//     alert('watch(meta.value, (v) => {')
-//     if (v) {
-//       loadViewColumns()
-//     }
-//   },
-// )
-
-// watch(
-//   () => activeView.value,
-//   async (newVal, oldVal) => {
-//     if (newVal !== oldVal && meta.value) {
-//       alert('FOO')
-//       await loadViewColumns()
-//     }
-//   },
-//   { immediate: true },
-// )
 
 watch(
   sortedAndFilteredFields,
   (v) => {
-    // alert('watch(sortedAndFilteredFields, (v) => {')
     if (rootFields) rootFields.value = v || []
   },
   { immediate: true },

@@ -1,5 +1,5 @@
-import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
-import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { IsPublicInj, computed, inject, ref, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
 import type { Field } from '~/lib'
@@ -25,7 +25,6 @@ export function useViewColumns(
     () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
   )
 
-  // const isColumnOrFieldViewEssential = (columnOrField: { id?: string }) => {
   const isColumnViewEssential = (column: ColumnType) => {
     // TODO: delegate this via a cleaner design pattern to map view specific check logic
     // (on the other hand, the logic complexity is still very low atm - might be overkill)
@@ -71,7 +70,6 @@ export function useViewColumns(
             ...currentColumnField,
             order: currentColumnField.order || order++,
             system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
-            // show: isColumnViewEssential(column) || !!currentColumnField.show,
             isViewEssentialField: isColumnViewEssential(column),
           }
         })
@@ -103,39 +101,27 @@ export function useViewColumns(
     reloadData?.()
     $e('a:fields:show-all')
   }
-  const hideAll = async (ignoreIds?: any[]) => {
-    console.info('isLocalMode.value', isLocalMode.value)
-    const viewEssentialColumnIds = fields.value
-      ?.filter((field: Field) => field.isViewEssentialField)
-      ?.map((field: Field) => field.fk_column_id)
-    console.info('viewEssentialColumnIds', viewEssentialColumnIds)
-
-    const mergedIgnoreIds = [...(viewEssentialColumnIds || []), ...(ignoreIds || [])]
-    console.info('mergedIgnoreIds', mergedIgnoreIds)
-
+  const hideAll = async (ignoreIds?: any) => {
     if (isLocalMode.value) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
+        // show: false,
         show: !!field.isViewEssentialField,
       }))
-      console.info('fields.value', fields.value)
       reloadData?.()
       return
     }
     if (view?.value?.id) {
-      if (mergedIgnoreIds) {
-        console.info('API call with ignoreIds', mergedIgnoreIds)
+      if (ignoreIds) {
         await $api.dbView.hideAllColumn(view.value.id, {
-          ignoreIds: mergedIgnoreIds,
+          ignoreIds,
         })
       } else {
         await $api.dbView.hideAllColumn(view.value.id)
       }
-      console.info('fields.value AFTER API CALL for hideAllColumn', fields.value)
     }
 
     await loadViewColumns()
-    console.info('fields.value AFTER loadViewColumns', fields.value)
     reloadData?.()
     $e('a:fields:show-all')
   }

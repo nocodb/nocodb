@@ -34,7 +34,8 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
       new Plugin({
         props: {
           decorations: ({ doc, selection }) => {
-            const active = this.editor.isEditable || !this.options.showOnlyWhenEditable || true
+            const active = this.editor.isEditable || !this.options.showOnlyWhenEditable
+
             const { anchor } = selection
             const decorations: Decoration[] = []
 

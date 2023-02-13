@@ -1,100 +1,97 @@
-<script lang="ts">
+<script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { NodeSelection, TextSelection } from 'prosemirror-state'
 import { addRowAfter, addRowBefore, goToNextCell } from '@tiptap/prosemirror-tables'
 
-export default {
-  components: {
-    NodeViewWrapper,
-    NodeViewContent,
-  },
-  props: nodeViewProps,
-  data() {
-    return {
-      isFirstCell: false,
-      dragAnchorSelected: false,
-      isDragging: false,
-    }
-  },
-  mounted() {
-    const el = this.$el as HTMLElement
-    // check if the cell is the first cell in the row
-    this.isFirstCell = el.previousElementSibling === null
-  },
-  methods: {
-    toggleRowSelection() {
-      if (this.dragAnchorSelected) {
-        this.editor.view.dispatch(
-          this.editor.state.tr.setSelection(TextSelection.create(this.editor.state.doc, this.getPos() + 1, this.getPos() + 1)),
-        )
-        this.dragAnchorSelected = false
-        return
-      }
-      this.dragAnchorSelected = true
-      this.selectRow()
-    },
-    selectRow() {
-      const state: EditorState = this.editor.state
-      const pos = this.getPos() - 1
+const { getPos, editor } = defineProps(nodeViewProps)
+const isPublic = !editor.view.editable
 
-      // Select the row node
-      this.editor.view.dispatch(state.tr.setSelection(NodeSelection.create(state.doc, pos)))
-    },
-    deleteRow() {
-      this.selectRow()
+const isFirstCell = ref(false)
+const dragAnchorSelected = ref(false)
+const isDragging = ref(false)
+const cellRef = ref()
 
-      this.editor.commands.deleteRange(this.editor.state.selection)
-    },
-    insertRowBefore() {
-      const state: EditorState = this.editor.state
-      const { from } = state.selection
-      const parentRow = state.doc.resolve(this.getPos()).parent
+const selectRow = () => {
+  const state: EditorState = editor.state
+  const pos = getPos() - 1
 
-      this.editor.view.dispatch(state.tr.setSelection(TextSelection.create(this.editor.state.doc, from + 1, from + 1)))
-      addRowBefore(this.editor.state, this.editor.view.dispatch)
-      const cellCount = parentRow.childCount
-      for (let i = 0; i < cellCount; i++) {
-        setTimeout(() => {
-          goToNextCell(-1)(this.editor.state, this.editor.view.dispatch)
-        }, 0)
-      }
-    },
-    insertRowAfter() {
-      this.selectRow()
-      const state: EditorState = this.editor.state
-      const { from } = state.selection
-      const parentRow = state.doc.resolve(this.getPos()).parent
-
-      this.editor.view.dispatch(state.tr.setSelection(TextSelection.create(this.editor.state.doc, from + 1, from + 1)))
-      addRowAfter(this.editor.state, this.editor.view.dispatch)
-      const cellCount = parentRow.childCount
-      for (let i = 0; i < cellCount; i++) {
-        setTimeout(() => {
-          goToNextCell(1)(this.editor.state, this.editor.view.dispatch)
-        }, 0)
-      }
-    },
-    mouseDownHandler(e: MouseEvent) {
-      let targetEl = e.target as HTMLElement
-      targetEl = targetEl.nodeName === 'path' ? targetEl.parentElement! : targetEl
-      if (!targetEl.classList.contains('row-drag-handle') && !targetEl.classList.contains('row-drag-handle-button')) {
-        return
-      }
-      this.isDragging = true
-    },
-    mouseUpHandler() {
-      this.isDragging = false
-    },
-  },
+  // Select the row node
+  editor.view.dispatch(state.tr.setSelection(NodeSelection.create(state.doc, pos)))
 }
+
+const toggleRowSelection = () => {
+  if (dragAnchorSelected) {
+    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1)))
+    dragAnchorSelected.value = false
+    return
+  }
+  dragAnchorSelected.value = true
+  selectRow()
+}
+
+const deleteRow = () => {
+  selectRow()
+
+  editor.commands.deleteRange(editor.state.selection)
+}
+
+const insertRowBefore = () => {
+  const state: EditorState = editor.state
+  const { from } = state.selection
+  const parentRow = state.doc.resolve(getPos()).parent
+
+  editor.view.dispatch(state.tr.setSelection(TextSelection.create(editor.state.doc, from + 1, from + 1)))
+  addRowBefore(editor.state, editor.view.dispatch)
+  const cellCount = parentRow.childCount
+  for (let i = 0; i < cellCount; i++) {
+    setTimeout(() => {
+      goToNextCell(-1)(editor.state, editor.view.dispatch)
+    }, 0)
+  }
+}
+
+const insertRowAfter = () => {
+  selectRow()
+  const state: EditorState = editor.state
+  const { from } = state.selection
+  const parentRow = state.doc.resolve(getPos()).parent
+
+  editor.view.dispatch(state.tr.setSelection(TextSelection.create(editor.state.doc, from + 1, from + 1)))
+  addRowAfter(editor.state, editor.view.dispatch)
+  const cellCount = parentRow.childCount
+  for (let i = 0; i < cellCount; i++) {
+    setTimeout(() => {
+      goToNextCell(1)(editor.state, editor.view.dispatch)
+    }, 0)
+  }
+}
+
+const mouseDownHandler = (e: MouseEvent) => {
+  let targetEl = e.target as HTMLElement
+  targetEl = targetEl.nodeName === 'path' ? targetEl.parentElement! : targetEl
+  if (!targetEl.classList.contains('row-drag-handle') && !targetEl.classList.contains('row-drag-handle-button')) {
+    return
+  }
+  isDragging.value = true
+}
+
+const mouseUpHandler = () => {
+  isDragging.value = false
+}
+
+onMounted(() => {
+  const el = cellRef.value as HTMLElement
+  // check if the cell is the first cell in the row
+  isFirstCell.value = el?.previousElementSibling === null
+})
 </script>
 
 <template>
   <NodeViewWrapper class="vue-component group relative p-0" as="td">
-    <div class="group table-cell overflow-visible flex">
+    <div ref="cellRef" class="group table-cell overflow-visible flex">
       <div
-        v-if="isFirstCell"
+        v-if="isFirstCell && !isPublic"
         class="flex flex-col justify-center absolute h-full -left-3 z-50 min-w-4 min-h-4 !group-[.table-cell]:hover:opacity-100"
         @mouseenter="isDragging = false"
       >

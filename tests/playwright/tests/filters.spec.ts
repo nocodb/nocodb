@@ -103,12 +103,12 @@ test.describe('Filter Tests: Numerical', () => {
       {
         op: '=',
         value: eqString,
-        rowCount: records.list.filter(r => r[dataType] === parseFloat(eqStringDerived)).length,
+        rowCount: records.list.filter(r => parseFloat(r[dataType]) === parseFloat(eqStringDerived)).length,
       },
       {
         op: '!=',
         value: eqString,
-        rowCount: records.list.filter(r => r[dataType] !== parseFloat(eqStringDerived)).length,
+        rowCount: records.list.filter(r => parseFloat(r[dataType]) !== parseFloat(eqStringDerived)).length,
       },
       {
         op: 'is null',
@@ -133,29 +133,39 @@ test.describe('Filter Tests: Numerical', () => {
       {
         op: '>',
         value: isLikeString,
-        rowCount: records.list.filter(r => r[dataType] > parseFloat(isLikeStringDerived) && r[dataType] != null).length,
+        rowCount: records.list.filter(
+          r => parseFloat(r[dataType]) > parseFloat(isLikeStringDerived) && r[dataType] != null
+        ).length,
       },
       {
         op: '>=',
         value: isLikeString,
-        rowCount: records.list.filter(r => r[dataType] >= parseFloat(isLikeStringDerived) && r[dataType] != null)
-          .length,
+        rowCount: records.list.filter(
+          r => parseFloat(r[dataType]) >= parseFloat(isLikeStringDerived) && r[dataType] != null
+        ).length,
       },
       {
         op: '<',
         value: isLikeString,
         rowCount:
           dataType === 'Rating'
-            ? records.list.filter(r => r[dataType] < parseFloat(isLikeStringDerived)).length
-            : records.list.filter(r => r[dataType] < parseFloat(isLikeStringDerived) && r[dataType] != null).length,
+            ? records.list.filter(
+                r => parseFloat(r[dataType]) < parseFloat(isLikeStringDerived) || r[dataType] === null
+              ).length
+            : records.list.filter(r => parseFloat(r[dataType]) < parseFloat(isLikeStringDerived) && r[dataType] != null)
+                .length,
       },
       {
         op: '<=',
         value: isLikeString,
         rowCount:
           dataType === 'Rating'
-            ? records.list.filter(r => r[dataType] <= parseFloat(isLikeStringDerived)).length
-            : records.list.filter(r => r[dataType] <= parseFloat(isLikeStringDerived) && r[dataType] != null).length,
+            ? records.list.filter(
+                r => parseFloat(r[dataType]) <= parseFloat(isLikeStringDerived) || r[dataType] === null
+              ).length
+            : records.list.filter(
+                r => parseFloat(r[dataType]) <= parseFloat(isLikeStringDerived) && r[dataType] != null
+              ).length,
       },
     ];
 

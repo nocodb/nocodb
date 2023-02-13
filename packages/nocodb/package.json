@@ -152,6 +152,7 @@
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "chai": "^4.2.0",
+    "copy-webpack-plugin": "^6.4.0",
     "cross-env": "^7.0.3",
     "cz-conventional-changelog": "^2.1.0",
     "eslint": "^7.8.0",

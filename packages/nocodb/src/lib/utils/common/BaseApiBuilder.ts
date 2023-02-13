@@ -187,7 +187,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return this.connectionConfig?.meta?.dbAlias;
   }
 
-  public getSqlClient(): any {
+  public async getSqlClient(): Promise<any> {
     return NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
@@ -1291,8 +1291,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
     this.models[viewName] = this.getBaseModel(newMeta);
   }
 
-  public getDbDriver(): XKnex {
-    this.initDbDriver();
+  public async getDbDriver(): Promise<XKnex> {
+    await this.initDbDriver();
     return this.dbDriver;
   }
 
@@ -1669,14 +1669,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
     await this.cronJob.init();
   }
 
-  protected initDbDriver(): void {
-    this.dbDriver = NcConnectionMgr.get({
+  protected async initDbDriver(): Promise<void> {
+    this.dbDriver = await NcConnectionMgr.get({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
       projectId: this.projectId,
     });
-    this.sqlClient = NcConnectionMgr.getSqlClient({
+    this.sqlClient = await NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
@@ -3064,7 +3064,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     );
     const colListRef = {};
     const tableList =
-      (await this.getSqlClient()?.tableList())?.data?.list || [];
+      (await (await this.getSqlClient())?.tableList())?.data?.list || [];
 
     colListRef[tableName] = await this.getColumnList(tableName);
 

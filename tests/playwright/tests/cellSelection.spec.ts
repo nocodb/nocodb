@@ -83,7 +83,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.grid.toolbar.fields.toggleShowSystemFields();
     await grid.selectRange({
       start: { index: 2, columnHeader: 'City List' },
-      end: { index: 0, columnHeader: 'CountryId' },
+      end: { index: 0, columnHeader: 'Country' },
     });
 
     expect(await grid.selectedCount()).toBe(12);

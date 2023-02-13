@@ -208,7 +208,7 @@ const quickVerify = async ({
 
   // Verify Fields
   await dashboard.grid.toolbar.clickFields();
-  await dashboard.grid.toolbar.fields.verify({ title: 'Name', checked: true });
+  await dashboard.grid.toolbar.fields.verify({ title: 'Name' });
   await dashboard.grid.toolbar.fields.verify({ title: 'Notes', checked: true });
   await dashboard.grid.toolbar.fields.verify({ title: 'Attachments', checked: false });
   await dashboard.grid.toolbar.fields.verify({ title: 'Status', checked: true });

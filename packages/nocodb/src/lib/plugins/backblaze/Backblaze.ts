@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { promisify } from 'util';
 import AWS from 'aws-sdk';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
@@ -132,7 +133,7 @@ export default class Backblaze implements IStorageAdapterV2 {
         originalname: 'temp.txt',
         size: '',
       });
-      fs.unlinkSync(tempFile);
+      await promisify(fs.unlink)(tempFile);
       return true;
     } catch (e) {
       throw e;

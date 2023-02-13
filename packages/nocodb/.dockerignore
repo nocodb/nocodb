@@ -5,7 +5,9 @@ coverage
 *.log
 .vscode
 .idea
+# ignore src besides src/lib/public
 src
+!src/lib/public
 server
 compiled
 .awcache

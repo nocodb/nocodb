@@ -311,3 +311,10 @@ a {
     @apply block bg-red-500
   }
 }
+
+
+.nc-copy-failed-modal .ant-modal-confirm-content{
+  @apply pt-4 overflow-auto;
+  white-space: pre;
+  user-select: auto;
+}

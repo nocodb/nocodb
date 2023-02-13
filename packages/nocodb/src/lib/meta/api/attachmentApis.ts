@@ -17,7 +17,9 @@ import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
   if (!req['user']?.id) {
-    NcError.unauthorized('Unauthorized');
+    if (!req['user']?.isPublicBase) {
+      NcError.unauthorized('Unauthorized');
+    }
   }
 
   try {
@@ -25,6 +27,7 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
     if (
       req['user'].roles?.includes(OrgUserRoles.SUPER_ADMIN) ||
       req['user'].roles?.includes(OrgUserRoles.CREATOR) ||
+      req['user'].roles?.includes(ProjectRoles.EDITOR) ||
       // if viewer then check at-least one project have editor or higher role
       // todo: cache
       !!(await Noco.ncMeta
@@ -54,7 +57,7 @@ export async function upload(req: Request, res: Response) {
     (req as any).files?.map(async (file) => {
       const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
 
-      let url = await storageAdapter.fileCreate(
+      const url = await storageAdapter.fileCreate(
         slash(path.join(destPath, fileName)),
         file
       );
@@ -98,7 +101,7 @@ export async function uploadViaURL(req: Request, res: Response) {
 
       const fileName = `${nanoid(18)}${_fileName || url.split('/').pop()}`;
 
-      let attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
+      const attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
         slash(path.join(destPath, fileName)),
         url
       );

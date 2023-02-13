@@ -18,11 +18,13 @@ import {
   createEventHook,
   extractPkFromRow,
   inject,
+  isImage,
   isLTAR,
   nextTick,
   onMounted,
   provide,
   ref,
+  useAttachment,
   useViewData,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
@@ -65,6 +67,8 @@ const route = useRoute()
 
 const router = useRouter()
 
+const { getPossibleAttachmentSrc } = useAttachment()
+
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
 
 const coverImageColumn: any = $(
@@ -83,6 +87,28 @@ const isRowEmpty = (record: any, col: any) => {
 }
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
+
+const { isUIAllowed } = useUIPermission()
+const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
+// TODO: extract this code (which is duplicated in grid and gallery) into a separate component
+const _contextMenu = ref(false)
+const contextMenu = computed({
+  get: () => _contextMenu.value,
+  set: (val) => {
+    if (hasEditPermission) {
+      _contextMenu.value = val
+    }
+  },
+})
+const contextMenuTarget = ref<{ row: number } | null>(null)
+
+const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
+  if (isSqlView.value) return
+  e.preventDefault()
+  if (target) {
+    contextMenuTarget.value = target
+  }
+}
 
 const attachments = (record: any): Attachment[] => {
   try {
@@ -171,56 +197,33 @@ watch(view, async (nextView) => {
     await loadGalleryData()
   }
 })
-
-const { isUIAllowed } = useUIPermission()
-const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
-// TODO: extract this code (which is duplicated in grid and gallery) into a separate component
-const _contextMenu = ref(false)
-const contextMenu = computed({
-  get: () => _contextMenu.value,
-  set: (val) => {
-    if (hasEditPermission) {
-      _contextMenu.value = val
-    }
-  },
-})
-const contextMenuTarget = ref<{ row: number } | null>(null)
-
-const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
-  if (isSqlView.value) return
-  e.preventDefault()
-  if (target) {
-    contextMenuTarget.value = target
-  }
-}
-
-
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full overflow-auto nc-gallery" data-testid="nc-gallery-wrapper">
-    <a-dropdown
-      v-model:visible="contextMenu"
-      :trigger="isSqlView ? [] : ['contextmenu']"
-      overlay-class-name="nc-dropdown-grid-context-menu"
-    >
-      <template #overlay>
-        <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
-          <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
-            <div v-e="['a:row:delete']" class="nc-project-menu-item">
-              <!-- Delete Row -->
-              {{ $t('activity.deleteRow') }}
-            </div>
-          </a-menu-item>
+  <a-dropdown
+    v-model:visible="contextMenu"
+    :trigger="isSqlView ? [] : ['contextmenu']"
+    overlay-class-name="nc-dropdown-grid-context-menu"
+  >
+    <template #overlay>
+      <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
+        <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
+          <div v-e="['a:row:delete']" class="nc-project-menu-item">
+            <!-- Delete Row -->
+            {{ $t('activity.deleteRow') }}
+          </div>
+        </a-menu-item>
 
-          <a-menu-item v-if="contextMenuTarget" @click="openNewRecordFormHook.trigger()">
-            <div v-e="['a:row:insert']" class="nc-project-menu-item">
-              <!-- Insert New Row -->
-              {{ $t('activity.insertRow') }}
-            </div>
-          </a-menu-item>
-        </a-menu>
-      </template>
+        <a-menu-item v-if="contextMenuTarget" @click="openNewRecordFormHook.trigger()">
+          <div v-e="['a:row:insert']" class="nc-project-menu-item">
+            <!-- Insert New Row -->
+            {{ $t('activity.insertRow') }}
+          </div>
+        </a-menu-item>
+      </a-menu>
+    </template>
+
+    <div class="flex flex-col h-full w-full overflow-auto nc-gallery" data-testid="nc-gallery-wrapper">
       <div class="nc-gallery-container grid gap-2 my-4 px-3">
         <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
           <LazySmartsheetRow :row="record">
@@ -249,14 +252,14 @@ const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
                     <div style="z-index: 1"></div>
                   </template>
 
-                  <LazyNuxtImg
-                    v-for="(attachment, index) in attachments(record)"
-                    :key="`carousel-${record.row.id}-${index}`"
-                    quality="90"
-                    placeholder
-                    class="h-52 object-contain"
-                    :src="attachment.url"
-                  />
+                  <template v-for="(attachment, index) in attachments(record)">
+                    <LazyCellAttachmentImage
+                      v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
+                      :key="`carousel-${record.row.id}-${index}`"
+                      class="h-52 object-contain"
+                      :srcs="getPossibleAttachmentSrc(attachment)"
+                    />
+                  </template>
                 </a-carousel>
 
                 <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
@@ -297,38 +300,38 @@ const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
           </LazySmartsheetRow>
         </div>
       </div>
-    </a-dropdown>
 
-    <div class="flex-1" />
+      <div class="flex-1" />
 
-    <LazySmartsheetPagination />
+      <LazySmartsheetPagination />
+    </div>
+  </a-dropdown>
 
-    <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormRow && expandedFormDlg"
-        v-model="expandedFormDlg"
-        :row="expandedFormRow"
-        :state="expandedFormRowState"
-        :meta="meta"
-        :view="view"
-      />
-    </Suspense>
+  <Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :row="expandedFormRow"
+      :state="expandedFormRowState"
+      :meta="meta"
+      :view="view"
+    />
+  </Suspense>
 
-    <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormOnRowIdDlg"
-        :key="route.query.rowId"
-        v-model="expandedFormOnRowIdDlg"
-        :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-        :meta="meta"
-        :row-id="route.query.rowId"
-        :view="view"
-        show-next-prev-icons
-        @next="navigateToSiblingRow(NavigateDir.NEXT)"
-        @prev="navigateToSiblingRow(NavigateDir.PREV)"
-      />
-    </Suspense>
-  </div>
+  <Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      :key="route.query.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :row-id="route.query.rowId"
+      :view="view"
+      show-next-prev-icons
+      @next="navigateToSiblingRow(NavigateDir.NEXT)"
+      @prev="navigateToSiblingRow(NavigateDir.PREV)"
+    />
+  </Suspense>
 </template>
 
 <style scoped>

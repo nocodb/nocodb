@@ -185,7 +185,7 @@ docker-compose up -d
 
 ## Переменные среды
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
 
 # Настройка разработки
 

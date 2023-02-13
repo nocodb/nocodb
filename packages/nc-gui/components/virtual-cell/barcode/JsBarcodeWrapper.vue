@@ -5,11 +5,12 @@ import { onMounted } from '#imports'
 const props = defineProps({
   barcodeValue: { type: String, required: true },
   barcodeFormat: { type: String, required: true },
+  customStyle: { type: Object, required: false },
 })
 
 const emit = defineEmits(['onClickBarcode'])
 
-const barcodeSvgRef = ref(null)
+const barcodeSvgRef = ref<HTMLElement>()
 const errorForCurrentInput = ref(false)
 
 const generate = () => {
@@ -17,6 +18,13 @@ const generate = () => {
     JsBarcode(barcodeSvgRef.value, String(props.barcodeValue), {
       format: props.barcodeFormat,
     })
+    if (props.customStyle) {
+      if (barcodeSvgRef.value) {
+        for (const key in props.customStyle) {
+          barcodeSvgRef.value.style.setProperty(key, props.customStyle[key])
+        }
+      }
+    }
     errorForCurrentInput.value = false
   } catch (e) {
     console.log('e', e)
@@ -29,7 +37,7 @@ const onBarcodeClick = (ev: MouseEvent) => {
   emit('onClickBarcode')
 }
 
-watch([() => props.barcodeValue, () => props.barcodeFormat], generate)
+watch([() => props.barcodeValue, () => props.barcodeFormat, () => props.customStyle], generate)
 onMounted(generate)
 </script>
 

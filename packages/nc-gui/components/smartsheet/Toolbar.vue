@@ -35,6 +35,8 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
+    <LazySmartsheetToolbarRowHeight v-if="isGrid" />
+
     <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban || isGallery) && !isPublic" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />

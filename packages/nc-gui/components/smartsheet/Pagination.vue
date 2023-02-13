@@ -59,6 +59,6 @@ const page = computed({
 }
 
 :deep(.ant-pagination-item-link) {
-  @apply text-gray-500;
+  @apply text-gray-500 flex items-center justify-center;
 }
 </style>

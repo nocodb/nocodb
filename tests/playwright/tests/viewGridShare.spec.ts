@@ -33,14 +33,14 @@ test.describe('Shared view', () => {
     // hide column
     await dashboard.grid.toolbar.fields.toggle({ title: 'Address2' });
     // sort
-    await dashboard.grid.toolbar.sort.addSort({
+    await dashboard.grid.toolbar.sort.add({
       columnTitle: 'District',
       isAscending: false,
       isLocallySaved: false,
     });
     // filter
     await dashboard.grid.toolbar.clickFilter();
-    await dashboard.grid.toolbar.filter.addNew({
+    await dashboard.grid.toolbar.filter.add({
       columnTitle: 'Address',
       value: 'Ab',
       opType: 'is like',
@@ -101,7 +101,7 @@ test.describe('Shared view', () => {
      **/
 
     // create new sort & filter criteria in shared view
-    await sharedPage.grid.toolbar.sort.addSort({
+    await sharedPage.grid.toolbar.sort.add({
       columnTitle: 'Address',
       isAscending: true,
       isLocallySaved: true,
@@ -109,7 +109,7 @@ test.describe('Shared view', () => {
 
     if (isMysql(context)) {
       await sharedPage.grid.toolbar.clickFilter();
-      await sharedPage.grid.toolbar.filter.addNew({
+      await sharedPage.grid.toolbar.filter.add({
         columnTitle: 'District',
         value: 'Ta',
         opType: 'is like',
@@ -196,7 +196,7 @@ test.describe('Shared view', () => {
       isVisible: true,
     });
     await sharedPage2.grid.toolbar.clickFilter();
-    await sharedPage2.grid.toolbar.filter.addNew({
+    await sharedPage2.grid.toolbar.filter.add({
       columnTitle: 'Country',
       value: 'New Country',
       opType: 'is like',
@@ -217,7 +217,7 @@ const expectedRecords = [
   {
     index: 1,
     columnHeader: 'Address',
-    value: '1892 Nabereznyje Telny Lane',
+    value: '1892 Nabereznyje Telny',
   },
   { index: 2, columnHeader: 'Address', value: '1993 Tabuk Lane' },
   { index: 0, columnHeader: 'District', value: 'West Bengali' },

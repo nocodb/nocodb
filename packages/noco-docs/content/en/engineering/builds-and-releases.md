@@ -11,7 +11,7 @@ There are 3 kinds of docker builds in NocoDB
 
 - Release builds [nocodb/nocodb](https://hub.docker.com/r/nocodb/nocodb) : built during NocoDB release. 
 - Daily builds [nocodb/nocodb-daily](https://hub.docker.com/r/nocodb/nocodb-daily) : built every 6 hours from Develop branch.
-- Daily builds [nocodb/nocodb-timely](https://hub.docker.com/r/nocodb/nocodb-timely): built for every PR.
+- Timely builds [nocodb/nocodb-timely](https://hub.docker.com/r/nocodb/nocodb-timely): built for every PR and manually triggered PRs.
 
 Below is an overview of how to make these builds and what happens behind the scenes.
 
@@ -118,7 +118,15 @@ Once the deployment is finished, there would be some new changes being pushed to
 ## Timely builds
 
 ### What are timely builds ?
-NocoDB creates docker and binaries for each PR!
+NocoDB has github actions which creates docker and binaries for each PR! And these can be found as a **comment on the last commit** of the PR.  
+
+Example shown below
+- Go to a PR and click on the comment.
+<img width="1111" alt="Screenshot 2023-01-23 at 15 46 36" src="https://user-images.githubusercontent.com/5435402/214083736-80062398-3712-430f-9865-86b110090c91.png">
+
+- Click on the link to copy the docker image and run it locally.
+<img width="1231" alt="Screenshot 2023-01-23 at 15 46 55" src="https://user-images.githubusercontent.com/5435402/214083755-945d9485-2b9e-4739-8408-068bdf4a84b7.png">
+
 
 This is to
 - reduce pull request cycle time
@@ -135,7 +143,7 @@ The docker images will be built and pushed to Docker Hub (See [nocodb/nocodb-tim
 
 ![image](https://user-images.githubusercontent.com/35857179/175012097-240dab05-da93-4c4e-87c1-1c36fb1350bd.png)
 
-## Executables or Binariess
+## Executables or Binaries
 
 Similarly, we provide a timely build for executables for non-docker users. The source code will be built, packaged as binary files, and pushed to Github (See [nocodb/nocodb-timely](https://github.com/nocodb/nocodb-timely/releases) for the full list).
 
@@ -157,4 +165,3 @@ NocoDB creates Docker and Binaries for each PR.
 This is to
 - reduce pull request cycle time
 - allow issue reporters / reviewers to verify the fix without setting up their local machines
-

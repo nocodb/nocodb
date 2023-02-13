@@ -8,6 +8,7 @@ import {
   IsGalleryInj,
   IsGridInj,
   MetaInj,
+  NavigateDir,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReloadRowDataHookInj,
@@ -17,11 +18,13 @@ import {
   createEventHook,
   extractPkFromRow,
   inject,
+  isImage,
   isLTAR,
   nextTick,
   onMounted,
   provide,
   ref,
+  useAttachment,
   useViewData,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
@@ -48,6 +51,7 @@ const {
   galleryData,
   changePage,
   addEmptyRow,
+  navigateToSiblingRow,
 } = useViewData(meta, view)
 
 provide(IsFormInj, ref(false))
@@ -61,6 +65,8 @@ const fields = inject(FieldsInj, ref([]))
 const route = useRoute()
 
 const router = useRouter()
+
+const { getPossibleAttachmentSrc } = useAttachment()
 
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
 
@@ -197,14 +203,14 @@ watch(view, async (nextView) => {
                   <div style="z-index: 1"></div>
                 </template>
 
-                <LazyNuxtImg
-                  v-for="(attachment, index) in attachments(record)"
-                  :key="`carousel-${record.row.id}-${index}`"
-                  quality="90"
-                  placeholder
-                  class="h-52 object-contain"
-                  :src="attachment.url"
-                />
+                <template v-for="(attachment, index) in attachments(record)">
+                  <LazyCellAttachmentImage
+                    v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
+                    :key="`carousel-${record.row.id}-${index}`"
+                    class="h-52 object-contain"
+                    :srcs="getPossibleAttachmentSrc(attachment)"
+                  />
+                </template>
               </a-carousel>
 
               <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
@@ -270,6 +276,9 @@ watch(view, async (nextView) => {
         :meta="meta"
         :row-id="route.query.rowId"
         :view="view"
+        show-next-prev-icons
+        @next="navigateToSiblingRow(NavigateDir.NEXT)"
+        @prev="navigateToSiblingRow(NavigateDir.PREV)"
       />
     </Suspense>
   </div>

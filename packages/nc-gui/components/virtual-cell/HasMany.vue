@@ -94,7 +94,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 </script>
 
 <template>
-  <div class="flex items-center items-center gap-1 w-full chips-wrapper">
+  <div class="flex items-center gap-1 w-full chips-wrapper">
     <template v-if="!isForm">
       <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">

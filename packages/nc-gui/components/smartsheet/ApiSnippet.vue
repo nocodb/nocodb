@@ -126,10 +126,14 @@ api.dbViewRow.list(
   return snippet.convert(activeLang?.name, selectedClient || (activeLang?.clients && activeLang?.clients[0]), {})
 })
 
-const onCopyToClipboard = () => {
-  copy(code)
-  // Copied to clipboard
-  message.info(t('msg.info.copiedToClipboard'))
+const onCopyToClipboard = async () => {
+  try {
+    await copy(code)
+    // Copied to clipboard
+    message.info(t('msg.info.copiedToClipboard'))
+  } catch (e) {
+    message.error(e.message)
+  }
 }
 
 const afterVisibleChange = (visible: boolean) => {

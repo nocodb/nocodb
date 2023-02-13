@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
+import { RowHeightInj } from '#imports'
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100
 
@@ -29,6 +31,8 @@ const handleModalOkClick = () => (modalVisible.value = false)
 const showBarcode = computed(() => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value)
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
+
+const rowHeight = inject(RowHeightInj)
 </script>
 
 <template>
@@ -43,7 +47,20 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
     <JsBarcodeWrapper v-if="showBarcode" :barcode-value="barcodeValue" :barcode-format="barcodeMeta.barcodeFormat" />
   </a-modal>
   <JsBarcodeWrapper
-    v-if="showBarcode"
+    v-if="showBarcode && rowHeight"
+    :barcode-value="barcodeValue"
+    :barcode-format="barcodeMeta.barcodeFormat"
+    :custom-style="{ height: rowHeight ? `${rowHeight * 1.4}rem` : `1.4rem` }"
+    @on-click-barcode="showBarcodeModal"
+  >
+    <template #barcodeRenderError>
+      <div class="text-left text-wrap mt-2 text-[#e65100] text-xs" data-testid="barcode-invalid-input-message">
+        {{ $t('msg.warning.barcode.renderError') }}
+      </div>
+    </template>
+  </JsBarcodeWrapper>
+  <JsBarcodeWrapper
+    v-else-if="showBarcode"
     :barcode-value="barcodeValue"
     :barcode-format="barcodeMeta.barcodeFormat"
     @on-click-barcode="showBarcodeModal"

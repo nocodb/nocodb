@@ -129,6 +129,7 @@ export class DashboardPage extends BasePage {
     await projMenu.locator('[data-menu-id="account"]:visible').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
+    await new Promise(resolve => setTimeout(resolve, 150));
   }
 
   async validateProjectMenu(param: { role: string; mode?: string }) {

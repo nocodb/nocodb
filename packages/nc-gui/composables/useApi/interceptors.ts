@@ -1,12 +1,12 @@
 import type { Api } from 'nocodb-sdk'
-import { navigateTo, useGlobal, useRoute, useRouter } from '#imports'
+import { navigateTo, useGlobal, useRouter } from '#imports'
 
 const DbNotFoundMsg = 'Database config not found'
 
 export function addAxiosInterceptors(api: Api<any>) {
   const state = useGlobal()
   const router = useRouter()
-  const route = useRoute()
+  const route = $(router.currentRoute)
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
@@ -38,15 +38,14 @@ export function addAxiosInterceptors(api: Api<any>) {
       }
 
       // Logout user if token refresh didn't work or user is disabled
-      if (error.config.url === '/auth/refresh-token') {
+      if (error.config.url === '/auth/token/refresh') {
         state.signOut()
-
         return Promise.reject(error)
       }
 
       // Try request again with new token
       return api.instance
-        .post('/auth/refresh-token', null, {
+        .post('/auth/token/refresh', null, {
           withCredentials: true,
         })
         .then((token) => {

@@ -2,15 +2,18 @@ import { expect } from '@playwright/test';
 import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
+import { AttachmentColumnPageObject } from './Attachment';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
+  readonly attachmentColumnPageObject: AttachmentColumnPageObject;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
     this.grid = grid;
     this.selectOption = new SelectOptionColumnPageObject(this);
+    this.attachmentColumnPageObject = new AttachmentColumnPageObject(this);
   }
 
   get() {
@@ -41,6 +44,7 @@ export class ColumnPageObject extends BasePage {
     timeFormat = '',
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
+    isPrimaryValue = false,
   }: {
     title: string;
     type?: string;
@@ -57,9 +61,16 @@ export class ColumnPageObject extends BasePage {
     timeFormat?: string;
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
+    isPrimaryValue?: boolean;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
+
+      if (isPrimaryValue) {
+        await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before")')).toHaveCount(0);
+        return;
+      }
+
       await this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before"):visible').click();
     } else if (insertAfterColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
@@ -77,16 +88,6 @@ export class ColumnPageObject extends BasePage {
     switch (type) {
       case 'SingleSelect':
       case 'MultiSelect':
-        await this.selectOption.addOption({
-          index: 0,
-          option: 'Option 1',
-          skipColumnModal: true,
-        });
-        await this.selectOption.addOption({
-          index: 1,
-          option: 'Option 2',
-          skipColumnModal: true,
-        });
         break;
       case 'Duration':
         if (format) {
@@ -279,7 +280,7 @@ export class ColumnPageObject extends BasePage {
     timeFormat?: string;
   }) {
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
 
     await this.get().waitFor({ state: 'visible' });
 
@@ -308,6 +309,10 @@ export class ColumnPageObject extends BasePage {
     }
   }
 
+  async editMenuShowMore() {
+    await this.rootPage.locator('.nc-more-options').click();
+  }
+
   async duplicateColumn({ title, expectedTitle = `${title}_copy` }: { title: string; expectedTitle?: string }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Duplicate"):visible').click();
@@ -316,8 +321,13 @@ export class ColumnPageObject extends BasePage {
     await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).isVisible();
   }
 
-  async hideColumn({ title }: { title: string }) {
+  async hideColumn({ title, isPrimaryValue = false }: { title: string; isPrimaryValue?: boolean }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
+
+    if (isPrimaryValue) {
+      await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field")')).toHaveCount(0);
+      return;
+    }
 
     await this.waitForResponse({
       uiAction: this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
@@ -389,5 +399,8 @@ export class ColumnPageObject extends BasePage {
       )
       .first()
       .isVisible();
+
+    // close sort menu
+    await this.grid.toolbar.clickSort();
   }
 }

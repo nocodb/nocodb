@@ -441,11 +441,14 @@ export default class Model implements TableType {
     const insertObj = {};
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
-      const val =
+      let val =
         data?.[col.column_name] !== undefined
           ? data?.[col.column_name]
           : data?.[col.title];
       if (val !== undefined) {
+        if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
+          val = JSON.stringify(val);
+        }
         insertObj[sanitize(col.column_name)] = val;
       }
     }
@@ -602,6 +605,18 @@ export default class Model implements TableType {
       },
       newPvCol.id
     );
+
+    const grid_views_with_column = await ncMeta.metaList2(null, null, MetaTable.GRID_VIEW_COLUMNS, {
+      condition: {
+        fk_column_id: newPvCol.id,
+      }
+    })
+
+    if (grid_views_with_column.length) {
+      for (const gv of grid_views_with_column) {
+        await View.fixPVColumnForView(gv.fk_view_id, ncMeta);
+      }
+    }
 
     return true;
   }

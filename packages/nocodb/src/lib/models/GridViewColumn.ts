@@ -108,6 +108,8 @@ export default class GridViewColumn implements GridColumnType {
         [column.fk_view_id],
         `${CacheScope.GRID_VIEW_COLUMN}:${id}`
       );
+    
+    await View.fixPVColumnForView(column.fk_view_id, ncMeta);
 
     return this.get(id, ncMeta);
   }

@@ -340,6 +340,7 @@ export interface GridType {
   deleted?: boolean;
   order?: number;
   lock_type?: 'collaborative' | 'locked' | 'personal';
+  row_height?: number;
 }
 
 export interface GalleryType {
@@ -469,6 +470,8 @@ export interface AttachmentType {
   mimetype?: string;
   size?: string;
   icon?: string;
+  path?: string;
+  data?: any;
 }
 
 export interface WebhookType {
@@ -2492,6 +2495,24 @@ export class Api<
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/form-columns/${formViewColumnId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name GridUpdate
+     * @request PATCH:/api/v1/db/meta/grids/{viewId}
+     * @response `200` `any` OK
+     */
+    gridUpdate: (viewId: string, data: GridType, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/grids/${viewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,

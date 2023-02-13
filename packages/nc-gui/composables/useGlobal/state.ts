@@ -59,14 +59,10 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     token: null,
     lang: preferredLanguage,
     darkMode: prefersDarkMode,
-    feedbackForm: {
-      url: 'https://docs.google.com/forms/d/e/1FAIpQLSeTlAfZjszgr53lArz3NvUEnJGOT9JtG9NAU5d0oQwunDS2Pw/viewform?embedded=true',
-      createdAt: new Date('2020-01-01T00:00:00.000Z').toISOString(),
-      isHidden: false,
-    },
     filterAutoSave: true,
     previewAs: null,
     includeM2M: false,
+    showNull: false,
     currentVersion: null,
     latestRelease: null,
     hiddenRelease: null,
@@ -100,6 +96,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     teleEnabled: true,
     type: 'nocodb',
     version: '0.0.0',
+    ncAttachmentFieldSize: 20,
+    ncMaxAttachmentsAllowed: 10,
   })
 
   /** reactive token payload */

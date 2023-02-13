@@ -1164,18 +1164,12 @@ export default class View implements ViewType {
     // get existing cache
     const dataList = await NocoCache.getList(scope, [viewId]);
 
-    // (view.type !== ViewTypes.MAP || (view as MapType).fk_geo_data_col_id === o
-    // if(view.type === ViewTypes.MAP){
-    //   console.log('view.type === ViewTypes.MAP');
-    //   const mapView = (await MapView.get(viewId)).fk_geo_data_col_id;
-    // }
-
-    const mergedIgnoreColdIds = [
-      ...ignoreColdIds,
-      ...(view.type === ViewTypes.MAP
+    const colsEssentialForView =
+      view.type === ViewTypes.MAP
         ? [(await MapView.get(viewId)).fk_geo_data_col_id]
-        : []),
-    ];
+        : [];
+
+    const mergedIgnoreColdIds = [...ignoreColdIds, ...colsEssentialForView];
 
     if (dataList?.length) {
       for (const o of dataList) {

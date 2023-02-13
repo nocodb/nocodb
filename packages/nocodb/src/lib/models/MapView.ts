@@ -4,9 +4,6 @@ import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
 import MapViewColumn from './MapViewColumn';
-// import Column from './Column';
-// import MapViewColumn from './MapViewColumn';
-// import Column from './Column';
 
 export default class MapView implements MapType {
   fk_view_id: string;
@@ -45,21 +42,6 @@ export default class MapView implements MapType {
     return view && new MapView(view);
   }
 
-  // public static async IsColumnBeingUsedInMapView(
-  //   columnId: string,
-  //   ncMeta = Noco.ncMeta
-  // ) {
-  //   return (
-  //     (
-  //       await ncMeta.metaList2(null, null, MetaTable.MAP_VIEW, {
-  //         condition: {
-  //           fk_geo_data_col_id: columnId,
-  //         },
-  //       })
-  //     ).length > 0
-  //   );
-  // }
-
   static async insert(view: Partial<MapView>, ncMeta = Noco.ncMeta) {
     const insertObj = {
       project_id: view.project_id,
@@ -75,18 +57,6 @@ export default class MapView implements MapType {
       insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
     }
-
-    // const FOOView = await View.get(o.fk_view_id);
-    // TODO: check, whether potentially also the 'o' object can
-    // be used here instead of 'FOOView' (type casting to View)
-    // const FOO = (await viewRef.getColumns()).find((column) => {
-    //   console.log('column.fk_column_id', column.fk_column_id);
-    //   console.log('view.fk_geo_data_col_id', view.fk_geo_data_col_id);
-    //   return column.fk_column_id === view.fk_geo_data_col_id;
-    // });
-
-    // FOO.show = true;
-    // TODO: column (FOO) probably needs explicit save here
 
     await ncMeta.metaInsert2(null, null, MetaTable.MAP_VIEW, insertObj, true);
 
@@ -115,32 +85,15 @@ export default class MapView implements MapType {
     }
 
     if (body.fk_geo_data_col_id != null) {
-      // TODO: check, whether potentially also the 'o' object can
-
-      // const FOO_MAP_VIEW_COL = await MapViewColumn.get({
-      //   fk_col_id: body.fk_geo_data_col_id,
-      // });
-
-      // const FOO_MAP_VIEW_COLS = await View.getColumns(body.fk_geo_data_col_id);
-      // const FOO_MAP_VIEW_COL = FOO_MAP_VIEW_COLS.find((column) => column.fk_column_id === body.fk_geo_data_col_id);
-      const FOO_mapViewColumns = await MapViewColumn.list(mapId);
-      const FOO_MATCHED_mapViewColumn = FOO_mapViewColumns.find(
+      const mapViewColumns = await MapViewColumn.list(mapId);
+      const mapViewMappedByColumn = mapViewColumns.find(
         (mapViewColumn) =>
           mapViewColumn.fk_column_id === body.fk_geo_data_col_id
       );
-      console.log('FOO_MATCHED_mapViewColumn', FOO_MATCHED_mapViewColumn);
-      await View.updateColumn(body.fk_view_id, FOO_MATCHED_mapViewColumn.id, {
+      await View.updateColumn(body.fk_view_id, mapViewMappedByColumn.id, {
         show: true,
       });
 
-      // MapViewColumn.
-
-      // const FOO_EXISTING_COL = await Column.get({
-      //   colId: body.fk_geo_data_col_id,
-      // });
-      // const FOO_NEW_COL = { ...FOO_EXISTING_COL, show: true };
-
-      // await Column.update(body.fk_geo_data_col_id, FOO_NEW_COL);
     }
 
     // update meta

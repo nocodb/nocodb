@@ -108,7 +108,6 @@ export function useViewColumns(
     if (isLocalMode.value) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
-        // show: false,
         show: !!field.isViewEssentialField,
       }))
       reloadData?.()

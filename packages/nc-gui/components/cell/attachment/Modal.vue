@@ -2,7 +2,7 @@
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { isImage, openLink, ref, useDropZone, useUIPermission, watch } from '#imports'
+import { isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -37,6 +37,8 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, re
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
+
+const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
 
 onKeyDown('Escape', () => {
   modalVisible.value = false
@@ -159,12 +161,12 @@ function onRemoveFileClick(title: any, i: number) {
 
             <div
               :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
-              class="nc-attachment h-full w-full flex items-center justify-center"
+              class="nc-attachment h-full w-full flex items-center justify-center overflow-hidden"
             >
-              <div
+              <LazyCellAttachmentImage
                 v-if="isImage(item.title, item.mimetype)"
-                :style="{ backgroundImage: `url('${item.url || item.data}')` }"
-                class="w-full h-full bg-contain bg-center bg-no-repeat"
+                :srcs="getPossibleAttachmentSrc(item)"
+                class="max-w-full max-h-full m-auto justify-center"
                 @click.stop="onClick(item)"
               />
 
@@ -173,10 +175,10 @@ function onRemoveFileClick(title: any, i: number) {
                 v-else-if="item.icon"
                 height="150"
                 width="150"
-                @click.stop="openLink(item.url || item.data)"
+                @click.stop="openAttachment(item)"
               />
 
-              <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openLink(item.url || item.data)" />
+              <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openAttachment(item)" />
             </div>
           </a-card>
 

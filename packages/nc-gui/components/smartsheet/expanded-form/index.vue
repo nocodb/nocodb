@@ -43,8 +43,6 @@ const { t } = useI18n()
 
 const row = ref(props.row)
 
-const isDuplicatedRow = ref(false)
-
 const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
@@ -109,7 +107,6 @@ const onClose = () => {
 
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
-  isDuplicatedRow.value = true
   const newRow = Object.assign(
     {},
     {

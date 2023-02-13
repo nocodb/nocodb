@@ -82,7 +82,6 @@ const isRowEmpty = (record: any, col: any) => {
   return Array.isArray(val) && val.length === 0
 }
 
-// const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const attachments = (record: any): Attachment[] => {
@@ -223,7 +222,6 @@ const showContextMenu = (e: MouseEvent, target?: { row: number }) => {
         </a-menu>
       </template>
       <div class="nc-gallery-container grid gap-2 my-4 px-3">
-        <!-- v-for="(row, rowIndex) of data -->
         <div v-for="(record, rowIndex) in data" :key="`record-${record.row.id}`">
           <LazySmartsheetRow :row="record">
             <a-card

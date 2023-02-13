@@ -70,12 +70,6 @@ const editor = useEditor({
       return false
     },
   },
-  onCreate: () => {
-    // todo: Hack. Find a better way to call this after editor is rendered
-    setTimeout(() => {
-      populatedPageSubheadings()
-    }, 120)
-  },
   editable: !isPublic.value,
 })
 
@@ -131,7 +125,7 @@ watch(
   <a-layout-content>
     <div v-if="localPage" class="nc-docs-page h-full flex flex-row relative" @scroll="selectActiveSubHeading">
       <div class="flex flex-col w-full">
-        <div class="flex flex-row justify-between items-center pl-14 pt-4">
+        <div class="flex flex-row justify-between items-center pl-14 pt-2.5">
           <a-breadcrumb v-if="breadCrumbs.length > 1" class="!px-2">
             <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
               <NuxtLink
@@ -187,7 +181,7 @@ watch(
           </div>
         </div>
       </div>
-      <div class="sticky top-0 pt-2.5 flex flex-col mr-3 min-w-8">
+      <div class="sticky top-0 pt-1.5 flex flex-col mr-3 min-w-8">
         <template v-if="pageSubHeadings.length > 0">
           <div class="flex flex-row justify-end cursor-pointer rounded-md">
             <div
@@ -201,7 +195,7 @@ watch(
               <AlignRightIcon />
             </div>
           </div>
-          <div v-if="showPageSubHeadings" class="pt-20 mr-16 flex flex-col w-full w-48">
+          <div v-if="showPageSubHeadings" class="pt-20 mr-24 flex flex-col w-full w-54">
             <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
             <a
               v-for="(subHeading, index) in pageSubHeadings"
@@ -211,8 +205,8 @@ watch(
               :class="{
                 'font-semibold text-primary': subHeading.active,
                 '!text-gray-700': !subHeading.active,
-                'ml-4': subHeading.type === 'h2',
-                'ml-8': subHeading.type === 'h3',
+                'ml-2.5': subHeading.type === 'h2',
+                'ml-5': subHeading.type === 'h3',
               }"
             >
               {{ subHeading.text }}

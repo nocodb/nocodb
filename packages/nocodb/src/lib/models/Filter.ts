@@ -527,4 +527,42 @@ export default class Filter {
     }
     return filterObjs?.map((f) => new Filter(f));
   }
+
+  static async hasEmptyOrNullFilters(projectId: string, ncMeta = Noco.ncMeta) {
+    const emptyOrNullFilterObjs = await ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.FILTER_EXP,
+      {
+        condition: {
+          project_id: projectId,
+        },
+        xcCondition: {
+          _or: [
+            {
+              comparison_op: {
+                eq: 'null',
+              },
+            },
+            {
+              comparison_op: {
+                eq: 'notnull',
+              },
+            },
+            {
+              comparison_op: {
+                eq: 'empty',
+              },
+            },
+            {
+              comparison_op: {
+                eq: 'notempty',
+              },
+            },
+          ],
+        },
+      }
+    );
+    return emptyOrNullFilterObjs.length > 0;
+  }
 }

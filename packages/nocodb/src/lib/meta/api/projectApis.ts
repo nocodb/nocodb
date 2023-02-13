@@ -10,6 +10,7 @@ import syncMigration from '../helpers/syncMigration';
 import { IGNORE_TABLES } from '../../utils/common/BaseApiBuilder';
 import Column from '../../models/Column';
 import Model from '../../models/Model';
+import Filter from '../../models/Filter';
 import NcHelp from '../../utils/NcHelp';
 import Base from '../../models/Base';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
@@ -497,6 +498,10 @@ export async function projectCost(req, res) {
   res.json({ cost });
 }
 
+export async function hasEmptyOrNullFilters(req, res) {
+  res.json(await Filter.hasEmptyOrNullFilters(req.params.projectId));
+}
+
 export default (router) => {
   router.get(
     '/api/v1/db/meta/projects/:projectId/info',
@@ -532,5 +537,10 @@ export default (router) => {
     '/api/v1/db/meta/projects',
     metaApiMetrics,
     ncMetaAclMw(projectList, 'projectList')
+  );
+  router.get(
+    '/api/v1/db/meta/projects/:projectId/has-empty-or-null-filters',
+    metaApiMetrics,
+    ncMetaAclMw(hasEmptyOrNullFilters, 'hasEmptyOrNullFilters')
   );
 };

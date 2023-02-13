@@ -277,12 +277,35 @@ const selectItem = (title: string) => {
   command(items[index])
 }
 
+const scrollToSelectedNode = () => {
+  const dom = document.querySelector(`.items .item:nth-child(${selectedIndex.value + 1})`)
+  const wrapperDom = document.querySelector(`.items`)
+
+  const dividerCount =
+    filterItems.value.length === items.length
+      ? filterItems.value.slice(0, selectedIndex.value).filter((item) => item.hasDivider).length
+      : 0
+
+  const remInPixels = Number(getComputedStyle(document.documentElement).fontSize.replace('px', ''))
+
+  if (dom && wrapperDom) {
+    // todo: Hack. Find a better way to calculate the offset
+    wrapperDom.scrollTop =
+      dom.offsetTop -
+      wrapperDom.offsetHeight +
+      (dom.clientHeight - remInPixels) * selectedIndex.value +
+      (remInPixels / 4) * dividerCount
+  }
+}
+
 const upHandler = () => {
   selectedIndex.value = (selectedIndex.value + items.length - 1) % items.length
+  scrollToSelectedNode()
 }
 
 const downHandler = () => {
   selectedIndex.value = (selectedIndex.value + 1) % items.length
+  scrollToSelectedNode()
 }
 
 const onHover = (index: number) => {
@@ -341,9 +364,12 @@ async function outlinePage(editor: Editor) {
   }
 }
 
-watch(items, () => {
-  selectedIndex.value = 0
-})
+watch(
+  () => query,
+  () => {
+    selectedIndex.value = 0
+  },
+)
 
 watch(linkInputRef, (value) => {
   if (value) {

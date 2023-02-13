@@ -1,15 +1,5 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import type {
-  Api,
-  AttachmentType,
-  ColumnType,
-  FormColumnType,
-  FormType,
-  GalleryType,
-  PaginatedType,
-  TableType,
-  ViewType,
-} from 'nocodb-sdk'
+import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -29,7 +19,6 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
-  useRoute,
   useRouter,
   useSharedView,
   useSmartsheetStoreOrThrow,
@@ -59,7 +48,7 @@ export function useViewData(
 
   const router = useRouter()
 
-  const route = useRoute()
+  const route = $(router.currentRoute)
 
   const { appInfo } = $(useGlobal())
 
@@ -90,10 +79,6 @@ export function useViewData(
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
   const { isUIAllowed } = useUIPermission()
-
-  const attachmentColumns = computed(() =>
-    (meta.value?.columns as ColumnType[])?.filter((c) => c.uidt === UITypes.Attachment).map((c) => c.title),
-  )
 
   const routeQuery = $computed(() => route.query as Record<string, string>)
 
@@ -201,28 +186,6 @@ export function useViewData(
     }
   }
 
-  // TODO: refactor
-  async function getAttachmentUrl(item: AttachmentType) {
-    const path = item?.path
-    // if path doesn't exist, use `item.url`
-    if (path) {
-      // try ${appInfo.value.ncSiteUrl}/${item.path} first
-      const url = `${appInfo.ncSiteUrl}/${item.path}`
-      try {
-        const res = await fetch(url)
-        if (res.ok) {
-          // use `url` if it is accessible
-          return Promise.resolve(url)
-        }
-      } catch {
-        // for some cases, `url` is not accessible as expected
-        // do nothing here
-      }
-    }
-    // if it fails, use the original url
-    return Promise.resolve(item.url)
-  }
-
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
     if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     const response = !isPublic.value
@@ -234,27 +197,7 @@ export function useViewData(
           where: where?.value,
         })
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
-    // reconstruct the url
-    // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
-    const records = []
-    for (const record of response.list) {
-      for (const attachmentColumn of attachmentColumns.value) {
-        // attachment column can be hidden
-        if (!record[attachmentColumn!]) continue
-        const oldAttachment =
-          typeof record[attachmentColumn!] === 'string' ? JSON.parse(record[attachmentColumn!]) : record[attachmentColumn!]
-        const newAttachment = []
-        for (const attachmentObj of oldAttachment) {
-          newAttachment.push({
-            ...attachmentObj,
-            url: await getAttachmentUrl(attachmentObj),
-          })
-        }
-        record[attachmentColumn!] = newAttachment
-      }
-      records.push(record)
-    }
-    formattedData.value = formatData(records)
+    formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
 
     // to cater the case like when querying with a non-zero offset

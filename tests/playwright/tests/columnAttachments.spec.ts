@@ -138,7 +138,6 @@ test.describe('Attachment column', () => {
       columnHeader: 'testAttach',
       filePath: twoFileArray,
     });
-    await dashboard.rootPage.waitForTimeout(2000);
     await dashboard.grid.cell.attachment.verifyFileCount({
       index: 1,
       columnHeader: 'testAttach',

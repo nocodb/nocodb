@@ -232,6 +232,7 @@ declare module '@vue/runtime-core' {
     MdiTable: typeof import('~icons/mdi/table')['default']
     MdiTableColumnPlusAfter: typeof import('~icons/mdi/table-column-plus-after')['default']
     MdiTableColumnPlusBefore: typeof import('~icons/mdi/table-column-plus-before')['default']
+    MdiTableKey: typeof import('~icons/mdi/table-key')['default']
     MdiTableLarge: typeof import('~icons/mdi/table-large')['default']
     MdiText: typeof import('~icons/mdi/text')['default']
     MdiThumbUp: typeof import('~icons/mdi/thumb-up')['default']

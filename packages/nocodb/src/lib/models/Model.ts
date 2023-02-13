@@ -606,6 +606,18 @@ export default class Model implements TableType {
       newPvCol.id
     );
 
+    const grid_views_with_column = await ncMeta.metaList2(null, null, MetaTable.GRID_VIEW_COLUMNS, {
+      condition: {
+        fk_column_id: newPvCol.id,
+      }
+    })
+
+    if (grid_views_with_column.length) {
+      for (const gv of grid_views_with_column) {
+        await View.fixPVColumnForView(gv.fk_view_id, ncMeta);
+      }
+    }
+
     return true;
   }
 

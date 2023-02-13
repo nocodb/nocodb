@@ -27,7 +27,7 @@ watch(includeM2M, async () => await loadTables())
       </div>
       <div class="flex flex-row items-center w-full mb-4 gap-2">
         <!-- Show NULL and EMPTY in Filters -->
-        <a-checkbox v-model:checked="showNullAndEmptyInFilter" v-e="['c:settings:show-null']" class="nc-settings-show-null">
+        <a-checkbox v-model:checked="showNullAndEmptyInFilter" v-e="['c:settings:show-null-and-empty-in-filter']" class="nc-settings-show-null">
           {{ $t('msg.info.showNullAndEmptyInFilter') }} <br />
           <span class="text-gray-500">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
         </a-checkbox>

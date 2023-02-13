@@ -85,7 +85,7 @@ onClickOutside(carouselRef, () => {
           <template #customPaging="props">
             <div class="cursor-pointer h-full nc-attachment-img-wrapper">
               <LazyCellAttachmentImage
-                class="!block margin-auto h-full w-full"
+                class="!block m-auto h-full w-full"
                 :alt="imageItems[props.i].title || `#${props.i}`"
                 :srcs="getPossibleAttachmentSrc(imageItems[props.i])"
               />

@@ -166,7 +166,7 @@ function onRemoveFileClick(title: any, i: number) {
               <LazyCellAttachmentImage
                 v-if="isImage(item.title, item.mimetype)"
                 :srcs="getPossibleAttachmentSrc(item)"
-                class="max-w-full max-h-full margin-auto justify-center"
+                class="max-w-full max-h-full m-auto justify-center"
                 @click.stop="onClick(item)"
               />
 

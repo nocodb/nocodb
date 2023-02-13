@@ -55,10 +55,7 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     loadViewColumns()
-  }
-  else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
-    // alert('SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE')
-    debugger
+  } else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
     loadViewColumns()
   }
 })
@@ -125,13 +122,13 @@ const coverImageColumnId = computed({
           ...activeView.value?.view,
           fk_cover_image_col_id: val,
         })
-          ; (activeView.value.view as GalleryType).fk_cover_image_col_id = val
+        ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
       } else if (activeView.value?.type === ViewTypes.KANBAN) {
         await $api.dbView.kanbanUpdate(activeView.value?.id, {
           ...activeView.value?.view,
           fk_cover_image_col_id: val,
         })
-          ; (activeView.value.view as KanbanType).fk_cover_image_col_id = val
+        ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
       }
       reloadViewMetaHook?.trigger()
     }
@@ -168,11 +165,21 @@ useMenuCloseOnEsc(open)
     <template #overlay>
       <div
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
-        data-testid="nc-fields-menu" @click.stop>
-        <a-card v-if="activeView.type === ViewTypes.GALLERY || activeView.type === ViewTypes.KANBAN" size="small"
-          title="Cover image">
-          <a-select v-model:value="coverImageColumnId" class="w-full" :options="coverOptions"
-            dropdown-class-name="nc-dropdown-cover-image" @click.stop />
+        data-testid="nc-fields-menu"
+        @click.stop
+      >
+        <a-card
+          v-if="activeView.type === ViewTypes.GALLERY || activeView.type === ViewTypes.KANBAN"
+          size="small"
+          title="Cover image"
+        >
+          <a-select
+            v-model:value="coverImageColumnId"
+            class="w-full"
+            :options="coverOptions"
+            dropdown-class-name="nc-dropdown-cover-image"
+            @click.stop
+          />
         </a-card>
 
         <div class="p-1" @click.stop>
@@ -182,10 +189,20 @@ useMenuCloseOnEsc(open)
         <div class="nc-fields-list py-1">
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
-              <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex items-center"
-                :data-testid="`nc-fields-menu-${field.title}`" @click.stop>
-                <a-checkbox v-model:checked="field.show" v-e="['a:fields:show-hide']" class="shrink"
-                  :disabled="field.isViewEssentialField" @change="saveOrUpdate(field, index)">
+              <div
+                v-show="filteredFieldList.includes(field)"
+                :key="field.id"
+                class="px-2 py-1 flex items-center"
+                :data-testid="`nc-fields-menu-${field.title}`"
+                @click.stop
+              >
+                <a-checkbox
+                  v-model:checked="field.show"
+                  v-e="['a:fields:show-hide']"
+                  class="shrink"
+                  :disabled="field.isViewEssentialField"
+                  @change="saveOrUpdate(field, index)"
+                >
                   <div class="flex items-center">
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" />
 

@@ -26,7 +26,8 @@ export function useViewColumns(
   )
 
   const isColumnViewEssential = (column: ColumnType) => {
-    // TODO: delegate this via a cleaner design pattern to map view specific check logic
+    // TODO: consider at some point ti delegate this via a cleaner design pattern to view specific check logic
+    // which could be inside of a view specific helper class (and generalized via an interface)
     // (on the other hand, the logic complexity is still very low atm - might be overkill)
     return view.value?.type === ViewTypes.MAP && (view.value?.view as MapType)?.fk_geo_data_col_id === column.id
   }
@@ -44,8 +45,6 @@ export function useViewColumns(
   })
 
   const loadViewColumns = async () => {
-
-    debugger
 
     if (!meta || !view) return
 

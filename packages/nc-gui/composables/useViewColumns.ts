@@ -44,6 +44,9 @@ export function useViewColumns(
   })
 
   const loadViewColumns = async () => {
+
+    debugger
+
     if (!meta || !view) return
 
     let order = 1
@@ -68,6 +71,7 @@ export function useViewColumns(
             title: column.title,
             fk_column_id: column.id,
             ...currentColumnField,
+            show: currentColumnField.show || isColumnViewEssential(currentColumnField),
             order: currentColumnField.order || order++,
             system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
             isViewEssentialField: isColumnViewEssential(column),

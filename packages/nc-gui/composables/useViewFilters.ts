@@ -11,6 +11,7 @@ import {
   message,
   ref,
   useDebounceFn,
+  useGlobal,
   useMetas,
   useNuxtApp,
   useUIPermission,
@@ -32,6 +33,8 @@ export function useViewFilters(
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
+
+  const { showNullAndEmptyInFilter } = useGlobal()
 
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -105,12 +108,14 @@ export function useViewFilters(
       excludedTypes?: UITypes[]
     },
   ) => {
-    // include allowed values only if selected column type matches
-    if (compOp.includedTypes) {
+    if (['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)) {
+      // for these 4 comparisonOp, show them based on `showNullAndEmptyInFilter` in Project Settings
+      return showNullAndEmptyInFilter.value
+    } else if (compOp.includedTypes) {
+      // include allowed values only if selected column type matches
       return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
-    }
-    // include not allowed values only if selected column type not matches
-    else if (compOp.excludedTypes) {
+    } else if (compOp.excludedTypes) {
+      // include not allowed values only if selected column type not matches
       return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
     }
     return true

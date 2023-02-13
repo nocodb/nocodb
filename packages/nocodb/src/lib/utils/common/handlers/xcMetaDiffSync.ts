@@ -57,7 +57,8 @@ export default async function (this: BaseApiBuilder<any> | any) {
       return true;
     });
   // @ts-ignore
-  const relationList = (await (await this.getSqlClient()).tableList())?.data?.list;
+  const relationList = (await (await this.getSqlClient()).tableList())?.data
+    ?.list;
 
   const oldModels = await this.xcMeta.metaList(
     this.getProjectId(),

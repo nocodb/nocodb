@@ -122,11 +122,13 @@ export default class NcConfigFactory implements NcConfig {
     } else if (process.env.NC_DB_JSON_FILE) {
       const filePath = process.env.NC_DB_JSON_FILE;
 
-      if (!await promisify(fs.exists)(filePath)) {
+      if (!(await promisify(fs.exists)(filePath))) {
         throw new Error(`NC_DB_JSON_FILE not found: ${filePath}`);
       }
 
-      const fileContent = await promisify(fs.readFile)(filePath, { encoding: 'utf8' });
+      const fileContent = await promisify(fs.readFile)(filePath, {
+        encoding: 'utf8',
+      });
       ncConfig.meta.db = JSON.parse(fileContent);
     }
 
@@ -401,7 +403,10 @@ export default class NcConfigFactory implements NcConfig {
     return dbConfig;
   }
 
-  public static async makeProjectConfigFromUrl(url, type?: string): Promise<NcConfig> {
+  public static async makeProjectConfigFromUrl(
+    url,
+    type?: string
+  ): Promise<NcConfig> {
     const config = new NcConfigFactory();
     const dbConfig = this.urlToDbConfig(url, '', config, type);
     // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);

@@ -440,7 +440,9 @@ export default class SqlMgr {
     console.log(args);
 
     try {
-      await promisify(fs.unlink)(path.join(this.currentProjectFolder, 'config.xc.json'));
+      await promisify(fs.unlink)(
+        path.join(this.currentProjectFolder, 'config.xc.json')
+      );
 
       args.folder = args.folder || args.project.folder;
       args.folder = path.dirname(args.folder);
@@ -1358,7 +1360,10 @@ export default class SqlMgr {
           break;
         case ToolOps.WRITE_FILE:
           console.log('Within WRITE_FILE handler', args);
-          result = await promisify(fs.writeFile)(args.args.path, args.args.data);
+          result = await promisify(fs.writeFile)(
+            args.args.path,
+            args.args.data
+          );
           break;
 
         case ToolOps.REST_API_CALL:

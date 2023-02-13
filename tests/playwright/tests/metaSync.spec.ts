@@ -252,18 +252,18 @@ test.describe('Meta sync', () => {
     await dashboard.treeView.openTable({ title: 'Table1' });
 
     await dashboard.grid.toolbar.clickFields();
-    await dashboard.grid.toolbar.fields.click({ title: 'Col1' });
+    await dashboard.grid.toolbar.fields.click({ title: 'Col2' });
     await dashboard.grid.toolbar.clickFields();
 
     await dashboard.grid.toolbar.sort.add({
-      columnTitle: 'Col1',
+      columnTitle: 'Col2',
       isAscending: false,
       isLocallySaved: false,
     });
 
     await dashboard.grid.toolbar.clickFilter();
     await dashboard.grid.toolbar.filter.add({
-      columnTitle: 'Col1',
+      columnTitle: 'Col2',
       opType: '>=',
       value: '5',
       isLocallySaved: false,

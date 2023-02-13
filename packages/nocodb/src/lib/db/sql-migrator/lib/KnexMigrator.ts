@@ -381,7 +381,8 @@ export default class KnexMigrator extends SqlMigrator {
 
   async _initDbWithSql(connectionConfig) {
     const sqlClient =
-      connectionConfig.sqlClient || await SqlClientFactory.create(connectionConfig);
+      connectionConfig.sqlClient ||
+      (await SqlClientFactory.create(connectionConfig));
     if (connectionConfig.client === 'oracledb') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`
@@ -567,7 +568,8 @@ export default class KnexMigrator extends SqlMigrator {
         args.dbAlias,
         args.env
       );
-      const sqlClient = args.sqlClient || await SqlClientFactory.create(connection);
+      const sqlClient =
+        args.sqlClient || (await SqlClientFactory.create(connection));
 
       let migrations = await sqlClient.selectAll(
         sqlClient.getTnPath(connection.meta.tn)

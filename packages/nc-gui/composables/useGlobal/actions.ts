@@ -28,19 +28,22 @@ export function useGlobalActions(state: State): Actions {
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
 
-    nuxtApp.$api.instance
-      .post('/auth/token/refresh', null, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        if (response.data?.token) {
-          signIn(response.data.token)
-        }
-      })
-      .catch((err) => {
-        message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
-        signOut()
-      })
+    return new Promise((resolve) => {
+      nuxtApp.$api.instance
+        .post('/auth/token/refresh', null, {
+          withCredentials: true,
+        })
+        .then((response) => {
+          if (response.data?.token) {
+            signIn(response.data.token)
+          }
+        })
+        .catch((err) => {
+          message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
+          signOut()
+        })
+        .finally(resolve)
+    })
   }
 
   const loadAppInfo = async () => {

@@ -439,7 +439,10 @@ export default class NcMetaMgr {
       for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
         if (await promisify(fs.exists)(path.join(metaFolder, `${tn}.json`))) {
           const data = JSON.parse(
-            await promisify(fs.readFile)(path.join(metaFolder, `${tn}.json`), 'utf8')
+            await promisify(fs.readFile)(
+              path.join(metaFolder, `${tn}.json`),
+              'utf8'
+            )
           );
           for (const row of data) {
             delete row.id;
@@ -1551,7 +1554,9 @@ export default class NcMetaMgr {
           break;
 
         case 'testConnection':
-          result = await (await SqlClientFactory.create(args.args)).testConnection();
+          result = await (
+            await SqlClientFactory.create(args.args)
+          ).testConnection();
           break;
         case 'xcProjectGetConfig':
           result = await this.xcMeta.projectGetById(this.getProjectId(args));

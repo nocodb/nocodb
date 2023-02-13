@@ -1754,6 +1754,31 @@ const deleteHmOrBtRelation = async (
   },
   ignoreFkDelete = false
 ) => {
+  let foreignKeyName;
+
+  // if relationColOpt is not provided, extract it from child table
+  // and get the foreign key name for dropping the foreign key
+  if (!relationColOpt) {
+    foreignKeyName = (
+      (
+        await childTable.getColumns().then((cols) => {
+          return cols?.find((c) => {
+            return (
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions.fk_related_model_id === parentTable.id &&
+              (c.colOptions as LinkToAnotherRecordType).fk_child_column_id ===
+                childColumn.id &&
+              (c.colOptions as LinkToAnotherRecordType).fk_parent_column_id ===
+                parentColumn.id
+            );
+          });
+        })
+      ).colOptions as LinkToAnotherRecordType
+    ).fk_index_name;
+  } else {
+    foreignKeyName = relationColOpt.fk_index_name;
+  }
+
   // todo: handle relation delete exception
   try {
     await sqlMgr.sqlOpPlus(base, 'relationDelete', {
@@ -1761,7 +1786,7 @@ const deleteHmOrBtRelation = async (
       childTable: childTable.table_name,
       parentTable: parentTable.table_name,
       parentColumn: parentColumn.column_name,
-      foreignKeyName: relationColOpt.fk_index_name,
+      foreignKeyName,
     });
   } catch (e) {
     console.log(e);

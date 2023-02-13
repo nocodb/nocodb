@@ -60,8 +60,28 @@ const useSubheading = () => {
     }
   }
 
+  // Poll the page content until it is rendered, as the subheadings are extracted from the page dom content
+  const pollPageRendered = async () => {
+    const _poll = () => document.querySelector('.ProseMirror')
+
+    const _pollWithDelay = async () => {
+      if (_poll()) {
+        return
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+
+    while (!_poll()) {
+      await _pollWithDelay()
+    }
+
+    populatedPageSubheadings()
+  }
+
   onMounted(() => {
     topHeaderHeight = document.querySelector('.nc-header-content')?.clientHeight || 0
+    pollPageRendered()
   })
 
   return {

@@ -70,12 +70,6 @@ const editor = useEditor({
       return false
     },
   },
-  onCreate: () => {
-    // todo: Hack. Find a better way to call this after editor is rendered
-    setTimeout(() => {
-      populatedPageSubheadings()
-    }, 120)
-  },
   editable: !isPublic.value,
 })
 

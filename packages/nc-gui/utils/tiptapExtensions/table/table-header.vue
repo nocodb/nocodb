@@ -1,66 +1,66 @@
-<script lang="ts">
+<script lang="ts" setup>
 import { NodeViewContent, NodeViewWrapper, nodeViewProps } from '@tiptap/vue-3'
 import type { EditorState } from 'prosemirror-state'
 import { NodeSelection, TextSelection } from 'prosemirror-state'
-import { CellSelection, addColumnAfter, addColumnBefore, deleteColumn, goTo, goToNextCell } from '@tiptap/prosemirror-tables'
+import {
+  CellSelection,
+  addColumnAfter,
+  addColumnBefore,
+  deleteColumn as deleteColumnTiptap,
+  goToNextCell,
+} from '@tiptap/prosemirror-tables'
 
-export default {
-  components: {
-    NodeViewWrapper,
-    NodeViewContent,
-  },
-  props: nodeViewProps,
-  data() {
-    return {
-      dragAnchorSelected: false,
-    }
-  },
-  methods: {
-    toggleRowSelection() {
-      if (this.dragAnchorSelected) {
-        this.editor.view.dispatch(
-          this.editor.state.tr.setSelection(TextSelection.create(this.editor.state.doc, this.getPos() + 1, this.getPos() + 1)),
-        )
-        this.dragAnchorSelected = false
-        return
-      }
-      this.dragAnchorSelected = true
-      this.selectColumn()
-    },
-    selectColumn() {
-      const state: EditorState = this.editor.state
-      const pos = this.getPos()
+const { getPos, editor } = defineProps(nodeViewProps)
+const isPublic = !editor.view.editable
 
-      // Select the column node
-      this.editor.view.dispatch(state.tr.setSelection(NodeSelection.create(state.doc, pos)))
+const dragAnchorSelected = ref(false)
 
-      const selection = CellSelection.colSelection(state.doc.resolve(pos))
-      this.editor.view.dispatch(state.tr.setSelection(selection as any))
-    },
-    deleteColumn() {
-      this.selectColumn()
+const selectColumn = () => {
+  const state: EditorState = editor.state
+  const pos = getPos()
 
-      deleteColumn(this.editor.state, this.editor.view.dispatch)
-    },
-    insertColumnBefore() {
-      this.selectColumn()
+  // Select the column node
+  editor.view.dispatch(state.tr.setSelection(NodeSelection.create(state.doc, pos)))
 
-      addColumnBefore(this.editor.state, this.editor.view.dispatch)
-      // focus the created column
-      setTimeout(() => {
-        goToNextCell(-1)(this.editor.state, this.editor.view.dispatch)
-      }, 0)
-    },
-    insertColumnAfter() {
-      this.selectColumn()
+  const selection = CellSelection.colSelection(state.doc.resolve(pos))
+  editor.view.dispatch(state.tr.setSelection(selection as any))
+}
 
-      addColumnAfter(this.editor.state, this.editor.view.dispatch)
-      // focus the created column
-      setTimeout(() => {
-        goToNextCell(1)(this.editor.state, this.editor.view.dispatch)
-      })
-    },
-  },
+const toggleRowSelection = () => {
+  if (dragAnchorSelected) {
+    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1)))
+    dragAnchorSelected.value = false
+    return
+  }
+
+  dragAnchorSelected.value = true
+  selectColumn()
+}
+
+const deleteColumn = () => {
+  selectColumn()
+
+  deleteColumnTiptap(editor.state, editor.view.dispatch)
+}
+
+const insertColumnBefore = () => {
+  selectColumn()
+
+  addColumnBefore(editor.state, editor.view.dispatch)
+  // focus the created column
+  setTimeout(() => {
+    goToNextCell(-1)(editor.state, editor.view.dispatch)
+  }, 0)
+}
+
+const insertColumnAfter = () => {
+  selectColumn()
+
+  addColumnAfter(editor.state, editor.view.dispatch)
+  // focus the created column
+  setTimeout(() => {
+    goToNextCell(1)(editor.state, editor.view.dispatch)
+  })
 }
 </script>
 
@@ -68,6 +68,7 @@ export default {
   <NodeViewWrapper class="vue-component group relative p-0" as="th">
     <div class="group table-header overflow-visible flex flex-row">
       <div
+        v-if="!isPublic"
         class="flex flex-row justify-center absolute h-full z-50 -top-4 !w-full justify-center min-w-4 min-h-4 !group-[.table-cell]:hover:opacity-100"
       >
         <div

@@ -1,6 +1,6 @@
 import Table from '@tiptap/extension-table'
 import type { EditorState } from 'prosemirror-state'
-import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
+import { Plugin, PluginKey } from 'prosemirror-state'
 import { TableMap, addColumn, addRow, columnResizing } from '@tiptap/prosemirror-tables'
 import type { DecorationSource, EditorView } from 'prosemirror-view'
 import { Decoration, DecorationSet } from 'prosemirror-view'
@@ -11,12 +11,28 @@ export default Table.extend({
   draggable: true,
   resizable: true,
   addProseMirrorPlugins() {
+    const plugins = []
+    if (this.editor.isEditable) {
+      plugins.push(
+        columnResizing({
+          handleWidth: 4,
+          cellMinWidth: this.options.cellMinWidth,
+          View: this.options.View,
+          // TODO: PR for @types/prosemirror-tables
+          // @ts-expect-error (incorrect type)
+          lastColumnResizable: false,
+        }),
+      )
+    }
+
     return [
       new Plugin({
         key: new PluginKey('table'),
         view() {
           return {
             update: async (view, prevState) => {
+              if (!view.editable) return
+
               // set createColumnButton height to the table height
               const createColumnButtons = document.querySelectorAll('[tiptap-table-create-column-id]')
               const tables = document.querySelectorAll('[data-placeholder="table"]')
@@ -83,6 +99,8 @@ export default Table.extend({
 
         props: {
           decorations(state: EditorState) {
+            if (!this.props.editable) return
+
             const decorations: Decoration[] = []
             const { doc } = state
 
@@ -179,14 +197,7 @@ export default Table.extend({
           },
         },
       }),
-      columnResizing({
-        handleWidth: 4,
-        cellMinWidth: this.options.cellMinWidth,
-        View: this.options.View,
-        // TODO: PR for @types/prosemirror-tables
-        // @ts-expect-error (incorrect type)
-        lastColumnResizable: false,
-      }),
+      ...plugins,
     ]
   },
 }).configure({

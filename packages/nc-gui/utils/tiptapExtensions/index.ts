@@ -45,7 +45,7 @@ const tiptapExtensions = (): Extensions => {
     DropCursor.configure({
       width: 2,
       class: 'notitap-dropcursor',
-      color: 'skyblue',
+      color: '#e6e6ff',
     }),
     Commands.configure({
       suggestion,

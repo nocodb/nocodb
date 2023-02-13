@@ -4,6 +4,8 @@ import { NodeSelection } from 'prosemirror-state'
 
 const { node, getPos, editor } = defineProps(nodeViewProps)
 
+const isPublic = !editor.view.editable
+
 const dragClicked = ref(false)
 const optionsPopoverRef = ref()
 
@@ -53,7 +55,7 @@ const deleteNode = () => {
 
 <template>
   <NodeViewWrapper class="vue-component group draggable-block-wrapper">
-    <div class="flex flex-row gap-0.5 group w-full relative" tiptap-draghandle-wrapper="true">
+    <div v-if="!isPublic" class="flex flex-row gap-0.5 group w-full relative" tiptap-draghandle-wrapper="true">
       <div type="button" class="block-button cursor-pointer" :class="{ '!mt-9': isTable }" @click="createNodeAfter">
         <MdiPlus />
       </div>
@@ -92,6 +94,7 @@ const deleteNode = () => {
 
       <NodeViewContent class="node-view-drag-content w-full ml-0.5" :class="{ 'ml-1': isTable }" />
     </div>
+    <NodeViewContent class="node-view-drag-content w-full ml-0.5" />
   </NodeViewWrapper>
 </template>
 

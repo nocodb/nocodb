@@ -125,7 +125,7 @@ watch(
   <a-layout-content>
     <div v-if="localPage" class="nc-docs-page h-full flex flex-row relative" @scroll="selectActiveSubHeading">
       <div class="flex flex-col w-full">
-        <div class="flex flex-row justify-between items-center pl-14 pt-2.5">
+        <div class="flex flex-row justify-between items-center pl-8 pt-2.5">
           <a-breadcrumb v-if="breadCrumbs.length > 1" class="!px-2">
             <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
               <NuxtLink
@@ -162,7 +162,15 @@ watch(
               @click="editor!.chain().focus().insertContent('/').run()"
             />
           </FloatingMenu>
-          <EditorContent v-if="!isLoading" :editor="editor" class="px-2 -ml-12.5" />
+          <EditorContent
+            v-if="!isLoading"
+            :editor="editor"
+            class="px-2"
+            :class="{
+              '-ml-1': isPublic,
+              '-ml-12.5': !isPublic,
+            }"
+          />
           <div
             v-if="!isLoading && openedPageInternal?.children?.length !== 0"
             class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
@@ -482,7 +490,8 @@ watch(
     border-collapse: collapse;
     table-layout: fixed;
     width: 100%;
-    margin: 0;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
     overflow: visible;
     tbody {
       overflow: visible;

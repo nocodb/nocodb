@@ -27,7 +27,7 @@ const selectColumn = () => {
 }
 
 const toggleRowSelection = () => {
-  if (dragAnchorSelected) {
+  if (dragAnchorSelected.value) {
     editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1)))
     dragAnchorSelected.value = false
     return

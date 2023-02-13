@@ -5,11 +5,18 @@ import { TableMap, addColumn, addRow, columnResizing } from '@tiptap/prosemirror
 import type { DecorationSource, EditorView } from 'prosemirror-view'
 import { Decoration, DecorationSet } from 'prosemirror-view'
 import type { Node } from 'prosemirror-model'
+import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { TableNodeView } from './TableNodeView'
+import TableComponent from './table.vue'
 
 export default Table.extend({
   draggable: true,
   resizable: true,
+
+  addNodeView() {
+    return VueNodeViewRenderer(TableComponent)
+  },
+
   addProseMirrorPlugins() {
     const plugins = []
     if (this.editor.isEditable) {

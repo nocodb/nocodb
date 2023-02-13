@@ -152,7 +152,7 @@ onMounted(() => {
 </style>
 
 <style lang="scss">
-.tableWrapper {
+.tiptap-table-wrapper {
   // First cell
   tr:hover > td:first-child .row-drag-handle {
     display: block !important;

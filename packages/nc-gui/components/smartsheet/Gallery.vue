@@ -208,7 +208,7 @@ watch(view, async (nextView) => {
                     v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                     :key="`carousel-${record.row.id}-${index}`"
                     class="h-52 object-contain"
-                    :src="getPossibleAttachmentSrc(attachment)"
+                    :srcs="getPossibleAttachmentSrc(attachment)"
                   />
                 </template>
               </a-carousel>

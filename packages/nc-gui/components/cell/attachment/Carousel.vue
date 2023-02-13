@@ -87,12 +87,12 @@ onClickOutside(carouselRef, () => {
               <LazyCellAttachmentImage
                 class="!block margin-auto h-full w-full"
                 :alt="imageItems[props.i].title || `#${props.i}`"
-                :src="getPossibleAttachmentSrc(imageItems[props.i])"
+                :srcs="getPossibleAttachmentSrc(imageItems[props.i])"
               />
             </div>
           </template>
           <div v-for="(item, idx) of imageItems" :key="idx">
-            <LazyCellAttachmentImage :src="getPossibleAttachmentSrc(item)" class="max-w-70vw max-h-70vh" />
+            <LazyCellAttachmentImage :srcs="getPossibleAttachmentSrc(item)" class="max-w-70vw max-h-70vh" />
           </div>
         </a-carousel>
       </div>

@@ -223,7 +223,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
             </template>
             <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
-                <LazyCellAttachmentImage :alt="item.title || `#${i}`" :src="getPossibleAttachmentSrc(item)" />
+                <LazyCellAttachmentImage :alt="item.title || `#${i}`" :srcs="getPossibleAttachmentSrc(item)" />
               </div>
             </div>
             <div v-else class="nc-attachment flex items-center justify-center" @click="openAttachment(item)">

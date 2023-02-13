@@ -1,6 +1,6 @@
 <script setup lang="ts">
 interface Props {
-  src: string[]
+  srcs: string[]
   alt?: string
 }
 
@@ -13,9 +13,9 @@ const onError = () => index.value++
 
 <template>
   <LazyNuxtImg
-    v-if="index < props.src.length"
+    v-if="index < props.srcs.length"
     class="m-auto"
-    :src="props.src[index]"
+    :src="props.srcs[index]"
     :alt="props?.alt || ''"
     placeholder
     quality="75"

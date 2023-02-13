@@ -3,9 +3,19 @@ import { useGlobal, useProject, watch } from '#imports'
 
 const { includeM2M, showNull, showNullAndEmptyInFilter } = useGlobal()
 
-const { loadTables } = useProject()
+const { loadTables, hasEmptyOrNullFilters } = useProject()
 
 watch(includeM2M, async () => await loadTables())
+
+async function showNullAndEmptyInFilterOnChange(evt: any) {
+  // users cannot hide null & empty option if there is existing null / empty filters
+  if (!evt.target.checked) {
+    if (await hasEmptyOrNullFilters()) {
+      showNullAndEmptyInFilter.value = true
+      message.warning('Null / Empty filters exist. Please remove them first.')
+    }
+  }
+}
 </script>
 
 <template>
@@ -27,7 +37,12 @@ watch(includeM2M, async () => await loadTables())
       </div>
       <div class="flex flex-row items-center w-full mb-4 gap-2">
         <!-- Show NULL and EMPTY in Filters -->
-        <a-checkbox v-model:checked="showNullAndEmptyInFilter" v-e="['c:settings:show-null-and-empty-in-filter']" class="nc-settings-show-null">
+        <a-checkbox
+          v-model:checked="showNullAndEmptyInFilter"
+          v-e="['c:settings:show-null-and-empty-in-filter']"
+          class="nc-settings-show-null-and-empty-in-filter"
+          @change="(e) => showNullAndEmptyInFilterOnChange(e)"
+        >
           {{ $t('msg.info.showNullAndEmptyInFilter') }} <br />
           <span class="text-gray-500">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
         </a-checkbox>

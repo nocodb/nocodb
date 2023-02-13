@@ -34,7 +34,9 @@ export const useProject = createSharedComposable(() => {
   const projectLoadedHook = createEventHook<ProjectType>()
 
   const project = ref<ProjectType>({})
+
   const bases = computed<BaseType[]>(() => project.value?.bases || [])
+
   const tables = ref<TableType[]>([])
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
@@ -169,6 +171,10 @@ export const useProject = createSharedComposable(() => {
     $e('c:themes:change')
   }
 
+  async function hasEmptyOrNullFilters() {
+    return await api.project.hasEmptyOrNullFilters(projectId.value)
+  }
+
   const reset = () => {
     project.value = {}
     tables.value = []
@@ -207,5 +213,6 @@ export const useProject = createSharedComposable(() => {
     isLoading,
     lastOpenedViewMap,
     isXcdbBase,
+    hasEmptyOrNullFilters,
   }
 })

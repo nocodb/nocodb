@@ -43,6 +43,8 @@ const { t } = useI18n()
 
 const row = ref(props.row)
 
+const isDuplicatedRow = ref(false)
+
 const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
@@ -107,6 +109,7 @@ const onClose = () => {
 
 const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
+  isDuplicatedRow.value = true
   const newRow = Object.assign(
     {},
     {
@@ -169,7 +172,7 @@ export default {
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicateRow="onDuplicateRow" />
+    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
 
     <div class="!bg-gray-100 rounded flex-1 relative">
       <template v-if="props.showNextPrevIcons">
@@ -194,8 +197,8 @@ export default {
               <a-spin size="large" />
             </div>
             <div
-              v-else
               v-for="(col, i) of fields"
+              v-else
               v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
               :key="col.title"
               class="mt-2 py-2"

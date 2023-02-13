@@ -16,7 +16,13 @@ import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
-  if (!req['user']) {
+  if (!req['user']?.id) {
+    if (
+      req['user']?.isPublicBase &&
+      req['user'].roles?.includes(ProjectRoles.EDITOR)
+    )
+      return next()
+
     NcError.unauthorized('Unauthorized');
   }
 
@@ -37,12 +43,6 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
           })
           .andWhere('fk_user_id', req['user'].id)
           .first()))
-    )
-      return next();
-    // check public base url with editor role
-    else if (
-      req['user'].isPublicBase &&
-      req['user'].roles?.includes(ProjectRoles.EDITOR)
     )
       return next();
   } catch {}

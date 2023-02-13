@@ -1,7 +1,9 @@
-import { computed, useRoute } from '#imports'
+import { computed, useRouter } from '#imports'
 
 export function useDashboard() {
-  const route = useRoute()
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
 
   const dashboardUrl = computed(() => {
     // todo: test in different scenarios

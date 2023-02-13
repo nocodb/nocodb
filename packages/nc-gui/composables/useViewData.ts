@@ -29,7 +29,6 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
-  useRoute,
   useRouter,
   useSharedView,
   useSmartsheetStoreOrThrow,
@@ -59,7 +58,7 @@ export function useViewData(
 
   const router = useRouter()
 
-  const route = useRoute()
+  const route = $(router.currentRoute)
 
   const { appInfo } = $(useGlobal())
 

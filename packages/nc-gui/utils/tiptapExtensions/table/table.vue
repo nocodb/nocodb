@@ -121,13 +121,8 @@ const appendColumn = () => {
       position: relative;
       min-width: 1em;
       border: 1px solid #e5e5e5;
-      vertical-align: top;
-      box-sizing: border-box;
       overflow: visible !important;
       height: 20px;
-      > * {
-        margin-bottom: 0;
-      }
     }
 
     td {
@@ -137,18 +132,17 @@ const appendColumn = () => {
 
     th {
       @apply font-semibold;
-      text-align: left;
       background-color: #fafbfb;
     }
 
     .column-resize-handle {
       position: absolute;
-      right: 0px;
+      right: -3px;
       top: 0;
       bottom: 0px;
       margin-top: 1px;
       margin-bottom: 1px;
-      width: 4px;
+      width: 8px;
       outline: 1px solid #e3e5ff;
     }
 
@@ -162,7 +156,7 @@ const appendColumn = () => {
 
     .column-resize-handle {
       background-color: #e3e5ff !important;
-      width: 6px;
+      width: 3px;
       cursor: col-resize;
       z-index: 1;
     }

@@ -82,8 +82,9 @@ const mouseUpHandler = () => {
 
 onMounted(() => {
   const el = cellRef.value as HTMLElement
+  const rowDom = el?.parentElement
   // check if the cell is the first cell in the row
-  isFirstCell.value = el?.previousElementSibling === null
+  isFirstCell.value = rowDom?.previousElementSibling === null
 })
 </script>
 

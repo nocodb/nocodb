@@ -51,7 +51,7 @@ export enum Altered {
 }
 
 // generate unique foreign key constraint name for foreign key
-const generateFkConstraintName = (parent: TableType, child: TableType) => {
+const generateFkName = (parent: TableType, child: TableType) => {
   // generate a unique constraint name by taking first 10 chars of parent and child table name (by replacing all non word chars with _)
   // and appending a random string of 15 chars maximum length.
   // In database constraint name can be upto 64 chars and here we are generating a name of maximum 40 chars
@@ -93,7 +93,7 @@ async function createHmAndBtColumn(
       fk_related_model_id: parent.id,
       virtual,
       system: isSystemCol,
-      fk_col_name: fkColName,
+      fk_index_name: fkColName,
     });
   }
   // save hm column
@@ -112,7 +112,7 @@ async function createHmAndBtColumn(
       fk_related_model_id: child.id,
       virtual,
       system: isSystemCol,
-      fk_col_name: fkColName,
+      fk_index_name: fkColName,
     });
   }
 }
@@ -278,6 +278,7 @@ export async function columnAdd(
             `${parent.table_name}_id`
           );
 
+          let foreignKeyName;
           {
             // create foreign key
             const newColumn = {
@@ -321,10 +322,9 @@ export async function columnAdd(
 
             childColumn = await Column.get({ colId: id });
 
-            let foreignKeyName;
             // ignore relation creation if virtual
             if (!(req.body as LinkToAnotherColumnReqType).virtual) {
-              foreignKeyName = generateFkConstraintName(parent, child);
+              foreignKeyName = generateFkName(parent, child);
               // create relation
               await sqlMgr.sqlOpPlus(base, 'relationCreate', {
                 childColumn: fkColName,
@@ -357,7 +357,7 @@ export async function columnAdd(
             childColumn,
             (req.body as LinkToAnotherColumnReqType).type as RelationTypes,
             (req.body as LinkToAnotherColumnReqType).title,
-            fkColName,
+            foreignKeyName,
             (req.body as LinkToAnotherColumnReqType).virtual
           );
         } else if ((req.body as LinkToAnotherColumnReqType).type === 'mm') {
@@ -423,8 +423,8 @@ export async function columnAdd(
           let foreignKeyName2;
 
           if (!(req.body as LinkToAnotherColumnReqType).virtual) {
-            foreignKeyName1 = generateFkConstraintName(parent, child);
-            foreignKeyName2 = generateFkConstraintName(parent, child);
+            foreignKeyName1 = generateFkName(parent, child);
+            foreignKeyName2 = generateFkName(parent, child);
 
             const rel1Args = {
               ...req.body,

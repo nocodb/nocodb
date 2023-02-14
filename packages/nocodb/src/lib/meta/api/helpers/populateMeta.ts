@@ -5,7 +5,9 @@ import NcHelp from '../../../utils/NcHelp';
 import Base from '../../../models/Base';
 import View from '../../../models/View';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-import getTableNameAlias, { getColumnNameAlias } from '../../helpers/getTableName';
+import getTableNameAlias, {
+  getColumnNameAlias,
+} from '../../helpers/getTableName';
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import getColumnUiType from '../../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../../helpers/mapDefaultPrimaryValue';
@@ -179,7 +181,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
               // column_id,
               fk_child_column_id: rel_column_id,
               fk_parent_column_id: ref_rel_column_id,
-              fk_index_name: rel.fkn,
+              fk_index_name: rel.cstn,
               ur: rel.ur,
               dr: rel.dr,
               order: colOrder++,
@@ -259,7 +261,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
   const models = await Model.list({ project_id: project.id, base_id: base.id });
 
   for (const model of models) {
-    const views = await model.getViews()
+    const views = await model.getViews();
     for (const view of views) {
       if (view.type === ViewTypes.GRID) {
         await View.fixPVColumnForView(view.id);

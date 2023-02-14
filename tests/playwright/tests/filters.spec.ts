@@ -1,10 +1,11 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
 import { rowMixedValue } from '../setup/xcdb-records';
+import { SettingsSubTab, SettingTab } from '../pages/Dashboard/Settings';
 
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;
@@ -33,6 +34,17 @@ const skipList = {
   ],
   MultiSelect: ['is blank', 'is not blank', 'is', 'is not'],
 };
+
+async function verifyFilterOperatorList(param: { column: string; opType: string[] }) {
+  await toolbar.clickFilter();
+  const opList = await toolbar.filter.columnOperatorList({
+    columnTitle: param.column,
+  });
+  await toolbar.clickFilter();
+  await toolbar.filter.reset();
+
+  expect(opList).toEqual(param.opType);
+}
 
 // define validateRowArray function
 async function validateRowArray(param) {
@@ -665,5 +677,88 @@ test.describe('Filter Tests: AddOn', () => {
 
   test('Filter: Checkbox', async () => {
     await addOnFilterTest('Checkbox');
+  });
+});
+
+test.describe('Filter Tests: Toggle button', () => {
+  /**
+   *  Steps
+   *
+   * 1. Open table
+   * 2. Verify filter options : should not include NULL & EMPTY options
+   * 3. Enable `Show NULL & EMPTY in Filter` in Project Settings
+   * 4. Verify filter options : should include NULL & EMPTY options
+   * 5. Add NULL & EMPTY filters
+   * 6. Disable `Show NULL & EMPTY in Filter` in Project Settings : should not be allowed
+   * 7. Remove the NULL & EMPTY filters
+   * 8. Disable `Show NULL & EMPTY in Filter` in Project Settings again : should be allowed
+   *
+   */
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page });
+    dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.grid.toolbar;
+  });
+
+  test('Filter: Toggle NULL & EMPTY button', async () => {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country' });
+
+    // Verify filter options
+    await verifyFilterOperatorList({
+      column: 'Country',
+      opType: ['is equal', 'is not equal', 'is like', 'is not like', 'is blank', 'is not blank'],
+    });
+
+    // Enable NULL & EMPTY button
+    await dashboard.gotoSettings();
+    await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
+    await dashboard.settings.miscellaneous.clickShowNullEmptyFilters();
+    await dashboard.settings.close();
+
+    // Verify filter options
+    await verifyFilterOperatorList({
+      column: 'Country',
+      opType: [
+        'is equal',
+        'is not equal',
+        'is like',
+        'is not like',
+        'is empty',
+        'is not empty',
+        'is null',
+        'is not null',
+        'is blank',
+        'is not blank',
+      ],
+    });
+
+    await toolbar.clickFilter();
+    await toolbar.filter.add({
+      columnTitle: 'Country',
+      opType: 'is null',
+      value: null,
+      isLocallySaved: false,
+      dataType: 'SingleLineText',
+    });
+    await toolbar.clickFilter();
+
+    // Disable NULL & EMPTY button
+    await dashboard.gotoSettings();
+    await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
+    await dashboard.settings.miscellaneous.clickShowNullEmptyFilters();
+    // wait for toast message
+    await dashboard.verifyToast({ message: 'Null / Empty filters exist. Please remove them first.' });
+    await dashboard.settings.close();
+
+    // remove filter
+    await toolbar.filter.reset();
+
+    // Disable NULL & EMPTY button
+    await dashboard.gotoSettings();
+    await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
+    await dashboard.settings.miscellaneous.clickShowNullEmptyFilters();
+    await dashboard.settings.close();
   });
 });

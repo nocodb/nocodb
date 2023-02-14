@@ -147,4 +147,30 @@ export class ToolbarFilterPage extends BasePage {
     });
     await this.toolbar.clickFilter();
   }
+
+  async columnOperatorList(param: { columnTitle: string }) {
+    await this.get().locator(`button:has-text("Add Filter")`).first().click();
+
+    const selectedField = await this.rootPage.locator('.nc-filter-field-select').textContent();
+    if (selectedField !== param.columnTitle) {
+      await this.rootPage.locator('.nc-filter-field-select').last().click();
+      await this.rootPage
+        .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
+        .locator(`div[label="${param.columnTitle}"]:visible`)
+        .click();
+    }
+
+    await this.rootPage.locator('.nc-filter-operation-select').click();
+    const opList = await this.rootPage
+      .locator('.nc-dropdown-filter-comp-op')
+      .locator(`.ant-select-item > .ant-select-item-option-content`);
+
+    // extract text from each element & put them in an array
+    const opListText = [];
+    for (let i = 0; i < (await opList.count()); i++) {
+      opListText.push(await opList.nth(i).textContent());
+    }
+
+    return opListText;
+  }
 }

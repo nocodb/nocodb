@@ -64,8 +64,10 @@ const deleteNode = () => {
         ref="optionsPopoverRef"
         class="flex flex-col absolute -left-10 bg-gray-100 rounded-md p-1 text-sm z-40"
         :class="{
-          hidden: !dragClicked,
-          visible: dragClicked,
+          'hidden': !dragClicked,
+          'visible': dragClicked,
+          'top-4': isTable,
+          'top-2': !isTable,
         }"
         :contenteditable="false"
       >

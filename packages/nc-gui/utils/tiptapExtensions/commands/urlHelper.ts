@@ -8,3 +8,20 @@ export const youtubeUrlToEmbedUrl = (url: string) => {
   const youtubeId = youtubeUrlToId(url)
   return `https://www.youtube.com/embed/${youtubeId}`
 }
+
+export const gSuiteUrlToEmbedUrl = (url: string, type: string) => {
+  const id = url.split('d/')[1].split('/')[0]
+  let iframeLinkType
+  switch (type) {
+    case 'googleDoc':
+      iframeLinkType = 'document'
+      break
+    case 'googleSheet':
+      iframeLinkType = 'spreadsheets'
+      break
+    case 'googleSlide':
+      iframeLinkType = 'presentation'
+  }
+
+  return `https://docs.google.com/${iframeLinkType}/d/${id}/preview`
+}

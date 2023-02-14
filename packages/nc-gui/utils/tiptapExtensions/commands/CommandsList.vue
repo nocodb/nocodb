@@ -4,7 +4,7 @@ import showdown from 'showdown'
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
-import { youtubeUrlToEmbedUrl } from './urlHelper'
+import { gSuiteUrlToEmbedUrl, youtubeUrlToEmbedUrl } from './urlHelper'
 import GoogleSheetsIcon from './icons/GoogleSheets.vue'
 import GoogleDocsIcon from './icons/GoogleDocs.vue'
 import GoogleSlidesIcon from './icons/GoogleSlides.vue'
@@ -71,6 +71,10 @@ const insertLink = () => {
 
   if (isLinkInputFormType.value === 'youtube') {
     linkUrl.value = youtubeUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value.startsWith('google')) {
+    linkUrl.value = gSuiteUrlToEmbedUrl(linkUrl.value, isLinkInputFormType.value)!
   }
 
   editor.chain().focus().setExternalContent({

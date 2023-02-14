@@ -116,15 +116,15 @@ export function useViewFilters(
       excludedTypes?: UITypes[]
     },
   ) => {
-    if (['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)) {
-      // for these 4 comparisonOp, show them based on `showNullAndEmptyInFilter` in Project Settings
-      return projectMeta.value.showNullAndEmptyInFilter
-    } else if (compOp.includedTypes) {
+    if (compOp.includedTypes) {
       // include allowed values only if selected column type matches
       return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
     } else if (compOp.excludedTypes) {
       // include not allowed values only if selected column type not matches
       return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
+    } else if (['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)) {
+      // for these 4 comparisonOp, show them based on `showNullAndEmptyInFilter` in Project Settings
+      return projectMeta.value.showNullAndEmptyInFilter
     }
     return true
   }

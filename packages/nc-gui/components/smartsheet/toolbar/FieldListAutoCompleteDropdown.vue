@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, computed, inject, ref, resolveComponent } from '#imports'
+import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { ActiveViewInj, MetaInj, computed, inject, ref, resolveComponent, useViewColumns } from '#imports'
 
 const { modelValue, isSort } = defineProps<{
   modelValue?: string
@@ -18,10 +18,17 @@ const localValue = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
+const activeView = inject(ActiveViewInj, ref())
+
+const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
+
 const options = computed<SelectProps['options']>(() =>
   meta.value?.columns
     ?.filter((c: ColumnType) => {
-      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.system) {
+      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.id!])) {
+        /** hide system columns if not enabled */
+        return false
+      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
         return false
       } else if (isSort) {
         /** ignore hasmany and manytomany relations if it's using within sort menu */

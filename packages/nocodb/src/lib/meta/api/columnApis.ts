@@ -50,12 +50,26 @@ export enum Altered {
   UPDATE_COLUMN = 8,
 }
 
+// generate unique foreign key constraint name for foreign key
+const generateFkName = (parent: TableType, child: TableType) => {
+  // generate a unique constraint name by taking first 10 chars of parent and child table name (by replacing all non word chars with _)
+  // and appending a random string of 15 chars maximum length.
+  // In database constraint name can be upto 64 chars and here we are generating a name of maximum 40 chars
+  const constraintName = `fk_${parent.table_name
+    .replace(/\W+/g, '_')
+    .slice(0, 10)}_${child.table_name
+    .replace(/\W+/g, '_')
+    .slice(0, 10)}_${randomID(15)}`;
+  return constraintName;
+};
+
 async function createHmAndBtColumn(
   child: Model,
   parent: Model,
   childColumn: Column,
   type?: RelationTypes,
   alias?: string,
+  fkColName?: string,
   virtual = false,
   isSystemCol = false
 ) {
@@ -79,6 +93,7 @@ async function createHmAndBtColumn(
       fk_related_model_id: parent.id,
       virtual,
       system: isSystemCol,
+      fk_index_name: fkColName,
     });
   }
   // save hm column
@@ -97,6 +112,7 @@ async function createHmAndBtColumn(
       fk_related_model_id: child.id,
       virtual,
       system: isSystemCol,
+      fk_index_name: fkColName,
     });
   }
 }
@@ -262,6 +278,7 @@ export async function columnAdd(
             `${parent.table_name}_id`
           );
 
+          let foreignKeyName;
           {
             // create foreign key
             const newColumn = {
@@ -307,6 +324,7 @@ export async function columnAdd(
 
             // ignore relation creation if virtual
             if (!(req.body as LinkToAnotherColumnReqType).virtual) {
+              foreignKeyName = generateFkName(parent, child);
               // create relation
               await sqlMgr.sqlOpPlus(base, 'relationCreate', {
                 childColumn: fkColName,
@@ -316,6 +334,7 @@ export async function columnAdd(
                 onUpdate: 'NO ACTION',
                 type: 'real',
                 parentColumn: parent.primaryKey.column_name,
+                foreignKeyName,
               });
             }
 
@@ -338,6 +357,7 @@ export async function columnAdd(
             childColumn,
             (req.body as LinkToAnotherColumnReqType).type as RelationTypes,
             (req.body as LinkToAnotherColumnReqType).title,
+            foreignKeyName,
             (req.body as LinkToAnotherColumnReqType).virtual
           );
         } else if ((req.body as LinkToAnotherColumnReqType).type === 'mm') {
@@ -399,7 +419,13 @@ export async function columnAdd(
             columns: associateTableCols,
           });
 
+          let foreignKeyName1;
+          let foreignKeyName2;
+
           if (!(req.body as LinkToAnotherColumnReqType).virtual) {
+            foreignKeyName1 = generateFkName(parent, child);
+            foreignKeyName2 = generateFkName(parent, child);
+
             const rel1Args = {
               ...req.body,
               childTable: aTn,
@@ -407,6 +433,7 @@ export async function columnAdd(
               parentTable: parent.table_name,
               parentColumn: parentPK.column_name,
               type: 'real',
+              foreignKeyName: foreignKeyName1,
             };
             const rel2Args = {
               ...req.body,
@@ -415,6 +442,7 @@ export async function columnAdd(
               parentTable: child.table_name,
               parentColumn: childPK.column_name,
               type: 'real',
+              foreignKeyName: foreignKeyName2,
             };
 
             await sqlMgr.sqlOpPlus(base, 'relationCreate', rel1Args);
@@ -433,6 +461,7 @@ export async function columnAdd(
             childCol,
             null,
             null,
+            foreignKeyName1,
             (req.body as LinkToAnotherColumnReqType).virtual,
             true
           );
@@ -442,6 +471,7 @@ export async function columnAdd(
             parentCol,
             null,
             null,
+            foreignKeyName2,
             (req.body as LinkToAnotherColumnReqType).virtual,
             true
           );
@@ -1724,6 +1754,31 @@ const deleteHmOrBtRelation = async (
   },
   ignoreFkDelete = false
 ) => {
+  let foreignKeyName;
+
+  // if relationColOpt is not provided, extract it from child table
+  // and get the foreign key name for dropping the foreign key
+  if (!relationColOpt) {
+    foreignKeyName = (
+      (
+        await childTable.getColumns().then((cols) => {
+          return cols?.find((c) => {
+            return (
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions.fk_related_model_id === parentTable.id &&
+              (c.colOptions as LinkToAnotherRecordType).fk_child_column_id ===
+                childColumn.id &&
+              (c.colOptions as LinkToAnotherRecordType).fk_parent_column_id ===
+                parentColumn.id
+            );
+          });
+        })
+      ).colOptions as LinkToAnotherRecordType
+    ).fk_index_name;
+  } else {
+    foreignKeyName = relationColOpt.fk_index_name;
+  }
+
   // todo: handle relation delete exception
   try {
     await sqlMgr.sqlOpPlus(base, 'relationDelete', {
@@ -1731,7 +1786,7 @@ const deleteHmOrBtRelation = async (
       childTable: childTable.table_name,
       parentTable: parentTable.table_name,
       parentColumn: parentColumn.column_name,
-      // foreignKeyName: relation.fkn
+      foreignKeyName,
     });
   } catch (e) {
     console.log(e);

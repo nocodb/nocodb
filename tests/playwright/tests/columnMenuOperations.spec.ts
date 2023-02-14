@@ -91,6 +91,7 @@ test.describe('Column menu operations', () => {
       title: 'InsertBeforeColumn',
       type: 'SingleLineText',
       insertBeforeColumnTitle: 'Title',
+      isPrimaryValue: true,
     });
 
     await dashboard.grid.column.create({
@@ -107,6 +108,7 @@ test.describe('Column menu operations', () => {
 
     await dashboard.grid.column.hideColumn({
       title: 'Title',
+      isPrimaryValue: true,
     });
 
     await dashboard.grid.column.hideColumn({

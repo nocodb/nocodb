@@ -43,7 +43,7 @@ npm run test:unit
 
 ### Folder Structure
 
-The root folder for unit tests is `packages/tests/unit`
+The root folder for unit tests is `packages/nocodb/tests/unit`
 
 - `rest` folder contains all the test suites for rest apis.
 - `model` folder contains all the test suites for models.
@@ -69,7 +69,7 @@ We will create an `Table` test suite as an example.
 
 #### Configure test
 
-We will configure `beforeEach` which is called before each test is executed. We will use `init` function from `nocodb/packages/tests/unit/init/index.ts`, which is a helper function which configures the test environment(i.e resetting state, etc.).
+We will configure `beforeEach` which is called before each test is executed. We will use `init` function from `nocodb/packages/nocodb/tests/unit/init/index.ts`, which is a helper function which configures the test environment(i.e resetting state, etc.).
 
 `init` does the following things -
 

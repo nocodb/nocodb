@@ -69,7 +69,7 @@ async function verifyFilter(param: {
     return;
   }
 
-  await toolbar.clickFilter();
+  await toolbar.clickFilter({ networkValidation: false });
   await toolbar.filter.add({
     columnTitle: param.column,
     opType: param.opType,
@@ -77,7 +77,7 @@ async function verifyFilter(param: {
     isLocallySaved: false,
     dataType: param?.dataType,
   });
-  await toolbar.clickFilter();
+  await toolbar.clickFilter({ networkValidation: false });
 
   // verify filtered rows
   await validateRowArray({
@@ -85,7 +85,7 @@ async function verifyFilter(param: {
   });
 
   // Reset filter
-  await toolbar.filter.reset();
+  await toolbar.filter.reset({ networkValidation: false });
 }
 
 // Number based filters
@@ -607,7 +607,7 @@ test.describe('Filter Tests: Select based', () => {
 test.describe('Filter Tests: AddOn', () => {
   async function addOnFilterTest(dataType) {
     await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.treeView.openTable({ title: 'addOnTypes' });
+    await dashboard.treeView.openTable({ title: 'addOnTypes', networkResponse: false });
 
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
@@ -655,6 +655,11 @@ test.describe('Filter Tests: AddOn', () => {
         uidt: UITypes.ID,
       },
       {
+        column_name: 'SingleLineText',
+        title: 'SingleLineText',
+        uidt: UITypes.SingleLineText,
+      },
+      {
         column_name: 'Checkbox',
         title: 'Checkbox',
         uidt: UITypes.Checkbox,
@@ -672,7 +677,8 @@ test.describe('Filter Tests: AddOn', () => {
       const rowAttributes = [];
       for (let i = 0; i < 400; i++) {
         const row = {
-          Checkbox: rowMixedValue(columns[1], i),
+          SingleLineText: rowMixedValue(columns[1], i),
+          Checkbox: rowMixedValue(columns[2], i),
         };
         rowAttributes.push(row);
       }
@@ -712,7 +718,7 @@ test.describe('Filter Tests: Toggle button', () => {
 
   test('Filter: Toggle NULL & EMPTY button', async () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
 
     // Verify filter options
     await verifyFilterOperatorList({

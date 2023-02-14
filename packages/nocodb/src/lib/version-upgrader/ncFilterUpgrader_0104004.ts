@@ -1,7 +1,9 @@
 import { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
+import NcMetaIO from '../meta/NcMetaIO';
 import Column from '../models/Column';
 import Filter from '../models/Filter';
+import Project from '../models/Project';
 import { UITypes, SelectOptionsType } from 'nocodb-sdk';
 
 // as of 0.104.3, almost all filter operators are available to all column types
@@ -196,7 +198,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
   return actions;
 };
 
-export default async function ({ ncMeta }: NcUpgraderCtx) {
+async function migrateFilters(ncMeta: NcMetaIO) {
   const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
   let actions = [];
   for (const filter of filters) {
@@ -254,4 +256,54 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     }
   }
   await Promise.all(actions);
+}
+
+async function updateProjectMeta(ncMeta: NcMetaIO) {
+  const projectHasEmptyOrFilters: Record<string, boolean> = {};
+  const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
+  let actions = [];
+  for (const filter of filters) {
+    if (
+      ['empty', 'notempty', 'null', 'notnull'].includes(filter.comparision_op)
+    ) {
+      projectHasEmptyOrFilters[filter.project_id] = true;
+    }
+  }
+  const projects = await ncMeta.metaList2(null, null, MetaTable.PROJECT);
+  const defaultProjectMeta = {
+    showNullAndEmptyInFilter: false,
+  };
+  for (const project of projects) {
+    const oldProjectMeta = project.meta;
+    let newProjectMeta = defaultProjectMeta;
+    try {
+      newProjectMeta =
+        (typeof oldProjectMeta === 'string'
+          ? JSON.parse(oldProjectMeta)
+          : oldProjectMeta) ?? defaultProjectMeta;
+    } catch {}
+
+    newProjectMeta = {
+      ...newProjectMeta,
+      showNullAndEmptyInFilter: projectHasEmptyOrFilters[project.id] ?? false,
+    };
+
+    actions.push(
+      await Project.update(project.id, {
+        meta: JSON.stringify(newProjectMeta),
+      })
+    );
+  }
+  await Promise.all(actions);
+}
+
+export default async function ({ ncMeta }: NcUpgraderCtx) {
+  // fix the existing filter behaviours or
+  // migrate incorrect filters to Blank
+  await migrateFilters(ncMeta);
+  // enrich `showNullAndEmptyInFilter` in project meta
+  // if there is empty / null filters in existing filters
+  // -> set `showNullAndEmptyInFilter` to true
+  // else false
+  await updateProjectMeta(ncMeta);
 }

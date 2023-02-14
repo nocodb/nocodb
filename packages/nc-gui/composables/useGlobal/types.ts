@@ -31,7 +31,6 @@ export interface StoredState {
   previewAs: ProjectRole | null
   includeM2M: boolean
   showNull: boolean
-  showNullAndEmptyInFilter: boolean
   currentVersion: string | null
   latestRelease: string | null
   hiddenRelease: string | null

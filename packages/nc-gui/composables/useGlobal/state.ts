@@ -63,7 +63,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     previewAs: null,
     includeM2M: false,
     showNull: false,
-    showNullAndEmptyInFilter: false,
     currentVersion: null,
     latestRelease: null,
     hiddenRelease: null,

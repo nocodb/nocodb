@@ -4,7 +4,7 @@ import showdown from 'showdown'
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
-import { gSuiteUrlToEmbedUrl, youtubeUrlToEmbedUrl } from './urlHelper'
+import { gSuiteUrlToEmbedUrl, githubGistUrlToEmbedUrl, youtubeUrlToEmbedUrl } from './urlHelper'
 import GoogleSheetsIcon from './icons/GoogleSheets.vue'
 import GoogleDocsIcon from './icons/GoogleDocs.vue'
 import GoogleSlidesIcon from './icons/GoogleSlides.vue'
@@ -26,6 +26,7 @@ import IcRoundStar from '~icons/ic/round-star-outline'
 import IcRoundWarning from '~icons/ph/warning-circle-bold'
 import MdiTable from '~icons/mdi/table'
 import LogosYoutubeIcon from '~icons/logos/youtube-icon'
+import LogosGithubIcon from '~icons/logos/github-icon'
 
 interface Props {
   command: Function
@@ -60,7 +61,14 @@ const insertLink = () => {
     return
   }
 
-  const url = new URL(linkUrl.value)
+  let url
+  try {
+    url = new URL(linkUrl.value)
+  } catch (e) {
+    isLinkInputFormErrored.value = true
+    return
+  }
+
   if (
     isLinkInputFormType.value === 'youtube' &&
     !(url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com' || url.hostname === 'youtu.be')
@@ -75,6 +83,10 @@ const insertLink = () => {
 
   if (isLinkInputFormType.value.startsWith('google')) {
     linkUrl.value = gSuiteUrlToEmbedUrl(linkUrl.value, isLinkInputFormType.value)!
+  }
+
+  if (isLinkInputFormType.value === 'githubGist') {
+    linkUrl.value = githubGistUrlToEmbedUrl(linkUrl.value)
   }
 
   editor.chain().focus().setExternalContent({
@@ -269,6 +281,16 @@ const items = [
       isLinkInputFormState.value = true
     },
     icon: GoogleSlidesIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Github Gist',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'githubGist'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosGithubIcon,
     iconClass: '',
   },
   {

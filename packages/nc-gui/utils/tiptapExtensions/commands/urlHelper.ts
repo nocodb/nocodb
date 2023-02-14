@@ -25,3 +25,10 @@ export const gSuiteUrlToEmbedUrl = (url: string, type: string) => {
 
   return `https://docs.google.com/${iframeLinkType}/d/${id}/preview`
 }
+
+export const githubGistUrlToEmbedUrl = (url: string) => {
+  return `data:text/html;charset=utf-8,
+  <head><base target='_blank' /></head>
+  <body><script src='${url}.js'></script>
+  </body>`
+}

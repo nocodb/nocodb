@@ -29,12 +29,12 @@ const skipList = {
 };
 
 async function verifyFilterOperatorList(param: { column: string; opType: string[] }) {
-  await toolbar.clickFilter();
+  await toolbar.clickFilter({ networkValidation: false });
   const opList = await toolbar.filter.columnOperatorList({
     columnTitle: param.column,
   });
-  await toolbar.clickFilter();
-  await toolbar.filter.reset();
+  await toolbar.clickFilter({ networkValidation: false });
+  await toolbar.filter.reset({ networkValidation: false });
 
   expect(opList).toEqual(param.opType);
 }
@@ -741,7 +741,7 @@ test.describe('Filter Tests: Toggle button', () => {
       ],
     });
 
-    await toolbar.clickFilter();
+    await toolbar.clickFilter({ networkValidation: false });
     await toolbar.filter.add({
       columnTitle: 'Country',
       opType: 'is null',
@@ -749,7 +749,7 @@ test.describe('Filter Tests: Toggle button', () => {
       isLocallySaved: false,
       dataType: 'SingleLineText',
     });
-    await toolbar.clickFilter();
+    await toolbar.clickFilter({ networkValidation: false });
 
     // Disable NULL & EMPTY button
     await dashboard.gotoSettings();
@@ -758,7 +758,7 @@ test.describe('Filter Tests: Toggle button', () => {
     await dashboard.verifyToast({ message: 'Null / Empty filters exist. Please remove them first.' });
 
     // remove filter
-    await toolbar.filter.reset();
+    await toolbar.filter.reset({ networkValidation: false });
 
     // Disable NULL & EMPTY button
     await dashboard.gotoSettings();

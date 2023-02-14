@@ -150,13 +150,17 @@ export class ToolbarFilterPage extends BasePage {
     }
   }
 
-  async reset() {
+  async reset({ networkValidation = true }: { networkValidation?: boolean } = {}) {
     await this.toolbar.clickFilter();
-    await this.waitForResponse({
-      uiAction: this.get().locator('.nc-filter-item-remove-btn').click(),
-      httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: '/api/v1/db/meta/filters/',
-    });
+    if (networkValidation) {
+      await this.waitForResponse({
+        uiAction: this.get().locator('.nc-filter-item-remove-btn').click(),
+        httpMethodsToMatch: ['DELETE'],
+        requestUrlPathToMatch: '/api/v1/db/meta/filters/',
+      });
+    } else {
+      await this.get().locator('.nc-filter-item-remove-btn').click();
+    }
     await this.toolbar.clickFilter();
   }
 

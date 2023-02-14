@@ -45,26 +45,26 @@ const removeLikeFilters = async (filter, actions: any[], ncMeta) => {
 };
 
 const migrateToBlankFilter = async (filter, actions: any[], ncMeta) => {
-  if (['empty', 'null'].includes(filter.comparision_op)) {
+  if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to blank
     actions.push(
       await Filter.update(
         filter.id,
         {
           ...filter,
-          comparision_op: 'blank',
+          comparison_op: 'blank',
         },
         ncMeta
       )
     );
-  } else if (['notempty', 'notnull'].includes(filter.comparision_op)) {
+  } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
     // migrate to not blank
     actions.push(
       await Filter.update(
         filter.id,
         {
           ...filter,
-          comparision_op: 'notblank',
+          comparison_op: 'notblank',
         },
         ncMeta
       )
@@ -80,7 +80,7 @@ const migrateMultiSelectEq = async (
   ncMeta
 ) => {
   // only allow eq / neq
-  if (!['eq', 'neq'].includes(filter.comparision_op)) return actions;
+  if (!['eq', 'neq'].includes(filter.comparison_op)) return actions;
   // if there is no value -> delete this filter
   if (!filter.value) {
     actions.push(await Filter.delete(filter.id, ncMeta));
@@ -103,27 +103,27 @@ const migrateMultiSelectEq = async (
     actions.push(await Filter.delete(filter.id, ncMeta));
     return actions;
   }
-  if (filter.comparision_op === 'eq') {
+  if (filter.comparison_op === 'eq') {
     // migrate to `contains all of`
     actions.push(
       await Filter.update(
         filter.id,
         {
           ...filter,
-          comparision_op: 'anyof',
+          comparison_op: 'anyof',
           value: newFilterValue,
         },
         ncMeta
       )
     );
-  } else if (filter.comparision_op === 'neq') {
+  } else if (filter.comparison_op === 'neq') {
     // migrate to `doesn't contain all of`
     actions.push(
       await Filter.update(
         filter.id,
         {
           ...filter,
-          comparision_op: 'nanyof',
+          comparison_op: 'nanyof',
           value: newFilterValue,
         },
         ncMeta
@@ -134,31 +134,31 @@ const migrateMultiSelectEq = async (
 };
 
 const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
-  if (['empty', 'null'].includes(filter.comparision_op)) {
+  if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to checked
     actions.push(
       await Filter.update(
         filter.id,
         {
           ...filter,
-          comparision_op: 'checked',
+          comparison_op: 'checked',
         },
         ncMeta
       )
     );
-  } else if (['notempty', 'notnull'].includes(filter.comparision_op)) {
+  } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
     //  migrate to not checked
     actions.push(
       await Filter.update(
         filter.id,
         {
           ...filter,
-          comparision_op: 'notchecked',
+          comparison_op: 'notchecked',
         },
         ncMeta
       )
     );
-  } else if (filter.comparision_op === 'eq') {
+  } else if (filter.comparison_op === 'eq') {
     if (['true', 'True', '1', 'T', 'Y'].includes(filter.value)) {
       // migrate to checked
       actions.push(
@@ -166,7 +166,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
           filter.id,
           {
             ...filter,
-            comparision_op: 'checked',
+            comparison_op: 'checked',
             value: '',
           },
           ncMeta
@@ -176,7 +176,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
       // invalid value - good to delete
       actions.push(await Filter.delete(filter.id, ncMeta));
     }
-  } else if (filter.comparision_op === 'neq') {
+  } else if (filter.comparison_op === 'neq') {
     if (['false', 'False', '0', 'F', 'N'].includes(filter.value)) {
       // migrate to not checked
       actions.push(
@@ -184,7 +184,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
           filter.id,
           {
             ...filter,
-            comparision_op: 'notchecked',
+            comparison_op: 'notchecked',
             value: '',
           },
           ncMeta
@@ -264,7 +264,7 @@ async function updateProjectMeta(ncMeta: NcMetaIO) {
   let actions = [];
   for (const filter of filters) {
     if (
-      ['empty', 'notempty', 'null', 'notnull'].includes(filter.comparision_op)
+      ['notempty', 'notnull', 'empty', 'null'].includes(filter.comparison_op)
     ) {
       projectHasEmptyOrFilters[filter.project_id] = true;
     }

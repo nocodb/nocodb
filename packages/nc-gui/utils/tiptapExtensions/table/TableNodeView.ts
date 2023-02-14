@@ -73,7 +73,7 @@ class TableNodeView implements NodeView {
     this.node = node
     this.cellMinWidth = cellMinWidth
     this.dom = document.createElement('div')
-    this.dom.className = 'tableWrapper'
+    this.dom.className = 'tiptap-table-wrapper'
     this.dom.style.marginTop = '2rem'
     this.table = this.dom.appendChild(document.createElement('table'))
     this.colgroup = this.table.appendChild(document.createElement('colgroup'))

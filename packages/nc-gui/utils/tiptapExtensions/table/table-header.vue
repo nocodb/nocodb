@@ -27,7 +27,7 @@ const selectColumn = () => {
 }
 
 const toggleRowSelection = () => {
-  if (dragAnchorSelected) {
+  if (dragAnchorSelected.value) {
     editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1)))
     dragAnchorSelected.value = false
     return
@@ -123,8 +123,6 @@ const insertColumnAfter = () => {
   @apply rounded-md p-1 cursor-pointer hover:bg-gray-200  text-sm text-gray-400 hover:text-gray-600;
 }
 
-.tiptap-column-options {
-}
 .tiptap-column-drag-handle {
   color: rgb(184, 184, 184);
   transform: rotate(-90deg);
@@ -132,7 +130,7 @@ const insertColumnAfter = () => {
 </style>
 
 <style lang="scss">
-.tableWrapper {
+.tiptap-table-wrapper {
   // First cell
   th:hover .tiptap-column-options {
     display: flex !important;

@@ -486,61 +486,6 @@ watch(
     z-index: 1;
   }
 
-  table {
-    border-collapse: collapse;
-    table-layout: fixed;
-    width: 100%;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    overflow: visible;
-    tbody {
-      overflow: visible;
-    }
-    td,
-    th {
-      position: relative;
-      min-width: 1em;
-      border: 1px solid #e5e5e5;
-      vertical-align: top;
-      box-sizing: border-box;
-      overflow: visible !important;
-      height: 20px;
-      > * {
-        margin-bottom: 0;
-      }
-    }
-
-    td {
-      overflow: visible !important;
-      border-top: 0;
-    }
-
-    th {
-      @apply font-semibold;
-      text-align: left;
-      background-color: #fafbfb;
-    }
-
-    .column-resize-handle {
-      position: absolute;
-      right: 0px;
-      top: 0;
-      bottom: 0px;
-      margin-top: 1px;
-      margin-bottom: 1px;
-      width: 4px;
-      outline: 1px solid #e3e5ff;
-    }
-
-    p {
-      margin: 0;
-    }
-
-    tr.ProseMirror-selectednode {
-      @apply bg-primary-selected;
-    }
-  }
-
   .resize-cursor {
     cursor: ew-resize;
     cursor: col-resize;

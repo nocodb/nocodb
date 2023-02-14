@@ -21,7 +21,7 @@ const selectRow = () => {
 }
 
 const toggleRowSelection = () => {
-  if (dragAnchorSelected) {
+  if (dragAnchorSelected.value) {
     editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, getPos() + 1, getPos() + 1)))
     dragAnchorSelected.value = false
     return
@@ -82,8 +82,9 @@ const mouseUpHandler = () => {
 
 onMounted(() => {
   const el = cellRef.value as HTMLElement
+  const rowDom = el?.parentElement
   // check if the cell is the first cell in the row
-  isFirstCell.value = el?.previousElementSibling === null
+  isFirstCell.value = rowDom?.previousElementSibling === null
 })
 </script>
 
@@ -152,7 +153,7 @@ onMounted(() => {
 </style>
 
 <style lang="scss">
-.tableWrapper {
+.tiptap-table-wrapper {
   // First cell
   tr:hover > td:first-child .row-drag-handle {
     display: block !important;

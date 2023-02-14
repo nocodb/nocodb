@@ -56,7 +56,7 @@ const deleteNode = () => {
 <template>
   <NodeViewWrapper class="vue-component group draggable-block-wrapper">
     <div v-if="!isPublic" class="flex flex-row gap-0.5 group w-full relative" tiptap-draghandle-wrapper="true">
-      <div type="button" class="block-button cursor-pointer" :class="{ '!mt-9': isTable }" @click="createNodeAfter">
+      <div type="button" class="block-button cursor-pointer" :class="{ '!mt-5': isTable }" @click="createNodeAfter">
         <MdiPlus />
       </div>
 
@@ -64,10 +64,8 @@ const deleteNode = () => {
         ref="optionsPopoverRef"
         class="flex flex-col absolute -left-10 bg-gray-100 rounded-md p-1 text-sm z-40"
         :class="{
-          'hidden': !dragClicked,
-          'visible': dragClicked,
-          'top-8': isTable,
-          'top-2': !isTable,
+          hidden: !dragClicked,
+          visible: dragClicked,
         }"
         :contenteditable="false"
       >
@@ -83,7 +81,7 @@ const deleteNode = () => {
       <div
         class="block-button cursor-pointer group"
         contenteditable="false"
-        :class="{ '!mt-9': isTable }"
+        :class="{ '!mt-5': isTable }"
         :draggable="true"
         :data-drag-handle="true"
         :tiptap-draghandle="true"

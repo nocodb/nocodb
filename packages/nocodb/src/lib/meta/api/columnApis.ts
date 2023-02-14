@@ -18,10 +18,7 @@ import {
   ColumnReqType,
   isVirtualCol,
   LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  LookupColumnReqType,
   RelationTypes,
-  RollupColumnReqType,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   TableType,
@@ -41,6 +38,12 @@ import FormulaColumn from '../../models/FormulaColumn';
 import KanbanView from '../../models/KanbanView';
 import { MetaTable } from '../../utils/globals';
 import formulaQueryBuilderv2 from '../../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
+import {
+  createHmAndBtColumn,
+  validateRequiredField,
+  validateLookupPayload,
+  validateRollupPayload,
+} from './helpers';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 
@@ -49,6 +52,7 @@ export enum Altered {
   DELETE_COLUMN = 4,
   UPDATE_COLUMN = 8,
 }
+
 
 // generate unique foreign key constraint name for foreign key
 const generateFkName = (parent: TableType, child: TableType) => {
@@ -63,151 +67,8 @@ const generateFkName = (parent: TableType, child: TableType) => {
   return constraintName;
 };
 
-async function createHmAndBtColumn(
-  child: Model,
-  parent: Model,
-  childColumn: Column,
-  type?: RelationTypes,
-  alias?: string,
-  fkColName?: string,
-  virtual = false,
-  isSystemCol = false
-) {
-  // save bt column
-  {
-    const title = getUniqueColumnAliasName(
-      await child.getColumns(),
-      type === 'bt' ? alias : `${parent.title}`
-    );
-    await Column.insert<LinkToAnotherRecordColumn>({
-      title,
-
-      fk_model_id: child.id,
-      // ref_db_alias
-      uidt: UITypes.LinkToAnotherRecord,
-      type: 'bt',
-      // db_type:
-
-      fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parent.primaryKey.id,
-      fk_related_model_id: parent.id,
-      virtual,
-      system: isSystemCol,
-      fk_index_name: fkColName,
-    });
-  }
-  // save hm column
-  {
-    const title = getUniqueColumnAliasName(
-      await parent.getColumns(),
-      type === 'hm' ? alias : `${child.title} List`
-    );
-    await Column.insert({
-      title,
-      fk_model_id: parent.id,
-      uidt: UITypes.LinkToAnotherRecord,
-      type: 'hm',
-      fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parent.primaryKey.id,
-      fk_related_model_id: child.id,
-      virtual,
-      system: isSystemCol,
-      fk_index_name: fkColName,
-    });
-  }
-}
-
 export async function columnGet(req: Request, res: Response) {
   res.json(await Column.get({ colId: req.params.columnId }));
-}
-
-async function validateRollupPayload(
-  payload: ColumnReqType & { uidt: UITypes }
-) {
-  validateParams(
-    [
-      'title',
-      'fk_relation_column_id',
-      'fk_rollup_column_id',
-      'rollup_function',
-    ],
-    payload
-  );
-
-  const relation = await (
-    await Column.get({
-      colId: (payload as RollupColumnReqType).fk_relation_column_id,
-    })
-  ).getColOptions<LinkToAnotherRecordType>();
-
-  if (!relation) {
-    throw new Error('Relation column not found');
-  }
-
-  let relatedColumn: Column;
-  switch (relation.type) {
-    case 'hm':
-      relatedColumn = await Column.get({
-        colId: relation.fk_child_column_id,
-      });
-      break;
-    case 'mm':
-    case 'bt':
-      relatedColumn = await Column.get({
-        colId: relation.fk_parent_column_id,
-      });
-      break;
-  }
-
-  const relatedTable = await relatedColumn.getModel();
-  if (
-    !(await relatedTable.getColumns()).find(
-      (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id
-    )
-  )
-    throw new Error('Rollup column not found in related table');
-}
-
-async function validateLookupPayload(
-  payload: ColumnReqType & { uidt: UITypes }
-) {
-  validateParams(
-    ['title', 'fk_relation_column_id', 'fk_lookup_column_id'],
-    payload
-  );
-
-  const relation = await (
-    await Column.get({
-      colId: (payload as LookupColumnReqType).fk_relation_column_id,
-    })
-  ).getColOptions<LinkToAnotherRecordType>();
-
-  if (!relation) {
-    throw new Error('Relation column not found');
-  }
-
-  let relatedColumn: Column;
-  switch (relation.type) {
-    case 'hm':
-      relatedColumn = await Column.get({
-        colId: relation.fk_child_column_id,
-      });
-      break;
-    case 'mm':
-    case 'bt':
-      relatedColumn = await Column.get({
-        colId: relation.fk_parent_column_id,
-      });
-      break;
-  }
-
-  const relatedTable = await relatedColumn.getModel();
-  if (
-    !(await relatedTable.getColumns()).find(
-      (c) => c.id === (payload as LookupColumnReqType).fk_lookup_column_id
-    )
-  )
-    throw new Error('Lookup column not found in related table');
 }
 
 export async function columnAdd(
@@ -262,7 +123,6 @@ export async function columnAdd(
       break;
 
     case UITypes.LinkToAnotherRecord:
-      // case UITypes.ForeignKey:
       {
         validateParams(['parentId', 'childId', 'type'], req.body);
 
@@ -763,20 +623,16 @@ export async function columnSetAsPrimary(req: Request, res: Response) {
   res.json(await Model.updatePrimaryColumn(column.fk_model_id, column.id));
 }
 
-const isAllPropsPresent = (obj: Record<string, any>, props: string[]) => {
-  return props.every((prop) => obj[prop]);
-};
-
 async function updateRollupOrLookup(colBody: any, column: Column<any>) {
   if (
     UITypes.Lookup === column.uidt &&
-    isAllPropsPresent(colBody, ['fk_lookup_column_id', 'fk_relation_column_id'])
+    validateRequiredField(colBody, ['fk_lookup_column_id', 'fk_relation_column_id'])
   ) {
     await validateLookupPayload(colBody);
     await Column.update(column.id, colBody);
   } else if (
     UITypes.Rollup === column.uidt &&
-    isAllPropsPresent(colBody, [
+    validateRequiredField(colBody, [
       'fk_relation_column_id',
       'fk_rollup_column_id',
       'rollup_function',

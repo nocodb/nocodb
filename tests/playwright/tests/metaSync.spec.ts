@@ -252,7 +252,7 @@ test.describe('Meta sync', () => {
     await dashboard.treeView.openTable({ title: 'Table1' });
 
     await dashboard.grid.toolbar.clickFields();
-    await dashboard.grid.toolbar.fields.click({ title: 'Col1' });
+    await dashboard.grid.toolbar.fields.click({ title: 'Col2' });
     await dashboard.grid.toolbar.clickFields();
 
     await dashboard.grid.toolbar.sort.add({

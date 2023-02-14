@@ -11,6 +11,7 @@ import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
 import ncFilterUpgrader from './ncFilterUpgrader';
 import ncAttachmentUpgrader from './ncAttachmentUpgrader';
 import ncAttachmentUpgrader_0104002 from './ncAttachmentUpgrader_0104002';
+import ncStickyColumnUpgrader from './ncStickyColumnUpgrader';
 import ncFilterUpgrader_0104003 from './ncFilterUpgrader_0104003';
 
 const log = debug('nc:version-upgrader');
@@ -42,6 +43,7 @@ export default class NcUpgrader {
         { name: '0100002', handler: ncFilterUpgrader },
         { name: '0101002', handler: ncAttachmentUpgrader },
         { name: '0104002', handler: ncAttachmentUpgrader_0104002 },
+        { name: '0104003', handler: ncStickyColumnUpgrader },
         { name: '0104003', handler: ncFilterUpgrader_0104003 },
       ];
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {

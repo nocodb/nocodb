@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useGlobal, useProject, watch } from '#imports'
 
-const { includeM2M, showNull, showNullAndEmptyInFilter } = useGlobal()
+const { includeM2M, showNull } = useGlobal()
 
-const { loadTables, hasEmptyOrNullFilters } = useProject()
+const { project, updateProject, projectMeta, loadTables, hasEmptyOrNullFilters } = useProject()
 
 watch(includeM2M, async () => await loadTables())
+
+const showNullAndEmptyInFilter = ref(projectMeta.value.showNullAndEmptyInFilter)
 
 async function showNullAndEmptyInFilterOnChange(evt: any) {
   // users cannot hide null & empty option if there is existing null / empty filters
@@ -15,6 +17,16 @@ async function showNullAndEmptyInFilterOnChange(evt: any) {
       message.warning('Null / Empty filters exist. Please remove them first.')
     }
   }
+  const newProjectMeta = {
+    ...projectMeta.value,
+    showNullAndEmptyInFilter: showNullAndEmptyInFilter.value,
+  }
+  // update local state
+  project.value.meta = newProjectMeta
+  // update db
+  await updateProject({
+    meta: newProjectMeta,
+  })
 }
 </script>
 

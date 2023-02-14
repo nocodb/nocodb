@@ -11,9 +11,9 @@ import {
   message,
   ref,
   useDebounceFn,
-  useGlobal,
   useMetas,
   useNuxtApp,
+  useProject,
   useUIPermission,
   watch,
 } from '#imports'
@@ -34,7 +34,7 @@ export function useViewFilters(
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
 
-  const { showNullAndEmptyInFilter } = useGlobal()
+  const { projectMeta } = useProject()
 
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -110,7 +110,7 @@ export function useViewFilters(
   ) => {
     if (['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)) {
       // for these 4 comparisonOp, show them based on `showNullAndEmptyInFilter` in Project Settings
-      return showNullAndEmptyInFilter.value
+      return projectMeta.value.showNullAndEmptyInFilter
     } else if (compOp.includedTypes) {
       // include allowed values only if selected column type matches
       return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])

@@ -53,26 +53,27 @@ const columns = $computed<ColumnType[]>(() => {
   return metas[selectedTable.id].columns.filter((c: ColumnType) => !isSystemColumn(c))
 })
 
-
 onMounted(() => {
   if (isEdit.value) {
     vModel.value.fk_lookup_column_id = vModel.value.colOptions?.fk_lookup_column_id
     vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
-    // delete vModel.value.colOptions
   }
 })
 
+const onRelationColChange = () => {
+  vModel.value.fk_rollup_column_id = columns?.[0]?.id
+  onDataTypeChange()
+}
 </script>
 
 <template>
   <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
     <div class="w-full flex flex-row space-x-2">
-      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.linkToAnotherRecord')"
-                   v-bind="validateInfos.fk_relation_column_id">
+      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.linkToAnotherRecord')" v-bind="validateInfos.fk_relation_column_id">
         <a-select
           v-model:value="vModel.fk_relation_column_id"
           dropdown-class-name="!w-64 nc-dropdown-relation-table"
-          @change="onDataTypeChange"
+          @change="onRelationColChange"
         >
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">

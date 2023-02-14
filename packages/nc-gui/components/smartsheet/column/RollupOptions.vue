@@ -70,18 +70,23 @@ const columns = $computed(() => {
     return []
   }
 
-  return metas[selectedTable.id].columns.filter((c: ColumnType) => !isVirtualCol(c.uidt as UITypes) && !isSystemColumn(c))
+  return metas[selectedTable.id].columns.filter(
+    (c: ColumnType) => !isVirtualCol(c.uidt as UITypes) && (!isSystemColumn(c) || c.pk),
+  )
 })
-
 
 onMounted(() => {
   if (isEdit.value) {
     vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
     vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
     vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
-    // delete vModel.value.colOptions
   }
 })
+
+const onRelationColChange = () => {
+  vModel.value.fk_rollup_column_id = columns?.[0]?.id
+  onDataTypeChange()
+}
 </script>
 
 <template>
@@ -91,7 +96,7 @@ onMounted(() => {
         <a-select
           v-model:value="vModel.fk_relation_column_id"
           dropdown-class-name="!w-64 nc-dropdown-relation-table"
-          @change="onDataTypeChange"
+          @change="onRelationColChange"
         >
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">

@@ -115,7 +115,7 @@ const booleanOptions = [
 const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
   return {
     // use MultiSelect for SingleSelect columns for anyof / nanyof filters
-    isSingleSelect: ['anyof', 'nanyof'].includes(props.filter.comparison_op) ? MultiSelect : SingleSelect,
+    isSingleSelect: ['anyof', 'nanyof'].includes(props.filter.comparison_op!) ? MultiSelect : SingleSelect,
     isMultiSelect: MultiSelect,
     isDate: DatePicker,
     isYear: YearPicker,

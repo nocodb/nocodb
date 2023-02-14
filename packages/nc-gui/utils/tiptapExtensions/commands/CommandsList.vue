@@ -5,6 +5,9 @@ import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
 import { youtubeUrlToEmbedUrl } from './urlHelper'
+import GoogleSheetsIcon from './icons/GoogleSheets.vue'
+import GoogleDocsIcon from './icons/GoogleDocs.vue'
+import GoogleSlidesIcon from './icons/GoogleSlides.vue'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'
@@ -235,13 +238,33 @@ const items = [
     hasDivider: true,
   },
   {
-    title: 'Embed iframe',
+    title: 'Google Docs',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      isLinkInputFormType.value = 'externalContent'
+      isLinkInputFormType.value = 'googleDoc'
       isLinkInputFormState.value = true
     },
-    icon: IcOutlineCode,
+    icon: GoogleDocsIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Google Sheet',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'googleSheet'
+      isLinkInputFormState.value = true
+    },
+    icon: GoogleSheetsIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Google Slide',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'googleSlide'
+      isLinkInputFormState.value = true
+    },
+    icon: GoogleSlidesIcon,
     iconClass: '',
   },
   {
@@ -252,6 +275,16 @@ const items = [
       isLinkInputFormState.value = true
     },
     icon: LogosYoutubeIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Embed iframe',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'externalContent'
+      isLinkInputFormState.value = true
+    },
+    icon: IcOutlineCode,
     iconClass: '',
     hasDivider: true,
   },

@@ -1,8 +1,9 @@
 import type { ColumnType, FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import {
+  ActiveViewInj,
   IsPublicInj,
   MetaInj,
   computed,
@@ -76,9 +77,16 @@ export function useViewFilters(
 
   const meta = inject(MetaInj, ref())
 
+  const activeView = inject(ActiveViewInj, ref())
+
+  const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
+
   const options = computed<SelectProps['options']>(() =>
     meta.value?.columns?.filter((c: ColumnType) => {
-      if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.system) {
+      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.id!])) {
+        /** hide system columns if not enabled */
+        return false
+      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.system) {
         return false
       } else {
         const isVirtualSystemField = c.colOptions && c.system
@@ -123,8 +131,8 @@ export function useViewFilters(
 
   const placeholderFilter = (): Filter => {
     return {
-      comparison_op: comparisonOpList(options.value[0].uidt as UITypes).filter((compOp) =>
-        isComparisonOpAllowed({ fk_column_id: options.value[0].id }, compOp),
+      comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
+        isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
       )?.[0].value,
       value: '',
       status: 'create',
@@ -154,7 +162,7 @@ export function useViewFilters(
           filters.value = await $api.dbTableFilter.read(view.value!.id!)
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -186,7 +194,7 @@ export function useViewFilters(
       }
 
       reloadData?.()
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -210,7 +218,7 @@ export function useViewFilters(
             await $api.dbTableFilter.delete(filter.id)
             reloadData?.()
             filters.value.splice(i, 1)
-          } catch (e) {
+          } catch (e: any) {
             console.log(e)
             message.error(await extractSdkResponseErrorMsg(e))
           }
@@ -248,7 +256,7 @@ export function useViewFilters(
           fk_parent_id: parentId,
         })
       }
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }

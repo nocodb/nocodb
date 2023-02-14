@@ -51,10 +51,13 @@ export const useProject = createSharedComposable(() => {
   const projectType = $computed(() => route.params.projectType as string)
 
   const projectMeta = computed<Record<string, any>>(() => {
+    const defaultMeta = {
+      showNullAndEmptyInFilter: false,
+    }
     try {
-      return isString(project.value.meta) ? JSON.parse(project.value.meta) : project.value.meta
+      return (isString(project.value.meta) ? JSON.parse(project.value.meta) : project.value.meta) ?? defaultMeta
     } catch (e) {
-      return {}
+      return defaultMeta
     }
   })
 

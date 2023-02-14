@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import { getRelationName } from './utils'
@@ -14,7 +15,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = $(inject(MetaInj, ref()))
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
 const { tables } = $(useProject())
 
@@ -51,12 +52,23 @@ const columns = $computed<ColumnType[]>(() => {
   }
   return metas[selectedTable.id].columns.filter((c: ColumnType) => !isSystemColumn(c))
 })
+
+
+onMounted(() => {
+  if (isEdit.value) {
+    vModel.value.fk_lookup_column_id = vModel.value.colOptions?.fk_lookup_column_id
+    vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
+    // delete vModel.value.colOptions
+  }
+})
+
 </script>
 
 <template>
   <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
     <div class="w-full flex flex-row space-x-2">
-      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.linkToAnotherRecord')" v-bind="validateInfos.fk_relation_column_id">
+      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.linkToAnotherRecord')"
+                   v-bind="validateInfos.fk_relation_column_id">
         <a-select
           v-model:value="vModel.fk_relation_column_id"
           dropdown-class-name="!w-64 nc-dropdown-relation-table"

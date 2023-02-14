@@ -121,6 +121,95 @@ export async function columnGet(req: Request, res: Response) {
   res.json(await Column.get({ colId: req.params.columnId }));
 }
 
+async function validateRollupPayload(
+  payload: ColumnReqType & { uidt: UITypes }
+) {
+  validateParams(
+    [
+      'title',
+      'fk_relation_column_id',
+      'fk_rollup_column_id',
+      'rollup_function',
+    ],
+    payload
+  );
+
+  const relation = await (
+    await Column.get({
+      colId: (payload as RollupColumnReqType).fk_relation_column_id,
+    })
+  ).getColOptions<LinkToAnotherRecordType>();
+
+  if (!relation) {
+    throw new Error('Relation column not found');
+  }
+
+  let relatedColumn: Column;
+  switch (relation.type) {
+    case 'hm':
+      relatedColumn = await Column.get({
+        colId: relation.fk_child_column_id,
+      });
+      break;
+    case 'mm':
+    case 'bt':
+      relatedColumn = await Column.get({
+        colId: relation.fk_parent_column_id,
+      });
+      break;
+  }
+
+  const relatedTable = await relatedColumn.getModel();
+  if (
+    !(await relatedTable.getColumns()).find(
+      (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id
+    )
+  )
+    throw new Error('Rollup column not found in related table');
+}
+
+async function validateLookupPayload(
+  payload: ColumnReqType & { uidt: UITypes }
+) {
+  validateParams(
+    ['title', 'fk_relation_column_id', 'fk_lookup_column_id'],
+    payload
+  );
+
+  const relation = await (
+    await Column.get({
+      colId: (payload as LookupColumnReqType).fk_relation_column_id,
+    })
+  ).getColOptions<LinkToAnotherRecordType>();
+
+  if (!relation) {
+    throw new Error('Relation column not found');
+  }
+
+  let relatedColumn: Column;
+  switch (relation.type) {
+    case 'hm':
+      relatedColumn = await Column.get({
+        colId: relation.fk_child_column_id,
+      });
+      break;
+    case 'mm':
+    case 'bt':
+      relatedColumn = await Column.get({
+        colId: relation.fk_parent_column_id,
+      });
+      break;
+  }
+
+  const relatedTable = await relatedColumn.getModel();
+  if (
+    !(await relatedTable.getColumns()).find(
+      (c) => c.id === (payload as LookupColumnReqType).fk_lookup_column_id
+    )
+  )
+    throw new Error('Lookup column not found in related table');
+}
+
 export async function columnAdd(
   req: Request<any, any, ColumnReqType & { uidt: UITypes }>,
   res: Response<TableType>
@@ -153,49 +242,7 @@ export async function columnAdd(
   switch (colBody.uidt) {
     case UITypes.Rollup:
       {
-        validateParams(
-          [
-            'title',
-            'fk_relation_column_id',
-            'fk_rollup_column_id',
-            'rollup_function',
-          ],
-          req.body
-        );
-
-        const relation = await (
-          await Column.get({
-            colId: (req.body as RollupColumnReqType).fk_relation_column_id,
-          })
-        ).getColOptions<LinkToAnotherRecordType>();
-
-        if (!relation) {
-          throw new Error('Relation column not found');
-        }
-
-        let relatedColumn: Column;
-        switch (relation.type) {
-          case 'hm':
-            relatedColumn = await Column.get({
-              colId: relation.fk_child_column_id,
-            });
-            break;
-          case 'mm':
-          case 'bt':
-            relatedColumn = await Column.get({
-              colId: relation.fk_parent_column_id,
-            });
-            break;
-        }
-
-        const relatedTable = await relatedColumn.getModel();
-        if (
-          !(await relatedTable.getColumns()).find(
-            (c) =>
-              c.id === (req.body as RollupColumnReqType).fk_rollup_column_id
-          )
-        )
-          throw new Error('Rollup column not found in related table');
+        await validateRollupPayload(req.body);
 
         await Column.insert({
           ...colBody,
@@ -205,44 +252,7 @@ export async function columnAdd(
       break;
     case UITypes.Lookup:
       {
-        validateParams(
-          ['title', 'fk_relation_column_id', 'fk_lookup_column_id'],
-          req.body
-        );
-
-        const relation = await (
-          await Column.get({
-            colId: (req.body as LookupColumnReqType).fk_relation_column_id,
-          })
-        ).getColOptions<LinkToAnotherRecordType>();
-
-        if (!relation) {
-          throw new Error('Relation column not found');
-        }
-
-        let relatedColumn: Column;
-        switch (relation.type) {
-          case 'hm':
-            relatedColumn = await Column.get({
-              colId: relation.fk_child_column_id,
-            });
-            break;
-          case 'mm':
-          case 'bt':
-            relatedColumn = await Column.get({
-              colId: relation.fk_parent_column_id,
-            });
-            break;
-        }
-
-        const relatedTable = await relatedColumn.getModel();
-        if (
-          !(await relatedTable.getColumns()).find(
-            (c) =>
-              c.id === (req.body as LookupColumnReqType).fk_lookup_column_id
-          )
-        )
-          throw new Error('Lookup column not found in related table');
+        await validateLookupPayload(req.body);
 
         await Column.insert({
           ...colBody,
@@ -753,6 +763,30 @@ export async function columnSetAsPrimary(req: Request, res: Response) {
   res.json(await Model.updatePrimaryColumn(column.fk_model_id, column.id));
 }
 
+const isAllPropsPresent = (obj: Record<string, any>, props: string[]) => {
+  return props.every((prop) => obj[prop]);
+};
+
+async function updateRollupOrLookup(colBody: any, column: Column<any>) {
+  if (
+    UITypes.Lookup === column.uidt &&
+    isAllPropsPresent(colBody, ['fk_lookup_column_id', 'fk_relation_column_id'])
+  ) {
+    await validateLookupPayload(colBody);
+    await Column.update(column.id, colBody);
+  } else if (
+    UITypes.Rollup === column.uidt &&
+    isAllPropsPresent(colBody, [
+      'fk_relation_column_id',
+      'fk_rollup_column_id',
+      'rollup_function',
+    ])
+  ) {
+    await validateRollupPayload(colBody);
+    await Column.update(column.id, colBody);
+  }
+}
+
 export async function columnUpdate(req: Request, res: Response<TableType>) {
   const column = await Column.get({ colId: req.params.columnId });
 
@@ -824,6 +858,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           title: colBody.title,
         });
       }
+      await updateRollupOrLookup(colBody, column);
     } else {
       NcError.notImplemented(
         `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`

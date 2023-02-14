@@ -19,19 +19,19 @@ services:
     #     - 3356:3306
     #   volumes:
     #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
-    db57:
-      image: mysql:5.7
-      restart: always
-      environment:
-        MYSQL_ROOT_PASSWORD: password
-      ports:
-       - 3357:3306
-      volumes:
-       - ./tests/mysql-sakila-db:/docker-entrypoint-initdb.d
-      healthcheck:
-         test: "/etc/init.d/mysql status"
-         interval: 1s
-         retries: 240
+#    db57:
+#      image: mysql:5.7
+#      restart: always
+#      environment:
+#        MYSQL_ROOT_PASSWORD: password
+#      ports:
+#       - 3357:3306
+#      volumes:
+#       - ./tests/mysql-sakila-db:/docker-entrypoint-initdb.d
+#      healthcheck:
+#         test: "/etc/init.d/mysql status"
+#         interval: 1s
+#         retries: 240
     # db80:
     #   image: mysql:8.0
     #   restart: always
@@ -59,15 +59,15 @@ services:
     #     - 3413:3306
     #   volumes:
     #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
-    # maria104:
-    #   image: mariadb:10.4
-    #   restart: always
-    #   environment:
-    #     MYSQL_ROOT_PASSWORD: password
-    #   ports:
-    #     - 3414:3306
-    #   volumes:
-    #     - ./mysql-sakila-db:/docker-entrypoint-initdb.d
+     maria104:
+       image: mariadb:10.4
+       restart: always
+       environment:
+         MYSQL_ROOT_PASSWORD: password
+       ports:
+         - 3414:3306
+       volumes:
+         - ./mysql-sakila-db:/docker-entrypoint-initdb.d
     # healthcheck:
     #   test: '/usr/bin/mysql --user=root --password=password --database=sakila --execute "SELECT count(*) FROM payment;"'
     #   interval: 10s
@@ -92,20 +92,20 @@ services:
     #     - 5495:5432
     #   volumes:
     #     - ./pg-sakila-db:/docker-entrypoint-initdb.d
-    pg96:
-     image: postgres:9.6
-     restart: always
-     environment:
-       POSTGRES_PASSWORD: password
-     ports:
-       - 5496:5432
-     volumes:
-       - ./tests/pg-sakila-db:/docker-entrypoint-initdb.d
-     healthcheck:
-       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-       interval: 10s
-       timeout: 5s
-       retries: 5
+#    pg96:
+#     image: postgres:9.6
+#     restart: always
+#     environment:
+#       POSTGRES_PASSWORD: password
+#     ports:
+#       - 5496:5432
+#     volumes:
+#       - ./tests/pg-sakila-db:/docker-entrypoint-initdb.d
+#     healthcheck:
+#       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
     # pg10:
     #   image: postgres:10
     #   restart: always
@@ -138,32 +138,32 @@ services:
     #   volumes:
     #     - ./sqlite-sakila-db:/root/db/
     #     # - ./sqlite-sakila-db:/root/db/
-    mssql:
-     image: mcr.microsoft.com/mssql/server:2019-CU11-ubuntu-20.04
-     # restart: always
-     environment:
-       ACCEPT_EULA: Y
-       SA_PASSWORD: Password123.
-     ports:
-       - 1433:1433
-     volumes:
-       - ./tests/sql-server-sakila-db:/scripts/
-     command:
-       - /bin/bash
-       - -c
-       - |
-         echo "Starting to import - - - - - - - -"
-         # Launch MSSQL and send to background
-         /opt/mssql/bin/sqlservr &
-         # Wait 30 seconds for it to be available
-         # (lame, I know, but there's no nc available to start prodding network ports)
-         sleep 30
-         /opt/mssql-tools/bin/sqlcmd -U sa -P $$SA_PASSWORD -l 30  -i /scripts/01-sql-server-sakila-schema.sql
-         /opt/mssql-tools/bin/sqlcmd -U sa -P $$SA_PASSWORD -l 30  -i /scripts/02-sql-server-sakila-insert-data.sql
-         # So that the container doesn't shut down, sleep this thread
-         echo "DONE inserting - - - - - - - -"
-         python -m SimpleHTTPServer 80
-         sleep infinity
+#    mssql:
+#     image: mcr.microsoft.com/mssql/server:2019-CU11-ubuntu-20.04
+#     # restart: always
+#     environment:
+#       ACCEPT_EULA: Y
+#       SA_PASSWORD: Password123.
+#     ports:
+#       - 1433:1433
+#     volumes:
+#       - ./tests/sql-server-sakila-db:/scripts/
+#     command:
+#       - /bin/bash
+#       - -c
+#       - |
+#         echo "Starting to import - - - - - - - -"
+#         # Launch MSSQL and send to background
+#         /opt/mssql/bin/sqlservr &
+#         # Wait 30 seconds for it to be available
+#         # (lame, I know, but there's no nc available to start prodding network ports)
+#         sleep 30
+#         /opt/mssql-tools/bin/sqlcmd -U sa -P $$SA_PASSWORD -l 30  -i /scripts/01-sql-server-sakila-schema.sql
+#         /opt/mssql-tools/bin/sqlcmd -U sa -P $$SA_PASSWORD -l 30  -i /scripts/02-sql-server-sakila-insert-data.sql
+#         # So that the container doesn't shut down, sleep this thread
+#         echo "DONE inserting - - - - - - - -"
+#         python -m SimpleHTTPServer 80
+#         sleep infinity
 #     healthcheck:
 #       test: curl -sS http://localhost || exit 1
 #       interval: 15s
@@ -313,137 +313,137 @@ services:
     #     - |
     #       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     #       chmod +x /home/app/dockerize.sh && /home/app/dockerize.sh  && cd /home/app/ && npm i && npm test
-    xc-test-mysql:
-      image: node:12.22.1-slim
-      depends_on:
-        db57:
-          condition: service_healthy
-      volumes:
-        - ./:/home/app
-      environment:
-        NODE_ENV: test
-        DATABASE_URL: mysql://root:password@db57:3306/sakila
-      command:
-        - /bin/bash
-        - -c
-        - |
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-          cd /home/app/ && npm i && npm run test:rest
-
-    xc-test-pg:
-      image: node:12.22.1-slim
-      depends_on:
-        pg96:
-          condition: service_healthy
-      volumes:
-        - ./:/home/app
-      environment:
-        NODE_ENV: test
-        DATABASE_URL: postgres://postgres:password@pg96:5432/postgres
-      command:
-        - /bin/bash
-        - -c
-        - |
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-          cd /home/app/ && npm i && npm run test:rest
-
-    xc-test-mssql:
-      image: node:12.22.1-slim
-      depends_on:
-        - mssql
-      volumes:
-        - ./:/home/app
-      environment:
-        NODE_ENV: test
-        DATABASE_URL: mssql://sa:Password123.@mssql:1433/sakila
-        DOCKER_DB_HOST: mssql
-        DOCKERIZE_VERSION: v0.6.1
-      command:
-        - /bin/bash
-        - -c
-        - |
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
-          chmod +x /home/app/tests/dockerize-mssql.sh && /home/app/tests/dockerize-mssql.sh  && cd /home/app/  && npm i && npm run test:rest
-
-    xc-test-sqlite:
-      image: node:12.22.1-slim
-      volumes:
-        - ./:/home/app
-      environment:
-        NODE_ENV: test
-        DATABASE_URL: sqlite:////home/sakila.db
-      command:
-        - /bin/bash
-        - -c
-        - |
-          cp /home/app/tests/sqlite-dump/sakila.db /home/sakila.db
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
-          cd /home/app/  && npm i && npm run test:rest
-
-
-    xc-test-gql-mysql:
-      image: node:12.22.1-slim
-      depends_on:
-        db57:
-          condition: service_healthy
-      volumes:
-        - ./:/home/app
-      environment:
-        NODE_ENV: test
-        DATABASE_URL: mysql://root:password@db57:3306/sakila
-      command:
-        - /bin/bash
-        - -c
-        - |
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-          cd /home/app/ && npm i && npm run test:graphql
-
-    xc-test-gql-pg:
-      image: node:12.22.1-slim
-      depends_on:
-        pg96:
-          condition: service_healthy
-      volumes:
-        - ./:/home/app
-      environment:
-        NODE_ENV: test
-        DATABASE_URL: postgres://postgres:password@pg96:5432/postgres
-      command:
-        - /bin/bash
-        - -c
-        - |
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-          cd /home/app/ && npm i && npm run test:graphql
-
-    xc-test-gql-mssql:
-      image: node:12.22.1-slim
-      depends_on:
-        - mssql
-      volumes:
-        - ./:/home/app
-      environment:
-        NODE_ENV: test
-        DATABASE_URL: mssql://sa:Password123.@mssql:1433/sakila
-        DOCKER_DB_HOST: mssql
-        DOCKERIZE_VERSION: v0.6.1
-      command:
-        - /bin/bash
-        - -c
-        - |
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
-          chmod +x /home/app/tests/dockerize-mssql.sh && /home/app/tests/dockerize-mssql.sh  && cd /home/app/  && npm i && npm run test:graphql
-
-    xc-test-gql-sqlite:
-      image: node:12.22.1-slim
-      volumes:
-        - ./:/home/app
-      environment:
-        NODE_ENV: test
-        DATABASE_URL: sqlite:////home/sakila.db
-      command:
-        - /bin/bash
-        - -c
-        - |
-          cp /home/app/tests/sqlite-dump/sakila.db /home/sakila.db
-          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
-          cd /home/app/  && npm i && npm run test:graphql
+#    xc-test-mysql:
+#      image: node:12.22.1-slim
+#      depends_on:
+#        db57:
+#          condition: service_healthy
+#      volumes:
+#        - ./:/home/app
+#      environment:
+#        NODE_ENV: test
+#        DATABASE_URL: mysql://root:password@db57:3306/sakila
+#      command:
+#        - /bin/bash
+#        - -c
+#        - |
+#          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+#          cd /home/app/ && npm i && npm run test:rest
+#
+#    xc-test-pg:
+#      image: node:12.22.1-slim
+#      depends_on:
+#        pg96:
+#          condition: service_healthy
+#      volumes:
+#        - ./:/home/app
+#      environment:
+#        NODE_ENV: test
+#        DATABASE_URL: postgres://postgres:password@pg96:5432/postgres
+#      command:
+#        - /bin/bash
+#        - -c
+#        - |
+#          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+#          cd /home/app/ && npm i && npm run test:rest
+#
+#    xc-test-mssql:
+#      image: node:12.22.1-slim
+#      depends_on:
+#        - mssql
+#      volumes:
+#        - ./:/home/app
+#      environment:
+#        NODE_ENV: test
+#        DATABASE_URL: mssql://sa:Password123.@mssql:1433/sakila
+#        DOCKER_DB_HOST: mssql
+#        DOCKERIZE_VERSION: v0.6.1
+#      command:
+#        - /bin/bash
+#        - -c
+#        - |
+#          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
+#          chmod +x /home/app/tests/dockerize-mssql.sh && /home/app/tests/dockerize-mssql.sh  && cd /home/app/  && npm i && npm run test:rest
+#
+#    xc-test-sqlite:
+#      image: node:12.22.1-slim
+#      volumes:
+#        - ./:/home/app
+#      environment:
+#        NODE_ENV: test
+#        DATABASE_URL: sqlite:////home/sakila.db
+#      command:
+#        - /bin/bash
+#        - -c
+#        - |
+#          cp /home/app/tests/sqlite-dump/sakila.db /home/sakila.db
+#          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
+#          cd /home/app/  && npm i && npm run test:rest
+#
+#
+#    xc-test-gql-mysql:
+#      image: node:12.22.1-slim
+#      depends_on:
+#        db57:
+#          condition: service_healthy
+#      volumes:
+#        - ./:/home/app
+#      environment:
+#        NODE_ENV: test
+#        DATABASE_URL: mysql://root:password@db57:3306/sakila
+#      command:
+#        - /bin/bash
+#        - -c
+#        - |
+#          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+#          cd /home/app/ && npm i && npm run test:graphql
+#
+#    xc-test-gql-pg:
+#      image: node:12.22.1-slim
+#      depends_on:
+#        pg96:
+#          condition: service_healthy
+#      volumes:
+#        - ./:/home/app
+#      environment:
+#        NODE_ENV: test
+#        DATABASE_URL: postgres://postgres:password@pg96:5432/postgres
+#      command:
+#        - /bin/bash
+#        - -c
+#        - |
+#          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+#          cd /home/app/ && npm i && npm run test:graphql
+#
+#    xc-test-gql-mssql:
+#      image: node:12.22.1-slim
+#      depends_on:
+#        - mssql
+#      volumes:
+#        - ./:/home/app
+#      environment:
+#        NODE_ENV: test
+#        DATABASE_URL: mssql://sa:Password123.@mssql:1433/sakila
+#        DOCKER_DB_HOST: mssql
+#        DOCKERIZE_VERSION: v0.6.1
+#      command:
+#        - /bin/bash
+#        - -c
+#        - |
+#          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
+#          chmod +x /home/app/tests/dockerize-mssql.sh && /home/app/tests/dockerize-mssql.sh  && cd /home/app/  && npm i && npm run test:graphql
+#
+#    xc-test-gql-sqlite:
+#      image: node:12.22.1-slim
+#      volumes:
+#        - ./:/home/app
+#      environment:
+#        NODE_ENV: test
+#        DATABASE_URL: sqlite:////home/sakila.db
+#      command:
+#        - /bin/bash
+#        - -c
+#        - |
+#          cp /home/app/tests/sqlite-dump/sakila.db /home/sakila.db
+#          echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"#
+#          cd /home/app/  && npm i && npm run test:graphql

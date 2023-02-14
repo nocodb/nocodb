@@ -380,7 +380,6 @@
     "renameTable": "Premenovanie tabuľky",
     "deleteTable": "Tabuľka Vymazať",
     "addField": "Pridanie nového poľa do tejto tabuľky",
-    "setPrimary": "Nastaviť ako primárnu hodnotu",
     "addRow": "Pridanie nového riadku",
     "saveRow": "Uložiť riadok",
     "saveAndExit": "Uložiť a ukončiť",

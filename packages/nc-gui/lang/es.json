@@ -380,7 +380,6 @@
     "renameTable": "Cambiar el nombre de la tabla",
     "deleteTable": "Borrar tabla",
     "addField": "Añadir nuevo campo a esta tabla",
-    "setPrimary": "Establecido como clave primaria",
     "addRow": "Añadir nueva fila",
     "saveRow": "Grabar la fila",
     "saveAndExit": "Guardar y salir",

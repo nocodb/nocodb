@@ -380,7 +380,6 @@
     "renameTable": "Bordsbyte",
     "deleteTable": "Bord radera",
     "addField": "Lägg till nytt fält till den här tabellen",
-    "setPrimary": "Ange som primärt värde",
     "addRow": "Lägg till ny rad",
     "saveRow": "Spara rad",
     "saveAndExit": "Spara och avsluta",

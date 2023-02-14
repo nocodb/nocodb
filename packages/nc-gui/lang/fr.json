@@ -380,7 +380,6 @@
     "renameTable": "Renommer le tableau",
     "deleteTable": "Supprimer le tableau",
     "addField": "Ajouter un nouveau champ à ce tableau",
-    "setPrimary": "Définir comme valeur primaire",
     "addRow": "Ajouter une nouvelle ligne",
     "saveRow": "Enregistrer la ligne",
     "saveAndExit": "Enregistrer et quitter",

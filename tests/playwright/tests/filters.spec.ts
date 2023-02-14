@@ -13,26 +13,19 @@ let api: Api<any>;
 let records = [];
 
 const skipList = {
-  Number: ['is null', 'is not null', 'is blank', 'is not blank'],
-  Decimal: ['is null', 'is not null', 'is blank', 'is not blank'],
-  Percent: ['is null', 'is not null', 'is blank', 'is not blank'],
-  Currency: ['is null', 'is not null', 'is blank', 'is not blank'],
+  Number: ['is null', 'is not null'],
+  Decimal: ['is null', 'is not null'],
+  Percent: ['is null', 'is not null'],
+  Currency: ['is null', 'is not null'],
   Rating: ['is null', 'is not null', 'is blank', 'is not blank'],
-  Duration: ['is null', 'is not null', 'is blank', 'is not blank'],
-  SingleLineText: ['is blank', 'is not blank'],
-  MultiLineText: ['is blank', 'is not blank'],
-  Email: ['is blank', 'is not blank'],
-  PhoneNumber: ['is blank', 'is not blank'],
-  URL: ['is blank', 'is not blank'],
-  SingleSelect: [
-    'is blank',
-    'is not blank',
-    'contains all of',
-    'does not contain all of',
-    'contains any of',
-    'does not contain any of',
-  ],
-  MultiSelect: ['is blank', 'is not blank', 'is', 'is not'],
+  Duration: ['is null', 'is not null'],
+  SingleLineText: [],
+  MultiLineText: [],
+  Email: [],
+  PhoneNumber: [],
+  URL: [],
+  SingleSelect: ['contains all of', 'does not contain all of'],
+  MultiSelect: ['is', 'is not'],
 };
 
 async function verifyFilterOperatorList(param: { column: string; opType: string[] }) {
@@ -102,6 +95,10 @@ test.describe('Filter Tests: Numerical', () => {
   async function numBasedFilterTest(dataType, eqString, isLikeString) {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'numberBased' });
+
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
 
     let eqStringDerived = eqString;
     let isLikeStringDerived = isLikeString;
@@ -303,6 +300,10 @@ test.describe('Filter Tests: Text based', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'textBased' });
 
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
     const filterList = [
       {
         op: 'is equal',
@@ -467,6 +468,10 @@ test.describe('Filter Tests: Select based', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'selectBased' });
 
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
     const filterList = [
       {
         op: 'is',
@@ -604,6 +609,10 @@ test.describe('Filter Tests: AddOn', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'addOnTypes' });
 
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
     const filterList = [
       {
         op: 'is checked',
@@ -713,9 +722,7 @@ test.describe('Filter Tests: Toggle button', () => {
 
     // Enable NULL & EMPTY button
     await dashboard.gotoSettings();
-    await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
-    await dashboard.settings.miscellaneous.clickShowNullEmptyFilters();
-    await dashboard.settings.close();
+    await dashboard.settings.toggleNullEmptyFilters();
 
     // Verify filter options
     await verifyFilterOperatorList({
@@ -746,19 +753,15 @@ test.describe('Filter Tests: Toggle button', () => {
 
     // Disable NULL & EMPTY button
     await dashboard.gotoSettings();
-    await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
-    await dashboard.settings.miscellaneous.clickShowNullEmptyFilters();
+    await dashboard.settings.toggleNullEmptyFilters();
     // wait for toast message
     await dashboard.verifyToast({ message: 'Null / Empty filters exist. Please remove them first.' });
-    await dashboard.settings.close();
 
     // remove filter
     await toolbar.filter.reset();
 
     // Disable NULL & EMPTY button
     await dashboard.gotoSettings();
-    await dashboard.settings.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
-    await dashboard.settings.miscellaneous.clickShowNullEmptyFilters();
-    await dashboard.settings.close();
+    await dashboard.settings.toggleNullEmptyFilters();
   });
 });

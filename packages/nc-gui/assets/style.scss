@@ -308,7 +308,7 @@ a {
 
 .ant-btn-loading-icon{
   & > span {
-    @apply block bg-red-500
+    @apply block;
   }
 }
 

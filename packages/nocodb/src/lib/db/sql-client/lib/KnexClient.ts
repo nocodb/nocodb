@@ -2367,39 +2367,26 @@ class KnexClient extends SqlClient {
     const foreignKeyName = args.foreignKeyName || null;
 
     try {
-      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
+      const upQb = this.sqlClient.schema.table(
+        args.childTable,
+        function (table) {
+          table = table
+            .foreign(args.childColumn, foreignKeyName)
+            .references(args.parentColumn)
+            .on(args.parentTable);
 
-      await this.sqlClient.schema.table(args.childTable, function (table) {
-        table = table
-          .foreign(args.childColumn, foreignKeyName)
-          .references(args.parentColumn)
-          .on(args.parentTable);
-
-        if (args.onUpdate) {
-          table = table.onUpdate(args.onUpdate);
+          if (args.onUpdate) {
+            table = table.onUpdate(args.onUpdate);
+          }
+          if (args.onDelete) {
+            table.onDelete(args.onDelete);
+          }
         }
-        if (args.onDelete) {
-          table = table.onDelete(args.onDelete);
-        }
-      });
+      );
 
-      const upStatement =
-        this.querySeparator() +
-        (await this.sqlClient.schema
-          .table(args.childTable, function (table) {
-            table = table
-              .foreign(args.childColumn, foreignKeyName)
-              .references(args.parentColumn)
-              .on(args.parentTable);
+      await upQb;
 
-            if (args.onUpdate) {
-              table = table.onUpdate(args.onUpdate);
-            }
-            if (args.onDelete) {
-              table = table.onDelete(args.onDelete);
-            }
-          })
-          .toQuery());
+      const upStatement = this.querySeparator() + upQb.toQuery();
 
       this.emit(`Success : ${upStatement}`);
 
@@ -2407,7 +2394,7 @@ class KnexClient extends SqlClient {
         this.querySeparator() +
         this.sqlClient.schema
           .table(args.childTable, function (table) {
-            table = table.dropForeign(args.childColumn, foreignKeyName);
+            table.dropForeign(args.childColumn, foreignKeyName);
           })
           .toQuery();
 

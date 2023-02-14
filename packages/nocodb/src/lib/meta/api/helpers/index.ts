@@ -1,3 +1,3 @@
-import { populateMeta } from "./populateMeta";
+import { populateMeta } from './populateMeta';
 
-export { populateMeta }
+export { populateMeta };

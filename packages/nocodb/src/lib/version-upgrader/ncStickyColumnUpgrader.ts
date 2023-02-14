@@ -6,32 +6,47 @@ import { MetaTable } from '../utils/globals';
 // this upgrader will make primary value column first column in grid views
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  const grid_columns = await ncMeta.metaList2(null, null, MetaTable.GRID_VIEW_COLUMNS);
-  const grid_views = [...new Set(grid_columns.map((col) => col.fk_view_id))]
+  const grid_columns = await ncMeta.metaList2(
+    null,
+    null,
+    MetaTable.GRID_VIEW_COLUMNS
+  );
+  const grid_views = [...new Set(grid_columns.map((col) => col.fk_view_id))];
 
   for (const view_id of grid_views) {
     // get a list of view columns sorted by order
-    const view_columns = await ncMeta.metaList2(null, null, MetaTable.GRID_VIEW_COLUMNS, {
-      condition: {
-        fk_view_id: view_id,
-      },
-      orderBy: {
-        order: 'asc',
-      },
-    });
-    const view_columns_meta = []
+    const view_columns = await ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.GRID_VIEW_COLUMNS,
+      {
+        condition: {
+          fk_view_id: view_id,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      }
+    );
+    const view_columns_meta = [];
 
     // get column meta for each view column
     for (const col of view_columns) {
-      const col_meta = await ncMeta.metaGet(null, null, MetaTable.COLUMNS, { id: col.fk_column_id });
+      const col_meta = await ncMeta.metaGet(null, null, MetaTable.COLUMNS, {
+        id: col.fk_column_id,
+      });
       view_columns_meta.push(col_meta);
     }
 
     const primary_value_column_meta = view_columns_meta.find((col) => col.pv);
 
     if (primary_value_column_meta) {
-      const primary_value_column = view_columns.find((col) => col.fk_column_id === primary_value_column_meta.id);
-      const primary_value_column_index = view_columns.findIndex((col) => col.fk_column_id === primary_value_column_meta.id);
+      const primary_value_column = view_columns.find(
+        (col) => col.fk_column_id === primary_value_column_meta.id
+      );
+      const primary_value_column_index = view_columns.findIndex(
+        (col) => col.fk_column_id === primary_value_column_meta.id
+      );
       const view_orders = view_columns.map((col) => col.order);
       const view_min_order = Math.min(...view_orders);
 
@@ -42,11 +57,14 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           null,
           MetaTable.GRID_VIEW_COLUMNS,
           { show: true },
-          primary_value_column.id,
+          primary_value_column.id
         );
       }
 
-      if (primary_value_column.order ===  view_min_order && view_orders.filter((o) => o === view_min_order).length === 1) {
+      if (
+        primary_value_column.order === view_min_order &&
+        view_orders.filter((o) => o === view_min_order).length === 1
+      ) {
         // if primary_value_column is in first order do nothing
         continue;
       } else {

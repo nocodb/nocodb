@@ -119,10 +119,22 @@ export class ToolbarFilterPage extends BasePage {
           break;
         case UITypes.SingleSelect:
           await this.get().locator('.nc-filter-value-select').click();
-          await this.rootPage
-            .locator(`.nc-dropdown-single-select-cell`)
-            .locator(`.nc-select-option-SingleSelect-${value}`)
-            .click();
+          // check if value was an array
+          // eslint-disable-next-line no-case-declarations
+          const val = value.split(',');
+          if (val.length > 1) {
+            for (let i = 0; i < val.length; i++) {
+              await this.rootPage
+                .locator(`.nc-dropdown-multi-select-cell`)
+                .locator(`.nc-select-option-SingleSelect-${val[i]}`)
+                .click();
+            }
+          } else {
+            await this.rootPage
+              .locator(`.nc-dropdown-single-select-cell`)
+              .locator(`.nc-select-option-SingleSelect-${value}`)
+              .click();
+          }
           break;
         default:
           fillFilter = this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);

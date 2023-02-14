@@ -9,16 +9,30 @@ import { UITypes, SelectOptionsType } from 'nocodb-sdk';
 // as of 0.104.3, almost all filter operators are available to all column types
 // while some of them aren't supposed to be shown
 // this upgrader is to remove those unsupported filters / migrate to the correct filter
-// changes:
-// - remove `>`, `<`, `>=`, `<=` for text-based columns
-// - remove `like`; migrate `null`, and `empty` for numeric-based / singleSelect columns to`blank`
-// - remove `equal`; migrate `null` to `checked` for checkbox columns
-// - remove `like`; migrate `equal`, `null`, `empty` for multiSelect columns
-// - remove `>`, `<`, `>=`, `<=`; migrate `empty`, `equal`, `null` for attachment
-// - remove `>`, `<`, `>=`, `<=`; migrate `empty`, `null` for LTAR columns
-// - migrate `empty`, `null` for Lookup columns
-// - remove  `>`, `<`, `>=`, `<=`, `like`, `equal`; migrate `empty`, `null`
-// - remove `empty`, `like`, `equal`, `null` for duration columns
+
+// Change Summary:
+// - Text-based columns:
+//     - remove `>`, `<`, `>=`, `<=`
+//     - Numeric-based / SingleSelect columns:
+//     - remove `like`
+//     - migrate `null`, and `empty` to `blank`
+// - Checkbox columns:
+//     - remove `equal`
+//     - migrate `empty` and `null` to `notchecked`
+// - MultiSelect columns:
+//     - remove `like`
+//     - migrate `equal`, `null`, `empty`
+//     - Attachment columns:
+//     - remove `>`, `<`, `>=`, `<=`, `equal`
+//     - migrate `empty`, `null` to `blank`
+// - LTAR columns:
+//     - remove `>`, `<`, `>=`, `<=`
+//     - migrate `empty`, `null` to `blank`
+// - Lookup columns:
+//     - migrate `empty`, `null` to `blank`
+// - Duration columns:
+//     - remove  `like`
+//     - migrate `empty`, `null` to `blank`
 
 const removeEqualFilters = async (filter, actions: any[], ncMeta) => {
   // remove `is equal`, `is not equal`
@@ -44,7 +58,11 @@ const removeLikeFilters = async (filter, actions: any[], ncMeta) => {
   return actions;
 };
 
-const migrateToBlankFilter = async (filter, actions: any[], ncMeta) => {
+const migrateNullAndEmptyToBlankFilters = async (
+  filter,
+  actions: any[],
+  ncMeta
+) => {
   if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to blank
     actions.push(
@@ -232,27 +250,50 @@ async function migrateFilters(ncMeta: NcMetaIO) {
       ].includes(col.uidt)
     ) {
       actions = await removeLikeFilters(filter, actions, ncMeta);
-      actions = await migrateToBlankFilter(filter, actions, ncMeta);
+      actions = await migrateNullAndEmptyToBlankFilters(
+        filter,
+        actions,
+        ncMeta
+      );
     } else if (col.uidt === UITypes.Checkbox) {
       actions = await migrateToCheckboxFilter(filter, actions, ncMeta);
     } else if (col.uidt === UITypes.MultiSelect) {
       actions = await removeLikeFilters(filter, actions, ncMeta);
-      actions = await migrateToBlankFilter(filter, actions, ncMeta);
+      actions = await migrateNullAndEmptyToBlankFilters(
+        filter,
+        actions,
+        ncMeta
+      );
       actions = await migrateMultiSelectEq(filter, actions, col, ncMeta);
     } else if (col.uidt === UITypes.Attachment) {
       actions = await removeArithmeticFilters(filter, actions, ncMeta);
       actions = await removeEqualFilters(filter, actions, ncMeta);
-      actions = await migrateToBlankFilter(filter, actions, ncMeta);
+      actions = await migrateNullAndEmptyToBlankFilters(
+        filter,
+        actions,
+        ncMeta
+      );
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
       actions = await removeArithmeticFilters(filter, actions, ncMeta);
-      actions = await migrateToBlankFilter(filter, actions, ncMeta);
+      actions = await migrateNullAndEmptyToBlankFilters(
+        filter,
+        actions,
+        ncMeta
+      );
     } else if (col.uidt === UITypes.Lookup) {
       actions = await removeArithmeticFilters(filter, actions, ncMeta);
-      actions = await migrateToBlankFilter(filter, actions, ncMeta);
+      actions = await migrateNullAndEmptyToBlankFilters(
+        filter,
+        actions,
+        ncMeta
+      );
     } else if (col.uidt === UITypes.Duration) {
       actions = await removeLikeFilters(filter, actions, ncMeta);
-      actions = await removeEqualFilters(filter, actions, ncMeta);
-      actions = await migrateToBlankFilter(filter, actions, ncMeta);
+      actions = await migrateNullAndEmptyToBlankFilters(
+        filter,
+        actions,
+        ncMeta
+      );
     }
   }
   await Promise.all(actions);

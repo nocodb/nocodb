@@ -1056,7 +1056,7 @@ const closeAddColumnDropdown = () => {
     position: sticky !important;
     left: 80px;
     z-index: 5;
-    @apply border-r-2 border-r-gray-300;
+    @apply border-r-1 border-r-gray-300;
   }
 
   tbody td:nth-child(2) {
@@ -1064,7 +1064,7 @@ const closeAddColumnDropdown = () => {
     left: 80px;
     z-index: 4;
     background: white;
-    @apply shadow-lg border-r-2 border-r-gray-300;
+    @apply shadow-lg border-r-1 border-r-gray-300;
   }
 }
 

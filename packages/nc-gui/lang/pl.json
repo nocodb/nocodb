@@ -387,6 +387,7 @@
     "saveAndStay": "Oszczędzaj i zostań",
     "insertRow": "Wstaw nowy rząd",
     "deleteRow": "Usuń rząd",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Usuń wybrane wiersze",
     "importExcel": "Importuj Excel.",
     "importCSV": "Importuj z CSV",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Kolumna powielona z powodzeniem",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Pomyślnie zaktualizowano UI ACL dla tabel",
       "pluginUninstalled": "Wtyczka odinstalowana pomyślnie",
       "pluginSettingsSaved": "Ustawienia wtyczki zapisane pomyślnie",

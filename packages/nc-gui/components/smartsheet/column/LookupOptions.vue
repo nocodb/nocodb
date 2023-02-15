@@ -61,7 +61,7 @@ onMounted(() => {
 })
 
 const onRelationColChange = () => {
-  vModel.value.fk_rollup_column_id = columns?.[0]?.id
+  vModel.value.fk_lookup_column_id = columns?.[0]?.id
   onDataTypeChange()
 }
 </script>

@@ -69,7 +69,6 @@ const migrateNullAndEmptyToBlankFilters = async (
       await Filter.update(
         filter.id,
         {
-          ...filter,
           comparison_op: 'blank',
         },
         ncMeta
@@ -81,7 +80,6 @@ const migrateNullAndEmptyToBlankFilters = async (
       await Filter.update(
         filter.id,
         {
-          ...filter,
           comparison_op: 'notblank',
         },
         ncMeta
@@ -127,7 +125,6 @@ const migrateMultiSelectEq = async (
       await Filter.update(
         filter.id,
         {
-          ...filter,
           comparison_op: 'anyof',
           value: newFilterValue,
         },
@@ -140,7 +137,6 @@ const migrateMultiSelectEq = async (
       await Filter.update(
         filter.id,
         {
-          ...filter,
           comparison_op: 'nanyof',
           value: newFilterValue,
         },
@@ -158,7 +154,6 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
       await Filter.update(
         filter.id,
         {
-          ...filter,
           comparison_op: 'notchecked',
         },
         ncMeta
@@ -170,7 +165,6 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
       await Filter.update(
         filter.id,
         {
-          ...filter,
           comparison_op: 'checked',
         },
         ncMeta
@@ -183,7 +177,6 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
         await Filter.update(
           filter.id,
           {
-            ...filter,
             comparison_op: 'checked',
             value: '',
           },
@@ -196,7 +189,6 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
         await Filter.update(
           filter.id,
           {
-            ...filter,
             comparison_op: 'notchecked',
             value: '',
           },
@@ -214,7 +206,6 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
         await Filter.update(
           filter.id,
           {
-            ...filter,
             comparison_op: 'checked',
             value: '',
           },
@@ -227,7 +218,6 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
         await Filter.update(
           filter.id,
           {
-            ...filter,
             comparison_op: 'notchecked',
             value: '',
           },

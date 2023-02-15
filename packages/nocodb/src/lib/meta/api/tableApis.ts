@@ -266,15 +266,11 @@ export async function tableUpdate(req: Request<any, any>, res) {
     );
   }
 
-  if (
-    !(await Model.checkTitleAvailable({
-      table_name: req.body.table_name,
-      project_id: project.id,
-      base_id: base.id,
-    }))
-  ) {
-    NcError.badRequest('Duplicate table name');
-  }
+  const schould_rename = await Model.checkTitleAvailable({
+    table_name: req.body.table_name,
+    project_id: project.id,
+    base_id: base.id,
+  });
 
   if (!req.body.title) {
     req.body.title = getTableNameAlias(
@@ -317,11 +313,13 @@ export async function tableUpdate(req: Request<any, any>, res) {
     req.body.table_name
   );
 
-  await sqlMgr.sqlOpPlus(base, 'tableRename', {
-    ...req.body,
-    tn: req.body.table_name,
-    tn_old: model.table_name,
-  });
+  if (schould_rename) {
+    await sqlMgr.sqlOpPlus(base, 'tableRename', {
+      ...req.body,
+      tn: req.body.table_name,
+      tn_old: model.table_name,
+    });
+  }
 
   Tele.emit('evt', { evt_type: 'table:updated' });
 

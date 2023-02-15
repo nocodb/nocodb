@@ -84,6 +84,7 @@ jobs:
 
       - name: Build nocodb and docker files
         run: |
+          export NODE_OPTIONS="--max_old_space_size=16384"
           cd ../nocodb-sdk
           ls -l
           npm install && npm run build

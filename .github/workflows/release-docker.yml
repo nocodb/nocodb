@@ -84,11 +84,11 @@ jobs:
 
       - name: Build nocodb and docker files
         run: |
-          cd ../nocodb-sdk
-          npm install && npm run build
           cd ../nc-gui
           npm install
           npm run build:copy
+          cd ../nocodb-sdk
+          npm install && npm run build
           cd ../nocodb
           npm install
           npm run build

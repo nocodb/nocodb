@@ -44,7 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       working-directory: ./packages/nocodb
-      gui-working-directory: ./packages/nc-gui
     steps:
       - name: Get Docker Repository
         id: get-docker-repository
@@ -87,26 +86,18 @@ jobs:
         if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
+#          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
           cd packages/nocodb-sdk
           npm install && npm run build
           cd ../..
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js && 
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
+#          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js && 
+#          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
           cd packages/nc-gui
           npm install
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy
-          cd ../..
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
-
-      - uses: bahmutov/npm-install@v1
-        with:
-          working-directory: ${{ env.gui-working-directory }}
-
-      - name: Build nc-gui and docker files
-        run: |
           npm run build:copy
-        working-directory: ${{ env.gui-working-directory }}
+#          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy
+#          cd ../..
+#          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
 
       - uses: bahmutov/npm-install@v1
         with:

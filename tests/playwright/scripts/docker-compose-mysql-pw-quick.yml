@@ -6,10 +6,10 @@ services:
   xc-mysql-sakila-db:
      image: mysql:8.0
      command: mysqld --sql_mode=""
-     restart: always
      ports:
-       - "3306:3306"
+      - 3306:3306
+     restart: always
      environment:
        MYSQL_ROOT_PASSWORD: password
      volumes:
-       - ../../../packages/nocodb/tests/mysql-sakila-db:/docker-entrypoint-initdb.d
+       - ../../../packages/nocodb/tests/mysql-cy-quick:/docker-entrypoint-initdb.d

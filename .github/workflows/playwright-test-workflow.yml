@@ -57,6 +57,10 @@ jobs:
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./
         run: docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d &
+      - name: setup mysql for quick tests
+        if: ${{ inputs.db == 'sqlite' && inputs.shard == '1'
+        working-directory: ./
+        run: docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d &
       - name: setup pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./
@@ -107,12 +111,12 @@ jobs:
         run: E2E_DB_TYPE=${{ inputs.db }} node ./scripts/stressTestNewlyAddedTest.js
 
       # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
-      - name: Run quick server and tests (pg)
+      - name: Run quick server and tests (mysql)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./packages/nocodb
         run: |
           kill -9 $(lsof -t -i:8080)
-          npm run watch:run:playwright:pg:cyquick &
+          npm run watch:run:playwright:mysql:cyquick &
       - name: Run quick server and tests (sqlite)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
         working-directory: ./packages/nocodb

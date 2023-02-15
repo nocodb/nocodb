@@ -40,6 +40,7 @@ import LogosFigmaIcon from '~icons/logos/figma'
 import LogosAirtableIcon from '~icons/logos/airtable'
 import LogosCodepenIcon from '~icons/logos/codepen-icon'
 import LogosTrelloIcon from '~icons/logos/trello'
+import LogosTypeformIcon from '~icons/logos/typeform-icon'
 
 interface Props {
   command: Function
@@ -350,6 +351,17 @@ const items = [
       isLinkInputFormState.value = true
     },
     icon: ClickupIcon,
+    iconClass: '',
+  },
+
+  {
+    title: 'Typeform',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'typeform'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosTypeformIcon,
     iconClass: '',
   },
   {

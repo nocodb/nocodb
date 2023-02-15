@@ -150,6 +150,11 @@ const selectFilterField = (filter: Filter, index: number) => {
   saveOrUpdate(filter, index)
 }
 
+const updateFilterValue = (value: string, filter: Filter, index: number) => {
+  filter.value = value
+  saveOrUpdateDebounced(filter, index)
+}
+
 defineExpose({
   applyChanges,
   parentId,
@@ -279,12 +284,7 @@ defineExpose({
               class="nc-filter-value-select min-w-[120px]"
               :column="getColumn(filter)"
               :filter="filter"
-              @update-filter-value="
-                (value) => {
-                  filter.value = value
-                  saveOrUpdateDebounced(filter, i)
-                }
-              "
+              @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
             />
           </template>

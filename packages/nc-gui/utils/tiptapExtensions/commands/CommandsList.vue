@@ -15,6 +15,7 @@ import {
 import GoogleSheetsIcon from './icons/GoogleSheets.vue'
 import GoogleDocsIcon from './icons/GoogleDocs.vue'
 import GoogleSlidesIcon from './icons/GoogleSlides.vue'
+import ClickupIcon from './icons/Clickup.vue'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'
@@ -333,6 +334,16 @@ const items = [
       isLinkInputFormState.value = true
     },
     icon: LogosFigmaIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Clickup',
+    class: 'text-xs -ml-1',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'clickup'
+      isLinkInputFormState.value = true
+    },
+    icon: ClickupIcon,
     iconClass: '',
   },
   {

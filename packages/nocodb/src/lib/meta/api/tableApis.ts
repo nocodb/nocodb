@@ -91,7 +91,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const project = await Project.getWithInfo(req.params.projectId);
   let base = project.bases[0];
 
-  if (req.params.baseId && req.params.baseId !== 'undefined') {
+  if (req.params.baseId) {
     base = project.bases.find((b) => b.id === req.params.baseId);
   }
 

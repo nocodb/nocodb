@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
-
+import { Plugin, TextSelection } from 'prosemirror-state'
+import { getExternalContentType, urlToEmbedUrl } from './urlHelper'
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     externalContent: {
@@ -90,18 +91,56 @@ export const ExternalContent = Node.create({
   addCommands() {
     return {
       setExternalContent: (options: { url: string; type: string }) => (editor: Editor) => {
-        const selectionRange = editor.state.selection
-        const suggestionNodeParentNodeSize = editor.state.doc.resolve(selectionRange.$from.pos - 1).parent.firstChild!.nodeSize!
-
-        editor.commands.deleteRange({
-          from: selectionRange.$from.pos - suggestionNodeParentNodeSize,
-          to: selectionRange.$from.pos,
-        })
-
-        const node = editor.state.schema.nodes.externalContent.create({ src: options.url, type: options.type })
-        const tr = editor.state.tr.insert(editor.state.selection.$from.pos - 1, node)
-        editor.view.dispatch(tr)
+        _setExternalContent({ editor, options: { ...options, deletePrevNode: true } })
       },
-    }
+    } as any
+  },
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        props: {
+          handlePaste: (_, event) => {
+            const url = event.clipboardData?.getData('text/plain')
+            if (!url) return false
+
+            const type = getExternalContentType(url)
+            if (!type) return false
+
+            _setExternalContent({ editor: this.editor as any, options: { url, type } })
+            return true
+          },
+        },
+      }),
+    ]
   },
 })
+
+function _setExternalContent({
+  editor,
+  options,
+}: {
+  editor: Editor
+  options: {
+    url: string
+    type: string
+    // Delete the prev node, required in the case where if we create a node and an empty node is created before it
+    deletePrevNode?: boolean
+  }
+}) {
+  const selectionRange = editor.state.selection
+  const suggestionNodeParentNodeSize = editor.state.doc.resolve(selectionRange.$from.pos - 1).parent.firstChild!.nodeSize!
+
+  editor.commands.deleteRange({
+    from: options.deletePrevNode
+      ? selectionRange.$from.pos - suggestionNodeParentNodeSize
+      : selectionRange.$from.pos - suggestionNodeParentNodeSize + 2,
+    to: selectionRange.$from.pos,
+  })
+
+  const embedUrl = urlToEmbedUrl(options.url, options.type)
+
+  const node = editor.state.schema.nodes.externalContent.create({ src: embedUrl, type: options.type })
+  const tr = editor.state.tr.insert(editor.state.selection.$from.pos - 1, node)
+  editor.view.dispatch(tr)
+}

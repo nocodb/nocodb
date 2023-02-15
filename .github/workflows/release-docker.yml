@@ -44,6 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       working-directory: ./packages/nocodb
+      gui-working-directory: ./packages/nc-gui
     steps:
       - name: Get Docker Repository
         id: get-docker-repository
@@ -97,6 +98,15 @@ jobs:
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy
           cd ../..
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
+
+      - uses: bahmutov/npm-install@v1
+        with:
+          working-directory: ${{ env.gui-working-directory }}
+
+      - name: Build nc-gui and docker files
+        run: |
+          npm run build:copy
+        working-directory: ${{ env.gui-working-directory }}
 
       - uses: bahmutov/npm-install@v1
         with:

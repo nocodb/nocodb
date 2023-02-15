@@ -25,9 +25,13 @@ const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
 const options = computed<SelectProps['options']>(() =>
   meta.value?.columns
     ?.filter((c: ColumnType) => {
-      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.id!])) {
-        /** hide system columns if not enabled */
-        return false
+      if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
+        return (
+          /** if the field is used in filter, then show it anyway */
+          localValue.value === c.id ||
+          /** hide system columns if not enabled */
+          showSystemFields.value
+        )
       } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
         return false
       } else if (isSort) {

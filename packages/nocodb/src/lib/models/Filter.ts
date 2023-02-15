@@ -12,6 +12,7 @@ import View from './View';
 import { FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { NcError } from '../meta/helpers/catchError';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Filter {
   id: string;
@@ -218,15 +219,14 @@ export default class Filter {
   }
 
   static async update(id, filter: Partial<Filter>, ncMeta = Noco.ncMeta) {
-    const updateObj = {
-      fk_column_id: filter.fk_column_id,
-      comparison_op: filter.comparison_op,
-      value: filter.value,
-      fk_parent_id: filter.fk_parent_id,
-
-      is_group: filter.is_group,
-      logical_op: filter.logical_op,
-    };
+    const updateObj = extractProps(filter, [
+      'fk_column_id',
+      'comparison_op',
+      'value',
+      'fk_parent_id',
+      'is_group',
+      'logical_op',
+    ]);
     // get existing cache
     const key = `${CacheScope.FILTER_EXP}:${id}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

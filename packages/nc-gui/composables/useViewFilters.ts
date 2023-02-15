@@ -278,12 +278,13 @@ export function useViewFilters(
   const saveOrUpdateDebounced = useDebounceFn(saveOrUpdate, 500)
 
   const addFilter = () => {
-    filters.value.push({ ...placeholderFilter() })
+    filters.value.push(placeholderFilter())
     $e('a:filter:add', { length: filters.value.length })
   }
 
   const addFilterGroup = async () => {
-    const child = { ...placeholderFilter() }
+    const child = placeholderFilter()
+
     const placeHolderGroupFilter: Filter = {
       is_group: true,
       status: 'create',

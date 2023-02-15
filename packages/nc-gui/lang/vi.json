@@ -387,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "Chèn hàng mới",
     "deleteRow": "Xóa hàng",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Xóa các hàng đã chọn",
     "importExcel": "Nhập Excel.",
     "importCSV": "Import CSV",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

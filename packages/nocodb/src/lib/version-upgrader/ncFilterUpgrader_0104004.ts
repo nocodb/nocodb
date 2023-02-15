@@ -236,11 +236,10 @@ async function migrateFilters(ncMeta: NcMetaIO) {
   const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
   let actions = [];
   for (const filter of filters) {
-    const col = await Column.get({ colId: filter.fk_column_id }, ncMeta);
-    if (!col || !col.uidt) {
-      // column not found -> skip
+    if (!filter.fk_column_id || filter.is_group) {
       continue;
     }
+    const col = await Column.get({ colId: filter.fk_column_id }, ncMeta);
     if (
       [
         UITypes.SingleLineText,

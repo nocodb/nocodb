@@ -387,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "Umetnite novi red",
     "deleteRow": "Brisanje retka",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Izbrišite odabrane retke",
     "importExcel": "Uvoz Excel",
     "importCSV": "Import CSV",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

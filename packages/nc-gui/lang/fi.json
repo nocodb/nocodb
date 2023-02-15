@@ -387,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "Lisää uusi rivi",
     "deleteRow": "Poista rivi",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Poista valitut rivit",
     "importExcel": "Tuonti excel",
     "importCSV": "Tuo CSV",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Sarake monistettu onnistuneesti",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Päivitetty UI ACL taulukoille onnistuneesti",
       "pluginUninstalled": "Liitännäisen poisto onnistui onnistuneesti",
       "pluginSettingsSaved": "Liitännäisen asetukset tallennettu onnistuneesti",

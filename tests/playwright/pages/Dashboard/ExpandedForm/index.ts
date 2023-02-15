@@ -7,6 +7,7 @@ export class ExpandedFormPage extends BasePage {
   readonly addNewTableButton: Locator;
   readonly copyUrlButton: Locator;
   readonly toggleCommentsButton: Locator;
+  readonly moreOptionsButton: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -14,10 +15,42 @@ export class ExpandedFormPage extends BasePage {
     this.addNewTableButton = this.dashboard.get().locator('.nc-add-new-table');
     this.copyUrlButton = this.dashboard.get().locator('.nc-copy-row-url:visible');
     this.toggleCommentsButton = this.dashboard.get().locator('.nc-toggle-comments:visible');
+    this.moreOptionsButton = this.dashboard.get().locator('.nc-actions-menu-btn:visible').last();
   }
 
   get() {
     return this.dashboard.get().locator(`.nc-drawer-expanded-form`);
+  }
+
+  async clickDuplicateRow() {
+    await this.moreOptionsButton.click();
+    // wait for the menu to appear
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.locator('.nc-menu-item:has-text("Duplicate Row")').click();
+
+    // wait for loader to disappear
+    // await this.dashboard.waitForLoaderToDisappear();
+    await this.rootPage.waitForTimeout(2000);
+  }
+
+  async clickDeleteRow() {
+    await this.moreOptionsButton.click();
+    // wait for the menu to appear
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.locator('.nc-menu-item:has-text("Delete Row")').click();
+    await this.rootPage.locator('.ant-btn-primary:has-text("OK")').click();
+  }
+
+  async isDisabledDuplicateRow() {
+    await this.moreOptionsButton.click();
+    const isDisabled = await this.rootPage.locator('.nc-menu-item.disabled:has-text("Duplicate Row")');
+    return await isDisabled.count();
+  }
+
+  async isDisabledDeleteRow() {
+    await this.moreOptionsButton.click();
+    const isDisabled = await this.rootPage.locator('.nc-menu-item.disabled:has-text("Delete Row")');
+    return await isDisabled.count();
   }
 
   async getShareRowUrl() {

@@ -53,9 +53,9 @@ const stackToBeDeleted = ref('')
 
 const stackIdxToBeDeleted = ref(0)
 
-const route = useRoute()
-
 const router = useRouter()
+
+const route = $(router.currentRoute)
 
 const { getPossibleAttachmentSrc } = useAttachment()
 

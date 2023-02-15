@@ -69,8 +69,9 @@ const { hasRole } = useRoles()
 const { isUIAllowed } = useUIPermission()
 const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
-const route = useRoute()
 const router = useRouter()
+
+const route = $(router.currentRoute)
 
 // todo: get from parent ( inject or use prop )
 const isView = false
@@ -794,23 +795,6 @@ function openGenerateDialog(target: any) {
     close(1000)
   }
 }
-
-const rowHeight = computed(() => {
-  if ((view.value?.view as GridType)?.row_height !== undefined) {
-    switch ((view.value?.view as GridType)?.row_height) {
-      case 0:
-        return 1
-      case 1:
-        return 2
-      case 2:
-        return 4
-      case 3:
-        return 6
-      default:
-        return 1
-    }
-  }
-})
 </script>
 
 <template>

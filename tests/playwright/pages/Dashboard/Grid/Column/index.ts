@@ -343,7 +343,6 @@ export class ColumnPageObject extends BasePage {
       uiAction: this.get().locator('button:has-text("Save")').click(),
       requestUrlPathToMatch: 'api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
-      responseJsonMatcher: json => json['pageInfo'],
     });
 
     await this.verifyToast({

@@ -43,18 +43,6 @@ async function verifyFilterOperatorList(param: { column: string; opType: string[
 async function validateRowArray(param) {
   const { rowCount } = param;
   await dashboard.grid.verifyTotalRowCount({ count: rowCount });
-
-  // const { sequence, length, totalRowCount, column } = param;
-  //
-  // await dashboard.grid.verifyTotalRowCount({ count: totalRowCount });
-  //
-  // for (let j = 0; j < length; j++) {
-  //   await dashboard.grid.cell.verify({
-  //     index: j,
-  //     columnHeader: column,
-  //     value: sequence,
-  //   });
-  // }
 }
 
 async function verifyFilter(param: {
@@ -90,7 +78,7 @@ async function verifyFilter(param: {
 
 // Number based filters
 //
-
+//
 test.describe('Filter Tests: Numerical', () => {
   async function numBasedFilterTest(dataType, eqString, isLikeString) {
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -294,7 +282,7 @@ test.describe('Filter Tests: Numerical', () => {
 
 // Text based filters
 //
-
+//
 test.describe('Filter Tests: Text based', () => {
   async function textBasedFilterTest(dataType, eqString, isLikeString) {
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -462,7 +450,7 @@ test.describe('Filter Tests: Text based', () => {
 
 // Select Based
 //
-
+//
 test.describe('Filter Tests: Select based', () => {
   async function selectBasedFilterTest(dataType, is, anyof, allof) {
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -604,6 +592,8 @@ test.describe('Filter Tests: Select based', () => {
   });
 });
 
+// Checkbox
+//
 test.describe('Filter Tests: AddOn', () => {
   async function addOnFilterTest(dataType) {
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -692,6 +682,156 @@ test.describe('Filter Tests: AddOn', () => {
 
   test('Filter: Checkbox', async () => {
     await addOnFilterTest('Checkbox');
+  });
+});
+
+// Link to another record, Lookup, Rollup
+//
+test.describe.only('Filter Tests: Link to another record, Lookup, Rollup', () => {
+  async function linkToAnotherRecordFilterTest() {
+    // try {
+    //   const project = await api.project.read(context.project.id);
+    //   const table = await api.base.tableList(context.project.id, project.bases?.[0].id);
+    //   records = await api.dbTableRow.list('noco', context.project.id, table.list[4].id, { limit: 400 });
+    // } catch (e) {
+    //   console.error(e);
+    // }
+
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
+    // add filter for CityList column
+    const filterList = [
+      { op: 'is', value: 'Kabul', rowCount: 1 },
+      { op: 'is not', value: 'Kabul', rowCount: 108 },
+      { op: 'is like', value: 'bad', rowCount: 2 },
+      { op: 'is not like', value: 'bad', rowCount: 107 },
+      { op: 'is blank', value: null, rowCount: 0 },
+      { op: 'is not blank', value: null, rowCount: 109 },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: 'City List',
+        opType: filterList[i].op,
+        value: filterList[i].value,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: 'LinkToAnotherRecord',
+      });
+    }
+  }
+
+  async function lookupFilterTest() {
+    // try {
+    //   const project = await api.project.read(context.project.id);
+    //   const table = await api.base.tableList(context.project.id, project.bases?.[0].id);
+    //   const tableId = table.list.filter(t => t.table_name === 'city')[0].id;
+    //   records = await api.dbTableRow.list('noco', context.project.id, tableId, { limit: 600 });
+    // } catch (e) {
+    //   console.error(e);
+    // }
+
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
+    // Create LookUp column
+    await dashboard.grid.column.create({
+      title: 'Lookup',
+      type: 'Lookup',
+      childTable: 'Address List',
+      childColumn: 'PostalCode',
+    });
+
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
+    // add filter for CityList column
+    const filterList = [
+      { op: 'is equal', value: '4166', rowCount: 1 },
+      { op: 'is not equal', value: '4166', rowCount: 599 },
+      { op: 'is like', value: '41', rowCount: 19 },
+      { op: 'is not like', value: '41', rowCount: 581 },
+      { op: 'is blank', value: null, rowCount: 2 },
+      { op: 'is not blank', value: null, rowCount: 598 },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: 'Lookup',
+        opType: filterList[i].op,
+        value: filterList[i].value,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: 'Lookup',
+      });
+    }
+  }
+
+  async function rollupFilterTest() {
+    // try {
+    //   const project = await api.project.read(context.project.id);
+    //   const table = await api.base.tableList(context.project.id, project.bases?.[0].id);
+    //   const tableId = table.list.filter(t => t.table_name === 'city')[0].id;
+    //   records = await api.dbTableRow.list('noco', context.project.id, tableId, { limit: 600 });
+    // } catch (e) {
+    //   console.error(e);
+    // }
+
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
+    // Create LookUp column
+    await dashboard.grid.column.create({
+      title: 'Rollup',
+      type: 'Rollup',
+      childTable: 'Address List',
+      childColumn: 'PostalCode',
+      rollupType: 'Count',
+    });
+
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
+    // add filter for CityList column
+    const filterList = [
+      { op: 'is equal', value: '4166', rowCount: 1 },
+      { op: 'is not equal', value: '4166', rowCount: 599 },
+      { op: 'is like', value: '41', rowCount: 19 },
+      { op: 'is not like', value: '41', rowCount: 581 },
+      { op: 'is blank', value: null, rowCount: 2 },
+      { op: 'is not blank', value: null, rowCount: 598 },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: 'Lookup',
+        opType: filterList[i].op,
+        value: filterList[i].value,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: 'Lookup',
+      });
+    }
+  }
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page });
+    dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.grid.toolbar;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+  });
+
+  test('Filter: Virtual columns', async () => {
+    // await linkToAnotherRecordFilterTest();
+    await lookupFilterTest();
+    // await rollupFilterTest();
   });
 });
 

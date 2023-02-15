@@ -6,7 +6,6 @@ import Column from '../../models/Column';
 import { Tele } from 'nc-help';
 import validateParams from '../helpers/validateParams';
 
-import { customAlphabet } from 'nanoid';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import {
   getUniqueColumnAliasName,
@@ -18,6 +17,7 @@ import {
   ColumnReqType,
   isVirtualCol,
   LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
   RelationTypes,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
@@ -40,32 +40,18 @@ import { MetaTable } from '../../utils/globals';
 import formulaQueryBuilderv2 from '../../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
 import {
   createHmAndBtColumn,
+  generateFkName,
+  randomID,
   validateLookupPayload,
   validateRequiredField,
   validateRollupPayload,
 } from './helpers';
-
-const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 
 export enum Altered {
   NEW_COLUMN = 1,
   DELETE_COLUMN = 4,
   UPDATE_COLUMN = 8,
 }
-
-
-// generate unique foreign key constraint name for foreign key
-const generateFkName = (parent: TableType, child: TableType) => {
-  // generate a unique constraint name by taking first 10 chars of parent and child table name (by replacing all non word chars with _)
-  // and appending a random string of 15 chars maximum length.
-  // In database constraint name can be upto 64 chars and here we are generating a name of maximum 40 chars
-  const constraintName = `fk_${parent.table_name
-    .replace(/\W+/g, '_')
-    .slice(0, 10)}_${child.table_name
-    .replace(/\W+/g, '_')
-    .slice(0, 10)}_${randomID(15)}`;
-  return constraintName;
-};
 
 export async function columnGet(req: Request, res: Response) {
   res.json(await Column.get({ colId: req.params.columnId }));

@@ -1,9 +1,11 @@
+import { customAlphabet } from 'nanoid';
 import {
   ColumnReqType,
   LinkToAnotherRecordType,
   LookupColumnReqType,
   RelationTypes,
   RollupColumnReqType,
+  TableType,
   UITypes,
 } from 'nocodb-sdk';
 import Column from '../../../models/Column';
@@ -13,12 +15,18 @@ import Model from '../../../models/Model';
 import { getUniqueColumnAliasName } from '../../helpers/getUniqueName';
 import validateParams from '../../helpers/validateParams';
 
+export const randomID = customAlphabet(
+  '1234567890abcdefghijklmnopqrstuvwxyz_',
+  10
+);
+
 export async function createHmAndBtColumn(
   child: Model,
   parent: Model,
   childColumn: Column,
   type?: RelationTypes,
   alias?: string,
+  fkColName?: string,
   virtual = false,
   isSystemCol = false
 ) {
@@ -42,6 +50,7 @@ export async function createHmAndBtColumn(
       fk_related_model_id: parent.id,
       virtual,
       system: isSystemCol,
+      fk_col_name: fkColName,
     });
   }
   // save hm column
@@ -60,6 +69,7 @@ export async function createHmAndBtColumn(
       fk_related_model_id: child.id,
       virtual,
       system: isSystemCol,
+      fk_col_name: fkColName,
     });
   }
 }
@@ -181,4 +191,17 @@ export const validateRequiredField = (
     (prop) =>
       prop in payload && payload[prop] !== undefined && payload[prop] !== null
   );
+};
+
+// generate unique foreign key constraint name for foreign key
+export const generateFkName = (parent: TableType, child: TableType) => {
+  // generate a unique constraint name by taking first 10 chars of parent and child table name (by replacing all non word chars with _)
+  // and appending a random string of 15 chars maximum length.
+  // In database constraint name can be upto 64 chars and here we are generating a name of maximum 40 chars
+  const constraintName = `fk_${parent.table_name
+    .replace(/\W+/g, '_')
+    .slice(0, 10)}_${child.table_name
+    .replace(/\W+/g, '_')
+    .slice(0, 10)}_${randomID(15)}`;
+  return constraintName;
 };

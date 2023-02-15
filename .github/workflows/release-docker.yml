@@ -93,12 +93,9 @@ jobs:
           npm install
           npm run build:copy
 
-      - uses: bahmutov/npm-install@v1
-        with:
-          working-directory: ${{ env.working-directory }}
-
       - name: Build nocodb and docker files
         run: |
+          npm install
           npm run build
           npm run docker:build
         working-directory: ${{ env.working-directory }}

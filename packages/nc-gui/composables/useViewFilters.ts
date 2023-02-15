@@ -116,17 +116,28 @@ export function useViewFilters(
       excludedTypes?: UITypes[]
     },
   ) => {
+    const isNullOrEmptyOp = ['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)
     if (compOp.includedTypes) {
       // include allowed values only if selected column type matches
-      return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
+      if (filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])) {
+        // for 'empty', 'notempty', 'null', 'notnull',
+        // show them based on `showNullAndEmptyInFilter` in Project Settings
+        return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+      } else {
+        return false
+      }
     } else if (compOp.excludedTypes) {
       // include not allowed values only if selected column type not matches
-      return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
-    } else if (['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)) {
-      // for these 4 comparisonOp, show them based on `showNullAndEmptyInFilter` in Project Settings
-      return projectMeta.value.showNullAndEmptyInFilter
+      if (filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])) {
+        // for 'empty', 'notempty', 'null', 'notnull',
+        // show them based on `showNullAndEmptyInFilter` in Project Settings
+        return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+      } else {
+        return false
+      }
     }
-    return true
+    // explicitly include for non-null / non-empty ops
+    return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
   }
 
   const placeholderFilter = (): Filter => {

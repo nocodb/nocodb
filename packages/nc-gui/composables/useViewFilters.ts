@@ -83,9 +83,9 @@ export function useViewFilters(
 
   const options = computed<SelectProps['options']>(() =>
     meta.value?.columns?.filter((c: ColumnType) => {
-      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.id!])) {
+      if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
         /** hide system columns if not enabled */
-        return false
+        return showSystemFields.value
       } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.system) {
         return false
       } else {

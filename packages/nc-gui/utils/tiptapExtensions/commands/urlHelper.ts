@@ -32,3 +32,7 @@ export const githubGistUrlToEmbedUrl = (url: string) => {
   <body><script src='${url}.js'></script>
   </body>`
 }
+
+export const figmaUrlToEmbedUrl = (url: string) => {
+  return `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(url)}`
+}

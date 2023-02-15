@@ -14,11 +14,11 @@ import {
   trelloUrlToEmbedUrl,
   youtubeUrlToEmbedUrl,
 } from './urlHelper'
-import GoogleSheetsIcon from './icons/GoogleSheets.vue'
-import GoogleDocsIcon from './icons/GoogleDocs.vue'
-import GoogleSlidesIcon from './icons/GoogleSlides.vue'
-import ClickupIcon from './icons/Clickup.vue'
-import MiroIcon from './icons/Miro.vue'
+import GoogleSheetsIcon from './custom-icons/GoogleSheets.vue'
+import GoogleDocsIcon from './custom-icons/GoogleDocs.vue'
+import GoogleSlidesIcon from './custom-icons/GoogleSlides.vue'
+import ClickupIcon from './custom-icons/Clickup.vue'
+import MiroIcon from './custom-icons/Miro.vue'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'

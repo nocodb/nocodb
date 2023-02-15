@@ -387,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "नई पंक्ति डालें",
     "deleteRow": "पंक्ति को हटाएं",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "चयनित पंक्तियों को हटा दें",
     "importExcel": "आयात एक्सेल",
     "importCSV": "Import CSV",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

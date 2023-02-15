@@ -387,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "নতুন সারি ঢোকান",
     "deleteRow": "সারি মুছুন",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "নির্বাচিত সারিগুলি মুছুন",
     "importExcel": "এক্সেল আমদানি করুন",
     "importCSV": "Import CSV",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

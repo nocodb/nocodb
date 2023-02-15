@@ -10,6 +10,7 @@ import {
   figmaUrlToEmbedUrl,
   gSuiteUrlToEmbedUrl,
   githubGistUrlToEmbedUrl,
+  miroUrlToEmbedUrl,
   trelloUrlToEmbedUrl,
   youtubeUrlToEmbedUrl,
 } from './urlHelper'
@@ -17,6 +18,7 @@ import GoogleSheetsIcon from './icons/GoogleSheets.vue'
 import GoogleDocsIcon from './icons/GoogleDocs.vue'
 import GoogleSlidesIcon from './icons/GoogleSlides.vue'
 import ClickupIcon from './icons/Clickup.vue'
+import MiroIcon from './icons/Miro.vue'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'
@@ -117,6 +119,10 @@ const insertLink = () => {
 
   if (isLinkInputFormType.value === 'trello') {
     linkUrl.value = trelloUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value === 'miroUrlToEmbedUrl') {
+    linkUrl.value = miroUrlToEmbedUrl(linkUrl.value)
   }
 
   editor.chain().focus().setExternalContent({
@@ -353,7 +359,16 @@ const items = [
     icon: ClickupIcon,
     iconClass: '',
   },
-
+  {
+    title: 'Miro',
+    class: 'text-xs -ml-1',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'miro'
+      isLinkInputFormState.value = true
+    },
+    icon: MiroIcon,
+    iconClass: '',
+  },
   {
     title: 'Typeform',
     class: 'text-xs',

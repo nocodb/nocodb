@@ -52,3 +52,7 @@ export const trelloUrlToEmbedUrl = (url: string) => {
   const id = url.split('.com/b/')[1].split('/')[0]
   return `https://trello.com/embed/board?id=${id}`
 }
+
+export const miroUrlToEmbedUrl = (url: string) => {
+  return url.replace('miro.com/app/board', 'miro.com/app/embed')
+}

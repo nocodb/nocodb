@@ -47,3 +47,8 @@ export const codepenUrlToEmbedUrl = (url: string) => {
   const id = url.split('/pen/')[1]
   return `https://codepen.io/${userId}/embed/${id}?default-tab=html%2Cresult`
 }
+
+export const trelloUrlToEmbedUrl = (url: string) => {
+  const id = url.split('.com/b/')[1].split('/')[0]
+  return `https://trello.com/embed/board?id=${id}`
+}

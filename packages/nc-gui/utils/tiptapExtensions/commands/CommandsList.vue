@@ -10,6 +10,7 @@ import {
   figmaUrlToEmbedUrl,
   gSuiteUrlToEmbedUrl,
   githubGistUrlToEmbedUrl,
+  trelloUrlToEmbedUrl,
   youtubeUrlToEmbedUrl,
 } from './urlHelper'
 import GoogleSheetsIcon from './icons/GoogleSheets.vue'
@@ -38,6 +39,7 @@ import LogosGithubIcon from '~icons/logos/github-icon'
 import LogosFigmaIcon from '~icons/logos/figma'
 import LogosAirtableIcon from '~icons/logos/airtable'
 import LogosCodepenIcon from '~icons/logos/codepen-icon'
+import LogosTrelloIcon from '~icons/logos/trello'
 
 interface Props {
   command: Function
@@ -110,6 +112,10 @@ const insertLink = () => {
 
   if (isLinkInputFormType.value === 'codepen') {
     linkUrl.value = codepenUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value === 'trello') {
+    linkUrl.value = trelloUrlToEmbedUrl(linkUrl.value)
   }
 
   editor.chain().focus().setExternalContent({
@@ -344,6 +350,16 @@ const items = [
       isLinkInputFormState.value = true
     },
     icon: ClickupIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Trello',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'trello'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosTrelloIcon,
     iconClass: '',
   },
   {

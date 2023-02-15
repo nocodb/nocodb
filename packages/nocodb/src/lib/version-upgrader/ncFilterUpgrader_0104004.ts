@@ -37,7 +37,7 @@ import { UITypes, SelectOptionsType } from 'nocodb-sdk';
 const removeEqualFilters = async (filter, actions: any[], ncMeta) => {
   // remove `is equal`, `is not equal`
   if (['eq', 'neq'].includes(filter.comparison_op)) {
-    actions.push(await Filter.delete(filter.id, ncMeta));
+    actions.push(Filter.delete(filter.id, ncMeta));
   }
   return actions;
 };
@@ -45,7 +45,7 @@ const removeEqualFilters = async (filter, actions: any[], ncMeta) => {
 const removeArithmeticFilters = async (filter, actions: any[], ncMeta) => {
   // remove `>`, `<`, `>=`, `<=`
   if (['gt', 'lt', 'gte', 'lte'].includes(filter.comparison_op)) {
-    actions.push(await Filter.delete(filter.id, ncMeta));
+    actions.push(Filter.delete(filter.id, ncMeta));
   }
   return actions;
 };
@@ -53,7 +53,7 @@ const removeArithmeticFilters = async (filter, actions: any[], ncMeta) => {
 const removeLikeFilters = async (filter, actions: any[], ncMeta) => {
   // remove `is like`, `is not like`
   if (['like', 'nlike'].includes(filter.comparison_op)) {
-    actions.push(await Filter.delete(filter.id, ncMeta));
+    actions.push(Filter.delete(filter.id, ncMeta));
   }
   return actions;
 };
@@ -66,7 +66,7 @@ const migrateNullAndEmptyToBlankFilters = async (
   if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to blank
     actions.push(
-      await Filter.update(
+      Filter.update(
         filter.id,
         {
           comparison_op: 'blank',
@@ -77,7 +77,7 @@ const migrateNullAndEmptyToBlankFilters = async (
   } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
     // migrate to not blank
     actions.push(
-      await Filter.update(
+      Filter.update(
         filter.id,
         {
           comparison_op: 'notblank',
@@ -99,7 +99,7 @@ const migrateMultiSelectEq = async (
   if (!['eq', 'neq'].includes(filter.comparison_op)) return actions;
   // if there is no value -> delete this filter
   if (!filter.value) {
-    actions.push(await Filter.delete(filter.id, ncMeta));
+    actions.push(Filter.delete(filter.id, ncMeta));
     return actions;
   }
   // options inputted from users
@@ -116,13 +116,13 @@ const migrateMultiSelectEq = async (
   const newFilterValue = validOptions.join(',');
   // if all inputted options are invalid -> delete this filter
   if (!newFilterValue) {
-    actions.push(await Filter.delete(filter.id, ncMeta));
+    actions.push(Filter.delete(filter.id, ncMeta));
     return actions;
   }
   if (filter.comparison_op === 'eq') {
     // migrate to `contains all of`
     actions.push(
-      await Filter.update(
+      Filter.update(
         filter.id,
         {
           comparison_op: 'anyof',
@@ -134,7 +134,7 @@ const migrateMultiSelectEq = async (
   } else if (filter.comparison_op === 'neq') {
     // migrate to `doesn't contain all of`
     actions.push(
-      await Filter.update(
+      Filter.update(
         filter.id,
         {
           comparison_op: 'nanyof',
@@ -151,7 +151,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
   if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to not checked
     actions.push(
-      await Filter.update(
+      Filter.update(
         filter.id,
         {
           comparison_op: 'notchecked',
@@ -162,7 +162,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
   } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
     //  migrate to checked
     actions.push(
-      await Filter.update(
+      Filter.update(
         filter.id,
         {
           comparison_op: 'checked',
@@ -174,7 +174,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
     if (['true', 'True', '1', 'T', 'Y'].includes(filter.value)) {
       // migrate to checked
       actions.push(
-        await Filter.update(
+        Filter.update(
           filter.id,
           {
             comparison_op: 'checked',
@@ -186,7 +186,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
     } else if (['false', 'False', '0', 'F', 'N'].includes(filter.value)) {
       // migrate to notchecked
       actions.push(
-        await Filter.update(
+        Filter.update(
           filter.id,
           {
             comparison_op: 'notchecked',
@@ -197,13 +197,13 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
       );
     } else {
       // invalid value - good to delete
-      actions.push(await Filter.delete(filter.id, ncMeta));
+      actions.push(Filter.delete(filter.id, ncMeta));
     }
   } else if (filter.comparison_op === 'neq') {
     if (['false', 'False', '0', 'F', 'N'].includes(filter.value)) {
       // migrate to checked
       actions.push(
-        await Filter.update(
+        Filter.update(
           filter.id,
           {
             comparison_op: 'checked',
@@ -215,7 +215,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
     } else if (['true', 'True', '1', 'T', 'Y'].includes(filter.value)) {
       // migrate to not checked
       actions.push(
-        await Filter.update(
+        Filter.update(
           filter.id,
           {
             comparison_op: 'notchecked',
@@ -226,7 +226,7 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
       );
     } else {
       // invalid value - good to delete
-      actions.push(await Filter.delete(filter.id, ncMeta));
+      actions.push(Filter.delete(filter.id, ncMeta));
     }
   }
   return actions;
@@ -346,7 +346,7 @@ async function updateProjectMeta(ncMeta: NcMetaIO) {
     };
 
     actions.push(
-      await Project.update(
+      Project.update(
         project.id,
         {
           meta: JSON.stringify(newProjectMeta),

@@ -68,10 +68,22 @@ export const ExternalContent = Node.create({
     ]
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ HTMLAttributes, node }) {
+    let style = 'height: 28rem;'
+    switch (node.attrs.type) {
+      case 'githubGist':
+        style = 'height: 16rem;'
+        break
+      case 'trello':
+        style = 'height: 185px; width: 248px;'
+        break
+    }
     return [
       'div',
-      { class: 'external-content-wrapper', style: 'height: 26rem;' },
+      {
+        class: 'external-content-wrapper border-1 border-gray-200 rounded-sm ',
+        style,
+      },
       ['iframe', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)],
     ]
   },

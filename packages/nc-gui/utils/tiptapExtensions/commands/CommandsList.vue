@@ -4,7 +4,21 @@ import showdown from 'showdown'
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
-import { youtubeUrlToEmbedUrl } from './urlHelper'
+import {
+  airtableUrlToEmbedUrl,
+  codepenUrlToEmbedUrl,
+  figmaUrlToEmbedUrl,
+  gSuiteUrlToEmbedUrl,
+  githubGistUrlToEmbedUrl,
+  miroUrlToEmbedUrl,
+  trelloUrlToEmbedUrl,
+  youtubeUrlToEmbedUrl,
+} from './urlHelper'
+import GoogleSheetsIcon from './icons/GoogleSheets.vue'
+import GoogleDocsIcon from './icons/GoogleDocs.vue'
+import GoogleSlidesIcon from './icons/GoogleSlides.vue'
+import ClickupIcon from './icons/Clickup.vue'
+import MiroIcon from './icons/Miro.vue'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'
@@ -23,6 +37,12 @@ import IcRoundStar from '~icons/ic/round-star-outline'
 import IcRoundWarning from '~icons/ph/warning-circle-bold'
 import MdiTable from '~icons/mdi/table'
 import LogosYoutubeIcon from '~icons/logos/youtube-icon'
+import LogosGithubIcon from '~icons/logos/github-icon'
+import LogosFigmaIcon from '~icons/logos/figma'
+import LogosAirtableIcon from '~icons/logos/airtable'
+import LogosCodepenIcon from '~icons/logos/codepen-icon'
+import LogosTrelloIcon from '~icons/logos/trello'
+import LogosTypeformIcon from '~icons/logos/typeform-icon'
 
 interface Props {
   command: Function
@@ -57,7 +77,14 @@ const insertLink = () => {
     return
   }
 
-  const url = new URL(linkUrl.value)
+  let url
+  try {
+    url = new URL(linkUrl.value)
+  } catch (e) {
+    isLinkInputFormErrored.value = true
+    return
+  }
+
   if (
     isLinkInputFormType.value === 'youtube' &&
     !(url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com' || url.hostname === 'youtu.be')
@@ -68,6 +95,34 @@ const insertLink = () => {
 
   if (isLinkInputFormType.value === 'youtube') {
     linkUrl.value = youtubeUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value.startsWith('google')) {
+    linkUrl.value = gSuiteUrlToEmbedUrl(linkUrl.value, isLinkInputFormType.value)!
+  }
+
+  if (isLinkInputFormType.value === 'githubGist') {
+    linkUrl.value = githubGistUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value === 'figma') {
+    linkUrl.value = figmaUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value === 'airtable') {
+    linkUrl.value = airtableUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value === 'codepen') {
+    linkUrl.value = codepenUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value === 'trello') {
+    linkUrl.value = trelloUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value === 'miroUrlToEmbedUrl') {
+    linkUrl.value = miroUrlToEmbedUrl(linkUrl.value)
   }
 
   editor.chain().focus().setExternalContent({
@@ -235,13 +290,113 @@ const items = [
     hasDivider: true,
   },
   {
-    title: 'Embed iframe',
+    title: 'Google Docs',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      isLinkInputFormType.value = 'externalContent'
+      isLinkInputFormType.value = 'googleDoc'
       isLinkInputFormState.value = true
     },
-    icon: IcOutlineCode,
+    icon: GoogleDocsIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Google Sheet',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'googleSheet'
+      isLinkInputFormState.value = true
+    },
+    icon: GoogleSheetsIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Google Slide',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'googleSlide'
+      isLinkInputFormState.value = true
+    },
+    icon: GoogleSlidesIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Airtable',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'airtable'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosAirtableIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Github Gist',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'githubGist'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosGithubIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Figma',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'figma'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosFigmaIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Clickup',
+    class: 'text-xs -ml-1',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'clickup'
+      isLinkInputFormState.value = true
+    },
+    icon: ClickupIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Miro',
+    class: 'text-xs -ml-1',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'miro'
+      isLinkInputFormState.value = true
+    },
+    icon: MiroIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Typeform',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'typeform'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosTypeformIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Trello',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'trello'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosTrelloIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Codepen',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'codepen'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosCodepenIcon,
     iconClass: '',
   },
   {
@@ -252,6 +407,16 @@ const items = [
       isLinkInputFormState.value = true
     },
     icon: LogosYoutubeIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Embed iframe',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'externalContent'
+      isLinkInputFormState.value = true
+    },
+    icon: IcOutlineCode,
     iconClass: '',
     hasDivider: true,
   },

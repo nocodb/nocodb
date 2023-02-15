@@ -146,8 +146,8 @@ watch(
         <div
           class="mx-auto pr-6 pt-16 flex flex-col"
           :style="{
-            width: '54rem',
-            maxWidth: '40vw',
+            width: '64rem',
+            maxWidth: '45vw',
           }"
         >
           <DocsPageTitle v-if="localPage" @focus-editor="focusEditor" />

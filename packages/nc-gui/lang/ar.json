@@ -205,7 +205,8 @@
     "quickImport": "استيراد سريع",
     "advancedSettings": "الإعدادات المتقدمة",
     "codeSnippet": "كتلة برمجية",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",
@@ -386,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "إدراج صف جديد",
     "deleteRow": "حذف الصف",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "حذف الصفوف المحددة",
     "importExcel": "استيراد Excel",
     "importCSV": "استيراد CSV",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "تم تحديث ACL واجهة المستخدم للجداول بنجاح",
       "pluginUninstalled": "تم إلغاء تثبيت الإضافة بنجاح",
       "pluginSettingsSaved": "تم حفظ إعدادات الإضافة بنجاح",

@@ -1,8 +1,9 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import { GalleryPage } from '../pages/Dashboard/Gallery';
 import { GridPage } from '../pages/Dashboard/Grid';
 import setup from '../setup';
+import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 
 test.describe('Expanded form URL', () => {
   let dashboard: DashboardPage;
@@ -130,5 +131,50 @@ test.describe('Expanded form URL', () => {
   test('Gallery', async () => {
     await viewTestSakila('gallery');
     await viewTestTestTable('gallery');
+  });
+});
+
+test.describe('Expanded record duplicate & delete options', () => {
+  let dashboard: DashboardPage, toolbar: ToolbarPage;
+  let context: any;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page });
+    dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.grid.toolbar;
+  });
+
+  test('Grid', async () => {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Actor' });
+
+    // create filter to narrow down the number of records
+    await toolbar.clickFilter();
+    await toolbar.filter.add({
+      columnTitle: 'FirstName',
+      opType: 'is equal',
+      value: 'NICK',
+      isLocallySaved: false,
+    });
+    await toolbar.clickFilter();
+
+    await dashboard.grid.verifyRowCount({ count: 3 });
+
+    // expand row & duplicate
+    await dashboard.grid.openExpandedRow({ index: 0 });
+    await dashboard.expandedForm.clickDuplicateRow();
+    await dashboard.expandedForm.save();
+    await dashboard.grid.verifyRowCount({ count: 4 });
+
+    // expand row & delete
+    await dashboard.grid.openExpandedRow({ index: 3 });
+    await dashboard.expandedForm.clickDeleteRow();
+    await dashboard.grid.verifyRowCount({ count: 3 });
+
+    // expand row, duplicate & verify menu
+    await dashboard.grid.openExpandedRow({ index: 0 });
+    await dashboard.expandedForm.clickDuplicateRow();
+    expect(await dashboard.expandedForm.isDisabledDeleteRow()).toBe(1);
+    expect(await dashboard.expandedForm.isDisabledDuplicateRow()).toBe(1);
   });
 });

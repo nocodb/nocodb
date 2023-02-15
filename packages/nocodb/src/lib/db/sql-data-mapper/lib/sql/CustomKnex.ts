@@ -548,7 +548,9 @@ knex.QueryBuilder.extend(
 knex.QueryBuilder.extend('concat', function (cn: any) {
   switch (this?.client?.config?.client) {
     case 'pg':
-      this.select(this.client.raw(`STRING_AGG(?? , ',')`, [cn]));
+      this.select(
+        this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn])
+      );
       break;
     case 'mysql':
     case 'mysql2':

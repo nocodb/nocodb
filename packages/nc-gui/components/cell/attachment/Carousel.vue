@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
-import { computed, isImage, onClickOutside, ref } from '#imports'
+import { computed, isImage, onClickOutside, ref, useAttachment } from '#imports'
 
 const { selectedImage, visibleItems, downloadFile } = useAttachmentCell()!
 
 const carouselRef = ref()
 
 const imageItems = computed(() => visibleItems.value.filter((item) => isImage(item.title, item.mimetype)))
+
+const { getPossibleAttachmentSrc } = useAttachment()
 
 /** navigate to previous image on button click */
 onKeyDown(
@@ -70,33 +72,27 @@ onClickOutside(carouselRef, () => {
         >
           <template #prevArrow>
             <div class="custom-slick-arrow left-2 z-1">
-              <MaterialSymbolsArrowCircleLeftRounded class="bg-white rounded-full" />
+              <MaterialSymbolsArrowCircleLeftRounded class="rounded-full" />
             </div>
           </template>
 
           <template #nextArrow>
             <div class="custom-slick-arrow !right-2 z-1">
-              <MaterialSymbolsArrowCircleRightRounded class="bg-white rounded-full" />
+              <MaterialSymbolsArrowCircleRightRounded class="rounded-full" />
             </div>
           </template>
 
           <template #customPaging="props">
-            <a>
-              <LazyNuxtImg
-                quality="90"
-                placeholder
-                class="!block"
+            <div class="cursor-pointer h-full nc-attachment-img-wrapper">
+              <LazyCellAttachmentImage
+                class="!block m-auto h-full w-full"
                 :alt="imageItems[props.i].title || `#${props.i}`"
-                :src="imageItems[props.i].url || imageItems[props.i].data"
+                :srcs="getPossibleAttachmentSrc(imageItems[props.i])"
               />
-            </a>
+            </div>
           </template>
-
-          <div v-for="item of imageItems" :key="item.url">
-            <div
-              :style="{ backgroundImage: `url('${item.url || item.data}')` }"
-              class="min-w-70vw min-h-70vh w-full h-full bg-contain bg-center bg-no-repeat"
-            />
+          <div v-for="(item, idx) of imageItems" :key="idx">
+            <LazyCellAttachmentImage :srcs="getPossibleAttachmentSrc(item)" class="max-w-70vw max-h-70vh" />
           </div>
         </a-carousel>
       </div>
@@ -105,6 +101,9 @@ onClickOutside(carouselRef, () => {
 </template>
 
 <style scoped>
+.ant-carousel :deep(.custom-slick-arrow .nc-icon):hover {
+  @apply !bg-white;
+}
 .ant-carousel :deep(.slick-dots) {
   @apply relative mt-4;
 }
@@ -142,5 +141,9 @@ onClickOutside(carouselRef, () => {
 }
 .ant-carousel :deep(.custom-slick-arrow:hover) {
   opacity: 0.5;
+}
+
+.nc-attachment-img-wrapper {
+  width: fit-content !important;
 }
 </style>

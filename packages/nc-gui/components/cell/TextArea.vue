@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, inject, useVModel } from '#imports'
+import { EditModeInj, RowHeightInj, inject, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -9,6 +9,10 @@ const props = defineProps<{
 const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject(EditModeInj)
+
+const rowHeight = inject(RowHeightInj)
+
+const { showNull } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits, { defaultValue: '' })
 
@@ -34,6 +38,10 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
     @selectstart.capture.stop
     @mousedown.stop
   />
+
+  <span v-else-if="vModel === null && showNull" class="nc-null">NULL</span>
+
+  <LazyCellClampedText v-else-if="rowHeight" :value="vModel" :lines="rowHeight" />
 
   <span v-else>{{ vModel }}</span>
 </template>

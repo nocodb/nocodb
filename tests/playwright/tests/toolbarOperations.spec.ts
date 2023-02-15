@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import setup from '../setup';
@@ -72,5 +72,29 @@ test.describe('Toolbar operations (GRID)', () => {
     await validateFirstRow('Afghanistan');
 
     await dashboard.closeTab({ title: 'Country' });
+  });
+
+  test('row height', async () => {
+    // define an array of row heights
+    const rowHeight = [
+      { title: 'Short', height: '1.5rem' },
+      { title: 'Medium', height: '3rem' },
+      { title: 'Tall', height: '6rem' },
+      { title: 'Extra', height: '9rem' },
+    ];
+
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country' });
+
+    // set row height & verify
+    for (let i = 0; i < rowHeight.length; i++) {
+      await toolbar.clickRowHeight();
+      await toolbar.rowHeight.click({ title: rowHeight[i].title });
+      await new Promise(resolve => setTimeout(resolve, 150));
+      await dashboard.grid.rowPage.getRecordHeight(0).then(height => {
+        expect(height).toBe(rowHeight[i].height);
+      });
+    }
   });
 });

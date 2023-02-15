@@ -31,8 +31,6 @@ const { isUIAllowed } = useUIPermission()
 
 const { metas } = useMetas()
 
-const { isMobileMode } = useGlobal()
-
 const activeTab = toRef(props, 'activeTab')
 
 const activeView = ref()

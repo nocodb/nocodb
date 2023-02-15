@@ -14,6 +14,7 @@ import { FormPage } from '../../Form';
 import { ToolbarStackbyPage } from './StackBy';
 import { ToolbarAddEditStackPage } from './AddEditKanbanStack';
 import { ToolbarSearchDataPage } from './SearchData';
+import { RowHeight } from './RowHeight';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage;
@@ -26,6 +27,7 @@ export class ToolbarPage extends BasePage {
   readonly stackBy: ToolbarStackbyPage;
   readonly addEditStack: ToolbarAddEditStackPage;
   readonly searchData: ToolbarSearchDataPage;
+  readonly rowHeight: RowHeight;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage) {
     super(parent.rootPage);
@@ -39,6 +41,7 @@ export class ToolbarPage extends BasePage {
     this.stackBy = new ToolbarStackbyPage(this);
     this.addEditStack = new ToolbarAddEditStackPage(this);
     this.searchData = new ToolbarSearchDataPage(this);
+    this.rowHeight = new RowHeight(this);
   }
 
   get() {
@@ -134,6 +137,11 @@ export class ToolbarPage extends BasePage {
     const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8').replace(/\r/g, '').split('\n');
     const file = fs.readFileSync('./output/at.txt', 'utf8').replace(/\r/g, '').split('\n');
     await expect(file).toEqual(expectedData);
+  }
+
+  async clickRowHeight() {
+    // ant-btn nc-height-menu-btn nc-toolbar-btn
+    await this.get().locator(`.nc-toolbar-btn.nc-height-menu-btn`).click();
   }
 
   async verifyStackByButton({ title }: { title: string }) {

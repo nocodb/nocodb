@@ -10,8 +10,8 @@ import {
   inject,
   isImage,
   nextTick,
-  openLink,
   ref,
+  useAttachment,
   useDropZone,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
@@ -45,6 +45,8 @@ const sortableRef = ref<HTMLDivElement>()
 const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
 
 const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
+
+const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
 
 const {
   isPublic,
@@ -97,7 +99,7 @@ const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
 /** on new value, reparse our stored attachments */
 watch(
   () => modelValue,
-  (nextModel) => {
+  async (nextModel) => {
     if (nextModel) {
       try {
         const nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
@@ -219,21 +221,12 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
             <template #title>
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
-
-            <template v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)">
+            <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
-                <LazyNuxtImg
-                  quality="75"
-                  placeholder
-                  fit="cover"
-                  :alt="item.title || `#${i}`"
-                  :src="item.url || item.data"
-                  class="max-w-full max-h-full"
-                />
+                <LazyCellAttachmentImage :alt="item.title || `#${i}`" :srcs="getPossibleAttachmentSrc(item)" />
               </div>
-            </template>
-
-            <div v-else class="nc-attachment flex items-center justify-center" @click="openLink(item.url || item.data)">
+            </div>
+            <div v-else class="nc-attachment flex items-center justify-center" @click="openAttachment(item)">
               <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
               <IcOutlineInsertDriveFile v-else />

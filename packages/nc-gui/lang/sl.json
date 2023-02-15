@@ -205,7 +205,8 @@
     "quickImport": "Hitri uvoz",
     "advancedSettings": "Napredne nastavitve",
     "codeSnippet": "Odlomek kode",
-    "keyboardShortcut": "Bližnjice na tipkovnici"
+    "keyboardShortcut": "Bližnjice na tipkovnici",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Ustvaril je",
@@ -386,6 +387,7 @@
     "saveAndStay": "Shranjevanje in bivanje",
     "insertRow": "Vstavite novo vrstico",
     "deleteRow": "Izbriši vrstico",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Izbrišite izbrane vrstice",
     "importExcel": "Uvoz Excel.",
     "importCSV": "Uvoz CSV",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Stolpec je bil uspešno podvojen",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Uspešno posodobljen uporabniški vmesnik ACL za tabele",
       "pluginUninstalled": "Vtičnik uspešno odstranjen",
       "pluginSettingsSaved": "Nastavitve vtičnika so bile uspešno shranjene",

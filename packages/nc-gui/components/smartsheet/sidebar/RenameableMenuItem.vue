@@ -200,7 +200,7 @@ function onStopEdit() {
               {{ $t('activity.copyView') }}
             </template>
 
-            <MdiContentCopy class="hidden group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
+            <MdiContentCopy class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">
@@ -209,7 +209,7 @@ function onStopEdit() {
                 {{ $t('activity.deleteView') }}
               </template>
 
-              <MdiTrashCan class="hidden group-hover:block text-red-500 nc-view-delete-icon" @click.stop="onDelete" />
+              <MdiTrashCan class="!hidden !group-hover:block text-red-500 nc-view-delete-icon" @click.stop="onDelete" />
             </a-tooltip>
           </template>
         </div>

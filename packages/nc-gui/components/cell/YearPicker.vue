@@ -11,6 +11,8 @@ const { modelValue, isPk = false } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { showNull } = useGlobal()
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
@@ -58,7 +60,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
+const placeholder = computed(() => (modelValue === null && showNull.value ? 'NULL' : isYearInvalid ? 'Invalid year' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
@@ -82,6 +84,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     picker="year"
     :bordered="false"
     class="!w-full !px-0 !border-none"
+    :class="{ 'nc-null': modelValue === null && showNull }"
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"

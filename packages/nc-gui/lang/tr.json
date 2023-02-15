@@ -205,7 +205,8 @@
     "quickImport": "Hızlı İçe Aktarma",
     "advancedSettings": "Gelişmiş Ayarlar",
     "codeSnippet": "Kod Parçacığı",
-    "keyboardShortcut": "Klavye Kısayolları"
+    "keyboardShortcut": "Klavye Kısayolları",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Tarafından Oluşturuldu",
@@ -386,6 +387,7 @@
     "saveAndStay": "Kaydet ve Kal",
     "insertRow": "Yeni Satır Ekle",
     "deleteRow": "Satırı Sil",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Seçilen Satırları Sil",
     "importExcel": "Excel içe aktar",
     "importCSV": "CSV içe aktar",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Sütun başarıyla çoğaltıldı",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Tablolar için UI ACL başarıyla güncellendi",
       "pluginUninstalled": "Eklenti başarıyla kaldırıldı",
       "pluginSettingsSaved": "Eklenti ayarları başarıyla kaydedildi",

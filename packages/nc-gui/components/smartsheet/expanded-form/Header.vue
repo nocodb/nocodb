@@ -73,7 +73,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-
 const showDeleteRowModal = ref(false)
 
 const { deleteRowById } = useViewData(meta, ref(props.view))
@@ -157,7 +156,12 @@ const onConfirmDeleteRowClick = async () => {
       <template #overlay>
         <div class="bg-gray-50 py-2 shadow-lg !border">
           <div>
-            <div v-e="['a:actions:download-csv']" class="nc-menu-item" @click="emit('duplicateRow')">
+            <div
+              v-e="['a:actions:duplicate-row']"
+              class="nc-menu-item"
+              :class="{ disabled: isNew }"
+              @click="!isNew && emit('duplicateRow')"
+            >
               <MdiContentCopy class="text-gray-500" />
               {{ $t('activity.duplicateRow') }}
             </div>
@@ -166,7 +170,12 @@ const onConfirmDeleteRowClick = async () => {
               <p>Are you sure you want to delete this row?</p>
             </a-modal>
 
-            <div v-e="['a:actions:download-excel']" class="nc-menu-item" @click="onDeleteRowClick">
+            <div
+              v-e="['a:actions:delete-row']"
+              class="nc-menu-item"
+              :class="{ disabled: isNew }"
+              @click="!isNew && onDeleteRowClick()"
+            >
               <MdiDelete class="text-gray-500" />
               {{ $t('activity.deleteRow') }}
             </div>

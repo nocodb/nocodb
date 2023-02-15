@@ -70,6 +70,12 @@ watch(
 
 const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
 
+const gridPrimaryValueField = computed(() => {
+  if (activeView.value?.type !== ViewTypes.GRID) return null
+  const pvCol = Object.values(metaColumnById.value)?.find((col) => col?.pv)
+  return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
+})
+
 const onMove = (_event: { moved: { newIndex: number } }) => {
   // todo : sync with server
   if (!fields.value) return
@@ -153,7 +159,7 @@ useMenuCloseOnEsc(open)
           <MdiEyeOffOutline />
 
           <!-- Fields -->
-          <span v-if="!isMobileMode" class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
 
@@ -190,7 +196,7 @@ useMenuCloseOnEsc(open)
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
               <div
-                v-show="filteredFieldList.includes(field)"
+                v-if="filteredFieldList.filter((el) => el !== gridPrimaryValueField).includes(field)"
                 :key="field.id"
                 class="px-2 py-1 flex items-center"
                 :data-testid="`nc-fields-menu-${field.title}`"
@@ -212,6 +218,31 @@ useMenuCloseOnEsc(open)
                 <div class="flex-1" />
 
                 <MdiDrag class="cursor-move" />
+              </div>
+            </template>
+            <template v-if="activeView?.type === ViewTypes.GRID" #header>
+              <div
+                v-if="gridPrimaryValueField"
+                :key="`pv-${gridPrimaryValueField.id}`"
+                class="px-2 py-1 flex items-center"
+                :data-testid="`nc-fields-menu-${gridPrimaryValueField.title}`"
+                @click.stop
+              >
+                <a-tooltip placement="bottom">
+                  <template #title>
+                    <span class="text-sm">Primary Value</span>
+                  </template>
+
+                  <MdiTableKey class="text-xs" />
+                </a-tooltip>
+
+                <div class="flex items-center px-[8px]">
+                  <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
+
+                  <span>{{ filteredFieldList[0].title }}</span>
+                </div>
+
+                <div class="flex-1" />
               </div>
             </template>
           </Draggable>

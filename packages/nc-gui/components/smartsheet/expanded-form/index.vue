@@ -39,6 +39,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
+const { t } = useI18n()
+
 const row = ref(props.row)
 
 const state = toRef(props, 'state')
@@ -104,15 +106,19 @@ const onClose = () => {
 }
 
 const onDuplicateRow = () => {
-  // isExpanded.value = false
   duplicatingRowInProgress.value = true
-  const previousRow = Object.assign({}, row.value)
-  row.value = { row: {}, oldRow: {}, rowMeta: { new: true } }
+  const newRow = Object.assign(
+    {},
+    {
+      row: row.value.row,
+      oldRow: {},
+      rowMeta: { new: true },
+    },
+  )
   setTimeout(async () => {
-    row.value = previousRow
-    isExpanded.value = true
+    row.value = newRow
     duplicatingRowInProgress.value = false
-    message.success('Prepared duplicated row (not saved yet)')
+    message.success(t('msg.success.rowDuplicatedWithoutSavedYet'))
   }, 500)
 }
 
@@ -163,7 +169,7 @@ export default {
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicateRow="onDuplicateRow" />
+    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
 
     <div class="!bg-gray-100 rounded flex-1 relative">
       <template v-if="props.showNextPrevIcons">
@@ -184,10 +190,12 @@ export default {
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">
-            <a-spin v-if="duplicatingRowInProgress" class="!flex items-center" />
+            <div v-if="duplicatingRowInProgress" class="flex items-center justify-center h-[100px]">
+              <a-spin size="large" />
+            </div>
             <div
-              v-if="!duplicatingRowInProgress"
               v-for="(col, i) of fields"
+              v-else
               v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
               :key="col.title"
               class="mt-2 py-2"
@@ -254,9 +262,11 @@ export default {
 .nc-next-arrow {
   @apply absolute opacity-70 rounded-full transition-transform transition-background transition-opacity transform bg-white hover:(bg-gray-200) active:(scale-125 opacity-100) text-xl;
 }
+
 .nc-prev-arrow {
   @apply left-4 top-4;
 }
+
 .nc-next-arrow {
   @apply right-4 top-4;
 }

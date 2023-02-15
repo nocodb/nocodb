@@ -205,7 +205,8 @@
     "quickImport": "Snabb import",
     "advancedSettings": "Avancerade inställningar",
     "codeSnippet": "Kodutdrag",
-    "keyboardShortcut": "Tangentbordsgenvägar"
+    "keyboardShortcut": "Tangentbordsgenvägar",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Skapad av",
@@ -386,6 +387,7 @@
     "saveAndStay": "Spara och stanna",
     "insertRow": "Infoga ny rad",
     "deleteRow": "Radera raden",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Ta bort valda rader",
     "importExcel": "Import excel",
     "importCSV": "Importera CSV",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Kolumnen duplicerades framgångsrikt",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Uppdaterade UI ACL för tabeller framgångsrikt",
       "pluginUninstalled": "Plugin avinstallerades framgångsrikt",
       "pluginSettingsSaved": "Plugin-inställningarna har sparats framgångsrikt",

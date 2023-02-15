@@ -2,7 +2,7 @@
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { isImage, openLink, ref, useDropZone, useUIPermission, watch } from '#imports'
+import { isImage, ref, useAttachment, useDropZone, useUIPermission, watch } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -20,6 +20,9 @@ const {
   downloadFile,
   updateModelValue,
   selectedImage,
+  selectedVisibleItems,
+  bulkDownloadFiles,
+  renameFile,
 } = useAttachmentCell()!
 
 // todo: replace placeholder var
@@ -35,6 +38,8 @@ const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
+const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
+
 onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
@@ -44,15 +49,30 @@ function onClick(item: Record<string, any>) {
   selectedImage.value = item
   modalVisible.value = false
 
-  const stopHandle = watch(selectedImage, (nextImage, _, onCleanup) => {
+  const stopHandle = watch(selectedImage, (nextImage) => {
     if (!nextImage) {
       setTimeout(() => {
         modalVisible.value = true
       }, 50)
       stopHandle?.()
     }
+  })
+}
 
-    onCleanup(() => stopHandle?.())
+function onRemoveFileClick(title: any, i: number) {
+  Modal.confirm({
+    title: `Do you want to delete '${title}'?`,
+    wrapClassName: 'nc-modal-attachment-delete',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    onOk() {
+      try {
+        removeFile(i)
+      } catch (e: any) {
+        message.error(e.message)
+      }
+    },
   })
 }
 </script>
@@ -71,6 +91,7 @@ function onClick(item: Record<string, any>) {
         <div
           v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
           class="nc-attach-file group"
+          data-testid="attachment-expand-file-picker-button"
           @click="open"
         >
           <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120)" />
@@ -81,6 +102,10 @@ function onClick(item: Record<string, any>) {
           <div v-if="readOnly" class="text-gray-400">[Readonly]</div>
           Viewing Attachments of
           <div class="font-semibold underline">{{ column?.title }}</div>
+        </div>
+
+        <div v-if="selectedVisibleItems.includes(true)" class="flex flex-1 items-center gap-3 justify-end mr-[30px]">
+          <a-button type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles"> Bulk Download </a-button>
         </div>
       </div>
     </template>
@@ -100,31 +125,48 @@ function onClick(item: Record<string, any>) {
       <div ref="sortableRef" :class="{ dragging }" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
         <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col gap-1">
           <a-card class="nc-attachment-item group">
+            <a-checkbox
+              v-model:checked="selectedVisibleItems[i]"
+              class="nc-attachment-checkbox group-hover:(opacity-100)"
+              :class="{ '!opacity-100': selectedVisibleItems[i] }"
+            />
+
             <a-tooltip v-if="!readOnly">
               <template #title> Remove File </template>
               <MdiCloseCircle
                 v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
                 class="nc-attachment-remove"
-                @click.stop="removeFile(i)"
+                @click.stop="onRemoveFileClick(item.title, i)"
               />
             </a-tooltip>
 
             <a-tooltip placement="bottom">
-              <template #title> Download file </template>
+              <template #title> Download File </template>
 
               <div class="nc-attachment-download group-hover:(opacity-100)">
                 <MdiDownload @click.stop="downloadFile(item)" />
               </div>
             </a-tooltip>
 
+            <a-tooltip
+              v-if="isSharedForm || (!readOnly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
+              placement="bottom"
+            >
+              <template #title> Rename File </template>
+
+              <div class="nc-attachment-download group-hover:(opacity-100) mr-[35px]">
+                <MdiEditOutline @click.stop="renameFile(item, i)" />
+              </div>
+            </a-tooltip>
+
             <div
               :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
-              class="nc-attachment h-full w-full flex items-center justify-center"
+              class="nc-attachment h-full w-full flex items-center justify-center overflow-hidden"
             >
-              <div
+              <LazyCellAttachmentImage
                 v-if="isImage(item.title, item.mimetype)"
-                :style="{ backgroundImage: `url('${item.url || item.data}')` }"
-                class="w-full h-full bg-contain bg-center bg-no-repeat"
+                :srcs="getPossibleAttachmentSrc(item)"
+                class="max-w-full max-h-full m-auto justify-center"
                 @click.stop="onClick(item)"
               />
 
@@ -133,10 +175,10 @@ function onClick(item: Record<string, any>) {
                 v-else-if="item.icon"
                 height="150"
                 width="150"
-                @click.stop="openLink(item.url || item.data)"
+                @click.stop="openAttachment(item)"
               />
 
-              <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openLink(item.url || item.data)" />
+              <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openAttachment(item)" />
             </div>
           </a-card>
 
@@ -193,6 +235,11 @@ function onClick(item: Record<string, any>) {
     @apply transition-opacity duration-150 ease-in opacity-0 hover:ring;
     @apply cursor-pointer rounded shadow flex items-center p-1 border-1;
     @apply active:(ring border-0 ring-accent);
+  }
+
+  .nc-attachment-checkbox {
+    @apply absolute top-2 left-2;
+    @apply transition-opacity duration-150 ease-in opacity-0;
   }
 
   .nc-attachment-remove {

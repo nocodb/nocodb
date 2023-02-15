@@ -205,7 +205,8 @@
     "quickImport": "Snel importeren",
     "advancedSettings": "Geavanceerde instellingen",
     "codeSnippet": "Codefragment",
-    "keyboardShortcut": "Sneltoetsen"
+    "keyboardShortcut": "Sneltoetsen",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Gemaakt door",
@@ -386,6 +387,7 @@
     "saveAndStay": "Sparen & Blijven",
     "insertRow": "Voeg nieuwe rij toe",
     "deleteRow": "Verwijder rij",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Verwijder geselecteerde rijen",
     "importExcel": "Excel importeren",
     "importCSV": "CSV importeren",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Kolom succesvol gedupliceerd",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "UI ACL voor tabellen met succes bijgewerkt",
       "pluginUninstalled": "Plugin succesvol verwijderd",
       "pluginSettingsSaved": "Plugin-instellingen succesvol opgeslagen",

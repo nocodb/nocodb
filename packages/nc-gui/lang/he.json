@@ -205,7 +205,8 @@
     "quickImport": "Quick Import",
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",
@@ -386,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "הכנס שורה חדשה",
     "deleteRow": "מחק שורה",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "מחק את השורות שנבחרו",
     "importExcel": "ייבוא ​​Excel",
     "importCSV": "Import CSV",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

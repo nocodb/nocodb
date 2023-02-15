@@ -205,7 +205,8 @@
     "quickImport": "快速匯入",
     "advancedSettings": "進階設定",
     "codeSnippet": "程式碼片段",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",
@@ -386,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "插入新行",
     "deleteRow": "刪除行",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "刪除所選行",
     "importExcel": "匯入 Excel",
     "importCSV": "匯入 CSV",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "外掛移除安裝成功",
       "pluginSettingsSaved": "外掛設定儲存成功",

@@ -54,13 +54,13 @@ jobs:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
   # Build executables and publish to GitHub
-  # release-executables:
-  #   needs: [set-tag, release-npm]
-  #   uses: ./.github/workflows/release-timely-executables.yml
-  #   with:
-  #     tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.nightly_build_tag }}
-  #   secrets:
-  #     NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
+  release-executables:
+    needs: [set-tag, release-npm]
+    uses: ./.github/workflows/release-timely-executables.yml
+    with:
+      tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.nightly_build_tag }}
+    secrets:
+      NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
   # Build docker image and push to docker hub
   release-docker:

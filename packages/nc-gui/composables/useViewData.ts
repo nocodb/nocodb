@@ -19,7 +19,6 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
-  useRoute,
   useRouter,
   useSharedView,
   useSmartsheetStoreOrThrow,
@@ -49,7 +48,7 @@ export function useViewData(
 
   const router = useRouter()
 
-  const route = useRoute()
+  const route = $(router.currentRoute)
 
   const { appInfo } = $(useGlobal())
 
@@ -455,7 +454,7 @@ export function useViewData(
           order: (fieldById[c.id] && fieldById[c.id].order) || order++,
           id: fieldById[c.id] && fieldById[c.id].id,
         }))
-        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>
+        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
     } catch (e: any) {
       return message.error(`${t('msg.error.setFormDataFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }

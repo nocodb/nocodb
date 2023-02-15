@@ -205,7 +205,8 @@
     "quickImport": "Rychlý import",
     "advancedSettings": "Pokročilá nastavení",
     "codeSnippet": "Úryvek kódu",
-    "keyboardShortcut": "Klávesové zkratky"
+    "keyboardShortcut": "Klávesové zkratky",
+    "generateRandomName": "Vytvořit náhodné jméno"
   },
   "labels": {
     "createdBy": "Vytvořil/a",
@@ -386,6 +387,7 @@
     "saveAndStay": "Uložit a zůstat",
     "insertRow": "Vložit nový řádek",
     "deleteRow": "Odstranit řádek",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Odstranit vybrané řádky",
     "importExcel": "Importovat Excel",
     "importCSV": "Importovat CSV",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Sloupec úspěšně duplikován",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Úspěšná aktualizace uživatelského rozhraní ACL pro tabulky",
       "pluginUninstalled": "Plugin byl úspěšně odinstalován",
       "pluginSettingsSaved": "Nastavení zásuvného modulu bylo úspěšně uloženo",

@@ -1,15 +1,14 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
-import { useRoute } from 'vue-router'
 import {
   ClientType,
   computed,
   createEventHook,
+  createSharedComposable,
   ref,
   useApi,
   useGlobal,
-  useInjectionState,
   useNuxtApp,
   useRoles,
   useRouter,
@@ -17,18 +16,18 @@ import {
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
 
-const [setup, use] = useInjectionState(() => {
+export const useProject = createSharedComposable(() => {
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()
 
-  const route = useRoute()
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
 
   const { includeM2M } = useGlobal()
 
   const { setTheme, theme } = useTheme()
-
-  const router = useRouter()
 
   const { projectRoles, loadProjectRoles } = useRoles()
 
@@ -84,6 +83,10 @@ const [setup, use] = useInjectionState(() => {
 
   function isPg(baseId?: string) {
     return getBaseType(baseId) === 'pg'
+  }
+
+  function isXcdbBase(baseId?: string) {
+    return bases.value.find((base) => base.id === baseId)?.is_meta
   }
 
   const isSharedBase = computed(() => projectType === 'base')
@@ -174,6 +177,14 @@ const [setup, use] = useInjectionState(() => {
     setTheme()
   }
 
+  watch(
+    () => route.params.projectType,
+    (n) => {
+      if (!n) reset()
+    },
+    { immediate: true },
+  )
+
   return {
     project,
     bases,
@@ -195,17 +206,6 @@ const [setup, use] = useInjectionState(() => {
     reset,
     isLoading,
     lastOpenedViewMap,
+    isXcdbBase,
   }
-}, 'useProject')
-
-export const provideProject = setup
-
-export function useProject() {
-  const state = use()
-
-  if (!state) {
-    return setup()
-  }
-
-  return state
-}
+})

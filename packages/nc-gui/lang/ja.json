@@ -205,7 +205,8 @@
     "quickImport": "クイックインポート",
     "advancedSettings": "詳細設定",
     "codeSnippet": "コードスニペット",
-    "keyboardShortcut": "キーボードショートカット"
+    "keyboardShortcut": "キーボードショートカット",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "クリエイティッド バイ",
@@ -386,6 +387,7 @@
     "saveAndStay": "保存して続ける",
     "insertRow": "行を挿入",
     "deleteRow": "行を削除",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "選択行を削除",
     "importExcel": "エクセルファイルをインポート",
     "importCSV": "CSV のインポート",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "カラムを複製しました",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "テーブルの UI ACL を更新しました",
       "pluginUninstalled": "プラグインをアンインストールしました",
       "pluginSettingsSaved": "プラグインの設定を保存しました",

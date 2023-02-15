@@ -41,13 +41,13 @@ export const comparisonOpList: {
     text: 'is empty',
     value: 'empty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.Rating, UITypes.Number, UITypes.Decimal, UITypes.Percent, UITypes.Currency],
   },
   {
     text: 'is not empty',
     value: 'notempty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.Rating, UITypes.Number, UITypes.Decimal, UITypes.Percent, UITypes.Currency],
   },
   {
     text: 'is null',
@@ -67,7 +67,7 @@ export const comparisonOpList: {
   {
     text: 'contains any of',
     value: 'anyof',
-    includedTypes: [UITypes.MultiSelect],
+    includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect],
   },
   {
     text: 'does not contain all of',
@@ -77,26 +77,26 @@ export const comparisonOpList: {
   {
     text: 'does not contain any of',
     value: 'nanyof',
-    includedTypes: [UITypes.MultiSelect],
+    includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect],
   },
   {
     text: '>',
     value: 'gt',
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
   },
   {
     text: '<',
     value: 'lt',
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
   },
   {
     text: '>=',
     value: 'gte',
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
   },
   {
     text: '<=',
     value: 'lte',
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
   },
 ]

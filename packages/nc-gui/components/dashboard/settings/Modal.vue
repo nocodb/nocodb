@@ -170,13 +170,11 @@ watch(
 
       <a-button
         type="text"
-        class="!rounded-md border-none -mt-1.5 -mr-1"
+        class="!rounded-md border-none !px-1.5"
         data-testid="settings-modal-close-button"
         @click="vModel = false"
       >
-        <template #icon>
-          <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
-        </template>
+        <MdiClose class="cursor-pointer nc-modal-close w-4" />
       </a-button>
     </div>
 

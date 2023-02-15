@@ -205,7 +205,8 @@
     "quickImport": "Importación rápida",
     "advancedSettings": "Ajustes avanzados",
     "codeSnippet": "Fragmento de código",
-    "keyboardShortcut": "Atajos de teclado"
+    "keyboardShortcut": "Atajos de teclado",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Creado por",
@@ -386,6 +387,7 @@
     "saveAndStay": "Ahorrar y quedarse",
     "insertRow": "Insertar nueva fila",
     "deleteRow": "Borrar fila",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Eliminar filas seleccionadas",
     "importExcel": "Importar Excel",
     "importCSV": "Importar CSV",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Columna duplicada con éxito",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Actualizada con éxito la interfaz de usuario ACL para las tablas",
       "pluginUninstalled": "Plugin desinstalado correctamente",
       "pluginSettingsSaved": "La configuración del plugin se ha guardado correctamente",

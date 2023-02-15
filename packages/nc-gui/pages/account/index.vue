@@ -81,7 +81,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
             </a-menu-item>
             <a-menu-item
               v-if="isUIAllowed('license')"
-              key="apps"
+              key="license"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
               @click="navigateTo('/account/license')"
             >

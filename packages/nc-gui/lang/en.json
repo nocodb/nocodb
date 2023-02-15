@@ -205,7 +205,8 @@
     "quickImport": "Quick Import",
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",
@@ -388,6 +389,7 @@
     "insertRow": "Insert New Row",
     "duplicateRow": "Duplicate Row",
     "deleteRow": "Delete Row",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Delete Selected Rows",
     "importExcel": "Import Excel",
     "importCSV": "Import CSV",
@@ -724,6 +726,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

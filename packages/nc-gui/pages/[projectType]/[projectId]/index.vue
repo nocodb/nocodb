@@ -53,7 +53,7 @@ const { clearTabs, addTab } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
-const { copy } = useCopy()
+const { copy } = useCopy(true)
 
 // create a new sidebar state
 const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: false })
@@ -142,15 +142,17 @@ const copyProjectInfo = async () => {
   try {
     await loadProjectMetaInfo()
 
-    await copy(
-      Object.entries(projectMetaInfo.value!)
-        .map(([k, v]) => `${k}: **${v}**`)
-        .join('\n'),
-    )
-
-    // Copied to clipboard
-    message.info(t('msg.info.copiedToClipboard'))
-  } catch (e: any) {
+    if (
+      await copy(
+        Object.entries(projectMetaInfo.value!)
+          .map(([k, v]) => `${k}: **${v}**`)
+          .join('\n'),
+      )
+    ) {
+      // Copied to clipboard
+      message.info(t('msg.info.copiedToClipboard'))
+    }
+  } catch (e) {
     console.error(e)
     message.error(e.message)
   }
@@ -158,9 +160,10 @@ const copyProjectInfo = async () => {
 
 const copyAuthToken = async () => {
   try {
-    await copy(token.value!)
-    // Copied to clipboard
-    message.info(t('msg.info.copiedToClipboard'))
+    if (await copy(token.value!)) {
+      // Copied to clipboard
+      message.info(t('msg.info.copiedToClipboard'))
+    }
   } catch (e: any) {
     console.error(e)
     message.error(e.message)
@@ -278,9 +281,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         theme="light"
       >
         <div
-          style="height: var(--header-height)"
+          style="height: var(--header-height); border-bottom-width: 1px"
           :class="isOpen ? 'pl-4' : ''"
-          class="flex items-center !bg-primary text-white px-1 gap-1"
+          class="flex items-center text-primary px-1 gap-1 nc-sidebar-header"
         >
           <div
             v-if="isOpen && !isSharedBase"
@@ -293,7 +296,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
             </a-tooltip>
           </div>
 
@@ -638,7 +641,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 .nc-left-sidebar {
   .nc-sidebar-left-toggle-icon {
-    @apply opacity-0 transition-opactity duration-200 transition-color text-white/80 hover: text-white/100;
+    // <<<<<<< HEAD
+    //     @apply opacity-0 transition-opactity duration-200 transition-color text-white/80 hover: text-white/100;
+    // =======
+    @apply opacity-0 transition-opactity duration-200 transition-color text-gray-500/80 hover:text-gray-500/100;
+    // >>>>>>> develop
 
     .nc-left-sidebar {
       @apply !border-r-0;
@@ -652,5 +659,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 :deep(.ant-dropdown-menu-submenu-title) {
   @apply py-0;
+}
+
+.nc-sidebar-header {
+  @apply border-[var(--navbar-border)] !bg-[var(--navbar-bg)];
 }
 </style>

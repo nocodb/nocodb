@@ -205,7 +205,8 @@
     "quickImport": "Rýchly import",
     "advancedSettings": "Rozšírené nastavenia",
     "codeSnippet": "Úryvok kódu",
-    "keyboardShortcut": "Klávesové skratky"
+    "keyboardShortcut": "Klávesové skratky",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Vytvoril",
@@ -386,6 +387,7 @@
     "saveAndStay": "Uložiť a zostať",
     "insertRow": "Vložiť nový riadok",
     "deleteRow": "Odstrániť riadok",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Odstránenie vybraných riadkov",
     "importExcel": "Importovať aplikáciu Excel",
     "importCSV": "Import CSV",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Stĺpec bol úspešne duplikovaný",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Úspešne aktualizované používateľské rozhranie ACL pre tabuľky",
       "pluginUninstalled": "Plugin úspešne odinštalovaný",
       "pluginSettingsSaved": "Nastavenia zásuvného modulu boli úspešne uložené",

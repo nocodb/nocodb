@@ -96,7 +96,7 @@ useMenuCloseOnEsc(open)
         <div class="flex gap-2 items-center">
           <GeneralViewIcon :meta="selectedView"></GeneralViewIcon>
 
-          <span class="!text-sm font-weight-normal">
+          <span class="!text-xs font-weight-normal">
             <GeneralTruncateText :key="selectedView?.title">{{ selectedView?.title }}</GeneralTruncateText>
           </span>
 

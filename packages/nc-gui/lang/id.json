@@ -205,7 +205,8 @@
     "quickImport": "Impor Cepat",
     "advancedSettings": "Pengaturan Lanjutan",
     "codeSnippet": "Cuplikan Kode",
-    "keyboardShortcut": "Pintasan Papan Ketik"
+    "keyboardShortcut": "Pintasan Papan Ketik",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Dibuat oleh",
@@ -386,6 +387,7 @@
     "saveAndStay": "Simpan & Menginap",
     "insertRow": "Masukkan baris baru.",
     "deleteRow": "Hapus Baris",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Hapus baris yang dipilih",
     "importExcel": "Impor Excel.",
     "importCSV": "Impor CSV",
@@ -715,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Kolom berhasil diduplikasi",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Berhasil memperbarui ACL UI untuk tabel",
       "pluginUninstalled": "Plugin berhasil dihapus instalasinya",
       "pluginSettingsSaved": "Pengaturan plugin berhasil disimpan",

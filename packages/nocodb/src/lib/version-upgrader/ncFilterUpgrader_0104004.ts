@@ -153,25 +153,25 @@ const migrateMultiSelectEq = async (
 
 const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
   if (['empty', 'null'].includes(filter.comparison_op)) {
-    // migrate to checked
-    actions.push(
-      await Filter.update(
-        filter.id,
-        {
-          ...filter,
-          comparison_op: 'checked',
-        },
-        ncMeta
-      )
-    );
-  } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
-    //  migrate to not checked
+    // migrate to not checked
     actions.push(
       await Filter.update(
         filter.id,
         {
           ...filter,
           comparison_op: 'notchecked',
+        },
+        ncMeta
+      )
+    );
+  } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
+    //  migrate to checked
+    actions.push(
+      await Filter.update(
+        filter.id,
+        {
+          ...filter,
+          comparison_op: 'checked',
         },
         ncMeta
       )
@@ -190,12 +190,38 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
           ncMeta
         )
       );
+    } else if (['false', 'False', '0', 'F', 'N'].includes(filter.value)) {
+      // migrate to notchecked
+      actions.push(
+        await Filter.update(
+          filter.id,
+          {
+            ...filter,
+            comparison_op: 'notchecked',
+            value: '',
+          },
+          ncMeta
+        )
+      );
     } else {
       // invalid value - good to delete
       actions.push(await Filter.delete(filter.id, ncMeta));
     }
   } else if (filter.comparison_op === 'neq') {
     if (['false', 'False', '0', 'F', 'N'].includes(filter.value)) {
+      // migrate to checked
+      actions.push(
+        await Filter.update(
+          filter.id,
+          {
+            ...filter,
+            comparison_op: 'checked',
+            value: '',
+          },
+          ncMeta
+        )
+      );
+    } else if (['true', 'True', '1', 'T', 'Y'].includes(filter.value)) {
       // migrate to not checked
       actions.push(
         await Filter.update(

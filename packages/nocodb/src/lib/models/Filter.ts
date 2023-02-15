@@ -241,7 +241,7 @@ export default class Filter {
   }
 
   static async delete(id: string, ncMeta = Noco.ncMeta) {
-    const filter = await this.get(id);
+    const filter = await this.get(id, ncMeta);
 
     const deleteRecursively = async (filter: Filter) => {
       if (!filter) return;

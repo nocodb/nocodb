@@ -330,9 +330,13 @@ async function updateProjectMeta(ncMeta: NcMetaIO) {
     };
 
     actions.push(
-      await Project.update(project.id, {
-        meta: JSON.stringify(newProjectMeta),
-      })
+      await Project.update(
+        project.id,
+        {
+          meta: JSON.stringify(newProjectMeta),
+        },
+        ncMeta
+      )
     );
   }
   await Promise.all(actions);

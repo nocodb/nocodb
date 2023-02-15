@@ -68,10 +68,13 @@ export const ExternalContent = Node.create({
     ]
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ HTMLAttributes, node }) {
     return [
       'div',
-      { class: 'external-content-wrapper', style: 'height: 26rem;' },
+      {
+        class: 'external-content-wrapper border-1 border-gray-200 rounded-sm m-1',
+        style: node.attrs.type === 'githubGist' ? 'height: 16rem;' : 'height: 28rem;',
+      },
       ['iframe', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)],
     ]
   },

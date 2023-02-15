@@ -6,6 +6,7 @@ import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
 import {
   airtableUrlToEmbedUrl,
+  codepenUrlToEmbedUrl,
   figmaUrlToEmbedUrl,
   gSuiteUrlToEmbedUrl,
   githubGistUrlToEmbedUrl,
@@ -35,6 +36,7 @@ import LogosYoutubeIcon from '~icons/logos/youtube-icon'
 import LogosGithubIcon from '~icons/logos/github-icon'
 import LogosFigmaIcon from '~icons/logos/figma'
 import LogosAirtableIcon from '~icons/logos/airtable'
+import LogosCodepenIcon from '~icons/logos/codepen-icon'
 
 interface Props {
   command: Function
@@ -103,6 +105,10 @@ const insertLink = () => {
 
   if (isLinkInputFormType.value === 'airtable') {
     linkUrl.value = airtableUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value === 'codepen') {
+    linkUrl.value = codepenUrlToEmbedUrl(linkUrl.value)
   }
 
   editor.chain().focus().setExternalContent({
@@ -327,6 +333,16 @@ const items = [
       isLinkInputFormState.value = true
     },
     icon: LogosFigmaIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Codepen',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'codepen'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosCodepenIcon,
     iconClass: '',
   },
   {

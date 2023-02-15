@@ -41,3 +41,9 @@ export const airtableUrlToEmbedUrl = (url: string) => {
   const id = url.split('.com/')[1]
   return `https://airtable.com/embed/${id}?backgroundColor=blue`
 }
+
+export const codepenUrlToEmbedUrl = (url: string) => {
+  const userId = url.split('.io/')[1].split('/')[0]
+  const id = url.split('/pen/')[1]
+  return `https://codepen.io/${userId}/embed/${id}?default-tab=html%2Cresult`
+}

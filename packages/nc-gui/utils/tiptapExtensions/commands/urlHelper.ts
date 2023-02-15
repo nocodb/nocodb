@@ -36,3 +36,8 @@ export const githubGistUrlToEmbedUrl = (url: string) => {
 export const figmaUrlToEmbedUrl = (url: string) => {
   return `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(url)}`
 }
+
+export const airtableUrlToEmbedUrl = (url: string) => {
+  const id = url.split('.com/')[1]
+  return `https://airtable.com/embed/${id}?backgroundColor=blue`
+}

@@ -4,7 +4,13 @@ import showdown from 'showdown'
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
-import { figmaUrlToEmbedUrl, gSuiteUrlToEmbedUrl, githubGistUrlToEmbedUrl, youtubeUrlToEmbedUrl } from './urlHelper'
+import {
+  airtableUrlToEmbedUrl,
+  figmaUrlToEmbedUrl,
+  gSuiteUrlToEmbedUrl,
+  githubGistUrlToEmbedUrl,
+  youtubeUrlToEmbedUrl,
+} from './urlHelper'
 import GoogleSheetsIcon from './icons/GoogleSheets.vue'
 import GoogleDocsIcon from './icons/GoogleDocs.vue'
 import GoogleSlidesIcon from './icons/GoogleSlides.vue'
@@ -28,6 +34,7 @@ import MdiTable from '~icons/mdi/table'
 import LogosYoutubeIcon from '~icons/logos/youtube-icon'
 import LogosGithubIcon from '~icons/logos/github-icon'
 import LogosFigmaIcon from '~icons/logos/figma'
+import LogosAirtableIcon from '~icons/logos/airtable'
 
 interface Props {
   command: Function
@@ -92,6 +99,10 @@ const insertLink = () => {
 
   if (isLinkInputFormType.value === 'figma') {
     linkUrl.value = figmaUrlToEmbedUrl(linkUrl.value)
+  }
+
+  if (isLinkInputFormType.value === 'airtable') {
+    linkUrl.value = airtableUrlToEmbedUrl(linkUrl.value)
   }
 
   editor.chain().focus().setExternalContent({
@@ -286,6 +297,16 @@ const items = [
       isLinkInputFormState.value = true
     },
     icon: GoogleSlidesIcon,
+    iconClass: '',
+  },
+  {
+    title: 'Airtable',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      isLinkInputFormType.value = 'airtable'
+      isLinkInputFormState.value = true
+    },
+    icon: LogosAirtableIcon,
     iconClass: '',
   },
   {

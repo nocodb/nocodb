@@ -40,8 +40,8 @@ import { MetaTable } from '../../utils/globals';
 import formulaQueryBuilderv2 from '../../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
 import {
   createHmAndBtColumn,
-  validateRequiredField,
   validateLookupPayload,
+  validateRequiredField,
   validateRollupPayload,
 } from './helpers';
 
@@ -626,9 +626,12 @@ export async function columnSetAsPrimary(req: Request, res: Response) {
 async function updateRollupOrLookup(colBody: any, column: Column<any>) {
   if (
     UITypes.Lookup === column.uidt &&
-    validateRequiredField(colBody, ['fk_lookup_column_id', 'fk_relation_column_id'])
+    validateRequiredField(colBody, [
+      'fk_lookup_column_id',
+      'fk_relation_column_id',
+    ])
   ) {
-    await validateLookupPayload(colBody);
+    await validateLookupPayload(colBody, column.id);
     await Column.update(column.id, colBody);
   } else if (
     UITypes.Rollup === column.uidt &&

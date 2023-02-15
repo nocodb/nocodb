@@ -8,6 +8,7 @@ import {
 } from 'nocodb-sdk';
 import Column from '../../../models/Column';
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
+import LookupColumn from '../../../models/LookupColumn';
 import Model from '../../../models/Model';
 import { getUniqueColumnAliasName } from '../../helpers/getUniqueName';
 import validateParams from '../../helpers/validateParams';
@@ -111,12 +112,32 @@ export async function validateRollupPayload(
 }
 
 export async function validateLookupPayload(
-  payload: ColumnReqType & { uidt: UITypes }
+  payload: ColumnReqType & { uidt: UITypes },
+  columnId?: string
 ) {
   validateParams(
     ['title', 'fk_relation_column_id', 'fk_lookup_column_id'],
     payload
   );
+
+  // check for circular reference
+  if (columnId) {
+    let lkCol: LookupColumn | LookupColumnReqType =
+      payload as LookupColumnReqType;
+    while (lkCol) {
+      // check if lookup column is same as column itself
+      if (columnId === lkCol.fk_lookup_column_id)
+        throw new Error('Circular lookup reference not allowed');
+      lkCol = await Column.get({ colId: lkCol.fk_lookup_column_id }).then(
+        (c: Column) => {
+          if (c.uidt === 'Lookup') {
+            return c.getColOptions<LookupColumn>();
+          }
+          return null;
+        }
+      );
+    }
+  }
 
   const relation = await (
     await Column.get({

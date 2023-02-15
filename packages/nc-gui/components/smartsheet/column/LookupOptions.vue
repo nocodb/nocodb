@@ -50,7 +50,7 @@ const columns = $computed<ColumnType[]>(() => {
   if (!selectedTable?.id) {
     return []
   }
-  return metas[selectedTable.id].columns.filter((c: ColumnType) => !isSystemColumn(c))
+  return metas[selectedTable.id].columns.filter((c: ColumnType) => !isSystemColumn(c) && c.id !== vModel.value.id)
 })
 
 onMounted(() => {

@@ -107,6 +107,7 @@ type MetaDiffChange = {
       cn?: string;
       rcn?: string;
       relationType: RelationTypes;
+      cstn?: string;
     }
 );
 
@@ -146,6 +147,7 @@ async function getMetaDiff(
     cn: string;
     rcn: string;
     found?: any;
+    cstn?: string;
   }> = (await sqlClient.relationListAll())?.data?.list;
 
   for (const table of tableList) {
@@ -394,6 +396,7 @@ async function getMetaDiff(
           rcn: relation.rcn,
           msg: `New relation added`,
           relationType: RelationTypes.BELONGS_TO,
+          cstn: relation.cstn,
         });
     }
     if (!relation?.found?.[RelationTypes.HAS_MANY]) {
@@ -548,7 +551,7 @@ export async function metaDiff(req, res) {
   for (const base of project.bases) {
     try {
       // @ts-ignore
-      const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+      const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
       changes = changes.concat(await getMetaDiff(sqlClient, project, base));
     } catch (e) {
       console.log(e);
@@ -563,7 +566,7 @@ export async function baseMetaDiff(req, res) {
   const base = await Base.get(req.params.baseId);
   let changes = [];
 
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
   changes = await getMetaDiff(sqlClient, project, base);
 
   res.json(changes);
@@ -575,7 +578,7 @@ export async function metaDiffSync(req, res) {
     const virtualColumnInsert: Array<() => Promise<void>> = [];
 
     // @ts-ignore
-    const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
     const changes = await getMetaDiff(sqlClient, project, base);
 
     /* Get all relations */
@@ -736,6 +739,7 @@ export async function metaDiffSync(req, res) {
                     fk_parent_column_id: parentCol.id,
                     fk_child_column_id: childCol.id,
                     virtual: false,
+                    fk_index_name: change.cstn,
                   });
                 } else if (change.relationType === RelationTypes.HAS_MANY) {
                   const title = getUniqueColumnAliasName(
@@ -751,6 +755,7 @@ export async function metaDiffSync(req, res) {
                     fk_parent_column_id: parentCol.id,
                     fk_child_column_id: childCol.id,
                     virtual: false,
+                    fk_index_name: change.cstn,
                   });
                 }
               });
@@ -778,7 +783,7 @@ export async function baseMetaDiffSync(req, res) {
   const virtualColumnInsert: Array<() => Promise<void>> = [];
 
   // @ts-ignore
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
   const changes = await getMetaDiff(sqlClient, project, base);
 
   /* Get all relations */

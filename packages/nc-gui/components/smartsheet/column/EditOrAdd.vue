@@ -14,6 +14,7 @@ import {
   uiTypes,
   useColumnCreateStoreOrThrow,
   useEventListener,
+  useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -38,6 +39,8 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
+const { appInfo } = useGlobal()
+
 const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
@@ -47,6 +50,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
+
+const advancedDbOptions = ref(false)
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -133,7 +138,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 <template>
   <div
     class="w-[400px] bg-gray-50 shadow p-4 overflow-auto border"
-    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
+    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula, '!w-[500px]': formState.uidt === UITypes.Attachment }"
     @click.stop
   >
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
@@ -193,8 +198,9 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
       <div
         v-if="!isVirtualCol(formState.uidt)"
-        class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
+        class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
+        @dblclick="advancedDbOptions = !advancedDbOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
         <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
@@ -212,7 +218,12 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             </span>
           </a-checkbox>
 
-          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" />
+          <LazySmartsheetColumnAttachmentOptions
+            v-if="appInfo.ee && formState.uidt === UITypes.Attachment"
+            v-model:value="formState"
+          />
+
+          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" :advanced-db-options="advancedDbOptions" />
         </div>
       </Transition>
 

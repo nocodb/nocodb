@@ -586,27 +586,6 @@ class KnexClient extends SqlClient {
     if (connectionConfig.knex) {
       this.sqlClient = connectionConfig.knex;
     } else {
-      // console.log('KnexClient',this.connectionConfig);
-      if (
-        this.connectionConfig.connection.ssl &&
-        typeof this.connectionConfig.connection.ssl === 'object'
-      ) {
-        if (this.connectionConfig.connection.ssl.caFilePath) {
-          this.connectionConfig.connection.ssl.ca = fs
-            .readFileSync(this.connectionConfig.connection.ssl.caFilePath)
-            .toString();
-        }
-        if (this.connectionConfig.connection.ssl.keyFilePath) {
-          this.connectionConfig.connection.ssl.key = fs
-            .readFileSync(this.connectionConfig.connection.ssl.keyFilePath)
-            .toString();
-        }
-        if (this.connectionConfig.connection.ssl.certFilePath) {
-          this.connectionConfig.connection.ssl.cert = fs
-            .readFileSync(this.connectionConfig.connection.ssl.certFilePath)
-            .toString();
-        }
-      }
       const tmpConnectionConfig =
         connectionConfig.client === 'sqlite3'
           ? connectionConfig.connection
@@ -620,10 +599,13 @@ class KnexClient extends SqlClient {
     this.evt = new Emit();
   }
 
-  _validateInput() {
+  async _validateInput() {
     try {
       const packageJson = JSON.parse(
-        fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8')
+        await promisify(fs.readFile)(
+          path.join(process.cwd(), 'package.json'),
+          'utf8'
+        )
       );
       return (
         packageJson.name === 'nocodb' || 'nocodb' in packageJson.dependencies
@@ -632,10 +614,10 @@ class KnexClient extends SqlClient {
     return true;
   }
 
-  validateInput() {
+  async validateInput() {
     try {
       if (!('___ext' in KnexClient)) {
-        KnexClient.___ext = this._validateInput();
+        KnexClient.___ext = await this._validateInput();
       }
       if (!KnexClient.___ext) {
         Tele.emit('evt', {
@@ -2385,39 +2367,26 @@ class KnexClient extends SqlClient {
     const foreignKeyName = args.foreignKeyName || null;
 
     try {
-      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
+      const upQb = this.sqlClient.schema.table(
+        args.childTable,
+        function (table) {
+          table = table
+            .foreign(args.childColumn, foreignKeyName)
+            .references(args.parentColumn)
+            .on(args.parentTable);
 
-      await this.sqlClient.schema.table(args.childTable, function (table) {
-        table = table
-          .foreign(args.childColumn, foreignKeyName)
-          .references(args.parentColumn)
-          .on(args.parentTable);
-
-        if (args.onUpdate) {
-          table = table.onUpdate(args.onUpdate);
+          if (args.onUpdate) {
+            table = table.onUpdate(args.onUpdate);
+          }
+          if (args.onDelete) {
+            table.onDelete(args.onDelete);
+          }
         }
-        if (args.onDelete) {
-          table = table.onDelete(args.onDelete);
-        }
-      });
+      );
 
-      const upStatement =
-        this.querySeparator() +
-        (await this.sqlClient.schema
-          .table(args.childTable, function (table) {
-            table = table
-              .foreign(args.childColumn, foreignKeyName)
-              .references(args.parentColumn)
-              .on(args.parentTable);
+      await upQb;
 
-            if (args.onUpdate) {
-              table = table.onUpdate(args.onUpdate);
-            }
-            if (args.onDelete) {
-              table = table.onDelete(args.onDelete);
-            }
-          })
-          .toQuery());
+      const upStatement = this.querySeparator() + upQb.toQuery();
 
       this.emit(`Success : ${upStatement}`);
 
@@ -2425,7 +2394,7 @@ class KnexClient extends SqlClient {
         this.querySeparator() +
         this.sqlClient.schema
           .table(args.childTable, function (table) {
-            table = table.dropForeign(args.childColumn, foreignKeyName);
+            table.dropForeign(args.childColumn, foreignKeyName);
           })
           .toQuery();
 
@@ -2838,7 +2807,7 @@ class KnexClient extends SqlClient {
     console.log('in knex SeedInit');
 
     try {
-      mkdirp.sync(args.seedsFolder);
+      await mkdirp(args.seedsFolder);
     } catch (e) {
       log.ppe(e, _func);
       throw e;

@@ -15,6 +15,7 @@ export interface ERDConfig {
   singleTableMode: boolean
   showJunctionTableNames: boolean
   showMMTables: boolean
+  isFullScreen: boolean
 }
 
 export interface NodeData {

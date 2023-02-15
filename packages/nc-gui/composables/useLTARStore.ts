@@ -16,6 +16,7 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
+  useRouter,
   useSharedView,
   watch,
 } from '#imports'
@@ -107,7 +108,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenExcludedList = async () => {
       try {
         if (isPublic) {
-          const route = useRoute()
+          const router = useRouter()
+
+          const route = $(router.currentRoute)
+
           childrenExcludedList.value = await $api.public.dataRelationList(
             route.params.viewId as string,
             column.value.id,

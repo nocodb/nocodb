@@ -214,6 +214,7 @@ const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
     UITypes.Percent,
     UITypes.Duration,
     UITypes.JSON,
+    UITypes.URL,
   ].includes(uidt)
 }
 

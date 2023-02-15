@@ -21,7 +21,13 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     } else {
       continue;
     }
-    if (filter.project_id != model.project_id) {
+
+    // skip if related model is not found
+    if (!model) {
+      continue;
+    }
+
+    if (filter.project_id !== model.project_id) {
       await ncMeta.metaUpdate(
         null,
         null,

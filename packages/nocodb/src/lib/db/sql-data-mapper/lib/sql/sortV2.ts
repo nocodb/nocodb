@@ -29,6 +29,9 @@ export default async function sortV2(
     const column = await sort.getColumn();
     if (!column) continue;
     const model = await column.getModel();
+
+    const nulls = sort.direction === 'desc' ? 'LAST' : 'FIRST';
+
     switch (column.uidt) {
       case UITypes.Rollup:
         {
@@ -39,7 +42,7 @@ export default async function sortV2(
             })
           ).builder;
 
-          qb.orderBy(builder, sort.direction || 'asc');
+          qb.orderBy(builder, sort.direction || 'asc', nulls);
         }
         break;
       case UITypes.Formula:
@@ -55,7 +58,7 @@ export default async function sortV2(
               column
             )
           ).builder;
-          qb.orderBy(builder, sort.direction || 'asc');
+          qb.orderBy(builder, sort.direction || 'asc', nulls);
         }
         break;
       case UITypes.Lookup:
@@ -178,7 +181,7 @@ export default async function sortV2(
                 break;
             }
 
-            qb.orderBy(selectQb, sort.direction || 'asc');
+            qb.orderBy(selectQb, sort.direction || 'asc', nulls);
           }
         }
         break;
@@ -206,7 +209,7 @@ export default async function sortV2(
               ])
             );
 
-          qb.orderBy(selectQb, sort.direction || 'asc');
+          qb.orderBy(selectQb, sort.direction || 'asc', nulls);
         }
         break;
       case UITypes.SingleSelect: {
@@ -214,17 +217,23 @@ export default async function sortV2(
         if (clientType === 'mysql' || clientType === 'mysql2') {
           qb.orderBy(
             sanitize(knex.raw('CONCAT(??)', [column.column_name])),
-            sort.direction || 'asc'
+            sort.direction || 'asc',
+            nulls
           );
         } else if (clientType === 'mssql') {
           qb.orderBy(
             sanitize(
               knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])
             ),
-            sort.direction || 'asc'
+            sort.direction || 'asc',
+            nulls
           );
         } else {
-          qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
+          qb.orderBy(
+            sanitize(column.column_name),
+            sort.direction || 'asc',
+            nulls
+          );
         }
         break;
       }
@@ -233,22 +242,32 @@ export default async function sortV2(
         if (clientType === 'mysql' || clientType === 'mysql2') {
           qb.orderBy(
             sanitize(knex.raw('CONCAT(??)', [column.column_name])),
-            sort.direction || 'asc'
+            sort.direction || 'asc',
+            nulls
           );
         } else if (clientType === 'mssql') {
           qb.orderBy(
             sanitize(
               knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])
             ),
-            sort.direction || 'asc'
+            sort.direction || 'asc',
+            nulls
           );
         } else {
-          qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
+          qb.orderBy(
+            sanitize(column.column_name),
+            sort.direction || 'asc',
+            nulls
+          );
         }
         break;
       }
       default:
-        qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
+        qb.orderBy(
+          sanitize(column.column_name),
+          sort.direction || 'asc',
+          nulls
+        );
         break;
     }
   }

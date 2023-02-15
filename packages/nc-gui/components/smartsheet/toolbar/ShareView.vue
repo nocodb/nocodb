@@ -86,9 +86,16 @@ const genShareLink = async () => {
   if (!view.value?.id) return
 
   const response = (await $api.dbViewShare.create(view.value.id)) as SharedView
+
   const meta = isString(response.meta) ? JSON.parse(response.meta) : response.meta
 
   shared.value = { ...response, meta }
+
+  if (shared.value.type === ViewTypes.KANBAN) {
+    const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
+    shared.value.meta = { ...shared.value.meta, groupingFieldColumn: groupingFieldColumn.value }
+    await updateSharedViewMeta(true)
+  }
 
   passwordProtected.value = !!shared.value.password && shared.value.password !== ''
 
@@ -133,7 +140,7 @@ async function saveTheme() {
 
 // const saveTransitionDuration = useDebounceFn(updateSharedViewMeta, 1000, { maxWait: 2000 })
 
-async function updateSharedViewMeta() {
+async function updateSharedViewMeta(silentMessage = false) {
   try {
     const meta = shared.value.meta && isString(shared.value.meta) ? JSON.parse(shared.value.meta) : shared.value.meta
 
@@ -141,7 +148,7 @@ async function updateSharedViewMeta() {
       meta,
     })
 
-    message.success(t('msg.success.updated'))
+    if (!silentMessage) message.success(t('msg.success.updated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -179,10 +186,14 @@ function onChangeTheme(color: string) {
 
 const copyLink = async () => {
   if (sharedViewUrl.value) {
-    await copy(sharedViewUrl.value)
+    try {
+      await copy(sharedViewUrl.value)
 
-    // Copied to clipboard
-    message.success(t('msg.info.copiedToClipboard'))
+      // Copied to clipboard
+      message.success(t('msg.info.copiedToClipboard'))
+    } catch (e) {
+      message.error(e.message)
+    }
   }
 }
 
@@ -210,10 +221,14 @@ const iframeCode = computed(() => {
 
 const copyIframeCode = async () => {
   if (iframeCode.value) {
-    await copy(iframeCode.value)
+    try {
+      await copy(iframeCode.value)
 
-    // Copied to clipboard
-    message.success(t('msg.info.copiedToClipboard'))
+      // Copied to clipboard
+      message.success(t('msg.info.copiedToClipboard'))
+    } catch (e) {
+      message.error(e.message)
+    }
   }
 }
 </script>
@@ -230,7 +245,7 @@ const copyIframeCode = async () => {
       <div class="flex items-center gap-1">
         <MdiOpenInNew />
         <!-- Share View -->
-        <span class="!text-sm font-weight-normal"> {{ $t('activity.shareView') }}</span>
+        <span class="!text-xs font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>
     </a-button>
 
@@ -261,7 +276,8 @@ const copyIframeCode = async () => {
         class="flex gap-1 items-center pb-1 text-gray-500 cursor-pointer font-weight-medium mb-2 mt-4 pl-1"
         @click="copyIframeCode"
       >
-        <MdiCodeTags class="text-gray-500" /> Embed this view in your site
+        <MdiCodeTags class="text-gray-500" />
+        Embed this view in your site
       </div>
 
       <div class="px-1 mt-2 flex flex-col gap-3">

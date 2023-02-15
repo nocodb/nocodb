@@ -6,6 +6,7 @@ import {
   ColumnInj,
   Empty,
   IsPublicInj,
+  SaveRowInj,
   computed,
   inject,
   isDrawerExist,
@@ -43,11 +44,14 @@ const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const saveRow = inject(SaveRowInj, () => {})
+
 const selectedRowIndex = ref(0)
 
 const linkRow = async (row: Record<string, any>) => {
   if (isNew.value) {
     addLTARRef(row, column?.value as ColumnType)
+    saveRow()
   } else {
     await link(row)
   }

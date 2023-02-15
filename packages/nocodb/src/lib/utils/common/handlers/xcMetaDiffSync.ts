@@ -10,8 +10,8 @@ import { GqlApiBuilder } from '../../../v1-legacy/gql/GqlApiBuilder';
 export default async function (this: BaseApiBuilder<any> | any) {
   const changes: Array<NcMetaDiffType> = await xcMetaDiff.call(
     {
-      projectGetSqlClient: () => {
-        return this.getSqlClient();
+      projectGetSqlClient: async () => {
+        return await this.getSqlClient();
       },
       getProjectId: () => this.getProjectId(),
       getDbAlias: () => this.getDbAlias(),
@@ -57,7 +57,8 @@ export default async function (this: BaseApiBuilder<any> | any) {
       return true;
     });
   // @ts-ignore
-  const relationList = (await this.getSqlClient().tableList())?.data?.list;
+  const relationList = (await (await this.getSqlClient()).tableList())?.data
+    ?.list;
 
   const oldModels = await this.xcMeta.metaList(
     this.getProjectId(),

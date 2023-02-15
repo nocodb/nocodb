@@ -1,7 +1,12 @@
 import dayjs from 'dayjs'
+import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import type { AppInfo } from '~/composables/useGlobal'
 
-export default function convertCellData(args: { from: UITypes; to: UITypes; value: any }, isMysql = false) {
+export default function convertCellData(
+  args: { from: UITypes; to: UITypes; value: any; column: ColumnType; appInfo: AppInfo },
+  isMysql = false,
+) {
   const { from, to, value } = args
   if (from === to && ![UITypes.Attachment, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year].includes(to)) {
     return value
@@ -76,7 +81,57 @@ export default function convertCellData(args: { from: UITypes; to: UITypes; valu
       if (parsedVal.some((v: any) => v && !(v.url || v.data))) {
         throw new Error('Invalid attachment data')
       }
-      return JSON.stringify(parsedVal)
+      // TODO(refactor): duplicate logic in attachment/utils.ts
+      const defaultAttachmentMeta = {
+        ...(args.appInfo.ee && {
+          // Maximum Number of Attachments per cell
+          maxNumberOfAttachments: Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 50) || 50,
+          // Maximum File Size per file
+          maxAttachmentSize: Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 20) || 20,
+          supportedAttachmentMimeTypes: ['*'],
+        }),
+      }
+
+      const attachmentMeta = {
+        ...defaultAttachmentMeta,
+        ...(typeof args.column?.meta === 'string' ? JSON.parse(args.column.meta) : args.column?.meta),
+      }
+
+      const attachments = []
+
+      for (const attachment of parsedVal) {
+        if (args.appInfo.ee) {
+          // verify number of files
+          if (parsedVal.length > attachmentMeta.maxNumberOfAttachments) {
+            message.error(
+              `You can only upload at most ${attachmentMeta.maxNumberOfAttachments} file${
+                attachmentMeta.maxNumberOfAttachments > 1 ? 's' : ''
+              } to this cell.`,
+            )
+            return
+          }
+
+          // verify file size
+          if (attachment.size > attachmentMeta.maxAttachmentSize * 1024 * 1024) {
+            message.error(`The size of ${attachment.name} exceeds the maximum file size ${attachmentMeta.maxAttachmentSize} MB.`)
+            continue
+          }
+
+          // verify mime type
+          if (
+            !attachmentMeta.supportedAttachmentMimeTypes.includes('*') &&
+            !attachmentMeta.supportedAttachmentMimeTypes.includes(attachment.type) &&
+            !attachmentMeta.supportedAttachmentMimeTypes.includes(attachment.type.split('/')[0])
+          ) {
+            message.error(`${attachment.name} has the mime type ${attachment.type} which is not allowed in this column.`)
+            continue
+          }
+        }
+
+        attachments.push(attachment)
+      }
+
+      return JSON.stringify(attachments)
     }
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup:

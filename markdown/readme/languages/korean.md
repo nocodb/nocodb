@@ -185,7 +185,7 @@ docker-compose up -d
 ## 환경변수
 
 여기서 확인해주세요.
-[환경변수 ](https://docs.nocodb.com/getting-started/installation#environment-variables)
+[환경변수 ](https://docs.nocodb.com/getting-started/environment-variables)
 
 # 개발 환경에 설치
 

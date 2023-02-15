@@ -5,8 +5,8 @@ import Model from '../../../models/Model';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import getSwaggerJSON from './helpers/getSwaggerJSON';
 import Project from '../../../models/Project';
-import swaggerHtml from './swaggerHtml';
-import redocHtml from './redocHtml';
+import getSwaggerHtml from './swaggerHtml';
+import getRedocHtml from './redocHtml';
 
 async function swaggerJson(req, res) {
   const project = await Project.get(req.params.projectId);
@@ -38,6 +38,14 @@ async function swaggerJson(req, res) {
   res.json(swagger);
 }
 
+function swaggerHtml(_, res) {
+  res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+}
+
+function redocHtml(_, res) {
+  res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+}
+
 const router = Router({ mergeParams: true });
 
 // todo: auth
@@ -45,11 +53,9 @@ router.get(
   '/api/v1/db/meta/projects/:projectId/swagger.json',
   ncMetaAclMw(swaggerJson, 'swaggerJson')
 );
-router.get('/api/v1/db/meta/projects/:projectId/swagger', (_req, res) =>
-  res.send(swaggerHtml)
-);
-router.get('/api/v1/db/meta/projects/:projectId/redoc', (_req, res) =>
-  res.send(redocHtml)
-);
+
+router.get('/api/v1/db/meta/projects/:projectId/swagger', swaggerHtml);
+
+router.get('/api/v1/db/meta/projects/:projectId/redoc', redocHtml);
 
 export default router;

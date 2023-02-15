@@ -7,6 +7,7 @@ import { ToolbarPage } from '../common/Toolbar';
 import { ProjectMenuObject } from '../common/ProjectMenu';
 import { QrCodeOverlay } from '../QrCodeOverlay';
 import { BarcodeOverlay } from '../BarcodeOverlay';
+import { RowPageObject } from './Row';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -18,6 +19,7 @@ export class GridPage extends BasePage {
   readonly cell: CellPageObject;
   readonly toolbar: ToolbarPage;
   readonly projectMenu: ProjectMenuObject;
+  readonly rowPage: RowPageObject;
 
   constructor(dashboardPage: DashboardPage) {
     super(dashboardPage.rootPage);
@@ -29,6 +31,7 @@ export class GridPage extends BasePage {
     this.cell = new CellPageObject(this);
     this.toolbar = new ToolbarPage(this);
     this.projectMenu = new ProjectMenuObject(this);
+    this.rowPage = new RowPageObject(this);
   }
 
   get() {
@@ -305,18 +308,41 @@ export class GridPage extends BasePage {
   }
 
   async copyWithKeyboard() {
-    await this.get().press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
-    await this.verifyToast({ message: 'Copied to clipboard' });
+    // retry to avoid flakiness, until text is copied to clipboard
+    //
+    let text = '';
+    let retryCount = 5;
+    while (text === '') {
+      await this.get().press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
+      await this.verifyToast({ message: 'Copied to clipboard' });
+      text = await this.getClipboardText();
 
-    return this.getClipboardText();
+      // retry if text is empty till count is reached
+      retryCount--;
+      if (0 === retryCount) {
+        break;
+      }
+    }
+    return text;
   }
 
   async copyWithMouse({ index, columnHeader }: CellProps) {
-    await this.cell.get({ index, columnHeader }).click({ button: 'right' });
-    await this.get().page().getByTestId('context-menu-item-copy').click();
+    // retry to avoid flakiness, until text is copied to clipboard
+    //
+    let text = '';
+    let retryCount = 5;
+    while (text === '') {
+      await this.cell.get({ index, columnHeader }).click({ button: 'right' });
+      await this.get().page().getByTestId('context-menu-item-copy').click();
+      await this.verifyToast({ message: 'Copied to clipboard' });
+      text = await this.getClipboardText();
 
-    await this.verifyToast({ message: 'Copied to clipboard' });
-
-    return this.getClipboardText();
+      // retry if text is empty till count is reached
+      retryCount--;
+      if (0 === retryCount) {
+        break;
+      }
+    }
+    return text;
   }
 }

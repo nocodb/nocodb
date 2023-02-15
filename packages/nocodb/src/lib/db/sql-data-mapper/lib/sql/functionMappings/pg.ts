@@ -123,7 +123,7 @@ const pg = {
             .join(' AND ')}`
         )
         .wrap('(', ')')
-        .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+        .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
     );
   },
   OR: (args: MapFnArgs) => {
@@ -135,7 +135,7 @@ const pg = {
             .join(' OR ')}`
         )
         .wrap('(', ')')
-        .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`
+        .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`
     );
   },
   SUBSTR: ({ fn, knex, pt, colAlias }: MapFnArgs) => {

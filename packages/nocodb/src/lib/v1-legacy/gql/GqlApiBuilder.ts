@@ -249,7 +249,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     const t = process.hrtime();
 
-    this.initDbDriver();
+    await this.initDbDriver();
 
     // todo: change condition
     if (this.connectionConfig.meta.reset) {

@@ -1972,8 +1972,7 @@
                   "project_id": {
                     "type": "string"
                   },
-                  "meta": {
-                  }
+                  "meta": {}
                 }
               }
             }
@@ -2105,7 +2104,7 @@
         ]
       },
       "delete": {
-        "summary": "",
+        "summary": "Column Delete",
         "operationId": "db-table-column-delete",
         "responses": {
           "200": {
@@ -2114,6 +2113,18 @@
         },
         "tags": [
           "DB table column"
+        ]
+      },
+      "get": {
+        "summary": "Column Get",
+        "operationId": "db-table-column-get",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB Table Column"
         ]
       }
     },
@@ -2194,8 +2205,7 @@
                   "order": {
                     "type": "number"
                   },
-                  "meta": {
-                  },
+                  "meta": {},
                   "title": {
                     "type": "string"
                   },
@@ -3008,6 +3018,44 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/FormColumn"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/grids/{viewId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-view-grid-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Grid"
               }
             }
           }
@@ -3877,6 +3925,13 @@
             "in": "query",
             "name": "nested",
             "description": "Query params for nested data"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
           }
         ],
         "responses": {
@@ -7492,8 +7547,7 @@
               "number"
             ]
           },
-          "meta": {
-          }
+          "meta": {}
         },
         "required": [
           "table_name",
@@ -7591,8 +7645,7 @@
           "uuid": {
             "type": "string"
           },
-          "meta": {
-          },
+          "meta": {},
           "show_system_fields": {
             "type": "boolean"
           },
@@ -7835,8 +7888,7 @@
               "$ref": "#/components/schemas/Column"
             }
           },
-          "meta": {
-          }
+          "meta": {}
         },
         "required": [
           "table_name",
@@ -8494,6 +8546,9 @@
               "locked",
               "personal"
             ]
+          },
+          "row_height": {
+            "type": "number"
           }
         },
         "description": ""
@@ -9001,7 +9056,11 @@
           },
           "icon": {
             "type": "string"
-          }
+          },
+          "path": {
+            "type": "string"
+          },
+          "data": {}
         }
       },
       "Webhook": {

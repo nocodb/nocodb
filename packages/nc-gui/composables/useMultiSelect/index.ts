@@ -17,6 +17,7 @@ import {
   unref,
   useCopy,
   useEventListener,
+  useGlobal,
   useI18n,
   useMetas,
   useProject,
@@ -41,11 +42,15 @@ export function useMultiSelect(
 ) {
   const meta = ref(_meta)
 
+  const tbodyEl = ref<HTMLElement>()
+
   const { t } = useI18n()
 
   const { copy } = useCopy()
 
   const { getMeta } = useMetas()
+
+  const { appInfo } = useGlobal()
 
   const { isMysql } = useProject()
 
@@ -60,6 +65,10 @@ export function useMultiSelect(
   const activeCell = reactive<Nullable<Cell>>({ row: null, col: null })
 
   const columnLength = $computed(() => unref(fields)?.length)
+
+  const isCellActive = computed(
+    () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
+  )
 
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
@@ -171,7 +180,7 @@ export function useMultiSelect(
       return true
     }
 
-    if (activeCell.row === null || activeCell.col === null) {
+    if (!isCellActive.value) {
       return
     }
 
@@ -294,8 +303,10 @@ export function useMultiSelect(
                         value: clipboardContext.value,
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
 
@@ -326,8 +337,10 @@ export function useMultiSelect(
                         value: clipboardContext.value,
                         from: clipboardContext.uidt,
                         to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
                       },
-                      isMysql.value,
+                      isMysql(meta.value?.base_id),
                     )
                     e.preventDefault()
                     syncCellData?.(activeCell)
@@ -361,12 +374,15 @@ export function useMultiSelect(
     }
   }
 
+  const resetSelectedRange = () => selectedRange.clear()
+
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
   useEventListener(document, 'keydown', handleKeyDown)
-  useEventListener(document, 'mouseup', handleMouseUp)
+  useEventListener(tbodyEl, 'mouseup', handleMouseUp)
 
   return {
+    isCellActive,
     handleMouseDown,
     handleMouseOver,
     clearSelectedRange,
@@ -374,5 +390,7 @@ export function useMultiSelect(
     isCellSelected,
     activeCell,
     handleCellClick,
+    tbodyEl,
+    resetSelectedRange,
   }
 }

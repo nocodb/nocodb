@@ -27,7 +27,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
-const reloadViewMetaHook = inject(ReloadViewMetaHookInj)!
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
 const rootFields = inject(FieldsInj)
 
@@ -68,6 +68,12 @@ watch(
 
 const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
 
+const gridPrimaryValueField = computed(() => {
+  if (activeView.value?.type !== ViewTypes.GRID) return null
+  const pvCol = Object.values(metaColumnById.value)?.find((col) => col?.pv)
+  return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
+})
+
 const onMove = (_event: { moved: { newIndex: number } }) => {
   // todo : sync with server
   if (!fields.value) return
@@ -84,11 +90,31 @@ const onMove = (_event: { moved: { newIndex: number } }) => {
   $e('a:fields:reorder')
 }
 
+const coverOptions = computed<SelectProps['options']>(() => {
+  const filterFields =
+    fields.value
+      ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
+      .map((field) => {
+        return {
+          value: field.fk_column_id,
+          label: field.title,
+        }
+      }) ?? []
+  return [{ value: null, label: 'No Image' }, ...filterFields]
+})
+
 const coverImageColumnId = computed({
-  get: () =>
-    (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) && activeView.value?.view
-      ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
-      : undefined,
+  get: () => {
+    const fk_cover_image_col_id =
+      (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) && activeView.value?.view
+        ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
+        : undefined
+    // check if `fk_cover_image_col_id` is in `coverOptions`
+    // e.g. in share view, users may not share the cover image column
+    if (coverOptions.value?.find((o) => o.value === fk_cover_image_col_id)) return fk_cover_image_col_id
+    // set to `No Image`
+    return null
+  },
   set: async (val) => {
     if (
       (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
@@ -108,22 +134,9 @@ const coverImageColumnId = computed({
         })
         ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
       }
-      reloadViewMetaHook.trigger()
+      reloadViewMetaHook?.trigger()
     }
   },
-})
-
-const coverOptions = computed<SelectProps['options']>(() => {
-  const filterFields =
-    fields.value
-      ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
-      .map((field) => {
-        return {
-          value: field.fk_column_id,
-          label: field.title,
-        }
-      }) ?? []
-  return [{ value: null, label: 'No Image' }, ...filterFields]
 })
 
 const getIcon = (c: ColumnType) =>
@@ -144,7 +157,7 @@ useMenuCloseOnEsc(open)
           <MdiEyeOffOutline />
 
           <!-- Fields -->
-          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
+          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
 
@@ -181,7 +194,7 @@ useMenuCloseOnEsc(open)
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
               <div
-                v-show="filteredFieldList.includes(field)"
+                v-if="filteredFieldList.filter((el) => el !== gridPrimaryValueField).includes(field)"
                 :key="field.id"
                 class="px-2 py-1 flex items-center"
                 :data-testid="`nc-fields-menu-${field.title}`"
@@ -203,6 +216,31 @@ useMenuCloseOnEsc(open)
                 <div class="flex-1" />
 
                 <MdiDrag class="cursor-move" />
+              </div>
+            </template>
+            <template v-if="activeView?.type === ViewTypes.GRID" #header>
+              <div
+                v-if="gridPrimaryValueField"
+                :key="`pv-${gridPrimaryValueField.id}`"
+                class="px-2 py-1 flex items-center"
+                :data-testid="`nc-fields-menu-${gridPrimaryValueField.title}`"
+                @click.stop
+              >
+                <a-tooltip placement="bottom">
+                  <template #title>
+                    <span class="text-sm">Primary Value</span>
+                  </template>
+
+                  <MdiTableKey class="text-xs" />
+                </a-tooltip>
+
+                <div class="flex items-center px-[8px]">
+                  <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
+
+                  <span>{{ filteredFieldList[0].title }}</span>
+                </div>
+
+                <div class="flex-1" />
               </div>
             </template>
           </Draggable>

@@ -64,7 +64,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
         : [],
     )
 
-    const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim()))] // why -> .toLowerCase()
+    const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim()))]
 
     if (uniqueVals.length > maxSelectOptionsAllowed) {
       // too many options are detected, convert the column to SingleLineText instead
@@ -81,7 +81,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
       colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
     }
   } else {
-    const uniqueVals = [...new Set(colData.map((v: any) => v.toString().trim()))] // why -> .toLowerCase()
+    const uniqueVals = [...new Set(colData.map((v: any) => v.toString().trim()))]
 
     if (uniqueVals.length > maxSelectOptionsAllowed) {
       // too many options are detected, convert the column to SingleLineText instead

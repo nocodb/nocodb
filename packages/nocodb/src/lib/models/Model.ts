@@ -764,7 +764,7 @@ export default class Model implements TableType {
           null,
           exclude_id && { id: { neq: exclude_id } }
         )
-      ).title || undefined == title
+      )?.title || undefined != title
     );
   }
 

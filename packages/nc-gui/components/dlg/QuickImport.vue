@@ -61,7 +61,7 @@ const isParsingData = ref(false)
 
 const useForm = Form.useForm
 
-const importState = reactive({
+const defaultImportState = {
   fileList: [] as importFileList | streamImportFileList,
   url: '',
   jsonEditor: {},
@@ -72,7 +72,8 @@ const importState = reactive({
     firstRowAsHeaders: true,
     shouldImportData: true,
   },
-})
+}
+const importState = reactive(defaultImportState)
 
 const isImportTypeJson = computed(() => importType === 'json')
 
@@ -176,6 +177,8 @@ async function handleImport() {
     return message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     importLoading.value = false
+    templateEditorModal.value = false
+    Object.assign(importState, defaultImportState)
   }
   dialogShow.value = false
 }

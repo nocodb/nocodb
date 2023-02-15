@@ -387,6 +387,7 @@
     "saveAndStay": "Зберегти та залишитись",
     "insertRow": "Вставити новий рядок",
     "deleteRow": "Видалити рядок",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Видалити вибрані рядки",
     "importExcel": "Імпортувати з Excel",
     "importCSV": "Імпортувати з CSV",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Стовпець успішно продубльовано",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Успішно оновлено UI ACL для таблиць",
       "pluginUninstalled": "Плагін успішно видалено",
       "pluginSettingsSaved": "Налаштування плагіну успішно збережено",

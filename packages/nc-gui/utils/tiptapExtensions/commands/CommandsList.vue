@@ -4,21 +4,12 @@ import showdown from 'showdown'
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
 import { TextSelection } from 'prosemirror-state'
-import {
-  airtableUrlToEmbedUrl,
-  codepenUrlToEmbedUrl,
-  figmaUrlToEmbedUrl,
-  gSuiteUrlToEmbedUrl,
-  githubGistUrlToEmbedUrl,
-  miroUrlToEmbedUrl,
-  trelloUrlToEmbedUrl,
-  youtubeUrlToEmbedUrl,
-} from './urlHelper'
 import GoogleSheetsIcon from './custom-icons/GoogleSheets.vue'
 import GoogleDocsIcon from './custom-icons/GoogleDocs.vue'
 import GoogleSlidesIcon from './custom-icons/GoogleSlides.vue'
 import ClickupIcon from './custom-icons/Clickup.vue'
 import MiroIcon from './custom-icons/Miro.vue'
+import { getExternalContentType } from '~/utils/tiptapExtensions/external-content/urlHelper'
 import MdiFormatHeader1 from '~icons/mdi/format-header-1'
 import MdiFormatHeader2 from '~icons/mdi/format-header-2'
 import MdiFormatHeader3 from '~icons/mdi/format-header-3'
@@ -85,44 +76,9 @@ const insertLink = () => {
     return
   }
 
-  if (
-    isLinkInputFormType.value === 'youtube' &&
-    !(url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com' || url.hostname === 'youtu.be')
-  ) {
+  if (isLinkInputFormType.value !== 'externalContent' && getExternalContentType(url) !== isLinkInputFormType.value) {
     isLinkInputFormErrored.value = true
     return
-  }
-
-  if (isLinkInputFormType.value === 'youtube') {
-    linkUrl.value = youtubeUrlToEmbedUrl(linkUrl.value)
-  }
-
-  if (isLinkInputFormType.value.startsWith('google')) {
-    linkUrl.value = gSuiteUrlToEmbedUrl(linkUrl.value, isLinkInputFormType.value)!
-  }
-
-  if (isLinkInputFormType.value === 'githubGist') {
-    linkUrl.value = githubGistUrlToEmbedUrl(linkUrl.value)
-  }
-
-  if (isLinkInputFormType.value === 'figma') {
-    linkUrl.value = figmaUrlToEmbedUrl(linkUrl.value)
-  }
-
-  if (isLinkInputFormType.value === 'airtable') {
-    linkUrl.value = airtableUrlToEmbedUrl(linkUrl.value)
-  }
-
-  if (isLinkInputFormType.value === 'codepen') {
-    linkUrl.value = codepenUrlToEmbedUrl(linkUrl.value)
-  }
-
-  if (isLinkInputFormType.value === 'trello') {
-    linkUrl.value = trelloUrlToEmbedUrl(linkUrl.value)
-  }
-
-  if (isLinkInputFormType.value === 'miroUrlToEmbedUrl') {
-    linkUrl.value = miroUrlToEmbedUrl(linkUrl.value)
   }
 
   editor.chain().focus().setExternalContent({

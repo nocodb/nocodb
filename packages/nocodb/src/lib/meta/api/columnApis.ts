@@ -31,7 +31,7 @@ import NcMetaIO from '../NcMetaIO';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { NcError } from '../helpers/catchError';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import FormulaColumn from '../../models/FormulaColumn';
@@ -1592,11 +1592,11 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
 
   await table.getColumns();
 
-  const primaryValueColumn = mapDefaultPrimaryValue(table.columns);
-  if (primaryValueColumn) {
+  const displayValueColumn = mapDefaultDisplayValue(table.columns);
+  if (displayValueColumn) {
     await Model.updatePrimaryColumn(
-      primaryValueColumn.fk_model_id,
-      primaryValueColumn.id
+      displayValueColumn.fk_model_id,
+      displayValueColumn.id
     );
   }
 

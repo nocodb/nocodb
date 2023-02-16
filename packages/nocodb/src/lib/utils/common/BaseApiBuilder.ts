@@ -2515,7 +2515,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       ModelXcMetaFactory.create(
         this.connectionConfig,
         {}
-      ).mapDefaultPrimaryValue(meta.columns);
+      ).mapDefaultDisplayValue(meta.columns);
       // update meta
       await this.xcMeta.metaUpdate(
         this.projectId,

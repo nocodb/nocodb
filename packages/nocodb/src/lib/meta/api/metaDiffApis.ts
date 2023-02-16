@@ -14,7 +14,7 @@ import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import NcHelp from '../../utils/NcHelp';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import getColumnUiType from '../helpers/getColumnUiType';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 
@@ -602,7 +602,7 @@ export async function metaDiffSync(req, res) {
                 await sqlClient.columnList({ tn: table_name })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
-              mapDefaultPrimaryValue(columns);
+              mapDefaultDisplayValue(columns);
 
               const model = await Model.insert(project.id, base.id, {
                 table_name: table_name,
@@ -630,7 +630,7 @@ export async function metaDiffSync(req, res) {
                 await sqlClient.columnList({ tn: table_name })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
-              mapDefaultPrimaryValue(columns);
+              mapDefaultDisplayValue(columns);
 
               const model = await Model.insert(project.id, base.id, {
                 table_name: table_name,
@@ -798,7 +798,7 @@ export async function baseMetaDiffSync(req, res) {
               await sqlClient.columnList({ tn: table_name })
             )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
-            mapDefaultPrimaryValue(columns);
+            mapDefaultDisplayValue(columns);
 
             const model = await Model.insert(project.id, base.id, {
               table_name: table_name,
@@ -826,7 +826,7 @@ export async function baseMetaDiffSync(req, res) {
               await sqlClient.columnList({ tn: table_name })
             )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
-            mapDefaultPrimaryValue(columns);
+            mapDefaultDisplayValue(columns);
 
             const model = await Model.insert(project.id, base.id, {
               table_name: table_name,

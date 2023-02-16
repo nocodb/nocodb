@@ -3,6 +3,7 @@ import { MapType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
+import MapViewColumn from './MapViewColumn';
 
 export default class MapView implements MapType {
   fk_view_id: string;
@@ -41,21 +42,6 @@ export default class MapView implements MapType {
     return view && new MapView(view);
   }
 
-  public static async IsColumnBeingUsedInMapView(
-    columnId: string,
-    ncMeta = Noco.ncMeta
-  ) {
-    return (
-      (
-        await ncMeta.metaList2(null, null, MetaTable.MAP_VIEW, {
-          condition: {
-            fk_geo_data_col_id: columnId,
-          },
-        })
-      ).length > 0
-    );
-  }
-
   static async insert(view: Partial<MapView>, ncMeta = Noco.ncMeta) {
     const insertObj = {
       project_id: view.project_id,
@@ -65,8 +51,9 @@ export default class MapView implements MapType {
       meta: view.meta,
     };
 
+    const viewRef = await View.get(view.fk_view_id);
+
     if (!(view.project_id && view.base_id)) {
-      const viewRef = await View.get(view.fk_view_id);
       insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
     }
@@ -96,6 +83,19 @@ export default class MapView implements MapType {
       // set cache
       await NocoCache.set(key, o);
     }
+
+    if (body.fk_geo_data_col_id != null) {
+      const mapViewColumns = await MapViewColumn.list(mapId);
+      const mapViewMappedByColumn = mapViewColumns.find(
+        (mapViewColumn) =>
+          mapViewColumn.fk_column_id === body.fk_geo_data_col_id
+      );
+      await View.updateColumn(body.fk_view_id, mapViewMappedByColumn.id, {
+        show: true,
+      });
+
+    }
+
     // update meta
     return await ncMeta.metaUpdate(null, null, MetaTable.MAP_VIEW, updateObj, {
       fk_view_id: mapId,

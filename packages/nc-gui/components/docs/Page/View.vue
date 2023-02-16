@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
+import { Icon as IconifyIcon } from '@iconify/vue'
 import { useSubheading } from './utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import AlignRightIcon from '~icons/tabler/align-right'
@@ -32,15 +33,12 @@ const isLoading = ref(false)
 const content = computed(() => localPage.value?.content || '')
 
 const breadCrumbs = computed(() => {
-  const bookBreadcrumb = {
-    title: openedBook.value!.title,
-    href: bookUrl(openedBook.value!.slug!),
-  }
   const pagesBreadcrumbs = openedNestedPagesOfBook.value.map((page) => ({
     title: page.title,
     href: nestedUrl(page.slug!),
+    icon: page.icon,
   }))
-  return [bookBreadcrumb, ...pagesBreadcrumbs]
+  return [...pagesBreadcrumbs]
 })
 
 const editor = useEditor({
@@ -119,6 +117,23 @@ watch(
     immediate: true,
   },
 )
+
+watch(
+  openedPageInternal,
+  (page) => {
+    if (!localPage.value) return
+    if (localPage.value?.id !== page?.id) return
+
+    localPage.value = {
+      ...openedPageInternal.value,
+      content: localPage.value.content,
+      title: localPage.value.title,
+    } as PageSidebarNode
+  },
+  {
+    deep: true,
+  },
+)
 </script>
 
 <template>
@@ -126,8 +141,8 @@ watch(
     <div v-if="localPage" class="nc-docs-page h-full flex flex-row relative" @scroll="selectActiveSubHeading">
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-8 pt-2.5">
-          <a-breadcrumb v-if="breadCrumbs.length > 1" class="!px-2">
-            <a-breadcrumb-item v-for="({ href, title }, index) of breadCrumbs" :key="href">
+          <div class="flex flex-row !px-2">
+            <div v-for="({ href, title, icon }, index) of breadCrumbs" :key="href" class="flex">
               <NuxtLink
                 class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
                 :to="href"
@@ -136,11 +151,22 @@ watch(
                   '!text-gray-400 ': index !== breadCrumbs.length - 1,
                 }"
               >
-                {{ title }}
+                <div class="flex flex-row items-center gap-x-1.5">
+                  <IconifyIcon
+                    v-if="icon"
+                    :key="icon"
+                    :data-testid="`nc-doc-page-icon-${icon}`"
+                    class="text-sm"
+                    :icon="icon"
+                  ></IconifyIcon>
+                  <div>
+                    {{ title }}
+                  </div>
+                </div>
               </NuxtLink>
-            </a-breadcrumb-item>
-          </a-breadcrumb>
-          <div v-else class="flex"></div>
+              <div v-if="index !== breadCrumbs.length - 1" class="flex text-gray-400 text-sm px-2">/</div>
+            </div>
+          </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
         <div

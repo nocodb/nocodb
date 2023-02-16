@@ -104,7 +104,6 @@ const navigateToOpenedBook = () => {
 
 const setIcon = async (id: string, icon: string) => {
   try {
-    openedPage.value!.icon = icon
     await updatePage({ pageId: id, page: { icon } })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

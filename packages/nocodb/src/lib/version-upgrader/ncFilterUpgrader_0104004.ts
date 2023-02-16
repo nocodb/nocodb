@@ -143,6 +143,8 @@ const migrateMultiSelectEq = async (filter, col: Column, ncMeta) => {
 
 const migrateToCheckboxFilter = (filter, ncMeta) => {
   let actions = [];
+  const possibleTrueValues = ['true', 'True', '1', 'T', 'Y'];
+  const possibleFalseValues = ['false', 'False', '0', 'F', 'N'];
   if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to not checked
     actions.push(
@@ -166,7 +168,7 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
       )
     );
   } else if (filter.comparison_op === 'eq') {
-    if (['true', 'True', '1', 'T', 'Y'].includes(filter.value)) {
+    if (possibleTrueValues.includes(filter.value)) {
       // migrate to checked
       actions.push(
         Filter.update(
@@ -178,7 +180,7 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
           ncMeta
         )
       );
-    } else if (['false', 'False', '0', 'F', 'N'].includes(filter.value)) {
+    } else if (possibleFalseValues.includes(filter.value)) {
       // migrate to notchecked
       actions.push(
         Filter.update(
@@ -195,7 +197,7 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
       actions.push(Filter.delete(filter.id, ncMeta));
     }
   } else if (filter.comparison_op === 'neq') {
-    if (['false', 'False', '0', 'F', 'N'].includes(filter.value)) {
+    if (possibleFalseValues.includes(filter.value)) {
       // migrate to checked
       actions.push(
         Filter.update(
@@ -207,7 +209,7 @@ const migrateToCheckboxFilter = (filter, ncMeta) => {
           ncMeta
         )
       );
-    } else if (['true', 'True', '1', 'T', 'Y'].includes(filter.value)) {
+    } else if (possibleTrueValues.includes(filter.value)) {
       // migrate to not checked
       actions.push(
         Filter.update(

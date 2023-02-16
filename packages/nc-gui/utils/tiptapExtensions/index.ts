@@ -69,8 +69,7 @@ const tiptapExtensions = (): Extensions => {
     }),
     CodeBlock,
     createImageExtension(async (image: any) => {
-      const { url } = await uploadFile(image)
-      return url
+      return uploadFile(image)
     }),
     Underline,
     History,

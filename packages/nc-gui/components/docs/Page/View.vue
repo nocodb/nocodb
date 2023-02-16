@@ -330,7 +330,7 @@ watch(
 
     &.ProseMirror-selectednode {
       // outline with rounded corners
-      outline: 3px solid #4351e8;
+      outline: 3px solid #e8eafd;
       outline-offset: -2px;
       border-radius: 4px;
     }

@@ -1,7 +1,7 @@
 import { Node, nodeInputRule } from '@tiptap/core'
+import { NodeSelection } from 'prosemirror-state'
 import type { UploadFn } from './proseExtension'
 import { dropImagePlugin } from './proseExtension'
-
 /**
  * Matches following attributes in Markdown-typed image: [, alt, src, title]
  *
@@ -21,6 +21,7 @@ export const createImageExtension = (uploadFn: UploadFn) => {
       src: {},
       alt: { default: null },
       title: { default: null },
+      class: { default: 'mb-2' },
     }),
     parseHTML: () => [
       {
@@ -33,6 +34,7 @@ export const createImageExtension = (uploadFn: UploadFn) => {
             src: element.getAttribute('src'),
             title: element.getAttribute('title'),
             alt: element.getAttribute('alt'),
+            class: element.getAttribute('class'),
           }
         },
       },
@@ -42,28 +44,25 @@ export const createImageExtension = (uploadFn: UploadFn) => {
     // @ts-expect-error todo: fix this
     addCommands() {
       return {
-        setImage: (options: { src: any; clearCurrentNode?: boolean }) => async () => {
+        setImage: (options: { src: any }) => async () => {
           if (options?.src instanceof File) {
             const url = await uploadFn(options.src)
             options.src = url
           }
 
           const view = this.editor.view
+          const { schema } = view.state
 
-          const { selection } = view.state.tr
-          const position = selection.anchor - 2
+          const node = schema.nodes.image.create({
+            src: options.src,
+          })
 
-          if (options.clearCurrentNode) {
-            const lastNode = view.state.doc.nodeAt(position)
-            const childNode = lastNode?.firstChild
-            if (childNode?.text === '/') {
-              const transaction = view.state.tr.replaceWith(position, position + 1, view.state.schema.nodes.paragraph.create())
-              view.dispatch(transaction)
-            }
-          }
+          const currentTextBlock = view.state.doc.nodeAt(view.state.selection.from - 1)!
+          const currentParentNodePos = view.state.selection.from - 2 - currentTextBlock.nodeSize
 
-          const node = this.editor.schema.nodes.image.create(options)
-          const transaction = view.state.tr.replaceWith(position, position + 1, node)
+          const transaction = view.state.tr
+            .setSelection(NodeSelection.create(view.state.doc, currentParentNodePos))
+            .replaceSelectionWith(node)
           view.dispatch(transaction)
 
           return true

@@ -1,5 +1,5 @@
 import type { EditorView } from 'prosemirror-view'
-import { Plugin, TextSelection } from 'prosemirror-state'
+import { NodeSelection, Plugin } from 'prosemirror-state'
 
 export type UploadFn = (image: File) => Promise<string>
 
@@ -7,26 +7,14 @@ export const addImage = async (image: File, view: EditorView, upload: any) => {
   const { schema } = view.state
 
   const url = (await upload(image)) as string
-
   const node = schema.nodes.image.create({
     src: url,
   })
 
-  const transaction = view.state.tr.replaceSelectionWith(node)
+  const transaction = view.state.tr
+    .setSelection(NodeSelection.create(view.state.doc, view.state.selection.from - 2))
+    .replaceSelectionWith(node)
   view.dispatch(transaction)
-
-  let currentCursorPos = view.state.selection.$anchor.pos
-
-  // verify if we are in the end of the document
-  if (currentCursorPos + 1 === view.state.doc.content.size) {
-    currentCursorPos = currentCursorPos + 1
-    const insertParaTr = view.state.tr.insert(currentCursorPos, schema.nodes.paragraph.create())
-    view.dispatch(insertParaTr)
-  }
-
-  const newSelection = view.state.tr.doc.resolve(currentCursorPos)
-  const focusTransaction = view.state.tr.setSelection(new TextSelection(newSelection, newSelection))
-  view.dispatch(focusTransaction)
 }
 
 export const dropImagePlugin = (upload: UploadFn) => {

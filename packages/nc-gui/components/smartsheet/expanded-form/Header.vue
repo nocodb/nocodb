@@ -185,6 +185,8 @@ const onConfirmDeleteRowClick = async () => {
     </a-dropdown>
 
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
+      <template #icon><MdiMenuDown /></template>
+
       <template #overlay>
         <a-menu class="nc-expand-form-save-dropdown-menu">
           <a-menu-item key="0" class="!py-2 flex gap-2" @click="saveRowAndStay = 0">

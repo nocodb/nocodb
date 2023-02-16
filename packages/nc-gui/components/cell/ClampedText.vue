@@ -23,6 +23,10 @@ onMounted(() => {
 
 <template>
   <div ref="wrapper">
+    <!--
+      using '' for :text in text-clamp would keep the previous cell value after changing a filter
+      use ' ' instead of '' to trigger update
+    -->
     <text-clamp
       :key="`clamp-${key}-${props.value?.toString().length || 0}`"
       class="w-full h-full break-all"

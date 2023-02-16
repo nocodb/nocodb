@@ -4726,6 +4726,36 @@
         }
       }
     },
+    "/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "project-has-empty-or-null-filters",
+        "parameters": [],
+        "tags": [
+          "Project"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}": {
       "parameters": [
         {

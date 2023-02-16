@@ -49,4 +49,10 @@ export class SettingsPage extends BasePage {
     await this.get().locator('[data-testid="settings-modal-close-button"]').click();
     await this.get().waitFor({ state: 'hidden' });
   }
+
+  async toggleNullEmptyFilters() {
+    await this.selectTab({ tab: SettingTab.ProjectSettings, subTab: SettingsSubTab.Miscellaneous });
+    await this.miscellaneous.clickShowNullEmptyFilters();
+    await this.close();
+  }
 }

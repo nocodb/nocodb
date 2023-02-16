@@ -501,7 +501,7 @@ async function importTemplate() {
             }
           }
         }
-        const createdTable = await $api.base.tableCreate(project?.value?.id as string, baseId as string, {
+        const createdTable = await $api.base.tableCreate(project.value?.id as string, (baseId || project.value?.bases?.[0].id)!, {
           table_name: table.table_name,
           // leave title empty to get a generated one based on table_name
           title: '',
@@ -516,7 +516,7 @@ async function importTemplate() {
           tab.title = createdTable.title as string
         }
 
-        // set primary value
+        // set display value
         if (createdTable?.columns?.[0]?.id) {
           await $api.dbTableColumn.primaryColumnSet(createdTable.columns[0].id as string)
         }

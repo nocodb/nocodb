@@ -163,7 +163,7 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
 
       columnsArr.push(columnObj);
     }
-    this.mapDefaultPrimaryValue(columnsArr);
+    this.mapDefaultDisplayValue(columnsArr);
     return columnsArr;
   }
 */

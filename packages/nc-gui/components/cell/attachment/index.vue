@@ -10,8 +10,8 @@ import {
   inject,
   isImage,
   nextTick,
-  openLink,
   ref,
+  useAttachment,
   useDropZone,
   useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
@@ -46,6 +46,8 @@ const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
 
 const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
 
+const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
+
 const {
   isPublic,
   isForm,
@@ -60,7 +62,6 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
-  getAttachmentUrl,
 } = useProvideAttachmentCell(updateModelValue)
 
 watch(
@@ -101,16 +102,7 @@ watch(
   async (nextModel) => {
     if (nextModel) {
       try {
-        let nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
-
-        // reconstruct the url
-        // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
-        nextAttachments = await Promise.all(
-          nextAttachments.map(async (attachment: any) => ({
-            ...attachment,
-            url: await getAttachmentUrl(attachment),
-          })),
-        )
+        const nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
 
         if (isPublic.value && isForm.value) {
           storedFiles.value = nextAttachments
@@ -229,21 +221,12 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
             <template #title>
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
-
-            <template v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)">
+            <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
-                <LazyNuxtImg
-                  quality="75"
-                  placeholder
-                  fit="cover"
-                  :alt="item.title || `#${i}`"
-                  :src="item.url || item.data"
-                  class="max-w-full max-h-full"
-                />
+                <LazyCellAttachmentImage :alt="item.title || `#${i}`" :srcs="getPossibleAttachmentSrc(item)" />
               </div>
-            </template>
-
-            <div v-else class="nc-attachment flex items-center justify-center" @click="openLink(item.url || item.data)">
+            </div>
+            <div v-else class="nc-attachment flex items-center justify-center" @click="openAttachment(item)">
               <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
               <IcOutlineInsertDriveFile v-else />

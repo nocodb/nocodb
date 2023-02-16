@@ -1,6 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { useRoute } from 'vue-router'
-import { computed, navigateTo, ref, useInjectionState, useProject, useRouter, watch } from '#imports'
+import { computed, createSharedComposable, navigateTo, ref, useProject, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 
@@ -11,12 +11,12 @@ function getPredicate(key: Partial<TabItem>) {
     (!('type' in key) || tab.type === key.type)
 }
 
-const [setup, use] = useInjectionState(() => {
+export const useTabs = createSharedComposable(() => {
   const tabs = ref<TabItem[]>([])
 
-  const route = useRoute()
-
   const router = useRouter()
+
+  const route = $(router.currentRoute)
 
   const { bases, tables } = useProject()
 
@@ -158,13 +158,3 @@ const [setup, use] = useInjectionState(() => {
 
   return { tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab }
 })
-
-export function useTabs() {
-  const state = use()
-
-  if (!state) {
-    return setup()
-  }
-
-  return state
-}

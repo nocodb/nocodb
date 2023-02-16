@@ -8,12 +8,12 @@ html {
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, Vazirmatn,
+body , *  {
+  font-family: 'Inter', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, Vazirmatn,
     sans-serif;
 }
 
-/* 
+/*
 Apply Vazirmatn for rtl
 */
 

@@ -37,9 +37,9 @@ export default defineNuxtConfig({
   },
 
   css: [
+    '~/assets/style/fonts.css',
     'virtual:windi.css',
     'virtual:windi-devtools',
-    '~/assets/style/fonts.css',
     '~/assets/css/global.css',
     '~/assets/style.scss',
   ],

@@ -14,6 +14,7 @@ import {
   message,
   ref,
   useApi,
+  useAttachment,
   useFileDialog,
   useI18n,
   useInjectionState,
@@ -59,6 +60,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const { appInfo } = useGlobal()
 
     const { t } = useI18n()
+
+    const { getAttachmentSrc } = useAttachment()
 
     const defaultAttachmentMeta = {
       ...(appInfo.value.ee && {
@@ -226,31 +229,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** download a file */
     async function downloadFile(item: AttachmentType) {
-      ;(await import('file-saver')).saveAs(item.url || item.data, item.title)
-    }
-
-    /** construct the attachment url
-     * See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
-     * */
-    async function getAttachmentUrl(item: AttachmentType) {
-      const path = item?.path
-      // if path doesn't exist, use `item.url`
-      if (path) {
-        // try ${appInfo.value.ncSiteUrl}/${item.path} first
-        const url = `${appInfo.value.ncSiteUrl}/${item.path}`
-        try {
-          const res = await fetch(url)
-          if (res.ok) {
-            // use `url` if it is accessible
-            return Promise.resolve(url)
-          }
-        } catch {
-          // for some cases, `url` is not accessible as expected
-          // do nothing here
-        }
+      const src = await getAttachmentSrc(item)
+      if (src) {
+        ;(await import('file-saver')).saveAs(src, item.title)
+      } else {
+        message.error('Failed to download file')
       }
-      // if it fails, use the original url
-      return Promise.resolve(item.url)
     }
 
     const FileIcon = (icon: string) => {
@@ -294,7 +278,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       storedFiles,
       bulkDownloadFiles,
       defaultAttachmentMeta,
-      getAttachmentUrl,
     }
   },
   'useAttachmentCell',

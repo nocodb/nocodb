@@ -140,13 +140,16 @@ const resendInvite = async (user: User) => {
   $e('a:user:resend-invite')
 }
 
-const copyInviteUrl = (user: User) => {
+const copyInviteUrl = async (user: User) => {
   if (!user.invite_token) return
+  try {
+    await copy(`${dashboardUrl}#/signup/${user.invite_token}`)
 
-  copy(`${dashboardUrl}#/signup/${user.invite_token}`)
-
-  // Invite URL copied to clipboard
-  message.success(t('msg.success.inviteURLCopied'))
+    // Invite URL copied to clipboard
+    message.success(t('msg.success.inviteURLCopied'))
+  } catch (e) {
+    message.error(e.message)
+  }
   $e('c:user:copy-url')
 }
 
@@ -320,7 +323,13 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
               </a-button>
             </a-tooltip>
 
-            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
+            <a-dropdown
+              v-if="user.invite_token"
+              :trigger="['click']"
+              class="flex"
+              placement="bottomRight"
+              overlay-class-name="nc-dropdown-user-mgmt"
+            >
               <div class="flex flex-row items-center">
                 <a-button type="text" class="!px-0">
                   <div class="flex flex-row items-center h-[1.2rem]">

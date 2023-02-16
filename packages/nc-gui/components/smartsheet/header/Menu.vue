@@ -68,11 +68,13 @@ const deleteColumn = () =>
     },
   })
 
-const setAsPrimaryValue = async () => {
+const setAsDisplayValue = async () => {
   try {
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
 
     await getMeta(meta?.value?.id as string, true)
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
     // Successfully updated as primary column
     message.success(t('msg.success.primaryColumnUpdated'))
@@ -154,6 +156,7 @@ const duplicateColumn = async () => {
 
     await $api.dbTableColumn.create(meta!.value!.id!, {
       ...columnCreatePayload,
+      pv: false,
       column_order: {
         order: newColumnOrder,
         view_id: view.value?.id as string,
@@ -162,6 +165,7 @@ const duplicateColumn = async () => {
     await getMeta(meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    reloadDataHook?.trigger()
 
     message.success(t('msg.success.columnDuplicated'))
   } catch (e) {
@@ -240,7 +244,7 @@ const hideField = async () => {
           </a-menu-item>
         </template>
         <a-divider class="!my-0" />
-        <a-menu-item @click="hideField">
+        <a-menu-item v-if="!column?.pv" @click="hideField">
           <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
             <MdiEyeOffOutline class="text-primary" />
             <!-- Hide Field -->
@@ -267,7 +271,7 @@ const hideField = async () => {
             {{ t('general.insertAfter') }}
           </div>
         </a-menu-item>
-        <a-menu-item @click="addColumn(true)">
+        <a-menu-item v-if="!column?.pv" @click="addColumn(true)">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
             <MdiTableColumnPlusBefore class="text-primary" />
             <!-- Insert Before -->
@@ -276,17 +280,17 @@ const hideField = async () => {
         </a-menu-item>
         <a-divider class="!my-0" />
 
-        <a-menu-item v-if="!virtual" @click="setAsPrimaryValue">
+        <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
           <div class="nc-column-set-primary nc-header-menu-item">
             <MdiStar class="text-primary" />
 
             <!--       todo : tooltip -->
-            <!-- Set as Primary value -->
-            {{ $t('activity.setPrimary') }}
+            <!-- Set as Display value -->
+            {{ $t('activity.setDisplay') }}
           </div>
         </a-menu-item>
 
-        <a-menu-item @click="deleteColumn">
+        <a-menu-item v-if="!column?.pv" @click="deleteColumn">
           <div class="nc-column-delete nc-header-menu-item">
             <MdiDeleteOutline class="text-error" />
             <!-- Delete -->

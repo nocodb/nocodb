@@ -17,7 +17,7 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "fs": "0.0.1-security",
-    "lerna": "^3.20.1",
+    "lerna": "^6.4.1",
     "husky": "^8.0.0",
     "xlsx": "^0.17.4"
   },
@@ -43,6 +43,8 @@
     "install:local:dep": "cd packages/nc-lib-gui;npm uninstall -S xc-lib;rm package-lock.json; npm i ../../../xc-lib-private; cd ../xc-instant;npm uninstall -S xc-lib xc-lib-gui;npm i ../../../xc-lib-private;npm i ../xc-lib-gui",
     "install:npm:dep": "cd packages/nc-lib-gui;npm uninstall -S xc-lib; npm i -S xc-lib@latest; cd ../xc-instant;npm uninstall -S xc-lib xc-lib-gui;npm i -S xc-lib@latest xc-lib-gui@latest;npm i ../xc-lib-gui",
     "prepare": "husky install",
+    "start:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d",
+    "stop:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml down",
     "start:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml up -d",
     "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down"
   },

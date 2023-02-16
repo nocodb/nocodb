@@ -17,7 +17,9 @@ import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
   if (!req['user']?.id) {
-    NcError.unauthorized('Unauthorized');
+    if (!req['user']?.isPublicBase) {
+      NcError.unauthorized('Unauthorized');
+    }
   }
 
   try {
@@ -25,6 +27,7 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
     if (
       req['user'].roles?.includes(OrgUserRoles.SUPER_ADMIN) ||
       req['user'].roles?.includes(OrgUserRoles.CREATOR) ||
+      req['user'].roles?.includes(ProjectRoles.EDITOR) ||
       // if viewer then check at-least one project have editor or higher role
       // todo: cache
       !!(await Noco.ncMeta
@@ -54,7 +57,7 @@ export async function upload(req: Request, res: Response) {
     (req as any).files?.map(async (file) => {
       const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
 
-      let url = await storageAdapter.fileCreate(
+      const url = await storageAdapter.fileCreate(
         slash(path.join(destPath, fileName)),
         file
       );
@@ -96,21 +99,25 @@ export async function uploadViaURL(req: Request, res: Response) {
     req.body?.map?.(async (urlMeta) => {
       const { url, fileName: _fileName } = urlMeta;
 
-      const fileName = `${nanoid(6)}${_fileName || url.split('/').pop()}`;
+      const fileName = `${nanoid(18)}${_fileName || url.split('/').pop()}`;
 
-      let attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
+      const attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
         slash(path.join(destPath, fileName)),
         url
       );
 
+      let attachmentPath;
+
+      // if `attachmentUrl` is null, then it is local attachment
       if (!attachmentUrl) {
-        attachmentUrl = `${(req as any).ncSiteUrl}/download/${filePath.join(
-          '/'
-        )}/${fileName}`;
+        // then store the attachement path only
+        // url will be constructued in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 
       return {
-        url: attachmentUrl,
+        ...(attachmentUrl ? { url: attachmentUrl } : {}),
+        ...(attachmentPath ? { path: attachmentPath } : {}),
         title: fileName,
         mimetype: urlMeta.mimetype,
         size: urlMeta.size,

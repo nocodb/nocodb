@@ -17,6 +17,7 @@ import {
   ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
+  RowHeightInj,
   SmartsheetStoreEvents,
   computed,
   createEventHook,
@@ -97,13 +98,12 @@ const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
-const tbodyEl = ref<HTMLElement>()
 const gridWrapper = ref<HTMLElement>()
 const tableHead = ref<HTMLElement>()
 
-const isAddingColumnAllowed = !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value
+const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
-const isAddingEmptyRowAllowed = !isView && !isLocked.value && hasEditPermission && !isSqlView.value
+const isAddingEmptyRowAllowed = $computed(() => !isView && !isLocked.value && hasEditPermission && !isSqlView.value)
 
 const {
   isLoading,
@@ -182,6 +182,8 @@ const {
   clearSelectedRange,
   copyValue,
   isCellActive,
+  tbodyEl,
+  resetSelectedRange,
 } = useMultiSelect(
   meta,
   fields,
@@ -279,6 +281,14 @@ const {
           if (isAddingEmptyRowAllowed) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
+            activeCell.row = data.value.length - 1
+            activeCell.col = 0
+            resetSelectedRange()
+            nextTick(() => {
+              ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
+                behavior: 'smooth',
+              })
+            })
           }
           break
         }
@@ -353,6 +363,23 @@ function scrollToCell(row?: number | null, col?: number | null) {
   }
 }
 
+const rowHeight = computed(() => {
+  if ((view.value?.view as GridType)?.row_height !== undefined) {
+    switch ((view.value?.view as GridType)?.row_height) {
+      case 0:
+        return 1
+      case 1:
+        return 2
+      case 2:
+        return 4
+      case 3:
+        return 6
+      default:
+        return 1
+    }
+  }
+})
+
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
@@ -364,6 +391,8 @@ provide(IsGridInj, ref(true))
 provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
+
+provide(RowHeightInj, rowHeight)
 
 const disableUrlOverlay = ref(false)
 provide(CellUrlDisableOverlayInj, disableUrlOverlay)
@@ -495,7 +524,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 
-onClickOutside(smartTable, (e) => {
+onClickOutside(tbodyEl, (e) => {
   // do nothing if context menu was open
   if (contextMenu.value) return
 
@@ -570,11 +599,14 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
       currentRow.rowMeta.changed = false
       continue
     }
+
     /** if existing row check updated cell and invoke update method */
     if (currentRow.rowMeta.changed) {
       currentRow.rowMeta.changed = false
       for (const field of (args.metaValue || meta.value)?.columns ?? []) {
-        if (isVirtualCol(field)) continue
+        // `url` would be enriched in attachment during listing
+        // hence it would consider as a change while it is not necessary to update
+        if (isVirtualCol(field) || field.uidt === UITypes.Attachment) continue
         if (field.title! in currentRow.row && currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
           await updateOrSaveRow(currentRow, field.title!, {}, args)
         }
@@ -801,9 +833,9 @@ const rowHeight = computed(() => {
           @contextmenu="showContextMenu"
         >
           <thead ref="tableHead">
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
-              <th data-testid="grid-id-column">
-                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" data-testid="nc-check-all">
+            <tr class="nc-grid-header">
+              <th class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
+                <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
@@ -945,7 +977,7 @@ const rowHeight = computed(() => {
                         class="nc-row-no text-xs text-gray-500"
                         :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                       >
-                        {{ rowIndex + 1 }}
+                        {{ ((paginationData.page ?? 1) - 1) * 25 + rowIndex + 1 }}
                       </div>
                       <div
                         v-if="!readOnly"
@@ -997,6 +1029,8 @@ const rowHeight = computed(() => {
                     :class="{
                       'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
+                      'align-middle': !rowHeight || rowHeight === 1,
+                      'align-top': rowHeight && rowHeight !== 1,
                     }"
                     :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                     :data-key="rowIndex + columnObj.id"
@@ -1017,6 +1051,7 @@ const rowHeight = computed(() => {
                         :row="row"
                         :read-only="readOnly"
                         @navigate="onNavigate"
+                        @save="updateOrSaveRow(row, '', state)"
                       />
 
                       <LazySmartsheetCell
@@ -1151,21 +1186,24 @@ const rowHeight = computed(() => {
 
   td,
   th {
+    @apply border-gray-200 border-solid border-b border-r;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
   }
 
-  td:not(:first-child) > div {
-    overflow: hidden;
-    @apply flex px-1;
+  th {
+    @apply bg-gray-100;
   }
 
-  table,
-  td,
-  th {
-    @apply !border-1;
-    border-collapse: collapse;
+  td:not(:first-child) > div {
+    overflow: hidden;
+    @apply flex px-1 h-auto;
+  }
+
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   td {
@@ -1185,7 +1223,7 @@ const rowHeight = computed(() => {
 
   // todo: replace with css variable
   td.active::after {
-    @apply border-2 border-solid text-primary border-current bg-primary bg-opacity-5;
+    @apply border-1 border-solid text-primary border-current bg-primary bg-opacity-5;
   }
 
   //td.active::before {
@@ -1193,6 +1231,34 @@ const rowHeight = computed(() => {
   //  z-index:4;
   //  @apply absolute !w-[10px] !h-[10px] !right-[-5px] !bottom-[-5px] bg-primary;
   //}
+
+  thead th:nth-child(1) {
+    position: sticky !important;
+    left: 0;
+    z-index: 5;
+  }
+
+  tbody td:nth-child(1) {
+    position: sticky !important;
+    left: 0;
+    z-index: 4;
+    background: white;
+  }
+
+  thead th:nth-child(2) {
+    position: sticky !important;
+    left: 80px;
+    z-index: 5;
+    @apply border-r-1 border-r-gray-300;
+  }
+
+  tbody td:nth-child(2) {
+    position: sticky !important;
+    left: 80px;
+    z-index: 4;
+    background: white;
+    @apply shadow-lg border-r-1 border-r-gray-300;
+  }
 }
 
 :deep {
@@ -1239,7 +1305,7 @@ const rowHeight = computed(() => {
   position: sticky;
   top: -1px;
 
-  @apply z-1;
+  @apply z-10 bg-gray-100;
 
   &:hover {
     .nc-no-label {

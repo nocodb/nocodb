@@ -341,8 +341,8 @@ export async function aggregatedMetaInfo(_req: Request, res: Response) {
               project.getBases().then(async (bases) => {
                 return extractResultOrNull(
                   await Promise.allSettled(
-                    bases.map((base) =>
-                      NcConnectionMgrv2.getSqlClient(base)
+                    bases.map(async (base) =>
+                      (await NcConnectionMgrv2.getSqlClient(base))
                         .totalRecords?.()
                         ?.then((result) => result?.data)
                     )

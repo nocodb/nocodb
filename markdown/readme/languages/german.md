@@ -190,7 +190,7 @@ docker-compose up -d
 
 ## Umgebungsvariablen
 
-Siehe [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+Siehe [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
 
 # Entwicklungsaufbau
 

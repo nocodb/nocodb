@@ -1,10 +1,12 @@
 <script lang="ts" setup>
+import { onUnmounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
+  CellClickHookInj,
   ColumnInj,
   IsKanbanInj,
   ReadonlyInj,
@@ -13,6 +15,7 @@ import {
   extractSdkResponseErrorMsg,
   h,
   inject,
+  isDrawerOrModalExist,
   onMounted,
   reactive,
   ref,
@@ -28,9 +31,10 @@ import MdiCloseCircle from '~icons/mdi/close-circle'
 interface Props {
   modelValue?: string | string[]
   rowIndex?: number
+  disableOptionCreation?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -43,6 +47,8 @@ const active = inject(ActiveCellInj, ref(false))
 const editable = inject(EditModeInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
 
 const selectedIds = ref<string[]>([])
 
@@ -85,7 +91,7 @@ const isOptionMissing = computed(() => {
 
 const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
 
-const editAllowed = computed(() => hasEditRoles.value && (active.value || editable.value))
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
 
 const vModel = computed({
   get: () => {
@@ -126,12 +132,6 @@ const selectedTitles = computed(() =>
     : [],
 )
 
-const handleClose = (e: MouseEvent) => {
-  if (aselect.value && !aselect.value.$el.contains(e.target)) {
-    isOpen.value = false
-  }
-}
-
 onMounted(() => {
   selectedIds.value = selectedTitles.value.flatMap((el) => {
     const item = options.value.find((op) => op.title === el)
@@ -143,8 +143,6 @@ onMounted(() => {
     return []
   })
 })
-
-useEventListener(document, 'click', handleClose)
 
 watch(
   () => modelValue,
@@ -161,6 +159,8 @@ watch(
 )
 
 watch(isOpen, (n, _o) => {
+  if (!n) searchVal.value = ''
+
   if (editAllowed.value) {
     if (!n) {
       aselect.value?.$el?.querySelector('input')?.blur()
@@ -180,6 +180,9 @@ useSelectedCellKeyupListener(active, (e) => {
         isOpen.value = true
       }
       break
+    // skip space bar key press since it's used for expand row
+    case ' ':
+      break
     case 'ArrowUp':
     case 'ArrowDown':
     case 'ArrowRight':
@@ -193,12 +196,17 @@ useSelectedCellKeyupListener(active, (e) => {
         break
       }
       // toggle only if char key pressed
-      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1) {
+      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
         e.stopPropagation()
         isOpen.value = true
       }
       break
   }
+})
+
+// close dropdown list on escape
+useSelectedCellKeyupListener(isOpen, (e) => {
+  if (e.key === 'Escape') isOpen.value = false
 })
 
 const activeOptCreateInProgress = ref(0)
@@ -273,95 +281,133 @@ const onTagClick = (e: Event, onClose: Function) => {
     onClose()
   }
 }
+
+const cellClickHook = inject(CellClickHookInj)
+
+const toggleMenu = () => {
+  if (cellClickHook) return
+  isOpen.value = editAllowed.value && !isOpen.value
+}
+
+const cellClickHookHandler = () => {
+  isOpen.value = editAllowed.value && !isOpen.value
+}
+onMounted(() => {
+  cellClickHook?.on(cellClickHookHandler)
+})
+onUnmounted(() => {
+  cellClickHook?.on(cellClickHookHandler)
+})
+
+const handleClose = (e: MouseEvent) => {
+  // close dropdown if clicked outside of dropdown
+  if (
+    isOpen.value &&
+    aselect.value &&
+    !aselect.value.$el.contains(e.target) &&
+    !document.querySelector('.nc-dropdown-multi-select-cell.active')?.contains(e.target as Node)
+  ) {
+    isOpen.value = false
+  }
+}
+
+useEventListener(document, 'click', handleClose, true)
 </script>
 
 <template>
-  <a-select
-    ref="aselect"
-    v-model:value="vModel"
-    v-model:open="isOpen"
-    mode="multiple"
-    class="w-full overflow-hidden"
-    :bordered="false"
-    clear-icon
-    show-search
-    :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel.length === 0))"
-    :open="isOpen && (active || editable)"
-    :disabled="readOnly"
-    :class="{ '!ml-[-8px]': readOnly, 'caret-transparent': !hasEditRoles }"
-    :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
-    @search="search"
-    @keydown.stop
-    @click="isOpen = editAllowed && !isOpen"
-  >
-    <a-select-option
-      v-for="op of options"
-      :key="op.id || op.title"
-      :value="op.title"
-      :data-testid="`select-option-${column.title}-${rowIndex}`"
-      @click.stop
+  <div class="nc-multi-select h-full w-full flex items-center" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+    <a-select
+      ref="aselect"
+      v-model:value="vModel"
+      mode="multiple"
+      class="w-full overflow-hidden"
+      :bordered="false"
+      clear-icon
+      show-search
+      :show-arrow="editAllowed && !readOnly"
+      :open="isOpen && editAllowed"
+      :disabled="readOnly || !editAllowed"
+      :class="{ 'caret-transparent': !hasEditRoles }"
+      :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
+      @search="search"
+      @keydown.stop
     >
-      <a-tag class="rounded-tag" :color="op.color">
-        <span
-          :style="{
-            'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-              ? '#fff'
-              : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-            'font-size': '13px',
-          }"
-          :class="{ 'text-sm': isKanban }"
-        >
-          {{ op.title }}
-        </span>
-      </a-tag>
-    </a-select-option>
-
-    <a-select-option
-      v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
-      :key="searchVal"
-      :value="searchVal"
-    >
-      <div class="flex gap-2 text-gray-500 items-center h-full">
-        <MdiPlusThick class="min-w-4" />
-        <div class="text-xs whitespace-normal">
-          Create new option named <strong>{{ searchVal }}</strong>
-        </div>
-      </div>
-    </a-select-option>
-
-    <template #tagRender="{ value: val, onClose }">
-      <a-tag
-        v-if="options.find((el) => el.title === val)"
-        class="rounded-tag nc-selected-option"
-        :style="{ display: 'flex', alignItems: 'center' }"
-        :color="options.find((el) => el.title === val)?.color"
-        :closable="editAllowed && (active || editable) && (vModel.length > 1 || !column?.rqd)"
-        :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
-        @click="onTagClick($event, onClose)"
-        @close="onClose"
+      <a-select-option
+        v-for="op of options"
+        :key="op.id || op.title"
+        :value="op.title"
+        :data-testid="`select-option-${column.title}-${rowIndex}`"
+        :class="`nc-select-option-${column.title}-${op.title}`"
+        @click.stop
       >
-        <span
-          :style="{
-            'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
-              level: 'AA',
-              size: 'large',
-            })
-              ? '#fff'
-              : tinycolor
-                  .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
-                  .toHex8String(),
-            'font-size': '13px',
-          }"
-          :class="{ 'text-sm': isKanban }"
+        <a-tag class="rounded-tag" :color="op.color">
+          <span
+            :style="{
+              'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                ? '#fff'
+                : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ op.title }}
+          </span>
+        </a-tag>
+      </a-select-option>
+
+      <a-select-option
+        v-if="
+          searchVal &&
+          isOptionMissing &&
+          !isPublic &&
+          !disableOptionCreation &&
+          (hasRole('owner', true) || hasRole('creator', true))
+        "
+        :key="searchVal"
+        :value="searchVal"
+      >
+        <div class="flex gap-2 text-gray-500 items-center h-full">
+          <MdiPlusThick class="min-w-4" />
+          <div class="text-xs whitespace-normal">
+            Create new option named <strong>{{ searchVal }}</strong>
+          </div>
+        </div>
+      </a-select-option>
+
+      <template #tagRender="{ value: val, onClose }">
+        <a-tag
+          v-if="options.find((el) => el.title === val)"
+          class="rounded-tag nc-selected-option"
+          :style="{ display: 'flex', alignItems: 'center' }"
+          :color="options.find((el) => el.title === val)?.color"
+          :closable="editAllowed && (vModel.length > 1 || !column?.rqd)"
+          :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
+          @click="onTagClick($event, onClose)"
+          @close="onClose"
         >
-          {{ val }}
-        </span>
-      </a-tag>
-    </template>
-  </a-select>
+          <span
+            :style="{
+              'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
+                level: 'AA',
+                size: 'large',
+              })
+                ? '#fff'
+                : tinycolor
+                    .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
+                    .toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ val }}
+          </span>
+        </a-tag>
+      </template>
+    </a-select>
+  </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .ms-close-icon {
   color: rgba(0, 0, 0, 0.25);
   cursor: pointer;
@@ -404,6 +450,21 @@ const onTagClick = (e: Event, onClose: Function) => {
 }
 
 :deep(.ant-select-selection-overflow) {
-  @apply flex-nowrap;
+  @apply flex-nowrap overflow-hidden;
+}
+
+.nc-multi-select:not(.read-only) {
+  :deep(.ant-select-selector),
+  :deep(.ant-select-selector input) {
+    @apply "!cursor-pointer";
+  }
+}
+
+:deep(.ant-select-selector) {
+  @apply !px-0;
+}
+
+:deep(.ant-select-selection-search-input) {
+  @apply !text-xs;
 }
 </style>

@@ -1,16 +1,15 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
-import { useRoute } from 'vue-router'
 import {
   ClientType,
   computed,
   createEventHook,
+  createSharedComposable,
   ref,
   useApi,
   useCommandPalette,
   useGlobal,
-  useInjectionState,
   useNuxtApp,
   useRoles,
   useRouter,
@@ -18,18 +17,18 @@ import {
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
 
-const [setup, use] = useInjectionState(() => {
+export const useProject = createSharedComposable(() => {
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()
 
-  const route = useRoute()
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
 
   const { includeM2M } = useGlobal()
 
   const { setTheme, theme } = useTheme()
-
-  const router = useRouter()
 
   const { projectRoles, loadProjectRoles } = useRoles()
 
@@ -38,7 +37,9 @@ const [setup, use] = useInjectionState(() => {
   const projectLoadedHook = createEventHook<ProjectType>()
 
   const project = ref<ProjectType>({})
+
   const bases = computed<BaseType[]>(() => project.value?.bases || [])
+
   const tables = ref<TableType[]>([])
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
@@ -53,10 +54,13 @@ const [setup, use] = useInjectionState(() => {
   const projectType = $computed(() => route.params.projectType as string)
 
   const projectMeta = computed<Record<string, any>>(() => {
+    const defaultMeta = {
+      showNullAndEmptyInFilter: false,
+    }
     try {
-      return isString(project.value.meta) ? JSON.parse(project.value.meta) : project.value.meta
+      return (isString(project.value.meta) ? JSON.parse(project.value.meta) : project.value.meta) ?? defaultMeta
     } catch (e) {
-      return {}
+      return defaultMeta
     }
   })
 
@@ -87,6 +91,10 @@ const [setup, use] = useInjectionState(() => {
 
   function isPg(baseId?: string) {
     return getBaseType(baseId) === 'pg'
+  }
+
+  function isXcdbBase(baseId?: string) {
+    return bases.value.find((base) => base.id === baseId)?.is_meta
   }
 
   const isSharedBase = computed(() => projectType === 'base')
@@ -178,6 +186,10 @@ const [setup, use] = useInjectionState(() => {
     $e('c:themes:change')
   }
 
+  async function hasEmptyOrNullFilters() {
+    return await api.project.hasEmptyOrNullFilters(projectId.value)
+  }
+
   const reset = () => {
     project.value = {}
     tables.value = []
@@ -185,6 +197,14 @@ const [setup, use] = useInjectionState(() => {
     projectRoles.value = {}
     setTheme()
   }
+
+  watch(
+    () => route.params.projectType,
+    (n) => {
+      if (!n) reset()
+    },
+    { immediate: true },
+  )
 
   return {
     project,
@@ -207,18 +227,7 @@ const [setup, use] = useInjectionState(() => {
     reset,
     isLoading,
     lastOpenedViewMap,
-    loadBookProject,
+    isXcdbBase,
+    hasEmptyOrNullFilters,
   }
-}, 'useProject')
-
-export const provideProject = setup
-
-export function useProject() {
-  const state = use()
-
-  if (!state) {
-    return setup()
-  }
-
-  return state
-}
+})

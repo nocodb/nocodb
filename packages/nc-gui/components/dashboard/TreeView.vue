@@ -35,7 +35,7 @@ const { addTab, updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
-const { project, loadProject, bases, tables, loadTables, isSharedBase } = useProject()
+const { bases, tables, loadTables, isSharedBase } = useProject()
 
 const { activeTab } = useTabs()
 
@@ -360,12 +360,6 @@ const setIcon = async (icon: string, table: TableType) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
-onMounted(async () => {
-  if (!project.value?.id) {
-    await loadProject()
-  }
-})
 </script>
 
 <template>
@@ -396,8 +390,8 @@ onMounted(async () => {
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
+            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
         <div
@@ -423,8 +417,8 @@ onMounted(async () => {
           </Transition>
 
           <Transition name="slide-right" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="onSearchIconClick" />
+            <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
+            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
           </Transition>
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>

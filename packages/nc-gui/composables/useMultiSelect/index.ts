@@ -42,6 +42,8 @@ export function useMultiSelect(
 ) {
   const meta = ref(_meta)
 
+  const tbodyEl = ref<HTMLElement>()
+
   const { t } = useI18n()
 
   const { copy } = useCopy()
@@ -372,10 +374,12 @@ export function useMultiSelect(
     }
   }
 
+  const resetSelectedRange = () => selectedRange.clear()
+
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
   useEventListener(document, 'keydown', handleKeyDown)
-  useEventListener(document, 'mouseup', handleMouseUp)
+  useEventListener(tbodyEl, 'mouseup', handleMouseUp)
 
   return {
     isCellActive,
@@ -386,5 +390,7 @@ export function useMultiSelect(
     isCellSelected,
     activeCell,
     handleCellClick,
+    tbodyEl,
+    resetSelectedRange,
   }
 }

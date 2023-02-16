@@ -68,7 +68,7 @@ const deleteColumn = () =>
     },
   })
 
-const setAsPrimaryValue = async () => {
+const setAsDisplayValue = async () => {
   try {
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
 
@@ -280,7 +280,7 @@ const hideField = async () => {
         </a-menu-item>
         <a-divider class="!my-0" />
 
-        <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsPrimaryValue">
+        <a-menu-item v-if="(!virtual || column?.uidt === UITypes.Formula) && !column?.pv" @click="setAsDisplayValue">
           <div class="nc-column-set-primary nc-header-menu-item">
             <MdiStar class="text-primary" />
 

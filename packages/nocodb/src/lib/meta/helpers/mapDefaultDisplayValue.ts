@@ -1,6 +1,6 @@
 import { ColumnType } from 'nocodb-sdk';
 
-export default function mapDefaultPrimaryValue<T extends ColumnType>(
+export default function mapDefaultDisplayValue<T extends ColumnType>(
   columnsArr: Array<T>
 ): void | T {
   if (!columnsArr.some((column) => column.pv)) {

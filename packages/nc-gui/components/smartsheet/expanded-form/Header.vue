@@ -18,7 +18,7 @@ const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, primaryValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
@@ -99,7 +99,7 @@ const onConfirmDeleteRowClick = async () => {
         {{ meta.title }}
       </template>
 
-      <template v-if="primaryValue">: {{ primaryValue }}</template>
+      <template v-if="displayValue">: {{ displayValue }}</template>
     </h5>
 
     <div class="flex-1" />

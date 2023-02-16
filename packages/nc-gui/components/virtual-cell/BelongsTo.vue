@@ -44,7 +44,7 @@ const listItemsDlg = ref(false)
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
+const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -85,8 +85,8 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
     <div class="chips flex items-center flex-1">
-      <template v-if="value && relatedTablePrimaryValueProp">
-        <VirtualCellComponentsItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
+      <template v-if="value && relatedTableDisplayValueProp">
+        <VirtualCellComponentsItemChip :item="value" :value="value[relatedTableDisplayValueProp]" @unlink="unlinkRef(value)" />
       </template>
     </div>
 

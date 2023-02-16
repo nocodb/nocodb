@@ -119,7 +119,7 @@ const parseConditionV2 = async (
                 ? negatedMapping[filter.comparison_op]
                 : {}),
               fk_model_id: childModel.id,
-              fk_column_id: childModel?.primaryValue?.id,
+              fk_column_id: childModel?.displayValue?.id,
             }),
             knex,
             aliasCount
@@ -154,7 +154,7 @@ const parseConditionV2 = async (
                 ? negatedMapping[filter.comparison_op]
                 : {}),
               fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.primaryValue?.id,
+              fk_column_id: parentModel?.displayValue?.id,
             }),
             knex,
             aliasCount
@@ -209,7 +209,7 @@ const parseConditionV2 = async (
                 ? negatedMapping[filter.comparison_op]
                 : {}),
               fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.primaryValue?.id,
+              fk_column_id: parentModel?.displayValue?.id,
             }),
             knex,
             aliasCount
@@ -841,7 +841,7 @@ async function nestedConditionJoin(
                 new Filter({
                   ...filter,
                   fk_model_id: childModel.id,
-                  fk_column_id: childModel.primaryValue?.id,
+                  fk_column_id: childModel.displayValue?.id,
                 }),
                 knex,
                 aliasCount,
@@ -857,7 +857,7 @@ async function nestedConditionJoin(
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
-                  fk_column_id: parentModel?.primaryValue?.id,
+                  fk_column_id: parentModel?.displayValue?.id,
                 }),
                 knex,
                 aliasCount,
@@ -873,7 +873,7 @@ async function nestedConditionJoin(
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
-                  fk_column_id: parentModel.primaryValue?.id,
+                  fk_column_id: parentModel.displayValue?.id,
                 }),
                 knex,
                 aliasCount,

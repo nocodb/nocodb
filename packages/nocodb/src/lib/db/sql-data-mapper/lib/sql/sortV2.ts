@@ -153,7 +153,7 @@ export default async function sortV2(
                       `${nestedAlias}.${parentColumn.column_name}`,
                       `${prevAlias}.${childColumn.column_name}`
                     )
-                    .select(parentModel?.primaryValue?.column_name);
+                    .select(parentModel?.displayValue?.column_name);
                 }
                 break;
               case UITypes.Formula:
@@ -201,7 +201,7 @@ export default async function sortV2(
           await parentModel.getColumns();
 
           const selectQb = knex(parentModel.table_name)
-            .select(parentModel?.primaryValue?.column_name)
+            .select(parentModel?.displayValue?.column_name)
             .where(
               `${parentModel.table_name}.${parentColumn.column_name}`,
               knex.raw(`??`, [

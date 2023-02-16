@@ -49,7 +49,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { sharedView } = useSharedView()
 
   // getters
-  const primaryValue = computed(() => {
+  const displayValue = computed(() => {
     if (row?.value?.row) {
       const col = meta?.value?.columns?.find((c) => c.pv)
 
@@ -199,7 +199,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         addOrEditStackRow(row.value, isNewRow)
       }
 
-      message.success(`${primaryValue.value || 'Row'} updated successfully.`)
+      message.success(`${displayValue.value || 'Row'} updated successfully.`)
 
       changedColumns.value = new Set()
     } catch (e: any) {
@@ -237,7 +237,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     isYou,
     commentsDrawer,
     row,
-    primaryValue,
+    displayValue,
     save,
     changedColumns,
     loadRow,

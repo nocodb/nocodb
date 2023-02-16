@@ -44,7 +44,7 @@ export class ColumnPageObject extends BasePage {
     timeFormat = '',
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
-    isPrimaryValue = false,
+    isDisplayValue = false,
   }: {
     title: string;
     type?: string;
@@ -61,12 +61,12 @@ export class ColumnPageObject extends BasePage {
     timeFormat?: string;
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
-    isPrimaryValue?: boolean;
+    isDisplayValue?: boolean;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
 
-      if (isPrimaryValue) {
+      if (isDisplayValue) {
         await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before")')).toHaveCount(0);
         return;
       }
@@ -321,10 +321,10 @@ export class ColumnPageObject extends BasePage {
     await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).isVisible();
   }
 
-  async hideColumn({ title, isPrimaryValue = false }: { title: string; isPrimaryValue?: boolean }) {
+  async hideColumn({ title, isDisplayValue = false }: { title: string; isDisplayValue?: boolean }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
 
-    if (isPrimaryValue) {
+    if (isDisplayValue) {
       await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field")')).toHaveCount(0);
       return;
     }

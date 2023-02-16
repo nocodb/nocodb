@@ -84,7 +84,7 @@ export default class Model implements TableType {
     return this.columns?.filter((c) => c.pk);
   }
 
-  public get primaryValue(): Column {
+  public get displayValue(): Column {
     if (!this.columns) return null;
     const pCol = this.columns?.find((c) => c.pv);
     if (pCol) return pCol;
@@ -561,7 +561,7 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta
   ) {
     const model = await this.getWithInfo({ id: tableId });
-    const currentPvCol = model.primaryValue;
+    const currentPvCol = model.displayValue;
     const newPvCol = model.columns.find((c) => c.id === columnId);
 
     if (!newPvCol) NcError.badRequest('Column not found');

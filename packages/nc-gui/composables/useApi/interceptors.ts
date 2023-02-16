@@ -7,6 +7,35 @@ export function addAxiosInterceptors(api: Api<any>) {
   const state = useGlobal()
   const router = useRouter()
   const route = $(router.currentRoute)
+  const { socket, request } = useSocketApi()
+
+  // first interceptor is executed last
+  api.instance.interceptors.request.use(
+    async (config) => {
+      if (socket.value?.connected) {
+        await request({
+          ...config,
+          headers: {
+            ...config.headers,
+            host: window.location.host,
+          },
+          protocol: window.location.protocol,
+        })
+          .then((t: any) => {
+            throw t
+          })
+          .catch((e: any) => {
+            if (e?.socket) throw e
+          })
+      }
+
+      return config
+    },
+    (rs) => {
+      if (rs?.socket) return Promise.resolve(rs)
+      return rs
+    },
+  )
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'

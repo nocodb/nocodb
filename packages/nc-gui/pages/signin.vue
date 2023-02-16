@@ -13,6 +13,8 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
+const { init } = useSocketApi()
+
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const formValidator = ref()
@@ -51,6 +53,8 @@ async function signIn() {
 
   api.auth.signin(form).then(async ({ token }) => {
     _signIn(token!)
+
+    await init(token!)
 
     await navigateTo('/')
   })

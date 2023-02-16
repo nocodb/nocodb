@@ -58,6 +58,8 @@ export function useApi<Data = any, RequestConfig = any>({
 
   const nuxtApp = useNuxtApp()
 
+  useSocketApi()
+
   /** api instance - with interceptors for token refresh already bound */
   const api = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
 
@@ -135,6 +137,19 @@ export function useApi<Data = any, RequestConfig = any>({
       onRequestFinish()
 
       return Promise.reject(apiError)
+    },
+  )
+
+  api.instance.interceptors.response.use(
+    (response) => {
+      return response
+    },
+    (rs) => {
+      if (rs?.socket) {
+        isLoading.value = false
+        return Promise.resolve(rs)
+      }
+      return rs
     },
   )
 

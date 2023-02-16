@@ -1,5 +1,5 @@
 import { Node, nodeInputRule } from '@tiptap/core'
-import { NodeSelection } from 'prosemirror-state'
+import { NodeSelection, TextSelection } from 'prosemirror-state'
 import type { UploadFn } from './proseExtension'
 import { dropImagePlugin } from './proseExtension'
 /**
@@ -84,6 +84,17 @@ export const createImageExtension = (uploadFn: UploadFn) => {
           },
         }),
       ]
+    },
+    addKeyboardShortcuts() {
+      return {
+        Enter: () => {
+          // Set cursor to the next line
+          const state = this.editor.state
+          const { tr } = state
+          tr.setSelection(TextSelection.create(tr.doc, state.selection.$from.pos + 2))
+          this.editor.view.dispatch(tr)
+        },
+      }
     },
     addProseMirrorPlugins() {
       return [dropImagePlugin(uploadFn)]

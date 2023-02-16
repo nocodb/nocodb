@@ -177,6 +177,26 @@ export const DraggableBlock = Node.create<DBlockOptions>({
           .focus(from + 4)
           .run()
       },
+      'Backspace': ({ editor }) => {
+        // Delete prev node if image or embed if cursor is at the start of the node
+        const state = editor.state
+        if (state.selection.$from.parentOffset !== 0) return false
+        const parentNode = state.selection.$from.node(-1)
+        if (!parentNode) return false
+
+        const prevNodePos = state.selection.$from.pos - parentNode.nodeSize
+        if (prevNodePos <= 0) return false
+
+        const prevNode = state.doc.nodeAt(state.selection.$from.pos - parentNode.nodeSize)
+        if (!prevNode) return false
+
+        const prevNodeParentPos = state.selection.$from.pos - parentNode.nodeSize - prevNode.nodeSize
+
+        if (prevNode?.type.name !== 'image' && prevNode?.type.name !== 'externalContent') return false
+
+        editor.view.dispatch(state.tr.delete(prevNodeParentPos, prevNodePos + 1))
+        return true
+      },
     }
   },
 })

@@ -641,11 +641,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 .nc-left-sidebar {
   .nc-sidebar-left-toggle-icon {
-    // <<<<<<< HEAD
-    //     @apply opacity-0 transition-opactity duration-200 transition-color text-white/80 hover: text-white/100;
-    // =======
     @apply opacity-0 transition-opactity duration-200 transition-color text-gray-500/80 hover:text-gray-500/100;
-    // >>>>>>> develop
 
     .nc-left-sidebar {
       @apply !border-r-0;

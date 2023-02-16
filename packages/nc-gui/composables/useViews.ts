@@ -25,7 +25,6 @@ function _useViews(meta: MaybeRef<TableType | undefined>) {
   watch(() => unref(meta), loadViews, { immediate: true })
 
   return { views, isLoading, loadViews }
-  // return createSharedComposable({ views, isLoading, loadViews })
 }
 
 export default createSharedComposable(_useViews)

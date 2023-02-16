@@ -93,7 +93,7 @@ const onDecode = async (codeValue: string) => {
 
 <template>
   <div>
-    <a-button class="nc-btn-share-view nc-toolbar-btn" @click="showCodeScannerOverlay = true">
+    <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerOverlay = true">
       <div class="flex items-center gap-1">
         <QrCodeScan />
         <span v-if="!isMobileMode" class="!text-sm font-weight-normal"> {{ $t('activity.scanCode') }}</span>

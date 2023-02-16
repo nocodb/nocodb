@@ -39,6 +39,16 @@ enum UITypes {
   Button = 'Button',
 }
 
+export const numericUITypes = [
+  UITypes.Duration,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Rating,
+  UITypes.Rollup,
+];
+
 export function isNumericCol(
   col:
     | UITypes
@@ -46,15 +56,9 @@ export function isNumericCol(
     | ColumnReqType
     | ColumnType
 ) {
-  return [
-    UITypes.Duration,
-    UITypes.Currency,
-    UITypes.Percent,
-    UITypes.Number,
-    UITypes.Decimal,
-    UITypes.Rating,
-    UITypes.Rollup,
-  ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
+  return numericUITypes.includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
 }
 
 export function isVirtualCol(

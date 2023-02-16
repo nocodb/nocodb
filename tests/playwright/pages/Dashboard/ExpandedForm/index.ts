@@ -133,7 +133,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('button:has-text("Close")').last().click();
+    await this.get().locator('.nc-close-form').last().click();
   }
 
   async openChildCard(param: { column: string; title: string }) {

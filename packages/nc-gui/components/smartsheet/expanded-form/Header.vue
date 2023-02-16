@@ -200,7 +200,7 @@ const onConfirmDeleteRowClick = async () => {
         <div class="text-center w-full">{{ $t('general.close') }}</div>
       </template>
       <MdiCloseCircleOutline
-        class="nc-icon-transition cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
+        class="nc-icon-transition cursor-pointer select-none nc-close-form text-gray-500 mx-1 min-w-4"
         @click="emit('cancel')"
       />
     </a-tooltip>

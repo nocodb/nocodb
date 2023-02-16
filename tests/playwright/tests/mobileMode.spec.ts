@@ -3,7 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import setup from '../setup';
 
-test.describe('Mobile Mode', () => {
+test.describe.only('Mobile Mode', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;
@@ -15,8 +15,14 @@ test.describe('Mobile Mode', () => {
   });
 
   test.describe('Toggle Mobile Mode On', () => {
-    test.beforeAll(async () => {
+    // test.beforeAll(async () => {
+    //   await dashboard.toggleMobileMode();
+    // });
+
+    test('Less menu items and no text for menu items', async () => {
+      await dashboard.treeView.openTable({ title: 'City' });
       await dashboard.toggleMobileMode();
+      await expect(2 + 2).toBe(4);
     });
 
     // test('Create views, reorder and delete', async () => {

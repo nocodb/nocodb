@@ -318,3 +318,9 @@ a {
   white-space: pre;
   user-select: auto;
 }
+
+
+
+.nc-drawer-expanded-form .ant-drawer-content-wrapper {
+  transition: width 0.3s !important;
+}

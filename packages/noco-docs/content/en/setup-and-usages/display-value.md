@@ -10,6 +10,7 @@ menuTitle: "Display Value"
 
 - Display Value as the name stands is the primary or main value within a row of a table that you generally associate that row with.
 - It should be usually associated with a column which is uniquely identifiable. However, this uniqueness is not enforced at the database level.
+- Before v0.105.0, Display Value was known as Primary Value.
 
 ## What is the use of Display Value ?
 - Within a spreadsheet, Display Value are always highlighted so that it is easier to recognise what row we are in.

@@ -5,7 +5,6 @@ import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import { UITypes } from 'nocodb-sdk';
 import { Api } from 'nocodb-sdk';
 import { rowMixedValue } from '../setup/xcdb-records';
-import { SettingsSubTab, SettingTab } from '../pages/Dashboard/Settings';
 
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;
@@ -43,18 +42,6 @@ async function verifyFilterOperatorList(param: { column: string; opType: string[
 async function validateRowArray(param) {
   const { rowCount } = param;
   await dashboard.grid.verifyTotalRowCount({ count: rowCount });
-
-  // const { sequence, length, totalRowCount, column } = param;
-  //
-  // await dashboard.grid.verifyTotalRowCount({ count: totalRowCount });
-  //
-  // for (let j = 0; j < length; j++) {
-  //   await dashboard.grid.cell.verify({
-  //     index: j,
-  //     columnHeader: column,
-  //     value: sequence,
-  //   });
-  // }
 }
 
 async function verifyFilter(param: {
@@ -604,6 +591,9 @@ test.describe('Filter Tests: Select based', () => {
   });
 });
 
+// Misc : Checkbox
+//
+
 test.describe('Filter Tests: AddOn', () => {
   async function addOnFilterTest(dataType) {
     await dashboard.closeTab({ title: 'Team & Auth' });
@@ -617,12 +607,16 @@ test.describe('Filter Tests: AddOn', () => {
       {
         op: 'is checked',
         value: null,
-        rowCount: records.list.filter(r => r[dataType] === 1).length,
+        rowCount: records.list.filter(r => {
+          return r[dataType] === (context.dbType === 'pg' ? true : 1);
+        }).length,
       },
       {
         op: 'is not checked',
         value: null,
-        rowCount: records.list.filter(r => r[dataType] !== 1).length,
+        rowCount: records.list.filter(r => {
+          return r[dataType] !== (context.dbType === 'pg' ? true : 1);
+        }).length,
       },
     ];
 
@@ -694,6 +688,9 @@ test.describe('Filter Tests: AddOn', () => {
     await addOnFilterTest('Checkbox');
   });
 });
+
+// Rest of tests
+//
 
 test.describe('Filter Tests: Toggle button', () => {
   /**

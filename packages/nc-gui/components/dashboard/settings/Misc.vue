@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { useGlobal, useProject, watch } from '#imports'
 
 const { includeM2M, showNull } = useGlobal()
@@ -9,7 +10,7 @@ watch(includeM2M, async () => await loadTables())
 
 const showNullAndEmptyInFilter = ref(projectMeta.value.showNullAndEmptyInFilter)
 
-async function showNullAndEmptyInFilterOnChange(evt: any) {
+async function showNullAndEmptyInFilterOnChange(evt: CheckboxChangeEvent) {
   // users cannot hide null & empty option if there is existing null / empty filters
   if (!evt.target.checked) {
     if (await hasEmptyOrNullFilters()) {
@@ -53,7 +54,7 @@ async function showNullAndEmptyInFilterOnChange(evt: any) {
           v-model:checked="showNullAndEmptyInFilter"
           v-e="['c:settings:show-null-and-empty-in-filter']"
           class="nc-settings-show-null-and-empty-in-filter"
-          @change="(e) => showNullAndEmptyInFilterOnChange(e)"
+          @change="showNullAndEmptyInFilterOnChange"
         >
           {{ $t('msg.info.showNullAndEmptyInFilter') }} <br />
           <span class="text-gray-500">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>

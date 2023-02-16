@@ -8,7 +8,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import RollupColumn from '../../../../models/RollupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes, isNumericCol } from 'nocodb-sdk';
 import { sanitize } from './helpers/sanitize';
 
 export default async function conditionV2(
@@ -281,7 +281,7 @@ const parseConditionV2 = async (
           return;
         }
 
-        if (column.uidt === UITypes.Rating) {
+        if (isNumericCol(column.uidt)) {
           // convert to number
           val = +val;
         }
@@ -559,7 +559,10 @@ const parseConditionV2 = async (
                 .orWhere(field, '[]')
                 .orWhere(field, 'null');
             } else {
-              qb = qb.whereNull(customWhereClause || field).orWhere(field, '');
+              qb = qb.whereNull(customWhereClause || field);
+              if (!isNumericCol(column.uidt)) {
+                qb = qb.orWhere(field, '');
+              }
             }
             break;
           case 'notblank':
@@ -569,9 +572,10 @@ const parseConditionV2 = async (
                 .whereNot(field, '[]')
                 .whereNot(field, 'null');
             } else {
-              qb = qb
-                .whereNotNull(customWhereClause || field)
-                .whereNot(field, '');
+              qb = qb.whereNotNull(customWhereClause || field);
+              if (!isNumericCol(column.uidt)) {
+                qb = qb.orWhere(field, '');
+              }
             }
             break;
           case 'checked':

@@ -380,7 +380,7 @@
     "renameTable": "إعادة تسمية الجدول",
     "deleteTable": "حذف الجدول",
     "addField": "إضافة حقل جديد إلى هذا الجدول",
-    "setPrimary": "تعيين كقيمة أساسية",
+    "setDisplay": "Set as Display value",
     "addRow": "إضافة صف جديد",
     "saveRow": "حفظ الصف",
     "saveAndExit": "Save & Exit",

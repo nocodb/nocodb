@@ -308,8 +308,8 @@ const parseConditionV2 = async (
             } else {
               qb = qb.where(field, val);
             }
-            if (isNumericCol(column.uidt) && val === 0) {
-              // unset number is considered as NULL
+            if (column.uidt === UITypes.Rating && val === 0) {
+              // unset rating is considered as NULL
               qb = qb.orWhereNull(field);
             }
             break;
@@ -331,8 +331,8 @@ const parseConditionV2 = async (
                     .whereNot(field, val)
                     .orWhereNull(customWhereClause ? _val : _field);
                 });
-              } else if (isNumericCol(column.uidt)) {
-                // unset number is considered as NULL
+              } else if (column.uidt === UITypes.Rating) {
+                // unset rating is considered as NULL
                 if (val === 0) {
                   qb = qb.whereNot(field, val).whereNotNull(field);
                 } else {
@@ -342,7 +342,7 @@ const parseConditionV2 = async (
                 // mysql is case-insensitive for strings, turn to case-sensitive
                 qb = qb.where((nestedQb) => {
                   nestedQb.whereRaw('BINARY ?? != ?', [field, val]);
-                  if (!isNumericCol(column.uidt)) {
+                  if (column.uidt !== UITypes.Rating) {
                     nestedQb.orWhereNull(customWhereClause ? _val : _field);
                   }
                 });
@@ -463,7 +463,8 @@ const parseConditionV2 = async (
           case 'gt':
             const gt_op = customWhereClause ? '<' : '>';
             qb = qb.where(field, gt_op, val);
-            if (isNumericCol(column.uidt)) {
+            if (column.uidt === UITypes.Rating) {
+              // unset rating is considered as NULL
               if (gt_op === '<' && val > 0) {
                 qb = qb.orWhereNull(field);
               }
@@ -473,7 +474,8 @@ const parseConditionV2 = async (
           case 'gte':
             const ge_op = customWhereClause ? '<=' : '>=';
             qb = qb.where(field, ge_op, val);
-            if (isNumericCol(column.uidt)) {
+            if (column.uidt === UITypes.Rating) {
+              // unset rating is considered as NULL
               if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
                 qb = qb.orWhereNull(field);
               }
@@ -518,7 +520,8 @@ const parseConditionV2 = async (
           case 'lt':
             const lt_op = customWhereClause ? '>' : '<';
             qb = qb.where(field, lt_op, val);
-            if (isNumericCol(column.uidt)) {
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
               if (lt_op === '<' && val > 0) {
                 qb = qb.orWhereNull(field);
               }
@@ -528,7 +531,8 @@ const parseConditionV2 = async (
           case 'lte':
             const le_op = customWhereClause ? '>=' : '<=';
             qb = qb.where(field, le_op, val);
-            if (isNumericCol(column.uidt)) {
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
               if (le_op === '<=' || (le_op === '>=' && val === 0)) {
                 qb = qb.orWhereNull(field);
               }

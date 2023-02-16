@@ -295,11 +295,3 @@ Thank you for your contributions! We appreciate all the contributions from the c
 <a href="https://github.com/nocodb/nocodb/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=nocodb/nocodb" />
 </a>
-
-# Sponsors
-
-This project is funded by the German Federal Ministry of Education and Research (BMBF). Read more here (German only):
-
-[Erweiterung einer No-Code-Plattform für humanitäre Krisenreaktionen](https://prototypefund.de/project/erweiterung-einer-no-code-plattform-fuer-humanitaere-krisenreaktionen/)
-
-![BMBF logo](docs/bmbf.jpg)

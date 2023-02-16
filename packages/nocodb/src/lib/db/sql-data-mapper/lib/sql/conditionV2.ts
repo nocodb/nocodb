@@ -574,7 +574,7 @@ const parseConditionV2 = async (
             } else {
               qb = qb.whereNotNull(customWhereClause || field);
               if (!isNumericCol(column.uidt)) {
-                qb = qb.orWhere(field, '');
+                qb = qb.whereNot(field, '');
               }
             }
             break;

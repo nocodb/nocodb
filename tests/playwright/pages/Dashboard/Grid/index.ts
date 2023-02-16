@@ -229,7 +229,7 @@ export class GridPage extends BasePage {
 
   async clickPagination({ page }: { page: string }) {
     await this.waitForResponse({
-      uiAction: () => (await this.pagination({ page })).click(),
+      uiAction: async () => (await this.pagination({ page })).click(),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: '/views/',
       responseJsonMatcher: resJson => resJson?.pageInfo,

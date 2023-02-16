@@ -537,6 +537,8 @@ const [setup, use] = useInjectionState(() => {
       if (foundPage.new) foundPage.new = false
 
       await navigateTo(nestedUrl(updatedPage.id!))
+    } else {
+      Object.assign(foundPage, page)
     }
   }
 

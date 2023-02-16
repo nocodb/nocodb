@@ -108,6 +108,7 @@ export interface DocsPageType {
   /** @format date */
   archived_date?: string;
   archived_by_id?: string;
+  icon?: string;
   metaJson?: string | object;
 }
 

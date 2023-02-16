@@ -44,7 +44,7 @@ export class ColumnPageObject extends BasePage {
     timeFormat = '',
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
-    isPrimaryValue = false,
+    isDisplayValue = false,
   }: {
     title: string;
     type?: string;
@@ -61,12 +61,12 @@ export class ColumnPageObject extends BasePage {
     timeFormat?: string;
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
-    isPrimaryValue?: boolean;
+    isDisplayValue?: boolean;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
 
-      if (isPrimaryValue) {
+      if (isDisplayValue) {
         await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before")')).toHaveCount(0);
         return;
       }
@@ -321,16 +321,16 @@ export class ColumnPageObject extends BasePage {
     await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).isVisible();
   }
 
-  async hideColumn({ title, isPrimaryValue = false }: { title: string; isPrimaryValue?: boolean }) {
+  async hideColumn({ title, isDisplayValue = false }: { title: string; isDisplayValue?: boolean }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
 
-    if (isPrimaryValue) {
+    if (isDisplayValue) {
       await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field")')).toHaveCount(0);
       return;
     }
 
     await this.waitForResponse({
-      uiAction: this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
+      uiAction: () => this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
       requestUrlPathToMatch: 'api/v1/db/meta/views',
       httpMethodsToMatch: ['PATCH'],
     });
@@ -340,7 +340,7 @@ export class ColumnPageObject extends BasePage {
 
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
-      uiAction: this.get().locator('button:has-text("Save")').click(),
+      uiAction: () => this.get().locator('button:has-text("Save")').click(),
       requestUrlPathToMatch: 'api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
       responseJsonMatcher: json => json['pageInfo'],
@@ -375,9 +375,9 @@ export class ColumnPageObject extends BasePage {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
     let menuOption;
     if (direction === 'desc') {
-      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Descending"):visible').click();
+      menuOption = () => this.rootPage.locator('li[role="menuitem"]:has-text("Sort Descending"):visible').click();
     } else {
-      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Ascending"):visible').click();
+      menuOption = () => this.rootPage.locator('li[role="menuitem"]:has-text("Sort Ascending"):visible').click();
     }
 
     await this.waitForResponse({

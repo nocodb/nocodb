@@ -396,10 +396,10 @@ export default class View implements ViewType {
       let kanbanShowLimit = 0;
 
       if (view.type === ViewTypes.KANBAN && !copyFromView) {
-        // sort by primary value & attachment first, then by singleLineText & Number
+        // sort by display value & attachment first, then by singleLineText & Number
         // so that later we can handle control `show` easily
         columns.sort((a, b) => {
-          const primaryValueOrder = b.pv - a.pv;
+          const displayValueOrder = b.pv - a.pv;
           const attachmentOrder =
             +(b.uidt === UITypes.Attachment) - +(a.uidt === UITypes.Attachment);
           const singleLineTextOrder =
@@ -409,7 +409,7 @@ export default class View implements ViewType {
             +(b.uidt === UITypes.Number) - +(a.uidt === UITypes.Number);
           const defaultOrder = b.order - a.order;
           return (
-            primaryValueOrder ||
+            displayValueOrder ||
             attachmentOrder ||
             singleLineTextOrder ||
             numberOrder ||

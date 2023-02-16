@@ -1894,6 +1894,22 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Project
+     * @name HasEmptyOrNullFilters
+     * @request GET:/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters
+     * @response `200` `any` OK
+     */
+    hasEmptyOrNullFilters: (projectId: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/has-empty-or-null-filters`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * No description
  * 
  * @tags Project

@@ -112,12 +112,12 @@ jobs:
 
   # Publish Docs
   publish-docs:
-    needs: close-issues
+    needs: release-docker
     uses: ./.github/workflows/publish-docs.yml
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
   # Sync changes to develop
   sync-to-develop:
-    needs: close-issues
+    needs: publish-docs
     uses: ./.github/workflows/sync-to-develop.yml

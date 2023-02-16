@@ -50,7 +50,7 @@ export class ChildList extends BasePage {
   }
 
   async openLinkRecord({ linkTableTitle }: { linkTableTitle: string }) {
-    const openActions = this.get().locator(`text=/Link to '.*${linkTableTitle}'/i`).click();
+    const openActions = () => this.get().locator(`text=/Link to '.*${linkTableTitle}'/i`).click();
     await this.waitForResponse({
       requestUrlPathToMatch: '/exclude',
       httpMethodsToMatch: ['GET'],

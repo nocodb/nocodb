@@ -1,5 +1,5 @@
 import BaseRender from '../../BaseRender';
-import mapDefaultPrimaryValue from '../../../../../meta/helpers/mapDefaultPrimaryValue';
+import mapDefaultDisplayValue from '../../../../../meta/helpers/mapDefaultDisplayValue';
 import { UITypes } from 'nocodb-sdk';
 
 abstract class BaseModelXcMeta extends BaseRender {
@@ -79,7 +79,7 @@ abstract class BaseModelXcMeta extends BaseRender {
 
       columnsArr.push(columnObj);
     }
-    this.mapDefaultPrimaryValue(columnsArr);
+    this.mapDefaultDisplayValue(columnsArr);
     return columnsArr;
   }
 
@@ -127,8 +127,8 @@ abstract class BaseModelXcMeta extends BaseRender {
     return virtualColumns;
   }
 
-  public mapDefaultPrimaryValue(columnsArr: any[]): void {
-    mapDefaultPrimaryValue(columnsArr);
+  public mapDefaultDisplayValue(columnsArr: any[]): void {
+    mapDefaultDisplayValue(columnsArr);
   }
 }
 

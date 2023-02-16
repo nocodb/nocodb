@@ -228,7 +228,7 @@ useMenuCloseOnEsc(open)
               >
                 <a-tooltip placement="bottom">
                   <template #title>
-                    <span class="text-sm">Primary Value</span>
+                    <span class="text-sm">Display Value</span>
                   </template>
 
                   <MdiTableKey class="text-xs" />

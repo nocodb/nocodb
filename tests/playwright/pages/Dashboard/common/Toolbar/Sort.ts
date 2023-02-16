@@ -61,11 +61,12 @@ export class ToolbarSortPage extends BasePage {
     // await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
 
     await this.rootPage.locator('.nc-sort-dir-select').last().click();
-    const selectSortDirection = this.rootPage
-      .locator('.nc-dropdown-sort-dir')
-      .locator('.ant-select-item')
-      .nth(isAscending ? 0 : 1)
-      .click();
+    const selectSortDirection = () =>
+      this.rootPage
+        .locator('.nc-dropdown-sort-dir')
+        .locator('.ant-select-item')
+        .nth(isAscending ? 0 : 1)
+        .click();
 
     await this.waitForResponse({
       uiAction: selectSortDirection,

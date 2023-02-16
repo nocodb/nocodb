@@ -98,9 +98,10 @@ export class ExpandedFormPage extends BasePage {
       await dropdownList.locator('.ant-dropdown-menu-item:has-text("Save & Stay")').click();
     }
 
-    const saveRowAction = saveAndExitMode
-      ? this.get().locator('button:has-text("Save & Exit")').click()
-      : this.get().locator('button:has-text("Save & Stay")').click();
+    const saveRowAction = () =>
+      saveAndExitMode
+        ? this.get().locator('button:has-text("Save & Exit")').click()
+        : this.get().locator('button:has-text("Save & Stay")').click();
 
     if (waitForRowsData) {
       await this.waitForResponse({

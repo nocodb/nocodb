@@ -16,7 +16,7 @@ export class SharedFormPage extends BasePage {
 
   async submit() {
     await this.waitForResponse({
-      uiAction: this.get().getByTestId('shared-form-submit-button').click(),
+      uiAction: () => this.get().getByTestId('shared-form-submit-button').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/rows',
     });

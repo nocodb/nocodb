@@ -380,7 +380,6 @@
     "renameTable": "重命名表格",
     "deleteTable": "删除表格",
     "addField": "添加新字段",
-    "setPrimary": "设置为主要值",
     "addRow": "添加新行",
     "saveRow": "保存行",
     "saveAndExit": "保存并退出",

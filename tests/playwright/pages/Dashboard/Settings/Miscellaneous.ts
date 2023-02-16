@@ -21,4 +21,8 @@ export class MiscSettingsPage extends BasePage {
       httpMethodsToMatch: ['GET'],
     });
   }
+
+  async clickShowNullEmptyFilters() {
+    await this.get().locator('input[type="checkbox"]').last().click();
+  }
 }

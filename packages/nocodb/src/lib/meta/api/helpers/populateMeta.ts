@@ -10,7 +10,7 @@ import getTableNameAlias, {
 } from '../../helpers/getTableName';
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import getColumnUiType from '../../helpers/getColumnUiType';
-import mapDefaultPrimaryValue from '../../helpers/mapDefaultPrimaryValue';
+import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
 import { extractAndGenerateManyToManyRelations } from '../metaDiffApis';
 import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { IGNORE_TABLES } from '../../../utils/common/BaseApiBuilder';
@@ -90,7 +90,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
           ? []
           : tableRelations.filter((r) => r.tn === table.tn);
 
-      mapDefaultPrimaryValue(columns);
+      mapDefaultDisplayValue(columns);
 
       // add vitual columns
       const virtualColumns = [

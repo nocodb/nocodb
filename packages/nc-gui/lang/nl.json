@@ -380,7 +380,6 @@
     "renameTable": "Tabel hernoemen",
     "deleteTable": "Tabel verwijderen",
     "addField": "Voeg nieuw veld toe aan deze tabel",
-    "setPrimary": "Instellen als primaire waarde",
     "addRow": "Nieuwe rij toevoegen",
     "saveRow": "Sla rij op",
     "saveAndExit": "Opslaan en afsluiten",

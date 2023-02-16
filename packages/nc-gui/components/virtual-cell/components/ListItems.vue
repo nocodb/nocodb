@@ -32,7 +32,7 @@ const {
   childrenExcludedList,
   loadChildrenExcludedList,
   childrenExcludedListPagination,
-  relatedTablePrimaryValueProp,
+  relatedTableDisplayValueProp,
   link,
   getRelatedTableRowId,
   relatedTableMeta,
@@ -201,7 +201,7 @@ const activeRow = (vNode?: InstanceType<typeof Card>) => {
             :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
           >
-            {{ refRow[relatedTablePrimaryValueProp] }}
+            {{ refRow[relatedTableDisplayValueProp] }}
             <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">
               ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})
             </span>

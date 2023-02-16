@@ -380,7 +380,6 @@
     "renameTable": "Tabela Renomear",
     "deleteTable": "Tabela Delete.",
     "addField": "Adicionar novo campo a esta tabela",
-    "setPrimary": "Definido como valor primário",
     "addRow": "Adicionar nova linha",
     "saveRow": "Salvar linha",
     "saveAndExit": "Salvar & Sair",

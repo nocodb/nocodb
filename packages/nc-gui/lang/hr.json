@@ -380,7 +380,6 @@
     "renameTable": "Preimenovati stolom",
     "deleteTable": "Obriši tablicu",
     "addField": "Dodajte novo polje na ovu tablicu",
-    "setPrimary": "Postavite kao primarnu vrijednost",
     "addRow": "Dodaj novi red",
     "saveRow": "Spremanje retka",
     "saveAndExit": "Save & Exit",

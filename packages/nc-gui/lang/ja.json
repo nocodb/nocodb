@@ -380,7 +380,6 @@
     "renameTable": "テーブル名の変更",
     "deleteTable": "テーブルを削除",
     "addField": "新しいフィールドを追加",
-    "setPrimary": "プライマリ値として設定",
     "addRow": "行を追加",
     "saveRow": "行を保存",
     "saveAndExit": "保存して終了",

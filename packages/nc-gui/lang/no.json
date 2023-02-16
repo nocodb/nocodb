@@ -380,7 +380,6 @@
     "renameTable": "Tabell omdøpe",
     "deleteTable": "Bordet slett",
     "addField": "Legg til nytt felt i denne tabellen",
-    "setPrimary": "Sett som primærverdi",
     "addRow": "Legg til ny rad",
     "saveRow": "Lagre rad",
     "saveAndExit": "Save & Exit",

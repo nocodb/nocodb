@@ -520,7 +520,7 @@ async function importTemplate() {
           tab.title = createdTable.title as string
         }
 
-        // set primary value
+        // set display value
         if (createdTable?.columns?.[0]?.id) {
           await $api.dbTableColumn.primaryColumnSet(createdTable.columns[0].id as string)
         }

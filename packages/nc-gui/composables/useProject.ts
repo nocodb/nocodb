@@ -49,10 +49,13 @@ export const useProject = createSharedComposable(() => {
   const projectType = $computed(() => route.params.projectType as string)
 
   const projectMeta = computed<Record<string, any>>(() => {
+    const defaultMeta = {
+      showNullAndEmptyInFilter: false,
+    }
     try {
-      return isString(project.value.meta) ? JSON.parse(project.value.meta) : project.value.meta
+      return (isString(project.value.meta) ? JSON.parse(project.value.meta) : project.value.meta) ?? defaultMeta
     } catch (e) {
-      return {}
+      return defaultMeta
     }
   })
 
@@ -169,6 +172,10 @@ export const useProject = createSharedComposable(() => {
     $e('c:themes:change')
   }
 
+  async function hasEmptyOrNullFilters() {
+    return await api.project.hasEmptyOrNullFilters(projectId.value)
+  }
+
   const reset = () => {
     project.value = {}
     tables.value = []
@@ -207,5 +214,6 @@ export const useProject = createSharedComposable(() => {
     isLoading,
     lastOpenedViewMap,
     isXcdbBase,
+    hasEmptyOrNullFilters,
   }
 })

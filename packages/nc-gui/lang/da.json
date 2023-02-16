@@ -380,7 +380,6 @@
     "renameTable": "Bord omdøb",
     "deleteTable": "TABEL DELETE.",
     "addField": "Tilføj nyt felt til denne tabel",
-    "setPrimary": "Indstil som primær værdi",
     "addRow": "Tilføj ny række",
     "saveRow": "Gem ro",
     "saveAndExit": "Gem og afslutning",

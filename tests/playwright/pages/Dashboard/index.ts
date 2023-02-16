@@ -123,6 +123,15 @@ export class DashboardPage extends BasePage {
     }
   }
 
+  async toggleMobileMode() {
+    await this.rootPage.getByTestId('nc-project-menu').click();
+    const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
+    await projMenu.locator('[data-menu-id="mobile-mode"]:visible').click();
+    // await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
+    // await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
+    // await new Promise(resolve => setTimeout(resolve, 150));
+  }
+
   async signOut() {
     await this.rootPage.getByTestId('nc-project-menu').click();
     const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');

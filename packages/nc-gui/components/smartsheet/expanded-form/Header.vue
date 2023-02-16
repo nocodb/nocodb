@@ -135,54 +135,31 @@ const onConfirmDeleteRowClick = async () => {
       />
     </a-tooltip>
 
-    <a-button class="!text mx-1 nc-expand-form-close-btn" @click="emit('cancel')">
-      <div class="flex items-center">
-        <MdiCloseCircleOutline class="mr-1" />
-        <!-- Close -->
-        {{ $t('general.close') }}
-      </div>
-    </a-button>
-
-    <a-dropdown>
-      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
-        <div class="flex gap-1 items-center">
-          <!-- More -->
-          <span class="!text-sm font-weight-medium">{{ $t('general.more') }}</span>
-
-          <MdiMenuDown class="text-grey" />
-        </div>
-      </a-button>
-
-      <template #overlay>
-        <div class="bg-gray-50 py-2 shadow-lg !border">
-          <div>
-            <div
-              v-e="['a:actions:duplicate-row']"
-              class="nc-menu-item"
-              :class="{ disabled: isNew }"
-              @click="!isNew && emit('duplicateRow')"
-            >
-              <MdiContentCopy class="text-gray-500" />
-              {{ $t('activity.duplicateRow') }}
-            </div>
-
-            <a-modal v-model:visible="showDeleteRowModal" title="Delete row?" @ok="onConfirmDeleteRowClick">
-              <p>Are you sure you want to delete this row?</p>
-            </a-modal>
-
-            <div
-              v-e="['a:actions:delete-row']"
-              class="nc-menu-item"
-              :class="{ disabled: isNew }"
-              @click="!isNew && onDeleteRowClick()"
-            >
-              <MdiDelete class="text-gray-500" />
-              {{ $t('activity.deleteRow') }}
-            </div>
-          </div>
-        </div>
+    <a-tooltip v-if="!isSqlView" placement="bottom">
+      <!-- Duplicate row -->
+      <template #title>
+        <div class="text-center w-full">{{ $t('activity.duplicateRow') }}</div>
       </template>
-    </a-dropdown>
+      <MdiContentCopy
+        v-if="isUIAllowed('xcDatatableEditable') && !isNew"
+        v-e="['c:row-expand:duplicate']"
+        class="cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
+        @click="!isNew && emit('duplicateRow')"
+      />
+    </a-tooltip>
+
+    <a-tooltip v-if="!isSqlView" placement="bottom">
+      <!-- Delete row -->
+      <template #title>
+        <div class="text-center w-full">{{ $t('activity.deleteRow') }}</div>
+      </template>
+      <MdiDeleteOutline
+        v-if="isUIAllowed('xcDatatableEditable') && !isNew"
+        v-e="['c:row-expand:delete']"
+        class="cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+        @click="!isNew && onDeleteRowClick()"
+      />
+    </a-tooltip>
 
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
       <template #icon><MdiMenuDown /></template>
@@ -212,5 +189,20 @@ const onConfirmDeleteRowClick = async () => {
         {{ $t('activity.saveAndStay') }}
       </div>
     </a-dropdown-button>
+
+    <a-tooltip placement="bottom">
+      <!-- Close -->
+      <template #title>
+        <div class="text-center w-full">{{ $t('general.close') }}</div>
+      </template>
+      <MdiCloseCircleOutline
+        class="cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
+        @click="emit('cancel')"
+      />
+    </a-tooltip>
+
+    <a-modal v-model:visible="showDeleteRowModal" title="Delete row?" @ok="onConfirmDeleteRowClick">
+      <p>Are you sure you want to delete this row?</p>
+    </a-modal>
   </div>
 </template>

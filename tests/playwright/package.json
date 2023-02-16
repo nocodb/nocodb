@@ -23,7 +23,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "1.27.1",
+    "@playwright/test": "^1.30.0",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "axios": "^0.24.0",

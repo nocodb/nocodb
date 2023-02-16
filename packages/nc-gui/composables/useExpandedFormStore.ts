@@ -190,7 +190,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           }
         } else {
           // No columns to update
-          return message.info(t('msg.info.noColumnsToUpdate'))
+          message.info(t('msg.info.noColumnsToUpdate'))
+          return
         }
       }
 

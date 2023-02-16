@@ -346,11 +346,11 @@ async function updateProjectMeta(ncMeta: NcMetaIO) {
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   // fix the existing filter behaviours or
-  // migrate incorrect filters to Blank
+  // migrate `null` or `empty` filters to `blank`
   await migrateFilters(ncMeta);
   // enrich `showNullAndEmptyInFilter` in project meta
-  // if there is empty / null filters in existing filters
-  // -> set `showNullAndEmptyInFilter` to true
-  // else false
+  // if there is empty / null filters in existing projects,
+  // then set `showNullAndEmptyInFilter` to true
+  // else set to false
   await updateProjectMeta(ncMeta);
 }

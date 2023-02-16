@@ -34,7 +34,8 @@ import { UITypes, SelectOptionsType } from 'nocodb-sdk';
 //     - remove  `like`
 //     - migrate `empty`, `null` to `blank`
 
-const removeEqualFilters = async (filter, actions: any[], ncMeta) => {
+const removeEqualFilters = (filter, ncMeta) => {
+  let actions = [];
   // remove `is equal`, `is not equal`
   if (['eq', 'neq'].includes(filter.comparison_op)) {
     actions.push(Filter.delete(filter.id, ncMeta));
@@ -42,7 +43,8 @@ const removeEqualFilters = async (filter, actions: any[], ncMeta) => {
   return actions;
 };
 
-const removeArithmeticFilters = async (filter, actions: any[], ncMeta) => {
+const removeArithmeticFilters = (filter, ncMeta) => {
+  let actions = [];
   // remove `>`, `<`, `>=`, `<=`
   if (['gt', 'lt', 'gte', 'lte'].includes(filter.comparison_op)) {
     actions.push(Filter.delete(filter.id, ncMeta));
@@ -50,7 +52,8 @@ const removeArithmeticFilters = async (filter, actions: any[], ncMeta) => {
   return actions;
 };
 
-const removeLikeFilters = async (filter, actions: any[], ncMeta) => {
+const removeLikeFilters = (filter, ncMeta) => {
+  let actions = [];
   // remove `is like`, `is not like`
   if (['like', 'nlike'].includes(filter.comparison_op)) {
     actions.push(Filter.delete(filter.id, ncMeta));
@@ -58,11 +61,8 @@ const removeLikeFilters = async (filter, actions: any[], ncMeta) => {
   return actions;
 };
 
-const migrateNullAndEmptyToBlankFilters = async (
-  filter,
-  actions: any[],
-  ncMeta
-) => {
+const migrateNullAndEmptyToBlankFilters = (filter, ncMeta) => {
+  let actions = [];
   if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to blank
     actions.push(
@@ -89,18 +89,12 @@ const migrateNullAndEmptyToBlankFilters = async (
   return actions;
 };
 
-const migrateMultiSelectEq = async (
-  filter,
-  actions: any[],
-  col: Column,
-  ncMeta
-) => {
+const migrateMultiSelectEq = async (filter, col: Column, ncMeta) => {
   // only allow eq / neq
-  if (!['eq', 'neq'].includes(filter.comparison_op)) return actions;
+  if (!['eq', 'neq'].includes(filter.comparison_op)) return;
   // if there is no value -> delete this filter
   if (!filter.value) {
-    actions.push(Filter.delete(filter.id, ncMeta));
-    return actions;
+    return await Filter.delete(filter.id, ncMeta);
   }
   // options inputted from users
   const options = filter.value.split(',');
@@ -116,9 +110,9 @@ const migrateMultiSelectEq = async (
   const newFilterValue = validOptions.join(',');
   // if all inputted options are invalid -> delete this filter
   if (!newFilterValue) {
-    actions.push(Filter.delete(filter.id, ncMeta));
-    return actions;
+    return await Filter.delete(filter.id, ncMeta);
   }
+  let actions = [];
   if (filter.comparison_op === 'eq') {
     // migrate to `contains all of`
     actions.push(
@@ -144,10 +138,11 @@ const migrateMultiSelectEq = async (
       )
     );
   }
-  return actions;
+  return await Promise.all(actions);
 };
 
-const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
+const migrateToCheckboxFilter = (filter, ncMeta) => {
+  let actions = [];
   if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to not checked
     actions.push(
@@ -234,7 +229,6 @@ const migrateToCheckboxFilter = async (filter, actions: any[], ncMeta) => {
 
 async function migrateFilters(ncMeta: NcMetaIO) {
   const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
-  let actions = [];
   for (const filter of filters) {
     if (!filter.fk_column_id || filter.is_group) {
       continue;
@@ -249,7 +243,7 @@ async function migrateFilters(ncMeta: NcMetaIO) {
         UITypes.URL,
       ].includes(col.uidt)
     ) {
-      actions = await removeArithmeticFilters(filter, actions, ncMeta);
+      await Promise.all(removeArithmeticFilters(filter, ncMeta));
     } else if (
       [
         // numeric fields
@@ -264,60 +258,50 @@ async function migrateFilters(ncMeta: NcMetaIO) {
         UITypes.SingleSelect,
       ].includes(col.uidt)
     ) {
-      actions = await removeLikeFilters(filter, actions, ncMeta);
-      actions = await migrateNullAndEmptyToBlankFilters(
-        filter,
-        actions,
-        ncMeta
-      );
+      await Promise.all([
+        ...removeLikeFilters(filter, ncMeta),
+        ...migrateNullAndEmptyToBlankFilters(filter, ncMeta),
+      ]);
     } else if (col.uidt === UITypes.Checkbox) {
-      actions = await migrateToCheckboxFilter(filter, actions, ncMeta);
+      await Promise.all(migrateToCheckboxFilter(filter, ncMeta));
     } else if (col.uidt === UITypes.MultiSelect) {
-      actions = await removeLikeFilters(filter, actions, ncMeta);
-      actions = await migrateNullAndEmptyToBlankFilters(
-        filter,
-        actions,
-        ncMeta
-      );
-      actions = await migrateMultiSelectEq(filter, actions, col, ncMeta);
+      await Promise.all([
+        ...removeLikeFilters(filter, ncMeta),
+        ...migrateNullAndEmptyToBlankFilters(filter, ncMeta),
+      ]);
+      await migrateMultiSelectEq(filter, col, ncMeta);
     } else if (col.uidt === UITypes.Attachment) {
-      actions = await removeArithmeticFilters(filter, actions, ncMeta);
-      actions = await removeEqualFilters(filter, actions, ncMeta);
-      actions = await migrateNullAndEmptyToBlankFilters(
-        filter,
-        actions,
-        ncMeta
-      );
+      await Promise.all([
+        ...removeArithmeticFilters(filter, ncMeta),
+        ...removeEqualFilters(filter, ncMeta),
+        ...migrateNullAndEmptyToBlankFilters(filter, ncMeta),
+      ]);
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
-      actions = await removeArithmeticFilters(filter, actions, ncMeta);
-      actions = await migrateNullAndEmptyToBlankFilters(
-        filter,
-        actions,
-        ncMeta
-      );
+      await Promise.all([
+        ...removeArithmeticFilters(filter, ncMeta),
+        ...migrateNullAndEmptyToBlankFilters(filter, ncMeta),
+      ]);
     } else if (col.uidt === UITypes.Lookup) {
-      actions = await removeArithmeticFilters(filter, actions, ncMeta);
-      actions = await migrateNullAndEmptyToBlankFilters(
-        filter,
-        actions,
-        ncMeta
-      );
+      await Promise.all([
+        ...removeArithmeticFilters(filter, ncMeta),
+        ...migrateNullAndEmptyToBlankFilters(filter, ncMeta),
+      ]);
     } else if (col.uidt === UITypes.Duration) {
-      actions = await removeLikeFilters(filter, actions, ncMeta);
-      actions = await migrateNullAndEmptyToBlankFilters(
-        filter,
-        actions,
-        ncMeta
-      );
+      await Promise.all([
+        ...removeLikeFilters(filter, ncMeta),
+        ...migrateNullAndEmptyToBlankFilters(filter, ncMeta),
+      ]);
     }
   }
-  await Promise.all(actions);
 }
 
 async function updateProjectMeta(ncMeta: NcMetaIO) {
   const projectHasEmptyOrFilters: Record<string, boolean> = {};
+
   const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
+
   let actions = [];
+
   for (const filter of filters) {
     if (
       ['notempty', 'notnull', 'empty', 'null'].includes(filter.comparison_op)
@@ -325,10 +309,13 @@ async function updateProjectMeta(ncMeta: NcMetaIO) {
       projectHasEmptyOrFilters[filter.project_id] = true;
     }
   }
+
   const projects = await ncMeta.metaList2(null, null, MetaTable.PROJECT);
+
   const defaultProjectMeta = {
     showNullAndEmptyInFilter: false,
   };
+
   for (const project of projects) {
     const oldProjectMeta = project.meta;
     let newProjectMeta = defaultProjectMeta;

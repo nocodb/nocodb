@@ -108,7 +108,7 @@ const onConfirmDeleteRowClick = async () => {
       <template #title>
         <div class="text-center w-full">{{ $t('general.reload') }}</div>
       </template>
-      <mdi-reload v-if="!isNew" class="cursor-pointer select-none text-gray-500 mx-1 min-w-4" @click="loadRow" />
+      <mdi-reload v-if="!isNew" class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4" @click="loadRow" />
     </a-tooltip>
     <a-tooltip placement="bottom">
       <template #title>
@@ -117,7 +117,7 @@ const onConfirmDeleteRowClick = async () => {
       </template>
       <mdi-link
         v-if="!isNew"
-        class="cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url min-w-4"
+        class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url min-w-4"
         @click="copyRecordUrl"
       />
     </a-tooltip>
@@ -130,7 +130,7 @@ const onConfirmDeleteRowClick = async () => {
       <MdiCommentTextOutline
         v-if="isUIAllowed('rowComments') && !isNew"
         v-e="['c:row-expand:comment-toggle']"
-        class="cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
+        class="nc-icon-transition cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
         @click="commentsDrawer = !commentsDrawer"
       />
     </a-tooltip>
@@ -143,7 +143,7 @@ const onConfirmDeleteRowClick = async () => {
       <MdiContentCopy
         v-if="isUIAllowed('xcDatatableEditable') && !isNew"
         v-e="['c:row-expand:duplicate']"
-        class="cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
+        class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
         @click="!isNew && emit('duplicateRow')"
       />
     </a-tooltip>
@@ -156,7 +156,7 @@ const onConfirmDeleteRowClick = async () => {
       <MdiDeleteOutline
         v-if="isUIAllowed('xcDatatableEditable') && !isNew"
         v-e="['c:row-expand:delete']"
-        class="cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+        class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
         @click="!isNew && onDeleteRowClick()"
       />
     </a-tooltip>
@@ -196,7 +196,7 @@ const onConfirmDeleteRowClick = async () => {
         <div class="text-center w-full">{{ $t('general.close') }}</div>
       </template>
       <MdiCloseCircleOutline
-        class="cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
+        class="nc-icon-transition cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
         @click="emit('cancel')"
       />
     </a-tooltip>
@@ -206,3 +206,9 @@ const onConfirmDeleteRowClick = async () => {
     </a-modal>
   </div>
 </template>
+
+<style scoped>
+:deep(svg) {
+  @apply outline-none;
+}
+</style>

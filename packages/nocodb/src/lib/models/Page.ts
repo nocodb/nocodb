@@ -4,7 +4,6 @@ import NocoCache from '../cache/NocoCache';
 import slugify from 'slug';
 import { DocsPageType, UserType } from 'nocodb-sdk';
 import Book from './Book';
-import console from 'console';
 const { v4: uuidv4 } = require('uuid');
 export default class Page {
   public id: string;
@@ -190,7 +189,6 @@ export default class Page {
         projectId,
       });
       if (previousParentChildren.length === 0) {
-        console.log('previousParentChildren', previousParentChildren);
         await ncMeta.metaUpdate(
           null,
           null,
@@ -312,6 +310,7 @@ export default class Page {
           'last_updated_by_id',
           'last_published_by_id',
           'created_by_id',
+          'icon',
         ],
       }
     );
@@ -563,6 +562,8 @@ export default class Page {
         table.text('metaJson', 'longtext').defaultTo('{}');
 
         table.float('order');
+
+        table.string('icon');
 
         table.datetime('created_at', { useTz: true });
         table.datetime('updated_at', { useTz: true });

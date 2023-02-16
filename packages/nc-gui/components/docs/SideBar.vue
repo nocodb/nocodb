@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
+import { Icon as IconifyIcon } from '@iconify/vue'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
@@ -17,6 +18,7 @@ const {
   addNewPage,
   getChildrenOfPage,
   isOnlyBookOpened,
+  updatePage,
 } = useDocs()
 
 const deleteModalOpen = ref(false)
@@ -99,6 +101,15 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
 const navigateToOpenedBook = () => {
   navigateTo(nestedUrl(openedBook.value!.id!))
 }
+
+const setIcon = async (id: string, icon: string) => {
+  try {
+    openedPage.value!.icon = icon
+    await updatePage({ pageId: id, page: { icon } })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
@@ -152,14 +163,38 @@ const navigateToOpenedBook = () => {
       :tree-data="(nestedPages as any)"
       :draggable="!isPublic"
       :on-drop="onDrop"
-      show-icon
       class="!w-full h-full overflow-y-scroll overflow-x-hidden pb-20"
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >
-      <template #title="{ title, id }">
+      <template #title="{ title, id, icon }">
         <div class="flex flex-row items-center justify-between group pt-1">
-          <div class="text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out" :class="{}">
+          <div
+            class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
+            :class="{}"
+          >
+            <div class="flex flex-shrink-0">
+              <a-popover placement="bottom" overlay-class-name="docs-page-icon-change-popover" color="#000000">
+                <template #content> Change Icon </template>
+                <a-dropdown v-if="!isPublic" placement="bottom" trigger="click">
+                  <div class="flex px-0.5 pt-0.75 text-gray-500 rounded-md hover:bg-gray-200 cursor-pointer">
+                    <IconifyIcon
+                      v-if="icon"
+                      :key="icon"
+                      :data-testid="`nc-doc-page-icon-${icon}`"
+                      class="text-lg"
+                      :icon="icon"
+                    ></IconifyIcon>
+                    <MdiFileDocumentOutline v-else />
+                  </div>
+                  <template #overlay>
+                    <div class="flex flex-col p-1 bg-gray-50 rounded-md">
+                      <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="setIcon(id, $event)" />
+                    </div>
+                  </template>
+                </a-dropdown>
+              </a-popover>
+            </div>
             <span
               class="text-ellipsis overflow-hidden"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
@@ -217,6 +252,15 @@ const navigateToOpenedBook = () => {
 </template>
 
 <style lang="scss">
+.docs-page-icon-change-popover {
+  .ant-popover-inner {
+    padding: 0 !important;
+  }
+  .ant-popover-inner-content {
+    @apply !px-1.5 !py-1 text-xs text-white bg-black;
+  }
+}
+
 .nc-docs-left-sidebar {
   .ant-tree-node-content-wrapper {
     min-width: 0 !important;

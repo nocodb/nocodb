@@ -9301,6 +9301,9 @@
           "archived_by_id": {
             "type": "string"
           },
+          "icon": {
+            "type": "string"
+          },
           "metaJson": {
             "type": [
               "string",

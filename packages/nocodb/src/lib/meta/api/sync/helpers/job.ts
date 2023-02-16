@@ -1292,7 +1292,7 @@ export default async (
   async function nocoSetPrimary(aTblSchema) {
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       logDetailed(
-        `[${idx + 1}/${aTblSchema.length}] Configuring Primary value : ${
+        `[${idx + 1}/${aTblSchema.length}] Configuring Display value : ${
           aTblSchema[idx].name
         }`
       );
@@ -2225,10 +2225,10 @@ export default async (
         logDetailed('Migrating Lookup form Rollup columns completed');
       }
     }
-    logDetailed('Configuring Primary value column');
-    // configure primary values
+    logDetailed('Configuring Display Value column');
+    // configure Display Value
     await nocoSetPrimary(aTblSchema);
-    logDetailed('Configuring primary value column completed');
+    logDetailed('Configuring Display Value column completed');
 
     logBasic('Configuring User(s)');
     // add users

@@ -1,9 +1,9 @@
 import { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
 
-// before 0.104.3, primary value column can be in any position in table
+// before 0.104.3, display value column can be in any position in table
 // with this upgrade we introduced sticky primary column feature
-// this upgrader will make primary value column first column in grid views
+// this upgrader will make display value column first column in grid views
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   const grid_columns = await ncMeta.metaList2(

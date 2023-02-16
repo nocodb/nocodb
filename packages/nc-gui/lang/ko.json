@@ -387,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "행 삽입",
     "deleteRow": "행 삭제",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "선택한 행 삭제",
     "importExcel": "엑셀 가져오기",
     "importCSV": "CSV 가져오기",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

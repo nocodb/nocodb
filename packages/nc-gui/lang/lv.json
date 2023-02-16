@@ -387,6 +387,7 @@
     "saveAndStay": "Saglabāt un palikt",
     "insertRow": "Pievienot jaunu ierakstu",
     "deleteRow": "Dzēst ierakstu",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Dzēst izvēlētos ierakstus",
     "importExcel": "Importēt Excel",
     "importCSV": "CSV importēšana",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Sekmīgi dublēta sleja",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Veiksmīgi atjaunināts UI ACL tabulām",
       "pluginUninstalled": "Spraudnis veiksmīgi atinstalēts",
       "pluginSettingsSaved": "Veiksmīgi saglabāti spraudņa iestatījumi",

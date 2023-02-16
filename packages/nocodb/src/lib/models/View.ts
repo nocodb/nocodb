@@ -433,9 +433,7 @@ export default class View implements ViewType {
           } else {
             show = false;
           }
-        }
-
-        else if (view.type === ViewTypes.KANBAN && !copyFromView) {
+        } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
           const kanbanView = await KanbanView.get(view_id, ncMeta);
           if (vCol.id === kanbanView?.fk_grp_col_id) {
             // include grouping field if it exists
@@ -452,14 +450,12 @@ export default class View implements ViewType {
             // other columns will be hidden
             show = false;
           }
-        }
-        
-        else if (view.type === ViewTypes.MAP && !copyFromView) {
+        } else if (view.type === ViewTypes.MAP && !copyFromView) {
           const mapView = await MapView.get(view_id, ncMeta);
           if (vCol.id === mapView?.fk_geo_data_col_id) {
             show = true;
+          }
         }
-      }
 
         // if columns is list of virtual columns then get the parent column
         const col = vCol.fk_column_id
@@ -1223,9 +1219,20 @@ export default class View implements ViewType {
 
     // get existing cache
     const dataList = await NocoCache.getList(scope, [viewId]);
+
+    const colsEssentialForView =
+      view.type === ViewTypes.MAP
+        ? [(await MapView.get(viewId)).fk_geo_data_col_id]
+        : [];
+
+    const mergedIgnoreColdIds = [...ignoreColdIds, ...colsEssentialForView];
+
     if (dataList?.length) {
       for (const o of dataList) {
-        if (!ignoreColdIds?.length || !ignoreColdIds.includes(o.fk_column_id)) {
+        if (
+          !mergedIgnoreColdIds?.length ||
+          !mergedIgnoreColdIds.includes(o.fk_column_id)
+        ) {
           // set data
           o.show = false;
           // set cache
@@ -1242,7 +1249,7 @@ export default class View implements ViewType {
       {
         fk_view_id: viewId,
       },
-      ignoreColdIds?.length
+      mergedIgnoreColdIds?.length
         ? {
             _not: {
               fk_column_id: {

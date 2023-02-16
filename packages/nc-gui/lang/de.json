@@ -388,6 +388,7 @@
     "saveAndStay": "Speichern & Bleiben",
     "insertRow": "Neue Zeile einfügen",
     "deleteRow": "Zeile löschen",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Ausgewählte Zeilen löschen",
     "importExcel": "Excel-Datei importieren",
     "importCSV": "CSV-Datei importieren",
@@ -717,6 +718,7 @@
     },
     "success": {
       "columnDuplicated": "Spalte erfolgreich dupliziert",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "UI ACL für Tabellen erfolgreich aktualisiert",
       "pluginUninstalled": "Plugin erfolgreich deinstalliert",
       "pluginSettingsSaved": "Plugin-Einstellungen erfolgreich gespeichert",

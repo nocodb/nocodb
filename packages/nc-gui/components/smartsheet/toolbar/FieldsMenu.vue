@@ -68,7 +68,7 @@ watch(
 
 const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
 
-const gridPrimaryValueField = computed(() => {
+const gridDisplayValueField = computed(() => {
   if (activeView.value?.type !== ViewTypes.GRID) return null
   const pvCol = Object.values(metaColumnById.value)?.find((col) => col?.pv)
   return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
@@ -194,7 +194,7 @@ useMenuCloseOnEsc(open)
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
               <div
-                v-if="filteredFieldList.filter((el) => el !== gridPrimaryValueField).includes(field)"
+                v-if="filteredFieldList.filter((el) => el !== gridDisplayValueField).includes(field)"
                 :key="field.id"
                 class="px-2 py-1 flex items-center"
                 :data-testid="`nc-fields-menu-${field.title}`"
@@ -220,10 +220,10 @@ useMenuCloseOnEsc(open)
             </template>
             <template v-if="activeView?.type === ViewTypes.GRID" #header>
               <div
-                v-if="gridPrimaryValueField"
-                :key="`pv-${gridPrimaryValueField.id}`"
+                v-if="gridDisplayValueField"
+                :key="`pv-${gridDisplayValueField.id}`"
                 class="px-2 py-1 flex items-center"
-                :data-testid="`nc-fields-menu-${gridPrimaryValueField.title}`"
+                :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
                 @click.stop
               >
                 <a-tooltip placement="bottom">

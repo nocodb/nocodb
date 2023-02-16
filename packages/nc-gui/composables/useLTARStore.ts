@@ -94,14 +94,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       await getMeta(colOptions.fk_related_model_id as string)
     }
 
-    const relatedTablePrimaryValueProp = computed(() => {
+    const relatedTableDisplayValueProp = computed(() => {
       return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title || ''
     })
 
     const relatedTablePrimaryKeyProps = computed(() => {
       return relatedTableMeta.value?.columns?.filter((c) => c.pk)?.map((c) => c.title) ?? []
     })
-    const primaryValueProp = computed(() => {
+    const displayValueProp = computed(() => {
       return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
 
@@ -125,8 +125,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
                 where:
                   childrenExcludedListPagination.query &&
-                  `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
-                fields: [relatedTablePrimaryValueProp.value, ...relatedTablePrimaryKeyProps.value],
+                  `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+                fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
               } as RequestParams,
             },
           )
@@ -142,8 +142,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
               where:
                 childrenExcludedListPagination.query &&
-                `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
-              fields: [relatedTablePrimaryValueProp.value, ...relatedTablePrimaryKeyProps.value],
+                `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+              fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
             } as any,
           )
         } else {
@@ -160,7 +160,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               // todo: where clause is missing from type
               where:
                 childrenExcludedListPagination.query &&
-                `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
+                `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
             } as any,
           )
         }
@@ -183,7 +183,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               limit: String(childrenListPagination.size),
               offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
               where:
-                childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
+                childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
             } as any,
           )
         } else {
@@ -198,7 +198,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               limit: String(childrenListPagination.size),
               offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
               where:
-                childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
+                childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
             } as any,
           )
         }
@@ -320,13 +320,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     return {
       relatedTableMeta,
       loadRelatedTableMeta,
-      relatedTablePrimaryValueProp,
+      relatedTableDisplayValueProp,
       childrenExcludedList,
       childrenList,
       rowId,
       childrenExcludedListPagination,
       childrenListPagination,
-      primaryValueProp,
+      displayValueProp,
       meta,
       unlink,
       link,

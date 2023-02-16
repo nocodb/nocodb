@@ -37,7 +37,7 @@ const {
   deleteRelatedRow,
   loadChildrenList,
   childrenListPagination,
-  relatedTablePrimaryValueProp,
+  relatedTableDisplayValueProp,
   unlink,
   getRelatedTableRowId,
   relatedTableMeta,
@@ -146,7 +146,7 @@ const onClick = (row: Row) => {
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
-                {{ row[relatedTablePrimaryValueProp] }}
+                {{ row[relatedTableDisplayValueProp] }}
                 <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>
 

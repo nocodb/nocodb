@@ -51,6 +51,7 @@ export async function createHmAndBtColumn(
       virtual,
       system: isSystemCol,
       fk_col_name: fkColName,
+      fk_index_name: fkColName,
     });
   }
   // save hm column
@@ -70,6 +71,7 @@ export async function createHmAndBtColumn(
       virtual,
       system: isSystemCol,
       fk_col_name: fkColName,
+      fk_index_name: fkColName,
     });
   }
 }

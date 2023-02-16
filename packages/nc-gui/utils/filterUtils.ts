@@ -134,18 +134,6 @@ export const comparisonOpList = (
     ],
   },
   {
-    text: 'is blank',
-    value: 'blank',
-    ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox],
-  },
-  {
-    text: 'is not blank',
-    value: 'notblank',
-    ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox],
-  },
-  {
     text: 'contains all of',
     value: 'allof',
     includedTypes: [UITypes.MultiSelect],
@@ -184,5 +172,17 @@ export const comparisonOpList = (
     text: '<=',
     value: 'lte',
     includedTypes: [...numericUITypes],
+  },
+  {
+    text: 'is blank',
+    value: 'blank',
+    ignoreVal: true,
+    excludedTypes: [UITypes.Checkbox],
+  },
+  {
+    text: 'is not blank',
+    value: 'notblank',
+    ignoreVal: true,
+    excludedTypes: [UITypes.Checkbox],
   },
 ]

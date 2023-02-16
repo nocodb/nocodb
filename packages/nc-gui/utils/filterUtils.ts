@@ -1,17 +1,7 @@
-import { UITypes } from 'nocodb-sdk'
-
-const numericUITypes: UITypes[] = [
-  UITypes.Duration,
-  UITypes.Currency,
-  UITypes.Percent,
-  UITypes.Number,
-  UITypes.Decimal,
-  UITypes.Rating,
-  UITypes.Rollup,
-]
+import { isNumericCol, numericUITypes, UITypes } from 'nocodb-sdk'
 
 const getEqText = (fieldUiType: UITypes) => {
-  if (numericUITypes.includes(fieldUiType)) {
+  if (isNumericCol(fieldUiType)) {
     return '='
   } else if ([UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord].includes(fieldUiType)) {
     return 'is'
@@ -20,7 +10,7 @@ const getEqText = (fieldUiType: UITypes) => {
 }
 
 const getNeqText = (fieldUiType: UITypes) => {
-  if (numericUITypes.includes(fieldUiType)) {
+  if (isNumericCol(fieldUiType)) {
     return '!='
   } else if ([UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord].includes(fieldUiType)) {
     return 'is not'

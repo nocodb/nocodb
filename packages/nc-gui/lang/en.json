@@ -387,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "Insert New Row",
     "deleteRow": "Delete Row",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Delete Selected Rows",
     "importExcel": "Import Excel",
     "importCSV": "Import CSV",
@@ -721,6 +722,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

@@ -387,6 +387,7 @@
     "saveAndStay": "Save & Stay",
     "insertRow": "وارد کردن ردیف جدید",
     "deleteRow": "حذف ردیف جدید",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "حذف ردیف‌های انتخاب شده",
     "importExcel": "وارد کردن فایل Excel",
     "importCSV": "Import CSV",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

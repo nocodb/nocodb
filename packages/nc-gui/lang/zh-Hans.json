@@ -387,6 +387,7 @@
     "saveAndStay": "保存并留在此页",
     "insertRow": "插入新行",
     "deleteRow": "删除行",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "删除所选行",
     "importExcel": "导入 Excel",
     "importCSV": "导入 CSV",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "此列的副本创建成功",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "已成功更新表的 UI ACL",
       "pluginUninstalled": "插件卸载成功",
       "pluginSettingsSaved": "插件设置保存成功",

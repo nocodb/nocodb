@@ -387,6 +387,7 @@
     "saveAndStay": "Gem og bliv",
     "insertRow": "Indsæt ny række",
     "deleteRow": "DELETE ROW.",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Slet de valgte rækker",
     "importExcel": "Import Excel.",
     "importCSV": "Import CSV.",
@@ -716,6 +717,7 @@
     },
     "success": {
       "columnDuplicated": "Kolonne duplikeret med succes",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Opdateret UI ACL for tabeller med succes",
       "pluginUninstalled": "Plugin afinstalleret med succes",
       "pluginSettingsSaved": "Plugin-indstillingerne er gemt med succes",

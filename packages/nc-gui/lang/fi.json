@@ -380,7 +380,6 @@
     "renameTable": "Taulukko uudelleen",
     "deleteTable": "Taulukko poistaa",
     "addField": "Lisää uusi kenttä tähän taulukkoon",
-    "setPrimary": "Aseta ensisijainen arvo",
     "addRow": "Lisää uusi rivi",
     "saveRow": "Tallenna rivi",
     "saveAndExit": "Tallenna & poistu",

@@ -380,7 +380,6 @@
     "renameTable": "تغییر نام جدول",
     "deleteTable": "حذف جدول",
     "addField": "اضافه کردن فیلد جدید به این جدول",
-    "setPrimary": "تنظیم به عنوان مقدار اولیه",
     "addRow": "اضافه کردن ردیف جدید",
     "saveRow": "دخیره ردیف",
     "saveAndExit": "Save & Exit",

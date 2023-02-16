@@ -380,7 +380,6 @@
     "renameTable": "Přejmenování tabulky",
     "deleteTable": "Tabulka Odstranit",
     "addField": "Přidání nového pole do této tabulky",
-    "setPrimary": "Nastavit jako primární hodnotu",
     "addRow": "Přidat nový řádek",
     "saveRow": "Uložit řádek",
     "saveAndExit": "Uložit a odejít",

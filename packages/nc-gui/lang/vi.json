@@ -380,7 +380,6 @@
     "renameTable": "Đổi tên bảng.",
     "deleteTable": "Bảng xóa",
     "addField": "Thêm trường mới vào bảng này",
-    "setPrimary": "Đặt dưới dạng giá trị chính",
     "addRow": "Thêm hàng mới",
     "saveRow": "Lưu hàng.",
     "saveAndExit": "Save & Exit",

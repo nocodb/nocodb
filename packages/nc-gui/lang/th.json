@@ -380,7 +380,6 @@
     "renameTable": "ตารางเปลี่ยนชื่อ",
     "deleteTable": "ลบตาราง",
     "addField": "เพิ่มฟิลด์ใหม่ลงในตารางนี้",
-    "setPrimary": "ตั้งค่าเป็นค่าปฐมภูมิ",
     "addRow": "เพิ่มแถวใหม่",
     "saveRow": "บันทึกแถว",
     "saveAndExit": "Save & Exit",

@@ -285,8 +285,8 @@ const hideField = async () => {
             <MdiStar class="text-primary" />
 
             <!--       todo : tooltip -->
-            <!-- Set as Primary value -->
-            {{ $t('activity.setPrimary') }}
+            <!-- Set as Display value -->
+            {{ $t('activity.setDisplay') }}
           </div>
         </a-menu-item>
 

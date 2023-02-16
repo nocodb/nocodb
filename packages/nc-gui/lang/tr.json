@@ -380,7 +380,6 @@
     "renameTable": "Tabloyu Yeniden Adlandır",
     "deleteTable": "Tabloyu Sil",
     "addField": "Tabloya yeni alan ekle",
-    "setPrimary": "Birincil değer yap",
     "addRow": "Yeni satır ekle",
     "saveRow": "Satırı kaydet",
     "saveAndExit": "Kaydet ve Çık",

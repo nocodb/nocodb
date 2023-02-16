@@ -380,7 +380,7 @@
     "renameTable": "Table Rename",
     "deleteTable": "Table Delete",
     "addField": "Add new field to this table",
-    "setPrimary": "Set as Primary value",
+    "setDisplay": "Set as Display value",
     "addRow": "Add new row",
     "saveRow": "Save row",
     "saveAndExit": "Save & Exit",

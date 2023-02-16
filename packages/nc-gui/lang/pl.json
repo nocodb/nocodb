@@ -380,7 +380,6 @@
     "renameTable": "Zmień nazwę tabeli.",
     "deleteTable": "Usuń tabelę",
     "addField": "Dodaj nowe pole do tej tabeli",
-    "setPrimary": "Ustaw jako wartość podstawowa",
     "addRow": "Dodaj nowy rząd",
     "saveRow": "Zapisz wiersz",
     "saveAndExit": "Zapisz i wyjdź",

@@ -82,19 +82,28 @@ jobs:
         with:
           node-version: 16.15.0
 
-      - name: Build nocodb and docker files
+      - name: upgrade packages for nightly build or pr build
+        if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
-          cd ../nocodb-sdk
-          ls -l
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
+          cd packages/nocodb-sdk
           npm install && npm run build
-          cd ../nc-gui
-          ls -l
+          cd ../..
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js && 
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
+          cd packages/nc-gui
           npm install
-          npm run build:copy
-          cd ../nocodb
-          ls -l
-          npm install
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy
+          cd ../..
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
+
+      - uses: bahmutov/npm-install@v1
+        with:
+          working-directory: ${{ env.working-directory }}
+
+      - name: Build nocodb and docker files
+        run: |
           npm run build
           npm run docker:build
         working-directory: ${{ env.working-directory }}

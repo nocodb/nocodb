@@ -1,5 +1,5 @@
 {
-  "name": "nocodb-sdk",
+  "name": "sg-nocodb-sdk",
   "version": "0.104.3",
   "description": "NocoDB SDK",
   "main": "build/main/index.js",

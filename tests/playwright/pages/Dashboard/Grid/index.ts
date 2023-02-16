@@ -79,10 +79,8 @@ export class GridPage extends BasePage {
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
-    const clickOnColumnHeaderToSave = this.get()
-      .locator(`[data-title="${columnHeader}"]`)
-      .locator(`span[title="${columnHeader}"]`)
-      .click();
+    const clickOnColumnHeaderToSave = () =>
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -92,6 +90,7 @@ export class GridPage extends BasePage {
         responseJsonMatcher: resJson => resJson?.[columnHeader] === rowValue,
       });
     } else {
+      await clickOnColumnHeaderToSave();
       await this.rootPage.waitForTimeout(300);
     }
 
@@ -111,10 +110,8 @@ export class GridPage extends BasePage {
   }) {
     await this._fillRow({ index, columnHeader, value });
 
-    const clickOnColumnHeaderToSave = this.get()
-      .locator(`[data-title="${columnHeader}"]`)
-      .locator(`span[title="${columnHeader}"]`)
-      .click();
+    const clickOnColumnHeaderToSave = () =>
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -128,6 +125,7 @@ export class GridPage extends BasePage {
         responseJsonMatcher: resJson => resJson?.[columnHeader] === value,
       });
     } else {
+      await clickOnColumnHeaderToSave();
       await this.rootPage.waitForTimeout(300);
     }
 
@@ -231,7 +229,7 @@ export class GridPage extends BasePage {
 
   async clickPagination({ page }: { page: string }) {
     await this.waitForResponse({
-      uiAction: (await this.pagination({ page })).click(),
+      uiAction: async () => (await this.pagination({ page })).click(),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: '/views/',
       responseJsonMatcher: resJson => resJson?.pageInfo,

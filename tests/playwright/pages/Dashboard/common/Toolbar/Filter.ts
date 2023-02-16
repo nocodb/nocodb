@@ -137,7 +137,7 @@ export class ToolbarFilterPage extends BasePage {
           }
           break;
         default:
-          fillFilter = this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
+          fillFilter = () => this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
           await this.waitForResponse({
             uiAction: fillFilter,
             httpMethodsToMatch: ['GET'],
@@ -154,7 +154,7 @@ export class ToolbarFilterPage extends BasePage {
     await this.toolbar.clickFilter();
     if (networkValidation) {
       await this.waitForResponse({
-        uiAction: this.get().locator('.nc-filter-item-remove-btn').click(),
+        uiAction: () => this.get().locator('.nc-filter-item-remove-btn').click(),
         httpMethodsToMatch: ['DELETE'],
         requestUrlPathToMatch: '/api/v1/db/meta/filters/',
       });

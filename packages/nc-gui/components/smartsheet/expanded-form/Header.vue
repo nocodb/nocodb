@@ -108,7 +108,11 @@ const onConfirmDeleteRowClick = async () => {
       <template #title>
         <div class="text-center w-full">{{ $t('general.reload') }}</div>
       </template>
-      <mdi-reload v-if="!isNew" class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4" @click="loadRow" />
+      <mdi-reload
+        v-if="!isNew"
+        class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4"
+        @click="loadRow"
+      />
     </a-tooltip>
     <a-tooltip placement="bottom">
       <template #title>

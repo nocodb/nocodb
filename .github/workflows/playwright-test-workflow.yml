@@ -14,7 +14,7 @@ on:
 jobs:
   playwright:
     runs-on: ubuntu-20.04
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml
       - name: Set 5gb swap

@@ -84,7 +84,7 @@ export default class Model implements TableType {
     return this.columns?.filter((c) => c.pk);
   }
 
-  public get primaryValue(): Column {
+  public get displayValue(): Column {
     if (!this.columns) return null;
     const pCol = this.columns?.find((c) => c.pv);
     if (pCol) return pCol;
@@ -561,7 +561,7 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta
   ) {
     const model = await this.getWithInfo({ id: tableId });
-    const currentPvCol = model.primaryValue;
+    const currentPvCol = model.displayValue;
     const newPvCol = model.columns.find((c) => c.id === columnId);
 
     if (!newPvCol) NcError.badRequest('Column not found');
@@ -605,6 +605,23 @@ export default class Model implements TableType {
       },
       newPvCol.id
     );
+
+    const grid_views_with_column = await ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.GRID_VIEW_COLUMNS,
+      {
+        condition: {
+          fk_column_id: newPvCol.id,
+        },
+      }
+    );
+
+    if (grid_views_with_column.length) {
+      for (const gv of grid_views_with_column) {
+        await View.fixPVColumnForView(gv.fk_view_id, ncMeta);
+      }
+    }
 
     return true;
   }

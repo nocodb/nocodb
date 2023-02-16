@@ -71,6 +71,16 @@ You can also group several filters together using Filter Group.
 
 <img width="1025" alt="image" src="https://user-images.githubusercontent.com/35857179/189102932-aa0e31ef-554f-4e8b-ae0e-2024b7f4d35b.png">
 
-### Supported filters
+### Enable NULL and EMPTY Filters
 
-Currently we support filter types - `is equal`, `is not equal`, `is like`, `is not like`, `is null`, `is not null` for string fields. We also support filter types - `>`, `<`, `>=`, and `<=` for numeric fields. Also we provide `is empty` and `is not empty` for checking if the column is empty or not.
+NULL filters (`is null` & `is not null`) and EMPTY filters (`is empty` & `is not empty`) are hidden by default. If you wish to filter out either one only, you may enable `Show NULL and EMPTY Filter` in Project Settings.
+
+![image](https://user-images.githubusercontent.com/35857179/219009085-0308b2a9-10af-4afe-84b6-df52e42fb1a8.png)
+
+Otherwise, we can use Blank filters to filter out cells with NULL values and EMPTY values. 
+
+### Supported Filters
+
+Currently we support different types of filters for corresponding columns. Please refer the below matrix for details.
+
+<iframe width="100%" height="700vh" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTpCNKtA-szaXUKJEO5uuSIRnzUOK793MKnyBz9m2rQcwn7HqK19jPHeER-IIRWH9X56J78wfxXZuuv/pubhtml?gid=427284630&amp;single=true&amp;widget=true&amp;headers=false"></iframe>

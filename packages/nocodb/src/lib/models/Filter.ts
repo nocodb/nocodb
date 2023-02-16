@@ -12,6 +12,7 @@ import View from './View';
 import { FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { NcError } from '../meta/helpers/catchError';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Filter {
   id: string;
@@ -34,6 +35,8 @@ export default class Filter {
     | 'notnull'
     | 'checked'
     | 'notchecked'
+    | 'blank'
+    | 'notblank'
     | 'allof'
     | 'anyof'
     | 'nallof'
@@ -216,15 +219,14 @@ export default class Filter {
   }
 
   static async update(id, filter: Partial<Filter>, ncMeta = Noco.ncMeta) {
-    const updateObj = {
-      fk_column_id: filter.fk_column_id,
-      comparison_op: filter.comparison_op,
-      value: filter.value,
-      fk_parent_id: filter.fk_parent_id,
-
-      is_group: filter.is_group,
-      logical_op: filter.logical_op,
-    };
+    const updateObj = extractProps(filter, [
+      'fk_column_id',
+      'comparison_op',
+      'value',
+      'fk_parent_id',
+      'is_group',
+      'logical_op',
+    ]);
     // get existing cache
     const key = `${CacheScope.FILTER_EXP}:${id}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -239,7 +241,7 @@ export default class Filter {
   }
 
   static async delete(id: string, ncMeta = Noco.ncMeta) {
-    const filter = await this.get(id);
+    const filter = await this.get(id, ncMeta);
 
     const deleteRecursively = async (filter: Filter) => {
       if (!filter) return;
@@ -524,5 +526,43 @@ export default class Filter {
       );
     }
     return filterObjs?.map((f) => new Filter(f));
+  }
+
+  static async hasEmptyOrNullFilters(projectId: string, ncMeta = Noco.ncMeta) {
+    const emptyOrNullFilterObjs = await ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.FILTER_EXP,
+      {
+        condition: {
+          project_id: projectId,
+        },
+        xcCondition: {
+          _or: [
+            {
+              comparison_op: {
+                eq: 'null',
+              },
+            },
+            {
+              comparison_op: {
+                eq: 'notnull',
+              },
+            },
+            {
+              comparison_op: {
+                eq: 'empty',
+              },
+            },
+            {
+              comparison_op: {
+                eq: 'notempty',
+              },
+            },
+          ],
+        },
+      }
+    );
+    return emptyOrNullFilterObjs.length > 0;
   }
 }

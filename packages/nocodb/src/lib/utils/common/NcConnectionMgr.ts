@@ -2,6 +2,7 @@ import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '../../db/sql-data-mapper';
 import { NcConfig } from '../../../interface/config';
 import fs from 'fs';
+import { promisify } from 'util';
 import { Knex } from 'knex';
 
 import NcMetaIO from '../../meta/NcMetaIO';
@@ -43,7 +44,7 @@ export default class NcConnectionMgr {
     }
   }
 
-  public static get({
+  public static async get({
     dbAlias = 'db',
     env = '_noco',
     config,
@@ -53,7 +54,7 @@ export default class NcConnectionMgr {
     env: string;
     config: NcConfig;
     projectId: string;
-  }): XKnex {
+  }): Promise<XKnex> {
     if (this.connectionRefs?.[projectId]?.[env]?.[dbAlias]) {
       return this.connectionRefs?.[projectId]?.[env]?.[dbAlias];
     }
@@ -73,25 +74,25 @@ export default class NcConnectionMgr {
           connectionConfig.connection.ssl.caFilePath &&
           !connectionConfig.connection.ssl.ca
         ) {
-          connectionConfig.connection.ssl.ca = fs
-            .readFileSync(connectionConfig.connection.ssl.caFilePath)
-            .toString();
+          connectionConfig.connection.ssl.ca = await promisify(fs.readFile)(
+            connectionConfig.connection.ssl.caFilePath
+          ).toString();
         }
         if (
           connectionConfig.connection.ssl.keyFilePath &&
           !connectionConfig.connection.ssl.key
         ) {
-          connectionConfig.connection.ssl.key = fs
-            .readFileSync(connectionConfig.connection.ssl.keyFilePath)
-            .toString();
+          connectionConfig.connection.ssl.key = await promisify(fs.readFile)(
+            connectionConfig.connection.ssl.keyFilePath
+          ).toString();
         }
         if (
           connectionConfig.connection.ssl.certFilePath &&
           !connectionConfig.connection.ssl.cert
         ) {
-          connectionConfig.connection.ssl.cert = fs
-            .readFileSync(connectionConfig.connection.ssl.certFilePath)
-            .toString();
+          connectionConfig.connection.ssl.cert = await promisify(fs.readFile)(
+            connectionConfig.connection.ssl.certFilePath
+          ).toString();
         }
       }
 
@@ -138,7 +139,7 @@ export default class NcConnectionMgr {
     return config?.envs?.[env]?.db?.find((db) => db?.meta?.dbAlias === dbAlias);
   }
 
-  public static getSqlClient({
+  public static async getSqlClient({
     projectId,
     dbAlias = 'db',
     env = '_noco',
@@ -148,7 +149,7 @@ export default class NcConnectionMgr {
     env: string;
     config: NcConfig;
     projectId: string;
-  }): any {
+  }): Promise<any> {
     const knex = this.get({
       dbAlias,
       env,

@@ -6,6 +6,8 @@
   --header-height: 42px;
   --toolbar-height: 48px;
   --tw-text-opacity: 1;
+  --navbar-bg: #FAFAFA;
+  --navbar-border: #e0e0e0;
 }
 
 .ant-layout-header {
@@ -302,4 +304,17 @@ a {
   input::placeholder {
     @apply text-gray-300 italic;
   }
+}
+
+.ant-btn-loading-icon{
+  & > span {
+    @apply block;
+  }
+}
+
+
+.nc-copy-failed-modal .ant-modal-confirm-content{
+  @apply pt-4 overflow-auto;
+  white-space: pre;
+  user-select: auto;
 }

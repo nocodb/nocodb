@@ -42,7 +42,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
+const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -62,9 +62,9 @@ const localCellValue = computed<any[]>(() => {
 
 const cells = computed(() =>
   localCellValue.value.reduce((acc, curr) => {
-    if (!relatedTablePrimaryValueProp.value) return acc
+    if (!relatedTableDisplayValueProp.value) return acc
 
-    const value = curr[relatedTablePrimaryValueProp.value]
+    const value = curr[relatedTableDisplayValueProp.value]
 
     if (!value) return acc
 

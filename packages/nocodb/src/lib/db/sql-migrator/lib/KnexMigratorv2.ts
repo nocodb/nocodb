@@ -382,7 +382,7 @@ export default class KnexMigratorv2 {
   // }
 
   async _initDbWithSql(base: Base) {
-    const sqlClient = this.getSqlClient(base);
+    const sqlClient = await this.getSqlClient(base);
     const connectionConfig = base.getConnectionConfig();
     if (connectionConfig.client === 'oracledb') {
       this.emit(
@@ -428,12 +428,12 @@ export default class KnexMigratorv2 {
     // }
   }
 
-  protected getSqlClient(base: Base) {
+  protected async getSqlClient(base: Base): Promise<any> {
     return NcConnectionMgrv2.getSqlClient(base);
   }
 
   async _cleanDbWithSql(connectionConfig) {
-    const sqlClient = SqlClientFactory.create(connectionConfig);
+    const sqlClient = await SqlClientFactory.create(connectionConfig);
     if (connectionConfig.client === 'oracledb') {
       this.emit(`Dropping DB : ${connectionConfig.connection.user}`);
       await sqlClient.dropDatabase({
@@ -584,7 +584,7 @@ export default class KnexMigratorv2 {
       //   args.dbAlias,
       //   args.env
       // );
-      const sqlClient = this.getSqlClient(base);
+      const sqlClient = await this.getSqlClient(base);
 
       let migrations = await sqlClient.selectAll(
         // todo: replace
@@ -849,7 +849,7 @@ export default class KnexMigratorv2 {
       //   args.dbAlias,
       //   args.env
       // );
-      const sqlClient = this.getSqlClient(base); // SqlClientFactory.create(connection);
+      const sqlClient = await this.getSqlClient(base); // SqlClientFactory.create(connection);
       const migrations = await sqlClient.selectAll(
         sqlClient.getTnPath('nc_evolutions')
       );

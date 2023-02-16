@@ -23,6 +23,74 @@ import {
 } from '../../factory/row';
 import { expect } from 'chai';
 
+// Test case list
+// 1. Get view row list g
+// 2. Get view row list
+// 3. Get view row lis
+// 4. Get view row lis
+// 5. Get view data list with required columns g
+// 6. Get view data list with required column
+// 7. Get view data list with required column
+// 8. Get grouped view data list with required columns
+// 9. Get desc sorted table data list with required columns gallery
+// 10. Get desc sorted table data list with required columns form
+// 11. Get desc sorted table data list with required columns grid
+// 12. Get desc sorted table data list with required columns kanban
+// 13. Get asc sorted view data list with required columns gallery
+// 14. Get asc sorted view data list with required columns form
+// 15. Get asc sorted view data list with required columns grid
+// 16. Get asc sorted table data list with required columns kanban
+// 17. Get nested sorted filtered table data list with a lookup column gallery
+// 18. Get nested sorted filtered table data list with a lookup column grid
+// 19. Get nested sorted filtered table with nested fields data list with a rollup column in customer table vie
+// 20. Create table row grid
+// 21. Create table row gallery
+// 22. Create table row form
+// 23. Create table row kanban
+// 24. Create table row grid wrong grid id
+// 25. Create table row wrong gallery id
+// 26. Create table row wrong form id
+// 27. Create table row wrong kanban id
+// 28. Find one sorted data list with required columns gallery
+// 29. Find one sorted data list with required columns form
+// 30. Find one sorted data list with required columns grid
+// 31. Find one view sorted filtered view with nested fields data list with a rollup column in customer table GRID
+// 32. Groupby desc sorted and with rollup view data  list with required columns GRID
+// 33. Groupby desc sorted and with rollup view data  list with required columns FORM
+// 34. Groupby desc sorted and with rollup view data  list with required columns GALLERY
+// 35. Groupby desc sorted and with rollup view data  list with required columns GALLERY
+// 36. Groupby desc sorted and with rollup view data  list with required columns FORM
+// 37. Groupby desc sorted and with rollup view data  list with required columns GRID
+// 38. Count view data  list with required columns GRID
+// 39. Count view data  list with required columns FORM
+// 40. Count view data  list with required columns GALLERY
+// 41. Read view row GALLERY
+// 42. Read view row FORM
+// 43. Read view row GRID
+// 44. Update view row GALLERY
+// 45. Update view row GRID
+// 46. Update view row FORM
+// 47. Update view row with validation and invalid data GALLERY
+// 48. Update view row with validation and invalid data GRID
+// 49. Update view row with validation and invalid data FORM
+// 50. Update view row with validation and valid data GALLERY
+// 51. Update view row with validation and valid data GRID
+// 52. Update view row with validation and valid data FORM
+// 53. Delete view row GALLERY
+// 54. Delete view row GRID
+// 55. Delete view row FORM
+// 56. Delete view row with ltar foreign key constraint GALLERY
+// 57. Delete view row with ltar foreign key constraint GRID
+// 58. Delete view row with ltar foreign key constraint FORM
+// 59. Exist should be true view row when it exists GALLERY
+// 60. Exist should be true view row when it exists GRID
+// 61. Exist should be true view row when it exists FORM
+// 62. Exist should be false view row when it does not exist GALLERY
+// 63. Exist should be false view row when it does not exist GRID
+// 64. Exist should be false view row when it does not exist FORM
+// 65. Export csv GRID
+// 66. Export excel GRID
+
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
   const customerColumnsListStr = columns
@@ -562,7 +630,7 @@ function viewRowTests() {
     );
 
     const nestedFields = {
-      'Rental List': { fields : ['RentalDate', 'ReturnDate'] },
+      'Rental List': { fields: ['RentalDate', 'ReturnDate'] },
     };
 
     const nestedFilter = [

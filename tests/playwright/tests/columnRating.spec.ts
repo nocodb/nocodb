@@ -26,6 +26,7 @@ test.describe('Rating - cell, filter, sort', () => {
       opType: param.opType,
       value: param.value,
       isLocallySaved: false,
+      dataType: 'Rating',
     });
     await toolbar.clickFilter();
 
@@ -74,15 +75,15 @@ test.describe('Rating - cell, filter, sort', () => {
     // 1f : 1
 
     // Filter column
-    await verifyFilter({ opType: 'is equal', value: '3', result: ['1a'] });
-    await verifyFilter({ opType: 'is not equal', value: '3', result: ['1b', '1c', '1d', '1e', '1f'] });
-    await verifyFilter({ opType: 'is like', value: '2', result: ['1c'] });
-    await verifyFilter({ opType: 'is not like', value: '2', result: ['1a', '1b', '1d', '1e', '1f'] });
-    await verifyFilter({ opType: 'is null', result: [] });
-    await verifyFilter({ opType: 'is not null', result: ['1a', '1b', '1c', '1d', '1e', '1f'] });
-    // await verifyFilter({ opType: '>', value: '1', result: ['1a', '1c'] });
+    await verifyFilter({ opType: '=', value: '3', result: ['1a'] });
+    await verifyFilter({ opType: '!=', value: '3', result: ['1b', '1c', '1d', '1e', '1f'] });
+    // await verifyFilter({ opType: 'is like', value: '2', result: ['1c'] });
+    // await verifyFilter({ opType: 'is not like', value: '2', result: ['1a', '1b', '1d', '1e', '1f'] });
+    // await verifyFilter({ opType: 'is null', result: [] });
+    // await verifyFilter({ opType: 'is not null', result: ['1a', '1b', '1c', '1d', '1e', '1f'] });
+    await verifyFilter({ opType: '>', value: '1', result: ['1a', '1c'] });
     await verifyFilter({ opType: '>=', value: '1', result: ['1a', '1c', '1f'] });
-    // await verifyFilter({ opType: '<', value: '1', result: [] });
+    await verifyFilter({ opType: '<', value: '1', result: [] });
     await verifyFilter({ opType: '<=', value: '1', result: ['1b', '1d', '1e', '1f'] });
 
     // Sort column

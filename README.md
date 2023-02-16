@@ -267,7 +267,7 @@ By default, SQLite is used for storing meta data. However, you can specify your 
 
 ## Environment variables 
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
 
 # Development Setup 
 

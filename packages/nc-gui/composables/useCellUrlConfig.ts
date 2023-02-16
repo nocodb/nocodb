@@ -1,5 +1,5 @@
 import type { MaybeRef } from '@vueuse/core'
-import { computed, unref, useRoute } from '#imports'
+import { computed, unref, useRouter } from '#imports'
 
 export interface CellUrlOptions {
   behavior?: string
@@ -21,7 +21,9 @@ const parseUrlRules = (serialized?: string): ParsedRules[] | undefined => {
 }
 
 export function useCellUrlConfig(url?: MaybeRef<string>) {
-  const route = useRoute()
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
 
   const config = $computed(() => ({
     behavior: route.query.url_behavior as string | undefined,

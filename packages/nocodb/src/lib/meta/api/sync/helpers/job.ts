@@ -8,6 +8,7 @@ import { Api } from 'nocodb-sdk';
 import Airtable from 'airtable';
 import jsonfile from 'jsonfile';
 import hash from 'object-hash';
+import { promisify } from 'util';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -15,6 +16,8 @@ import tinycolor from 'tinycolor2';
 import { importData, importLTARData } from './readAndProcessData';
 
 import EntityMap from './EntityMap';
+
+const writeJsonFileAsync = promisify(jsonfile.writeFile);
 
 dayjs.extend(utc);
 
@@ -204,7 +207,8 @@ export default async (
     // store copy of airtable schema globally
     g_aTblSchema = file.tableSchemas;
 
-    if (debugMode) jsonfile.writeFileSync('aTblSchema.json', ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync('aTblSchema.json', ft, { spaces: 2 });
 
     return file;
   }
@@ -216,7 +220,8 @@ export default async (
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
 
-    if (debugMode) jsonfile.writeFileSync(`${viewId}.json`, ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync(`${viewId}.json`, ft, { spaces: 2 });
     return ft.view;
   }
 
@@ -1287,7 +1292,7 @@ export default async (
   async function nocoSetPrimary(aTblSchema) {
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       logDetailed(
-        `[${idx + 1}/${aTblSchema.length}] Configuring Primary value : ${
+        `[${idx + 1}/${aTblSchema.length}] Configuring Display value : ${
           aTblSchema[idx].name
         }`
       );
@@ -1917,13 +1922,13 @@ export default async (
     logBasic(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
 
     if (debugMode) {
-      jsonfile.writeFileSync('stats.json', perfStats, { spaces: 2 });
+      await writeJsonFileAsync('stats.json', perfStats, { spaces: 2 });
       const perflog = [];
       for (let i = 0; i < perfStats.length; i++) {
         perflog.push(`${perfStats[i].e}, ${perfStats[i].d}`);
       }
-      jsonfile.writeFileSync('stats.csv', perflog, { spaces: 2 });
-      jsonfile.writeFileSync('skip.txt', rtc.migrationSkipLog.log, {
+      await writeJsonFileAsync('stats.csv', perflog, { spaces: 2 });
+      await writeJsonFileAsync('skip.txt', rtc.migrationSkipLog.log, {
         spaces: 2,
       });
     }
@@ -1971,8 +1976,10 @@ export default async (
     isNotEmpty: 'notempty',
     contains: 'like',
     doesNotContain: 'nlike',
-    isAnyOf: 'eq',
-    isNoneOf: 'neq',
+    isAnyOf: 'anyof',
+    isNoneOf: 'nanyof',
+    '|': 'anyof',
+    '&': 'allof',
   };
 
   async function nc_configureFilters(viewId, f) {
@@ -2012,17 +2019,22 @@ export default async (
         datatype === UITypes.SingleSelect ||
         datatype === UITypes.MultiSelect
       ) {
+        if (filter.operator === 'doesNotContain') {
+          filter.operator = 'isNoneOf';
+        }
         // if array, break it down to multiple filters
         if (Array.isArray(filter.value)) {
-          for (let i = 0; i < filter.value.length; i++) {
-            const fx = {
-              fk_column_id: columnId,
-              logical_op: f.conjunction,
-              comparison_op: filterMap[filter.operator],
-              value: await sMap.getNcNameFromAtId(filter.value[i]),
-            };
-            ncFilters.push(fx);
-          }
+          const fx = {
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filterMap[filter.operator],
+            value: (
+              await Promise.all(
+                filter.value.map(async (f) => await sMap.getNcNameFromAtId(f))
+              )
+            ).join(','),
+          };
+          ncFilters.push(fx);
         }
         // not array - add as is
         else if (filter.value) {
@@ -2220,10 +2232,10 @@ export default async (
         logDetailed('Migrating Lookup form Rollup columns completed');
       }
     }
-    logDetailed('Configuring Primary value column');
-    // configure primary values
+    logDetailed('Configuring Display Value column');
+    // configure Display Value
     await nocoSetPrimary(aTblSchema);
-    logDetailed('Configuring primary value column completed');
+    logDetailed('Configuring Display Value column completed');
 
     logBasic('Configuring User(s)');
     // add users

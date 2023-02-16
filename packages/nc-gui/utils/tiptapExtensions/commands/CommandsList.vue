@@ -57,7 +57,7 @@ const onFilePicked = (event: any) => {
   const files = event.target.files
   const file = files[0]
 
-  ;(editor.chain().focus() as any).setImage({ src: file, clearCurrentNode: true }).run()
+  ;(editor.chain().focus() as any).setImage({ src: file }).run()
 }
 
 const insertLink = () => {

@@ -9,6 +9,8 @@ export const PAGES_PER_PAGE_LIST = 10
 const [setup, use] = useInjectionState(() => {
   const { $api } = useNuxtApp()
   const route = useRoute()
+  const { appInfo } = $(useGlobal())
+
   const projectId = $(computed(() => route.params.projectId as string))
 
   const isPublic = inject(IsDocsPublicInj, ref(false))
@@ -660,7 +662,8 @@ const [setup, use] = useInjectionState(() => {
         json: '{}',
       },
     )
-    return data[0]
+
+    return data[0]?.path ? `${appInfo.ncSiteUrl}/${data[0].path}` : ''
   }
 
   const bulkPublish = async (toBePublishedPages: Array<PageSidebarNode & { isSelected: boolean }>) => {

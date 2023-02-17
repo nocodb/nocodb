@@ -138,8 +138,8 @@ watch(
   <a-layout-content>
     <div v-if="localPage" ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
       <div class="flex flex-col w-full">
-        <div class="flex flex-row justify-between items-center pl-8 pt-2.5">
-          <div class="flex flex-row !px-2">
+        <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
+          <div class="flex flex-row">
             <div v-for="({ href, title, icon }, index) of breadCrumbs" :key="href" class="flex">
               <NuxtLink
                 class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"

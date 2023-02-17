@@ -13,6 +13,7 @@ import {
   createEventHook,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
+  fieldLengthValidator,
   getDateFormat,
   getDateTimeFormat,
   getUIDTIcon,
@@ -110,12 +111,12 @@ const data = reactive<{
 })
 
 const validators = computed(() =>
-  data.tables.reduce<Record<string, [ReturnType<typeof fieldRequiredValidator>]>>((acc, table, tableIdx) => {
+  data.tables.reduce<Record<string, [ReturnType<typeof fieldRequiredValidator>]>>((acc: Record<string, any>, table, tableIdx) => {
     acc[`tables.${tableIdx}.table_name`] = [fieldRequiredValidator()]
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator()]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator(), fieldLengthValidator()]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true

@@ -655,9 +655,9 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 
   const base = await Base.get(table.base_id);
 
-  const dbDriver = NcConnectionMgrv2.get(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
-  const sqlClientType = dbDriver.clientType();
+  const sqlClientType = sqlClient.knex.clientType();
 
   const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 

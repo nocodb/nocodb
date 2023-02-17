@@ -4,6 +4,8 @@ import { SettingsPage, SettingTab } from '../pages/Dashboard/Settings';
 import setup, { NcContext } from '../setup';
 import { isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../setup/db';
 
+// was green when run individually via .only
+// on 6b743b11dbb9f9f2f33790f6c4182a65c430e2fa
 test.describe('Meta sync', () => {
   let dashboard: DashboardPage;
   let settings: SettingsPage;

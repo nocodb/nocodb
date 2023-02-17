@@ -12,8 +12,8 @@ import {
   computed,
   createEventHook,
   extractSdkResponseErrorMsg,
-  fieldRequiredValidator,
   fieldLengthValidator,
+  fieldRequiredValidator,
   getDateFormat,
   getDateTimeFormat,
   getUIDTIcon,
@@ -116,7 +116,10 @@ const validators = computed(() =>
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator(), fieldLengthValidator()]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [
+        fieldRequiredValidator(),
+        fieldLengthValidator(project.value?.bases?.[0].type || ClientType.MYSQL),
+      ]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true

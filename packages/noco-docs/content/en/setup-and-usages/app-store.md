@@ -1,9 +1,9 @@
 ---
-title: 'Account Settings > App Store'
+title: 'Team Settings > App Store'
 description: 'NocoDB provides different integrations in three main categories in App Store'
 position: 590
 category: 'Product'
-menuTitle: 'Account Settings > App Store'
+menuTitle: 'Team Settings > App Store'
 ---
 
 ## Overview

@@ -187,7 +187,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return this.connectionConfig?.meta?.dbAlias;
   }
 
-  public async getSqlClient(): Promise<any> {
+  public async getSqlClient() {
     return NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,

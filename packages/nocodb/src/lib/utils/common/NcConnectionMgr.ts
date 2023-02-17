@@ -149,7 +149,7 @@ export default class NcConnectionMgr {
     env: string;
     config: NcConfig;
     projectId: string;
-  }): Promise<any> {
+  }) {
     const knex = this.get({
       dbAlias,
       env,

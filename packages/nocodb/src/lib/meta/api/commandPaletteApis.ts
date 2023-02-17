@@ -7,8 +7,8 @@ import { xcVisibilityMetaGet } from './modelVisibilityApis';
 
 export async function commandPalette(req: Request, res: Response) {
   try {
-    const cmdData = []
-    const { scope, data } =  req.body;
+    const cmdData = [];
+    const { scope, data } = req.body;
     switch (scope) {
       case 'workspace':
         const workspaces = await WorkspaceUser.workspaceList({
@@ -19,11 +19,11 @@ export async function commandPalette(req: Request, res: Response) {
           cmdData.push({
             id: 'workspaces',
             title: 'Workspaces',
-            children: [...workspaces.map((w) => `ws-${w.id}`)]
-          })
+            children: [...workspaces.map((w) => `ws-${w.id}`)],
+          });
         }
 
-        const allProjects = []
+        const allProjects = [];
 
         for (const workspace of workspaces) {
           cmdData.push({
@@ -32,26 +32,26 @@ export async function commandPalette(req: Request, res: Response) {
             parent: 'workspaces',
             handler: {
               type: 'navigate',
-              payload: `/?workspaceId=${workspace.id}&page=workspace`
-            }
-          })
+              payload: `/?workspaceId=${workspace.id}&page=workspace`,
+            },
+          });
 
           const projects = await Project.listByWorkspaceAndUser(
             workspace.id,
             (req as any).user?.id
           );
 
-          allProjects.push(...projects)
+          allProjects.push(...projects);
         }
 
         if (allProjects.length) {
           cmdData.push({
             id: 'projects',
             title: 'Projects',
-            children: [...allProjects.map((p) => `p-${p.id}`)]
-          })
+            children: [...allProjects.map((p) => `p-${p.id}`)],
+          });
         }
-        
+
         for (const project of allProjects) {
           cmdData.push({
             id: `p-${project.id}`,
@@ -59,24 +59,25 @@ export async function commandPalette(req: Request, res: Response) {
             parent: 'projects',
             handler: {
               type: 'navigate',
-              payload: `/nc/${project.id}`
-            }
-          })
+              payload: `/nc/${project.id}`,
+            },
+          });
         }
         break;
       case 'project':
-        const viewList = (await xcVisibilityMetaGet(data.project_id) as any[])
-          .filter((v) => {
-            return Object.keys((req as any).session?.passport?.user?.roles).some(
-              (role) =>
-                (req as any)?.session?.passport?.user?.roles[role] &&
-                !v.disabled[role]
-            );
-          });
-        
-        const tableList = []
-        const vwList = []
-        
+        const viewList = (
+          (await xcVisibilityMetaGet(data.project_id)) as any[]
+        ).filter((v) => {
+          return Object.keys((req as any).session?.passport?.user?.roles).some(
+            (role) =>
+              (req as any)?.session?.passport?.user?.roles[role] &&
+              !v.disabled[role]
+          );
+        });
+
+        const tableList = [];
+        const vwList = [];
+
         for (const v of viewList) {
           if (!tableList.find((el) => el.id === `tbl-${v.fk_model_id}`)) {
             tableList.push({
@@ -85,9 +86,9 @@ export async function commandPalette(req: Request, res: Response) {
               parent: 'tables',
               handler: {
                 type: 'navigate',
-                payload: `/nc/${data.project_id}/table/${v.fk_model_id}`
-              }
-            })
+                payload: `/nc/${data.project_id}/table/${v.fk_model_id}`,
+              },
+            });
           }
           vwList.push({
             id: `vw-${v.id}`,
@@ -95,21 +96,23 @@ export async function commandPalette(req: Request, res: Response) {
             parent: 'views',
             handler: {
               type: 'navigate',
-              payload: `/nc/${data.project_id}/table/${v.fk_model_id}/${encodeURIComponent(v.title)}`
-            }
-          })
+              payload: `/nc/${data.project_id}/table/${
+                v.fk_model_id
+              }/${encodeURIComponent(v.title)}`,
+            },
+          });
         }
 
-        cmdData.push(...tableList)
-        cmdData.push(...vwList)
-        
+        cmdData.push(...tableList);
+        cmdData.push(...vwList);
+
         if (tableList.length) {
           cmdData.push({
             id: 'tables',
             title: 'Tables',
             parent: scope,
-            children: [...tableList.map((w) => `tbl-${w.id}`)]
-          })
+            children: [...tableList.map((w) => `tbl-${w.id}`)],
+          });
         }
 
         if (vwList.length) {
@@ -117,11 +120,10 @@ export async function commandPalette(req: Request, res: Response) {
             id: 'views',
             title: 'Views',
             parent: scope,
-            children: [...vwList.map((w) => `vw-${w.id}`)]
-          })
+            children: [...vwList.map((w) => `vw-${w.id}`)],
+          });
         }
         break;
-
     }
     return res.status(200).json(cmdData);
   } catch (e) {
@@ -133,5 +135,8 @@ export async function commandPalette(req: Request, res: Response) {
 }
 
 export default (router) => {
-  router.post('/api/v1/command_palette', ncMetaAclMw(commandPalette, 'commandPalette'));
+  router.post(
+    '/api/v1/command_palette',
+    ncMetaAclMw(commandPalette, 'commandPalette')
+  );
 };

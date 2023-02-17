@@ -13,7 +13,7 @@ import CryptoJS from 'crypto-js';
 import { extractProps } from '../meta/helpers/extractProps';
 import { NcError } from '../meta/helpers/catchError';
 import SyncSource from './SyncSource';
-import NcConnectionMgrv2 from "../utils/common/NcConnectionMgrv2";
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 
 // todo: hide credentials
 export default class Base implements BaseType {

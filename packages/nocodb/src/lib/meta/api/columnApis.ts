@@ -686,7 +686,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 
         try {
           // test the query to see if it is valid in db level
-          const dbDriver =await NcConnectionMgrv2.get(base);
+          const dbDriver = await NcConnectionMgrv2.get(base);
           await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
         } catch (e) {
           console.error(e);

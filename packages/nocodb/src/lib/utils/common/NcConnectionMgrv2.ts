@@ -1,5 +1,5 @@
 import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
-import {XKnex} from '../../db/sql-data-mapper';
+import { XKnex } from '../../db/sql-data-mapper';
 // import { NcConfig } from '../../../interface/config';
 // import fs from 'fs';
 // import Knex from 'knex';
@@ -10,8 +10,8 @@ import {
   defaultConnectionOptions,
 } from '../NcConfigFactory';
 import Base from '../../models/Base';
-import {Knex} from 'knex';
-import {NcConfigFactory} from '../../index';
+import { Knex } from 'knex';
+import { NcConfigFactory } from '../../index';
 
 export default class NcConnectionMgrv2 {
   private static connectionRefs: {

@@ -64,8 +64,22 @@ export async function columnAdd(
   const table = await Model.getWithInfo({
     id: req.params.tableId,
   });
+
   const base = await Base.get(table.base_id);
+
   const project = await base.getProject();
+
+  const dbDriver = NcConnectionMgrv2.get(base);
+
+  const sqlClientType = dbDriver.clientType();
+
+  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+  if (req.body.column_name.length > mxColumnLength) {
+    NcError.badRequest(
+      `Column name ${req.body.column_name} exceeds ${mxColumnLength} characters`
+    );
+  }
 
   if (
     !isVirtualCol(req.body) &&

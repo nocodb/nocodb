@@ -69,16 +69,20 @@ export async function columnAdd(
 
   const project = await base.getProject();
 
-  const dbDriver = NcConnectionMgrv2.get(base);
+  if (req.body.title || req.body.column_name) {
+    const dbDriver = NcConnectionMgrv2.get(base);
 
-  const sqlClientType = dbDriver.clientType();
+    const sqlClientType = dbDriver.clientType();
 
-  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+    const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
-  if (req.body.column_name.length > mxColumnLength) {
-    NcError.badRequest(
-      `Column name ${req.body.column_name} exceeds ${mxColumnLength} characters`
-    );
+    if ((req.body.title || req.body.column_name).length > mxColumnLength) {
+      NcError.badRequest(
+        `Column name ${
+          req.body.title || req.body.column_name
+        } exceeds ${mxColumnLength} characters`
+      );
+    }
   }
 
   if (

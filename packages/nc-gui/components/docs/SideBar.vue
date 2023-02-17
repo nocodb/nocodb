@@ -201,10 +201,10 @@ const setIcon = async (id: string, icon: string) => {
               {{ title }}
             </span>
           </div>
-          <div v-if="!isPublic" class="flex flex-row justify-start items-center pl-2 gap-x-1">
+          <div v-if="!isPublic" class="flex flex-row justify-start items-center pl-2 gap-x-1 h-3">
             <a-dropdown placement="bottom" trigger="click">
               <div
-                class="nc-docs-sidebar-page-options flex p-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+                class="nc-docs-sidebar-page-options flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
               >
                 <MdiDotsHorizontal />
               </div>
@@ -229,7 +229,7 @@ const setIcon = async (id: string, icon: string) => {
               </template>
             </a-dropdown>
             <div
-              class="flex p-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
+              class="flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
               @click="() => addNewPage(id)"
             >
               <MdiPlus />

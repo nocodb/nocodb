@@ -35,6 +35,16 @@ export class ViewSidebarPage extends BasePage {
     }
   }
 
+  async activateGeoDataEasterEgg() {
+    const element = await this.rootPage.$('.nc-active-btn');
+    const { x, y } = await element.boundingBox();
+
+    // Click the element 5 times in a row
+    for (let i = 0; i < 5; i++) {
+      await this.rootPage.mouse.click(x + 50, y);
+    }
+  }
+
   private async createView({ title, locator }: { title: string; locator: Locator }) {
     await locator.click();
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);

@@ -44,7 +44,7 @@ export default class Audit implements AuditType {
       forceAwait: process.env['TEST'] === 'true',
     }
   ) {
-    if (process.env['NC_DISABLE_AUDIT'] ?? false) {
+    if (process.env.NC_DISABLE_AUDIT === 'true') {
       return;
     }
     const insertAudit = async () => {

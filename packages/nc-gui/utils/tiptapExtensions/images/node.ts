@@ -91,6 +91,9 @@ export const createImageExtension = (uploadFn: UploadFn) => {
           // Set cursor to the next line
           const state = this.editor.state
           const { tr } = state
+          const selectedNode = state.selection.$from.node()
+          if (selectedNode?.type.name !== 'image') return
+
           tr.setSelection(TextSelection.create(tr.doc, state.selection.$from.pos + 2))
           this.editor.view.dispatch(tr)
         },

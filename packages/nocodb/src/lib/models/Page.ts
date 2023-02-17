@@ -121,6 +121,37 @@ export default class Page {
     return page;
   }
 
+  public static async getBySlug(
+    {
+      slug,
+      bookId,
+      projectId,
+    }: {
+      slug: string;
+      bookId: string;
+      projectId: string;
+    },
+    ncMeta = Noco.ncMeta
+  ): Promise<DocsPageType> {
+    // todo: Add cache
+    let page = undefined;
+    if (!page) {
+      page = await ncMeta.metaGet2(
+        null,
+        null,
+        Page.tableName({ projectId, bookId }),
+        {
+          slug,
+        }
+      );
+      if (page) {
+        await NocoCache.set(`${CacheScope.DOCS_PAGE}:${page.id}`, page);
+      }
+    }
+
+    return page;
+  }
+
   public static async update(
     {
       bookId,
@@ -280,10 +311,12 @@ export default class Page {
     {
       bookId,
       parent_page_id,
+      fetchAll,
       projectId,
     }: {
       bookId: string;
       parent_page_id?: string;
+      fetchAll?: boolean;
       projectId: string;
     },
     ncMeta = Noco.ncMeta
@@ -293,9 +326,11 @@ export default class Page {
       null,
       Page.tableName({ projectId, bookId }),
       {
-        condition: {
-          parent_page_id: parent_page_id ?? null,
-        },
+        condition: fetchAll
+          ? {}
+          : {
+              parent_page_id: parent_page_id ?? null,
+            },
         fields: [
           'id',
           'title',
@@ -329,24 +364,29 @@ export default class Page {
     projectId: string;
     parent_page_id?: string;
   }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
-    const nestedList = await this.list({ bookId, projectId, parent_page_id });
+    const nestedList = await this.list({
+      bookId,
+      projectId,
+      parent_page_id,
+      fetchAll: true,
+    });
 
     if (!nestedList || nestedList.length === 0) return [];
 
-    const nestedListWithChildren = await Promise.all(
-      nestedList.map(async (page) => {
-        const children = await this.nestedList({
-          bookId,
-          parent_page_id: page.id,
-          projectId,
-        });
-        return {
-          ...page,
-          isLeaf: children.length === 0,
-          children,
-        };
-      })
-    );
+    const arrayToTree = (
+      arr: DocsPageType[],
+      parentPageId: string | undefined
+    ) =>
+      arr
+        .filter((item) => item.parent_page_id == parentPageId)
+        .map((child) => ({
+          ...child,
+          children: arrayToTree(arr, child.id),
+        }));
+
+    const nestedListWithChildren: Array<
+      DocsPageType & { children: any[]; isLeaf: boolean }
+    > = arrayToTree(nestedList, parent_page_id);
 
     return nestedListWithChildren;
   }

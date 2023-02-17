@@ -3,32 +3,28 @@ import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import { useSubheading } from './utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
-import AlignRightIcon from '~icons/tabler/align-right'
 import type { PageSidebarNode } from '~~/lib'
 
 const isPublic = inject(IsDocsPublicInj, ref(false))
 
 const {
   openedPage: openedPageInternal,
-  openedBook,
   updateContent,
   openedNestedPagesOfBook,
+  openedPageSlug,
   nestedUrl,
-  bookUrl,
   fetchPage,
   openPage,
 } = useDocs()
-
-const { showPageSubHeadings, pageSubHeadings, selectActiveSubHeading, populatedPageSubheadings } = useSubheading()
 
 // Page opened in the Page component, which is updated to the server debounce-ly
 // The main reason we have it as a separate state, is since update syncing with server is debounced
 // We will run into syncing issue if we use `openedPage`from `useDocs`, which is synced with server directly,
 const localPage = ref<PageSidebarNode | undefined>()
 
-provide(DocsLocalPageInj, localPage)
+const wrapperRef = ref<HTMLDivElement | undefined>()
 
-const isLoading = ref(false)
+provide(DocsLocalPageInj, localPage)
 
 const content = computed(() => localPage.value?.content || '')
 
@@ -47,9 +43,6 @@ const editor = useEditor({
     if (!localPage.value) return
 
     localPage.value.content = editor.getHTML()
-
-    populatedPageSubheadings()
-    selectActiveSubHeading()
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -92,8 +85,8 @@ watch(editor, () => {
 
 watchDebounced(
   () => [localPage.value?.id, localPage.value?.content],
-  ([newId], [oldId]) => {
-    if (!isPublic.value && localPage.value?.id && newId === oldId) {
+  ([newId, newContent], [oldId, oldContent]) => {
+    if (!isPublic.value && localPage.value?.id && newId === oldId && newContent !== oldContent) {
       updateContent({ pageId: localPage.value?.id, content: localPage.value!.content })
     }
   },
@@ -104,14 +97,20 @@ watchDebounced(
 )
 
 watch(
-  () => localPage.value?.id,
-  async () => {
-    isLoading.value = true
-    localPage.value = (await fetchPage({ page: localPage.value! })) as any
+  () => [openedPageSlug.value, openedPageInternal.value?.id],
+  async ([newSlug, newPageId], oldData) => {
+    if (!newSlug) return
+
+    if (oldData) {
+      const [oldSlug, oldPageId] = oldData!
+      if (oldSlug === newSlug || oldPageId === newPageId) return
+    }
+
+    localPage.value = undefined
+
+    localPage.value = (await fetchPage()) as any
 
     if (openedPageInternal.value?.new) localPage.value!.new = true
-
-    isLoading.value = false
   },
   {
     immediate: true,
@@ -120,9 +119,8 @@ watch(
 
 watch(
   openedPageInternal,
-  (page) => {
+  () => {
     if (!localPage.value) return
-    if (localPage.value?.id !== page?.id) return
 
     localPage.value = {
       ...openedPageInternal.value,
@@ -138,10 +136,10 @@ watch(
 
 <template>
   <a-layout-content>
-    <div v-if="localPage" class="nc-docs-page h-full flex flex-row relative" @scroll="selectActiveSubHeading">
+    <div v-if="localPage" ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
       <div class="flex flex-col w-full">
-        <div class="flex flex-row justify-between items-center pl-8 pt-2.5">
-          <div class="flex flex-row !px-2">
+        <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
+          <div class="flex flex-row">
             <div v-for="({ href, title, icon }, index) of breadCrumbs" :key="href" class="flex">
               <NuxtLink
                 class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
@@ -189,7 +187,6 @@ watch(
             />
           </FloatingMenu>
           <EditorContent
-            v-if="!isLoading"
             :editor="editor"
             class="px-2"
             :class="{
@@ -198,7 +195,7 @@ watch(
             }"
           />
           <div
-            v-if="!isLoading && openedPageInternal?.children?.length !== 0"
+            v-if="openedPageInternal?.children?.length !== 0"
             class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
           >
             <div
@@ -216,37 +213,7 @@ watch(
         </div>
       </div>
       <div class="sticky top-0 pt-1.5 flex flex-col mr-3 min-w-8">
-        <template v-if="pageSubHeadings.length > 0">
-          <div class="flex flex-row justify-end cursor-pointer rounded-md">
-            <div
-              class="flex p-1 cursor-pointer rounded-md"
-              :class="{
-                'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
-                'bg-white hover:bg-gray-100': !showPageSubHeadings,
-              }"
-              @click="showPageSubHeadings = !showPageSubHeadings"
-            >
-              <AlignRightIcon />
-            </div>
-          </div>
-          <div v-if="showPageSubHeadings" class="pt-20 mr-24 flex flex-col w-full w-54">
-            <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
-            <a
-              v-for="(subHeading, index) in pageSubHeadings"
-              :key="index"
-              :href="`#${subHeading.text}`"
-              class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all"
-              :class="{
-                'font-semibold text-primary': subHeading.active,
-                '!text-gray-700': !subHeading.active,
-                'ml-2.5': subHeading.type === 'h2',
-                'ml-5': subHeading.type === 'h3',
-              }"
-            >
-              {{ subHeading.text }}
-            </a>
-          </div>
-        </template>
+        <DocsPageOutline :wrapper-ref="wrapperRef" />
       </div>
     </div>
   </a-layout-content>

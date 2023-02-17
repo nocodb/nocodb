@@ -752,6 +752,48 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/page/slug/{slug}": {
+      "get": {
+        "summary": "Get page by slug",
+        "operationId": "get-page-by-slug",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocsPage"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "Book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Get page by slug"
+      }
+    },
     "/api/v1/docs/page/{id}": {
       "get": {
         "summary": "Get page",

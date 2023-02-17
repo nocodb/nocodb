@@ -32,6 +32,25 @@ async function get(
   }
 }
 
+async function getBySlug(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const page = await Page.getBySlug({
+      slug: req.params.slug,
+      projectId: req.query?.projectId as string,
+      bookId: req.query?.bookId as string,
+    });
+
+    res.json(page);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 async function list(
   req: Request<any> & { user: { id: string; roles: string } },
   res: Response,
@@ -336,6 +355,11 @@ const router = Router({ mergeParams: true });
 
 // table data crud apis
 router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
+router.get(
+  '/api/v1/docs/page/slug/:slug',
+  apiMetrics,
+  ncMetaAclMw(getBySlug, 'pageListBySlug')
+);
 router.get(
   '/api/v1/docs/page-parents',
   apiMetrics,

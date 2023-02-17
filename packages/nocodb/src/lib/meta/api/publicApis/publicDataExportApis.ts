@@ -134,7 +134,7 @@ async function getDbRows(model, view: View, req: Request) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({

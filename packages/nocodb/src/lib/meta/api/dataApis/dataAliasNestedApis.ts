@@ -22,7 +22,7 @@ export async function mmList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -56,7 +56,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
   const column = await getColumnByIdOrName(req.params.columnName, model);
 
@@ -94,7 +94,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -132,7 +132,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -171,7 +171,7 @@ export async function hmList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -208,7 +208,7 @@ async function relationDataRemove(req, res) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -234,7 +234,7 @@ async function relationDataAdd(req, res) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);

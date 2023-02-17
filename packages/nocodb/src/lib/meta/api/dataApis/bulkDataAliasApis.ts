@@ -14,7 +14,7 @@ async function bulkDataInsert(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   res.json(await baseModel.bulkInsert(req.body, { cookie: req }));
@@ -27,7 +27,7 @@ async function bulkDataUpdate(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   res.json(await baseModel.bulkUpdate(req.body, { cookie: req }));
@@ -41,7 +41,7 @@ async function bulkDataUpdateAll(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   res.json(await baseModel.bulkUpdateAll(req.query, req.body, { cookie: req }));
@@ -53,7 +53,7 @@ async function bulkDataDelete(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   res.json(await baseModel.bulkDelete(req.body, { cookie: req }));
@@ -66,7 +66,7 @@ async function bulkDataDeleteAll(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   res.json(await baseModel.bulkDeleteAll(req.query));

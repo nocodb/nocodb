@@ -57,7 +57,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
     const knex: Knex = base.is_meta
       ? ncMeta.knexConnection
-      : NcConnectionMgrv2.get(base);
+      : await NcConnectionMgrv2.get(base);
     const models = await base.getModels(ncMeta);
 
     for (const model of models) {
@@ -128,7 +128,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
                       corruptedAttachment.length - 1
                     )}]`
                   );
-                  let newAttachmentMeta = [];
+                  const newAttachmentMeta = [];
                   for (const attachment of corruptedAttachment) {
                     newAttachmentMeta.push(JSON.parse(attachment));
                   }

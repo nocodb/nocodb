@@ -34,7 +34,7 @@ export default class SqlMgrv2Trans extends SqlMgrv2 {
   }
 
   public async startTransaction(base: Base) {
-    const knex: XKnex = NcConnectionMgrv2.get(base);
+    const knex: XKnex = await NcConnectionMgrv2.get(base);
     this.trx = await knex.transaction();
   }
 

@@ -22,7 +22,7 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
     tablesCount: 0,
     relationsCount: 0,
     viewsCount: 0,
-    client: base?.getConnectionConfig()?.client,
+    client: (await base?.getConnectionConfig())?.client,
     timeTaken: 0,
   };
 

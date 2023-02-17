@@ -417,7 +417,7 @@ export async function columnAdd(
 
       try {
         // test the query to see if it is valid in db level
-        const dbDriver = NcConnectionMgrv2.get(base);
+        const dbDriver = await NcConnectionMgrv2.get(base);
         await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
       } catch (e) {
         console.error(e);
@@ -432,7 +432,7 @@ export async function columnAdd(
       break;
     default:
       {
-        colBody = getColumnPropsFromUIDT(colBody, base);
+        colBody = await getColumnPropsFromUIDT(colBody, base);
         if (colBody.uidt === UITypes.Duration) {
           colBody.dtxp = '20';
           // by default, colBody.dtxs is 2
@@ -443,7 +443,7 @@ export async function columnAdd(
         if (
           [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
         ) {
-          const dbDriver = NcConnectionMgrv2.get(base);
+          const dbDriver = await NcConnectionMgrv2.get(base);
           const driverType = dbDriver.clientType();
           const optionTitles = colBody.colOptions.options.map((el) =>
             el.title.replace(/'/g, "''")
@@ -686,7 +686,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 
         try {
           // test the query to see if it is valid in db level
-          const dbDriver = NcConnectionMgrv2.get(base);
+          const dbDriver =await NcConnectionMgrv2.get(base);
           await formulaQueryBuilderv2(colBody.formula, null, dbDriver, table);
         } catch (e) {
           console.error(e);
@@ -726,16 +726,16 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
   } else if (
     [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
   ) {
-    colBody = getColumnPropsFromUIDT(colBody, base);
+    colBody = await getColumnPropsFromUIDT(colBody, base);
 
     const baseModel = await Model.getBaseModelSQL({
       id: table.id,
-      dbDriver: NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(base),
     });
 
     if (colBody.colOptions?.options) {
       const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3'];
-      const dbDriver = NcConnectionMgrv2.get(base);
+      const dbDriver = await NcConnectionMgrv2.get(base);
       const driverType = dbDriver.clientType();
 
       // MultiSelect to SingleSelect
@@ -1309,7 +1309,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       ...colBody,
     });
   } else {
-    colBody = getColumnPropsFromUIDT(colBody, base);
+    colBody = await getColumnPropsFromUIDT(colBody, base);
     const tableUpdateBody = {
       ...table,
       tn: table.table_name,

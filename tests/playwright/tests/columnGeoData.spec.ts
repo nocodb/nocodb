@@ -29,18 +29,18 @@ test.describe.only('Geo Data column', () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 
-    await dashboard.viewSidebar.activateGeoDataEasterEgg();
-
     await dashboard.treeView.openTable({ title: 'City' });
 
-    await dashboard.rootPage.pause();
+    await dashboard.viewSidebar.activateGeoDataEasterEgg();
 
-    // await grid.column.create({
-    //   title: 'Geo Data 1',
-    //   type: 'GeoData',
-    // });
+    await grid.column.create({
+      title: 'Geo Data 1',
+      type: 'GeoData',
+    });
 
     expect(1 + 2).toBe(3);
+
+    await dashboard.rootPage.pause();
 
     await dashboard.closeTab({ title: 'City' });
 

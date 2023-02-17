@@ -85,8 +85,8 @@ watch(editor, () => {
 
 watchDebounced(
   () => [localPage.value?.id, localPage.value?.content],
-  ([newId], [oldId]) => {
-    if (!isPublic.value && localPage.value?.id && newId === oldId) {
+  ([newId, newContent], [oldId, oldContent]) => {
+    if (!isPublic.value && localPage.value?.id && newId === oldId && newContent !== oldContent) {
       updateContent({ pageId: localPage.value?.id, content: localPage.value!.content })
     }
   },

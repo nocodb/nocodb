@@ -41,6 +41,8 @@ const langMenu = [
   'zh-Hant.json',
 ];
 
+// was green when run individually via .only
+// on c1caef73e3e8740d9d510a5b9ba143053b6eec5f
 test.describe('Common', () => {
   let context: any;
   let dashboard: DashboardPage;

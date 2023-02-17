@@ -55,7 +55,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     })
 
     try {
-      const tableMeta = await $api.base.tableCreate(project?.value?.id as string, baseId as string, {
+      const tableMeta = await $api.base.tableCreate(project?.value?.id as string, (baseId || project?.value?.bases?.[0].id)!, {
         ...table,
         columns,
       })

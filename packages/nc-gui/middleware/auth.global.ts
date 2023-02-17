@@ -52,7 +52,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       return navigateTo('/signup')
     }
 
-    return navigateTo('/signin')
+    /** try generating access token using refresh token */
+    await state.refreshToken()
+
+    /** if user is still not signed in, redirect to signin page */
+    if (!state.signedIn.value) return navigateTo('/signin')
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
     /**
      * if user was turned away from non-auth page but also came from a non-auth page (e.g. user went to /signin and reloaded the page)

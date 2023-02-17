@@ -75,7 +75,7 @@ export class CellPageObject extends BasePage {
   async inCellExpand({ index, columnHeader }: CellProps) {
     await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
-      uiAction: this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
+      uiAction: () => this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
@@ -96,15 +96,37 @@ export class CellPageObject extends BasePage {
 
   async verify({ index, columnHeader, value }: CellProps & { value: string | string[] }) {
     const _verify = async text => {
-      await expect
-        .poll(async () => {
-          const innerTexts = await this.get({
-            index,
-            columnHeader,
-          }).allInnerTexts();
-          return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
-        })
-        .toContain(text);
+      // await expect
+      //   .poll(async () => {
+      //     const innerTexts = await this.get({
+      //       index,
+      //       columnHeader,
+      //     }).allInnerTexts();
+      //     return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
+      //   })
+      //   .toContain(text);
+
+      // retrieve text from cell
+      // loop for 5 seconds
+      // if text is found, return
+      // if text is not found, throw error
+      let count = 0;
+      while (count < 5) {
+        const innerTexts = await this.get({
+          index,
+          columnHeader,
+        }).allInnerTexts();
+        const cellText = typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
+
+        if (cellText) {
+          if (cellText?.includes(text) || cellText[0]?.includes(text)) {
+            return;
+          }
+        }
+        await this.rootPage.waitForTimeout(1000);
+        count++;
+        if (count === 5) throw new Error(`Cell text ${text} not found`);
+      }
     };
 
     if (Array.isArray(value)) {

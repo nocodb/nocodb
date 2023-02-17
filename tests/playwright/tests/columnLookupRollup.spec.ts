@@ -41,7 +41,7 @@ test.describe('Virtual columns', () => {
       title: 'Rollup',
       type: 'Rollup',
       childTable: 'City List',
-      childColumn: 'City',
+      childColumn: 'CityId',
       rollupType: 'count',
     });
     for (let i = 0; i < pinCode.length; i++) {

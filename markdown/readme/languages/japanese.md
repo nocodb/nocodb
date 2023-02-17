@@ -184,7 +184,7 @@ docker-compose up -d
 
 ## 環境変数
 
-[環境変数](https://docs.nocodb.com/getting-started/installation#environment-variables)をご参照ください
+[環境変数](https://docs.nocodb.com/getting-started/environment-variables)をご参照ください
 
 # 開発セットアップ
 

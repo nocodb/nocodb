@@ -37,10 +37,7 @@ hooks.hook('page:finish', () => {
     </Transition>
 
     <a-layout class="!flex-col">
-      <a-layout-header
-        v-if="!route.meta.public && signedIn && !route.meta.hideHeader"
-        class="flex !bg-primary items-center text-white !pl-2 !pr-5"
-      >
+      <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
         <div
           v-if="!route.params.projectType"
           v-e="['c:navbar:home']"
@@ -53,8 +50,8 @@ hooks.hook('page:finish', () => {
               {{ currentVersion }}
             </template>
             <div class="flex items-center gap-2">
-              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-              <img v-show="!isDashboard" width="90" alt="NocoDB" src="~/assets/img/brand/text.png" />
+              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" />
+              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
             </div>
           </a-tooltip>
         </div>
@@ -83,7 +80,7 @@ hooks.hook('page:finish', () => {
           <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <MdiDotsVertical
               data-testid="nc-menu-accounts"
-              class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white"
+              class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts"
               @click.prevent
             />
 
@@ -160,5 +157,9 @@ hooks.hook('page:finish', () => {
   &:active::after {
     @apply ring ring-accent ring-opacity-100;
   }
+}
+
+.nc-navbar {
+  @apply flex !bg-white items-center !pl-2 !pr-5;
 }
 </style>

@@ -1,12 +1,46 @@
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isNumericCol, numericUITypes } from 'nocodb-sdk'
 
-export const comparisonOpList: {
+const getEqText = (fieldUiType: UITypes) => {
+  if (isNumericCol(fieldUiType)) {
+    return '='
+  } else if ([UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord].includes(fieldUiType)) {
+    return 'is'
+  }
+  return 'is equal'
+}
+
+const getNeqText = (fieldUiType: UITypes) => {
+  if (isNumericCol(fieldUiType)) {
+    return '!='
+  } else if ([UITypes.SingleSelect, UITypes.Collaborator, UITypes.LinkToAnotherRecord].includes(fieldUiType)) {
+    return 'is not'
+  }
+  return 'is not equal'
+}
+
+const getLikeText = (fieldUiType: UITypes) => {
+  if (fieldUiType === UITypes.Attachment) {
+    return 'filenames contain'
+  }
+  return 'is like'
+}
+
+const getNotLikeText = (fieldUiType: UITypes) => {
+  if (fieldUiType === UITypes.Attachment) {
+    return "filenames doesn't contain"
+  }
+  return 'is not like'
+}
+
+export const comparisonOpList = (
+  fieldUiType: UITypes,
+): {
   text: string
   value: string
   ignoreVal?: boolean
   includedTypes?: UITypes[]
   excludedTypes?: UITypes[]
-}[] = [
+}[] => [
   {
     text: 'is checked',
     value: 'checked',
@@ -20,44 +54,84 @@ export const comparisonOpList: {
     includedTypes: [UITypes.Checkbox],
   },
   {
-    text: 'is equal',
+    text: getEqText(fieldUiType),
     value: 'eq',
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },
   {
-    text: 'is not equal',
+    text: getNeqText(fieldUiType),
     value: 'neq',
+    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },
   {
-    text: 'is like',
+    text: getLikeText(fieldUiType),
     value: 'like',
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
   {
-    text: 'is not like',
+    text: getNotLikeText(fieldUiType),
     value: 'nlike',
-    excludedTypes: [UITypes.Checkbox],
+    excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
   {
     text: 'is empty',
     value: 'empty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Rating, UITypes.Number, UITypes.Decimal, UITypes.Percent, UITypes.Currency],
+    excludedTypes: [
+      UITypes.Checkbox,
+      UITypes.SingleSelect,
+      UITypes.MultiSelect,
+      UITypes.Collaborator,
+      UITypes.Attachment,
+      UITypes.LinkToAnotherRecord,
+      UITypes.Lookup,
+      ...numericUITypes,
+    ],
   },
   {
     text: 'is not empty',
     value: 'notempty',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Rating, UITypes.Number, UITypes.Decimal, UITypes.Percent, UITypes.Currency],
+    excludedTypes: [
+      UITypes.Checkbox,
+      UITypes.SingleSelect,
+      UITypes.MultiSelect,
+      UITypes.Collaborator,
+      UITypes.Attachment,
+      UITypes.LinkToAnotherRecord,
+      UITypes.Lookup,
+      ...numericUITypes,
+    ],
   },
   {
     text: 'is null',
     value: 'null',
     ignoreVal: true,
+    excludedTypes: [
+      ...numericUITypes,
+      UITypes.Checkbox,
+      UITypes.SingleSelect,
+      UITypes.MultiSelect,
+      UITypes.Collaborator,
+      UITypes.Attachment,
+      UITypes.LinkToAnotherRecord,
+      UITypes.Lookup,
+    ],
   },
   {
     text: 'is not null',
     value: 'notnull',
     ignoreVal: true,
+    excludedTypes: [
+      ...numericUITypes,
+      UITypes.Checkbox,
+      UITypes.SingleSelect,
+      UITypes.MultiSelect,
+      UITypes.Collaborator,
+      UITypes.Attachment,
+      UITypes.LinkToAnotherRecord,
+      UITypes.Lookup,
+    ],
   },
   {
     text: 'contains all of',
@@ -82,21 +156,33 @@ export const comparisonOpList: {
   {
     text: '>',
     value: 'gt',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
+    includedTypes: [...numericUITypes],
   },
   {
     text: '<',
     value: 'lt',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
+    includedTypes: [...numericUITypes],
   },
   {
     text: '>=',
     value: 'gte',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
+    includedTypes: [...numericUITypes],
   },
   {
     text: '<=',
     value: 'lte',
-    excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.SingleSelect],
+    includedTypes: [...numericUITypes],
+  },
+  {
+    text: 'is blank',
+    value: 'blank',
+    ignoreVal: true,
+    excludedTypes: [UITypes.Checkbox],
+  },
+  {
+    text: 'is not blank',
+    value: 'notblank',
+    ignoreVal: true,
+    excludedTypes: [UITypes.Checkbox],
   },
 ]

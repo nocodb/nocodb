@@ -34,6 +34,70 @@ const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   return responseColumnsListStr === customerColumnsListStr;
 };
 
+// Test case list
+// 1. Get table data list
+// 2. Get table data list with required columns
+// 3. Get desc sorted table data list with required columns
+// 4. Get asc sorted table data list with required columns
+// 5. Get sorted table data list with a rollup column
+// 6. Get sorted table data list with a lookup column
+// 7. Get filtered table data list with a lookup column
+// 8. Get filtered table data list with a (hm)lookup column
+// 9. Get nested sorted filtered table data list with a lookup column
+// 10. Get nested sorted filtered table data list with a lookup column with date comparison
+// 11. Get nested sorted filtered table data list with a rollup column in customer table
+// 12. Get nested sorted filtered table with nested fields data list with a rollup column in customer table
+// 13. Sorted Formula column on rollup customer table
+// 14. Create table row
+// 15. Create table row with wrong table id
+// 16. Find one sorted table data list with required columns
+// 17. Find one desc sorted and with rollup table data  list with required columns
+// 18. Find one sorted filtered table with nested fields data list with a rollup column in customer table
+// 19. Groupby desc sorted and with rollup table data  list with required columns
+// 20. Groupby desc sorted and with rollup table data  list with required columns
+// 21. Read table row
+// 22. Update table row
+// 23. Update table row with validation and invalid data
+// 24. Update table row with validation and valid data
+// 25. Delete table row
+// 26. Delete table row with foreign key contraint
+// 27. Exist should be true table row when it exists
+// 28. Exist should be false table row when it does not exists
+// 29. Bulk insert
+// 30. Bulk insert 400 records
+// 31. Bulk update
+// 32. Bulk delete
+// 33. Export csv
+// 34. Export excel
+// 35. Nested row list hm
+// 36. Nested row list hm with limit and offset
+// 37. Row list hm with invalid table id
+// 38. Nested row list mm
+// 39. Nested row list mm with limit and offset
+// 40. Row list mm with invalid table id
+// 41. Create hm relation with invalid table id
+// 42. Create hm relation with non ltar column
+// 43. Create list hm wrong column id
+// 44. Create list hm
+// 45. Create list mm wrong column id
+// 46. Create mm relation with non ltar column
+// 47. Create list mm existing ref row id
+// 48. Create list mm
+// 49. List hm with non ltar column
+// 50. List mm with non ltar column
+// 51. Delete mm existing ref row id
+// 52. Delete list hm with existing ref row id with non nullable clause
+// 53. Delete list hm with existing ref row id
+// 54. Exclude list hm
+// 55. Exclude list hm with limit and offset
+// 56. Exclude list mm
+// 57. Exclude list mm with offset
+// 58. Exclude list bt
+// 59. Exclude list bt with offset
+// 60. Create nested hm relation with invalid table id
+// 61. Create nested mm relation with invalid table id
+// 62. Get grouped data list
+
 function tableTest() {
   let context;
   let project: Project;
@@ -611,8 +675,7 @@ function tableTest() {
                 logical_op: 'and',
                 fk_column_id: activeColumn?.id,
                 status: 'create',
-                comparison_op: 'eq',
-                value: 1,
+                comparison_op: 'checked',
               },
             ],
           },
@@ -730,7 +793,7 @@ function tableTest() {
     );
 
     const nestedFields = {
-      'Rental List': { fields : ['RentalDate', 'ReturnDate'] },
+      'Rental List': { fields: ['RentalDate', 'ReturnDate'] },
     };
 
     const nestedFilter = [
@@ -2218,39 +2281,49 @@ function tableTest() {
 
   it('Exclude list bt', async () => {
     const rowId = 1;
-    const addressTable = await getTable({project: sakilaProject, name: 'address'});
+    const addressTable = await getTable({
+      project: sakilaProject,
+      name: 'address',
+    });
     const cityColumn = (await addressTable.getColumns()).find(
       (column) => column.title === 'City'
     )!;
 
     const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`)
-    .set('xc-auth', context.token)
-    .expect(200);
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
 
-    expect(response.body.pageInfo.totalRows).equal(599)
-    expect(response.body.list[0]['City']).equal('A Corua (La Corua)')
-  })
+    expect(response.body.pageInfo.totalRows).equal(599);
+    expect(response.body.list[0]['City']).equal('A Corua (La Corua)');
+  });
 
   it('Exclude list bt with offset', async () => {
     const rowId = 1;
-    const addressTable = await getTable({project: sakilaProject, name: 'address'});
+    const addressTable = await getTable({
+      project: sakilaProject,
+      name: 'address',
+    });
     const cityColumn = (await addressTable.getColumns()).find(
       (column) => column.title === 'City'
     )!;
 
     const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`)
-    .set('xc-auth', context.token)
-    .query({
-      limit: 40,
-      offset: 60
-    })
-    .expect(200);
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        limit: 40,
+        offset: 60,
+      })
+      .expect(200);
 
-    expect(response.body.pageInfo.totalRows).equal(599)
-    expect(response.body.list[0]['City']).equal('Baybay')
-  })
+    expect(response.body.pageInfo.totalRows).equal(599);
+    expect(response.body.list[0]['City']).equal('Baybay');
+  });
 
   it('Create nested hm relation with invalid table id', async () => {
     const rowId = 1;

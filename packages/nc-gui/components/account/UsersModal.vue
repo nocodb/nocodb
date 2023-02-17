@@ -93,12 +93,14 @@ const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}#
 
 const copyUrl = async () => {
   if (!inviteUrl) return
+  try {
+    await copy(inviteUrl)
 
-  await copy(inviteUrl)
-
-  // Copied shareable base url to clipboard!
-  message.success(t('msg.success.shareableURLCopied'))
-
+    // Copied shareable base url to clipboard!
+    message.success(t('msg.success.shareableURLCopied'))
+  } catch (e) {
+    message.error(e.message)
+  }
   $e('c:shared-base:copy-url')
 }
 

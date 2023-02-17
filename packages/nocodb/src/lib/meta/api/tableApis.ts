@@ -20,7 +20,7 @@ import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
 import View from '../../models/View';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import { NcError } from '../helpers/catchError';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import Column from '../../models/Column';
@@ -156,7 +156,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
   const sqlClientType = sqlClient.knex.clientType();
@@ -203,7 +203,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     ip: (req as any).clientIp,
   }).then(() => {});
 
-  mapDefaultPrimaryValue(req.body.columns);
+  mapDefaultDisplayValue(req.body.columns);
 
   Tele.emit('evt', { evt_type: 'table:created' });
 
@@ -303,7 +303,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
   const sqlClientType = sqlClient.knex.clientType();
@@ -456,7 +456,7 @@ export async function tableCreateMagic(
     NcError.badRequest('Duplicate table alias');
   }
 
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
   const sqlClientType = sqlClient.knex.clientType();
@@ -571,7 +571,7 @@ export async function schemaMagic(
     NcError.badRequest('Duplicate table alias');
   } */
 
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
   const sqlClientType = sqlClient.knex.clientType();

@@ -9,6 +9,9 @@ import YugabyteClient from './pg/YugabyteClient';
 import TidbClient from './mysql/TidbClient';
 import VitessClient from './mysql/VitessClient';
 
+import fs from 'fs';
+import { promisify } from 'util';
+
 export class SqlClientFactory {
   static create(connectionConfig) {
     connectionConfig.meta = connectionConfig.meta || {};
@@ -40,7 +43,28 @@ export class SqlClientFactory {
 }
 
 export default class {
-  static create(connectionConfig) {
+  static async create(connectionConfig) {
+    if (
+      connectionConfig.connection.ssl &&
+      typeof connectionConfig.connection.ssl === 'object'
+    ) {
+      if (connectionConfig.connection.ssl.caFilePath) {
+        connectionConfig.connection.ssl.ca = await promisify(fs.readFile)(
+          connectionConfig.connection.ssl.caFilePath
+        ).toString();
+      }
+      if (connectionConfig.connection.ssl.keyFilePath) {
+        connectionConfig.connection.ssl.key = await promisify(fs.readFile)(
+          connectionConfig.connection.ssl.keyFilePath
+        ).toString();
+      }
+      if (connectionConfig.connection.ssl.certFilePath) {
+        connectionConfig.connection.ssl.cert = await promisify(fs.readFile)(
+          connectionConfig.connection.ssl.certFilePath
+        ).toString();
+      }
+    }
+
     if (Noco.isEE()) {
       return SqlClientFactoryEE.create(connectionConfig);
     }

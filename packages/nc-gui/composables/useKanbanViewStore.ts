@@ -1,15 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type {
-  Api,
-  AttachmentType,
-  ColumnType,
-  KanbanType,
-  SelectOptionType,
-  SelectOptionsType,
-  TableType,
-  ViewType,
-} from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import {
   IsPublicInj,
@@ -24,7 +14,7 @@ import {
   provide,
   ref,
   useApi,
-  useGlobal,
+  useFieldQuery,
   useI18n,
   useInjectionState,
   useNuxtApp,
@@ -54,8 +44,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { $e, $api } = useNuxtApp()
 
-    const { appInfo } = useGlobal()
-
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
@@ -66,9 +54,29 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const password = ref<string | null>(null)
 
-    const attachmentColumns = computed(() =>
-      (meta.value?.columns as ColumnType[])?.filter((c) => c.uidt === UITypes.Attachment).map((c) => c.title),
+    const { search } = useFieldQuery()
+
+    const { sqlUis } = useProject()
+
+    const sqlUi = ref(
+      (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
     )
+
+    const xWhere = computed(() => {
+      let where
+      const col =
+        (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
+        (meta.value as TableType)?.columns?.find((v) => v.pv)
+      if (!col) return
+
+      if (!search.value.query.trim()) return
+      if (['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
+        where = `(${col.title},like,%${search.value.query.trim()}%)`
+      } else {
+        where = `(${col.title},eq,${search.value.query.trim()})`
+      }
+      return where
+    })
 
     provide(SharedViewPasswordInj, password)
 
@@ -119,29 +127,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         rowMeta: {},
       }))
 
-    async function getAttachmentUrl(item: AttachmentType) {
-      const path = item?.path
-      // if path doesn't exist, use `item.url`
-      if (path) {
-        // try ${appInfo.value.ncSiteUrl}/${item.path} first
-        const url = `${appInfo.value.ncSiteUrl}/${item.path}`
-        try {
-          const res = await fetch(url)
-          if (res.ok) {
-            // use `url` if it is accessible
-            return Promise.resolve(url)
-          }
-        } catch {
-          // for some cases, `url` is not accessible as expected
-          // do nothing here
-        }
-      }
-      // if it fails, use the original url
-      return Promise.resolve(item.url)
-    }
-
     async function loadKanbanData() {
-      if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+      if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
+        return
 
       // reset formattedData & countByStack to avoid storing previous data after changing grouping field
       formattedData.value = new Map<string | null, Row[]>()
@@ -161,32 +149,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           meta.value!.id!,
           viewMeta.value!.id!,
           groupingFieldColumn!.value!.id!,
-          {},
+          { where: xWhere.value },
           {},
         )
       }
 
       for (const data of groupData) {
-        const records = []
         const key = data.key
-        // TODO: optimize
-        // reconstruct the url
-        // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
-        for (const record of data.value.list) {
-          for (const attachmentColumn of attachmentColumns.value) {
-            const oldAttachment = JSON.parse(record[attachmentColumn!])
-            const newAttachment = []
-            for (const attachmentObj of oldAttachment) {
-              newAttachment.push({
-                ...attachmentObj,
-                url: await getAttachmentUrl(attachmentObj),
-              })
-            }
-            record[attachmentColumn!] = newAttachment
-          }
-          records.push(record)
-        }
-        formattedData.value.set(key, formatData(records))
+        formattedData.value.set(key, formatData(data.value.list))
         countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
       }
     }
@@ -200,6 +170,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       const response = !isPublic.value
         ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+            ...{ where: xWhere.value },
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),

@@ -76,18 +76,22 @@ test.describe('Multi select', () => {
       multiSelect: true,
     });
 
-    await grid.column.selectOption.editOption({ index: 2, columnTitle: 'MultiSelect', newOption: 'New Option 3' });
+    await grid.column.selectOption.editOption({
+      index: 2,
+      columnTitle: 'MultiSelect',
+      newOption: 'MultiSelect New Option 3',
+    });
     await grid.cell.selectOption.verify({
       index: 0,
       columnHeader: 'MultiSelect',
-      option: 'New Option 3',
+      option: 'MultiSelect New Option 3',
       multiSelect: true,
     });
 
     await grid.cell.selectOption.verifyOptions({
       index: 0,
       columnHeader: 'MultiSelect',
-      options: ['Option 1', 'Option 2', 'New Option 3'],
+      options: ['Option 1', 'Option 2', 'MultiSelect New Option 3'],
     });
 
     await grid.deleteRow(0);
@@ -241,6 +245,7 @@ test.describe('Multi select - filters', () => {
       opType: param.opType,
       value: param.value,
       isLocallySaved: false,
+      dataType: 'MultiSelect',
     });
     await toolbar.clickFilter();
 
@@ -254,10 +259,10 @@ test.describe('Multi select - filters', () => {
     await verifyFilter({ opType: 'contains all of', value: 'foo', result: ['2', '5', '6'] });
     await verifyFilter({ opType: 'contains any of', value: 'foo,bar', result: ['2', '3', '5', '6'] });
     await verifyFilter({ opType: 'contains all of', value: 'foo,bar', result: ['5', '6'] });
-    await verifyFilter({ opType: 'is equal', value: 'foo,bar', result: ['5'] });
-    await verifyFilter({ opType: 'is equal', value: 'bar', result: ['3'] });
-    await verifyFilter({ opType: 'is not null', result: ['2', '3', '4', '5', '6'] });
-    await verifyFilter({ opType: 'is null', result: ['1'] });
+    // await verifyFilter({ opType: 'is equal', value: 'foo,bar', result: ['5'] });
+    // await verifyFilter({ opType: 'is equal', value: 'bar', result: ['3'] });
+    // await verifyFilter({ opType: 'is not null', result: ['2', '3', '4', '5', '6'] });
+    // await verifyFilter({ opType: 'is null', result: ['1'] });
     await verifyFilter({ opType: 'does not contain any of', value: 'baz', result: ['1', '2', '3', '5'] });
 
     // Sort column

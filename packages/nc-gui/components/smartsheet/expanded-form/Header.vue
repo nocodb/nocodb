@@ -12,13 +12,13 @@ import {
 
 const props = defineProps<{ view?: ViewType }>()
 
-const emit = defineEmits(['cancel'])
+const emit = defineEmits(['cancel', 'duplicateRow'])
 
 const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, primaryValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, displayValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
@@ -72,6 +72,22 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
+
+const showDeleteRowModal = ref(false)
+
+const { deleteRowById } = useViewData(meta, ref(props.view))
+
+const onDeleteRowClick = () => {
+  showDeleteRowModal.value = true
+}
+
+const onConfirmDeleteRowClick = async () => {
+  showDeleteRowModal.value = false
+  await deleteRowById(primaryKey.value)
+  reloadTrigger.trigger()
+  emit('cancel')
+  message.success('Row deleted')
+}
 </script>
 
 <template>
@@ -83,7 +99,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         {{ meta.title }}
       </template>
 
-      <template v-if="primaryValue">: {{ primaryValue }}</template>
+      <template v-if="displayValue">: {{ displayValue }}</template>
     </h5>
 
     <div class="flex-1" />
@@ -92,7 +108,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <template #title>
         <div class="text-center w-full">{{ $t('general.reload') }}</div>
       </template>
-      <mdi-reload v-if="!isNew" class="cursor-pointer select-none text-gray-500 mx-1 min-w-4" @click="loadRow" />
+      <mdi-reload
+        v-if="!isNew"
+        class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 min-w-4"
+        @click="loadRow"
+      />
     </a-tooltip>
     <a-tooltip placement="bottom">
       <template #title>
@@ -101,7 +121,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </template>
       <mdi-link
         v-if="!isNew"
-        class="cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url min-w-4"
+        class="nc-icon-transition cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url min-w-4"
         @click="copyRecordUrl"
       />
     </a-tooltip>
@@ -114,20 +134,40 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <MdiCommentTextOutline
         v-if="isUIAllowed('rowComments') && !isNew"
         v-e="['c:row-expand:comment-toggle']"
-        class="cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
+        class="nc-icon-transition cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
         @click="commentsDrawer = !commentsDrawer"
       />
     </a-tooltip>
 
-    <a-button class="!text mx-1 nc-expand-form-close-btn" @click="emit('cancel')">
-      <div class="flex items-center">
-        <MdiCloseCircleOutline class="mr-1" />
-        <!-- Close -->
-        {{ $t('general.close') }}
-      </div>
-    </a-button>
+    <a-tooltip v-if="!isSqlView" placement="bottom">
+      <!-- Duplicate row -->
+      <template #title>
+        <div class="text-center w-full">{{ $t('activity.duplicateRow') }}</div>
+      </template>
+      <MdiContentCopy
+        v-if="isUIAllowed('xcDatatableEditable') && !isNew"
+        v-e="['c:row-expand:duplicate']"
+        class="nc-icon-transition cursor-pointer select-none nc-duplicate-row text-gray-500 mx-1 min-w-4"
+        @click="!isNew && emit('duplicateRow')"
+      />
+    </a-tooltip>
+
+    <a-tooltip v-if="!isSqlView" placement="bottom">
+      <!-- Delete row -->
+      <template #title>
+        <div class="text-center w-full">{{ $t('activity.deleteRow') }}</div>
+      </template>
+      <MdiDeleteOutline
+        v-if="isUIAllowed('xcDatatableEditable') && !isNew"
+        v-e="['c:row-expand:delete']"
+        class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+        @click="!isNew && onDeleteRowClick()"
+      />
+    </a-tooltip>
 
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
+      <template #icon><MdiMenuDown /></template>
+
       <template #overlay>
         <a-menu class="nc-expand-form-save-dropdown-menu">
           <a-menu-item key="0" class="!py-2 flex gap-2" @click="saveRowAndStay = 0">
@@ -153,5 +193,26 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         {{ $t('activity.saveAndStay') }}
       </div>
     </a-dropdown-button>
+
+    <a-tooltip placement="bottom">
+      <!-- Close -->
+      <template #title>
+        <div class="text-center w-full">{{ $t('general.close') }}</div>
+      </template>
+      <MdiCloseCircleOutline
+        class="nc-icon-transition cursor-pointer select-none nc-close-form text-gray-500 mx-1 min-w-4"
+        @click="emit('cancel')"
+      />
+    </a-tooltip>
+
+    <a-modal v-model:visible="showDeleteRowModal" title="Delete row?" @ok="onConfirmDeleteRowClick">
+      <p>Are you sure you want to delete this row?</p>
+    </a-modal>
   </div>
 </template>
+
+<style scoped>
+:deep(svg) {
+  @apply outline-none;
+}
+</style>

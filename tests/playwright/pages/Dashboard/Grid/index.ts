@@ -79,10 +79,8 @@ export class GridPage extends BasePage {
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
-    const clickOnColumnHeaderToSave = this.get()
-      .locator(`[data-title="${columnHeader}"]`)
-      .locator(`span[title="${columnHeader}"]`)
-      .click();
+    const clickOnColumnHeaderToSave = () =>
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -92,6 +90,7 @@ export class GridPage extends BasePage {
         responseJsonMatcher: resJson => resJson?.[columnHeader] === rowValue,
       });
     } else {
+      await clickOnColumnHeaderToSave();
       await this.rootPage.waitForTimeout(300);
     }
 
@@ -111,10 +110,8 @@ export class GridPage extends BasePage {
   }) {
     await this._fillRow({ index, columnHeader, value });
 
-    const clickOnColumnHeaderToSave = this.get()
-      .locator(`[data-title="${columnHeader}"]`)
-      .locator(`span[title="${columnHeader}"]`)
-      .click();
+    const clickOnColumnHeaderToSave = () =>
+      this.get().locator(`[data-title="${columnHeader}"]`).locator(`span[title="${columnHeader}"]`).click();
 
     if (networkValidation) {
       await this.waitForResponse({
@@ -128,6 +125,7 @@ export class GridPage extends BasePage {
         responseJsonMatcher: resJson => resJson?.[columnHeader] === value,
       });
     } else {
+      await clickOnColumnHeaderToSave();
       await this.rootPage.waitForTimeout(300);
     }
 
@@ -201,6 +199,25 @@ export class GridPage extends BasePage {
     await this.dashboard.waitForLoaderToDisappear();
   }
 
+  async verifyTotalRowCount({ count }: { count: number }) {
+    // wait for 100 ms and try again : 5 times
+    let i = 0;
+    await this.get().locator(`.nc-pagination`).waitFor();
+    let records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
+    let recordCnt = records[0].split(' ')[0];
+
+    while (parseInt(recordCnt) !== count && i < 5) {
+      await this.get().locator(`.nc-pagination`).waitFor();
+      records = await this.get().locator(`[data-testid="grid-pagination"]`).allInnerTexts();
+      recordCnt = records[0].split(' ')[0];
+
+      // to ensure page loading is complete
+      await this.rootPage.waitForTimeout(500);
+      i++;
+    }
+    expect(parseInt(recordCnt)).toEqual(count);
+  }
+
   private async pagination({ page }: { page: string }) {
     await this.get().locator(`.nc-pagination`).waitFor();
 
@@ -212,7 +229,7 @@ export class GridPage extends BasePage {
 
   async clickPagination({ page }: { page: string }) {
     await this.waitForResponse({
-      uiAction: (await this.pagination({ page })).click(),
+      uiAction: async () => (await this.pagination({ page })).click(),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: '/views/',
       responseJsonMatcher: resJson => resJson?.pageInfo,
@@ -308,18 +325,41 @@ export class GridPage extends BasePage {
   }
 
   async copyWithKeyboard() {
-    await this.get().press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
-    await this.verifyToast({ message: 'Copied to clipboard' });
+    // retry to avoid flakiness, until text is copied to clipboard
+    //
+    let text = '';
+    let retryCount = 5;
+    while (text === '') {
+      await this.get().press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
+      await this.verifyToast({ message: 'Copied to clipboard' });
+      text = await this.getClipboardText();
 
-    return this.getClipboardText();
+      // retry if text is empty till count is reached
+      retryCount--;
+      if (0 === retryCount) {
+        break;
+      }
+    }
+    return text;
   }
 
   async copyWithMouse({ index, columnHeader }: CellProps) {
-    await this.cell.get({ index, columnHeader }).click({ button: 'right' });
-    await this.get().page().getByTestId('context-menu-item-copy').click();
+    // retry to avoid flakiness, until text is copied to clipboard
+    //
+    let text = '';
+    let retryCount = 5;
+    while (text === '') {
+      await this.cell.get({ index, columnHeader }).click({ button: 'right' });
+      await this.get().page().getByTestId('context-menu-item-copy').click();
+      await this.verifyToast({ message: 'Copied to clipboard' });
+      text = await this.getClipboardText();
 
-    await this.verifyToast({ message: 'Copied to clipboard' });
-
-    return this.getClipboardText();
+      // retry if text is empty till count is reached
+      retryCount--;
+      if (0 === retryCount) {
+        break;
+      }
+    }
+    return text;
   }
 }

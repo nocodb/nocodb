@@ -26,7 +26,7 @@ export class ProjectsPage extends BasePage {
     await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
     await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
 
-    const createProjectSubmitAction = this.rootPage.locator(`button:has-text("Create")`).click();
+    const createProjectSubmitAction = () => this.rootPage.locator(`button:has-text("Create")`).click();
     await this.waitForResponse({
       uiAction: createProjectSubmitAction,
       httpMethodsToMatch: ['POST'],
@@ -42,7 +42,7 @@ export class ProjectsPage extends BasePage {
   }
 
   async reloadProjects() {
-    const reloadUiAction = this.get().locator('[data-testid="projects-reload-button"]').click();
+    const reloadUiAction = () => this.get().locator('[data-testid="projects-reload-button"]').click();
     await this.waitForResponse({
       uiAction: reloadUiAction,
       requestUrlPathToMatch: '/api/v1/db/meta/projects',
@@ -119,7 +119,7 @@ export class ProjectsPage extends BasePage {
 
     await this.get().locator(`[data-testid="delete-project-${title}"]`).click();
 
-    const deleteProjectAction = this.rootPage.locator(`button:has-text("Yes")`).click();
+    const deleteProjectAction = () => this.rootPage.locator(`button:has-text("Yes")`).click();
     await this.waitForResponse({
       uiAction: deleteProjectAction,
       httpMethodsToMatch: ['DELETE'],
@@ -149,7 +149,7 @@ export class ProjectsPage extends BasePage {
 
     await project.locator('input.nc-metadb-project-name').fill(newTitle);
     // press enter to save
-    const submitAction = project.locator('input.nc-metadb-project-name').press('Enter');
+    const submitAction = () => project.locator('input.nc-metadb-project-name').press('Enter');
     await this.waitForResponse({
       uiAction: submitAction,
       requestUrlPathToMatch: 'api/v1/db/meta/projects/',

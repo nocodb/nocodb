@@ -39,6 +39,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
+const { t } = useI18n()
+
 const row = ref(props.row)
 
 const state = toRef(props, 'state')
@@ -59,6 +61,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 provide(MetaInj, meta)
 
 const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
+
+const duplicatingRowInProgress = ref(false)
 
 if (props.loadRow) {
   await loadRow()
@@ -99,6 +103,23 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 const onClose = () => {
   if (row.value?.rowMeta?.new) emits('cancel')
   isExpanded.value = false
+}
+
+const onDuplicateRow = () => {
+  duplicatingRowInProgress.value = true
+  const newRow = Object.assign(
+    {},
+    {
+      row: row.value.row,
+      oldRow: {},
+      rowMeta: { new: true },
+    },
+  )
+  setTimeout(async () => {
+    row.value = newRow
+    duplicatingRowInProgress.value = false
+    message.success(t('msg.success.rowDuplicatedWithoutSavedYet'))
+  }, 500)
 }
 
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
@@ -142,35 +163,38 @@ export default {
   <a-drawer
     v-model:visible="isExpanded"
     :footer="null"
-    width="min(90vw,800px)"
+    :width="commentsDrawer ? 'min(90vw,900px)' : 'min(90vw,700px)'"
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
+    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
 
-    <div class="!bg-gray-100 rounded flex-1 relative">
-      <template v-if="props.showNextPrevIcons">
-        <a-tooltip placement="bottom">
-          <template #title>
-            {{ $t('labels.nextRow') }}
-          </template>
-          <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
-        </a-tooltip>
-        <a-tooltip placement="bottom">
-          <template #title>
-            {{ $t('labels.prevRow') }}
-          </template>
-          <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
-        </a-tooltip>
-      </template>
-
+    <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
-        <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
+        <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container relative">
+          <template v-if="props.showNextPrevIcons">
+            <a-tooltip placement="bottom">
+              <template #title>
+                {{ $t('labels.nextRow') }}
+              </template>
+              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
+            </a-tooltip>
+            <a-tooltip placement="bottom">
+              <template #title>
+                {{ $t('labels.prevRow') }}
+              </template>
+              <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
+            </a-tooltip>
+          </template>
           <div class="w-[500px] mx-auto">
+            <div v-if="duplicatingRowInProgress" class="flex items-center justify-center h-[100px]">
+              <a-spin size="large" />
+            </div>
             <div
               v-for="(col, i) of fields"
+              v-else
               v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
               :key="col.title"
               class="mt-2 py-2"
@@ -237,9 +261,11 @@ export default {
 .nc-next-arrow {
   @apply absolute opacity-70 rounded-full transition-transform transition-background transition-opacity transform bg-white hover:(bg-gray-200) active:(scale-125 opacity-100) text-xl;
 }
+
 .nc-prev-arrow {
   @apply left-4 top-4;
 }
+
 .nc-next-arrow {
   @apply right-4 top-4;
 }

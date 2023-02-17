@@ -456,7 +456,7 @@ export async function tableCreateMagic(
     NcError.badRequest('Duplicate table alias');
   }
 
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
   const sqlClientType = sqlClient.knex.clientType();
@@ -571,7 +571,7 @@ export async function schemaMagic(
     NcError.badRequest('Duplicate table alias');
   } */
 
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
   const sqlClientType = sqlClient.knex.clientType();

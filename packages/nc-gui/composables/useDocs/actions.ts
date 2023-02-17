@@ -13,13 +13,13 @@ export const actions = () => {
   const projectId = $(computed(() => route.params.projectId as string))
 
   const {
-    isFetchingBooks,
+    isFetching,
     books,
     isBookErrored,
-    isFetchingNestedPages,
     nestedPages,
     openedPage,
     openedBook,
+    openedPageSlug,
     isPageErrored,
     isBookUpdating,
     routePageSlugs,
@@ -34,7 +34,7 @@ export const actions = () => {
   }
 
   const fetchBooks = async () => {
-    isFetchingBooks.value = true
+    isFetching.value.books = true
     try {
       books.value = await $api.nocoDocs.listBooks({ projectId: projectId! })
 
@@ -43,12 +43,12 @@ export const actions = () => {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     } finally {
-      isFetchingBooks.value = false
+      isFetching.value.books = false
     }
   }
 
   const fetchPublicBook = async ({ projectId, slug }: { projectId: string; slug?: string }) => {
-    isFetchingBooks.value = true
+    isFetching.value.books = true
     isBookErrored.value = false
     try {
       const book = await $api.nocoDocs.getPublicBook(slug ?? 'latest', { projectId })
@@ -59,12 +59,12 @@ export const actions = () => {
       console.log(e)
       isBookErrored.value = true
     } finally {
-      isFetchingBooks.value = false
+      isFetching.value.books = false
     }
   }
 
   async function fetchNestedPages({ book }: { book: BookType }) {
-    isFetchingNestedPages.value = true
+    isFetching.value.nestedPages = true
     try {
       const nestedDocTree = isPublic.value
         ? await $api.nocoDocs.listPublicPages({
@@ -96,20 +96,27 @@ export const actions = () => {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     } finally {
-      isFetchingNestedPages.value = false
+      isFetching.value.nestedPages = false
     }
   }
 
-  const fetchPage = async ({ page, book }: { page?: PageSidebarNode; book?: BookType }) => {
-    page = page ?? openedPage.value
+  const fetchPage = async ({ page, book }: { page?: PageSidebarNode; book?: BookType } = {}) => {
     book = book ?? openedBook.value
 
     try {
-      const fetchedPage = await $api.nocoDocs.getPage(page!.id!, {
-        projectId: projectId!,
-        bookId: book!.id!,
-      })
-      return fetchedPage
+      if (page?.id) {
+        return await $api.nocoDocs.getPage(page?.id, {
+          projectId: projectId!,
+          bookId: book!.id!,
+        })
+      } else if (openedPageSlug.value) {
+        return await $api.nocoDocs.getPageBySlug(openedPageSlug.value, {
+          projectId: projectId!,
+          bookId: book!.id!,
+        })
+      } else {
+        throw new Error('No page id or slug provided')
+      }
     } catch (e) {
       console.log(e)
       isPageErrored.value = true

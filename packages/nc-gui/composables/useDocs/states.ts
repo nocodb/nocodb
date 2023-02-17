@@ -8,27 +8,43 @@ const [setup, use] = useInjectionState(() => {
   const isPageErrored = ref<boolean>(false)
   const isBookErrored = ref<boolean>(false)
 
-  const isFetchingBooks = ref<boolean>(true)
-  const isFetchingNestedPages = ref<boolean>(true)
+  const isFetching = ref({
+    books: true,
+    nestedPages: true,
+    page: true,
+  })
+
   const isBulkPublishing = ref<boolean>(false)
+
   const books = ref<BookType[]>([])
 
+  const openedNestedPagesOfBook = ref([] as PageSidebarNode[])
+
   const nestedPages = ref<PageSidebarNode[]>([])
+
   // const allPages = ref<PageSidebarNode[] | undefined>(undefined)
   // const publishedPages = ref<PageSidebarNode[]>([])
   // const allByTitle = ref<PageSidebarNode[]>([])
+
   const isBookUpdating = ref<boolean>(false)
   const openedTabs = ref<string[]>([])
 
-  const isErrored = computed<boolean>(() => isPageErrored.value || isBookErrored.value)
-
-  const routeBookSlug = computed<string | undefined>(() => {
-    return route.params.slugs?.[0] as string
+  const isErrored = computed<boolean>(() => {
+    return isPageErrored.value || isBookErrored.value
   })
-  const routePageSlugs = computed<string[]>(() => {
+
+  const slugs = computed<string[]>(() => {
     const slugs = route.params.slugs
 
-    return Array.isArray(slugs) ? slugs.filter((slug, index) => slug !== '' && index !== 0) : []
+    return Array.isArray(slugs) ? slugs.filter((slug) => slug !== '') : []
+  })
+
+  const routeBookSlug = computed<string | undefined>(() => {
+    return slugs.value[0]
+  })
+
+  const routePageSlugs = computed<string[]>(() => {
+    return slugs.value.filter((_, i) => i > 0)
   })
 
   const openedPageSlug = computed<string | undefined>(() =>
@@ -63,13 +79,13 @@ const [setup, use] = useInjectionState(() => {
     return flatten(nestedPages.value)
   })
 
-  const openedNestedPagesOfBook = ref([] as PageSidebarNode[])
-
-  const isOnlyBookOpened = computed(() => openedBook.value && openedNestedPagesOfBook.value.length === 0)
+  const isOnlyBookOpened = computed(
+    () => openedBook.value && openedNestedPagesOfBook.value.length === 0 && slugs.value.length === 1,
+  )
 
   const openedPage = computed(() => {
     if (!openedPageSlug.value) return undefined
-    if (isFetchingNestedPages.value) return undefined
+    if (isFetching.value.nestedPages) return undefined
 
     return openedNestedPagesOfBook.value.length > 0
       ? openedNestedPagesOfBook.value[openedNestedPagesOfBook.value.length - 1]
@@ -79,8 +95,7 @@ const [setup, use] = useInjectionState(() => {
   return {
     isPageErrored,
     isBookErrored,
-    isFetchingBooks,
-    isFetchingNestedPages,
+    isFetching,
     isBulkPublishing,
     books,
     nestedPages,

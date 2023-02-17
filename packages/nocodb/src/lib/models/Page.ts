@@ -121,6 +121,37 @@ export default class Page {
     return page;
   }
 
+  public static async getBySlug(
+    {
+      slug,
+      bookId,
+      projectId,
+    }: {
+      slug: string;
+      bookId: string;
+      projectId: string;
+    },
+    ncMeta = Noco.ncMeta
+  ): Promise<DocsPageType> {
+    // todo: Add cache
+    let page = undefined;
+    if (!page) {
+      page = await ncMeta.metaGet2(
+        null,
+        null,
+        Page.tableName({ projectId, bookId }),
+        {
+          slug,
+        }
+      );
+      if (page) {
+        await NocoCache.set(`${CacheScope.DOCS_PAGE}:${page.id}`, page);
+      }
+    }
+
+    return page;
+  }
+
   public static async update(
     {
       bookId,

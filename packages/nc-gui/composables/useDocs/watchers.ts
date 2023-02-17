@@ -8,8 +8,7 @@ export const watchers = () => {
     routePageSlugs,
     isBookErrored,
     openedBook,
-    isFetchingBooks,
-    isFetchingNestedPages,
+    isFetching,
     isPageErrored,
     nestedPages,
     openedNestedPagesOfBook,
@@ -18,10 +17,10 @@ export const watchers = () => {
   const { navigateToFirstPage, openChildPagesFromRoute } = actions()
 
   watch(
-    () => [routeBookSlug.value, isFetchingBooks.value],
+    () => [routeBookSlug.value, isFetching.value.books],
     () => {
       if (isPublic.value) return
-      if (isFetchingBooks.value) return
+      if (isFetching.value.books) return
 
       if (routeBookSlug.value && !openedBook.value) {
         isBookErrored.value = true
@@ -33,10 +32,10 @@ export const watchers = () => {
   )
 
   watch(
-    () => [routeBookSlug.value, isFetchingBooks.value],
+    () => [routeBookSlug.value, isFetching.value.books],
     (val, oldVal) => {
       if (!isPublic.value) return
-      if (isFetchingBooks.value) return
+      if (isFetching.value.books) return
       if (val[0] === oldVal[0]) return
 
       window.location.reload()
@@ -47,10 +46,10 @@ export const watchers = () => {
 
   // Public
   watch(
-    () => [isFetchingNestedPages.value, routePageSlugs.value],
+    () => [isFetching.value.nestedPages, routePageSlugs.value],
     async () => {
       if (!isPublic.value) return
-      if (isFetchingNestedPages.value) return
+      if (isFetching.value.nestedPages) return
       if (isBookErrored.value) return
 
       if (routePageSlugs.value.length === 0) {
@@ -61,12 +60,12 @@ export const watchers = () => {
 
   // set openedNestedPagesOfBook when route changes, this is because there is delay between route changes and state changes
   watch(
-    () => [routePageSlugs.value, openedBook.value, isFetchingNestedPages.value],
+    () => [routePageSlugs.value, openedBook.value, isFetching.value.nestedPages],
     async () => {
-      if (isFetchingBooks.value || !openedBook.value) return
+      if (isFetching.value.books || !openedBook.value) return
       isPageErrored.value = false
 
-      if (isFetchingNestedPages.value) return
+      if (isFetching.value.nestedPages) return
 
       if (routePageSlugs.value.length === 0) {
         openedNestedPagesOfBook.value = []

@@ -1409,6 +1409,33 @@ export class Api<
       }),
 
     /**
+     * @description Get page by slug
+     *
+     * @tags Noco docs
+     * @name GetPageBySlug
+     * @summary Get page by slug
+     * @request GET:/api/v1/docs/page/slug/{slug}
+     * @response `200` `DocsPageType` OK
+     */
+    getPageBySlug: (
+      slug: string,
+      query: {
+        /** Project id */
+        projectId: string;
+        /** Book id */
+        bookId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType, any>({
+        path: `/api/v1/docs/page/slug/${slug}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Get page
      *
      * @tags Noco docs

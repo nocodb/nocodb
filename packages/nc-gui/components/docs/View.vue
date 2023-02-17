@@ -11,13 +11,13 @@ const {
   bookUrl,
   openedBook,
   fetchBooks,
-  openedPage,
   books,
   navigateToFirstBook,
   openChildPageOfRootPages,
   isOnlyBookOpened,
   navigateToFirstPage,
   isErrored,
+  isFetching,
 } = useDocs()
 
 useShortcuts()
@@ -30,14 +30,16 @@ const isLoading = ref(true)
 
 const onAdminMount = async () => {
   await fetchBooks()
-  await fetchNestedPages({
-    book: books.value[0],
-  })
 
   // Navigate to the first page if there is no page selected and only one book exists
   if (route.params.slugs?.length < 1 && books.value.length > 0) {
     await navigateToFirstBook()
   }
+
+  isLoading.value = false
+  await fetchNestedPages({
+    book: books.value[0],
+  })
 
   await openChildPageOfRootPages()
 }
@@ -54,6 +56,8 @@ const onPublicMount = async () => {
   if (!slugs || slugs?.length === 0) await navigateTo(bookUrl(books.value[0].slug!))
 
   if (books.value.length === 0) return
+
+  isLoading.value = false
 
   await fetchNestedPages({
     book: books.value[0],
@@ -92,15 +96,10 @@ watch(
 )
 
 onMounted(async () => {
-  isLoading.value = true
-  try {
-    if (isPublic.value) {
-      await onPublicMount()
-    } else {
-      await onAdminMount()
-    }
-  } finally {
-    isLoading.value = false
+  if (isPublic.value) {
+    await onPublicMount()
+  } else {
+    await onAdminMount()
   }
 })
 </script>
@@ -113,9 +112,9 @@ onMounted(async () => {
     <div v-if="isErrored">
       <DocsError />
     </div>
-    <div v-else-if="isLoading"></div>
-    <DocsBookView v-else-if="isOnlyBookOpened" :key="openedBook?.id" />
-    <DocsPageView v-else-if="openedPage" :key="openedPage?.id" />
+
+    <DocsBookView v-if="isOnlyBookOpened" :key="openedBook?.id" />
+    <DocsPageView v-else-if="!isFetching.books" />
   </NuxtLayout>
 </template>
 

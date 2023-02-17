@@ -65,6 +65,11 @@ export class DashboardPage extends BasePage {
     await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
   }
 
+  async gotoProjectSubMenu({ title }: { title: string }) {
+    await this.rootPage.getByTestId('nc-project-menu').click();
+    await this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`).click();
+  }
+
   async verifyInTabBar({ title }: { title: string }) {
     await this.tabBar.textContent().then(text => expect(text).toContain(title));
   }

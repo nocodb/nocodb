@@ -652,7 +652,20 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
     id: column.fk_model_id,
   });
+
   const base = await Base.get(table.base_id);
+
+  const dbDriver = NcConnectionMgrv2.get(base);
+
+  const sqlClientType = dbDriver.clientType();
+
+  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+  if (req.body.column_name.length > mxColumnLength) {
+    NcError.badRequest(
+      `Column name ${req.body.column_name} exceeds ${mxColumnLength} characters`
+    );
+  }
 
   if (
     !isVirtualCol(req.body) &&

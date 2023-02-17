@@ -123,9 +123,17 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               }
 
               if (this.config.autoSelectFieldTypes) {
+                const first_row_undefined =
+                  !ws[
+                    this.xlsx.utils.encode_cell({
+                      c: range.s.c + col,
+                      r: 0,
+                    })
+                  ]
+
                 const cellId = this.xlsx.utils.encode_cell({
                   c: range.s.c + col,
-                  r: +this.config.firstRowAsHeaders,
+                  r: +this.config.firstRowAsHeaders + +first_row_undefined,
                 })
                 const cellProps = ws[cellId] || {}
                 column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
@@ -148,7 +156,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       .map((r: any) => r[col])
                       .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
 
-                    const checkboxType = isCheckboxType(vals, col)
+                    const checkboxType = isCheckboxType(vals)
                     if (checkboxType.length === 1) {
                       column.uidt = UITypes.Checkbox
                     } else {

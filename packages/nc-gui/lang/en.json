@@ -70,6 +70,11 @@
     "moreInfo": "More information can be found here",
     "logs": "Logs",
     "groupingField": "Grouping Field",
+    "insertAfter": "Insert After",
+    "insertBefore": "Insert Before",
+    "hideField": "Hide Field",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending",
     "geoDataField": "GeoData Field"
   },
   "objects": {

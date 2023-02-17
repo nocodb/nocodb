@@ -7,7 +7,8 @@ export class ExpandedFormPage extends BasePage {
   readonly addNewTableButton: Locator;
   readonly copyUrlButton: Locator;
   readonly toggleCommentsButton: Locator;
-  readonly moreOptionsButton: Locator;
+  readonly duplicateRowButton: Locator;
+  readonly deleteRowButton: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -15,7 +16,8 @@ export class ExpandedFormPage extends BasePage {
     this.addNewTableButton = this.dashboard.get().locator('.nc-add-new-table');
     this.copyUrlButton = this.dashboard.get().locator('.nc-copy-row-url:visible');
     this.toggleCommentsButton = this.dashboard.get().locator('.nc-toggle-comments:visible');
-    this.moreOptionsButton = this.dashboard.get().locator('.nc-actions-menu-btn:visible').last();
+    this.duplicateRowButton = this.dashboard.get().locator('.nc-duplicate-row:visible');
+    this.deleteRowButton = this.dashboard.get().locator('.nc-delete-row:visible');
   }
 
   get() {
@@ -23,10 +25,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async clickDuplicateRow() {
-    await this.moreOptionsButton.click();
-    // wait for the menu to appear
-    await this.rootPage.waitForTimeout(1000);
-    await this.rootPage.locator('.nc-menu-item:has-text("Duplicate Row")').click();
+    await this.duplicateRowButton.click();
 
     // wait for loader to disappear
     // await this.dashboard.waitForLoaderToDisappear();
@@ -34,22 +33,17 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async clickDeleteRow() {
-    await this.moreOptionsButton.click();
-    // wait for the menu to appear
-    await this.rootPage.waitForTimeout(1000);
-    await this.rootPage.locator('.nc-menu-item:has-text("Delete Row")').click();
+    await this.deleteRowButton.click();
     await this.rootPage.locator('.ant-btn-primary:has-text("OK")').click();
   }
 
   async isDisabledDuplicateRow() {
-    await this.moreOptionsButton.click();
-    const isDisabled = await this.rootPage.locator('.nc-menu-item.disabled:has-text("Duplicate Row")');
+    const isDisabled = await this.duplicateRowButton;
     return await isDisabled.count();
   }
 
   async isDisabledDeleteRow() {
-    await this.moreOptionsButton.click();
-    const isDisabled = await this.rootPage.locator('.nc-menu-item.disabled:has-text("Delete Row")');
+    const isDisabled = await this.deleteRowButton;
     return await isDisabled.count();
   }
 
@@ -98,9 +92,10 @@ export class ExpandedFormPage extends BasePage {
       await dropdownList.locator('.ant-dropdown-menu-item:has-text("Save & Stay")').click();
     }
 
-    const saveRowAction = saveAndExitMode
-      ? this.get().locator('button:has-text("Save & Exit")').click()
-      : this.get().locator('button:has-text("Save & Stay")').click();
+    const saveRowAction = () =>
+      saveAndExitMode
+        ? this.get().locator('button:has-text("Save & Exit")').click()
+        : this.get().locator('button:has-text("Save & Stay")').click();
 
     if (waitForRowsData) {
       await this.waitForResponse({
@@ -139,7 +134,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('button:has-text("Close")').last().click();
+    await this.get().locator('.nc-close-form').last().click();
   }
 
   async openChildCard(param: { column: string; title: string }) {

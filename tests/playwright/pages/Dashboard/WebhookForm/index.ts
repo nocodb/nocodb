@@ -105,7 +105,7 @@ export class WebhookFormPage extends BasePage {
   }
 
   async save() {
-    const saveAction = this.saveButton.click();
+    const saveAction = () => this.saveButton.click();
     await this.waitForResponse({
       uiAction: saveAction,
       requestUrlPathToMatch: '/hooks',

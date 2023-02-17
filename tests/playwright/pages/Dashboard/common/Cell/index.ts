@@ -75,7 +75,7 @@ export class CellPageObject extends BasePage {
   async inCellExpand({ index, columnHeader }: CellProps) {
     await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
-      uiAction: this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
+      uiAction: () => this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });

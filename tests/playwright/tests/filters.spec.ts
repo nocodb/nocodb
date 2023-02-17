@@ -78,6 +78,8 @@ async function verifyFilter(param: {
 // Number based filters
 //
 
+// was green when run individually via .only
+// on aebc2b442ac952519b00062839169eb9a82ac3b9
 test.describe('Filter Tests: Numerical', () => {
   async function numBasedFilterTest(dataType, eqString, isLikeString) {
     await dashboard.closeTab({ title: 'Team & Auth' });

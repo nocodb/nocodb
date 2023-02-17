@@ -1,8 +1,14 @@
 import type { ProjectType, WorkspaceType, WorkspaceUserType } from 'nocodb-sdk'
 import { WorkspaceUserRoles } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useRoute } from 'vue-router'
-import { extractSdkResponseErrorMsg, projectThemeColors, useCommandPalette, useInjectionState, useNuxtApp } from '#imports'
+import {
+  extractSdkResponseErrorMsg,
+  projectThemeColors,
+  useCommandPalette,
+  useInjectionState,
+  useNuxtApp,
+  useRouter,
+} from '#imports'
 
 const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
   const workspaces = ref<(WorkspaceType & { edit?: boolean; temp_title?: string | null; roles?: string })[]>([])
@@ -14,7 +20,9 @@ const [useProvideWorkspaceStore, useWorkspaceStore] = useInjectionState(() => {
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
-  const route = useRoute()
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
 
   const { $api } = useNuxtApp()
 

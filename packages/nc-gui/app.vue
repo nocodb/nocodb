@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, useCommandPalette, useRoute, useTheme } from '#imports'
+import { applyNonSelectable, computed, useCommandPalette, useRouter, useTheme } from '#imports'
 
-const route = useRoute()
+const router = useRouter()
+
+const route = $(router.currentRoute)
 
 const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
 

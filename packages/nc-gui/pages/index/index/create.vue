@@ -148,7 +148,7 @@ onMounted(async () => {
           @finish="createProject"
         >
           <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-        <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+            <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
           </a-form-item>
 
           <div class="text-center">

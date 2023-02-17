@@ -229,5 +229,6 @@ export const useProject = createSharedComposable(() => {
     lastOpenedViewMap,
     isXcdbBase,
     hasEmptyOrNullFilters,
+    loadBookProject,
   }
 })

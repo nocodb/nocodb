@@ -65,7 +65,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
     const knex: Knex = base.is_meta
       ? ncMeta.knexConnection
-      : NcConnectionMgrv2.get(base);
+      : await NcConnectionMgrv2.get(base);
     const models = await base.getModels(ncMeta);
 
     for (const model of models) {

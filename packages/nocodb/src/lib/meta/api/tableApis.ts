@@ -172,10 +172,12 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
   }
 
-  req.body.columns = req.body.columns?.map((c) => ({
-    ...getColumnPropsFromUIDT(c as any, base),
-    cn: c.column_name,
-  }));
+  req.body.columns = await Promise.all(
+    req.body.columns?.map(async (c) => ({
+      ...(await getColumnPropsFromUIDT(c as any, base)),
+      cn: c.column_name,
+    }))
+  );
   await sqlMgr.sqlOpPlus(base, 'tableCreate', {
     ...req.body,
     tn: req.body.table_name,
@@ -473,7 +475,7 @@ export async function tableCreateMagic(
   }
 
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `create best schema for '${req.body.title}' table without foreign and not null constraints using SQL (${sqlClientType}) and name table as '${req.body.table_name}':`,
     temperature: 0.7,
     max_tokens: 2048,
@@ -590,7 +592,7 @@ export async function schemaMagic(
   }
 
   const response = await openai.createCompletion({
-    model: "text-davinci-003",
+    model: 'text-davinci-003',
     prompt: `create best schema for '${req.body.title}' database with proper constraints using SQL (${sqlClientType})${prefixPrompt}:`,
     temperature: 0.7,
     max_tokens: 3000,

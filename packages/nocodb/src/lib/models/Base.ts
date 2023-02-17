@@ -13,6 +13,7 @@ import CryptoJS from 'crypto-js';
 import { extractProps } from '../meta/helpers/extractProps';
 import { NcError } from '../meta/helpers/catchError';
 import SyncSource from './SyncSource';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 
 // todo: hide credentials
 export default class Base implements BaseType {
@@ -232,9 +233,9 @@ export default class Base implements BaseType {
     }
   }
 
-  public getConnectionConfig(): any {
+  public async getConnectionConfig(): Promise<any> {
     if (this.is_meta) {
-      const metaConfig = Noco.getConfig()?.meta?.db;
+      const metaConfig = await NcConnectionMgrv2.getConfig();
       const config = { ...metaConfig };
       if (config.client === 'sqlite3') {
         config.connection = metaConfig;

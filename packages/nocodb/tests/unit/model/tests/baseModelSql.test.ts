@@ -31,7 +31,7 @@ function baseModelSqlTests() {
 
     const base = await Base.get(table.base_id);
     baseModelSql = new BaseModelSqlv2({
-      dbDriver: NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(base),
       model: table,
       view
     })
@@ -214,7 +214,7 @@ function baseModelSqlTests() {
     const columns = await table.getColumns();
     const bulkData = Array(10).fill(0).map((_, index) => generateDefaultRowAttributes({columns, index}))
     await baseModelSql.bulkInsert(bulkData, {cookie:request});
-    
+
     const rowIdToDeleted = 1;
     await baseModelSql.delByPk(rowIdToDeleted,undefined ,request);
 
@@ -251,7 +251,7 @@ function baseModelSqlTests() {
     await baseModelSql.bulkDelete(
       insertedRows
         .filter((row) => row['Id'] < 5)
-        .map((row)=> ({'id': row['Id']})), 
+        .map((row)=> ({'id': row['Id']})),
       { cookie: request }
     );
 
@@ -341,13 +341,13 @@ function baseModelSqlTests() {
     }
 
     await baseModelSql.nestedInsert(
-      {...generateDefaultRowAttributes({columns}), [ltarColumn.title]: [{'Id': childRow['Id']}]}, 
-      undefined, 
+      {...generateDefaultRowAttributes({columns}), [ltarColumn.title]: [{'Id': childRow['Id']}]},
+      undefined,
       request
     );
 
     const childBaseModel = new BaseModelSqlv2({
-      dbDriver: NcConnectionMgrv2.get(await Base.get(table.base_id)),
+      dbDriver: await NcConnectionMgrv2.get(await Base.get(table.base_id)),
       model: childTable,
       view
     })
@@ -404,9 +404,9 @@ function baseModelSqlTests() {
       childId: insertedChildRow['Id'],
       cookie: request
     });
-    
+
     const childBaseModel = new BaseModelSqlv2({
-      dbDriver: NcConnectionMgrv2.get(await Base.get(table.base_id)),
+      dbDriver: await NcConnectionMgrv2.get(await Base.get(table.base_id)),
       model: childTable,
       view
     })
@@ -471,9 +471,9 @@ function baseModelSqlTests() {
       childId: insertedChildRow['Id'],
       cookie: request
     });
-    
+
     const childBaseModel = new BaseModelSqlv2({
-      dbDriver: NcConnectionMgrv2.get(await Base.get(table.base_id)),
+      dbDriver: await NcConnectionMgrv2.get(await Base.get(table.base_id)),
       model: childTable,
       view
     })

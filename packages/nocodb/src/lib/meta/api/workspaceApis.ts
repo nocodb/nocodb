@@ -17,17 +17,15 @@ const workspaceCreate = async (
   req: Request<any, WorkspaceType, WorkspaceType>,
   res
 ) => {
-
   const workspacePayloads = Array.isArray(req.body) ? req.body : [req.body];
 
-  for(const workspacePayload of workspacePayloads){
+  for (const workspacePayload of workspacePayloads) {
     validateParams(['title'], workspacePayload);
   }
 
-
   const workspaces = [];
 
-  for(const workspacePayload of workspacePayloads) {
+  for (const workspacePayload of workspacePayloads) {
     const workspace = await Workspace.insert({
       ...workspacePayload,
       title: workspacePayload.title.trim(),

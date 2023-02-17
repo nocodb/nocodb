@@ -15,7 +15,7 @@ export async function baseGet(
 ) {
   const base = await Base.get(req.params.baseId);
 
-  base.config = base.getConnectionConfig();
+  base.config = await base.getConnectionConfig();
 
   res.json(base);
 }

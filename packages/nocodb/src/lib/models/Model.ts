@@ -561,14 +561,14 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta
   ) {
     const model = await this.getWithInfo({ id: tableId });
-    const currentPvCol = model.displayValue;
     const newPvCol = model.columns.find((c) => c.id === columnId);
 
     if (!newPvCol) NcError.badRequest('Column not found');
 
-    if (currentPvCol) {
+    // drop existing primary column/s
+    for (const col of model.columns?.filter((c) => c.pv) || []) {
       // get existing cache
-      const key = `${CacheScope.COLUMN}:${currentPvCol.id}`;
+      const key = `${CacheScope.COLUMN}:${col.id}`;
       const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
       if (o) {
         o.pv = false;
@@ -583,7 +583,7 @@ export default class Model implements TableType {
         {
           pv: false,
         },
-        currentPvCol.id
+        col.id
       );
     }
 

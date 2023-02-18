@@ -19,9 +19,7 @@ export class MapPage extends BasePage {
 
   async marker(lat: string, long: string) {
     const latLongStr = `${lat}, ${long}`;
-    // await this.rootPage.pause();
     const marker = await this.get().locator(`.leaflet-marker-pane img[alt="${latLongStr}"]`);
-    // await this.rootPage.pause();
     return marker;
   }
 
@@ -45,11 +43,6 @@ export class MapPage extends BasePage {
       await this.rootPage.waitForTimeout(400);
     }
   }
-
-  // async openExpandedRow({ index }: { index: number }) {
-  //   await this.card(index).click();
-  //   await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
-  // }
 
   // todo: Wait for render to complete
   async waitLoading() {

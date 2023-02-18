@@ -71,16 +71,6 @@ export class DashboardPage extends BasePage {
     await this.tabBar.textContent().then(text => expect(text).toContain(title));
   }
 
-  // async activateGeoDataEasterEgg() {
-  //   const element = await this.rootPage.$('.nc-active-btn');
-  //   const { x, y } = await element.boundingBox();
-
-  //   // Click the element 5 times in a row
-  //   for (let i = 0; i < 5; i++) {
-  //     await this.rootPage.mouse.click(x + 50, y);
-  //   }
-  // }
-
   async closeTab({ title }: { title: string }) {
     const tab = this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
     await tab.locator('button.ant-tabs-tab-remove').click();

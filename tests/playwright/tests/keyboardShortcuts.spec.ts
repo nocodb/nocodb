@@ -3,8 +3,6 @@ import { DashboardPage } from '../pages/Dashboard';
 import { GridPage } from '../pages/Dashboard/Grid';
 import setup from '../setup';
 
-// was green when run individually via .only
-// on c066219aa958677b8eb02c5394889410b5d11298
 test.describe('Verify shortcuts', () => {
   let dashboard: DashboardPage, grid: GridPage;
   let context: any;

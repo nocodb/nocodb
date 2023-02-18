@@ -5,8 +5,6 @@ import setup from '../setup';
 import { AccountPage } from '../pages/Account';
 import { AccountLicensePage } from '../pages/Account/License';
 
-// was green when run individually via .only
-// on bbed1f864945fa61e3d92e3e2c8dfa783060b302
 test.describe('Attachment column', () => {
   let dashboard: DashboardPage;
   let accountLicensePage: AccountLicensePage, accountPage: AccountPage, context: any;

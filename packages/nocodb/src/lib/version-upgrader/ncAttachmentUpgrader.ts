@@ -175,11 +175,11 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         }
         await Promise.all(updateRecords);
       } catch (e) {
-        // throw the custom timeout error message if applicable
-        throwTimeoutError(e, timeoutErrorInfo);
-
         // ignore the error related to deleted project
         if (!isProjectDeleted) {
+          // throw the custom timeout error message if applicable
+          throwTimeoutError(e, timeoutErrorInfo);
+          // throw general error
           throw e;
         }
       }

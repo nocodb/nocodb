@@ -11,4 +11,8 @@ spec:
     requests:
       storage: {{ .Values.storage.size }}
   storageClassName: {{ .Values.storage.storageClassName }}
+  {{ with .Values.storage.accessModes }}
+  accessModes:
+    {{ toYaml . | nindent 4 }}
+  {{ end }}
   volumeMode: Filesystem

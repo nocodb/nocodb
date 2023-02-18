@@ -91,43 +91,43 @@ function openKeyboardShortcutDialog() {
         </nuxt-link>
       </a-list-item>
 
-      <a-list-item>
-        <nuxt-link
-          v-e="['e:community:book-demo']"
-          no-prefetch
-          no-rel
-          class="!no-underline !text-current"
-          to="https://calendly.com/nocodb-meeting"
-          target="_blank"
-        >
-          <div class="flex items-center text-sm">
-            <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
-            <!-- Book a Free DEMO -->
-            <div>
-              {{ $t('labels.community.bookDemo') }}
-            </div>
-          </div>
-        </nuxt-link>
-      </a-list-item>
+      <!--      <a-list-item> -->
+      <!--        <nuxt-link -->
+      <!--          v-e="['e:community:book-demo']" -->
+      <!--          no-prefetch -->
+      <!--          no-rel -->
+      <!--          class="!no-underline !text-current" -->
+      <!--          to="https://calendly.com/nocodb-meeting" -->
+      <!--          target="_blank" -->
+      <!--        > -->
+      <!--          <div class="flex items-center text-sm"> -->
+      <!--            <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" /> -->
+      <!--            &lt;!&ndash; Book a Free DEMO &ndash;&gt; -->
+      <!--            <div> -->
+      <!--              {{ $t('labels.community.bookDemo') }} -->
+      <!--            </div> -->
+      <!--          </div> -->
+      <!--        </nuxt-link> -->
+      <!--      </a-list-item> -->
 
-      <a-list-item>
-        <nuxt-link
-          v-e="['e:community:discord']"
-          no-prefetch
-          no-rel
-          class="!no-underline !text-current"
-          to="https://discord.gg/5RgZmkW"
-          target="_blank"
-        >
-          <div class="flex items-center text-sm">
-            <mdi-discord class="mx-3 text-lg" :color="colors.dark[0 % colors.dark.length]" />
-            <!-- Get your questions answered -->
-            <div>
-              {{ $t('labels.community.getAnswered') }}
-            </div>
-          </div>
-        </nuxt-link>
-      </a-list-item>
+      <!--      <a-list-item> -->
+      <!--        <nuxt-link -->
+      <!--          v-e="['e:community:discord']" -->
+      <!--          no-prefetch -->
+      <!--          no-rel -->
+      <!--          class="!no-underline !text-current" -->
+      <!--          to="https://discord.gg/5RgZmkW" -->
+      <!--          target="_blank" -->
+      <!--        > -->
+      <!--          <div class="flex items-center text-sm"> -->
+      <!--            <mdi-discord class="mx-3 text-lg" :color="colors.dark[0 % colors.dark.length]" /> -->
+      <!--            &lt;!&ndash; Get your questions answered &ndash;&gt; -->
+      <!--            <div> -->
+      <!--              {{ $t('labels.community.getAnswered') }} -->
+      <!--            </div> -->
+      <!--          </div> -->
+      <!--        </nuxt-link> -->
+      <!--      </a-list-item> -->
 
       <a-list-item>
         <nuxt-link
@@ -148,23 +148,23 @@ function openKeyboardShortcutDialog() {
         </nuxt-link>
       </a-list-item>
 
-      <a-list-item>
-        <nuxt-link
-          v-e="['e:hiring']"
-          no-prefetch
-          no-rel
-          class="!no-underline !text-current"
-          target="_blank"
-          to="http://careers.nocodb.com"
-        >
-          <div class="flex items-center text-sm">
-            <!--            todo:  i18n -->
-            <div class="ml-3">
-              🚀 <span class="ml-3">{{ $t('labels.weAreHiring') }}!!!</span>
-            </div>
-          </div>
-        </nuxt-link>
-      </a-list-item>
+      <!--      <a-list-item> -->
+      <!--        <nuxt-link -->
+      <!--          v-e="['e:hiring']" -->
+      <!--          no-prefetch -->
+      <!--          no-rel -->
+      <!--          class="!no-underline !text-current" -->
+      <!--          target="_blank" -->
+      <!--          to="http://careers.nocodb.com" -->
+      <!--        > -->
+      <!--          <div class="flex items-center text-sm"> -->
+      <!--            &lt;!&ndash;            todo:  i18n &ndash;&gt; -->
+      <!--            <div class="ml-3"> -->
+      <!--              🚀 <span class="ml-3">{{ $t('labels.weAreHiring') }}!!!</span> -->
+      <!--            </div> -->
+      <!--          </div> -->
+      <!--        </nuxt-link> -->
+      <!--      </a-list-item> -->
 
       <a-list-item>
         <nuxt-link

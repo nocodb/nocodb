@@ -38,7 +38,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
 
   const createTable = async () => {
     if (!sqlUi?.value) return
-    const columns = sqlUi?.value?.getNewTableColumns().filter((col) => {
+    const columns = sqlUi?.value?.getNewTableColumns().filter((col: any) => {
       if (col.column_name === 'id' && table.columns.includes('id_ag')) {
         Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
         col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt)

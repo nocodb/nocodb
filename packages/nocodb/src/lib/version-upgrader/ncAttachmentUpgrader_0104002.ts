@@ -6,6 +6,7 @@ import Model from '../models/Model';
 import { XKnex } from '../db/sql-data-mapper/index';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { BaseType, UITypes } from 'nocodb-sdk';
+import { throwTimeoutError } from './ncUpgradeErrors';
 
 // after 0101002 upgrader, the attachment object would become broken when
 // (1) switching views after updating a singleSelect field
@@ -59,6 +60,12 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       ? ncMeta.knexConnection
       : NcConnectionMgrv2.get(base);
     const models = await base.getModels(ncMeta);
+
+    // used in timeout error message
+    const timeoutErrorInfo = {
+      projectTitle: project.title,
+      connection: knex.client.config.connection,
+    };
 
     for (const model of models) {
       try {
@@ -149,6 +156,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         }
         await Promise.all(updateRecords);
       } catch (e) {
+        // throw the custom timeout error message if applicable
+        throwTimeoutError(e, timeoutErrorInfo);
+
         // ignore the error related to deleted project
         if (!isProjectDeleted) {
           throw e;

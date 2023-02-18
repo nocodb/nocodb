@@ -158,12 +158,13 @@ export class CellPageObject extends BasePage {
           const cell = await this.get({
             index,
             columnHeader,
-          }).locator('input');
-          return await cell.getAttribute('title');
+          }).locator('button');
+          return await cell.textContent(); //.getAttribute('title');
         })
         .toEqual(expectedValue);
     };
 
+    const value = `${lat}; ${long}`;
     await _verify(value);
   }
 

@@ -48,9 +48,17 @@ test.describe.only('Geo Data column', () => {
     });
     await grid.cell.geoData.enterLatLong({
       lat: '50.4501',
-      long: '930.5234',
+      long: '30.5234',
     });
     await grid.cell.geoData.clickSave();
+
+    await grid.cell.verifyGeoDataCell({
+      index: 0,
+      columnHeader: 'GeoData1',
+      lat: '50.4501000',
+      long: '30.5234000',
+    });
+
     // await grid.rootPage.pause();
 
     // await dashboard.grid.cell.attachment.addFile({

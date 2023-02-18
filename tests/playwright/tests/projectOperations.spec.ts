@@ -19,15 +19,16 @@ test.describe('Project operations', () => {
 
   test('rename, delete', async () => {
     await dashboard.clickHome();
-    await projectPage.createProject({ name: 'project-1' });
+    await projectPage.createProject({ name: 'project-firstName', withoutPrefix: true });
     await dashboard.clickHome();
     await projectPage.renameProject({
-      title: 'project-1',
-      newTitle: 'project-new',
+      title: 'project-firstName',
+      newTitle: 'project-rename',
+      withoutPrefix: true,
     });
     await dashboard.clickHome();
-    await projectPage.openProject({ title: 'project-new' });
+    await projectPage.openProject({ title: 'project-rename', withoutPrefix: true });
     await dashboard.clickHome();
-    await projectPage.deleteProject({ title: 'project-new' });
+    await projectPage.deleteProject({ title: 'project-rename', withoutPrefix: true });
   });
 });

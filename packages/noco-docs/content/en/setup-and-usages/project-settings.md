@@ -14,8 +14,4 @@ Generic project configuration options are retained under `Project Settings` menu
 
 Then, under SETTINGS, click `Project Settings`.
 
-## Miscellaneous
-
-- Enabling, `Show M2M Tables` will show junction tables between many to many tables.
-
-![Screenshot 2022-12-29 at 7 05 04 PM](https://user-images.githubusercontent.com/86527202/209961654-ffe8ddc6-c7e2-4c0d-9762-2b57fb883cfa.png)
+![image](https://user-images.githubusercontent.com/35857179/219830971-9518fa21-a45c-4d49-af3f-2f933d779ecd.png)

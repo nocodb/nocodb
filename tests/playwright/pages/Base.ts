@@ -28,7 +28,7 @@ export default abstract class BasePage {
     httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
   }) {
-    const waitForResposePromise = this.rootPage.waitForResponse(async res => {
+    const waitForResponsePromise = this.rootPage.waitForResponse(async res => {
       let isResJsonMatched = true;
       if (responseJsonMatcher) {
         try {
@@ -47,7 +47,7 @@ export default abstract class BasePage {
 
     const uiActionPromise = uiAction();
 
-    await Promise.all([waitForResposePromise, uiActionPromise]);
+    await Promise.all([waitForResponsePromise, uiActionPromise]);
   }
 
   async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {

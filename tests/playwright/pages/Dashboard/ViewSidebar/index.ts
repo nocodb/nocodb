@@ -38,10 +38,8 @@ export class ViewSidebarPage extends BasePage {
   private async createView({ title, locator }: { title: string; locator: Locator }) {
     await locator.click();
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);
-    const submitAction = this.rootPage
-      .locator('.ant-modal-content')
-      .locator('button:has-text("Submit"):visible')
-      .click();
+    const submitAction = () =>
+      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',
@@ -128,10 +126,8 @@ export class ViewSidebarPage extends BasePage {
       .locator(`[data-testid="view-sidebar-view-actions-${title}"]`)
       .locator('.nc-view-copy-icon')
       .click();
-    const submitAction = this.rootPage
-      .locator('.ant-modal-content')
-      .locator('button:has-text("Submit"):visible')
-      .click();
+    const submitAction = () =>
+      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',

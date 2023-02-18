@@ -19,7 +19,7 @@ export class AclPage extends BasePage {
 
   async save() {
     await this.waitForResponse({
-      uiAction: this.get().locator(`button:has-text("Save")`).click(),
+      uiAction: () => this.get().locator(`button:has-text("Save")`).click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/visibility-rules',
     });

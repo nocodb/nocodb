@@ -54,12 +54,14 @@ export async function validateCondition(filters: Filter[], data: any) {
           -1;
         break;
       case 'empty':
+      case 'blank':
         res =
           data[field] === '' ||
           data[field] === null ||
           data[field] === undefined;
         break;
       case 'notempty':
+      case 'notblank':
         res = !(
           data[field] === '' ||
           data[field] === null ||

@@ -10,6 +10,10 @@ menuTitle: 'Team & Settings > Audit'
 
 We are keeping all the user operation logs under Audit. To access it, click the down arrow button next to Project Name on the top left side, then select `Team & Settings`.
 
+<alert>
+We can disable audit logs by setting `NC_DISABLE_AUDIT` to `true`.
+</alert>
+
 <img width="322" alt="image" src="https://user-images.githubusercontent.com/35857179/194856648-67936db0-ee4d-4060-be3d-af9f86ef8fc6.png">
 
 Then, under SETTINGS, click `Audit`.

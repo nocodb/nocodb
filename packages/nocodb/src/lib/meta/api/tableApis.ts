@@ -20,7 +20,7 @@ import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
 import View from '../../models/View';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import { NcError } from '../helpers/catchError';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import Column from '../../models/Column';
@@ -148,10 +148,11 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+
   const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -162,6 +163,16 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 
   if (req.body.table_name.length > tableNameLengthLimit) {
     NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+  }
+
+  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+  for (const column of req.body.columns) {
+    if (column.column_name.length > mxColumnLength) {
+      NcError.badRequest(
+        `Column name ${column.column_name} exceeds ${mxColumnLength} characters`
+      );
+    }
   }
 
   req.body.columns = req.body.columns?.map((c) => ({
@@ -195,7 +206,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     ip: (req as any).clientIp,
   }).then(() => {});
 
-  mapDefaultPrimaryValue(req.body.columns);
+  mapDefaultDisplayValue(req.body.columns);
 
   Tele.emit('evt', { evt_type: 'table:created' });
 
@@ -298,7 +309,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
   const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {

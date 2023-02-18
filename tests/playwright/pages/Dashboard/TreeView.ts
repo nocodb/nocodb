@@ -36,7 +36,15 @@ export class TreeViewPage extends BasePage {
 
   // assumption: first view rendered is always GRID
   //
-  async openTable({ title, mode = 'standard' }: { title: string; mode?: string }) {
+  async openTable({
+    title,
+    mode = 'standard',
+    networkResponse = true,
+  }: {
+    title: string;
+    mode?: string;
+    networkResponse?: boolean;
+  }) {
     if ((await this.get().locator('.active.nc-project-tree-tbl').count()) > 0) {
       if ((await this.get().locator('.active.nc-project-tree-tbl').innerText()) === title) {
         // table already open
@@ -44,13 +52,18 @@ export class TreeViewPage extends BasePage {
       }
     }
 
-    await this.waitForResponse({
-      uiAction: this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
-      responseJsonMatcher: json => json.pageInfo,
-    });
-    await this.dashboard.waitForTabRender({ title, mode });
+    if (networkResponse === true) {
+      await this.waitForResponse({
+        uiAction: () => this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+        responseJsonMatcher: json => json.pageInfo,
+      });
+      await this.dashboard.waitForTabRender({ title, mode });
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
+      await this.rootPage.waitForTimeout(3000);
+    }
   }
 
   async createTable({ title, skipOpeningModal }: { title: string; skipOpeningModal?: boolean }) {
@@ -61,7 +74,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 
     await this.waitForResponse({
-      uiAction: this.dashboard.get().locator('button:has-text("Submit")').click(),
+      uiAction: () => this.dashboard.get().locator('button:has-text("Submit")').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
@@ -88,7 +101,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete")').click();
 
     await this.waitForResponse({
-      uiAction: this.dashboard.get().locator('button:has-text("Yes")').click(),
+      uiAction: () => this.dashboard.get().locator('button:has-text("Yes")').click(),
       httpMethodsToMatch: ['DELETE'],
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });

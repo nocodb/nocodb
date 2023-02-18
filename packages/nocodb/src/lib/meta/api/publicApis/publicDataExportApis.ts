@@ -237,7 +237,7 @@ async function serializeCellValue({
         await relatedModel.getColumns();
         return [...(Array.isArray(value) ? value : [value])]
           .map((v) => {
-            return v[relatedModel.primaryValue?.title];
+            return v[relatedModel.displayValue?.title];
           })
           .join(', ');
       }

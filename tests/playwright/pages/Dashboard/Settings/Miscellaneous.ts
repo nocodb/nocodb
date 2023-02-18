@@ -14,11 +14,15 @@ export class MiscSettingsPage extends BasePage {
   }
 
   async clickShowM2MTables() {
-    const clickAction = this.get().locator('input[type="checkbox"]').first().click();
+    const clickAction = () => this.get().locator('input[type="checkbox"]').first().click();
     await this.waitForResponse({
       uiAction: clickAction,
       requestUrlPathToMatch: 'tables?includeM2M',
       httpMethodsToMatch: ['GET'],
     });
+  }
+
+  async clickShowNullEmptyFilters() {
+    await this.get().locator('input[type="checkbox"]').last().click();
   }
 }

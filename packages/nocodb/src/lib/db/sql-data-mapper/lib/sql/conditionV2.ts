@@ -8,7 +8,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import RollupColumn from '../../../../models/RollupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes, isNumericCol } from 'nocodb-sdk';
 import { sanitize } from './helpers/sanitize';
 
 export default async function conditionV2(
@@ -119,7 +119,7 @@ const parseConditionV2 = async (
                 ? negatedMapping[filter.comparison_op]
                 : {}),
               fk_model_id: childModel.id,
-              fk_column_id: childModel?.primaryValue?.id,
+              fk_column_id: childModel?.displayValue?.id,
             }),
             knex,
             aliasCount
@@ -154,7 +154,7 @@ const parseConditionV2 = async (
                 ? negatedMapping[filter.comparison_op]
                 : {}),
               fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.primaryValue?.id,
+              fk_column_id: parentModel?.displayValue?.id,
             }),
             knex,
             aliasCount
@@ -209,7 +209,7 @@ const parseConditionV2 = async (
                 ? negatedMapping[filter.comparison_op]
                 : {}),
               fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.primaryValue?.id,
+              fk_column_id: parentModel?.displayValue?.id,
             }),
             knex,
             aliasCount
@@ -271,46 +271,152 @@ const parseConditionV2 = async (
 
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
+        if (
+          [UITypes.Date, UITypes.DateTime].includes(column.uidt) &&
+          !val &&
+          ['is', 'isnot'].includes(filter.comparison_op)
+        ) {
+          // for date & datetime,
+          // val cannot be empty for non-is & non-isnot filters
+          return;
+        }
+
+        if (isNumericCol(column.uidt) && typeof val === 'string') {
+          // convert to number
+          val = +val;
+        }
+
         switch (filter.comparison_op) {
           case 'eq':
-            qb = qb.where(field, val);
+            if (qb?.client?.config?.client === 'mysql2') {
+              if (
+                [
+                  UITypes.Duration,
+                  UITypes.Currency,
+                  UITypes.Percent,
+                  UITypes.Number,
+                  UITypes.Decimal,
+                  UITypes.Rating,
+                  UITypes.Rollup,
+                ].includes(column.uidt)
+              ) {
+                qb = qb.where(field, val);
+              } else {
+                // mysql is case-insensitive for strings, turn to case-sensitive
+                qb = qb.whereRaw('BINARY ?? = ?', [field, val]);
+              }
+            } else {
+              qb = qb.where(field, val);
+            }
+            if (column.uidt === UITypes.Rating && val === 0) {
+              // unset rating is considered as NULL
+              qb = qb.orWhereNull(field);
+            }
             break;
           case 'neq':
           case 'not':
-            qb = qb.where((nestedQb) => {
-              nestedQb
-                .whereNot(field, val)
-                .orWhereNull(customWhereClause ? _val : _field);
-            });
+            if (qb?.client?.config?.client === 'mysql2') {
+              if (
+                [
+                  UITypes.Duration,
+                  UITypes.Currency,
+                  UITypes.Percent,
+                  UITypes.Number,
+                  UITypes.Decimal,
+                  UITypes.Rollup,
+                ].includes(column.uidt)
+              ) {
+                qb = qb.where((nestedQb) => {
+                  nestedQb
+                    .whereNot(field, val)
+                    .orWhereNull(customWhereClause ? _val : _field);
+                });
+              } else if (column.uidt === UITypes.Rating) {
+                // unset rating is considered as NULL
+                if (val === 0) {
+                  qb = qb.whereNot(field, val).whereNotNull(field);
+                } else {
+                  qb = qb.whereNot(field, val).orWhereNull(field);
+                }
+              } else {
+                // mysql is case-insensitive for strings, turn to case-sensitive
+                qb = qb.where((nestedQb) => {
+                  nestedQb.whereRaw('BINARY ?? != ?', [field, val]);
+                  if (column.uidt !== UITypes.Rating) {
+                    nestedQb.orWhereNull(customWhereClause ? _val : _field);
+                  }
+                });
+              }
+            } else {
+              qb = qb.where((nestedQb) => {
+                nestedQb
+                  .whereNot(field, val)
+                  .orWhereNull(customWhereClause ? _val : _field);
+              });
+            }
             break;
           case 'like':
-            if (column.uidt === UITypes.Formula) {
-              [field, val] = [val, field];
-              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
+            if (!val) {
+              if (column.uidt === UITypes.Attachment) {
+                qb = qb
+                  .orWhereNull(field)
+                  .orWhere(field, '[]')
+                  .orWhere(field, 'null');
+              } else {
+                // val is empty -> all values including empty strings but NULL
+                qb.where(field, '');
+                qb.orWhereNotNull(field);
+              }
             } else {
-              val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
-            }
-            if (qb?.client?.config?.client === 'pg') {
-              qb = qb.whereRaw('??::text ilike ?', [field, val]);
-            } else {
-              qb = qb.where(field, 'like', val);
+              if (column.uidt === UITypes.Formula) {
+                [field, val] = [val, field];
+                val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
+              } else {
+                val =
+                  val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+              }
+              if (qb?.client?.config?.client === 'pg') {
+                qb = qb.whereRaw('??::text ilike ?', [field, val]);
+              } else {
+                qb = qb.where(field, 'like', val);
+              }
             }
             break;
           case 'nlike':
-            if (column.uidt === UITypes.Formula) {
-              [field, val] = [val, field];
-              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
-            } else {
-              val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
-            }
-            qb.where((nestedQb) => {
-              if (qb?.client?.config?.client === 'pg') {
-                nestedQb.whereRaw('??::text not ilike ?', [field, val]);
+            if (!val) {
+              if (column.uidt === UITypes.Attachment) {
+                qb.whereNot(field, '')
+                  .whereNot(field, 'null')
+                  .whereNot(field, '[]');
               } else {
-                nestedQb.whereNot(field, 'like', val);
+                // val is empty -> all values including NULL but empty strings
+                qb.whereNot(field, '');
+                qb.orWhereNull(field);
               }
-              nestedQb.orWhereNull(field);
-            });
+            } else {
+              if (column.uidt === UITypes.Formula) {
+                [field, val] = [val, field];
+                val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
+              } else {
+                val =
+                  val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+              }
+              qb.where((nestedQb) => {
+                if (qb?.client?.config?.client === 'pg') {
+                  nestedQb.whereRaw('??::text not ilike ?', [field, val]);
+                } else {
+                  nestedQb.whereNot(field, 'like', val);
+                }
+                if (val !== '%%') {
+                  // if value is not empty, empty or null should be included
+                  nestedQb.orWhere(field, '');
+                  nestedQb.orWhereNull(field);
+                } else {
+                  // if value is empty, then only null is included
+                  nestedQb.orWhereNull(field);
+                }
+              });
+            }
             break;
           case 'allof':
           case 'anyof':
@@ -319,8 +425,8 @@ const parseConditionV2 = async (
             {
               // Condition for filter, without negation
               const condition = (builder: Knex.QueryBuilder) => {
-                const items = val.split(',').map((item) => item.trim());
-                for (let i = 0; i < items.length; i++) {
+                const items = val?.split(',').map((item) => item.trim());
+                for (let i = 0; i < items?.length; i++) {
                   let sql;
                   const bindings = [field, `%,${items[i]},%`];
                   if (qb?.client?.config?.client === 'pg') {
@@ -355,11 +461,25 @@ const parseConditionV2 = async (
             }
             break;
           case 'gt':
-            qb = qb.where(field, customWhereClause ? '<' : '>', val);
+            const gt_op = customWhereClause ? '<' : '>';
+            qb = qb.where(field, gt_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset rating is considered as NULL
+              if (gt_op === '<' && val > 0) {
+                qb = qb.orWhereNull(field);
+              }
+            }
             break;
           case 'ge':
           case 'gte':
-            qb = qb.where(field, customWhereClause ? '<=' : '>=', val);
+            const ge_op = customWhereClause ? '<=' : '>=';
+            qb = qb.where(field, ge_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset rating is considered as NULL
+              if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
+                qb = qb.orWhereNull(field);
+              }
+            }
             break;
           case 'in':
             qb = qb.whereIn(
@@ -375,7 +495,9 @@ const parseConditionV2 = async (
             else if (filter.value === 'empty')
               qb = qb.where(customWhereClause || field, '');
             else if (filter.value === 'notempty')
-              qb = qb.whereNot(customWhereClause || field, '');
+              qb = qb
+                .whereNot(customWhereClause || field, '')
+                .orWhereNull(field);
             else if (filter.value === 'true')
               qb = qb.where(customWhereClause || field, true);
             else if (filter.value === 'false')
@@ -396,13 +518,26 @@ const parseConditionV2 = async (
               qb = qb.whereNot(customWhereClause || field, false);
             break;
           case 'lt':
-            qb = qb.where(field, customWhereClause ? '>' : '<', val);
+            const lt_op = customWhereClause ? '>' : '<';
+            qb = qb.where(field, lt_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
+              if (lt_op === '<' && val > 0) {
+                qb = qb.orWhereNull(field);
+              }
+            }
             break;
           case 'le':
           case 'lte':
-            qb = qb.where(field, customWhereClause ? '>=' : '<=', val);
+            const le_op = customWhereClause ? '>=' : '<=';
+            qb = qb.where(field, le_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
+              if (le_op === '<=' || (le_op === '>=' && val === 0)) {
+                qb = qb.orWhereNull(field);
+              }
+            }
             break;
-
           case 'empty':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
@@ -413,13 +548,39 @@ const parseConditionV2 = async (
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
             }
-            qb = qb.whereNot(field, val);
+            qb = qb.whereNot(field, val).orWhereNull(field);
             break;
           case 'null':
             qb = qb.whereNull(customWhereClause || field);
             break;
           case 'notnull':
             qb = qb.whereNotNull(customWhereClause || field);
+            break;
+          case 'blank':
+            if (column.uidt === UITypes.Attachment) {
+              qb = qb
+                .whereNull(customWhereClause || field)
+                .orWhere(field, '[]')
+                .orWhere(field, 'null');
+            } else {
+              qb = qb.whereNull(customWhereClause || field);
+              if (!isNumericCol(column.uidt)) {
+                qb = qb.orWhere(field, '');
+              }
+            }
+            break;
+          case 'notblank':
+            if (column.uidt === UITypes.Attachment) {
+              qb = qb
+                .whereNotNull(customWhereClause || field)
+                .whereNot(field, '[]')
+                .whereNot(field, 'null');
+            } else {
+              qb = qb.whereNotNull(customWhereClause || field);
+              if (!isNumericCol(column.uidt)) {
+                qb = qb.whereNot(field, '');
+              }
+            }
             break;
           case 'checked':
             qb = qb.where(customWhereClause || field, true);
@@ -480,19 +641,29 @@ async function generateLookupCondition(
 
       qb.select(`${alias}.${childColumn.column_name}`);
 
-      await nestedConditionJoin(
-        {
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
-            : {}),
-        },
-        lookupColumn,
-        qb,
-        knex,
-        alias,
-        aliasCount
-      );
+      if (filter.comparison_op === 'blank') {
+        return (qbP: Knex.QueryBuilder) => {
+          qbP.whereNotIn(childColumn.column_name, qb);
+        };
+      } else if (filter.comparison_op === 'notblank') {
+        return (qbP: Knex.QueryBuilder) => {
+          qbP.whereIn(childColumn.column_name, qb);
+        };
+      } else {
+        await nestedConditionJoin(
+          {
+            ...filter,
+            ...(filter.comparison_op in negatedMapping
+              ? negatedMapping[filter.comparison_op]
+              : {}),
+          },
+          lookupColumn,
+          qb,
+          knex,
+          alias,
+          aliasCount
+        );
+      }
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
@@ -503,19 +674,29 @@ async function generateLookupCondition(
       qb = knex(`${parentModel.table_name} as ${alias}`);
       qb.select(`${alias}.${parentColumn.column_name}`);
 
-      await nestedConditionJoin(
-        {
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
-            : {}),
-        },
-        lookupColumn,
-        qb,
-        knex,
-        alias,
-        aliasCount
-      );
+      if (filter.comparison_op === 'blank') {
+        return (qbP: Knex.QueryBuilder) => {
+          qbP.whereNotIn(childColumn.column_name, qb);
+        };
+      } else if (filter.comparison_op === 'notblank') {
+        return (qbP: Knex.QueryBuilder) => {
+          qbP.whereIn(childColumn.column_name, qb);
+        };
+      } else {
+        await nestedConditionJoin(
+          {
+            ...filter,
+            ...(filter.comparison_op in negatedMapping
+              ? negatedMapping[filter.comparison_op]
+              : {}),
+          },
+          lookupColumn,
+          qb,
+          knex,
+          alias,
+          aliasCount
+        );
+      }
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
@@ -537,19 +718,29 @@ async function generateLookupCondition(
           `${childAlias}.${parentColumn.column_name}`
         );
 
-      await nestedConditionJoin(
-        {
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
-            : {}),
-        },
-        lookupColumn,
-        qb,
-        knex,
-        childAlias,
-        aliasCount
-      );
+      if (filter.comparison_op === 'blank') {
+        return (qbP: Knex.QueryBuilder) => {
+          qbP.whereNotIn(childColumn.column_name, qb);
+        };
+      } else if (filter.comparison_op === 'notblank') {
+        return (qbP: Knex.QueryBuilder) => {
+          qbP.whereIn(childColumn.column_name, qb);
+        };
+      } else {
+        await nestedConditionJoin(
+          {
+            ...filter,
+            ...(filter.comparison_op in negatedMapping
+              ? negatedMapping[filter.comparison_op]
+              : {}),
+          },
+          lookupColumn,
+          qb,
+          knex,
+          childAlias,
+          aliasCount
+        );
+      }
 
       return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
@@ -650,7 +841,7 @@ async function nestedConditionJoin(
                 new Filter({
                   ...filter,
                   fk_model_id: childModel.id,
-                  fk_column_id: childModel.primaryValue?.id,
+                  fk_column_id: childModel.displayValue?.id,
                 }),
                 knex,
                 aliasCount,
@@ -666,7 +857,7 @@ async function nestedConditionJoin(
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
-                  fk_column_id: parentModel?.primaryValue?.id,
+                  fk_column_id: parentModel?.displayValue?.id,
                 }),
                 knex,
                 aliasCount,
@@ -682,7 +873,7 @@ async function nestedConditionJoin(
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
-                  fk_column_id: parentModel.primaryValue?.id,
+                  fk_column_id: parentModel.displayValue?.id,
                 }),
                 knex,
                 aliasCount,

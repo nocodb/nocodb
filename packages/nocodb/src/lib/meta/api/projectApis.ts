@@ -19,6 +19,7 @@ import { extractPropsAndSanitize } from '../helpers/extractProps';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { promisify } from 'util';
 import { populateMeta } from './helpers';
+import Filter from '../../models/Filter';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -238,6 +239,10 @@ export async function projectCost(req, res) {
   res.json({ cost });
 }
 
+export async function hasEmptyOrNullFilters(req, res) {
+  res.json(await Filter.hasEmptyOrNullFilters(req.params.projectId));
+}
+
 export default (router) => {
   router.get(
     '/api/v1/db/meta/projects/:projectId/info',
@@ -273,5 +278,10 @@ export default (router) => {
     '/api/v1/db/meta/projects',
     metaApiMetrics,
     ncMetaAclMw(projectList, 'projectList')
+  );
+  router.get(
+    '/api/v1/db/meta/projects/:projectId/has-empty-or-null-filters',
+    metaApiMetrics,
+    ncMetaAclMw(hasEmptyOrNullFilters, 'hasEmptyOrNullFilters')
   );
 };

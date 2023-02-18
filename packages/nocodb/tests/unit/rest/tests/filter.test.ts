@@ -96,19 +96,25 @@ async function retrieveRecordsAndValidate(
       );
       break;
     case 'lt':
-      expectedRecords = unfilteredRecords.filter(
-        (record) =>
-          (toFloat ? parseFloat(record[title]) : record[title]) <
-            (toFloat ? parseFloat(filter.value) : filter.value) &&
-          record[title] !== null
+      expectedRecords = unfilteredRecords.filter((record) =>
+        title === 'Rating'
+          ? (toFloat ? parseFloat(record[title]) : record[title]) <
+              (toFloat ? parseFloat(filter.value) : filter.value) ||
+            record[title] === null
+          : (toFloat ? parseFloat(record[title]) : record[title]) <
+              (toFloat ? parseFloat(filter.value) : filter.value) &&
+            record[title] !== null
       );
       break;
     case 'lte':
-      expectedRecords = unfilteredRecords.filter(
-        (record) =>
-          (toFloat ? parseFloat(record[title]) : record[title]) <=
-            (toFloat ? parseFloat(filter.value) : filter.value) &&
-          record[title] !== null
+      expectedRecords = unfilteredRecords.filter((record) =>
+        title === 'Rating'
+          ? (toFloat ? parseFloat(record[title]) : record[title]) <=
+              (toFloat ? parseFloat(filter.value) : filter.value) ||
+            record[title] === null
+          : (toFloat ? parseFloat(record[title]) : record[title]) <=
+              (toFloat ? parseFloat(filter.value) : filter.value) &&
+            record[title] !== null
       );
       break;
     case 'anyof':

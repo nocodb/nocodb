@@ -2511,11 +2511,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
         ctx,
         filename: '',
       }).getVitualColumns();
-      // set default primary values
+      // set default display values
       ModelXcMetaFactory.create(
         this.connectionConfig,
         {}
-      ).mapDefaultPrimaryValue(meta.columns);
+      ).mapDefaultDisplayValue(meta.columns);
       // update meta
       await this.xcMeta.metaUpdate(
         this.projectId,

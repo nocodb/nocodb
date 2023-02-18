@@ -132,6 +132,8 @@ declare module '@vue/runtime-core' {
     MdiBugOutline: typeof import('~icons/mdi/bug-outline')['default']
     MdiCalculator: typeof import('~icons/mdi/calculator')['default']
     MdiCalendarMonth: typeof import('~icons/mdi/calendar-month')['default']
+
+    MdiCardsHeart: typeof import('~icons/mdi/cards-heart')['default']
     MdiCellphoneMessage: typeof import('~icons/mdi/cellphone-message')['default']
     MdiChat: typeof import('~icons/mdi/chat')['default']
     MdiCheck: typeof import('~icons/mdi/check')['default']

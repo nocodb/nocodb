@@ -46,11 +46,11 @@ test.describe.only('Geo Data column', () => {
       index: 0,
       columnHeader: 'GeoData1',
     });
-    // await grid.cell.geoData.enterLatLong({
-    //   lat: '50.4501',
-    //   long: '30.5234',
-    // });
-    // await grid.cell.geoData.clickSave();
+    await grid.cell.geoData.enterLatLong({
+      lat: '50.4501',
+      long: '30.5234',
+    });
+    await grid.cell.geoData.clickSave();
 
     // await dashboard.grid.cell.attachment.addFile({
     //     index: i,

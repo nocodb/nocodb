@@ -76,7 +76,7 @@ test.describe.only('Map View', () => {
       title: 'Map 1',
     });
     // Zoom out
-    await dashboard.map.zoomOut();
+    await dashboard.map.zoomOut(8);
   });
 
   //   await dashboard.viewSidebar.verifyView({

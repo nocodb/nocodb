@@ -22,11 +22,24 @@ export class MapPage extends BasePage {
   }
 
   async zoomOut(times: number) {
-    await this.rootPage.pause();
+    const zoomOutButton = await this.get().locator('.leaflet-control-zoom-out');
+    // await this.rootPage.pause();
+    // await zoomOutButton.click();
     for (let i = 0; i < times; i++) {
-      await this.get().locator('.leaflet-control-zoom-out').click();
+      // await this.rootPage.pause();
+      await zoomOutButton.click();
+      await this.rootPage.waitForTimeout(400);
+      // await this.rootPage.pause();
     }
-    await this.rootPage.pause();
+
+    // const promises = [];
+    // for (let i = 0; i < times; i++) {
+    //   promises.push(zoomOutButton.click());
+    //   // await page.waitForTimeout(2000);
+    // }
+    // await Promise.all(promises);
+
+    // await this.rootPage.pause();
   }
 
   // async openExpandedRow({ index }: { index: number }) {

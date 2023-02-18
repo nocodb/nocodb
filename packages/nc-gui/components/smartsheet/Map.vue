@@ -85,7 +85,9 @@ const addMarker = (lat: number, long: number, row: RowType) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Marker cluster is null')
   }
-  const newMarker = L.marker([lat, long]).on('click', () => {
+  const newMarker = L.marker([lat, long], {
+    alt: `${lat}, ${long}`
+  }).on('click', () => {
     expandForm(row)
   })
   markersClusterGroupRef.value?.addLayer(newMarker)

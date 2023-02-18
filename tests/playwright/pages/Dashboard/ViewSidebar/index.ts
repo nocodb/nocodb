@@ -9,6 +9,7 @@ export class ViewSidebarPage extends BasePage {
   readonly createGridButton: Locator;
   readonly createFormButton: Locator;
   readonly createKanbanButton: Locator;
+  readonly createMapButton: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -17,6 +18,7 @@ export class ViewSidebarPage extends BasePage {
     this.createGridButton = this.get().locator('.nc-create-grid-view:visible');
     this.createFormButton = this.get().locator('.nc-create-form-view:visible');
     this.createKanbanButton = this.get().locator('.nc-create-kanban-view:visible');
+    this.createMapButton = this.get().locator('.nc-create-map-view:visible');
   }
 
   get() {
@@ -76,6 +78,10 @@ export class ViewSidebarPage extends BasePage {
 
   async createKanbanView({ title }: { title: string }) {
     await this.createView({ title, locator: this.createKanbanButton });
+  }
+
+  async createMapView({ title }: { title: string }) {
+    await this.createView({ title, locator: this.createMapButton });
   }
 
   // Todo: Make selection better

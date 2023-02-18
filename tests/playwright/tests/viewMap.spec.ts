@@ -83,7 +83,7 @@ test.describe.only('Map View', () => {
     });
     // Zoom out
     await dashboard.map.zoomOut(8);
-    // await dashboard.map.verifyMarkerCount({ count: 1 });
+    await dashboard.map.verifyMarkerCount(1);
     await dashboard.map.clickMarker(latitudeInShortDecimalLength, longitudeInShortDecimalLength);
   });
 

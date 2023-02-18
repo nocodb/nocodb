@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
@@ -26,6 +27,11 @@ export class MapPage extends BasePage {
 
   async clickMarker(lat: string, long: string) {
     return (await this.marker(lat, long)).click();
+  }
+
+  async verifyMarkerCount(count: number) {
+    const markers = await this.get().locator('.leaflet-marker-pane img');
+    await expect(markers).toHaveCount(count);
   }
 
   async zoomOut(times = 10) {

@@ -28,6 +28,7 @@ test.describe('Geo Data column', () => {
     });
 
     await grid.column.verify({ title: 'GeoData1', isVisible: true });
+    // await dashboard.rootPage.pause();
 
     await grid.cell.geoData.open({
       index: 0,

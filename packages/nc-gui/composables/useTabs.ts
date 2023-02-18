@@ -1,5 +1,4 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { useRoute } from 'vue-router'
 import { computed, createSharedComposable, navigateTo, ref, useProject, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
@@ -17,6 +16,10 @@ export const useTabs = createSharedComposable(() => {
   const router = useRouter()
 
   const route = $(router.currentRoute)
+
+  const { t } = useI18n()
+
+  const { isUIAllowed } = useUIPermission()
 
   const { bases, tables } = useProject()
 
@@ -56,8 +59,10 @@ export const useTabs = createSharedComposable(() => {
         }
 
         return index
-      } else if (routeName.startsWith('nc-projectId-index-index-auth')) {
-        return tabs.value.findIndex((t) => t.type === 'auth')
+      } else if (routeName.startsWith('projectType-projectId-index-index-auth')) {
+        return tabs.value.findIndex((t) => t.type === TabType.AUTH)
+      } else if (routeName.startsWith('projectType-projectId-index-index-sql')) {
+        return tabs.value.findIndex((t) => t.type === TabType.SQL)
       }
 
       // by default, it's showing Team & Auth
@@ -136,6 +141,8 @@ export const useTabs = createSharedComposable(() => {
         return navigateTo(`/${projectType}/${route.params.projectId}/view/${tab?.id}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
       case TabType.AUTH:
         return navigateTo(`/${projectType}/${route.params.projectId}/auth`)
+      case TabType.SQL:
+        return navigateTo(`/${projectType}/${route.params.projectId}/sql`)
     }
   }
 
@@ -155,6 +162,26 @@ export const useTabs = createSharedComposable(() => {
         })
     }
   }
+
+  watch(
+    () => route.name,
+    (n, o) => {
+      if (n === o) return
+      if (!n || !/^projectType-projectId-index-index/.test(n.toString())) return
+      const activeTabRoute = n.toString().replace('projectType-projectId-index-index-', '')
+      switch (activeTabRoute) {
+        case TabType.SQL:
+          addTab({ id: TabType.SQL, type: TabType.SQL, title: 'SQL Editor' })
+          break
+        case TabType.AUTH:
+          if (isUIAllowed('teamAndAuth')) addTab({ id: TabType.AUTH, type: TabType.AUTH, title: t('title.teamAndAuth') })
+          break
+        default:
+          break
+      }
+    },
+    { immediate: true },
+  )
 
   return { tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab }
 })

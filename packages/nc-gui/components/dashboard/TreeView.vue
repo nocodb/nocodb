@@ -391,7 +391,13 @@ const setIcon = async (icon: string, table: TableType) => {
 
           <Transition name="layout" mode="out-in">
             <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            <div v-else>
+              <MdiDatabaseSearch
+                class="text-gray-500 text-md mx-1 mt-0.5 hover:text-accent"
+                @click="navigateTo(`/${route.params.projectType}/${route.params.projectId}/sql`)"
+              />
+              <IcRoundSearch class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            </div>
           </Transition>
         </div>
         <div
@@ -418,7 +424,13 @@ const setIcon = async (icon: string, table: TableType) => {
 
           <Transition name="slide-right" mode="out-in">
             <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
+            <div v-else>
+              <MdiDatabaseSearch
+                class="text-gray-500 text-md mx-1 mt-0.5 hover:text-accent"
+                @click="navigateTo(`/${route.params.projectType}/${route.params.projectId}/sql`)"
+              />
+              <IcRoundSearch class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
+            </div>
           </Transition>
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>

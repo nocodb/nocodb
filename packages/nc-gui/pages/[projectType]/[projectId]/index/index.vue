@@ -18,6 +18,8 @@ const icon = (tab: TabItem) => {
       return iconMap['mdi-eye-circle-outline']
     case TabType.AUTH:
       return iconMap['mdi-account-group']
+    case TabType.SQL:
+      return iconMap['mdi-database-search']
   }
 }
 

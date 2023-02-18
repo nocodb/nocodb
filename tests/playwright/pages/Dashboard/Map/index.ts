@@ -25,6 +25,10 @@ export class MapPage extends BasePage {
     return marker;
   }
 
+  async clickAddRowButton() {
+    await this.rootPage.locator('.nc-add-new-row-btn').click();
+  }
+
   async clickMarker(lat: string, long: string) {
     return (await this.marker(lat, long)).click();
   }

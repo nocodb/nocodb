@@ -84,7 +84,35 @@ test.describe.only('Map View', () => {
     // Zoom out
     await dashboard.map.zoomOut(8);
     await dashboard.map.verifyMarkerCount(1);
-    await dashboard.map.clickMarker(latitudeInShortDecimalLength, longitudeInShortDecimalLength);
+
+    await dashboard.map.clickAddRowButton();
+
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'FirstName',
+      value: 'Mario',
+      type: 'text',
+    });
+
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'LastName',
+      value: 'Ali',
+      type: 'text',
+    });
+
+    await dashboard.expandedForm.fillField({
+      columnTitle: 'Actors Birthplace',
+      value: '12, 34',
+      type: 'geodata',
+    });
+
+    await dashboard.expandedForm.save();
+
+    await dashboard.map.verifyMarkerCount(2);
+
+    await dashboard.map.clickMarker('12', '34');
+
+    await dashboard.expandedForm.clickDeleteRow();
+    await dashboard.map.verifyMarkerCount(1);
   });
 
   //   await dashboard.viewSidebar.verifyView({

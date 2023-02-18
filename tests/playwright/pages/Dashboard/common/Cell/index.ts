@@ -141,6 +141,32 @@ export class CellPageObject extends BasePage {
     }
   }
 
+  async verifyGeoDataCell({
+    index,
+    columnHeader,
+    lat,
+    long,
+  }: {
+    index: number;
+    columnHeader: string;
+    lat: string;
+    long: string;
+  }) {
+    const _verify = async expectedValue => {
+      await expect
+        .poll(async () => {
+          const cell = await this.get({
+            index,
+            columnHeader,
+          }).locator('input');
+          return await cell.getAttribute('title');
+        })
+        .toEqual(expectedValue);
+    };
+
+    await _verify(value);
+  }
+
   async verifyDateCell({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
     const _verify = async expectedValue => {
       await expect

@@ -44,6 +44,9 @@ export default class Audit implements AuditType {
       forceAwait: process.env['TEST'] === 'true',
     }
   ) {
+    if (process.env.NC_DISABLE_AUDIT === 'true') {
+      return;
+    }
     const insertAudit = async () => {
       if (!audit.project_id && audit.fk_model_id) {
         audit.project_id = (

@@ -1,5 +1,13 @@
 export function throwTimeoutError(e, timeoutErrorInfo) {
-  if (['EHOSTDOWN', 'ETIMEDOUT', 'EHOSTUNREACH'].includes(e.code)) {
+  if (
+    [
+      'EHOSTDOWN',
+      'ETIMEDOUT',
+      'EHOSTUNREACH',
+      'ENOTFOUND',
+      'ECONNREFUSED',
+    ].includes(e.code)
+  ) {
     let db = '';
     if (timeoutErrorInfo.connection.filename) {
       // for sqlite

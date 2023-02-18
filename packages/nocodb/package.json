@@ -105,7 +105,7 @@
     "mysql2": "^2.2.5",
     "nanoid": "^3.1.20",
     "nc-help": "0.2.85",
-    "nc-lib-gui": "npm:sg-nc-lib-gui-daily@0.105.0",
+    "nc-lib-gui": "npm:sg-nc-lib-gui-nightly-daily@0.105.1",
     "nc-plugin": "0.1.2",
     "ncp": "^2.0.0",
     "nocodb-sdk": "0.105.0",

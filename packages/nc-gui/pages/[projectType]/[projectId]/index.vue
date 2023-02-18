@@ -68,17 +68,6 @@ const dropdownOpen = ref(false)
 
 const activeView = ref()
 
-const { activeTab } = useTabs()
-const { metas } = useMetas()
-const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
-
-provide(ActiveViewInj, activeView)
-provide(MetaInj, meta)
-
-useViews(meta)
-
-const showViewsMobileSidebar = ref(false)
-
 /** Sidebar ref */
 const sidebar = ref()
 
@@ -208,18 +197,6 @@ onMounted(() => {
   toggle(true)
   toggleHasSidebar(true)
 })
-
-const onClickedTableLink = () => {
-  if (isMobileMode) {
-    showViewsMobileSidebar.value = true
-  }
-}
-
-const onCloseMobileViewsSidebar = () => {
-  if (isMobileMode) {
-    showViewsMobileSidebar.value = false
-  }
-}
 
 onBeforeUnmount(reset)
 
@@ -600,8 +577,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </a-dropdown>
 
           <div
-            class="hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
-            :class="{ 'nc-sidebar-left-toggle-icon': !isMobileMode }"
+            class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
           >
             <MdiBackburger
               v-e="['c:grid:toggle-navdraw']"
@@ -612,11 +588,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </div>
 
-        <LazyDashboardTreeView v-if="!(isMobileMode && showViewsMobileSidebar)" @clicked-table-link="onClickedTableLink" />
-        <SmartsheetSidebarMobile
-          v-if="meta && isMobileMode && showViewsMobileSidebar"
-          @close-mobile-views-sidebar="onCloseMobileViewsSidebar"
-        />
+        <LazyDashboardTreeView @create-base-dlg="toggleDialog(true, 'dataSources')" />
       </a-layout-sider>
     </template>
 

@@ -117,7 +117,6 @@ const onDecode = async (codeValue: string) => {
         <div>
           <StreamBarcodeReader v-show="showScannerField" @decode="onDecode" @loaded="onLoaded"></StreamBarcodeReader>
           <div v-if="showPleaseSelectColumnMessage" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-            Please select a column
             {{ $t('msg.info.codeScanner.selectColumn') }}
           </div>
           <div v-if="showScannerIsLoadingMessage" class="text-left text-wrap mt-2 text-[#e65100] text-xs">

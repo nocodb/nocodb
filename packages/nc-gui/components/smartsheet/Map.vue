@@ -199,11 +199,10 @@ watch(view, async (nextView) => {
 })
 
 const count = computed(() => paginationData.value.totalRows)
-
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full no-underline">
+  <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
     <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">
       <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-3 right-3 p-2 z-500 cursor-default">
         <template #title>

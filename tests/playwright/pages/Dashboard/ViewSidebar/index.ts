@@ -40,35 +40,6 @@ export class ViewSidebarPage extends BasePage {
       window.localStorage.setItem('geodataToggleState', 'true');
     });
     await this.rootPage.goto(this.rootPage.url());
-
-    // await this.rootPage.pause();
-
-    // await this.rootPage.pause();
-    // const toggleViewSidebarButton = await this.rootPage.$('.nc-toggle-right-navbar');
-    // if (!(await this.get().isVisible())) {
-    //   // await this.get().click();
-    //   await toggleViewSidebarButton.click();
-    // }
-    // // await this.rootPage.pause();
-    // // await this.verifyVisibility({ isVisible: true });
-    // // await this.rootPage.pause();
-
-    // // const element = await this.rootPage.$('.nc-active-btn');
-    // const { x, y } = await toggleViewSidebarButton.boundingBox();
-    // // Click the element 5 times in a row
-    // for (let i = 0; i < 5; i++) {
-    //   await this.rootPage.mouse.click(x + 10, y);
-    // }
-
-    // await this.rootPage.pause();
-    // if (!(await this.get().isVisible())) {
-    //   // await this.get().click();
-    //   await toggleViewSidebarButton.click();
-    // }
-    // await this.rootPage.pause();
-    // // await this.verifyVisibility({ isVisible: true });
-    // await this.rootPage.pause();
-    // await this.rootPage.getByTestId('toggle-geodata-feature-icon').click();
   }
 
   private async createView({ title, locator }: { title: string; locator: Locator }) {

@@ -14,13 +14,7 @@ export class GeoDataCellPageObject extends BasePage {
   }
 
   async open({ index, columnHeader }: { index: number; columnHeader: string }) {
-    // await this.rootPage.pause();
     await this.cell.get({ index, columnHeader }).locator(`[data-testid="nc-geo-data-set-location-button"]`).click();
-    // await this.rootPage.pause();
-    // .dblclick({
-    //   index,
-    //   columnHeader,
-    // });
   }
 
   async enterLatLong({ lat, long }: { lat: string; long: string }) {
@@ -30,15 +24,6 @@ export class GeoDataCellPageObject extends BasePage {
 
   async clickSave() {
     await this.rootPage.locator(`[data-testid="nc-geo-data-save"]`).click();
-  }
-
-  async selectDate({
-    // date in format `YYYY-MM-DD`
-    date,
-  }: {
-    date: string;
-  }) {
-    await this.rootPage.locator(`td[title="${date}"]`).click();
   }
 
   async close() {

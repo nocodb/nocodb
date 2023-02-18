@@ -82,10 +82,10 @@ export class ToolbarPage extends BasePage {
   }: { networkValidation?: boolean } = {}) {
     const menuOpen = await this.filter.get().isVisible();
 
-    const clickFilterAction = this.get().locator(`button.nc-filter-menu-btn`).click();
+    const clickFilterAction = () => this.get().locator(`button.nc-filter-menu-btn`).click();
     // Wait for the menu to close
     if (menuOpen) {
-      await clickFilterAction;
+      await clickFilterAction();
       await this.filter.get().waitFor({ state: 'hidden' });
     } else {
       if (networkValidation) {
@@ -96,7 +96,7 @@ export class ToolbarPage extends BasePage {
           httpMethodsToMatch: ['GET'],
         });
       } else {
-        await clickFilterAction;
+        await clickFilterAction();
       }
     }
   }

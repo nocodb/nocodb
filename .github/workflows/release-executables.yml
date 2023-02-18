@@ -87,7 +87,7 @@ jobs:
           ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=arm64 --target_libc=musl
 
           # clean up code to optimize size
-          npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
+          npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
 
           # build executables
           npm run build

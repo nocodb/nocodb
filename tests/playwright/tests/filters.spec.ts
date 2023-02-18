@@ -56,7 +56,7 @@ async function verifyFilter(param: {
     return;
   }
 
-  await toolbar.clickFilter({ networkValidation: false });
+  await toolbar.clickFilter();
   await toolbar.filter.add({
     columnTitle: param.column,
     opType: param.opType,
@@ -64,7 +64,7 @@ async function verifyFilter(param: {
     isLocallySaved: false,
     dataType: param?.dataType,
   });
-  await toolbar.clickFilter({ networkValidation: false });
+  await toolbar.clickFilter();
 
   // verify filtered rows
   await validateRowArray({
@@ -72,7 +72,7 @@ async function verifyFilter(param: {
   });
 
   // Reset filter
-  await toolbar.filter.reset({ networkValidation: false });
+  await toolbar.filter.reset();
 }
 
 // Number based filters
@@ -686,6 +686,137 @@ test.describe('Filter Tests: AddOn', () => {
 
   test('Filter: Checkbox', async () => {
     await addOnFilterTest('Checkbox');
+  });
+});
+
+// Virtual columns
+//
+
+test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
+  async function linkToAnotherRecordFilterTest() {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
+    // add filter for CityList column
+    const filterList = [
+      { op: 'is', value: 'Kabul', rowCount: 1 },
+      { op: 'is not', value: 'Kabul', rowCount: 108 },
+      { op: 'is like', value: 'bad', rowCount: 2 },
+      { op: 'is not like', value: 'bad', rowCount: 107 },
+      { op: 'is blank', value: null, rowCount: 0 },
+      { op: 'is not blank', value: null, rowCount: 109 },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: 'City List',
+        opType: filterList[i].op,
+        value: filterList[i].value,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: 'LinkToAnotherRecord',
+      });
+    }
+  }
+
+  async function lookupFilterTest() {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
+    // Create LookUp column
+    await dashboard.grid.column.create({
+      title: 'Lookup',
+      type: 'Lookup',
+      childTable: 'Address List',
+      childColumn: 'PostalCode',
+    });
+
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
+    // add filter for CityList column
+    const filterList = [
+      { op: 'is equal', value: '4166', rowCount: 1 },
+      { op: 'is not equal', value: '4166', rowCount: 599 },
+      { op: 'is like', value: '41', rowCount: 19 },
+      { op: 'is not like', value: '41', rowCount: 581 },
+      { op: 'is blank', value: null, rowCount: 1 },
+      { op: 'is not blank', value: null, rowCount: 599 },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: 'Lookup',
+        opType: filterList[i].op,
+        value: filterList[i].value,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: 'Lookup',
+      });
+    }
+  }
+
+  async function rollupFilterTest() {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
+    // Create LookUp column
+    await dashboard.grid.column.create({
+      title: 'Rollup',
+      type: 'Rollup',
+      childTable: 'Address List',
+      childColumn: 'PostalCode',
+      rollupType: 'Sum',
+    });
+
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
+    // add filter for CityList column
+    const filterList = [
+      { op: 'is equal', value: '4166', rowCount: 1 },
+      { op: 'is not equal', value: '4166', rowCount: 599 },
+      { op: 'is like', value: '41', rowCount: 19 },
+      { op: 'is not like', value: '41', rowCount: 581 },
+      { op: 'is blank', value: null, rowCount: 2 },
+      { op: 'is not blank', value: null, rowCount: 598 },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: 'Lookup',
+        opType: filterList[i].op,
+        value: filterList[i].value,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: 'Lookup',
+      });
+    }
+  }
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page });
+    dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.grid.toolbar;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+  });
+
+  test('Filter: LTAR columns', async () => {
+    await linkToAnotherRecordFilterTest();
+  });
+
+  test('Filter: Lookup columns', async () => {
+    await lookupFilterTest();
+  });
+
+  test.skip('Filter: Rollup columns', async () => {
+    await rollupFilterTest();
   });
 });
 

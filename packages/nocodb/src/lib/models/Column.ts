@@ -1151,4 +1151,17 @@ export default class Column<T = any> implements ColumnType {
       colId
     );
   }
+
+  static getMaxColumnNameLength(sqlClientType: string) {
+    // no limit for sqlite but set as 255
+    let fieldLengthLimit = 255;
+    if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+      fieldLengthLimit = 64;
+    } else if (sqlClientType === 'pg') {
+      fieldLengthLimit = 59;
+    } else if (sqlClientType === 'mssql') {
+      fieldLengthLimit = 128;
+    }
+    return fieldLengthLimit;
+  }
 }

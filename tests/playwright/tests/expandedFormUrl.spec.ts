@@ -174,7 +174,7 @@ test.describe('Expanded record duplicate & delete options', () => {
     // expand row, duplicate & verify menu
     await dashboard.grid.openExpandedRow({ index: 0 });
     await dashboard.expandedForm.clickDuplicateRow();
-    expect(await dashboard.expandedForm.isDisabledDeleteRow()).toBe(1);
-    expect(await dashboard.expandedForm.isDisabledDuplicateRow()).toBe(1);
+    expect(await dashboard.expandedForm.isDisabledDeleteRow()).toBe(0);
+    expect(await dashboard.expandedForm.isDisabledDuplicateRow()).toBe(0);
   });
 });

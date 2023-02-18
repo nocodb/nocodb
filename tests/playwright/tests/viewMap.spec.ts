@@ -8,6 +8,12 @@ test.describe.only('Map View', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
   let context: any;
 
+  const latitudeInFullDecimalLength = '50.4501000';
+  const longitudeInFullDecimalLength = '30.5234000';
+
+  const latitudeInShortDecimalLength = '50.4501';
+  const longitudeInShortDecimalLength = '30.5234';
+
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
@@ -33,16 +39,16 @@ test.describe.only('Map View', () => {
       columnHeader: 'Actors Birthplace',
     });
     await grid.cell.geoData.enterLatLong({
-      lat: '50.4501',
-      long: '30.5234',
+      lat: latitudeInShortDecimalLength,
+      long: longitudeInShortDecimalLength,
     });
     await grid.cell.geoData.clickSave();
 
     await grid.cell.verifyGeoDataCell({
       index: 0,
       columnHeader: 'Actors Birthplace',
-      lat: '50.4501000',
-      long: '30.5234000',
+      lat: latitudeInFullDecimalLength,
+      long: longitudeInFullDecimalLength,
     });
   });
 
@@ -71,12 +77,14 @@ test.describe.only('Map View', () => {
   //   await dashboard.grid.column.save();
   // }
 
-  test('Map View', async () => {
+  test('shows the marker and opens the expanded form view when clicking on it', async () => {
     await dashboard.viewSidebar.createMapView({
       title: 'Map 1',
     });
     // Zoom out
     await dashboard.map.zoomOut(8);
+    // await dashboard.map.verifyMarkerCount({ count: 1 });
+    await dashboard.map.clickMarker(latitudeInShortDecimalLength, longitudeInShortDecimalLength);
   });
 
   //   await dashboard.viewSidebar.verifyView({

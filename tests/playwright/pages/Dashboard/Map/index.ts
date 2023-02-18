@@ -16,9 +16,16 @@ export class MapPage extends BasePage {
     return this.dashboard.get().locator('[data-testid="nc-map-wrapper"]');
   }
 
-  marker(lat: string, long: string) {
+  async marker(lat: string, long: string) {
     const latLongStr = `${lat}, ${long}`;
-    return this.get().locator(`.leaflet-marker-pane img[alt="${latLongStr}"]`);
+    // await this.rootPage.pause();
+    const marker = await this.get().locator(`.leaflet-marker-pane img[alt="${latLongStr}"]`);
+    // await this.rootPage.pause();
+    return marker;
+  }
+
+  async clickMarker(lat: string, long: string) {
+    return (await this.marker(lat, long)).click();
   }
 
   async zoomOut(times = 10) {

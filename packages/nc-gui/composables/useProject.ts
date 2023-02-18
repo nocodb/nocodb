@@ -35,7 +35,7 @@ export const useProject = createSharedComposable(() => {
 
   const project = ref<ProjectType>({})
 
-  const bases = computed<BaseType[]>(() => project.value?.bases || [])
+  const bases = computed<BaseType[]>(() => project.value?.bases?.filter((base: BaseType) => base.enabled) || [])
 
   const tables = ref<TableType[]>([])
 

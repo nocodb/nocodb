@@ -752,16 +752,20 @@ export default class Model implements TableType {
     }: { title; project_id; base_id; exclude_id? },
     ncMeta = Noco.ncMeta
   ) {
-    return !(await ncMeta.metaGet2(
-      project_id,
-      base_id,
-      MetaTable.MODELS,
-      {
-        title,
-      },
-      null,
-      exclude_id && { id: { neq: exclude_id } }
-    ));
+    return (
+      (
+        await ncMeta.metaGet2(
+          project_id,
+          base_id,
+          MetaTable.MODELS,
+          {
+            title,
+          },
+          null,
+          exclude_id && { id: { neq: exclude_id } }
+        )
+      )?.title || undefined != title
+    );
   }
 
   async getAliasColObjMap() {

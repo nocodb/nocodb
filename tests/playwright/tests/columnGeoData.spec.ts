@@ -3,7 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
 import { GridPage } from '../pages/Dashboard/Grid';
 
-test.describe('Geo Data column', () => {
+test.describe.only('Geo Data column', () => {
   let dashboard: DashboardPage;
   let grid: GridPage;
   let context: any;
@@ -39,6 +39,25 @@ test.describe('Geo Data column', () => {
     });
     await grid.cell.geoData.clickSave();
 
+    await grid.cell.verifyGeoDataCell({
+      index: 0,
+      columnHeader: 'GeoData1',
+      lat: '50.4501000',
+      long: '30.5234000',
+    });
+
+    // Trying to change to value that is not valid
+    await grid.cell.geoData.open({
+      index: 0,
+      columnHeader: 'GeoData1',
+    });
+    await grid.cell.geoData.enterLatLong({
+      lat: '543210.4501',
+      long: '30.5234',
+    });
+    await grid.cell.geoData.clickSave();
+
+    // value should not be changed
     await grid.cell.verifyGeoDataCell({
       index: 0,
       columnHeader: 'GeoData1',

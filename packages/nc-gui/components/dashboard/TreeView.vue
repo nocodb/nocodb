@@ -1014,17 +1014,17 @@ const setIcon = async (icon: string, table: TableType) => {
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <!--      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" /> -->
+      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <!--      <GithubButton -->
-      <!--        class="ml-2 py-1" -->
-      <!--        href="https://github.com/nocodb/nocodb" -->
-      <!--        data-icon="octicon-star" -->
-      <!--        data-show-count="true" -->
-      <!--        data-size="large" -->
-      <!--      > -->
-      <!--        Star -->
-      <!--      </GithubButton> -->
+      <GithubButton
+        class="ml-2 py-1"
+        href="https://github.com/nocodb/nocodb"
+        data-icon="octicon-star"
+        data-show-count="true"
+        data-size="large"
+      >
+        Star
+      </GithubButton>
     </div>
   </div>
 </template>

@@ -8,6 +8,7 @@ import apiMetrics from '../../helpers/apiMetrics';
 
 async function getModelAndBase(req: Request) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+
   const base = await Base.get(model.base_id);
   return { model, view, base };
 }

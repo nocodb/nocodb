@@ -34,13 +34,38 @@ test.describe.only('Geo Data column', () => {
     await dashboard.viewSidebar.activateGeoDataEasterEgg();
 
     await grid.column.create({
-      title: 'Geo Data 1',
+      title: 'GeoData1',
       type: 'GeoData',
     });
 
+    // await grid.rootPage.pause();
+    await grid.column.verify({ title: 'GeoData1', isVisible: true });
+
+    // await dashboard.grid.cell.attachment.addFile({
+    await grid.cell.geoData.open({
+      index: 0,
+      columnHeader: 'GeoData1',
+    });
+    // await grid.cell.geoData.enterLatLong({
+    //   lat: '50.4501',
+    //   long: '30.5234',
+    // });
+    // await grid.cell.geoData.clickSave();
+
+    // await dashboard.grid.cell.attachment.addFile({
+    //     index: i,
+    //     columnHeader: 'testAttach',
+    //     filePath: filepath,
+    //   });
+    //   await dashboard.grid.cell.attachment.verifyFile({
+    //     index: i,
+    //     columnHeader: 'testAttach',
+    //   });
+
     expect(1 + 2).toBe(3);
 
-    await dashboard.rootPage.pause();
+    await grid.column.delete({ title: 'GeoData1' });
+    await grid.column.verify({ title: 'GeoData1', isVisible: false });
 
     await dashboard.closeTab({ title: 'City' });
 

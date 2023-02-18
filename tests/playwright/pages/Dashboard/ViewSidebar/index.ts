@@ -41,7 +41,7 @@ export class ViewSidebarPage extends BasePage {
     });
     await this.rootPage.goto(this.rootPage.url());
 
-    await this.rootPage.pause();
+    // await this.rootPage.pause();
 
     // await this.rootPage.pause();
     // const toggleViewSidebarButton = await this.rootPage.$('.nc-toggle-right-navbar');

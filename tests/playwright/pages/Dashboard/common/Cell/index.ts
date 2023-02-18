@@ -8,6 +8,7 @@ import { CheckboxCellPageObject } from './CheckboxCell';
 import { RatingCellPageObject } from './RatingCell';
 import { DateCellPageObject } from './DateCell';
 import { DateTimeCellPageObject } from './DateTimeCell';
+import { GeoDataCellPageObject } from './GeoDataCell';
 
 export interface CellProps {
   index?: number;
@@ -20,6 +21,7 @@ export class CellPageObject extends BasePage {
   readonly attachment: AttachmentCellPageObject;
   readonly checkbox: CheckboxCellPageObject;
   readonly rating: RatingCellPageObject;
+  readonly geoData: GeoDataCellPageObject;
   readonly date: DateCellPageObject;
   readonly dateTime: DateTimeCellPageObject;
 
@@ -30,6 +32,7 @@ export class CellPageObject extends BasePage {
     this.attachment = new AttachmentCellPageObject(this);
     this.checkbox = new CheckboxCellPageObject(this);
     this.rating = new RatingCellPageObject(this);
+    this.geoData = new GeoDataCellPageObject(this);
     this.date = new DateCellPageObject(this);
     this.dateTime = new DateTimeCellPageObject(this);
   }

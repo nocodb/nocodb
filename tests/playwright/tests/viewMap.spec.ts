@@ -4,7 +4,7 @@ import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 
 import setup from '../setup';
 
-test.describe.only('Map View', () => {
+test.describe('Map View', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
   let context: any;
 

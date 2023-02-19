@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import {
   ActiveViewInj,
   MetaInj,
@@ -8,6 +9,7 @@ import {
   ref,
   resolveComponent,
   useDialog,
+  useGlobal,
   useNuxtApp,
   useRoute,
   useRouter,
@@ -20,6 +22,8 @@ import {
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
+
+const { isMobileMode } = useGlobal()
 
 const { activeTab } = useTabs()
 
@@ -47,7 +51,8 @@ const { isOpen } = useSidebar('nc-right-sidebar')
 const sidebarCollapsed = computed(() => !isOpen.value)
 
 /** Sidebar ref */
-const sidebar = ref()
+const sidebar: Ref<Element | null> = ref(null)
+const FOO: Ref<Element | null> = ref(null)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -133,38 +138,52 @@ function onOpenModal({
     close(1000)
   }
 }
+
+document.addEventListener('click', (event: MouseEvent) => {
+  // sidebar.value.
+  // const sidebarFoo = document.querySelector('.nc-right-sidebar')
+  const sidebarFoo = sidebar.value
+  alert(JSON.stringify(FOO.value))
+  // alert(JSON.stringify(sidebarFoo))
+  // if (isMobileMode.value && !sidebar.value?.contains(event.target as Node)) {
+  if (isMobileMode.value && !sidebarFoo?.contains(event.target as Node)) {
+    alert('FOO')
+  }
+})
 </script>
 
 <template>
-  <a-layout-sider
-    ref="sidebar"
-    :collapsed="sidebarCollapsed"
-    collapsiple
-    collapsed-width="0"
-    width="0"
-    class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
-    theme="light"
-  >
-    <LazySmartsheetSidebarToolbar
-      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
-    />
+  <div ref="FOO">
+    <a-layout-sider
+      ref="sidebar"
+      :collapsed="sidebarCollapsed"
+      collapsiple
+      collapsed-width="0"
+      width="0"
+      class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
+      theme="light"
+    >
+      <LazySmartsheetSidebarToolbar
+        class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
+      />
 
-    <div class="flex-1 flex flex-col min-h-0">
-      <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">
-        <div class="w-full h-full flex items-center justify-center">
-          <a-spin />
-        </div>
-      </GeneralOverlay>
+      <div class="flex-1 flex flex-col min-h-0">
+        <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">
+          <div class="w-full h-full flex items-center justify-center">
+            <a-spin />
+          </div>
+        </GeneralOverlay>
 
-      <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
+        <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
 
-      <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="!my-3 w-full border-b-1" />
+        <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
+          <div class="!my-3 w-full border-b-1" />
 
-        <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
-      </template>
-    </div>
-  </a-layout-sider>
+          <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
+        </template>
+      </div>
+    </a-layout-sider>
+  </div>
 </template>
 
 <style scoped>

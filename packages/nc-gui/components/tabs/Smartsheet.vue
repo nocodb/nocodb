@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
+import { useGlobal } from '../../composables/useGlobal'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -63,6 +64,7 @@ provide(
   ReadonlyInj,
   computed(() => !isUIAllowed('xcDatatableEditable')),
 )
+
 </script>
 
 <template>

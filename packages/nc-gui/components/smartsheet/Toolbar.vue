@@ -45,7 +45,7 @@ const { allowCSVDownload } = useSharedView()
     <LazySmartsheetQrScannerButton v-if="isGrid || isKanban || isGallery" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
-    <div class="flex-1" />
+    <div v-if="!isMobileMode" class="flex-1" />
 
     <LazySmartsheetToolbarReload v-if="!isPublic && !isForm" />
 
@@ -54,7 +54,7 @@ const { allowCSVDownload } = useSharedView()
     <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink mx-2" />
 
     <template v-if="!isOpen && !isPublic">
-      <div class="border-l-1 pl-3">
+      <div class="border-l-1 pl-3" :class="{ 'ml-auto': isMobileMode }">
         <LazySmartsheetSidebarToolbarToggleDrawer class="mr-2" />
       </div>
     </template>

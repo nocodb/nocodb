@@ -91,7 +91,7 @@ onMounted(() => {
         </div>
 
         <LazyGeneralShareBaseButton class="mb-1px" />
-        <LazyGeneralFullScreen class="nc-fullscreen-icon mb-1px" />
+        <LazyGeneralFullScreen v-if="!isMobileMode" class="nc-fullscreen-icon mb-1px" />
       </div>
 
       <div ref="mainArea" class="w-full min-h-[300px] flex-auto">

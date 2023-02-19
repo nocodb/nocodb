@@ -56,6 +56,8 @@ const isNumberVal = (vals: any[], limitRows: number) =>
 
 const defaultFormater = (cell: any) => cell.v || null
 
+const defaultRawFormater = (cell: any) => cell.w || null
+
 const dateFormatter = (cell: any, format: string) => dayjs(cell.v).format(format) || null
 const dateTimeFormatter = (cell: any) => cell.v || null
 
@@ -165,12 +167,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   addDataRows = (tableName: string, columnName: string, vals: any[], formatter: any, ...args: any[]) => {
-    vals.forEach(([key, cell]) => {
+    for (const [key, cell] of vals) {
       this.data[tableName][this.xlsx.utils.decode_cell(key).r - +this.config.firstRowAsHeaders][columnName] = formatter(
         cell,
         ...args,
       )
-    })
+    }
   }
 
   async parse() {
@@ -213,137 +215,131 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
             this.data[tableName] = []
 
-            Object.entries(ws as Record<string, any>)
-              .slice(skippedValues.length + 1, skippedValues.length + range.e.c + 1)
-              .forEach(([cellChar, headerCell]) => {
-                const cellIdx = this.xlsx.utils.decode_cell(cellChar)
+            for (const cellChar in Object.entries(ws).slice(skippedValues.length + 1, skippedValues.length + range.e.c + 1)) {
+              const cellIdx = this.xlsx.utils.decode_cell(cellChar)
 
-                const vals = Object.entries(ws as Record<string, any>)
-                  .slice(skippedValues.length + range.e.c + 1, -1)
-                  .filter(([key, _]) => this.xlsx.utils.decode_cell(key).c === cellIdx.c)
+              const vals = Object.entries(ws as Record<string, any>)
+                .slice(skippedValues.length + range.e.c + 1, -1)
+                .filter(([key, _]) => this.xlsx.utils.decode_cell(key).c === cellIdx.c)
 
-                const maxCellIdx = vals.reduce((a: number, [v, _]) => {
-                  const newIdx = this.xlsx.utils.decode_cell(v).r
-                  return newIdx > a ? newIdx : a
-                }, 0)
+              const maxCellIdx = vals.reduce((a: number, [v, _]) => {
+                const newIdx = this.xlsx.utils.decode_cell(v).r
+                return newIdx > a ? newIdx : a
+              }, 0)
 
-                if (maxCellIdx > this.data[tableName].length) {
-                  // prefill
-                  this.data[tableName].push(
-                    ...Array(maxCellIdx - this.data[tableName].length + 1)
-                      .fill(null)
-                      .map(() => ({})),
+              if (maxCellIdx > this.data[tableName].length) {
+                // prefill
+                this.data[tableName].push(
+                  ...Array(maxCellIdx - this.data[tableName].length + 1)
+                    .fill(null)
+                    .map(() => ({})),
+                )
+              }
+
+              let columnName = ((this.config.firstRowAsHeaders && ws[cellChar]?.v?.toString().trim()) || `field_${cellIdx.c + 1}`)
+                .replace(specialCharRegex, '_')
+                .trim()
+
+              while (columnName in columnNamePrefixRef) {
+                columnName = `${columnName}${++columnNamePrefixRef[columnName]}`
+              }
+              columnNamePrefixRef[columnName] = 0
+              const column: Record<string, any> = {
+                column_name: columnName,
+                ref_column_name: columnName,
+                meta: {},
+                uidt: UITypes.SingleLineText,
+              }
+              table.columns.push(column)
+
+              if (!this.config.autoSelectFieldTypes) {
+                this.addDataRows(tableName, columnName, vals, defaultRawFormater)
+              }
+
+              // parse each column
+              column.uidt = excelTypeToUidt[vals[+this.config.firstRowAsHeaders][1].t] || UITypes.SingleLineText
+
+              switch (column.uidt) {
+                case UITypes.Number:
+                  if (isDecimalVal(vals, +this.config.firstRowAsHeaders)) {
+                    column.uidt = UITypes.Decimal
+                    this.addDataRows(tableName, columnName, vals, defaultFormater)
+                    break
+                  }
+
+                  if (isCurrencyVal(vals, +this.config.firstRowAsHeaders)) {
+                    // TODO: more currency types!
+                    column.uidt = UITypes.Currency
+                    this.addDataRows(tableName, columnName, vals, currencyFormatter)
+                    break
+                  }
+
+                  if (isPercentageVal(vals, +this.config.firstRowAsHeaders)) {
+                    column.uidt = UITypes.Percent
+                    this.addDataRows(tableName, columnName, vals, percentFormatter)
+                    break
+                  }
+
+                  // fallback to SingleLineText -> i think this is not really required
+                  if (!isNumberVal(vals, +this.config.firstRowAsHeaders)) {
+                    column.uidt = UITypes.SingleLineText
+                  }
+
+                  column.uidt = UITypes.Number
+                  this.addDataRows(tableName, columnName, vals, defaultFormater)
+
+                  break
+
+                case UITypes.DateTime:
+                  // TODO(import): centralise
+                  // hold the possible date format found in the date
+                  for (const [_, cell] of vals) {
+                    cell.v = this.fixImportedDate(cell.v)
+                  }
+                  column.date_formats = {}
+                  if (isAllDate(vals, column.date_formats)) {
+                    column.uidt = UITypes.Date
+                    // take the date format with the max occurrence
+                    column.date_format =
+                      Object.keys(column.date_formats).reduce((x, y) =>
+                        column.date_formats[x] > column.date_formats[y] ? x : y,
+                      ) || 'YYYY/MM/DD'
+                    this.addDataRows(tableName, columnName, vals, dateFormatter, column.meta.date_format)
+                    break
+                  }
+                  column.uidt = UITypes.DateTime
+                  this.addDataRows(tableName, columnName, vals, dateTimeFormatter)
+                  break
+
+                default:
+                  if (isMultiLineTextVal(vals, +this.config.firstRowAsHeaders)) {
+                    column.uidt = UITypes.LongText
+                    this.addDataRows(tableName, columnName, vals, defaultFormater)
+                    break
+                  }
+                  if (isEmailVal(vals, +this.config.firstRowAsHeaders)) {
+                    column.uidt = UITypes.Email
+                    this.addDataRows(tableName, columnName, vals, defaultFormater)
+                    break
+                  }
+                  if (isUrlVal(vals, +this.config.firstRowAsHeaders)) {
+                    column.uidt = UITypes.URL
+                    this.addDataRows(tableName, columnName, vals, defaultFormater)
+                    break
+                  }
+                  if (isCheckboxVal(vals, +this.config.firstRowAsHeaders)) {
+                    column.uidt = UITypes.Checkbox
+                    this.addDataRows(tableName, columnName, vals, checkBoxFormatter)
+                    break
+                  }
+                  Object.assign(
+                    column,
+                    extractMultiOrSingleSelectProps(vals.slice(0, this.config.maxRowsToParse).map((v: any) => v[1].v) as []),
                   )
-                }
-
-                let columnName = ((this.config.firstRowAsHeaders && headerCell?.v?.toString().trim()) || `field_${cellIdx.c + 1}`)
-                  .replace(specialCharRegex, '_')
-                  .trim()
-
-                while (columnName in columnNamePrefixRef) {
-                  columnName = `${columnName}${++columnNamePrefixRef[columnName]}`
-                }
-                columnNamePrefixRef[columnName] = 0
-                const column: Record<string, any> = {
-                  column_name: columnName,
-                  ref_column_name: columnName,
-                  meta: {},
-                  uidt: UITypes.SingleLineText,
-                }
-                table.columns.push(column)
-
-                if (!this.config.autoSelectFieldTypes) {
-                  vals.forEach(([key, cell]) => {
-                    this.data[tableName][this.xlsx.utils.decode_cell(key).r - +this.config.firstRowAsHeaders][columnName] =
-                      cell?.w || null
-                  })
-                }
-
-                // parse each column
-                column.uidt = excelTypeToUidt[vals[+this.config.firstRowAsHeaders][1].t] || UITypes.SingleLineText
-
-                switch (column.uidt) {
-                  case UITypes.Number:
-                    if (isDecimalVal(vals, +this.config.firstRowAsHeaders)) {
-                      column.uidt = UITypes.Decimal
-                      this.addDataRows(tableName, columnName, vals, defaultFormater)
-                      break
-                    }
-
-                    if (isCurrencyVal(vals, +this.config.firstRowAsHeaders)) {
-                      // TODO: more currency types!
-                      column.uidt = UITypes.Currency
-                      this.addDataRows(tableName, columnName, vals, currencyFormatter)
-                      break
-                    }
-
-                    if (isPercentageVal(vals, +this.config.firstRowAsHeaders)) {
-                      column.uidt = UITypes.Percent
-                      this.addDataRows(tableName, columnName, vals, percentFormatter)
-                      break
-                    }
-
-                    // fallback to SingleLineText -> i think this is not really required
-                    if (!isNumberVal(vals, +this.config.firstRowAsHeaders)) {
-                      column.uidt = UITypes.SingleLineText
-                    }
-
-                    column.uidt = UITypes.Number
-                    this.addDataRows(tableName, columnName, vals, defaultFormater)
-
-                    break
-
-                  case UITypes.DateTime:
-                    // TODO(import): centralise
-                    // hold the possible date format found in the date
-                    vals.forEach(([_, cell]) => {
-                      cell.v = this.fixImportedDate(cell.v)
-                    })
-                    column.date_formats = {}
-                    if (isAllDate(vals, column.date_formats)) {
-                      column.uidt = UITypes.Date
-                      // take the date format with the max occurrence
-                      column.date_format =
-                        Object.keys(column.date_formats).reduce((x, y) =>
-                          column.date_formats[x] > column.date_formats[y] ? x : y,
-                        ) || 'YYYY/MM/DD'
-                      this.addDataRows(tableName, columnName, vals, dateFormatter, column.meta.date_format)
-                      break
-                    }
-                    column.uidt = UITypes.DateTime
-                    this.addDataRows(tableName, columnName, vals, dateTimeFormatter)
-                    break
-
-                  default:
-                    if (isMultiLineTextVal(vals, +this.config.firstRowAsHeaders)) {
-                      column.uidt = UITypes.LongText
-                      this.addDataRows(tableName, columnName, vals, defaultFormater)
-                      break
-                    }
-                    if (isEmailVal(vals, +this.config.firstRowAsHeaders)) {
-                      column.uidt = UITypes.Email
-                      this.addDataRows(tableName, columnName, vals, defaultFormater)
-                      break
-                    }
-                    if (isUrlVal(vals, +this.config.firstRowAsHeaders)) {
-                      column.uidt = UITypes.URL
-                      this.addDataRows(tableName, columnName, vals, defaultFormater)
-                      break
-                    }
-                    if (isCheckboxVal(vals, +this.config.firstRowAsHeaders)) {
-                      column.uidt = UITypes.Checkbox
-                      this.addDataRows(tableName, columnName, vals, checkBoxFormatter)
-                      break
-                    }
-                    Object.assign(
-                      column,
-                      extractMultiOrSingleSelectProps(vals.slice(0, this.config.maxRowsToParse).map((v: any) => v[1].v) as []),
-                    )
-                    this.addDataRows(tableName, columnName, vals, defaultFormater)
-                    break
-                }
-              }, [])
-
+                  this.addDataRows(tableName, columnName, vals, defaultFormater)
+                  break
+              }
+            }
             resolve(true)
           })
         })(sheetName),

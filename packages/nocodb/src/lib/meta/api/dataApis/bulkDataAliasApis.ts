@@ -6,70 +6,69 @@ import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
 
-async function bulkDataInsert(req: Request, res: Response) {
+async function getModelAndBase(req: Request) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
+  return { model, view, base };
+}
 
+async function executeBulkOperation(
+  req: Request,
+  res: Response,
+  operation: string,
+  options: any = {}
+) {
+  const { model, view, base } = await getModelAndBase(req);
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+  }).catch((error) => {
+    res.status(500).json(error);
   });
+  if (!baseModel) {
+    return;
+  }
+  const sqlResult = await baseModel[operation](...options).catch((error) => {
+    res.status(500).json(error);
+  });
+  res.json(sqlResult);
+}
 
-  res.json(await baseModel.bulkInsert(req.body, { cookie: req }));
+async function bulkDataInsert(req: Request, res: Response) {
+  await executeBulkOperation(req, res, 'bulkInsert', [
+    req.body,
+    { cookie: req },
+  ]);
 }
 
 async function bulkDataUpdate(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  res.json(await baseModel.bulkUpdate(req.body, { cookie: req }));
+  await executeBulkOperation(req, res, 'bulkUpdate', [
+    req.body,
+    { cookie: req },
+  ]);
 }
 
 // todo: Integrate with filterArrJson bulkDataUpdateAll
 async function bulkDataUpdateAll(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  res.json(await baseModel.bulkUpdateAll(req.query, req.body, { cookie: req }));
+  await executeBulkOperation(req, res, 'bulkUpdateAll', [
+    req.query,
+    req.body,
+    { cookie: req },
+  ]);
 }
 
 async function bulkDataDelete(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  const base = await Base.get(model.base_id);
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  res.json(await baseModel.bulkDelete(req.body, { cookie: req }));
+  await executeBulkOperation(req, res, 'bulkDelete', [
+    req.body,
+    { cookie: req },
+  ]);
 }
 
 // todo: Integrate with filterArrJson bulkDataDeleteAll
 async function bulkDataDeleteAll(req: Request, res: Response) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  const base = await Base.get(model.base_id);
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  res.json(await baseModel.bulkDeleteAll(req.query));
+  await executeBulkOperation(req, res, 'bulkDeleteAll', [req.query]);
 }
 const router = Router({ mergeParams: true });
 

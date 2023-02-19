@@ -55,7 +55,7 @@ const { allowCSVDownload } = useSharedView()
 
     <template v-if="!isOpen && !isPublic">
       <div class="border-l-1 pl-3 nc-views-show-sidebar-button" :class="{ 'ml-auto': isMobileMode }">
-        FOO-TOOLBAR<LazySmartsheetSidebarToolbarToggleDrawer class="mr-2" />
+        <LazySmartsheetSidebarToolbarToggleDrawer class="mr-2" />
       </div>
     </template>
   </div>

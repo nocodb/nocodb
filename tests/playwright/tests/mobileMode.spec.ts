@@ -3,7 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import setup from '../setup';
 
-test.describe.only('Mobile Mode', () => {
+test.describe('Mobile Mode', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;

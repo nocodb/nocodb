@@ -20,11 +20,11 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
 }
 
-const showCodeScannerOverlay = ref(false)
-
 const fieldTitleForCurrentScan = ref('')
 
 const scannerIsReady = ref(false)
+
+const showCodeScannerOverlay = ref(false)
 
 const onLoaded = async () => {
   scannerIsReady.value = true
@@ -39,10 +39,11 @@ const onDecode = async (codeValue: string) => {
   if (!showCodeScannerOverlay.value) {
     return
   }
+  // TODO: remove try catch
   try {
-    showCodeScannerOverlay.value = false
-    // formColumns.value[1].
     formState.value[fieldTitleForCurrentScan.value] = codeValue
+    fieldTitleForCurrentScan.value = ''
+    showCodeScannerOverlay.value = false
   } catch (error) {
     console.error(error)
   }

@@ -219,7 +219,7 @@ export default class Hook implements HookType {
     }
 
     if (updateObj.notification && typeof updateObj.notification === 'object') {
-      uupdateObj.notification = JSON.stringify(updateObj.notification);
+      updateObj.notification = JSON.stringify(updateObj.notification);
     }
 
     // get existing cache

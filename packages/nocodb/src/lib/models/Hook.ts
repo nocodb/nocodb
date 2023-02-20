@@ -155,10 +155,8 @@ export default class Hook implements HookType {
         | 'update';
     }
 
-    if (insertObj.notification) {
-      insertObj.notification && typeof insertObj.notification === 'object'
-        ? JSON.stringify(insertObj.notification)
-        : insertObj.notification;
+    if (insertObj.notification && typeof insertObj.notification === 'object') {
+      insertObj.notification = JSON.stringify(insertObj.notification);
     }
 
     if (!(hook.project_id && hook.base_id)) {

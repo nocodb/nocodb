@@ -59,11 +59,8 @@ export default class Plugin implements PluginType {
   public static async update(pluginId: string, plugin: Partial<PluginType>) {
     const updateObj = extractProps(plugin, ['input', 'active']);
 
-    if (updateObj.input) {
-      updateObj.input =
-        updateObj.input && typeof updateObj.input === 'object'
-          ? JSON.stringify(updateObj.input)
-          : updateObj.input;
+    if (updateObj.input && typeof updateObj.input === 'object') {
+      updateObj.input = JSON.stringify(updateObj.input);
     }
 
     // get existing cache

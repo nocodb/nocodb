@@ -92,7 +92,9 @@ export const createImageExtension = (uploadFn: UploadFn) => {
           const state = this.editor.state
           const { tr } = state
           const selectedNode = state.selection.$from.node()
-          if (selectedNode?.type.name !== 'image') return
+          const selectedContent = selectedNode?.content
+          const isImage = selectedContent.firstChild?.type.name === 'image'
+          if (!isImage) return
 
           tr.setSelection(TextSelection.create(tr.doc, state.selection.$from.pos + 2))
           this.editor.view.dispatch(tr)

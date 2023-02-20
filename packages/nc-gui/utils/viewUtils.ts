@@ -9,15 +9,20 @@ import MdiKanbanIcon from '~icons/mdi/tablet-dashboard'
 import MdiMapIcon from '~icons/mdi/map-outline'
 import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
 import type { Language } from '~/lib'
+import PhTableThin from '~icons/ph/TableThin'
+import PhImageThin from '~icons/ph/ImageThin'
+import PhComputerTowerThin from '~icons/ph/ComputerTowerThin'
+import PhSquareHalfBottomThin from '~icons/ph/SquareHalfBottomThin'
+import PhEyeThin from '~icons/ph/EyeThin'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
-  [ViewTypes.GRID]: { icon: MdiGridIcon, color: '#8f96f2' },
-  [ViewTypes.FORM]: { icon: MdiFormIcon, color: themeV2Colors.pink['500'] },
+  [ViewTypes.GRID]: { icon: PhTableThin, color: '#8f96f2' },
+  [ViewTypes.FORM]: { icon: PhComputerTowerThin, color: themeV2Colors.pink['500'] },
   calendar: { icon: MdiCalendarIcon, color: 'purple' },
-  [ViewTypes.GALLERY]: { icon: MdiGalleryIcon, color: 'orange' },
+  [ViewTypes.GALLERY]: { icon: PhImageThin, color: 'orange' },
   [ViewTypes.MAP]: { icon: MdiMapIcon, color: 'blue' },
-  [ViewTypes.KANBAN]: { icon: MdiKanbanIcon, color: 'green' },
-  view: { icon: MdiEyeIcon, color: 'blue' },
+  [ViewTypes.KANBAN]: { icon: PhSquareHalfBottomThin, color: 'green' },
+  view: { icon: PhEyeThin, color: 'blue' },
 }
 
 export const viewTypeAlias: Record<number, string> = {

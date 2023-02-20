@@ -15,6 +15,8 @@ import MdiFlagOutline from '~icons/mdi/flag-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
+import PhEyeThin from '~icons/ph/EyeThin'
+import PhTableThin from '~icons/ph/TableThin'
 
 export const iconMap = {
   'mdi-check-bold': MdiCheckBold,
@@ -31,8 +33,8 @@ export const iconMap = {
   'mdi-thumb-up-outline': MdiThumbUpOutline,
   'mdi-flag': MdiFlag,
   'mdi-flag-outline': MdiFlagOutline,
-  'mdi-table-large': MdiTableLarge,
-  'mdi-eye-circle-outline': MdiEyeCircleOutline,
+  'mdi-table-large': PhTableThin,
+  'mdi-eye-circle-outline': PhEyeThin,
   'mdi-account-group': MdiAccountGroup,
 } as const
 

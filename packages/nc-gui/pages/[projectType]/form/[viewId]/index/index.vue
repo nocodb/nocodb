@@ -41,7 +41,8 @@ const onDecode = async (codeValue: string) => {
   }
   try {
     showCodeScannerOverlay.value = false
-    alert(`you scanned "${codeValue}"`)
+    // formColumns.value[1].
+    formState.value[fieldTitleForCurrentScan.value] = codeValue
   } catch (error) {
     console.error(error)
   }

@@ -70,7 +70,7 @@ export async function columnAdd(
   const project = await base.getProject();
 
   if (req.body.title || req.body.column_name) {
-    const dbDriver = NcConnectionMgrv2.get(base);
+    const dbDriver = await NcConnectionMgrv2.get(base);
 
     const sqlClientType = dbDriver.clientType();
 

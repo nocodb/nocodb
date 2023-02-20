@@ -98,7 +98,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
     'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
-    'baseId': bases.value?.filter((base: BaseType) => base.enabled)[0].id,
+    'baseId': bases.value[0].id,
   })
 
   vNode.value?.component?.exposed?.handleChange({

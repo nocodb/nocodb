@@ -96,6 +96,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     oneClick: false,
     projectHasAdmin: false,
     teleEnabled: true,
+    auditEnabled: true,
     type: 'nocodb',
     version: '0.0.0',
     ncAttachmentFieldSize: 20,

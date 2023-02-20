@@ -16,17 +16,19 @@ Below are the steps to sync schema changes.
 
 <img width="322" alt="image" src="https://user-images.githubusercontent.com/35857179/194856648-67936db0-ee4d-4060-be3d-af9f86ef8fc6.png">
 
-### 2. Click `Project Metadata` under SETTINGS, access `Metadata` tab
+### 2. Click `Data Source` under SETTINGS, click `Sync Metadata` on the target base
 
-<img width="1333" alt="image" src="https://user-images.githubusercontent.com/35857179/194850034-5330458e-85a9-4a3c-87a3-dd2f3edc5b46.png">
+![image](https://user-images.githubusercontent.com/35857179/219831352-e6692ba5-5c94-4331-94ce-5796e57f87a1.png)
+
+![image](https://user-images.githubusercontent.com/35857179/219831634-bbb6f256-45fb-4224-9f82-bc1bed6082db.png)
 
 ### 3. Changes carried outside GUI, identified by NocoDB are listed under `Sync state`
+
 - If changes made to the database are not visible, click `Reload`
 - Identified schema changes are identified for each table in `red`
 - `Sync now` button gets activated, if Schema changes are identified by NocoDB
 
-![Screenshot 2022-09-13 at 10 42 12 AM](https://user-images.githubusercontent.com/86527202/189814648-ca28f28d-b0ed-4652-a5da-e6472bfd9407.png)
-<!-- ![image](https://user-images.githubusercontent.com/35857179/161957119-f66f22ad-9d37-45ed-84ca-35c99726078c.png) -->
+![image](https://user-images.githubusercontent.com/35857179/219831855-bcac229c-41b6-4689-b7e1-c3cdfe23a0a1.png)
 
 ### 4. Click `Sync Now` to complete Schema sync procedure
 

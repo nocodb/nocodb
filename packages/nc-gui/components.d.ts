@@ -256,7 +256,6 @@ declare module '@vue/runtime-core' {
     MdiMagnify: typeof import('~icons/mdi/magnify')['default']
     MdiMapMarkerOutline: typeof import('~icons/mdi/map-marker-outline')['default']
     MdiMenu: typeof import('~icons/mdi/menu')['default']
-    MdiMenuArrowDown: typeof import('~icons/mdi/menu-arrow-down')['default']
     MdiMenuDown: typeof import('~icons/mdi/menu-down')['default']
     MdiMenuUp: typeof import('~icons/mdi/menu-up')['default']
     MdiMicrosoftTeams: typeof import('~icons/mdi/microsoft-teams')['default']

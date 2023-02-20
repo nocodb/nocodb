@@ -18,23 +18,7 @@ Auth Token is a JWT Token generated based on the logged-in user. By default, the
 
 ## API Token
 
-NocoDB allows creating API tokens which allow it to be integrated seamlessly with 3rd party apps. API Token is a Nano ID with a length of 40. If you are passing API Token, make sure that the header is called `xc-token`.
-
-- Open `Project Menu`, click on `Team & Settings`
-  
-<img width="322" alt="image" src="https://user-images.githubusercontent.com/35857179/194856648-67936db0-ee4d-4060-be3d-af9f86ef8fc6.png">
-
-- Click `API Tokens Management` tab under `Team & Auth` section
-
-- Click Add New Token
-  
-![Screenshot 2022-09-14 at 10 20 00 AM](https://user-images.githubusercontent.com/86527202/190062728-9c09934f-b5e4-4fec-b4d2-0cd3648bbb39.png)
-
-- Type an recognizable name for your token and click `Generate`
-  
-![Screenshot 2022-09-14 at 10 20 10 AM](https://user-images.githubusercontent.com/86527202/190062801-db3fab83-7974-4dfe-9c83-bf0d8a7dba1e.png)
-
-- Copy API token to your clipboard; use action menu to the right of token list
+API tokens allows us to integrate seamlessly with 3rd party apps. See [API Tokens Management](../setup-and-usages/team-and-auth#api-tokens-management) for more.
 
 ## Swagger UI
 

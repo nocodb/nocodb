@@ -63,3 +63,15 @@ Our mission is to provide the most powerful no-code interface for databases whic
 Please refer to [here](https://github.com/nocodb/nocodb/blob/develop/.github/CONTRIBUTING.md) for the contribution guidelines.
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" style="margin: 0px;" />
+
+## Where can I join the NocoDB community?
+
+Follow us for daily updates, content, and other activities with our community:
+
+- [Youtube](https://www.youtube.com/@nocodb)
+- [Twitter](https://twitter.com/nocodb)
+- [Discord](http://discord.nocodb.com/)
+- [GitHub](https://github.com/nocodb/nocodb)
+- [Community Forums](https://community.nocodb.com/)
+- [LinkedIn](https://www.linkedin.com/company/nocodb)
+- [Reddit](https://www.reddit.com/r/NocoDB/)

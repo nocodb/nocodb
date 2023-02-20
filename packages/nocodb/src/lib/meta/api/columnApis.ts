@@ -64,8 +64,26 @@ export async function columnAdd(
   const table = await Model.getWithInfo({
     id: req.params.tableId,
   });
+
   const base = await Base.get(table.base_id);
+
   const project = await base.getProject();
+
+  if (req.body.title || req.body.column_name) {
+    const dbDriver = NcConnectionMgrv2.get(base);
+
+    const sqlClientType = dbDriver.clientType();
+
+    const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+    if ((req.body.title || req.body.column_name).length > mxColumnLength) {
+      NcError.badRequest(
+        `Column name ${
+          req.body.title || req.body.column_name
+        } exceeds ${mxColumnLength} characters`
+      );
+    }
+  }
 
   if (
     !isVirtualCol(req.body) &&
@@ -638,7 +656,20 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
     id: column.fk_model_id,
   });
+
   const base = await Base.get(table.base_id);
+
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+
+  const sqlClientType = sqlClient.knex.clientType();
+
+  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+  if (req.body.column_name.length > mxColumnLength) {
+    NcError.badRequest(
+      `Column name ${req.body.column_name} exceeds ${mxColumnLength} characters`
+    );
+  }
 
   if (
     !isVirtualCol(req.body) &&

@@ -230,6 +230,8 @@ export default class Hook implements HookType {
     if (o) {
       // update data
       o = { ...o, ...updateObj };
+      // replace notification
+      o.notification = updateObj.notification;
       // set cache
       await NocoCache.set(key, o);
     }

@@ -109,6 +109,7 @@ export default class Model implements TableType {
       'title',
       'mm',
       'order',
+      'type',
       'created_at',
       'updated_at',
       'id',

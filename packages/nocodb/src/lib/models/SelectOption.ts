@@ -17,12 +17,8 @@ export default class SelectOption {
     data: Partial<SelectOption>,
     ncMeta = Noco.ncMeta
   ) {
-    // title: string;
-    // fk_column_id: string;
-    // color: string;
-    // order: number;
-
     const insertObj = extractProps(data, [
+      'id',
       'title',
       'fk_column_id',
       'color',

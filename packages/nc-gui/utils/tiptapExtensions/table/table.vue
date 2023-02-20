@@ -116,8 +116,7 @@ const appendColumn = () => {
     tbody {
       overflow: visible;
     }
-    td,
-    th {
+    td {
       position: relative;
       min-width: 1em;
       border: 1px solid #e5e5e5;
@@ -128,6 +127,15 @@ const appendColumn = () => {
     td {
       overflow: visible !important;
       border-top: 0;
+    }
+
+    // First row's td
+    tr:first-child {
+      td {
+        border-top: 1px solid #e5e5e5 !important;
+        @apply font-semibold;
+        background-color: #fafbfb;
+      }
     }
 
     th {
@@ -148,10 +156,6 @@ const appendColumn = () => {
 
     p {
       margin: 0;
-    }
-
-    tr.ProseMirror-selectednode {
-      @apply bg-primary-selected;
     }
 
     .column-resize-handle {

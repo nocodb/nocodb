@@ -281,9 +281,11 @@ watch(
   }
 
   .draggable-block-wrapper.selected {
-    th,
-    tr {
+    table {
       @apply !bg-primary-selected;
+      tr:first-child td {
+        @apply !bg-primary-selected;
+      }
     }
     p,
     h1,
@@ -293,8 +295,6 @@ watch(
     h5,
     h6,
     li,
-    td,
-    th,
     blockquote,
     pre,
     code,

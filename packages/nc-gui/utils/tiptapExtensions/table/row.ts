@@ -3,6 +3,8 @@ import { Plugin, PluginKey } from 'prosemirror-state'
 
 const TableRow = TiptapTableRow.extend({
   selectable: true,
+  content: '(tableCell)*',
+
   addProseMirrorPlugins() {
     return [
       new Plugin({

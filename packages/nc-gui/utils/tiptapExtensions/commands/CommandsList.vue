@@ -222,7 +222,7 @@ const items = [
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       editor.chain().focus().deleteRange(range).run()
-      const node = createTable(editor.schema, 3, 3, true)
+      const node = createTable(editor.schema, 3, 3, false)
       const tr = editor.state.tr
 
       const offset = tr.selection.anchor + 1

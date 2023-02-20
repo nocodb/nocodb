@@ -12,8 +12,7 @@ import Strike from '@tiptap/extension-strike'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
-import { TableCell } from './table/TableCell'
-import { TableHeader } from './table/header'
+import { TableCell } from './table/cell'
 import { TableRow } from './table/row'
 import Table from './table'
 import { History } from './history'
@@ -81,7 +80,6 @@ const tiptapExtensions = (): Extensions => {
       resizable: true,
     }),
     TableRow,
-    TableHeader,
     TableCell.configure({
       HTMLAttributes: {
         class: 'nc-docs-tiptap-table-cell relative',

@@ -5,7 +5,7 @@
     href="https://docs.google.com/forms/d/e/1FAIpQLSfKLe8Rcrq0uo2_jM5W1kbVBbzDiQ3IvlP8Iov61FTekVAvzA/viewform?usp=pp_url"
     target="_blank"
   >
-    <PhCloudLightningDuotone class="mr-1" />
+    <PhCloudLightningThin class="mr-1" />
     Join NocoDB Cloud
   </a>
 </template>

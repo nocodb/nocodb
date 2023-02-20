@@ -28,8 +28,8 @@ import {
   useUIPermission,
   watchEffect,
 } from '#imports'
-import MdiView from '~icons/mdi/eye-circle-outline'
-import MdiTableLarge from '~icons/mdi/table-large'
+import PhEyeThin from '~icons/ph/EyeThin'
+import PhTableThin from '~icons/ph/TableThin'
 
 const { addTab, updateTab } = useTabs()
 
@@ -145,10 +145,10 @@ watchEffect(() => {
 
 const icon = (table: TableType) => {
   if (table.type === 'table') {
-    return MdiTableLarge
+    return PhTableThin
   }
   if (table.type === 'view') {
-    return MdiView
+    return PhEyeThin
   }
 }
 
@@ -1009,7 +1009,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
       <LazyGeneralAddBaseButton
-        class="color-transition py-1.5 px-2 text-primary font-bold cursor-pointer select-none hover:text-accent"
+        class="color-transition py-1.5 px-2 font-bold cursor-pointer select-none hover:text-primary"
       />
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />

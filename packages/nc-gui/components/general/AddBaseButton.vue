@@ -14,7 +14,7 @@ const toggleDialog = inject(ToggleDialogInj, () => {})
   >
     <div>
       <div class="flex items-center space-x-1">
-        <RiTeamFill class="mr-1 nc-new-base" />
+        <PhUsersThreeThin class="mr-1 nc-new-base" />
         <div>{{ t('title.teamAndSettings') }}</div>
       </div>
     </div>

@@ -693,6 +693,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",

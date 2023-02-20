@@ -25,9 +25,6 @@ async function executeBulkOperation(
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
   });
-  if (!baseModel) {
-    return;
-  }
   res.json(await baseModel[operation](...options));
 }
 

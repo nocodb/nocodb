@@ -61,7 +61,9 @@ export const TrailingNode = Extension.create<TrailingNodeOptions>({
 
             const lastNode = (tr.doc.lastChild?.content as any)?.content?.[0]
 
-            return !nodeEqualsType({ node: lastNode, types: disabledNodes })
+            const nonEmptyParagraph = lastNode.nodeSize > 2
+
+            return !nodeEqualsType({ node: lastNode, types: disabledNodes }) || nonEmptyParagraph
           },
         },
       }),

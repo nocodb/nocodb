@@ -12,6 +12,7 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
+import {BaseType} from "nocodb-sdk";
 
 const dropZone = ref<HTMLDivElement>()
 
@@ -129,7 +130,7 @@ function openCreateTable() {
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
-    'baseId': bases.value[0].id,
+    'baseId': bases.value?.filter((base: BaseType) => base.enabled)[0].id,
   })
 
   function closeDialog() {

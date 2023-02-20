@@ -8,7 +8,6 @@ export interface TableHeaderOptions {
 }
 export const TableHeader = Node.create<TableHeaderOptions>({
   name: 'tableHeader',
-  selectable: true,
   addOptions() {
     return {
       HTMLAttributes: {},
@@ -38,8 +37,6 @@ export const TableHeader = Node.create<TableHeaderOptions>({
   },
 
   tableRole: 'header_cell',
-
-  isolating: true,
 
   parseHTML() {
     return [{ tag: 'th' }]

@@ -3,7 +3,6 @@ import { promisify } from 'util';
 import bcrypt from 'bcryptjs';
 import * as ejs from 'ejs';
 import * as jwt from 'jsonwebtoken';
-import { Tele } from 'nc-help';
 import passport from 'passport';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GithubStrategy } from 'passport-github';
@@ -30,6 +29,7 @@ const { isEmail } = require('validator');
 import axios from 'axios';
 
 import IEmailAdapter from '../../../interface/IEmailAdapter';
+import { Tele } from 'nc-help';
 import XcCache from '../plugins/adapters/cache/XcCache';
 
 passport.serializeUser(function (
@@ -138,6 +138,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/password/reset/:token', async function (req, res) {
       res.send(
         ejs.render((await import('./ui/auth/resetPassword')).default, {
+          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
           token: JSON.stringify(req.params?.token),
           baseUrl: `/`,
         })
@@ -146,6 +147,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/email/verify/:token', async (req, res) => {
       res.send(
         ejs.render((await import('./ui/auth/emailVerify')).default, {
+          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
           token: JSON.stringify(req.params?.token),
           baseUrl: `/`,
         })
@@ -155,6 +157,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/signin', async (_req, res) => {
       res.send(
         ejs.render((await import('./ui/auth/signin')).default, {
+          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
           baseUrl: `/`,
         })
       );
@@ -163,6 +166,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/signup', async (_req, res) => {
       res.render(
         ejs.render((await import('./ui/auth/signup')).default, {
+          ncPublicUrl: process.env.NC_PUBLIC_URL || '',
           baseUrl: `/`,
         })
       );
@@ -315,7 +319,7 @@ export default class RestAuthCtrl {
         if (apiToken) {
           done(null, { roles: 'editor' });
         } else {
-          return done({ msg: 'Invalid tok' });
+          return done({ msg: 'Invalid token' });
         }
       })
     );
@@ -333,6 +337,11 @@ export default class RestAuthCtrl {
             const user = await self.users.where({ email }).first();
             if (!user) {
               return done({ msg: `Email ${email} is not registered!` });
+            }
+            if (!user.salt) {
+              return done({
+                msg: `Please sign up with the invite token first or reset the password by clicking Forgot your password.`,
+              });
             }
             const hashedPassword = await promisify(bcrypt.hash)(
               password,
@@ -1753,27 +1762,3 @@ export default class RestAuthCtrl {
     this.apiTokens = await this.xcMeta.metaList(null, null, 'nc_api_tokens');
   }
 }
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- * @author Wing-Kam Wong <wingkwong.code@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

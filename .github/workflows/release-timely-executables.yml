@@ -86,10 +86,24 @@ jobs:
           npm i
 
           # Copy sqlite binaries
-          rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/
+          # rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/
+
+          # Build sqlite binaries for all platforms
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --fallback-to-build --target_arch=x64 --target_libc=unknown
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --fallback-to-build --target_arch=ia32 --target_libc=unknown
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --fallback-to-build --target_arch=x64 --target_libc=unknown
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --fallback-to-build --target_arch=arm64 --target_libc=unknown
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=x64 --target_libc=glibc
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=arm64 --target_libc=glibc
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=x64 --target_libc=musl
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=arm64 --target_libc=musl
+
+          # ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=armv6 --target_libc=unknown
+          # ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=armv7 --target_libc=unknown
+
 
           # clean up code to optimize size
-          npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
+          npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,nocodb-daily/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
 
           # build executables
           npm run build

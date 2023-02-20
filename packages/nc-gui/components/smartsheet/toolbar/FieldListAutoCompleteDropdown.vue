@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, computed, inject, ref, resolveComponent } from '#imports'
+import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { ActiveViewInj, MetaInj, computed, inject, ref, resolveComponent, useViewColumns } from '#imports'
 
 const { modelValue, isSort } = defineProps<{
   modelValue?: string
@@ -18,17 +18,31 @@ const localValue = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
+const activeView = inject(ActiveViewInj, ref())
+
+const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
+
 const options = computed<SelectProps['options']>(() =>
   meta.value?.columns
     ?.filter((c: ColumnType) => {
-      /** ignore hasmany and manytomany relations if it's using within sort menu */
-      if (isSort) {
+      if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
+        return (
+          /** if the field is used in filter, then show it anyway */
+          localValue.value === c.id ||
+          /** hide system columns if not enabled */
+          showSystemFields.value
+        )
+      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
+        return false
+      } else if (isSort) {
+        /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(
           c.uidt === UITypes.LinkToAnotherRecord && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
         )
-        /** ignore virtual fields which are system fields ( mm relation ) */
+        /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       } else {
-        return !c.colOptions || !c.system
+        const isVirtualSystemField = c.colOptions && c.system
+        return !isVirtualSystemField
       }
     })
     .map((c: ColumnType) => ({
@@ -45,6 +59,11 @@ const options = computed<SelectProps['options']>(() =>
 )
 
 const filterOption = (input: string, option: any) => option.label.toLowerCase()?.includes(input.toLowerCase())
+
+// when a new filter is created, select a field by default
+if (!localValue.value) {
+  localValue.value = (options.value?.[0].value as string) || ''
+}
 </script>
 
 <template>

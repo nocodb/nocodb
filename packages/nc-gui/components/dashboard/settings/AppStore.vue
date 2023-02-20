@@ -70,93 +70,97 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="showPluginInstallModal"
-    :closable="false"
-    centered
-    min-height="300"
-    :footer="null"
-    wrap-class-name="nc-modal-plugin-install"
-  >
-    <LazyDashboardSettingsAppInstall
-      v-if="pluginApp && showPluginInstallModal"
-      :id="pluginApp.id"
-      @close="showPluginInstallModal = false"
-      @saved="saved()"
-    />
-  </a-modal>
-
-  <a-modal
-    v-model:visible="showPluginUninstallModal"
-    :closable="false"
-    width="24rem"
-    centered
-    :footer="null"
-    wrap-class-name="nc-modal-plugin-uninstall"
-  >
-    <div class="flex flex-col h-full">
-      <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
-        {{ `Click on confirm to reset ${pluginApp && pluginApp.title}` }}
-      </div>
-      <div class="flex mt-6 justify-center space-x-2">
-        <a-button @click="showPluginUninstallModal = false"> {{ $t('general.cancel') }} </a-button>
-        <a-button type="primary" danger @click="resetPlugin"> {{ $t('general.confirm') }} </a-button>
-      </div>
-    </div>
-  </a-modal>
-
-  <div class="grid grid-cols-2 gap-x-2 gap-y-4 mt-4">
-    <a-card
-      v-for="(app, i) in apps"
-      :key="i"
-      :class="`relative flex overflow-x-hidden app-item-card !shadow-sm rounded-md w-full nc-app-store-card-${app.title}`"
-      :body-style="{ width: '100%' }"
+  <div>
+    <a-modal
+      v-model:visible="showPluginInstallModal"
+      :class="{ active: showPluginInstallModal }"
+      :closable="false"
+      centered
+      min-height="300"
+      :footer="null"
+      wrap-class-name="nc-modal-plugin-install"
+      v-bind="$attrs"
     >
-      <div class="install-btn flex flex-row justify-end space-x-1">
-        <a-button v-if="app.parsedInput" size="small" type="primary" @click="showInstallPluginModal(app)">
-          <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-edit">
-            <IcRoundEdit class="pr-0.5" :height="12" />
-            Edit
-          </div>
-        </a-button>
+      <LazyDashboardSettingsAppInstall
+        v-if="pluginApp && showPluginInstallModal"
+        :id="pluginApp.id"
+        @close="showPluginInstallModal = false"
+        @saved="saved()"
+      />
+    </a-modal>
 
-        <a-button v-if="app.parsedInput" size="small" outlined @click="showResetPluginModal(app)">
-          <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-reset">
-            <MdiCloseCircleOutline />
-            <div class="flex ml-0.5">Reset</div>
-          </div>
-        </a-button>
-
-        <a-button v-else size="small" type="primary" @click="showInstallPluginModal(app)">
-          <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-install">
-            <MdiPlus />
-            Install
-          </div>
-        </a-button>
-      </div>
-
-      <div class="flex flex-row space-x-2 items-center justify-start w-full">
-        <div class="flex w-20 pl-3">
-          <img
-            v-if="app.title !== 'SMTP'"
-            class="avatar"
-            alt="logo"
-            :style="{
-              backgroundColor: app.title === 'SES' ? '#242f3e' : '',
-            }"
-            :src="app.logo"
-          />
-
-          <div v-else />
+    <a-modal
+      v-model:visible="showPluginUninstallModal"
+      :closable="false"
+      width="24rem"
+      centered
+      :footer="null"
+      wrap-class-name="nc-modal-plugin-uninstall"
+    >
+      <div class="flex flex-col h-full">
+        <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
+          {{ `Click on confirm to reset ${pluginApp && pluginApp.title}` }}
         </div>
-
-        <div class="flex flex-col flex-1 w-3/5 pl-3">
-          <a-typography-title :level="5">{{ app.title }}</a-typography-title>
-
-          {{ app.description }}
+        <div class="flex mt-6 justify-center space-x-2">
+          <a-button @click="showPluginUninstallModal = false"> {{ $t('general.cancel') }} </a-button>
+          <a-button type="primary" danger @click="resetPlugin"> {{ $t('general.confirm') }} </a-button>
         </div>
       </div>
-    </a-card>
+    </a-modal>
+
+    <div class="grid grid-cols-2 gap-x-2 gap-y-4 mt-4">
+      <a-card
+        v-for="(app, i) in apps"
+        :key="i"
+        :class="`relative flex overflow-x-hidden app-item-card !shadow-sm rounded-md w-full nc-app-store-card-${app.title}`"
+        :body-style="{ width: '100%' }"
+      >
+        <div class="install-btn flex flex-row justify-end space-x-1">
+          <a-button v-if="app.parsedInput" size="small" type="primary" @click="showInstallPluginModal(app)">
+            <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-edit">
+              <IcRoundEdit class="pr-0.5" :height="12" />
+              Edit
+            </div>
+          </a-button>
+
+          <a-button v-if="app.parsedInput" size="small" outlined @click="showResetPluginModal(app)">
+            <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-reset">
+              <MdiCloseCircleOutline />
+              <div class="flex ml-0.5">Reset</div>
+            </div>
+          </a-button>
+
+          <a-button v-else size="small" type="primary" @click="showInstallPluginModal(app)">
+            <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-install">
+              <MdiPlus />
+              Install
+            </div>
+          </a-button>
+        </div>
+
+        <div class="flex flex-row space-x-2 items-center justify-start w-full">
+          <div class="flex w-20 pl-3">
+            <img
+              v-if="app.title !== 'SMTP'"
+              class="avatar"
+              alt="logo"
+              :style="{
+                backgroundColor: app.title === 'SES' ? '#242f3e' : '',
+              }"
+              :src="app.logo"
+            />
+
+            <div v-else />
+          </div>
+
+          <div class="flex flex-col flex-1 w-3/5 pl-3">
+            <a-typography-title :level="5">{{ app.title }}</a-typography-title>
+
+            {{ app.description }}
+          </div>
+        </div>
+      </a-card>
+    </div>
   </div>
 </template>
 

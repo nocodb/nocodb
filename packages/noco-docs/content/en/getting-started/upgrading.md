@@ -1,11 +1,14 @@
 ---
 title: 'Upgrading'
-description: 'Upgrading NocoDB : Docker, Node, Heroku and Homebrew!'
+description: 'Upgrading NocoDB : Docker, Node and Homebrew!'
 position: 20
 category: 'Getting started'
 menuTitle: 'Upgrading'
 link: https://codesandbox.io/embed/vigorous-firefly-80kq5?hidenavigation=1&theme=dark
 ---
+
+By default, if `NC_DB` is not specified upon 
+<a href="./installation" target="_blank">installation</a>, then SQLite will be used to store metadata. We suggest users to separate the metadata and user data in different databases as pictured in our <a href="../engineering/architecture" target="_blank">architecture</a>. 
 
 ## Docker
 
@@ -19,6 +22,8 @@ docker stop <YOUR_CONTAINER_ID>
 # delete NocoDB container
 docker rm <YOUR_CONTAINER_ID>
 ```
+
+Note: Deleting your docker container without setting `NC_DB` or mounting to a persistent volume for a default SQLite database will result in losing your data. See examples below.
 
 ### Find & Remove NocoDB Docker Image
 
@@ -59,44 +64,6 @@ npm uninstall nocodb
 ```bash
 npm install --save nocodb
 ```
-
-## Heroku
-
-### Using the Heroku CLI login
-
-```bash
-heroku container:login
-docker pull nocodb/nocodb:latest
-docker tag nocodb/nocodb:latest registry.heroku.com/<HEROKU_APP_NAME>/web
-docker push registry.heroku.com/<HEROKU_APP_NAME>/web
-heroku container:release -a <HEROKU_APP_NAME> web
-```
-
-#### On Apple M1 Chipset 
-
-> Please make sure you change Docker's default architecture to `linux/amd64` by running the following command _before_ executing the aforementioned steps
-> 
-> ```export DOCKER_DEFAULT_PLATFORM=linux/amd64```
->
-> More details can be found [here](https://medium.com/geekculture/from-apple-silicon-to-heroku-docker-registry-without-swearing-36a2f59b30a3). 
-
-### Using GitHub
-
-Fork the [nocodb-seed-heroku repository](https://github.com/nocodb/nocodb-seed-heroku) to your GitHub account.
-Login to Heroku, go to your NocoDB app, and head to the "Deploy" tab.
-Select "GitHub" in the "Deployment method" section.
-
-In the "Connect to GitHub" section, search for your forked nocodb-seed-heroku repo. Connect to it:
-
-![image](https://user-images.githubusercontent.com/55474996/143479577-e8bdc1f0-99d1-4072-8d95-4879cc54ddb2.png)
-
-In the "Automatic deploys" section, select "Enable Automatic Deploys":
-
-![image](https://user-images.githubusercontent.com/55474996/143479705-b5280199-aa31-40db-a5aa-7586eb918c01.png)
-
-Head back to your forked nocodb-seed-heroku repo on your GitHub account. Edit one of your files and make a simple modification (example, add some random characters to the readme.md) and commit the change directly to the main branch.
-
-This will trigger the Heroku deployment. Your app should now be updated to the latest release of NocoDB.
 
 ## Homebrew
 

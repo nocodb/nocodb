@@ -77,10 +77,6 @@ export default class NcMetaIOImpl extends NcMetaIO {
   constructor(app: Noco, config: NcConfig, trx = null) {
     super(app, config);
 
-    if (this.config?.meta?.db?.client === 'sqlite3') {
-      this.config.meta.db.useNullAsDefault = true;
-    }
-
     if (this.config?.meta?.db) {
       this.connection = trx || XKnex(this.config?.meta?.db);
     } else {
@@ -366,7 +362,6 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return query;
   }
 
-
   public async metaCount(
     project_id: string,
     dbAlias: string,
@@ -473,6 +468,13 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
   async startTransaction(): Promise<NcMetaIO> {
     const trx = await this.connection.transaction();
+
+    // todo: Extend transaction class to add our custom properties
+    Object.assign(trx, {
+      clientType: this.connection.clientType,
+      searchPath: (this.connection as any).searchPath,
+    });
+
     return new NcMetaIOImpl(this.app, this.config, trx);
   }
 
@@ -869,26 +871,3 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return `${prefix}${nanoidv2()}`;
   }
 }
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- * @author Wing-Kam Wong <wingkwong.code@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

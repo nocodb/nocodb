@@ -1,0 +1,52 @@
+version: '3'
+
+x-uffizzi:
+  ingress:
+    service: nocodb
+    port: 8080
+
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: root_db
+    deploy:
+      resources:
+        limits:
+          memory: 500M
+  mssql:
+    image: "mcr.microsoft.com/mssql/server:2017-latest"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: Password123.
+    deploy:
+      resources:
+        limits:
+          memory: 1000M
+  mysql:
+    environment:
+      MYSQL_DATABASE: root_db
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: noco
+    image: "mysql:8.0.32"
+    deploy:
+      resources:
+        limits:
+          memory: 500M
+  nocodb:
+    image: "${NOCODB_IMAGE}"
+    ports:
+      - "8080:8080"
+    entrypoint: /bin/sh
+    command: ["-c", "apk add wait4ports && wait4ports tcp://localhost:5432 && /usr/src/appEntry/start.sh"]
+    environment:
+      NC_DB: "pg://localhost:5432?u=postgres&p=password&d=root_db"
+      NC_ADMIN_EMAIL: admin@nocodb.com
+      NC_ADMIN_PASSWORD: password
+    deploy:
+      resources:
+        limits:
+          memory: 500M

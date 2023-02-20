@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import { validatePassword } from 'nocodb-sdk'
-import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useNuxtApp, useRoute } from '#imports'
+import type { RuleObject } from 'ant-design-vue/es/form'
+import {
+  definePageMeta,
+  navigateTo,
+  reactive,
+  ref,
+  useApi,
+  useGlobal,
+  useI18n,
+  useNuxtApp,
+  useRoute,
+  validateEmail,
+} from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -33,24 +45,24 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (!v?.length || isEmail(v)) return resolve(true)
+          if (!v?.length || validateEmail(v)) return resolve()
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },
       message: t('msg.error.signUpRules.emailInvalid'),
     },
-  ],
+  ] as RuleObject[],
   password: [
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
           const { error, valid } = validatePassword(v)
-          if (valid) return resolve(true)
+          if (valid) return resolve()
           reject(new Error(error))
         })
       },
     },
-  ],
+  ] as RuleObject[],
 }
 
 async function signUp() {
@@ -99,7 +111,11 @@ function resetError() {
 
         <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
           <Transition name="layout">
-            <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
+            <div
+              v-if="error"
+              class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
+              data-testid="nc-signup-error"
+            >
               <div class="flex items-center gap-2 justify-center">
                 <MaterialSymbolsWarning />
                 <div class="break-words">{{ error }}</div>

@@ -1,7 +1,7 @@
 ---
 title: 'Views'
 description: 'Understanding Views in NocoDB!'
-position: 600
+position: 700
 category: 'Product'
 menuTitle: 'Views'
 ---

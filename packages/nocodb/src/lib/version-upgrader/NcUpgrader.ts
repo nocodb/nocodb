@@ -2,12 +2,19 @@ import { NcConfig } from '../../interface/config';
 
 import debug from 'debug';
 import NcMetaIO from '../meta/NcMetaIO';
+import { Tele } from 'nc-help';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
 import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
+import ncDataTypesUpgrader from './ncDataTypesUpgrader';
+import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
+import ncFilterUpgrader from './ncFilterUpgrader';
+import ncAttachmentUpgrader from './ncAttachmentUpgrader';
+import ncAttachmentUpgrader_0104002 from './ncAttachmentUpgrader_0104002';
+import ncStickyColumnUpgrader from './ncStickyColumnUpgrader';
+import ncFilterUpgrader_0104004 from './ncFilterUpgrader_0104004';
 
 const log = debug('nc:version-upgrader');
-import { Tele } from 'nc-help';
 import boxen from 'boxen';
 
 export interface NcUpgraderCtx {
@@ -31,6 +38,13 @@ export default class NcUpgrader {
         { name: '0011043', handler: ncProjectEnvUpgrader },
         { name: '0011045', handler: ncProjectEnvUpgrader0011045 },
         { name: '0090000', handler: ncProjectUpgraderV2_0090000 },
+        { name: '0098004', handler: ncDataTypesUpgrader },
+        { name: '0098005', handler: ncProjectRolesUpgrader },
+        { name: '0100002', handler: ncFilterUpgrader },
+        { name: '0101002', handler: ncAttachmentUpgrader },
+        { name: '0104002', handler: ncAttachmentUpgrader_0104002 },
+        { name: '0104003', handler: ncStickyColumnUpgrader },
+        { name: '0104004', handler: ncFilterUpgrader_0104004 },
       ];
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
         return;

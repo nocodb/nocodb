@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { ref, useGlobal, useMetas, useProject, watch } from '#imports'
+import type { ERDConfig } from './utils'
+import { reactive, ref, useMetas, useProject, watch } from '#imports'
 
-const { table } = defineProps<{ table?: TableType }>()
-
-const { includeM2M } = useGlobal()
+const props = defineProps<{ table?: TableType; baseId?: string }>()
 
 const { tables: projectTables } = useProject()
 
@@ -14,15 +13,15 @@ const { metas, getMeta } = useMetas()
 const tables = ref<TableType[]>([])
 
 let isLoading = $ref(true)
-const showAdvancedOptions = ref(false)
 
-const config = ref({
+const config = reactive<ERDConfig>({
   showPkAndFk: true,
   showViews: false,
   showAllColumns: true,
-  singleTableMode: !!table,
+  singleTableMode: !!props.table,
   showMMTables: false,
   showJunctionTableNames: false,
+  isFullScreen: false,
 })
 
 const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
@@ -37,12 +36,12 @@ const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
 
 const populateTables = async () => {
   let localTables: TableType[] = []
-  if (table) {
+  if (props.table) {
     // if table is provided only get the table and its related tables
     localTables = projectTables.value.filter(
       (t) =>
-        t.id === table.id ||
-        table.columns?.find(
+        t.id === props.table.id ||
+        props.table.columns?.find(
           (column) =>
             column.uidt === UITypes.LinkToAnotherRecord &&
             (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,
@@ -57,110 +56,62 @@ const populateTables = async () => {
   tables.value = localTables
     .filter(
       (t) =>
-        // todo: table type is missing mm property in type definition
-        config.value.showMMTables ||
-        (!config.value.showMMTables && !t.mm) ||
+        config.showMMTables ||
+        (!config.showMMTables && !t.mm) ||
         // Show mm table if it's the selected table
-        t.id === table?.id,
+        t.id === props.table?.id,
     )
-    .filter((t) => (!config.value.showViews && t.type !== 'view') || config.value.showViews)
+    .filter((t) => config.singleTableMode || (!config.showViews && t.type !== 'view') || config.showViews)
 
   isLoading = false
 }
 
-watch(
-  [config, metas],
-  async () => {
-    await populateTables()
-  },
-  {
-    deep: true,
-  },
-)
+const toggleFullScreen = () => {
+  config.isFullScreen = !config.isFullScreen
+}
+
+watch([metas, projectTables], populateTables, {
+  flush: 'post',
+  immediate: true,
+})
+
+watch(config, populateTables, {
+  flush: 'post',
+  deep: true,
+})
+
+const filteredTables = computed(() => tables.value.filter((t) => !props.baseId || t.base_id === props.baseId))
 
 watch(
-  [projectTables],
-  async () => {
-    await populateTables()
-  },
-  { immediate: true },
-)
-
-watch(
-  () => config.value.showAllColumns,
+  () => config.showAllColumns,
   () => {
-    config.value.showPkAndFk = config.value.showAllColumns
+    config.showPkAndFk = config.showAllColumns
   },
 )
 </script>
 
 <template>
   <div
-    class="w-full"
-    style="height: inherit"
+    class="w-full bg-white"
     :class="{
-      'nc-erd-vue-flow': !config.singleTableMode,
+      'z-100 h-screen w-screen fixed top-0 left-0 right-0 bottom-0': config.isFullScreen,
       'nc-erd-vue-flow-single-table': config.singleTableMode,
+      'nc-erd-vue-flow': !config.singleTableMode,
     }"
+    :style="!config.isFullScreen ? 'height: inherit' : ''"
   >
-    <div v-if="isLoading" class="h-full w-full flex flex-col justify-center items-center">
-      <div class="flex flex-row justify-center">
-        <a-spin size="large" />
-      </div>
-    </div>
+    <div class="relative h-full">
+      <LazyErdFlow :tables="filteredTables" :config="config">
+        <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50">
+          <div class="h-full w-full flex flex-col justify-center items-center">
+            <a-spin size="large" />
+          </div>
+        </GeneralOverlay>
 
-    <div v-else class="relative h-full">
-      <LazyErdFlow :tables="tables" :config="config" />
-
-      <div
-        class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu z-50"
-      >
-        <div class="flex flex-row items-center">
-          <a-checkbox
-            v-model:checked="config.showAllColumns"
-            v-e="['c:erd:showAllColumns']"
-            class="nc-erd-showColumns-checkbox"
-          />
-          <span
-            class="ml-2 select-none nc-erd-showColumns-label"
-            style="font-size: 0.65rem"
-            @dblclick="showAdvancedOptions = true"
-          >
-            {{ $t('activity.erd.showColumns') }}
-          </span>
-        </div>
-        <div class="flex flex-row items-center">
-          <a-checkbox
-            v-model:checked="config.showPkAndFk"
-            v-e="['c:erd:showPkAndFk']"
-            class="nc-erd-showPkAndFk-checkbox"
-            :class="{
-              'nc-erd-showPkAndFk-checkbox-enabled': config.showAllColumns,
-              'nc-erd-showPkAndFk-checkbox-disabled': !config.showAllColumns,
-              'nc-erd-showPkAndFk-checkbox-checked': config.showPkAndFk,
-              'nc-erd-showPkAndFk-checkbox-unchecked': !config.showPkAndFk,
-            }"
-            :disabled="!config.showAllColumns"
-          />
-          <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showPkAndFk') }}</span>
-        </div>
-        <div v-if="!table" class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" class="nc-erd-showViews-checkbox" />
-          <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showSqlViews') }}</span>
-        </div>
-        <div v-if="!table && showAdvancedOptions && includeM2M" class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showMMTables" v-e="['c:erd:showMMTables']" class="nc-erd-showMMTables-checkbox" />
-          <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showMMTables') }}</span>
-        </div>
-        <div v-if="showAdvancedOptions && includeM2M" class="flex flex-row items-center">
-          <a-checkbox
-            v-model:checked="config.showJunctionTableNames"
-            v-e="['c:erd:showJunctionTableNames']"
-            class="nc-erd-showJunctionTableNames-checkbox"
-          />
-          <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showJunctionTableNames') }}</span>
-        </div>
-      </div>
+        <ErdFullScreenToggle :config="config" @toggle-full-screen="toggleFullScreen" />
+        <ErdConfigPanel :config="config" />
+        <ErdHistogramPanel v-if="!config.singleTableMode" />
+      </LazyErdFlow>
     </div>
   </div>
 </template>

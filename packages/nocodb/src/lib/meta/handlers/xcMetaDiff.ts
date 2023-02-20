@@ -42,7 +42,7 @@ export default async function (
   const builder = this.getBuilder(args);
 
   // @ts-ignore
-  const sqlClient = this.projectGetSqlClient(args);
+  const sqlClient = await this.projectGetSqlClient(args);
 
   // @ts-ignore
   const tableList = (await sqlClient.tableList())?.data?.list?.filter((t) => {

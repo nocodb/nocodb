@@ -75,9 +75,13 @@ const renderAllowCSVDownload = (view: SharedViewType) => {
 }
 
 const copyLink = (view: SharedViewType) => {
-  copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
-  // Copied to clipboard
-  message.success(t('msg.info.copiedToClipboard'))
+  try {
+    copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
+    // Copied to clipboard
+    message.success(t('msg.info.copiedToClipboard'))
+  } catch (e) {
+    message.error(e.message)
+  }
 }
 
 const deleteLink = async (id: string) => {
@@ -108,8 +112,9 @@ const deleteLink = async (id: string) => {
 
       <!-- View name -->
       <a-table-column key="title" :title="$t('labels.viewName')" data-index="title">
-        <template #default="{ text }">
-          <div class="text-xs" :title="text">
+        <template #default="{ text, record }">
+          <div class="text-xs flex items-center gap-1" :title="text">
+            <GeneralViewIcon class="w-5" :meta="record" />
             {{ text }}
           </div>
         </template>

@@ -116,17 +116,24 @@ For adding new values to the table we need new rows, new rows can be added in tw
 - A new empty row will be created
   <img width="567" alt="image" src="https://user-images.githubusercontent.com/35857179/189080009-3aeb70b4-92b0-4702-acb9-e5e52e31855e.png">
 
+### Row Add (Pressing Enter Key from Previous Row)
+
+When you finish editing a cell and press Enter, the cell in the next row with the same column will be highlighted.
+
+![image](https://user-images.githubusercontent.com/35857179/203271676-bab64ca4-e0e4-4deb-9a62-609a97158911.png)
+
 ### Row Edit
 
 You can start editing by any of the following methods  
   - Double click on cell to edit  
   - Click on cell and start typing (this way it will clear the previous content)  
-  - Click on cell and press enter to start editing  
+  - Click on cell and press enter to start editing
 - And it will automatically save on blur event or if inactive.  
 
 ### Row Delete
 
 Right-click on anywhere in the row and then from the context menu select `Delete Row` option.  
+
 Bulk delete is also possible by selecting multiple rows by using the checkbox in first column and then `Delete Selected Rows` options from the right click context menu.
 
 <img width="568" alt="image" src="https://user-images.githubusercontent.com/35857179/189081764-9f13c286-e02a-40d0-93ea-4b1362d96827.png">
@@ -140,28 +147,32 @@ You can use Quick Import when you have data from external sources such as Airtab
 
 <img width="1505" alt="image" src="https://user-images.githubusercontent.com/35857179/194795025-afd81191-4743-435b-b802-88367d2663f9.png">
 
-### Import Airtable into an existing project
+### Import Airtable into an Existing Project
 
 - See <a href="./import-airtable-to-sql-database-within-a-minute-for-free">here</a>
 
-### Import CSV data into an existing project
+### Import CSV data into an Existing Project
 
 - Hover `Add new table` button in table menu, click three dots, and click `CSV file`
-- Drag & drop or select file to upload or specify CSV file URL
-  <img width="987" alt="image" src="https://user-images.githubusercontent.com/35857179/194795517-ee272b97-e2f6-4f3c-8558-810e1c0b7955.png">
-- Click `Import`
-  <img width="975" alt="image" src="https://user-images.githubusercontent.com/35857179/194795574-cc95a6e0-053f-496f-8b6d-e1bc2a73c890.png">
-- You can revise the table name by double clicking it, column name and column type. By default, the first column will be chosen as <a href="./primary-value" target="_blank">Primary Value</a> and cannot be deleted.
-  <img width="984" alt="image" src="https://user-images.githubusercontent.com/35857179/194795594-25373144-436e-4b67-9e51-ad15d70f66fd.png">
+- Drag & drop or select files (at most 5 files) to upload or specify CSV file URL, and Click Import
+  - **Auto-Select Field Types**: If it is checked, column types will be detected. Otherwise, it will default to `SingleLineText`.
+  - **Use First Row as Headers**: If it is checked, the first row will be treated as header row.
+  - **Import Data**: If it is checked, all data will be imported. Otherwise, only table will be created.
+  ![image](https://user-images.githubusercontent.com/35857179/197454479-1ed18dce-1d0b-4ee3-88b3-9b6a132dea2a.png)
+- You can revise the table name by double clicking it, column name and column type. By default, the first column will be chosen as <a href="./display-value" target="_blank">Display Value</a> and cannot be deleted.
+  ![image](https://user-images.githubusercontent.com/35857179/197454633-5b30323e-2b13-4c55-843a-948c093d373e.png)
 - Click `Import` to start importing process. The table will be created and the data will be imported.
-  <img width="1507" alt="image" src="https://user-images.githubusercontent.com/35857179/194795642-44f8b2a4-6ba7-474d-bdb6-99ee4c2b4fd1.png">
+  ![image](https://user-images.githubusercontent.com/35857179/197455547-2d93df5e-a7f0-4c88-af53-990067625967.png)
 
-### Import Excel data into an existing project
+### Import Excel data into an Existing Project
 
 - Hover `Add new table` button in table menu, click three dots, and click `Microsoft Excel`
-- Drag & drop or select file to upload or specify Excel file URL
-  <img width="973" alt="image" src="https://user-images.githubusercontent.com/35857179/194795741-a2eb59ad-c95c-4c8c-9127-ab2072240439.png">
-- You can revise the table name, column name and column type. By default, the first column will be chosen as <a href="./primary-value" target="_blank">Primary Value</a> and cannot be deleted.
+- Drag & drop or select file (at most 1 file) to upload or specify Excel file URL and Click Import.
+  - **Auto-Select Field Types**: If it is checked, column types will be detected. Otherwise, it will default to `SingleLineText`.
+  - **Use First Row as Headers**: If it is checked, the first row will be treated as header row.
+  - **Import Data**: If it is checked, all data will be imported. Otherwise, only table will be created.
+  ![image](https://user-images.githubusercontent.com/35857179/197455788-8dd8a7d1-38f3-48c3-a05e-6ab0cf25045c.png)
+- You can revise the table name, column name and column type. By default, the first column will be chosen as <a href="./display-value" target="_blank">Display Value</a> and cannot be deleted.
   <alert>
   Note: If your Excel file contains multiple sheets, each sheet will be stored in a separate table.
   </alert>

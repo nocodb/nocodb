@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FilterType } from 'nocodb-sdk'
+import type { ColumnType, FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -43,7 +43,18 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
-const { filters, nonDeletedFilters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
+const {
+  filters,
+  nonDeletedFilters,
+  deleteFilter,
+  saveOrUpdate,
+  loadFilters,
+  addFilter,
+  addFilterGroup,
+  sync,
+  saveOrUpdateDebounced,
+  isComparisonOpAllowed,
+} = useViewFilters(
   activeView,
   parentId,
   computed(() => autoSave),
@@ -54,15 +65,36 @@ const { filters, nonDeletedFilters, deleteFilter, saveOrUpdate, loadFilters, add
 
 const localNestedFilters = ref()
 
+const columns = computed(() => meta.value?.columns)
+
+const getColumn = (filter: Filter) => {
+  return columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
+}
+
+const filterPrevComparisonOp = ref<Record<string, string>>({})
+
 const filterUpdateCondition = (filter: FilterType, i: number) => {
+  const col = getColumn(filter)
+  if (
+    col.uidt === UITypes.SingleSelect &&
+    ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value[filter.id]) &&
+    ['eq', 'neq'].includes(filter.comparison_op!)
+  ) {
+    // anyof and nanyof can allow multiple selections,
+    // while `eq` and `neq` only allow one selection
+    filter.value = ''
+  } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
+    // since `blank`, `empty`, `null` doesn't require value,
+    // hence remove the previous value
+    filter.value = ''
+  }
   saveOrUpdate(filter, i)
+  filterPrevComparisonOp.value[filter.id] = filter.comparison_op
   $e('a:filter:update', {
     logical: filter.logical_op,
     comparison: filter.comparison_op,
   })
 }
-
-const columns = computed(() => meta.value?.columns)
 
 const types = computed(() => {
   if (!meta.value?.columns?.length) {
@@ -70,22 +102,14 @@ const types = computed(() => {
   }
 
   return meta.value?.columns?.reduce((obj: any, col: any) => {
-    switch (col.uidt) {
-      case UITypes.Number:
-      case UITypes.Decimal:
-        obj[col.title] = obj[col.column_name] = 'number'
-        break
-      case UITypes.Checkbox:
-        obj[col.title] = obj[col.column_name] = 'boolean'
-        break
-    }
+    obj[col.id] = col.uidt
     return obj
   }, {})
 })
 
 watch(
   () => activeView.value?.id,
-  (n, o) => {
+  (n: string, o: string) => {
     // if nested no need to reload since it will get reloaded from parent
     if (!nested && n !== o && (hookId || !webHook)) loadFilters(hookId as string)
   },
@@ -95,7 +119,7 @@ loadFilters(hookId as string)
 
 watch(
   () => nonDeletedFilters.value.length,
-  (length) => {
+  (length: number) => {
     emit('update:filtersLength', length ?? 0)
   },
 )
@@ -112,6 +136,25 @@ const applyChanges = async (hookId?: string, _nested = false) => {
   }
 }
 
+const selectFilterField = (filter: Filter, index: number) => {
+  // when we change the field,
+  // the corresponding default filter operator needs to be changed as well
+  // since the existing one may not be supported for the new field
+  // e.g. `eq` operator is not supported in checkbox field
+  // hence, get the first option of the supported operators of the new field
+  filter.comparison_op = comparisonOpList(getColumn(filter)!.uidt as UITypes).filter((compOp) =>
+    isComparisonOpAllowed(filter, compOp),
+  )?.[0].value
+  // reset filter value as well
+  filter.value = ''
+  saveOrUpdate(filter, index)
+}
+
+const updateFilterValue = (value: string, filter: Filter, index: number) => {
+  filter.value = value
+  saveOrUpdateDebounced(filter, index)
+}
+
 defineExpose({
   applyChanges,
   parentId,
@@ -121,7 +164,7 @@ defineExpose({
 <template>
   <div
     class="p-4 menu-filter-dropdown bg-gray-50 !border mt-4"
-    :class="{ 'shadow min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
+    :class="{ 'shadow min-w-[430px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
   >
     <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
       <template v-for="(filter, i) in filters" :key="i">
@@ -183,14 +226,13 @@ defineExpose({
               hide-details
               :disabled="filter.readOnly"
               dropdown-class-name="nc-dropdown-filter-logical-op"
-              @click.stop
               @change="filterUpdateCondition(filter, i)"
+              @click.stop
             >
-              <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
+              <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
                 {{ op.text }}
               </a-select-option>
             </a-select>
-
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
@@ -198,9 +240,8 @@ defineExpose({
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
-              @change="saveOrUpdate(filter, i)"
+              @change="selectFilterField(filter, i)"
             />
-
             <a-select
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
@@ -213,29 +254,38 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="">
-                {{ compOp.text }}
-              </a-select-option>
+              <template v-for="compOp of comparisonOpList(getColumn(filter)?.uidt)" :key="compOp.value">
+                <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
+                  {{ compOp.text }}
+                </a-select-option>
+              </template>
             </a-select>
 
-            <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="`span${i}`" />
+            <span
+              v-if="
+                filter.comparison_op &&
+                ['null', 'notnull', 'checked', 'notchecked', 'empty', 'notempty', 'blank', 'notblank'].includes(
+                  filter.comparison_op,
+                )
+              "
+              :key="`span${i}`"
+            />
 
             <a-checkbox
-              v-else-if="types[filter.field] === 'boolean'"
+              v-else-if="filter.field && types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
               dense
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
             />
 
-            <a-input
+            <LazySmartsheetToolbarFilterInput
               v-else
-              :key="`${i}_7`"
-              v-model:value="filter.value"
-              class="nc-filter-value-select"
-              :disabled="filter.readOnly"
+              class="nc-filter-value-select min-w-[120px]"
+              :column="getColumn(filter)"
+              :filter="filter"
+              @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
-              @input="saveOrUpdate(filter, i)"
             />
           </template>
         </template>
@@ -253,7 +303,7 @@ defineExpose({
 
       <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
-          <!--          Add Filter Group -->
+          <!-- Add Filter Group -->
           <MdiPlus />
           {{ $t('activity.addFilterGroup') }}
         </div>
@@ -265,7 +315,7 @@ defineExpose({
 
 <style scoped>
 .nc-filter-grid {
-  grid-template-columns: 18px 83px 160px auto auto;
+  grid-template-columns: auto auto auto auto auto;
   @apply grid gap-[12px] items-center;
 }
 

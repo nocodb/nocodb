@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ColumnReqType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
@@ -12,6 +13,8 @@ import {
   ref,
   uiTypes,
   useColumnCreateStoreOrThrow,
+  useEventListener,
+  useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
@@ -20,6 +23,10 @@ import {
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
+
+const props = defineProps<{
+  columnPosition?: Pick<ColumnReqType, 'column_order'>
+}>()
 
 const emit = defineEmits(['submit', 'cancel'])
 
@@ -32,6 +39,8 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
+const { appInfo } = useGlobal()
+
 const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
@@ -41,6 +50,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
+
+const advancedDbOptions = ref(false)
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -70,7 +81,7 @@ const reloadMetaAndData = async () => {
 }
 
 async function onSubmit() {
-  const saved = await addOrUpdate(reloadMetaAndData)
+  const saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
 
   if (!saved) return
 
@@ -116,15 +127,21 @@ onMounted(() => {
     formState.value.column_name = formState.value?.title
   }
 })
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    emit('cancel')
+  }
+})
 </script>
 
 <template>
   <div
     class="w-[400px] bg-gray-50 shadow p-4 overflow-auto border"
-    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
+    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula, '!w-[500px]': formState.uidt === UITypes.Attachment }"
     @click.stop
   >
-    <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical">
+    <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical" data-testid="add-or-edit-column">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
           <a-input
@@ -158,13 +175,16 @@ onMounted(() => {
         </a-form-item>
 
         <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
+        <LazySmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
+        <LazySmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
         <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
         <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
         <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
-        <LazySmartsheetColumnLookupOptions v-if="!isEdit && formState.uidt === UITypes.Lookup" v-model:value="formState" />
+        <LazySmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
         <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
-        <LazySmartsheetColumnRollupOptions v-if="!isEdit && formState.uidt === UITypes.Rollup" v-model:value="formState" />
+        <LazySmartsheetColumnDateTimeOptions v-if="formState.uidt === UITypes.DateTime" v-model:value="formState" />
+        <LazySmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <LazySmartsheetColumnLinkedToAnotherRecordOptions
           v-if="!isEdit && formState.uidt === UITypes.LinkToAnotherRecord"
           v-model:value="formState"
@@ -178,8 +198,9 @@ onMounted(() => {
 
       <div
         v-if="!isVirtualCol(formState.uidt)"
-        class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
+        class="text-xs cursor-pointer text-gray-400 nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
+        @dblclick="advancedDbOptions = !advancedDbOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
         <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
@@ -197,7 +218,12 @@ onMounted(() => {
             </span>
           </a-checkbox>
 
-          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" />
+          <LazySmartsheetColumnAttachmentOptions
+            v-if="appInfo.ee && formState.uidt === UITypes.Attachment"
+            v-model:value="formState"
+          />
+
+          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" :advanced-db-options="advancedDbOptions" />
         </div>
       </Transition>
 

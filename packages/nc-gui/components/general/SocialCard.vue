@@ -1,9 +1,27 @@
 <script setup lang="ts">
-import { enumColor as colors, useGlobal } from '#imports'
+import { enumColor as colors, useDialog, useGlobal, useNuxtApp } from '#imports'
+
+const { $e } = useNuxtApp()
 
 const { lang: currentLang } = useGlobal()
 
 const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
+
+function openKeyboardShortcutDialog() {
+  $e('a:actions:keyboard-shortcut')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgKeyboardShortcuts'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
 </script>
 
 <template>
@@ -162,6 +180,13 @@ const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
             <span class="ml-4">/r/NocoDB/</span>
           </div>
         </nuxt-link>
+      </a-list-item>
+
+      <a-list-item @click="openKeyboardShortcutDialog">
+        <div class="ml-3 flex items-center text-sm">
+          <MdiKeyboard class="text-lg text-primary" />
+          <span class="ml-4">{{ $t('title.keyboardShortcut') }}</span>
+        </div>
       </a-list-item>
     </a-list>
   </a-card>

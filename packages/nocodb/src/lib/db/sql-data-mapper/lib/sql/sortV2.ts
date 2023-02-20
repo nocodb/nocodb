@@ -1,4 +1,4 @@
-import { QueryBuilder } from 'knex';
+import { Knex } from 'knex';
 import { XKnex } from '../../index';
 import Sort from '../../../../models/Sort';
 import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
@@ -12,7 +12,7 @@ import { sanitize } from './helpers/sanitize';
 
 export default async function sortV2(
   sortList: Sort[],
-  qb: QueryBuilder,
+  qb: Knex.QueryBuilder,
   knex: XKnex
 ) {
   if (!sortList?.length) {
@@ -29,6 +29,9 @@ export default async function sortV2(
     const column = await sort.getColumn();
     if (!column) continue;
     const model = await column.getModel();
+
+    const nulls = sort.direction === 'desc' ? 'LAST' : 'FIRST';
+
     switch (column.uidt) {
       case UITypes.Rollup:
         {
@@ -39,7 +42,7 @@ export default async function sortV2(
             })
           ).builder;
 
-          qb.orderBy(builder, sort.direction || 'asc');
+          qb.orderBy(builder, sort.direction || 'asc', nulls);
         }
         break;
       case UITypes.Formula:
@@ -51,10 +54,11 @@ export default async function sortV2(
               ).formula,
               null,
               knex,
-              model
+              model,
+              column
             )
           ).builder;
-          qb.orderBy(builder, sort.direction || 'asc');
+          qb.orderBy(builder, sort.direction || 'asc', nulls);
         }
         break;
       case UITypes.Lookup:
@@ -149,7 +153,7 @@ export default async function sortV2(
                       `${nestedAlias}.${parentColumn.column_name}`,
                       `${prevAlias}.${childColumn.column_name}`
                     )
-                    .select(parentModel?.primaryValue?.column_name);
+                    .select(parentModel?.displayValue?.column_name);
                 }
                 break;
               case UITypes.Formula:
@@ -161,7 +165,8 @@ export default async function sortV2(
                       ).formula,
                       null,
                       knex,
-                      model
+                      model,
+                      column
                     )
                   ).builder;
 
@@ -176,7 +181,7 @@ export default async function sortV2(
                 break;
             }
 
-            qb.orderBy(selectQb, sort.direction || 'asc');
+            qb.orderBy(selectQb, sort.direction || 'asc', nulls);
           }
         }
         break;
@@ -196,7 +201,7 @@ export default async function sortV2(
           await parentModel.getColumns();
 
           const selectQb = knex(parentModel.table_name)
-            .select(parentModel?.primaryValue?.column_name)
+            .select(parentModel?.displayValue?.column_name)
             .where(
               `${parentModel.table_name}.${parentColumn.column_name}`,
               knex.raw(`??`, [
@@ -204,35 +209,65 @@ export default async function sortV2(
               ])
             );
 
-          qb.orderBy(selectQb, sort.direction || 'asc');
+          qb.orderBy(selectQb, sort.direction || 'asc', nulls);
         }
         break;
-      case UITypes.SingleSelect:
-        {
-          const clientType = knex.clientType();
-          if (clientType === 'mysql' || clientType === 'mysql2') {
-            qb.orderBy(sanitize(knex.raw('CONCAT(??)', [column.column_name])), sort.direction || 'asc');
-          } else if (clientType === 'mssql') {
-            qb.orderBy(sanitize(knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])), sort.direction || 'asc');
-          } else {
-            qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
-          }
-          break;
+      case UITypes.SingleSelect: {
+        const clientType = knex.clientType();
+        if (clientType === 'mysql' || clientType === 'mysql2') {
+          qb.orderBy(
+            sanitize(knex.raw('CONCAT(??)', [column.column_name])),
+            sort.direction || 'asc',
+            nulls
+          );
+        } else if (clientType === 'mssql') {
+          qb.orderBy(
+            sanitize(
+              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])
+            ),
+            sort.direction || 'asc',
+            nulls
+          );
+        } else {
+          qb.orderBy(
+            sanitize(column.column_name),
+            sort.direction || 'asc',
+            nulls
+          );
         }
-      case UITypes.MultiSelect:
-        {
-          const clientType = knex.clientType();
-          if (clientType === 'mysql' || clientType === 'mysql2') {
-            qb.orderBy(sanitize(knex.raw('CONCAT(??)', [column.column_name])), sort.direction || 'asc');
-          } else if (clientType === 'mssql') {
-            qb.orderBy(sanitize(knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])), sort.direction || 'asc');
-          } else {
-            qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
-          }
-          break;
+        break;
+      }
+      case UITypes.MultiSelect: {
+        const clientType = knex.clientType();
+        if (clientType === 'mysql' || clientType === 'mysql2') {
+          qb.orderBy(
+            sanitize(knex.raw('CONCAT(??)', [column.column_name])),
+            sort.direction || 'asc',
+            nulls
+          );
+        } else if (clientType === 'mssql') {
+          qb.orderBy(
+            sanitize(
+              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])
+            ),
+            sort.direction || 'asc',
+            nulls
+          );
+        } else {
+          qb.orderBy(
+            sanitize(column.column_name),
+            sort.direction || 'asc',
+            nulls
+          );
         }
+        break;
+      }
       default:
-        qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
+        qb.orderBy(
+          sanitize(column.column_name),
+          sort.direction || 'asc',
+          nulls
+        );
         break;
     }
   }

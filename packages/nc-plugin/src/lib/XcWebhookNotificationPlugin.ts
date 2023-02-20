@@ -1,11 +1,9 @@
-import XcPlugin from "./XcPlugin";
-import {IWebhookNotificationAdapter} from "../index";
+import { IWebhookNotificationAdapter } from '../index';
+
+import XcPlugin from './XcPlugin';
 
 abstract class XcStoragePlugin extends XcPlugin {
-
-  abstract getAdapter(): IWebhookNotificationAdapter
-
+  abstract getAdapter(): IWebhookNotificationAdapter;
 }
-
 
 export default XcStoragePlugin;

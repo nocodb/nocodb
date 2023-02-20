@@ -1,12 +1,24 @@
 {
   "name": "nc-plugin",
   "version": "0.1.3",
-  "description": "Xgene plugin template",
+  "description": "NocoDB Plugin Template",
+  "private": true,
+  "author": {
+    "name": "NocoDB Inc",
+    "url": "https://nocodb.com/"
+  },
+  "homepage": "https://github.com/nocodb/nocodb",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nocodb/nocodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nocodb/nocodb/issues"
+  },
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/pranavxc/xc-plugin-template",
-  "license": "MIT",
   "keywords": [],
   "scripts": {
     "build": "run-p build:*",
@@ -42,16 +54,13 @@
     "node": ">=10"
   },
   "dependencies": {
-    "@bitauth/libauth": "^1.17.1",
     "nc-common": "0.0.6"
   },
   "devDependencies": {
-    "@ava/typescript": "^1.1.1",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
-    "@types/node": "^14.14.37",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
-    "ava": "^3.12.1",
+    "ava": "^5.2.0",
     "codecov": "^3.5.0",
     "cspell": "^4.1.0",
     "cz-conventional-changelog": "^3.3.0",
@@ -63,7 +72,7 @@
     "gh-pages": "^3.1.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
-    "open-cli": "^6.0.1",
+    "open-cli": "^7.1.0",
     "prettier": "^2.1.1",
     "standard-version": "^9.0.0",
     "ts-node": "^9.0.0",

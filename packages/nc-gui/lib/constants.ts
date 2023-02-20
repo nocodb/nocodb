@@ -4,8 +4,7 @@ export const NOCO = 'noco'
 
 export const SYSTEM_COLUMNS = ['id', 'title', 'created_at', 'updated_at']
 
-export const BASE_URL = process.env.NC_BACKEND_URL || (process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080')
-
+export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080'
 /**
  * Each permission value means the following
  * `*` - which is wildcard, means all permissions are allowed
@@ -19,7 +18,7 @@ export const rolePermissions = {
   [Role.Super]: '*',
   [Role.Admin]: {} as Record<string, boolean>,
   [Role.Guest]: {} as Record<string, boolean>,
-  [Role.User]: {
+  [Role.OrgLevelCreator]: {
     include: {
       projectCreate: true,
       projectActions: true,
@@ -31,11 +30,17 @@ export const rolePermissions = {
   [ProjectRole.Creator]: {
     exclude: {
       appStore: true,
+      superAdminUserManagement: true,
+      superAdminAppSettings: true,
+      appLicense: true,
     },
   },
   [ProjectRole.Owner]: {
     exclude: {
       appStore: true,
+      superAdminUserManagement: true,
+      superAdminAppSettings: true,
+      appLicense: true,
     },
   },
   [ProjectRole.Editor]: {
@@ -52,6 +57,7 @@ export const rolePermissions = {
       fieldsSync: true,
       gridColUpdate: true,
       filterSync: true,
+      filterChildrenRead: true,
       csvImport: true,
       apiDocs: true,
       projectSettings: true,

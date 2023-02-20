@@ -9,35 +9,37 @@ import Project from '../../../src/lib/models/Project';
 import View from '../../../src/lib/models/View';
 import { isSqlite } from '../init/db';
 
-const defaultColumns = function(context) {
+const defaultColumns = function (context) {
   return [
-  {
-    column_name: 'id',
-    title: 'Id',
-    uidt: 'ID',
-  },
-  {
-    column_name: 'title',
-    title: 'Title',
-    uidt: 'SingleLineText',
-  },
-  {
-    cdf: 'CURRENT_TIMESTAMP',
-    column_name: 'created_at',
-    title: 'CreatedAt',
-    dtxp: '',
-    dtxs: '',
-    uidt: 'DateTime',
-  },
-  {
-    cdf: isSqlite(context) ? 'CURRENT_TIMESTAMP': 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
-    column_name: 'updated_at',
-    title: 'UpdatedAt',
-    dtxp: '',
-    dtxs: '',
-    uidt: 'DateTime',
-  },
-]
+    {
+      column_name: 'id',
+      title: 'Id',
+      uidt: 'ID',
+    },
+    {
+      column_name: 'title',
+      title: 'Title',
+      uidt: 'SingleLineText',
+    },
+    {
+      cdf: 'CURRENT_TIMESTAMP',
+      column_name: 'created_at',
+      title: 'CreatedAt',
+      dtxp: '',
+      dtxs: '',
+      uidt: 'DateTime',
+    },
+    {
+      cdf: isSqlite(context)
+        ? 'CURRENT_TIMESTAMP'
+        : 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
+      column_name: 'updated_at',
+      title: 'UpdatedAt',
+      dtxp: '',
+      dtxs: '',
+      uidt: 'DateTime',
+    },
+  ];
 };
 
 const createColumn = async (context, table, columnAttr) => {
@@ -152,6 +154,66 @@ const createLookupColumn = async (
   return lookupColumn;
 };
 
+const createQrCodeColumn = async (
+  context,
+  {
+    title,
+    table,
+    referencedQrValueTableColumnTitle,
+  }: {
+    title: string;
+    table: Model;
+    referencedQrValueTableColumnTitle: string;
+  }
+) => {
+  const referencedQrValueTableColumnId = await table
+    .getColumns()
+    .then(
+      (cols) =>
+        cols.find(
+          (column) => column.title == referencedQrValueTableColumnTitle
+        )['id']
+    );
+
+  const qrCodeColumn = await createColumn(context, table, {
+    title: title,
+    uidt: UITypes.QrCode,
+    column_name: title,
+    fk_qr_value_column_id: referencedQrValueTableColumnId,
+  });
+  return qrCodeColumn;
+};
+
+const createBarcodeColumn = async (
+  context,
+  {
+    title,
+    table,
+    referencedBarcodeValueTableColumnTitle,
+  }: {
+    title: string;
+    table: Model;
+    referencedBarcodeValueTableColumnTitle: string;
+  }
+) => {
+  const referencedBarcodeValueTableColumnId = await table
+    .getColumns()
+    .then(
+      (cols) =>
+        cols.find(
+          (column) => column.title == referencedBarcodeValueTableColumnTitle
+        )['id']
+    );
+
+  const barcodeColumn = await createColumn(context, table, {
+    title: title,
+    uidt: UITypes.Barcode,
+    column_name: title,
+    fk_barcode_value_column_id: referencedBarcodeValueTableColumnId,
+  });
+  return barcodeColumn;
+};
+
 const createLtarColumn = async (
   context,
   {
@@ -178,26 +240,31 @@ const createLtarColumn = async (
   return ltarColumn;
 };
 
-const updateViewColumn = async (context, {view, column, attr}: {column: Column, view: View, attr: any}) => {
+const updateViewColumn = async (
+  context,
+  { view, column, attr }: { column: Column; view: View; attr: any }
+) => {
   const res = await request(context.app)
-  .patch(`/api/v1/db/meta/views/${view.id}/columns/${column.id}`)
-  .set('xc-auth', context.token)
-  .send({
-    ...attr,
-  });
+    .patch(`/api/v1/db/meta/views/${view.id}/columns/${column.id}`)
+    .set('xc-auth', context.token)
+    .send({
+      ...attr,
+    });
 
-  const updatedColumn: FormViewColumn | GridViewColumn | GalleryViewColumn = (await view.getColumns()).find(
-    (column) => column.id === column.id
-  )!;
+  const updatedColumn: FormViewColumn | GridViewColumn | GalleryViewColumn = (
+    await view.getColumns()
+  ).find((column) => column.id === column.id)!;
 
   return updatedColumn;
-}
+};
 
 export {
   defaultColumns,
   createColumn,
+  createQrCodeColumn,
+  createBarcodeColumn,
   createRollupColumn,
   createLookupColumn,
   createLtarColumn,
-  updateViewColumn
+  updateViewColumn,
 };

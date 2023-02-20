@@ -84,8 +84,7 @@ mongod
 /packages/nocodb/docker/main.js.LICENSE.txt
 /packages/nocodb/noco_log.db
 
-# Cypress
+# NC_DBs
 #=========
-shared.json
-/scripts/Cypress/screenshots
-/scripts/exp/
+nc_minimal_dbs/
+test_noco.db

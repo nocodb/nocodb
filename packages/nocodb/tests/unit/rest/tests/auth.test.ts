@@ -4,6 +4,27 @@ import request from 'supertest';
 import init from '../../init';
 import { defaultUserArgs } from '../../factory/user';
 
+// Test case list
+// 1. Signup with valid email
+// 2. Signup with invalid email
+// 3. Signup with invalid password
+// 4. Signin with valid credentials
+// 5. Signin without email and password
+// 6. Signin with invalid credentials
+// 7. Signin with invalid password
+// 8. me without token
+// 9. me with token
+// 10. forgot password with non-existing email id
+// 11. TBD: forgot password with existing email id
+// 12. Change password
+// 13. Change password - after logout
+// 14. TBD: Reset Password with an invalid token
+// 15. TBD: Email validate with an invalid token
+// 16. TBD: Email validate with a valid token
+// 17. TBD: Forgot password validate with a valid token
+// 18. TBD: Reset Password with an valid token
+// 19. TBD: refresh token api
+
 function authTests() {
   let context;
 
@@ -15,7 +36,7 @@ function authTests() {
     const response = await request(context.app)
       .post('/api/v1/auth/user/signup')
       .send({ email: 'new@example.com', password: defaultUserArgs.password })
-      .expect(200)
+      .expect(200);
 
     const token = response.body.token;
     expect(token).to.be.a('string');
@@ -43,8 +64,8 @@ function authTests() {
         password: defaultUserArgs.password,
       })
       .expect(200);
-      const token = response.body.token;
-      expect(token).to.be.a('string');
+    const token = response.body.token;
+    expect(token).to.be.a('string');
   });
 
   it('Signup without email and password', async () => {
@@ -74,10 +95,10 @@ function authTests() {
       .get('/api/v1/auth/user/me')
       .unset('xc-auth')
       .expect(200);
-      
-      if (!response.body?.roles?.guest) {
-        return new Error('User should be guest');
-      }
+
+    if (!response.body?.roles?.guest) {
+      return new Error('User should be guest');
+    }
   });
 
   it('me with token', async () => {

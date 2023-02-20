@@ -11,6 +11,13 @@ import Noco from '../../../Noco';
 import { XKnex } from '../../sql-data-mapper';
 import NcMetaIO from '../../../meta/NcMetaIO';
 
+import type MssqlClient from '../../sql-client/lib/mssql/MssqlClient';
+import type MysqlClient from '../../sql-client/lib/mysql/MysqlClient';
+import type OracleClient from '../../sql-client/lib/oracle/OracleClient';
+import type PGClient from '../../sql-client/lib/pg/PgClient';
+import type SnowflakeClient from '../../sql-client/lib/snowflake/SnowflakeClient';
+import type SqliteClient from '../../sql-client/lib/sqlite/SqliteClient';
+
 export default class KnexMigratorv2Tans extends KnexMigratorv2 {
   protected sqlClient: any;
   protected ncMeta: NcMetaIO;
@@ -24,30 +31,7 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
   protected get metaDb(): XKnex {
     return this.ncMeta.knex || Noco.ncMeta.knex;
   }
-  protected getSqlClient(base: Base) {
+  protected async getSqlClient(base: Base): Promise<SnowflakeClient | MysqlClient | SqliteClient | MssqlClient | OracleClient | PGClient> {
     return this.sqlClient || NcConnectionMgrv2.getSqlClient(base);
   }
 }
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

@@ -5,6 +5,7 @@ import {
   CacheScope,
   MetaTable,
 } from '../utils/globals';
+import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
 import Model from './Model';
 import FormView from './FormView';
 import GridView from './GridView';
@@ -13,7 +14,13 @@ import GalleryView from './GalleryView';
 import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
 import Filter from './Filter';
-import { isSystemColumn, UITypes, ViewType, ViewTypes } from 'nocodb-sdk';
+import {
+  ColumnReqType,
+  isSystemColumn,
+  UITypes,
+  ViewType,
+  ViewTypes,
+} from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import KanbanViewColumn from './KanbanViewColumn';
@@ -112,6 +119,7 @@ export default class View implements ViewType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, viewId);
+      view.meta = parseMetaProp(view);
       await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
     }
 
@@ -150,6 +158,7 @@ export default class View implements ViewType {
           ],
         }
       );
+      view.meta = parseMetaProp(view);
       // todo: cache - titleOrId can be viewId so we need a different scope here
       await NocoCache.set(
         `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
@@ -182,6 +191,7 @@ export default class View implements ViewType {
         },
         null
       );
+      view.meta = parseMetaProp(view);
       await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
     }
     return view && new View(view);
@@ -198,6 +208,9 @@ export default class View implements ViewType {
           order: 'asc',
         },
       });
+      for (const view of viewsList) {
+        view.meta = parseMetaProp(view);
+      }
       await NocoCache.setList(CacheScope.VIEW, [modelId], viewsList);
     }
     viewsList.sort(
@@ -248,7 +261,10 @@ export default class View implements ViewType {
       base_id: view.base_id,
       created_at: view.created_at,
       updated_at: view.updated_at,
+      meta: view.meta ?? {},
     };
+
+    insertObj.meta = stringifyMetaProp(insertObj);
 
     // get project and base id if missing
     if (!(view.project_id && view.base_id)) {
@@ -283,6 +299,7 @@ export default class View implements ViewType {
       case ViewTypes.GRID:
         await GridView.insert(
           {
+            ...((copyFromView?.view as GridView) || {}),
             ...(view as GridView),
             fk_view_id: view_id,
           },
@@ -358,10 +375,10 @@ export default class View implements ViewType {
       let kanbanShowLimit = 0;
 
       if (view.type === ViewTypes.KANBAN && !copyFromView) {
-        // sort by primary value & attachment first, then by singleLineText & Number
+        // sort by display value & attachment first, then by singleLineText & Number
         // so that later we can handle control `show` easily
         columns.sort((a, b) => {
-          const primaryValueOrder = b.pv - a.pv;
+          const displayValueOrder = b.pv - a.pv;
           const attachmentOrder =
             +(b.uidt === UITypes.Attachment) - +(a.uidt === UITypes.Attachment);
           const singleLineTextOrder =
@@ -371,7 +388,7 @@ export default class View implements ViewType {
             +(b.uidt === UITypes.Number) - +(a.uidt === UITypes.Number);
           const defaultOrder = b.order - a.order;
           return (
-            primaryValueOrder ||
+            displayValueOrder ||
             attachmentOrder ||
             singleLineTextOrder ||
             numberOrder ||
@@ -442,9 +459,9 @@ export default class View implements ViewType {
     param: {
       fk_column_id: any;
       fk_model_id: any;
-      order;
+      order?: number;
       show;
-    },
+    } & Pick<ColumnReqType, 'column_order'>,
     ncMeta = Noco.ncMeta
   ) {
     const insertObj = {
@@ -456,33 +473,21 @@ export default class View implements ViewType {
     const views = await this.list(param.fk_model_id, ncMeta);
 
     for (const view of views) {
+      const modifiedInsertObj = { ...insertObj, fk_view_id: view.id };
+
+      if (param.column_order?.view_id === view.id) {
+        modifiedInsertObj.order = param.column_order?.order;
+      }
+
       switch (view.type) {
         case ViewTypes.GRID:
-          await GridViewColumn.insert(
-            {
-              ...insertObj,
-              fk_view_id: view.id,
-            },
-            ncMeta
-          );
+          await GridViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
         case ViewTypes.GALLERY:
-          await GalleryViewColumn.insert(
-            {
-              ...insertObj,
-              fk_view_id: view.id,
-            },
-            ncMeta
-          );
+          await GalleryViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
         case ViewTypes.KANBAN:
-          await KanbanViewColumn.insert(
-            {
-              ...insertObj,
-              fk_view_id: view.id,
-            },
-            ncMeta
-          );
+          await KanbanViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
       }
     }
@@ -625,6 +630,35 @@ export default class View implements ViewType {
         break;
     }
     const updateObj = extractProps(colData, ['order', 'show']);
+
+    // keep primary_value_column always visible and first in grid view
+    if (view.type === ViewTypes.GRID) {
+      const primary_value_column_meta = await ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.COLUMNS,
+        {
+          fk_model_id: view.fk_model_id,
+          pv: true,
+        }
+      );
+
+      const primary_value_column = await ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.GRID_VIEW_COLUMNS,
+        {
+          fk_view_id: view.id,
+          fk_column_id: primary_value_column_meta.id,
+        }
+      );
+
+      if (primary_value_column && primary_value_column.id === colId) {
+        updateObj.order = 1;
+        updateObj.show = true;
+      }
+    }
+
     // get existing cache
     const key = `${cacheScope}:${colId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -713,10 +747,15 @@ export default class View implements ViewType {
     }
   }
 
+  // todo: cache
   static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
     const view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, {
       uuid,
     });
+
+    if (view) {
+      view.meta = parseMetaProp(view);
+    }
 
     return view && new View(view);
   }
@@ -746,8 +785,9 @@ export default class View implements ViewType {
         viewId
       );
     }
-    if (!view.meta) {
+    if (!view.meta || !('allowCSVDownload' in view.meta)) {
       const defaultMeta = {
+        ...(view.meta ?? {}),
         allowCSVDownload: true,
       };
       // get existing cache
@@ -755,7 +795,7 @@ export default class View implements ViewType {
       const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
       if (o) {
         // update data
-        o.meta = JSON.stringify(defaultMeta);
+        o.meta = defaultMeta;
         // set cache
         await NocoCache.set(key, o);
       }
@@ -844,7 +884,7 @@ export default class View implements ViewType {
       'meta',
       'uuid',
     ]);
-    updateObj.meta = JSON.stringify(updateObj.meta);
+
     // get existing cache
     const key = `${CacheScope.VIEW}:${viewId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -860,9 +900,24 @@ export default class View implements ViewType {
       // set cache
       await NocoCache.set(key, o);
     }
+
+    // if meta data defined then stringify it
+    if ('meta' in updateObj) {
+      updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
     // set meta
     await ncMeta.metaUpdate(null, null, MetaTable.VIEWS, updateObj, viewId);
-    return this.get(viewId);
+
+    const view = await this.get(viewId);
+
+    if (view.type === ViewTypes.GRID) {
+      if ('show_system_fields' in updateObj) {
+        await View.fixPVColumnForView(viewId, ncMeta);
+      }
+    }
+
+    return view;
   }
 
   // @ts-ignore
@@ -1061,6 +1116,24 @@ export default class View implements ViewType {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
+
+    if (view.type === ViewTypes.GRID) {
+      const primary_value_column = await ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.COLUMNS,
+        {
+          fk_model_id: view.fk_model_id,
+          pv: true,
+        }
+      );
+
+      // keep primary_value_column always visible
+      if (primary_value_column) {
+        ignoreColdIds.push(primary_value_column.id);
+      }
+    }
+
     // get existing cache
     const dataList = await NocoCache.getList(scope, [viewId]);
     if (dataList?.length) {
@@ -1117,5 +1190,106 @@ export default class View implements ViewType {
     }
     sharedViews = sharedViews.filter((v) => v.uuid !== null);
     return sharedViews?.map((v) => new View(v));
+  }
+
+  static async fixPVColumnForView(viewId, ncMeta = Noco.ncMeta) {
+    // get a list of view columns sorted by order
+    const view_columns = await ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.GRID_VIEW_COLUMNS,
+      {
+        condition: {
+          fk_view_id: viewId,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      }
+    );
+    const view_columns_meta = [];
+
+    // get column meta for each view column
+    for (const col of view_columns) {
+      const col_meta = await ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.COLUMNS,
+        col.fk_column_id
+      );
+      view_columns_meta.push(col_meta);
+    }
+
+    const primary_value_column_meta = view_columns_meta.find((col) => col.pv);
+
+    if (primary_value_column_meta) {
+      const primary_value_column = view_columns.find(
+        (col) => col.fk_column_id === primary_value_column_meta.id
+      );
+      const primary_value_column_index = view_columns.findIndex(
+        (col) => col.fk_column_id === primary_value_column_meta.id
+      );
+      const view_orders = view_columns.map((col) => col.order);
+      const view_min_order = Math.min(...view_orders);
+
+      // if primary_value_column is not visible, make it visible
+      if (!primary_value_column.show) {
+        await ncMeta.metaUpdate(
+          null,
+          null,
+          MetaTable.GRID_VIEW_COLUMNS,
+          { show: true },
+          primary_value_column.id
+        );
+        await NocoCache.set(
+          `${CacheScope.GRID_VIEW_COLUMN}:${primary_value_column.id}`,
+          primary_value_column
+        );
+      }
+
+      if (
+        primary_value_column.order === view_min_order &&
+        view_orders.filter((o) => o === view_min_order).length === 1
+      ) {
+        // if primary_value_column is in first order do nothing
+        return;
+      } else {
+        // if primary_value_column not in first order, move it to the start of array
+        if (primary_value_column_index !== 0) {
+          const temp_pv = view_columns.splice(primary_value_column_index, 1);
+          view_columns.unshift(...temp_pv);
+        }
+
+        // update order of all columns in view to match the order in array
+        for (let i = 0; i < view_columns.length; i++) {
+          await ncMeta.metaUpdate(
+            null,
+            null,
+            MetaTable.GRID_VIEW_COLUMNS,
+            { order: i + 1 },
+            view_columns[i].id
+          );
+          await NocoCache.set(
+            `${CacheScope.GRID_VIEW_COLUMN}:${view_columns[i].id}`,
+            view_columns[i]
+          );
+        }
+      }
+    }
+
+    const views = await ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.GRID_VIEW_COLUMNS,
+      {
+        condition: {
+          fk_view_id: viewId,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      }
+    );
+    await NocoCache.setList(CacheScope.GRID_VIEW_COLUMN, [viewId], views);
   }
 }

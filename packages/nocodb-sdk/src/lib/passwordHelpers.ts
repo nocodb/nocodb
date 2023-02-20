@@ -1,6 +1,6 @@
 export function validatePassword(p) {
   let error = '';
-  let hint = null;
+  const hint = null;
   let valid = true;
 
   if (!p) {

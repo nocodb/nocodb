@@ -16,6 +16,7 @@
     "cancel": "إلغاء",
     "submit": "إرسال",
     "create": "إنشاء",
+    "duplicate": "Duplicate",
     "insert": "إدراج",
     "delete": "حذف",
     "update": "تحديث",
@@ -68,7 +69,12 @@
     "betaNote": "هذه الميزة حاليا في بيتا.",
     "moreInfo": "المزيد من المعلومات تجدها هنا",
     "logs": "السجلات",
-    "groupingField": "Grouping Field"
+    "groupingField": "Grouping Field",
+    "insertAfter": "Insert After",
+    "insertBefore": "Insert Before",
+    "hideField": "Hide Field",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending"
   },
   "objects": {
     "project": "مشروع",
@@ -103,7 +109,9 @@
       "creator": "منشيء",
       "editor": "محرر",
       "commenter": "معلق",
-      "viewer": "مشاهد"
+      "viewer": "مشاهد",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL View"
   },
@@ -196,9 +204,12 @@
     "quickImportFrom": "استيراد سريع من",
     "quickImport": "استيراد سريع",
     "advancedSettings": "الإعدادات المتقدمة",
-    "codeSnippet": "كتلة برمجية"
+    "codeSnippet": "كتلة برمجية",
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "إعلام عبر",
     "projName": "اسم المشروع",
     "tableName": "اسم الجدول",
@@ -237,6 +248,11 @@
     "created": "إنشاء",
     "sqlOutput": "إخراج SQL",
     "addOption": "إضافة خيار",
+    "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
+    "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "وظيفة التجميع",
     "dbCreateIfNotExists": "قاعدة البيانات: إنشاء إذا لم يكن موجودا",
     "clientKey": "مفتاح العميل",
@@ -262,6 +278,7 @@
     "selectUserRole": "حدد دور المستخدم",
     "childTable": "جدول فرعي",
     "childColumn": "عمود فرعي",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "عند التحديث",
     "onDelete": "عند الحذف",
     "account": "حساب",
@@ -295,7 +312,10 @@
     "signUpWithGoogle": "التسجيل بواسطة Google",
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "بالتسجيل، أنت توافق على شروط الخدمة",
-    "welcomeToNc": "مرحبا بكم في NocoDB!"
+    "welcomeToNc": "مرحبا بكم في NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -340,12 +360,14 @@
     "invite": "دعوة",
     "inviteMore": "دعوة المزيد",
     "inviteTeam": "دعوة فريق",
+    "inviteUser": "Invite User",
     "inviteToken": "رمز دعوة",
     "newUser": "مستخدم جديد",
     "editUser": "تحرير مستخدم",
     "deleteUser": "إزالة المستخدم من المشروع",
     "resendInvite": "إعادة إرسال دعوة البريد الإلكتروني",
     "copyInviteURL": "نسخ رابط الدعوة",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "دور جديد",
     "reloadRoles": "إعادة تحميل الأدوار",
     "nextPage": "الصفحة التالية",
@@ -358,11 +380,14 @@
     "renameTable": "إعادة تسمية الجدول",
     "deleteTable": "حذف الجدول",
     "addField": "إضافة حقل جديد إلى هذا الجدول",
-    "setPrimary": "تعيين كقيمة أساسية",
+    "setDisplay": "Set as Display value",
     "addRow": "إضافة صف جديد",
     "saveRow": "حفظ الصف",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "إدراج صف جديد",
     "deleteRow": "حذف الصف",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "حذف الصفوف المحددة",
     "importExcel": "استيراد Excel",
     "importCSV": "استيراد CSV",
@@ -478,7 +503,21 @@
     "selectField": "حدد حقل"
   },
   "msg": {
+    "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
+      "nonEditableFields": {
+        "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
+        "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
+      }
+    },
     "info": {
+      "pasteNotSupported": "Paste operation is not supported on the active cell",
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "الصفوف لكل صفحة",
       "upload": "حدد الملف المراد رفعه",
       "upload_sub": "أو سحب وإسقاط الملف",
@@ -592,7 +631,15 @@
       "deleteViewConfirmation": "هل أنت متأكد من أنك تريد حذف هذا العرض؟",
       "deleteTableConfirmation": "هل تريد حذف الجدول",
       "showM2mTables": "إظهار جداول M2M",
-      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
+      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",
@@ -652,7 +699,9 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty."
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible",
+      "copyToClipboardError": "Failed to copy to clipboard"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",
@@ -672,6 +721,8 @@
       "futureRelease": "قريبا!"
     },
     "success": {
+      "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "تم تحديث ACL واجهة المستخدم للجداول بنجاح",
       "pluginUninstalled": "تم إلغاء تثبيت الإضافة بنجاح",
       "pluginSettingsSaved": "تم حفظ إعدادات الإضافة بنجاح",
@@ -682,13 +733,16 @@
       "tableDataExported": "تم تصدير جميع بيانات الجدول بنجاح",
       "updated": "تم التحديث بنجاح",
       "sharedViewDeleted": "تم حذف العرض المشترك بنجاح",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "تمت إعادة التسمية بنجاح",
       "tokenGenerated": "تم إنشاء الرمز بنجاح",
       "tokenDeleted": "تم حذف الرمز بنجاح",
       "userAddedToProject": "تمت إضافة المستخدم إلى المشروع بنجاح",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "تم حذف المستخدم بنجاح من المشروع",
       "inviteEmailSent": "دعوة البريد الإلكتروني مرسلة بنجاح",
       "inviteURLCopied": "تم نسخ عنوان URL الدعوة إلى الحافظة",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "تم نسخ عنوان URL الأساسي القابل للمشاركة إلى الحافظة!",
       "embeddableHTMLCodeCopied": "تم نسخ رمز HTML القابل للدمج!",
       "userDetailsUpdated": "تم تحديث تفاصيل المستخدم بنجاح",
@@ -698,7 +752,9 @@
       "webhookTested": "تم اختبار Webhook بنجاح",
       "columnUpdated": "تم تحديث العمود",
       "columnCreated": "تم إنشاء العمود",
-      "passwordChanged": "تم تغيير كلمة المرور بنجاح. الرجاء تسجيل الدخول مرة أخرى."
+      "passwordChanged": "تم تغيير كلمة المرور بنجاح. الرجاء تسجيل الدخول مرة أخرى.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

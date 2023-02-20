@@ -1,0 +1,70 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "env": {
+    "es6": true
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "build",
+    "coverage",
+    "playwright-report",
+    "output",
+    "dist",
+    "nc",
+    "tsconfig.json",
+    ".eslintrc.json"
+  ],
+  "plugins": [
+    "import",
+    "eslint-comments",
+    "functional"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:eslint-comments/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/typescript",
+    "plugin:prettier/recommended",
+    "plugin:json/recommended"
+  ],
+  "globals": {
+    "BigInt": true,
+    "console": true,
+    "WebAssembly": true,
+    "window": true,
+    "document": true,
+    "localStorage": true
+  },
+  "rules": {
+    "@typescript-eslint/no-floating-promises": ["error"],
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "eslint-comments/disable-enable-pair": [
+      "error",
+      {
+        "allowWholeFile": true
+      }
+    ],
+    "eslint-comments/no-unused-disable": "error",
+    "sort-imports": [
+      "error",
+      {
+        "ignoreDeclarationSort": true,
+        "ignoreCase": true
+      }
+    ],
+    "@typescript-eslint/no-this-alias": "off",
+
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "no-useless-catch": "off",
+    "no-empty": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "import/order": "off"
+  }
+}

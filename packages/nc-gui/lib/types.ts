@@ -1,6 +1,7 @@
 import type { FilterType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
+import type { UploadFile } from 'ant-design-vue'
 import type { ProjectRole, Role, TabType } from './enums'
 import type { rolePermissions } from './constants'
 
@@ -35,7 +36,12 @@ export interface Field {
 
 export type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>
 
-export type Filter = FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string; readOnly?: boolean }
+export type Filter = FilterType & {
+  field?: string
+  status?: 'update' | 'delete' | 'create'
+  parentId?: string
+  readOnly?: boolean
+}
 
 export type NocoI18n = I18n<{}, unknown, unknown, string, false>
 
@@ -52,6 +58,7 @@ export interface Row {
     selected?: boolean
     commentCount?: number
     changed?: boolean
+    saving?: boolean
   }
 }
 
@@ -71,6 +78,7 @@ export interface TabItem {
   viewId?: string
   sortsState?: Map<string, any>
   filterState?: Map<string, any>
+  meta?: Record<string, any>
 }
 
 export interface SharedViewMeta extends Record<string, any> {
@@ -79,6 +87,7 @@ export interface SharedViewMeta extends Record<string, any> {
   withTheme?: boolean
   theme?: Partial<ThemeConfig>
   allowCSVDownload?: boolean
+  rtl?: boolean
 }
 
 export interface SharedView {
@@ -88,3 +97,9 @@ export interface SharedView {
   type?: ViewTypes
   meta: SharedViewMeta
 }
+
+export type importFileList = (UploadFile & { data: string | ArrayBuffer })[]
+
+export type streamImportFileList = UploadFile[]
+
+export type Nullable<T> = { [K in keyof T]: T[K] | null }

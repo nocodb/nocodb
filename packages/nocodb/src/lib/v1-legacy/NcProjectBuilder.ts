@@ -1,15 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 
 import axios from 'axios';
 import { Router } from 'express';
-import { Tele } from 'nc-help';
 
 import { NcConfig } from '../../interface/config';
 import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 import Migrator from '../db/sql-migrator/lib/KnexMigrator';
 
 import Noco from '../Noco';
+import { Tele } from 'nc-help';
 import { GqlApiBuilder } from './gql/GqlApiBuilder';
 import { XCEeError } from '../meta/NcMetaMgr';
 import { RestApiBuilder } from './rest/RestApiBuilder';
@@ -626,7 +627,7 @@ export default class NcProjectBuilder {
         i++;
       } else if (db.meta?.allSchemas) {
         /* get all schemas and create APIs for all of them */
-        const sqlClient = SqlClientFactory.create({
+        const sqlClient = await SqlClientFactory.create({
           ...db,
           connection: { ...db.connection, database: undefined },
         });
@@ -697,7 +698,7 @@ export default class NcProjectBuilder {
 
       for (const connectionConfig of dbs) {
         try {
-          const sqlClient = NcConnectionMgr.getSqlClient({
+          const sqlClient = await NcConnectionMgr.getSqlClient({
             dbAlias: connectionConfig?.meta?.dbAlias,
             env: this.config.env,
             config: this.config,
@@ -718,7 +719,7 @@ export default class NcProjectBuilder {
             connectionConfig.meta.dbAlias,
             'migrations'
           );
-          if (!fs.existsSync(migrationFolder)) {
+          if (!(await promisify(fs.exists)(migrationFolder))) {
             await migrator.init({
               folder: this.app.getToolDir(),
               env: this.appConfig.workingEnv,
@@ -901,26 +902,3 @@ export default class NcProjectBuilder {
     await this.init();
   }
 }
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

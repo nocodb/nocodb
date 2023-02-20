@@ -12,11 +12,13 @@ import {
   IsPublicInj,
   MetaInj,
   OpenNewRecordFormHookInj,
-  ReadonlyInj,
   inject,
+  isImage,
+  isLTAR,
   onBeforeMount,
   onBeforeUnmount,
   provide,
+  useAttachment,
   useKanbanViewStoreOrThrow,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
@@ -55,6 +57,8 @@ const route = useRoute()
 
 const router = useRouter()
 
+const { getPossibleAttachmentSrc } = useAttachment()
+
 const {
   loadKanbanData,
   loadMoreKanbanData,
@@ -84,8 +88,6 @@ provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
-
-provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
@@ -119,7 +121,12 @@ reloadViewDataHook?.on(async () => {
 
 const attachments = (record: any): Attachment[] => {
   try {
-    return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
+    if (coverImageColumn?.title && record.row[coverImageColumn.title]) {
+      return typeof record.row[coverImageColumn.title] === 'string'
+        ? JSON.parse(record.row[coverImageColumn.title])
+        : record.row[coverImageColumn.title]
+    }
+    return []
   } catch (e) {
     return []
   }
@@ -312,7 +319,7 @@ watch(view, async (nextView) => {
 </script>
 
 <template>
-  <div class="flex h-full bg-white px-2">
+  <div class="flex h-full bg-white px-2" data-testid="nc-kanban-wrapper">
     <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-kanban-context-menu">
         <!-- Draggable Stack -->
@@ -453,14 +460,14 @@ watch(view, async (nextView) => {
                                       <div style="z-index: 1"></div>
                                     </template>
 
-                                    <LazyNuxtImg
-                                      v-for="(attachment, index) in attachments(record)"
-                                      :key="`carousel-${record.row.id}-${index}`"
-                                      quality="90"
-                                      placeholder
-                                      class="h-52 object-cover"
-                                      :src="attachment.url"
-                                    />
+                                    <template v-for="(attachment, index) in attachments(record)">
+                                      <LazyCellAttachmentImage
+                                        v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
+                                        :key="`carousel-${record.row.id}-${index}`"
+                                        class="h-52 object-cover"
+                                        :srcs="getPossibleAttachmentSrc(attachment)"
+                                      />
+                                    </template>
                                   </a-carousel>
 
                                   <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
@@ -470,35 +477,40 @@ watch(view, async (nextView) => {
                                   :key="`record-${record.row.id}-${col.id}`"
                                   class="flex flex-col rounded-lg w-full"
                                 >
-                                  <!-- Smartsheet Header (Virtual) Cell -->
-                                  <div v-if="!isRowEmpty(record, col)" class="flex flex-row w-full justify-start pt-2">
-                                    <div class="w-full text-gray-400">
-                                      <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                                      <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                  <div v-if="!isRowEmpty(record, col) || isLTAR(col.uidt)">
+                                    <!-- Smartsheet Header (Virtual) Cell -->
+                                    <div class="flex flex-row w-full justify-start pt-2">
+                                      <div class="w-full text-gray-400">
+                                        <LazySmartsheetHeaderVirtualCell
+                                          v-if="isVirtualCol(col)"
+                                          :column="col"
+                                          :hide-menu="true"
+                                        />
+                                        <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                      </div>
                                     </div>
-                                  </div>
 
-                                  <!--  Smartsheet (Virtual) Cell -->
-                                  <div
-                                    v-if="!isRowEmpty(record, col)"
-                                    class="flex flex-row w-full items-center justify-start pl-[6px]"
-                                    :class="{ '!ml-[-12px]': col.uidt === UITypes.SingleSelect }"
-                                  >
-                                    <LazySmartsheetVirtualCell
-                                      v-if="isVirtualCol(col)"
-                                      v-model="record.row[col.title]"
-                                      class="text-sm pt-1"
-                                      :column="col"
-                                      :row="record"
-                                    />
-                                    <LazySmartsheetCell
-                                      v-else
-                                      v-model="record.row[col.title]"
-                                      class="text-sm pt-1"
-                                      :column="col"
-                                      :edit-enabled="false"
-                                      :read-only="true"
-                                    />
+                                    <!--  Smartsheet (Virtual) Cell -->
+                                    <div
+                                      class="flex flex-row w-full items-center justify-start pl-[6px]"
+                                      :class="{ '!ml-[-12px]': col.uidt === UITypes.SingleSelect }"
+                                    >
+                                      <LazySmartsheetVirtualCell
+                                        v-if="isVirtualCol(col)"
+                                        v-model="record.row[col.title]"
+                                        class="text-sm pt-1"
+                                        :column="col"
+                                        :row="record"
+                                      />
+                                      <LazySmartsheetCell
+                                        v-else
+                                        v-model="record.row[col.title]"
+                                        class="text-sm pt-1"
+                                        :column="col"
+                                        :edit-enabled="false"
+                                        :read-only="true"
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               </a-card>
@@ -618,7 +630,12 @@ watch(view, async (nextView) => {
     />
   </Suspense>
 
-  <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-kanban-delete-stack">
+  <a-modal
+    v-model:visible="deleteStackVModel"
+    class="!top-[35%]"
+    :class="{ active: deleteStackVModel }"
+    wrap-class-name="nc-modal-kanban-delete-stack"
+  >
     <template #title>
       {{ $t('activity.deleteKanbanStack') }}
     </template>

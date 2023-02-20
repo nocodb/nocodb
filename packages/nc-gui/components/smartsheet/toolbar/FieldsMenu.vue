@@ -14,7 +14,9 @@ import {
   inject,
   ref,
   resolveComponent,
+  useMenuCloseOnEsc,
   useNuxtApp,
+  useSmartsheetStoreOrThrow,
   useViewColumns,
   watch,
 } from '#imports'
@@ -25,7 +27,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
-const reloadViewMetaHook = inject(ReloadViewMetaHookInj)!
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
 const rootFields = inject(FieldsInj)
 
@@ -45,7 +47,16 @@ const {
   hideAll,
   saveOrUpdate,
   metaColumnById,
+  loadViewColumns,
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
+
+const { eventBus } = useSmartsheetStoreOrThrow()
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+    loadViewColumns()
+  }
+})
 
 watch(
   sortedAndFilteredFields,
@@ -55,7 +66,13 @@ watch(
   { immediate: true },
 )
 
-const isAnyFieldHidden = computed(() => filteredFieldList.value?.some((field) => !field.show))
+const numberOfHiddenFields = computed(() => filteredFieldList.value?.filter((field) => !field.show)?.length)
+
+const gridDisplayValueField = computed(() => {
+  if (activeView.value?.type !== ViewTypes.GRID) return null
+  const pvCol = Object.values(metaColumnById.value)?.find((col) => col?.pv)
+  return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
+})
 
 const onMove = (_event: { moved: { newIndex: number } }) => {
   // todo : sync with server
@@ -73,11 +90,31 @@ const onMove = (_event: { moved: { newIndex: number } }) => {
   $e('a:fields:reorder')
 }
 
+const coverOptions = computed<SelectProps['options']>(() => {
+  const filterFields =
+    fields.value
+      ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
+      .map((field) => {
+        return {
+          value: field.fk_column_id,
+          label: field.title,
+        }
+      }) ?? []
+  return [{ value: null, label: 'No Image' }, ...filterFields]
+})
+
 const coverImageColumnId = computed({
-  get: () =>
-    (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) && activeView.value?.view
-      ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
-      : undefined,
+  get: () => {
+    const fk_cover_image_col_id =
+      (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) && activeView.value?.view
+        ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
+        : undefined
+    // check if `fk_cover_image_col_id` is in `coverOptions`
+    // e.g. in share view, users may not share the cover image column
+    if (coverOptions.value?.find((o) => o.value === fk_cover_image_col_id)) return fk_cover_image_col_id
+    // set to `No Image`
+    return null
+  },
   set: async (val) => {
     if (
       (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
@@ -97,41 +134,34 @@ const coverImageColumnId = computed({
         })
         ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
       }
-      reloadViewMetaHook.trigger()
+      reloadViewMetaHook?.trigger()
     }
   },
-})
-
-const coverOptions = computed<SelectProps['options']>(() => {
-  const filterFields =
-    fields.value
-      ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
-      .map((field) => {
-        return {
-          value: field.fk_column_id,
-          label: field.title,
-        }
-      }) ?? []
-  return [{ value: null, label: 'No Image' }, ...filterFields]
 })
 
 const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
+
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
-    <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
+  <a-dropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
+    <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <MdiEyeOffOutline />
 
           <!-- Fields -->
-          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
+          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
+
+          <span v-if="numberOfHiddenFields" class="nc-count-badge">{{ numberOfHiddenFields }}</span>
         </div>
       </a-button>
     </div>
@@ -139,6 +169,7 @@ const getIcon = (c: ColumnType) =>
     <template #overlay>
       <div
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
+        data-testid="nc-fields-menu"
         @click.stop
       >
         <a-card
@@ -162,7 +193,13 @@ const getIcon = (c: ColumnType) =>
         <div class="nc-fields-list py-1">
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
-              <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex items-center" @click.stop>
+              <div
+                v-if="filteredFieldList.filter((el) => el !== gridDisplayValueField).includes(field)"
+                :key="field.id"
+                class="px-2 py-1 flex items-center"
+                :data-testid="`nc-fields-menu-${field.title}`"
+                @click.stop
+              >
                 <a-checkbox
                   v-model:checked="field.show"
                   v-e="['a:fields:show-hide']"
@@ -179,6 +216,31 @@ const getIcon = (c: ColumnType) =>
                 <div class="flex-1" />
 
                 <MdiDrag class="cursor-move" />
+              </div>
+            </template>
+            <template v-if="activeView?.type === ViewTypes.GRID" #header>
+              <div
+                v-if="gridDisplayValueField"
+                :key="`pv-${gridDisplayValueField.id}`"
+                class="px-2 py-1 flex items-center"
+                :data-testid="`nc-fields-menu-${gridDisplayValueField.title}`"
+                @click.stop
+              >
+                <a-tooltip placement="bottom">
+                  <template #title>
+                    <span class="text-sm">Display Value</span>
+                  </template>
+
+                  <MdiTableKey class="text-xs" />
+                </a-tooltip>
+
+                <div class="flex items-center px-[8px]">
+                  <component :is="getIcon(metaColumnById[filteredFieldList[0].fk_column_id as string])" />
+
+                  <span>{{ filteredFieldList[0].title }}</span>
+                </div>
+
+                <div class="flex-1" />
               </div>
             </template>
           </Draggable>

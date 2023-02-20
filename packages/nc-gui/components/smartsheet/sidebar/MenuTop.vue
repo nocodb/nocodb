@@ -140,7 +140,7 @@ const initSortable = (el: HTMLElement) => {
   if (sortable) sortable.destroy()
 
   sortable = new Sortable(el, {
-    handle: '.nc-drag-icon',
+    // handle: '.nc-drag-icon',
     ghostClass: 'ghost',
     onStart: onSortStart,
     onEnd: onSortEnd,
@@ -213,6 +213,24 @@ function openDeleteDialog(view: ViewType) {
     close(1000)
   }
 }
+
+const setIcon = async (icon: string, view: ViewType) => {
+  try {
+    // modify the icon property in meta
+    view.meta = {
+      ...(view.meta || {}),
+      icon,
+    }
+
+    api.dbView.update(view.id as string, {
+      meta: view.meta,
+    })
+
+    $e('a:view:icon:sidebar', { icon })
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
@@ -224,16 +242,17 @@ function openDeleteDialog(view: ViewType) {
       :key="view.id"
       :view="view"
       :on-validate="validate"
-      class="transition-all ease-in duration-300"
+      class="nc-view-item transition-all ease-in duration-300"
       :class="{
         'bg-gray-100': isMarked === view.id,
-        'active': activeView.id === view.id,
-        [`nc-view-item nc-${viewTypeAlias[view.type] || view.type}-view-item`]: true,
+        'active': activeView?.id === view.id,
+        [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
       }"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="openDeleteDialog"
       @rename="onRename"
+      @select-icon="setIcon($event, view)"
     />
   </a-menu>
 </template>

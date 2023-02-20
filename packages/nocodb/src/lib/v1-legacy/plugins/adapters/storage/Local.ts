@@ -1,12 +1,13 @@
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 
 import mkdirp from 'mkdirp';
 
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import NcConfigFactory from '../../../../utils/NcConfigFactory';
 
-import request from 'request';
+import axios from 'axios';
 
 export default class Local implements IStorageAdapterV2 {
   constructor() {}
@@ -14,10 +15,10 @@ export default class Local implements IStorageAdapterV2 {
   public async fileCreate(key: string, file: XcFile): Promise<any> {
     const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
     try {
-      mkdirp.sync(path.dirname(destPath));
-      const data = await fs.readFileSync(file.path);
-      await fs.writeFileSync(destPath, data);
-      fs.unlinkSync(file.path);
+      await mkdirp(path.dirname(destPath));
+      const data = await promisify(fs.readFile)(file.path);
+      await promisify(fs.writeFile)(destPath, data);
+      await promisify(fs.unlink)(file.path);
       // await fs.promises.rename(file.path, destPath);
     } catch (e) {
       throw e;
@@ -27,38 +28,43 @@ export default class Local implements IStorageAdapterV2 {
   async fileCreateByUrl(key: string, url: string): Promise<any> {
     const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
     return new Promise((resolve, reject) => {
-      mkdirp.sync(path.dirname(destPath));
-      const file = fs.createWriteStream(destPath);
-      const sendReq = request.get(url);
+      axios
+        .get(url, {
+          responseType: 'stream',
+          headers: {
+            accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'accept-language': 'en-US,en;q=0.9',
+            'cache-control': 'no-cache',
+            pragma: 'no-cache',
+            'user-agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+            origin: 'https://www.airtable.com/',
+          },
+        })
+        .then(async (response) => {
+          await mkdirp(path.dirname(destPath));
+          const file = fs.createWriteStream(destPath);
+          // close() is async, call cb after close completes
+          file.on('finish', () => {
+            file.close((err) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(null);
+            });
+          });
 
-      // verify response code
-      sendReq.on('response', (response) => {
-        if (response.statusCode !== 200) {
-          return reject('Response status was ' + response.statusCode);
-        }
+          file.on('error', (err) => {
+            // Handle errors
+            fs.unlink(destPath, () => reject(err.message)); // delete the (partial) file and then return the error
+          });
 
-        sendReq.pipe(file);
-      });
-
-      // close() is async, call cb after close completes
-      file.on('finish', () => {
-        file.close((err) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve(null);
+          response.data.pipe(file);
+        })
+        .catch((err) => {
+          reject(err.message);
         });
-      });
-
-      // check for request errors
-      sendReq.on('error', (err) => {
-        fs.unlink(destPath, () => reject(err.message)); // delete the (partial) file and then return the error
-      });
-
-      file.on('error', (err) => {
-        // Handle errors
-        fs.unlink(destPath, () => reject(err.message)); // delete the (partial) file and then return the error
-      });
     });
   }
 
@@ -86,25 +92,3 @@ export default class Local implements IStorageAdapterV2 {
     return Promise.resolve(false);
   }
 }
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

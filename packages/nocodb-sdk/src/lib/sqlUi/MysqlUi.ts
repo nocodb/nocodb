@@ -597,7 +597,6 @@ export class MysqlUi {
   }
 
   static onCheckboxChangeAI(col) {
-    console.log(col);
     if (
       col.dt === 'int' ||
       col.dt === 'bigint' ||
@@ -944,7 +943,10 @@ export class MysqlUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+  static getDataTypeForUiType(
+    col: { uidt: UITypes; dtxp?: string; colOptions?: any },
+    idType?: IDType
+  ) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
@@ -974,9 +976,16 @@ export class MysqlUi {
       case 'Checkbox':
         colProp.dt = 'tinyint';
         colProp.dtxp = 1;
+        colProp.cdf = '0';
         break;
       case 'MultiSelect':
         colProp.dt = 'set';
+        if (
+          col.colOptions?.options.length > 64 ||
+          col.dtxp?.split(',').length > 64
+        ) {
+          colProp.dt = 'text';
+        }
         break;
       case 'SingleSelect':
         colProp.dt = 'enum';
@@ -1040,6 +1049,7 @@ export class MysqlUi {
         break;
       case 'Rating':
         colProp.dt = 'int';
+        colProp.cdf = '0';
         break;
       case 'Formula':
         colProp.dt = 'varchar';
@@ -1278,25 +1288,3 @@ export class MysqlUi {
 }
 
 // module.exports = MysqlUiHelp;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

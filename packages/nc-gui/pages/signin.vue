@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useSidebar } from '#imports'
+import { definePageMeta, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useSidebar, validateEmail } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -30,7 +30,7 @@ const formRules: Record<string, RuleObject[]> = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (isEmail(v)) return resolve()
+          if (validateEmail(v)) return resolve()
 
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
@@ -64,7 +64,7 @@ function resetError() {
 <template>
   <NuxtLayout>
     <div
-      data-cy="nc-form-signin"
+      data-testid="nc-form-signin"
       class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
     >
       <div
@@ -87,7 +87,7 @@ function resetError() {
           <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
             <a-input
               v-model:value="form.email"
-              data-cy="nc-form-signin__email"
+              data-testid="nc-form-signin__email"
               size="large"
               :placeholder="$t('msg.info.signUp.workEmail')"
               @focus="resetError"
@@ -97,7 +97,7 @@ function resetError() {
           <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
             <a-input-password
               v-model:value="form.password"
-              data-cy="nc-form-signin__password"
+              data-testid="nc-form-signin__password"
               size="large"
               class="password"
               :placeholder="$t('msg.info.signUp.enterPassword')"
@@ -112,7 +112,7 @@ function resetError() {
           </div>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <button data-cy="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
+            <button data-testid="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <MdiLogin />
                 {{ $t('general.signIn') }}

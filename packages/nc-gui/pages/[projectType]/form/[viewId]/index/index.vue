@@ -20,9 +20,9 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 </script>
 
 <template>
-  <div>
+  <div class="h-full flex flex-col items-center">
     <div
-      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl) mt-12"
+      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
     >
       <template v-if="sharedFormView">
         <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
@@ -84,8 +84,10 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                   <div>
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(field)"
-                      class="mt-0 nc-input"
-                      :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+                      :model-value="null"
+                      class="mt-0 nc-input nc-cell"
+                      :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                      :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
                       :column="field"
                     />
 
@@ -93,7 +95,8 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                       v-else
                       v-model="formState[field.title]"
                       class="nc-input"
-                      :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+                      :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                      :class="`nc-form-input-${field.title?.replaceAll(' ', '')}`"
                       :column="field"
                       :edit-enabled="true"
                     />
@@ -110,7 +113,12 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
               </div>
 
               <div class="text-center mt-4">
-                <button type="submit" class="uppercase scaling-btn prose-sm" @click="submitForm">
+                <button
+                  type="submit"
+                  class="uppercase scaling-btn prose-sm"
+                  data-testid="shared-form-submit-button"
+                  @click="submitForm"
+                >
                   {{ $t('general.submit') }}
                 </button>
               </div>
@@ -120,6 +128,14 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
       </template>
     </div>
 
-    <GeneralPoweredBy />
+    <div class="flex items-end">
+      <GeneralPoweredBy />
+    </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.nc-cell .nc-action-icon) {
+  @apply !text-white-500 !bg-white/50 !rounded-full !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover:!bg-white-600 !hover:!text-white-600 !transition;
+}
+</style>

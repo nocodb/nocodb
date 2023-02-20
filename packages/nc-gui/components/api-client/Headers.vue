@@ -7,53 +7,61 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:modelValue'])
 
+interface Option {
+  value: string
+}
+
 const vModel = useVModel(props, 'modelValue', emits)
 
-const headerList = [
-  'A-IM',
-  'Accept',
-  'Accept-Charset',
-  'Accept-Encoding',
-  'Accept-Language',
-  'Accept-Datetime',
-  'Access-Control-Request-Method',
-  'Access-Control-Request-Headers',
-  'Authorization',
-  'Cache-Control',
-  'Connection',
-  'Content-Length',
-  'Content-Type',
-  'Cookie',
-  'Date',
-  'Expect',
-  'Forwarded',
-  'From',
-  'Host',
-  'If-Match',
-  'If-Modified-Since',
-  'If-None-Match',
-  'If-Range',
-  'If-Unmodified-Since',
-  'Max-Forwards',
-  'Origin',
-  'Pragma',
-  'Proxy-Authorization',
-  'Range',
-  'Referer',
-  'TE',
-  'User-Agent',
-  'Upgrade',
-  'Via',
-  'Warning',
-  'Non-standard headers',
-  'Dnt',
-  'X-Requested-With',
-  'X-CSRF-Token',
-]
+const headerList = ref<Option[]>([
+  { value: 'A-IM' },
+  { value: 'Accept' },
+  { value: 'Accept-Charset' },
+  { value: 'Accept-Encoding' },
+  { value: 'Accept-Language' },
+  { value: 'Accept-Datetime' },
+  { value: 'Access-Control-Request-Method' },
+  { value: 'Access-Control-Request-Headers' },
+  { value: 'Authorization' },
+  { value: 'Cache-Control' },
+  { value: 'Connection' },
+  { value: 'Content-Length' },
+  { value: 'Content-Type' },
+  { value: 'Cookie' },
+  { value: 'Date' },
+  { value: 'Expect' },
+  { value: 'Forwarded' },
+  { value: 'From' },
+  { value: 'Host' },
+  { value: 'If-Match' },
+  { value: 'If-Modified-Since' },
+  { value: 'If-None-Match' },
+  { value: 'If-Range' },
+  { value: 'If-Unmodified-Since' },
+  { value: 'Max-Forwards' },
+  { value: 'Origin' },
+  { value: 'Pragma' },
+  { value: 'Proxy-Authorization' },
+  { value: 'Range' },
+  { value: 'Referer' },
+  { value: 'TE' },
+  { value: 'User-Agent' },
+  { value: 'Upgrade' },
+  { value: 'Via' },
+  { value: 'Warning' },
+  { value: 'Non-standard headers' },
+  { value: 'Dnt' },
+  { value: 'X-Requested-With' },
+  { value: 'X-CSRF-Token' },
+])
 
 const addHeaderRow = () => vModel.value.push({})
 
 const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
+
+const filterOption = (input: string, option: Option) => {
+  return option.value.toUpperCase().includes(input.toUpperCase())
+}
 </script>
 
 <template>
@@ -89,18 +97,14 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
 
           <td class="px-2 w-min-[400px]">
             <a-form-item>
-              <a-select
+              <a-auto-complete
                 v-model:value="headerRow.name"
                 size="large"
                 placeholder="Key"
                 class="nc-input-hook-header-key"
-                dropdown-class-name="nc-dropdown-webhook-header"
-                show-search
-              >
-                <a-select-option v-for="header in headerList" :key="header" :value="header">
-                  {{ header }}
-                </a-select-option>
-              </a-select>
+                :options="headerList"
+                :filter-option="filterOption"
+              />
             </a-form-item>
           </td>
 

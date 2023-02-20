@@ -11,7 +11,7 @@ interface Props {
   target?: TeleportProps['to']
   teleportDisabled?: TeleportProps['disabled']
   transition?: boolean
-  zIndex?: string | number
+  zIndex?: number
 }
 
 interface Emits {

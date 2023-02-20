@@ -1,7 +1,10 @@
 <script lang="ts" setup>
-import type { Form } from 'ant-design-vue'
+import type { Form, Input } from 'ant-design-vue'
+import type { RuleObject } from 'ant-design-vue/es/form'
+import type { VNodeRef } from '@vue/runtime-core'
 import {
   extractSdkResponseErrorMsg,
+  generateUniqueName,
   message,
   navigateTo,
   nextTick,
@@ -26,7 +29,7 @@ const nameValidationRules = [
     message: 'Project name is required',
   },
   projectTitleValidator,
-]
+] as RuleObject[]
 
 const form = ref<typeof Form>()
 
@@ -47,18 +50,13 @@ const createProject = async () => {
   }
 }
 
-// select and focus title field on load
+const input: VNodeRef = ref<typeof Input>()
+
 onMounted(async () => {
-  await nextTick(() => {
-    // todo: replace setTimeout and follow better approach
-    setTimeout(() => {
-      const input = form.value?.$el?.querySelector('input[type=text]')
-
-      input.setSelectionRange(0, formState.title.length)
-
-      input.focus()
-    }, 500)
-  })
+  formState.title = await generateUniqueName()
+  await nextTick()
+  input.value?.$el?.focus()
+  input.value?.$el?.select()
 })
 </script>
 
@@ -88,7 +86,7 @@ onMounted(async () => {
       @finish="createProject"
     >
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
-        <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+        <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>
 
       <div class="text-center">

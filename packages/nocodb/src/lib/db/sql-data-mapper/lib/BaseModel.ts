@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
-import Knex from 'knex';
-import Filter from '../../../models/Filter'
-import Sort from '../../../models/Sort'
+import { Knex } from 'knex';
+import Filter from '../../../models/Filter';
+import Sort from '../../../models/Sort';
 
 const autoBind = require('auto-bind');
 const _ = require('lodash');
@@ -112,7 +112,7 @@ abstract class BaseModel {
       timeout: 25000,
     };
 
-    this.clientType = this.dbDriver.clientType();
+    this.clientType = this.dbDriver.client;
 
     autoBind(this);
   }
@@ -220,10 +220,7 @@ abstract class BaseModel {
 
       const query = this.$db.insert(data);
 
-      if (
-        this.dbDriver.clientType() === 'pg' ||
-        this.dbDriver.clientType() === 'mssql'
-      ) {
+      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -265,10 +262,7 @@ abstract class BaseModel {
 
       const query = this.$db.insert(data);
 
-      if (
-        this.dbDriver.clientType() === 'pg' ||
-        this.dbDriver.clientType() === 'mssql'
-      ) {
+      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -303,9 +297,12 @@ abstract class BaseModel {
         await this.validate(d);
       }
 
-      const response = await this.dbDriver
-        .batchInsert(this.tn, data, 50)
-        .returning(this.pks?.[0]?.cn || '*');
+      const response =
+        this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql'
+          ? this.dbDriver
+              .batchInsert(this.tn, data, 50)
+              .returning(this.pks?.[0]?.cn || '*')
+          : this.dbDriver.batchInsert(this.tn, data, 50);
 
       await this.afterInsertb(data);
 
@@ -1517,8 +1514,8 @@ export interface XcFilter {
   offset?: string | number;
   sort?: string;
   fields?: string;
-  filterArr?: Filter[]
-  sortArr?: Sort[]
+  filterArr?: Filter[];
+  sortArr?: Sort[];
 }
 
 export interface XcFilterWithAlias extends XcFilter {
@@ -1533,25 +1530,3 @@ export interface XcFilterWithAlias extends XcFilter {
 }
 
 export default BaseModel;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

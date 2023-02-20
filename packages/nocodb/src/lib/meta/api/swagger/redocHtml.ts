@@ -1,11 +1,15 @@
-export default `<!DOCTYPE html>
+export default ({
+  ncSiteUrl,
+}: {
+  ncSiteUrl: string;
+}): string => `<!DOCTYPE html>
 <html>
 <head>
     <title>NocoDB API Documentation</title>
     <!-- needed for adaptive design -->
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+    <link href="${ncSiteUrl}/css/fonts.montserrat.css" rel="stylesheet">
     <!--
     Redoc doesn't change outer page styles
     -->
@@ -17,8 +21,33 @@ export default `<!DOCTYPE html>
     </style>
 </head>
 <body>
-<redoc spec-url='./swagger.json'></redoc>
-<script src="https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js"> </script>
+<div id="redoc"></div>
+<script src="${ncSiteUrl}/js/redoc.standalone.min.js"></script>
+<script>
+  let initialLocalStorage = {}
+  
+  try {
+    initialLocalStorage = JSON.parse(localStorage.getItem('nocodb-gui-v2') || '{}');
+  } catch (e) {
+    console.error('Failed to parse local storage', e);
+  }
+
+  const xhttp = new XMLHttpRequest();
+  
+  xhttp.open("GET", "./swagger.json");
+  xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+  xhttp.setRequestHeader("xc-auth", initialLocalStorage && initialLocalStorage.token);
+
+  xhttp.onload = function () {
+      const swaggerJson = this.responseText;
+      const swagger = JSON.parse(swaggerJson);
+      Redoc.init(swagger, {
+        scrollYOffset: 50
+      }, document.getElementById('redoc'))
+  };
+  
+  xhttp.send();
+</script>
 <script>
  console.log('%c🚀 We are Hiring!!! 🚀%c\\n%cJoin the forces http://careers.nocodb.com', 'color:#1348ba;font-size:3rem;padding:20px;', 'display:none', 'font-size:1.5rem;padding:20px')
    const linkEl = document.createElement('a')

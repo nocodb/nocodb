@@ -1,5 +1,6 @@
 import { createI18n } from 'vue-i18n'
-import { defineNuxtPlugin, nextTick } from '#imports'
+import { isClient } from '@vueuse/core'
+import { applyLanguageDirection, defineNuxtPlugin, isRtlLang, nextTick } from '#imports'
 import type { Language, NocoI18n } from '~/lib'
 import { LanguageAlias } from '~/lib'
 
@@ -24,6 +25,8 @@ export async function setI18nLanguage(locale: keyof typeof Language, i18n = glob
   }
 
   i18n.global.locale.value = locale
+
+  if (isClient) applyLanguageDirection(isRtlLang(locale) ? 'rtl' : 'ltr')
 }
 
 export async function loadLocaleMessages(

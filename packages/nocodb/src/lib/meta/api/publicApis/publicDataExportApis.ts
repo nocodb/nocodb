@@ -28,14 +28,26 @@ async function exportExcel(req: Request, res: Response) {
   }
 
   const model = await view.getModelWithInfo();
+
   await view.getColumns();
 
   const { offset, dbRows, elapsed } = await getDbRows(model, view, req);
 
-  const data = XLSX.utils.json_to_sheet(dbRows);
+  const fields = req.query.fields as string[];
+
+  const data = XLSX.utils.json_to_sheet(
+    dbRows.map((o: Record<string, any>) =>
+      Object.fromEntries(fields.map((f) => [f, o[f]]))
+    ),
+    { header: fields }
+  );
+
   const wb = XLSX.utils.book_new();
+
   XLSX.utils.book_append_sheet(wb, data, view.title);
+
   const buf = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+
   res.set({
     'Access-Control-Expose-Headers': 'nc-export-offset',
     'nc-export-offset': offset,
@@ -225,7 +237,7 @@ async function serializeCellValue({
         await relatedModel.getColumns();
         return [...(Array.isArray(value) ? value : [value])]
           .map((v) => {
-            return v[relatedModel.primaryValue?.title];
+            return v[relatedModel.displayValue?.title];
           })
           .join(', ');
       }

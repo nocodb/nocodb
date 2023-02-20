@@ -1,15 +1,20 @@
-import type { FilterType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import type { SelectProps } from 'ant-design-vue'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import {
+  ActiveViewInj,
   IsPublicInj,
-  ReloadViewDataHookInj,
+  MetaInj,
   computed,
   extractSdkResponseErrorMsg,
   inject,
   message,
   ref,
+  useDebounceFn,
   useMetas,
   useNuxtApp,
+  useProject,
   useUIPermission,
   watch,
 } from '#imports'
@@ -30,6 +35,8 @@ export function useViewFilters(
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
 
+  const { projectMeta } = useProject()
+
   const isPublic = inject(IsPublicInj, ref(false))
 
   const { $api, $e } = useNuxtApp()
@@ -40,7 +47,7 @@ export function useViewFilters(
 
   const _filters = ref<Filter[]>([])
 
-  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filte rSync') || !isUIAllowed('filterChildrenRead'))
+  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
   const tabMeta = inject(TabMetaInj, ref({ filterState: new Map(), sortsState: new Map() } as TabItem))
 
@@ -68,11 +75,80 @@ export function useViewFilters(
   // nonDeletedFilters are those filters that are not deleted physically & virtually
   const nonDeletedFilters = computed(() => filters.value.filter((f) => f.status !== 'delete'))
 
-  const placeholderFilter: Filter = {
-    comparison_op: 'eq',
-    value: '',
-    status: 'create',
-    logical_op: 'and',
+  const meta = inject(MetaInj, ref())
+
+  const activeView = inject(ActiveViewInj, ref())
+
+  const { showSystemFields, metaColumnById } = useViewColumns(activeView, meta)
+
+  const options = computed<SelectProps['options']>(() =>
+    meta.value?.columns?.filter((c: ColumnType) => {
+      if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
+        /** hide system columns if not enabled */
+        return showSystemFields.value
+      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.system) {
+        return false
+      } else {
+        const isVirtualSystemField = c.colOptions && c.system
+        return !isVirtualSystemField
+      }
+    }),
+  )
+
+  const types = computed(() => {
+    if (!meta.value?.columns?.length) {
+      return {}
+    }
+
+    return meta.value?.columns?.reduce((obj: any, col: any) => {
+      obj[col.id] = col.uidt
+      return obj
+    }, {})
+  })
+
+  const isComparisonOpAllowed = (
+    filter: FilterType,
+    compOp: {
+      text: string
+      value: string
+      ignoreVal?: boolean
+      includedTypes?: UITypes[]
+      excludedTypes?: UITypes[]
+    },
+  ) => {
+    const isNullOrEmptyOp = ['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)
+    if (compOp.includedTypes) {
+      // include allowed values only if selected column type matches
+      if (filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])) {
+        // for 'empty', 'notempty', 'null', 'notnull',
+        // show them based on `showNullAndEmptyInFilter` in Project Settings
+        return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+      } else {
+        return false
+      }
+    } else if (compOp.excludedTypes) {
+      // include not allowed values only if selected column type not matches
+      if (filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])) {
+        // for 'empty', 'notempty', 'null', 'notnull',
+        // show them based on `showNullAndEmptyInFilter` in Project Settings
+        return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+      } else {
+        return false
+      }
+    }
+    // explicitly include for non-null / non-empty ops
+    return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
+  }
+
+  const placeholderFilter = (): Filter => {
+    return {
+      comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
+        isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
+      )?.[0].value,
+      value: '',
+      status: 'create',
+      logical_op: 'and',
+    }
   }
 
   const loadFilters = async (hookId?: string) => {
@@ -191,8 +267,6 @@ export function useViewFilters(
           fk_parent_id: parentId,
         })
       }
-
-      reloadHook?.trigger()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -201,13 +275,16 @@ export function useViewFilters(
     reloadData?.()
   }
 
+  const saveOrUpdateDebounced = useDebounceFn(saveOrUpdate, 500)
+
   const addFilter = () => {
-    filters.value.push({ ...placeholderFilter })
+    filters.value.push(placeholderFilter())
     $e('a:filter:add', { length: filters.value.length })
   }
 
   const addFilterGroup = async () => {
-    const child = { ...placeholderFilter }
+    const child = placeholderFilter()
+
     const placeHolderGroupFilter: Filter = {
       is_group: true,
       status: 'create',
@@ -234,10 +311,21 @@ export function useViewFilters(
 
       return metas?.value?.[view?.value?.fk_model_id as string]?.columns?.length || 0
     },
-    async (nextColsLength, oldColsLength) => {
+    async (nextColsLength: number, oldColsLength: number) => {
       if (nextColsLength && nextColsLength < oldColsLength) await loadFilters()
     },
   )
 
-  return { filters, nonDeletedFilters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup }
+  return {
+    filters,
+    nonDeletedFilters,
+    loadFilters,
+    sync,
+    deleteFilter,
+    saveOrUpdate,
+    addFilter,
+    addFilterGroup,
+    saveOrUpdateDebounced,
+    isComparisonOpAllowed,
+  }
 }

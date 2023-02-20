@@ -18,8 +18,9 @@ import {
   watch,
 } from '#imports'
 
-const { modelValue } = defineProps<{
+const { modelValue, baseId } = defineProps<{
   modelValue: boolean
+  baseId: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -39,6 +40,8 @@ const step = ref(1)
 const progress = ref<Record<string, any>[]>([])
 
 const logRef = ref<typeof AntCard>()
+
+const enableAbort = ref(false)
 
 let socket: Socket | null
 
@@ -96,7 +99,7 @@ async function createOrUpdate() {
         body: payload,
       })
     } else {
-      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
         baseURL,
         method: 'POST',
         headers: { 'xc-auth': $state.token.value as string },
@@ -109,7 +112,7 @@ async function createOrUpdate() {
 }
 
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+  const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs/${baseId}`, {
     baseURL,
     method: 'GET',
     headers: { 'xc-auth': $state.token.value as string },
@@ -121,6 +124,7 @@ async function loadSyncSrc() {
     srcs[0].details = srcs[0].details || {}
     syncSource.value = migrateSync(srcs[0])
     syncSource.value.details.syncSourceUrlOrId = srcs[0].details.shareId
+    socket?.emit('subscribe', syncSource.value.id)
   } else {
     syncSource.value = {
       id: '',
@@ -146,7 +150,6 @@ async function loadSyncSrc() {
 }
 
 async function sync() {
-  step.value = 2
   try {
     await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
       baseURL,
@@ -156,9 +159,34 @@ async function sync() {
         id: socket?.id,
       },
     })
+    socket?.emit('subscribe', syncSource.value.id)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+}
+
+async function abort() {
+  Modal.confirm({
+    title: 'Are you sure you want to abort this job?',
+    type: 'warn',
+    content:
+      "This is a highly experimental feature and only marks job as not started, please don't abort the job unless you are sure job is stuck.",
+    onOk: async () => {
+      try {
+        await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/abort`, {
+          baseURL,
+          method: 'POST',
+          headers: { 'xc-auth': $state.token.value as string },
+          params: {
+            id: socket?.id,
+          },
+        })
+        step.value = 1
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
 }
 
 function migrateSync(src: any) {
@@ -193,16 +221,6 @@ onMounted(async () => {
     extraHeaders: { 'xc-auth': $state.token.value as string },
   })
 
-  socket.on('connect_error', () => {
-    socket?.disconnect()
-    socket = null
-  })
-
-  // connect event does not provide data
-  socket.on('connect', () => {
-    console.log('socket connected')
-  })
-
   socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
 
@@ -219,12 +237,45 @@ onMounted(async () => {
     }
   })
 
+  socket.on('disconnect', () => {
+    console.log('socket disconnected')
+    const rcInterval = setInterval(() => {
+      if (socket?.connected) {
+        clearInterval(rcInterval)
+        socket?.emit('subscribe', syncSource.value.id)
+      } else {
+        socket?.connect()
+      }
+    }, 2000)
+  })
+
+  socket.on('job', () => {
+    step.value = 2
+  })
+
+  // connect event does not provide data
+  socket.on('connect', () => {
+    console.log('socket connected')
+    if (syncSource.value.id) {
+      socket?.emit('subscribe', syncSource.value.id)
+    }
+  })
+
+  socket?.io.on('reconnect', () => {
+    console.log('socket reconnected')
+    if (syncSource.value.id) {
+      socket?.emit('subscribe', syncSource.value.id)
+    }
+  })
+
   await loadSyncSrc()
 })
 
 onBeforeUnmount(() => {
   if (socket) {
+    socket.off('disconnect')
     socket.disconnect()
+    socket.removeAllListeners()
   }
 })
 </script>
@@ -232,6 +283,7 @@ onBeforeUnmount(() => {
 <template>
   <a-modal
     v-model:visible="dialogShow"
+    :class="{ active: dialogShow }"
     width="max(30vw, 600px)"
     class="p-2"
     wrap-class-name="nc-modal-airtable-import"
@@ -239,7 +291,7 @@ onBeforeUnmount(() => {
   >
     <div class="px-5">
       <!--      Quick Import -->
-      <div class="mt-5 prose-xl font-weight-bold">{{ $t('title.quickImport') }} - AIRTABLE</div>
+      <div class="mt-5 prose-xl font-weight-bold" @dblclick="enableAbort = true">{{ $t('title.quickImport') }} - AIRTABLE</div>
 
       <div v-if="step === 1">
         <div class="mb-4">
@@ -381,6 +433,7 @@ onBeforeUnmount(() => {
           <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">
             {{ $t('labels.goToDashboard') }}
           </a-button>
+          <a-button v-else-if="enableAbort" class="mt-4" size="large" danger @click="abort()">ABORT</a-button>
         </div>
       </div>
     </div>

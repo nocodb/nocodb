@@ -18,8 +18,11 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 ###########
 # Builder
 ###########
-FROM node:12 as builder
+FROM node:16.17.0-alpine3.15 as builder
 WORKDIR /usr/src/app
+
+# install node-gyp dependencies
+RUN apk add --no-cache python3 make g++
 
 # Copy application dependency manifests to the container image.
 # A wildcard is used to ensure both package.json AND package-lock.json are copied.
@@ -28,12 +31,15 @@ COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
 #COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
+COPY ./src/lib/public/css/*.css ./docker/public/css/
+COPY ./src/lib/public/js/*.js ./docker/public/js/
+COPY ./src/lib/public/favicon.ico ./docker/public/
 
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
 # package built code into app.tar.gz & add execute permission to start.sh
-RUN npm ci --production --quiet \
-    && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**" --run  \
+RUN npm ci --omit=dev --quiet \
+    && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && tar -czf ../appEntry/app.tar.gz ./* \
     && chmod +x /usr/src/appEntry/start.sh
@@ -41,7 +47,7 @@ RUN npm ci --production --quiet \
 ##########
 # Runner
 ##########
-FROM alpine:3.12
+FROM alpine:3.15
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER 0.6

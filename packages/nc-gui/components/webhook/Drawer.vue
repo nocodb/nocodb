@@ -31,7 +31,7 @@ async function editHook(hook: Record<string, any>) {
     class="nc-drawer-webhook"
     @keydown.esc="vModel = false"
   >
-    <a-layout>
+    <a-layout class="nc-drawer-webhook-body">
       <a-layout-content class="px-10 py-5 scrollbar-thin-primary">
         <LazyWebhookEditor v-if="editOrAdd" :hook="currentHook" @back-to-list="editOrAdd = false" />
 

@@ -1,3 +1,4 @@
+import { ProjectType } from 'nocodb-sdk';
 import {
   // CacheDelDirection,
   CacheGetType,
@@ -33,6 +34,12 @@ export default class ProjectUser {
         updated_at: projectUser.updated_at,
       },
       true
+    );
+
+    // reset all user projects cache
+    await NocoCache.delAll(
+      CacheScope.USER_PROJECT,
+      `${projectUser.fk_user_id}:*`
     );
 
     return this.get(project_id, fk_user_id, ncMeta);
@@ -165,7 +172,7 @@ export default class ProjectUser {
     );
   }
 
-  static async delete(projectId: string, userId, ncMeta = Noco.ncMeta) {
+  static async delete(projectId: string, userId: string, ncMeta = Noco.ncMeta) {
     // await NocoCache.deepDel(
     //   CacheScope.PROJECT_USER,
     //   `${CacheScope.PROJECT_USER}:${projectId}:${userId}`,
@@ -177,10 +184,73 @@ export default class ProjectUser {
     if (email) {
       await NocoCache.delAll(CacheScope.USER, `${email}*`);
     }
+
+    // remove project from user project list cache
+    let cachedProjectList = await NocoCache.getList(CacheScope.USER_PROJECT, [
+      userId,
+    ]);
+    if (cachedProjectList?.length) {
+      cachedProjectList = cachedProjectList.filter((p) => p.id !== projectId);
+      await NocoCache.setList(
+        CacheScope.USER_PROJECT,
+        [userId],
+        cachedProjectList
+      );
+    }
+
     await NocoCache.del(`${CacheScope.PROJECT_USER}:${projectId}:${userId}`);
     return await ncMeta.metaDelete(null, null, MetaTable.PROJECT_USERS, {
       fk_user_id: userId,
       project_id: projectId,
     });
+  }
+
+  static async getProjectsIdList(
+    userId: string,
+    ncMeta = Noco.ncMeta
+  ): Promise<ProjectUser[]> {
+    return await ncMeta.metaList2(null, null, MetaTable.PROJECT_USERS, {
+      condition: { fk_user_id: userId },
+    });
+  }
+
+  static async getProjectsList(
+    userId: string,
+    _params: any,
+    ncMeta = Noco.ncMeta
+  ): Promise<ProjectType[]> {
+    // todo: pagination
+    let projectList = await NocoCache.getList(CacheScope.USER_PROJECT, [
+      userId,
+    ]);
+
+    if (projectList.length) {
+      return projectList;
+    }
+
+    projectList = await ncMeta
+      .knex(MetaTable.PROJECT)
+      .select(`${MetaTable.PROJECT}.*`)
+      .innerJoin(MetaTable.PROJECT_USERS, function () {
+        this.on(
+          `${MetaTable.PROJECT_USERS}.project_id`,
+          `${MetaTable.PROJECT}.id`
+        );
+        this.andOn(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId])
+        );
+      })
+      .where(function () {
+        this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
+          `${MetaTable.PROJECT}.deleted`
+        );
+      });
+
+    if (projectList?.length) {
+      await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);
+    }
+
+    return projectList;
   }
 }

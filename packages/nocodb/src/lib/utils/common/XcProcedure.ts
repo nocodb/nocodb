@@ -10,22 +10,20 @@ export default class XcProcedure {
   public async callFunction(name: string, args: any[]) {
     try {
       if (this.builder.getDbType() === 'mssql') {
-        const result = await this.builder
-          .getDbDriver()
-          .raw(
-            `select dbo.??(${new Array(args.length)
-              .fill('?')
-              .join(',')}) as ??`,
-            [name, ...args, name]
-          );
+        const result = await (
+          await this.builder.getDbDriver()
+        ).raw(
+          `select dbo.??(${new Array(args.length).fill('?').join(',')}) as ??`,
+          [name, ...args, name]
+        );
         return result[0];
       } else {
-        const result = await this.builder
-          .getDbDriver()
-          .raw(
-            `select ??(${new Array(args.length).fill('?').join(',')}) as ??`,
-            [name, ...args, name]
-          );
+        const result = await (
+          await this.builder.getDbDriver()
+        ).raw(
+          `select ??(${new Array(args.length).fill('?').join(',')}) as ??`,
+          [name, ...args, name]
+        );
         return result[0];
       }
     } catch (e) {
@@ -65,7 +63,7 @@ export default class XcProcedure {
       ) {
         const knexRef = args.reduce(
           (knex, val, i) => knex.raw(`SET @var${i}=?`, [val]),
-          this.builder.getDbDriver().schema
+          (await this.builder.getDbDriver()).schema
         );
         const count = args.length;
         const result = await knexRef.raw(
@@ -76,12 +74,12 @@ export default class XcProcedure {
         );
         return [result[count][0][0]];
       } else if (this.builder.getDbType() === 'pg') {
-        const result = await this.builder
-          .getDbDriver()
-          .raw(`Call ??(${new Array(args.length).fill('?').join(',')})`, [
-            name,
-            ...args,
-          ]);
+        const result = await (
+          await this.builder.getDbDriver()
+        ).raw(`Call ??(${new Array(args.length).fill('?').join(',')})`, [
+          name,
+          ...args,
+        ]);
         return result;
       } else {
         throw new Error('Not implemented');
@@ -91,25 +89,3 @@ export default class XcProcedure {
     }
   }
 }
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

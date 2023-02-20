@@ -2,16 +2,22 @@ import debug from 'debug';
 import CacheMgr from './CacheMgr';
 import Redis from 'ioredis';
 import { CacheDelDirection, CacheGetType, CacheScope } from '../utils/globals';
+
 const log = debug('nc:cache');
 
 export default class RedisCacheMgr extends CacheMgr {
   client: any;
+  prefix: string;
 
   constructor(config: any) {
     super();
     this.client = new Redis(config);
     // flush the existing db with selected key (Default: 0)
     this.client.flushdb();
+
+    // TODO(cache): fetch orgs once it's implemented
+    const orgs = 'noco';
+    this.prefix = `nc:${orgs}`;
   }
 
   // avoid circular structure to JSON
@@ -91,28 +97,32 @@ export default class RedisCacheMgr extends CacheMgr {
 
   // @ts-ignore
   async delAll(scope: string, pattern: string): Promise<any[]> {
-    // Example: model:*:<id>
-    const keys = await this.client.keys(`${scope}:${pattern}`);
+    // Example: nc:<orgs>:model:*:<id>
+    const keys = await this.client.keys(`${this.prefix}:${scope}:${pattern}`);
     log(
-      `RedisCacheMgr::delAll: deleting all keys with pattern ${scope}:${pattern}`
+      `RedisCacheMgr::delAll: deleting all keys with pattern ${this.prefix}:${scope}:${pattern}`
+    );
+    await Promise.all(
+      keys.map(async (k) => {
+        await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT);
+      })
     );
     return Promise.all(
-      keys.map(
-        async (k) =>
-          await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT)
-      )
+      keys.map(async (k) => {
+        await this.del(k);
+      })
     );
   }
 
   async getList(scope: string, subKeys: string[]): Promise<any[]> {
     // remove null from arrays
     subKeys = subKeys.filter((k) => k);
-    // e.g. key = <scope>:<project_id_1>:<base_id_1>:list
+    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
     const key =
       subKeys.length === 0
-        ? `${scope}:list`
-        : `${scope}:${subKeys.join(':')}:list`;
-    // e.g. arr = ["<scope>:<model_id_1>", "<scope>:<model_id_2>"]
+        ? `${this.prefix}:${scope}:list`
+        : `${this.prefix}:${scope}:${subKeys.join(':')}:list`;
+    // e.g. arr = ["nc:<orgs>:<scope>:<model_id_1>", "nc:<orgs>:<scope>:<model_id_2>"]
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisCacheMgr::getList: getting list with key ${key}`);
     return Promise.all(
@@ -128,11 +138,11 @@ export default class RedisCacheMgr extends CacheMgr {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
     // construct key for List
-    // e.g. <scope>:<project_id_1>:<base_id_1>:list
+    // e.g. nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
     const listKey =
       subListKeys.length === 0
-        ? `${scope}:list`
-        : `${scope}:${subListKeys.join(':')}:list`;
+        ? `${this.prefix}:${scope}:list`
+        : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     if (!list.length) {
       log(`RedisCacheMgr::setList: List is empty for ${listKey}. Skipping ...`);
       return Promise.resolve(true);
@@ -142,11 +152,11 @@ export default class RedisCacheMgr extends CacheMgr {
       (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
     for (const o of list) {
       // construct key for Get
-      // e.g. <scope>:<model_id_1>
-      let getKey = `${scope}:${o.id}`;
+      // e.g. nc:<orgs>:<scope>:<model_id_1>
+      let getKey = `${this.prefix}:${scope}:${o.id}`;
       // special case - MODEL_ROLE_VISIBILITY
       if (scope === CacheScope.MODEL_ROLE_VISIBILITY) {
-        getKey = `${scope}:${o.id}:${o.role}`;
+        getKey = `${this.prefix}:${scope}:${o.id}:${o.role}`;
       }
       // set Get Key
       log(`RedisCacheMgr::setList: setting key ${getKey}`);
@@ -164,10 +174,11 @@ export default class RedisCacheMgr extends CacheMgr {
     key: string,
     direction: string
   ): Promise<boolean> {
+    key = `${this.prefix}:${key}`;
     log(`RedisCacheMgr::deepDel: choose direction ${direction}`);
     if (direction === CacheDelDirection.CHILD_TO_PARENT) {
       // given a child key, delete all keys in corresponding parent lists
-      const scopeList = await this.client.keys(`${scope}*list`);
+      const scopeList = await this.client.keys(`${this.prefix}:${scope}*list`);
       for (const listKey of scopeList) {
         // get target list
         let list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
@@ -208,11 +219,11 @@ export default class RedisCacheMgr extends CacheMgr {
   ): Promise<boolean> {
     // remove null from arrays
     subListKeys = subListKeys.filter((k) => k);
-    // e.g. key = <scope>:<project_id_1>:<base_id_1>:list
+    // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<base_id_1>:list
     const listKey =
       subListKeys.length === 0
-        ? `${scope}:list`
-        : `${scope}:${subListKeys.join(':')}:list`;
+        ? `${this.prefix}:${scope}:list`
+        : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
     log(`RedisCacheMgr::appendToList: append key ${key} to ${listKey}`);
     const list = (await this.get(listKey, CacheGetType.TYPE_ARRAY)) || [];
     list.push(key);

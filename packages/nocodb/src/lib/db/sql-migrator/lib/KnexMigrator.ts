@@ -309,7 +309,7 @@ export default class KnexMigrator extends SqlMigrator {
         await this._readProjectJson(projJsonFilePath);
         this.emit('Migrator for project initalised successfully');
       } else if (NcConfigFactory.hasDbUrl()) {
-        this.project = NcConfigFactory.make();
+        this.project = await NcConfigFactory.make();
       } else {
         args.type = args.type || 'sqlite';
 
@@ -381,7 +381,8 @@ export default class KnexMigrator extends SqlMigrator {
 
   async _initDbWithSql(connectionConfig) {
     const sqlClient =
-      connectionConfig.sqlClient || SqlClientFactory.create(connectionConfig);
+      connectionConfig.sqlClient ||
+      (await SqlClientFactory.create(connectionConfig));
     if (connectionConfig.client === 'oracledb') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`
@@ -427,7 +428,7 @@ export default class KnexMigrator extends SqlMigrator {
   }
 
   async _cleanDbWithSql(connectionConfig) {
-    const sqlClient = SqlClientFactory.create(connectionConfig);
+    const sqlClient = await SqlClientFactory.create(connectionConfig);
     if (connectionConfig.client === 'oracledb') {
       this.emit(`Dropping DB : ${connectionConfig.connection.user}`);
       await sqlClient.dropDatabase({
@@ -567,7 +568,8 @@ export default class KnexMigrator extends SqlMigrator {
         args.dbAlias,
         args.env
       );
-      const sqlClient = args.sqlClient || SqlClientFactory.create(connection);
+      const sqlClient =
+        args.sqlClient || (await SqlClientFactory.create(connection));
 
       let migrations = await sqlClient.selectAll(
         sqlClient.getTnPath(connection.meta.tn)
@@ -820,7 +822,7 @@ export default class KnexMigrator extends SqlMigrator {
         args.dbAlias,
         args.env
       );
-      const sqlClient = SqlClientFactory.create(connection);
+      const sqlClient = await SqlClientFactory.create(connection);
       const migrations = await sqlClient.selectAll(
         sqlClient.getTnPath(connection.meta.tn)
       );
@@ -1732,26 +1734,3 @@ export default class KnexMigrator extends SqlMigrator {
     return '';
   }
 }
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

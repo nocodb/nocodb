@@ -1,26 +1,28 @@
 <script setup lang="ts">
+import type { Input } from 'ant-design-vue'
 import {
   Form,
   computed,
   extractSdkResponseErrorMsg,
-  isEmail,
   message,
   onMounted,
   projectRoleTagColors,
   projectRoles,
   ref,
+  useActiveKeyupListener,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
   useProject,
+  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
 
 interface Props {
   show: boolean
-  selectedUser?: User
+  selectedUser?: User | null
 }
 
 interface Users {
@@ -43,7 +45,7 @@ const { copy } = useCopy()
 
 const { dashboardUrl } = $(useDashboard())
 
-const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
+let usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
 
 const formRef = ref()
 
@@ -57,7 +59,7 @@ const validators = computed(() => {
             callback('Email is required')
             return
           }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !isEmail(e))
+          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
           if (invalidEmails.length > 0) {
             callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
           } else {
@@ -79,6 +81,11 @@ onMounted(() => {
   }
 })
 
+const close = () => {
+  emit('closed')
+  usersData = { role: ProjectRole.Viewer }
+}
+
 const saveUser = async () => {
   $e('a:user:invite', { role: usersData.role })
 
@@ -94,7 +101,7 @@ const saveUser = async () => {
         project_id: project.value.id,
         projectName: project.value.title,
       })
-      emit('closed')
+      close()
     } else {
       const res = await $api.auth.projectUserAdd(project.value.id, {
         roles: usersData.role,
@@ -118,12 +125,14 @@ const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}#
 
 const copyUrl = async () => {
   if (!inviteUrl) return
+  try {
+    await copy(inviteUrl)
 
-  await copy(inviteUrl)
-
-  // Copied shareable base url to clipboard!
-  message.success(t('msg.success.shareableURLCopied'))
-
+    // Copied shareable base url to clipboard!
+    message.success(t('msg.success.shareableURLCopied'))
+  } catch (e) {
+    message.error(e.message)
+  }
   $e('c:shared-base:copy-url')
 }
 
@@ -133,6 +142,29 @@ const clickInviteMore = () => {
   usersData.role = ProjectRole.Viewer
   usersData.emails = undefined
 }
+
+const emailField = ref<typeof Input>()
+
+useActiveKeyupListener(
+  computed(() => show),
+  (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      close()
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => show,
+  async (val) => {
+    if (val) {
+      await nextTick()
+      emailField.value?.$el?.focus()
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -140,16 +172,22 @@ const clickInviteMore = () => {
     :footer="null"
     centered
     :visible="show"
+    :class="{ active: show }"
     :closable="false"
     width="max(50vw, 44rem)"
     wrap-class-name="nc-modal-invite-user-and-share-base"
-    @cancel="emit('closed')"
+    @cancel="close"
   >
-    <div class="flex flex-col">
+    <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
         <a-typography-title class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
 
-        <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
+        <a-button
+          type="text"
+          class="!rounded-md mr-1 -mt-1.5"
+          data-testid="invite-user-and-share-base-modal-close-btn"
+          @click="close"
+        >
           <template #icon>
             <MaterialSymbolsCloseRounded class="flex mx-auto" />
           </template>
@@ -167,7 +205,7 @@ const clickInviteMore = () => {
             <a-alert class="mt-1" type="success" show-icon>
               <template #message>
                 <div class="flex flex-row justify-between items-center py-1">
-                  <div class="flex pl-2 text-green-700 text-xs">
+                  <div class="flex pl-2 text-green-700 text-xs" data-testid="invite-modal-invitation-url">
                     {{ inviteUrl }}
                   </div>
 
@@ -222,6 +260,7 @@ const clickInviteMore = () => {
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
 
                     <a-input
+                      ref="emailField"
                       v-model:value="usersData.emails"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"

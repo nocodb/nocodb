@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { Form } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
+import type { VNodeRef } from '@vue/runtime-core'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -8,16 +10,13 @@ import {
   projectTitleValidator,
   reactive,
   ref,
-  tryOnMounted,
   useProject,
   useRoute,
 } from '#imports'
 
 const route = useRoute()
 
-const { project, loadProject, updateProject, isLoading, projectLoadedHook } = useProject()
-
-loadProject(false)
+const { project, loadProject, updateProject, isLoading } = useProject()
 
 const nameValidationRules = [
   {
@@ -25,7 +24,7 @@ const nameValidationRules = [
     message: 'Project name is required',
   },
   projectTitleValidator,
-]
+] as RuleObject[]
 
 const form = ref<typeof Form>()
 
@@ -43,21 +42,13 @@ const renameProject = async () => {
   }
 }
 
-// select and focus title field on load
-projectLoadedHook(async () => {
-  formState.title = project.value.title as string
+onBeforeMount(async () => {
+  await loadProject(false)
 
-  tryOnMounted(() => {
-    // todo: replace setTimeout and follow better approach
-    setTimeout(() => {
-      const input = form.value?.$el?.querySelector('input[type=text]')
-
-      input.focus()
-
-      input.setSelectionRange(0, formState.title?.length)
-    }, 150)
-  })
+  formState.title = project.value?.title
 })
+
+const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
@@ -89,7 +80,7 @@ projectLoadedHook(async () => {
       @finish="renameProject"
     >
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules">
-        <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+        <a-input :ref="focus" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>
 
       <div class="text-center">

@@ -1,13 +1,5 @@
 import { UITypes } from 'nocodb-sdk'
-import {
-  extractMultiOrSingleSelectProps,
-  getCheckboxValue,
-  isCheckboxType,
-  isDecimalType,
-  isEmailType,
-  isMultiLineTextType,
-  isUrlType,
-} from './parserHelpers'
+import { getCheckboxValue, getColumnUIDTAndMetas } from './parserHelpers'
 import TemplateGenerator from './TemplateGenerator'
 
 const jsonTypeToUidt: Record<string, string> = {
@@ -22,22 +14,19 @@ const extractNestedData: any = (obj: any, path: any) => path.reduce((val: any, k
 
 export default class JSONTemplateAdapter extends TemplateGenerator {
   config: Record<string, any>
-  name: string
   data: Record<string, any>
   _jsonData: string | Record<string, any>
   jsonData: Record<string, any>
-  project: Record<string, any>
+  project: {
+    tables: Record<string, any>[]
+  }
+
   columns: object
-  constructor(name = 'test', data: object, parserConfig = {}) {
+  constructor(data: object, parserConfig = {}) {
     super()
-    this.config = {
-      maxRowsToParse: 500,
-      ...parserConfig,
-    }
-    this.name = name
+    this.config = parserConfig
     this._jsonData = data
     this.project = {
-      title: this.name,
       tables: [],
     }
     this.jsonData = []
@@ -75,7 +64,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
       table.columns.push(...columns)
     }
 
-    if (this.config.importData) {
+    if (this.config.shouldImportData) {
       this._parseTableData(table)
     }
 
@@ -100,50 +89,21 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
       }
     } else {
       const cn = path.join('_').replace(/\W/g, '_').trim()
-
       const column: Record<string, any> = {
         column_name: cn,
         ref_column_name: cn,
+        uidt: UITypes.SingleLineText,
         path,
       }
-
-      column.uidt = jsonTypeToUidt[typeof firstRowVal] || UITypes.SingleLineText
-
-      const colData = jsonData.map((r: any) => extractNestedData(r, path))
-      Object.assign(column, this._getColumnUIDTAndMetas(colData, column.uidt))
+      if (this.config.autoSelectFieldTypes) {
+        column.uidt = jsonTypeToUidt[typeof firstRowVal] || UITypes.SingleLineText
+        const colData = jsonData.map((r: any) => extractNestedData(r, path))
+        Object.assign(column, getColumnUIDTAndMetas(colData, column.uidt))
+      }
       columns.push(column)
     }
 
     return columns
-  }
-
-  _getColumnUIDTAndMetas(colData: any, defaultType: any) {
-    const colProps = { uidt: defaultType }
-    // todo: optimize
-    if (colProps.uidt === UITypes.SingleLineText) {
-      // check for long text
-      if (isMultiLineTextType(colData)) {
-        colProps.uidt = UITypes.LongText
-      }
-      if (isEmailType(colData)) {
-        colProps.uidt = UITypes.Email
-      }
-      if (isUrlType(colData)) {
-        colProps.uidt = UITypes.URL
-      } else {
-        const checkboxType = isCheckboxType(colData)
-        if (checkboxType.length === 1) {
-          colProps.uidt = UITypes.Checkbox
-        } else {
-          Object.assign(colProps, extractMultiOrSingleSelectProps(colData))
-        }
-      }
-    } else if (colProps.uidt === UITypes.Number) {
-      if (isDecimalType(colData)) {
-        colProps.uidt = UITypes.Decimal
-      }
-    }
-    return colProps
   }
 
   _parseTableData(tableMeta: any) {

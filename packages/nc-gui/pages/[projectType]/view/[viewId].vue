@@ -1,16 +1,5 @@
 <script setup lang="ts">
-import {
-  ReadonlyInj,
-  ReloadViewDataHookInj,
-  createEventHook,
-  definePageMeta,
-  extractSdkResponseErrorMsg,
-  message,
-  provide,
-  ref,
-  useRoute,
-  useSharedView,
-} from '#imports'
+import { definePageMeta, extractSdkResponseErrorMsg, message, ref, useRoute, useSharedView } from '#imports'
 
 definePageMeta({
   public: true,
@@ -19,11 +8,6 @@ definePageMeta({
 })
 
 const route = useRoute()
-
-const reloadEventHook = createEventHook()
-
-provide(ReloadViewDataHookInj, reloadEventHook)
-provide(ReadonlyInj, true)
 
 const { loadSharedView } = useSharedView()
 
@@ -42,7 +26,7 @@ try {
 </script>
 
 <template>
-  <NuxtLayout id="content" class="flex" name="shared-view">
+  <NuxtLayout class="flex" name="shared-view">
     <div v-if="showPassword">
       <LazySharedViewAskPassword v-model="showPassword" />
     </div>

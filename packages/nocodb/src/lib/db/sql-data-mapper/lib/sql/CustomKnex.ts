@@ -1,4 +1,5 @@
-import Knex, { QueryBuilder } from 'knex';
+import { Knex, knex } from 'knex';
+import { SnowflakeClient } from 'nc-help';
 
 const types = require('pg').types;
 // override parsing date column to Date()
@@ -464,70 +465,72 @@ const appendWhereCondition = function (
 };
 
 declare module 'knex' {
-  interface QueryInterface {
-    clientType(): string;
-  }
+  namespace Knex {
+    interface QueryInterface {
+      clientType(): string;
+    }
 
-  export type XcConditionObjVal = {
-    [key in 'eq' | 'neq' | 'lt' | 'gt' | 'ge' | 'le' | 'like' | 'nlike']:
-      | string
-      | number
-      | any;
-  };
+    export type XcConditionObjVal = {
+      [key in 'eq' | 'neq' | 'lt' | 'gt' | 'ge' | 'le' | 'like' | 'nlike']:
+        | string
+        | number
+        | any;
+    };
 
-  export interface XcXonditionObj {
-    _or: XcXonditionObj[];
-    _and: XcXonditionObj[];
-    _not: XcXonditionObj;
+    export interface XcXonditionObj {
+      _or: XcXonditionObj[];
+      _and: XcXonditionObj[];
+      _not: XcXonditionObj;
 
-    [key: string]:
-      | XcXonditionObj
-      | XcXonditionObj[]
-      | XcConditionObjVal
-      | XcConditionObjVal[];
-  }
+      [key: string]:
+        | XcXonditionObj
+        | XcXonditionObj[]
+        | XcConditionObjVal
+        | XcConditionObjVal[];
+    }
 
-  interface QueryBuilder {
-    xwhere<TRecord, TResult>(
-      value: string,
-      columnAliases?: {
-        [columnAlias: string]: string;
-      }
-    ): Knex.QueryBuilder<TRecord, TResult>;
+    interface QueryBuilder {
+      xwhere<TRecord, TResult>(
+        value: string,
+        columnAliases?: {
+          [columnAlias: string]: string;
+        }
+      ): Knex.QueryBuilder<TRecord, TResult>;
 
-    condition<TRecord, TResult>(
-      conditionObj: XcXonditionObj,
-      columnAliases?: {
-        [columnAlias: string]: string;
-      }
-    ): Knex.QueryBuilder<TRecord, TResult>;
+      condition<TRecord, TResult>(
+        conditionObj: XcXonditionObj,
+        columnAliases?: {
+          [columnAlias: string]: string;
+        }
+      ): Knex.QueryBuilder<TRecord, TResult>;
 
-    conditionv2<TRecord, TResult>(
-      conditionObj: Filter
-    ): Knex.QueryBuilder<TRecord, TResult>;
+      conditionv2<TRecord, TResult>(
+        conditionObj: Filter
+      ): Knex.QueryBuilder<TRecord, TResult>;
 
-    concat<TRecord, TResult>(
-      cn: string | any
-    ): Knex.QueryBuilder<TRecord, TResult>;
+      concat<TRecord, TResult>(
+        cn: string | any
+      ): Knex.QueryBuilder<TRecord, TResult>;
 
-    conditionGraph<TRecord, TResult>(condition: {
-      condition: XcXonditionObj;
-      models: { [key: string]: BaseModelSql };
-    }): Knex.QueryBuilder<TRecord, TResult>;
+      conditionGraph<TRecord, TResult>(condition: {
+        condition: XcXonditionObj;
+        models: { [key: string]: BaseModelSql };
+      }): Knex.QueryBuilder<TRecord, TResult>;
 
-    xhaving<TRecord, TResult>(
-      value: string,
-      columnAliases?: {
-        [columnAlias: string]: string;
-      }
-    ): Knex.QueryBuilder<TRecord, TResult>;
+      xhaving<TRecord, TResult>(
+        value: string,
+        columnAliases?: {
+          [columnAlias: string]: string;
+        }
+      ): Knex.QueryBuilder<TRecord, TResult>;
+    }
   }
 }
 
 /**
  * Append xwhere to knex query builder
  */
-Knex.QueryBuilder.extend(
+knex.QueryBuilder.extend(
   'xwhere',
   function (
     conditionString,
@@ -542,10 +545,12 @@ Knex.QueryBuilder.extend(
 /**
  * Append concat to knex query builder
  */
-Knex.QueryBuilder.extend('concat', function (cn: any) {
+knex.QueryBuilder.extend('concat', function (cn: any) {
   switch (this?.client?.config?.client) {
     case 'pg':
-      this.select(this.client.raw(`STRING_AGG(?? , ',')`, [cn]));
+      this.select(
+        this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn])
+      );
       break;
     case 'mysql':
     case 'mysql2':
@@ -564,7 +569,7 @@ Knex.QueryBuilder.extend('concat', function (cn: any) {
 /**
  * Append xhaving to knex query builder
  */
-Knex.QueryBuilder.extend(
+knex.QueryBuilder.extend(
   'xhaving',
   function (
     conditionString,
@@ -580,7 +585,7 @@ Knex.QueryBuilder.extend(
 /**
  * Append custom where condition(nested object) to knex query builder
  */
-Knex.QueryBuilder.extend('condition', function (conditionObj, columnAliases) {
+knex.QueryBuilder.extend('condition', function (conditionObj, columnAliases) {
   if (!conditionObj || typeof conditionObj !== 'object') {
     return this;
   }
@@ -661,7 +666,7 @@ const parseCondition = (obj, columnAliases, qb, pKey?) => {
 };
 
 // todo: optimize
-Knex.QueryBuilder.extend(
+knex.QueryBuilder.extend(
   'conditionGraph',
   function (args: { condition; models }) {
     if (!args) {
@@ -986,9 +991,16 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 type CustomKnex = Knex;
 
 function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
-  const knex: any = Knex(arg);
+  // sqlite does not support inserting default values and knex fires a warning without this flag
+  if (arg?.client === 'sqlite3') {
+    arg.useNullAsDefault = true;
+  }
 
-  const knexRaw = knex.raw;
+  if (arg?.client === 'snowflake') arg.client = SnowflakeClient;
+
+  const kn: any = knex(arg);
+
+  const knexRaw = kn.raw;
 
   /**
    * Wrapper for knex.raw
@@ -1000,11 +1012,11 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
   //   return knexRaw.apply(knex, args);
   // };
 
-  Object.defineProperties(knex, {
+  Object.defineProperties(kn, {
     raw: {
       enumerable: true,
       value: (...args) => {
-        return knexRaw.apply(knex, args);
+        return knexRaw.apply(kn, args);
       },
     },
     clientType: {
@@ -1012,7 +1024,9 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
       value: () => {
         return typeof arg === 'string'
           ? arg.match(/^(\w+):/) ?? [1]
-          : arg.client;
+          : typeof arg.client === 'string'
+          ? arg.client
+          : arg.client?.prototype?.dialect || arg.client?.prototype?.driverName;
       },
     },
     searchPath: {
@@ -1032,11 +1046,11 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
   //   return typeof arg === 'string' ? arg.match(/^(\w+):/) ?? [1] : arg.client;
   // };
 
-  return knex;
+  return kn;
 }
 
 // todo: optimize
-Knex.QueryBuilder.extend(
+knex.QueryBuilder.extend(
   'conditionGraphv2',
   function (args: { condition; models }) {
     if (!args) {
@@ -1227,14 +1241,14 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
 /**
  * Append custom where condition(nested object) to knex query builder
  */
-Knex.QueryBuilder.extend('conditionv2', function (conditionObj: Filter) {
+knex.QueryBuilder.extend('conditionv2', function (conditionObj: Filter) {
   if (!conditionObj || typeof conditionObj !== 'object') {
     return this;
   }
   return parseConditionv2(conditionObj, this);
 } as any);
 
-const parseConditionv2 = (obj: Filter, qb: QueryBuilder) => {
+const parseConditionv2 = (obj: Filter, qb: Knex.QueryBuilder) => {
   if (obj.is_group) {
     qb = qb.where(function () {
       const children = obj.children;
@@ -1295,26 +1309,3 @@ const parseConditionv2 = (obj: Filter, qb: QueryBuilder) => {
 
 export default CustomKnex;
 export { Knex };
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- * @author Wing-Kam Wong <wingkwong.code@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

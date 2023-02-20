@@ -59,7 +59,7 @@ export default class SelectOption {
 
   public static async read(fk_column_id: string, ncMeta = Noco.ncMeta) {
     let options = await NocoCache.getList(CacheScope.COL_SELECT_OPTION, [
-      fk_column_id
+      fk_column_id,
     ]);
     if (!options.length) {
       options = await ncMeta.metaList2(
@@ -71,13 +71,15 @@ export default class SelectOption {
       await NocoCache.setList(
         CacheScope.COL_SELECT_OPTION,
         [fk_column_id],
-        options.map(({created_at, updated_at, ...others}) => others)
+        options.map(({ created_at, updated_at, ...others }) => others)
       );
     }
 
     return options?.length
       ? {
-          options: options.map(({created_at, updated_at, ...c}) => new SelectOption(c))
+          options: options
+            .map(({ created_at, updated_at, ...c }) => new SelectOption(c))
+            .sort((x, y) => x.order - y.order),
         }
       : null;
   }
@@ -87,14 +89,13 @@ export default class SelectOption {
     title: string,
     ncMeta = Noco.ncMeta
   ): Promise<SelectOption> {
-
-    let data = await ncMeta.metaGet2(
+    const data = await ncMeta.metaGet2(
       null,
       null,
       MetaTable.COL_SELECT_OPTIONS,
       {
         fk_column_id,
-        title
+        title,
       }
     );
 

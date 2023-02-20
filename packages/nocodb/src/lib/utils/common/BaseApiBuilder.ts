@@ -9,7 +9,6 @@ import {
   PgClient,
   SqlClient,
   // SqlClientFactory,
-  Tele,
 } from 'nc-help';
 
 import XcDynamicChanges from '../../../interface/XcDynamicChanges';
@@ -22,6 +21,7 @@ import NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
 import Noco from '../../Noco';
 import NcMetaIO from '../../meta/NcMetaIO';
 import XcCache from '../../v1-legacy/plugins/adapters/cache/XcCache';
+import { Tele } from 'nc-help';
 
 import BaseModel from './BaseModel';
 import { XcCron } from './XcCron';
@@ -187,7 +187,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return this.connectionConfig?.meta?.dbAlias;
   }
 
-  public getSqlClient(): any {
+  public async getSqlClient() {
     return NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
@@ -1291,8 +1291,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
     this.models[viewName] = this.getBaseModel(newMeta);
   }
 
-  public getDbDriver(): XKnex {
-    this.initDbDriver();
+  public async getDbDriver(): Promise<XKnex> {
+    await this.initDbDriver();
     return this.dbDriver;
   }
 
@@ -1669,14 +1669,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
     await this.cronJob.init();
   }
 
-  protected initDbDriver(): void {
-    this.dbDriver = NcConnectionMgr.get({
+  protected async initDbDriver(): Promise<void> {
+    this.dbDriver = await NcConnectionMgr.get({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
       projectId: this.projectId,
     });
-    this.sqlClient = NcConnectionMgr.getSqlClient({
+    this.sqlClient = await NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
@@ -2511,11 +2511,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
         ctx,
         filename: '',
       }).getVitualColumns();
-      // set default primary values
+      // set default display values
       ModelXcMetaFactory.create(
         this.connectionConfig,
         {}
-      ).mapDefaultPrimaryValue(meta.columns);
+      ).mapDefaultDisplayValue(meta.columns);
       // update meta
       await this.xcMeta.metaUpdate(
         this.projectId,
@@ -3064,7 +3064,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     );
     const colListRef = {};
     const tableList =
-      (await this.getSqlClient()?.tableList())?.data?.list || [];
+      (await (await this.getSqlClient())?.tableList())?.data?.list || [];
 
     colListRef[tableName] = await this.getColumnList(tableName);
 
@@ -3279,26 +3279,3 @@ export {
   NcMetaData,
   XcTablesPopulateParams,
 };
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

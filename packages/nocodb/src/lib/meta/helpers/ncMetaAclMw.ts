@@ -1,22 +1,38 @@
+import { OrgUserRoles } from 'nocodb-sdk';
 import projectAcl from '../../utils/projectAcl';
 import { NextFunction, Request, Response } from 'express';
 import catchError, { NcError } from './catchError';
 import extractProjectIdAndAuthenticate from './extractProjectIdAndAuthenticate';
 
-export default function (handlerFn, permissionName) {
+export default function (
+  handlerFn,
+  permissionName,
+  {
+    allowedRoles,
+    blockApiTokenAccess,
+  }: {
+    allowedRoles?: (OrgUserRoles | string)[];
+    blockApiTokenAccess?: boolean;
+  } = {}
+) {
   return [
     extractProjectIdAndAuthenticate,
     catchError(async function authMiddleware(req, _res, next) {
       const roles = req?.session?.passport?.user?.roles;
+      if (req?.session?.passport?.user?.is_api_token && blockApiTokenAccess) {
+        NcError.forbidden('Not allowed with API token');
+      }
       if (
+        (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&
         !(
           roles?.creator ||
           roles?.owner ||
           roles?.editor ||
           roles?.viewer ||
           roles?.commenter ||
-          roles?.user ||
-          roles?.user_new
+          roles?.[OrgUserRoles.SUPER_ADMIN] ||
+          roles?.[OrgUserRoles.CREATOR] ||
+          roles?.[OrgUserRoles.VIEWER]
         )
       ) {
         NcError.unauthorized('Unauthorized access');

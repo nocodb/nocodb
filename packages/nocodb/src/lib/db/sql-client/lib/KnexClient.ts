@@ -1,20 +1,19 @@
 /* eslint-disable no-constant-condition */
-import Knex from 'knex';
+import { knex, Knex } from 'knex';
+import { Tele } from 'nc-help';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';
 
-import knex from 'knex';
-import lodash from 'lodash';
+import findIndex from 'lodash/findIndex';
+import find from 'lodash/find';
 import fs from 'fs';
 import { promisify } from 'util';
 import jsonfile from 'jsonfile';
 import path from 'path';
 import mkdirp from 'mkdirp';
-import Order from './order';
 import * as dataHelp from './data.helper';
 import SqlClient from './SqlClient';
-import { Tele } from 'nc-help';
 const evt = new Emit();
 
 const log = new Debug('KnexClient');
@@ -587,27 +586,6 @@ class KnexClient extends SqlClient {
     if (connectionConfig.knex) {
       this.sqlClient = connectionConfig.knex;
     } else {
-      // console.log('KnexClient',this.connectionConfig);
-      if (
-        this.connectionConfig.connection.ssl &&
-        typeof this.connectionConfig.connection.ssl === 'object'
-      ) {
-        if (this.connectionConfig.connection.ssl.caFilePath) {
-          this.connectionConfig.connection.ssl.ca = fs
-            .readFileSync(this.connectionConfig.connection.ssl.caFilePath)
-            .toString();
-        }
-        if (this.connectionConfig.connection.ssl.keyFilePath) {
-          this.connectionConfig.connection.ssl.key = fs
-            .readFileSync(this.connectionConfig.connection.ssl.keyFilePath)
-            .toString();
-        }
-        if (this.connectionConfig.connection.ssl.certFilePath) {
-          this.connectionConfig.connection.ssl.cert = fs
-            .readFileSync(this.connectionConfig.connection.ssl.certFilePath)
-            .toString();
-        }
-      }
       const tmpConnectionConfig =
         connectionConfig.client === 'sqlite3'
           ? connectionConfig.connection
@@ -621,10 +599,13 @@ class KnexClient extends SqlClient {
     this.evt = new Emit();
   }
 
-  _validateInput() {
+  async _validateInput() {
     try {
       const packageJson = JSON.parse(
-        fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8')
+        await promisify(fs.readFile)(
+          path.join(process.cwd(), 'package.json'),
+          'utf8'
+        )
       );
       return (
         packageJson.name === 'nocodb' || 'nocodb' in packageJson.dependencies
@@ -633,10 +614,10 @@ class KnexClient extends SqlClient {
     return true;
   }
 
-  validateInput() {
+  async validateInput() {
     try {
       if (!('___ext' in KnexClient)) {
-        KnexClient.___ext = this._validateInput();
+        KnexClient.___ext = await this._validateInput();
       }
       if (!KnexClient.___ext) {
         Tele.emit('evt', {
@@ -687,7 +668,7 @@ class KnexClient extends SqlClient {
   }
 
   _isColumnForeignKey(tableObj, cn) {
-    if (lodash.findIndex(tableObj.foreignKeys, { cn: cn }) === -1) {
+    if (findIndex(tableObj.foreignKeys, { cn: cn }) === -1) {
       return false;
     }
     return true;
@@ -701,7 +682,7 @@ class KnexClient extends SqlClient {
     ) {
       if (tableObj.primaryKeys.length > 1) {
         if (
-          lodash.findIndex(tableObj.primaryKeys, {
+          findIndex(tableObj.primaryKeys, {
             cn: columnObj.cn,
           }) > 0
         ) {
@@ -765,7 +746,7 @@ class KnexClient extends SqlClient {
 
     if (tableObj.primaryKeys.length) {
       const dt = this.getKnexDataTypeMock(pk.ct);
-      const col = lodash.find(tableObj.columns, {
+      const col = find(tableObj.columns, {
         cn: pk.cn,
       });
 
@@ -780,11 +761,7 @@ class KnexClient extends SqlClient {
 
     let max1 = 10000;
     let searchFrom = 0;
-    let foundIndex = lodash.findIndex(
-      tableObj.columns,
-      { ck: 'UNI' },
-      searchFrom
-    );
+    let foundIndex = findIndex(tableObj.columns, { ck: 'UNI' }, searchFrom);
 
     while (foundIndex !== -1) {
       const col = tableObj.columns[foundIndex];
@@ -800,16 +777,12 @@ class KnexClient extends SqlClient {
       }
 
       searchFrom = foundIndex;
-      foundIndex = lodash.findIndex(
-        tableObj.columns,
-        { ck: 'UNI' },
-        searchFrom + 1
-      );
+      foundIndex = findIndex(tableObj.columns, { ck: 'UNI' }, searchFrom + 1);
     }
 
     let max2 = 10000;
     searchFrom = 0;
-    foundIndex = lodash.findIndex(tableObj.columns, { ck: 'MUL' }, searchFrom);
+    foundIndex = findIndex(tableObj.columns, { ck: 'MUL' }, searchFrom);
 
     while (foundIndex !== -1) {
       const col = tableObj.columns[foundIndex];
@@ -825,11 +798,7 @@ class KnexClient extends SqlClient {
       }
 
       searchFrom = foundIndex;
-      foundIndex = lodash.findIndex(
-        tableObj.columns,
-        { ck: 'MUL' },
-        searchFrom + 1
-      );
+      foundIndex = findIndex(tableObj.columns, { ck: 'MUL' }, searchFrom + 1);
     }
 
     // console.log('min of: ', max, max1, max2, maxy);
@@ -893,377 +862,8 @@ class KnexClient extends SqlClient {
 
   getMinMax(_columnObject) {}
 
-  async mockDb(args) {
-    // console.time('mockDb');
-    const faker = require('faker');
-
-    try {
-      const settings = await jsonfile.readFile(
-        path.join(args.seedsFolder, '__xseeds.json')
-      );
-
-      await this.dbCacheInitAsyncKnex();
-
-      const order = new Order(this.metaDb.erMatrix);
-
-      const orders = order.getOrder();
-      console.log('Insert order by table index: ', orders);
-      // console.log('Insert order by table name: ');
-
-      // order.resetIndex(15, 16);
-      // orders = order.getOrder();
-      // console.log('Insert order by table index: ', orders);
-      // console.log('Insert order by table name: ');
-      // return;
-
-      /** ************** START : reset all tables *************** */
-      await this.knex.raw('SET foreign_key_checks = 0');
-      for (let i = 0; i < orders.order.length; ++i) {
-        const tn = this.metaDb.erIndexTableObj[orders.order[i]];
-        if (tn !== 'xc_evolutions' && this.metaDb.tables[tn].is_view === null) {
-          await this.knex.raw(`truncate ${tn}`);
-          await this.knex.raw(`ALTER TABLE ${tn} AUTO_INCREMENT = 0;`);
-        }
-      }
-      await this.knex.raw('SET foreign_key_checks = 1');
-      /** ************** END : reset all tables *************** */
-
-      // return;
-
-      // iterate over each table
-      for (let i = 0; i < orders.order.length; ++i) {
-        const tn = this.metaDb.erIndexTableObj[orders.order[i]];
-        const tableObj = this.metaDb.tables[tn];
-
-        if (tn === 'xc_evolutions') {
-        } else {
-          /** ************** START : ignore views *************** */
-          if (this.metaDb.tables[tn].is_view !== null) {
-            console.log('ignore view', tn);
-            continue;
-          }
-
-          let numOfRows = +settings.rows.value || 8;
-          const rows = [];
-          let fks = [];
-
-          let fakerColumns: any = await this.fakerColumnsList({
-            seedsFolder: args.seedsFolder,
-            tn: tn,
-          });
-          fakerColumns = fakerColumns.data.list;
-
-          let maxPks = numOfRows;
-          if (tableObj.primaryKeys.length) {
-            maxPks = this._getMaxPksPossible(tableObj.primaryKeys[0]);
-          }
-
-          console.log('MaxPks Possible', maxPks);
-
-          if (maxPks < numOfRows) {
-            numOfRows = maxPks;
-          }
-
-          console.log(`\n\n Preparing to insert ${numOfRows} in ${tn}`);
-
-          /** ************** START : create empty rows *************** */
-          for (let k = 0; k < numOfRows; ++k) {
-            rows.push({});
-          }
-
-          // iterate over each foreign key in this table
-          /** ************** START : get FK column values *************** */
-          for (let j = 0; j < this.metaDb.tables[tn].foreignKeys.length; ++j) {
-            const fkObj = this.metaDb.tables[tn].foreignKeys[j];
-            // console.log('\n\tStart : get FK row', fkObj['rtn'] + '.' + fkObj['rcn'] + ' === ' + fkObj['cn']);
-            fks = await this.knex(fkObj.rtn)
-              .select(`${fkObj.rcn} as ${fkObj.cn}`)
-              .limit(numOfRows);
-            // console.log('fks:', fks);
-
-            for (
-              let rowIndex = 0, fksIndex = 0;
-              rowIndex < numOfRows && fksIndex < fks.length;
-              fksIndex++
-            ) {
-              if (rowIndex < fks.length) {
-                for (
-                  let l = 0;
-                  l < settings.foreign_key_rows.value && rowIndex < numOfRows;
-                  ++l, ++rowIndex
-                ) {
-                  rows[rowIndex][fkObj.cn] = fks[fksIndex][fkObj.cn];
-                  // rows[k+1][fkObj['cn']] = fks[k][fkObj['cn']];
-                }
-              } else if (fks.length) {
-                // rows[k][fkObj['cn']] = fks[fks.length - 1][fkObj['cn']];
-                break;
-              } else {
-                rows[rowIndex][fkObj.cn] = null;
-              }
-            }
-
-            // for (let k = 0; k < numOfRows; ++k) {
-            //   if (k < fks.length) {
-            //     rows[k][fkObj['cn']] = fks[k][fkObj['cn']];
-            //   } else {
-            //     if (fks.length) {
-            //       //rows[k][fkObj['cn']] = fks[fks.length - 1][fkObj['cn']];
-            //       break;
-            //     } else {
-            //       rows[k][fkObj['cn']] = null;
-            //     }
-            //   }
-            //
-            // }
-            // console.log('\tEnd : get FK row', fkObj['rtn'] + '.' + fkObj['rcn'] + ' === ' + fkObj['cn']);
-          }
-
-          /** ************** START : populate columns of the table *************** */
-          for (let j = 0; j < this.metaDb.tables[tn].columns.length; ++j) {
-            const colObj = this.metaDb.tables[tn].columns[j];
-            const colUiObj = this.metaDb.tables[tn].uiModel.columns[j];
-            const fakerColObj = fakerColumns.find(
-              (col) => col.cn === colObj.cn
-            );
-
-            console.log(
-              '\tColumn: ',
-              colObj.cn,
-              ' of type ',
-              colObj.dt,
-              colObj.np,
-              colObj.clen
-            );
-
-            const dt = this.getKnexDataTypeMock(colObj.dt);
-            const numDict = {};
-            const floatDict = {};
-            const strDict = {};
-
-            for (let k = 0; k < numOfRows; ++k) {
-              // console.log(this.knex(tn).insert(rows).toSQL());
-              console.log(rows);
-              switch (dt) {
-                case 'year':
-                  rows[k][colObj.cn] = Math.floor(Math.random() * 180) + 1920;
-                  break;
-
-                case 'enum':
-                  {
-                    const enums = fakerColObj.dtxp
-                      .split(',')
-                      .map((v) => v.slice(1, -1));
-                    const enumIndex = Math.floor(Math.random() * enums.length);
-                    rows[k][colObj.cn] = enums[enumIndex];
-                  }
-                  break;
-                case 'integer':
-                  if (this._isColumnPrimary(colObj) && colUiObj.ai) {
-                    // primary key is auto inc - ignore creating from faker
-                    // rows[k][colObj['cn']] = 0;
-                  } else if (this._isColumnForeignKey(tableObj, colObj.cn)) {
-                    // foreign key - ignore creating from faker
-                  } else {
-                    while (1) {
-                      console.log('..');
-
-                      let num = this._getMaxNumPossible(fakerColObj);
-                      num = Math.floor(Math.random() * num);
-                      // let max = Math.pow(2, colObj['np'])
-                      // num = num % max;
-
-                      if (
-                        (colObj.ck === 'UNI' ||
-                          colObj.ck === 'MUL' ||
-                          this._isColumnPrimaryForInserting(
-                            tableObj,
-                            colObj
-                          )) &&
-                        num in numDict
-                      ) {
-                        // console.log('>> num', num, numOfRows);
-                      } else {
-                        rows[k][colObj.cn] = num;
-                        numDict[num] = num;
-                        break;
-                      }
-                    }
-                  }
-
-                  break;
-
-                case 'float':
-                  while (1) {
-                    let num = Math.floor(Math.random() * 2147483647);
-                    const max = Math.pow(2, fakerColObj.dtxp);
-
-                    num %= max;
-
-                    if (
-                      (colObj.ck === 'UNI' ||
-                        colObj.ck === 'MUL' ||
-                        this._isColumnPrimaryForInserting(tableObj, colObj)) &&
-                      num in floatDict
-                    ) {
-                      // console.log('>> num', num, numOfRows);
-                    } else {
-                      rows[k][colObj.cn] = num;
-                      floatDict[num] = num;
-                      break;
-                    }
-                  }
-                  // rows[k][colObj['cn']] = faker.random.number();
-                  break;
-
-                case 'date':
-                  rows[k][colObj.cn] = faker.date.past();
-                  break;
-                case 'blob':
-                  rows[k][colObj.cn] = faker.lorem.sentence();
-                  break;
-                case 'boolean':
-                  rows[k][colObj.cn] = faker.random.boolean();
-                  break;
-                case 'geometry':
-                  rows[k][colObj.cn] = this.knex.raw(
-                    faker.fake('POINT({{random.number}}, {{random.number}})')
-                  );
-                  break;
-                case 'point':
-                  rows[k][colObj.cn] = this.knex.raw(
-                    faker.fake('POINT({{random.number}}, {{random.number}})')
-                  );
-                  break;
-                case 'linestring':
-                  rows[k][colObj.cn] = this.knex.raw(
-                    faker.fake(
-                      'LineString(POINT({{random.number}}, {{random.number}}), POINT({{random.number}}, {{random.number}}))'
-                    )
-                  );
-                  break;
-                case 'polygon':
-                  rows[k][colObj.cn] = this.knex.raw(
-                    faker.fake(
-                      "ST_GeomFromText('POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 7,5 5))')"
-                    )
-                  );
-                  break;
-                case 'multipoint':
-                  rows[k][colObj.cn] = this.knex.raw(
-                    faker.fake(
-                      "ST_MPointFromText('MULTIPOINT ({{random.number}} {{random.number}}, {{random.number}} {{random.number}}, {{random.number}} {{random.number}})')"
-                    )
-                  );
-                  break;
-                case 'multilinestring':
-                  rows[k][colObj.cn] = this.knex.raw(
-                    faker.fake(
-                      "ST_GeomFromText('MultiLineString(({{random.number}} {{random.number}}, {{random.number}} {{random.number}}), ({{random.number}} {{random.number}}, {{random.number}} {{random.number}}))')"
-                    )
-                  );
-                  break;
-                case 'multipolygon':
-                  rows[k][colObj.cn] = this.knex.raw(
-                    faker.fake(
-                      "ST_GeomFromText('MultiPolygon(((0 0,0 3,3 3,3 0,0 0),(1 1,1 2,2 2,2 1,1 1)))')"
-                    )
-                  );
-                  break;
-                case 'json':
-                  rows[k][colObj.cn] = JSON.stringify({
-                    name: faker.name.firstName(),
-                    suffix: faker.name.suffix(),
-                  });
-                  break;
-                case 'bit':
-                  {
-                    const num = Math.floor(
-                      Math.random() * Math.pow(2, colObj.np || 6)
-                    );
-                    rows[k][colObj.cn] = num;
-                  }
-                  break;
-                case 'text':
-                  rows[k][colObj.cn] = faker.lorem.sentence();
-                  break;
-
-                case 'string':
-                default:
-                  if (this._isColumnForeignKey(tableObj, colObj.cn)) {
-                  } else {
-                    while (1) {
-                      const fakerColumn = fakerColumns.find(
-                        (col) => col.cn === colObj.cn
-                      );
-
-                      const fakerFuncs = fakerColumn.fakerFunction
-                        ? fakerColumn.fakerFunction.split('.')
-                        : [];
-
-                      let str = faker.internet.email();
-
-                      if (fakerFuncs.length) {
-                        // str = faker[fakerFuncs[0]][fakerFuncs[1]]();
-                      }
-
-                      let max = 1;
-                      if (colObj.clen) {
-                        max = colObj.clen;
-                        if (max < str.length) {
-                          // max = str.length;
-                        }
-                        str = str.slice(0, max);
-                      }
-
-                      if (
-                        (colObj.ck === 'UNI' ||
-                          this._isColumnPrimaryForInserting(
-                            tableObj,
-                            colObj
-                          )) &&
-                        str in strDict
-                      ) {
-                      } else {
-                        rows[k][colObj.cn] = str;
-                        strDict[str] = 1;
-                        break;
-                      }
-                    }
-                  }
-
-                  break;
-              }
-            }
-          }
-          for (let i = 0; i < rows.length; ++i) {
-            // for (let key in rows[i]) {
-            //   console.log(key,rows[i][key]);
-            // }
-            await this.knex(tn).insert(rows[i]);
-          }
-
-          // await knex.raw(knex(tn).insert(rows).toSQL() + " ON DUPLICATE KEY UPDATE " +
-          //   Object.getOwnPropertyNames(rows).map((field) => `${field}=VALUES(${field})`).join(", "))
-
-          this.emit(`Inserted '${rows.length}' rows in 'table.${tn}'`);
-          console.log('End: ', tn);
-        }
-
-        // console.log(orders.order.length, tablesAsArr.length);
-        //
-        // let cycle = Object.keys(orders.cycle);
-        //
-        // for (let i = 0; i < cycle.length; ++i) {
-        //   console.log(tablesAsArr[cycle[i]]);
-        // }
-      }
-    } catch (e) {
-      console.log('Error in mockDb : ', e);
-      throw e;
-    }
-
-    // console.timeEnd('mockDb')
+  async mockDb(_args) {
+    // todo: remove method
   }
 
   async dbCacheInitAsyncKnex(_cbk = null) {
@@ -2266,7 +1866,7 @@ class KnexClient extends SqlClient {
   //     let downQuery = "";
   //
   //     for (let i = 0; i < args.columns.length; ++i) {
-  //       const oldColumn = lodash.find(originalColumns, {
+  //       const oldColumn = find(originalColumns, {
   //         cn: args.columns[i].cno
   //       });
   //
@@ -2417,7 +2017,7 @@ class KnexClient extends SqlClient {
           pkUpdate(table, args.columns, args.originalColumns);
         } else {
           for (let i = 0; i < args.columns.length; ++i) {
-            const column = lodash.find(originalColumns, {
+            const column = find(originalColumns, {
               cn: args.columns[i].cno,
             });
 
@@ -2461,7 +2061,7 @@ class KnexClient extends SqlClient {
               pkUpdate(table, args.columns, args.originalColumns);
             } else {
               for (let i = 0; i < args.columns.length; ++i) {
-                const column = lodash.find(originalColumns, {
+                const column = find(originalColumns, {
                   cn: args.columns[i].cno,
                 });
                 if (args.columns[i].altered & 8) {
@@ -2495,7 +2095,7 @@ class KnexClient extends SqlClient {
               pkUpdate(table, args.columns, args.originalColumns);
             } else {
               for (let i = 0; i < args.columns.length; ++i) {
-                const column = lodash.find(originalColumns, {
+                const column = find(originalColumns, {
                   cn: args.columns[i].cno,
                 });
                 if (args.columns[i].altered & 8) {
@@ -2767,39 +2367,26 @@ class KnexClient extends SqlClient {
     const foreignKeyName = args.foreignKeyName || null;
 
     try {
-      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
+      const upQb = this.sqlClient.schema.table(
+        args.childTable,
+        function (table) {
+          table = table
+            .foreign(args.childColumn, foreignKeyName)
+            .references(args.parentColumn)
+            .on(args.parentTable);
 
-      await this.sqlClient.schema.table(args.childTable, function (table) {
-        table = table
-          .foreign(args.childColumn, foreignKeyName)
-          .references(args.parentColumn)
-          .on(args.parentTable);
-
-        if (args.onUpdate) {
-          table = table.onUpdate(args.onUpdate);
+          if (args.onUpdate) {
+            table = table.onUpdate(args.onUpdate);
+          }
+          if (args.onDelete) {
+            table.onDelete(args.onDelete);
+          }
         }
-        if (args.onDelete) {
-          table = table.onDelete(args.onDelete);
-        }
-      });
+      );
 
-      const upStatement =
-        this.querySeparator() +
-        (await this.sqlClient.schema
-          .table(args.childTable, function (table) {
-            table = table
-              .foreign(args.childColumn, foreignKeyName)
-              .references(args.parentColumn)
-              .on(args.parentTable);
+      await upQb;
 
-            if (args.onUpdate) {
-              table = table.onUpdate(args.onUpdate);
-            }
-            if (args.onDelete) {
-              table = table.onDelete(args.onDelete);
-            }
-          })
-          .toQuery());
+      const upStatement = this.querySeparator() + upQb.toQuery();
 
       this.emit(`Success : ${upStatement}`);
 
@@ -2807,7 +2394,7 @@ class KnexClient extends SqlClient {
         this.querySeparator() +
         this.sqlClient.schema
           .table(args.childTable, function (table) {
-            table = table.dropForeign(args.childColumn, foreignKeyName);
+            table.dropForeign(args.childColumn, foreignKeyName);
           })
           .toQuery();
 
@@ -3220,7 +2807,7 @@ class KnexClient extends SqlClient {
     console.log('in knex SeedInit');
 
     try {
-      mkdirp.sync(args.seedsFolder);
+      await mkdirp(args.seedsFolder);
     } catch (e) {
       log.ppe(e, _func);
       throw e;

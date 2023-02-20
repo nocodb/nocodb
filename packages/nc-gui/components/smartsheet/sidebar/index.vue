@@ -21,7 +21,17 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
+const { activeTab } = useTabs()
+
 const { views, loadViews, isLoading } = useViews(meta)
+
+const { lastOpenedViewMap } = useProject()
+
+const setLastOpenedViewId = (viewId?: string) => {
+  if (viewId && activeTab.value?.id) {
+    lastOpenedViewMap.value[activeTab.value?.id] = viewId
+  }
+}
 
 const { isUIAllowed } = useUIPermission()
 
@@ -43,10 +53,14 @@ const sidebar = ref()
 watch(
   [views, () => route.params.viewTitle],
   ([nextViews, viewTitle]) => {
+    const lastOpenedViewId = activeTab.value?.id && lastOpenedViewMap.value[activeTab.value?.id]
+    const lastOpenedView = nextViews.find((v) => v.id === lastOpenedViewId)
+
     if (viewTitle) {
       let view = nextViews.find((v) => v.title === viewTitle)
       if (view) {
         activeView.value = view
+        setLastOpenedViewId(activeView.value?.id)
       } else {
         /** search with view id and if found replace with title */
         view = nextViews.find((v) => v.id === viewTitle)
@@ -58,6 +72,13 @@ watch(
           })
         }
       }
+    } else if (lastOpenedView) {
+      /** if active view is not found, set it to last opened view */
+      router.replace({
+        params: {
+          viewTitle: lastOpenedView.title,
+        },
+      })
     } else {
       if (nextViews?.length && activeView.value !== nextViews[0]) {
         activeView.value = nextViews[0]
@@ -121,7 +142,7 @@ function onOpenModal({
     collapsiple
     collapsed-width="0"
     width="0"
-    class="relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
+    class="nc-view-sidebar relative shadow h-full w-full !flex-1 !min-w-0 !max-w-[150px] !w-[150px] lg:(!max-w-[250px] !w-[250px])"
     theme="light"
   >
     <LazySmartsheetSidebarToolbar

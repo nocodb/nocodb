@@ -1,6 +1,6 @@
 {
   "name": "nc-lib-gui",
-  "version": "0.97.0",
+  "version": "0.105.2",
   "description": "NocoDB GUI",
   "author": {
     "name": "NocoDB",
@@ -27,11 +27,6 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "dependencies": {
-    "axios": "^0.19.2",
-    "body-parser": "^1.19.0",
-    "dayjs": "^1.10.4",
-    "express": "^4.17.1",
-    "serve-static": "^1.15.0",
-    "vuedraggable": "^2.24.3"
+    "express": "^4.17.1"
   }
 }

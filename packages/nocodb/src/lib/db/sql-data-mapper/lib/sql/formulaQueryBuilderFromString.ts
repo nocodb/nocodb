@@ -136,6 +136,11 @@ export default function formulaQueryBuilder(
           type: 'CallExpression',
           arguments: [pt.left],
         };
+        pt.right = {
+          callee: { name: 'FLOAT' },
+          type: 'CallExpression',
+          arguments: [pt.right],
+        };
       }
 
       const query = knex.raw(

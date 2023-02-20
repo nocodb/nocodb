@@ -1,12 +1,12 @@
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
-import { defineNuxtPlugin, useGlobal, useRoute, useRouter, watch } from '#imports'
+import { defineNuxtPlugin, useGlobal, useRouter, watch } from '#imports'
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
   const router = useRouter()
 
-  const route = useRoute()
+  const route = $(router.currentRoute)
 
   const { appInfo } = $(useGlobal())
 
@@ -37,6 +37,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
     socket.emit('page', {
       path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
+      pid: route?.params?.projectId,
     })
   })
 
@@ -48,6 +49,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
           event: evt,
           ...(data || {}),
           path: route?.matched?.[0]?.path,
+          pid: route?.params?.projectId,
         })
       }
     },
@@ -84,5 +86,5 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   })
 
   nuxtApp.provide('tele', tele)
-  nuxtApp.provide('e', tele.emit)
+  nuxtApp.provide('e', (e: string, data?: Record<string, any>) => tele.emit(e, { data }))
 })

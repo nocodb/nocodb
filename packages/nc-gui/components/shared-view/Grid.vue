@@ -21,18 +21,19 @@ const { sharedView, meta, sorts, nestedFilters } = useSharedView()
 
 const { signedIn } = useGlobal()
 
-const { loadProject } = useProject(meta.value?.project_id)
+const { loadProject } = useProject()
 
-useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
+const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
 
 const reloadEventHook = createEventHook()
 
 provide(ReloadViewDataHookInj, reloadEventHook)
-provide(ReadonlyInj, true)
+provide(ReadonlyInj, ref(true))
 provide(MetaInj, meta)
 provide(ActiveViewInj, sharedView)
 provide(FieldsInj, ref(meta.value?.columns || []))
 provide(IsPublicInj, ref(true))
+provide(IsLockedInj, isLocked)
 
 if (signedIn.value) {
   try {

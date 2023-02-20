@@ -1,6 +1,6 @@
 import type { Api } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
-import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
+import { defineNuxtRouteMiddleware, extractSdkResponseErrorMsg, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
 
 /**
  * Global auth middleware
@@ -37,7 +37,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const { allRoles } = useRoles()
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
-  if (!state.signedIn && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
+  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -52,7 +52,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       return navigateTo('/signup')
     }
 
-    return navigateTo('/signin')
+    /** try generating access token using refresh token */
+    await state.refreshToken()
+
+    /** if user is still not signed in, redirect to signin page */
+    if (!state.signedIn.value) return navigateTo('/signin')
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
     /**
      * if user was turned away from non-auth page but also came from a non-auth page (e.g. user went to /signin and reloaded the page)
@@ -98,10 +102,8 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       )
 
       signIn(token)
-    } catch (e: any) {
-      if (e.response && e.response.data && e.response.data.msg) {
-        message.error({ content: e.response.data.msg })
-      }
+    } catch (e) {
+      message.error({ content: await extractSdkResponseErrorMsg(e) })
     }
 
     const newURL = window.location.href.split('?')[0]

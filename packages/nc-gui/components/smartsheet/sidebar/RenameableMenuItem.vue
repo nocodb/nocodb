@@ -1,17 +1,8 @@
 <script lang="ts" setup>
 import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import {
-  IsLockedInj,
-  inject,
-  message,
-  onKeyStroke,
-  useDebounceFn,
-  useNuxtApp,
-  useUIPermission,
-  useVModel,
-  viewIcons,
-} from '#imports'
+import { Tooltip } from 'ant-design-vue'
+import { IsLockedInj, inject, message, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
 
 interface Props {
   view: ViewType
@@ -20,9 +11,15 @@ interface Props {
 
 interface Emits {
   (event: 'update:view', data: Record<string, any>): void
+
+  (event: 'selectIcon', icon: string): void
+
   (event: 'changeView', view: Record<string, any>): void
+
   (event: 'rename', view: ViewType): void
+
   (event: 'delete', view: ViewType): void
+
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
 }
 
@@ -164,24 +161,31 @@ function onStopEdit() {
 <template>
   <a-menu-item
     class="select-none group !flex !items-center !my-0 hover:(bg-primary !bg-opacity-5)"
+    :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.stop="onClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
-      <div class="flex w-auto">
-        <MdiDrag
-          class="nc-drag-icon hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 !cursor-move"
-          @click.stop.prevent
-        />
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-testid="view-item">
+      <div class="flex w-auto min-w-5" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
+        <a-dropdown :trigger="['click']" @click.stop>
+          <component :is="isUIAllowed('viewIconCustomisation') ? Tooltip : 'div'">
+            <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
+            <template v-if="isUIAllowed('viewIconCustomisation')" #title>Change icon</template>
+          </component>
 
-        <component
-          :is="viewIcons[vModel.type].icon"
-          class="nc-view-icon group-hover:hidden"
-          :style="{ color: viewIcons[vModel.type].color }"
-        />
+          <template v-if="isUIAllowed('viewIconCustomisation')" #overlay>
+            <GeneralEmojiIcons class="shadow bg-white p-2" @select-icon="emits('selectIcon', $event)" />
+          </template>
+        </a-dropdown>
       </div>
 
-      <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
+      <a-input
+        v-if="isEditing"
+        :ref="focusInput"
+        v-model:value="vModel.title"
+        @blur="onCancel"
+        @keydown.stop="onKeyDown($event)"
+      />
 
       <div v-else>
         <LazyGeneralTruncateText>{{ vModel.alias || vModel.title }}</LazyGeneralTruncateText>
@@ -190,13 +194,13 @@ function onStopEdit() {
       <div class="flex-1" />
 
       <template v-if="!isEditing && !isLocked && isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
           <a-tooltip placement="left">
             <template #title>
               {{ $t('activity.copyView') }}
             </template>
 
-            <MdiContentCopy class="hidden group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
+            <MdiContentCopy class="!hidden !group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">
@@ -205,7 +209,7 @@ function onStopEdit() {
                 {{ $t('activity.deleteView') }}
               </template>
 
-              <MdiTrashCan class="hidden group-hover:block text-red-500 nc-view-delete-icon" @click.stop="onDelete" />
+              <MdiTrashCan class="!hidden !group-hover:block text-red-500 nc-view-delete-icon" @click.stop="onDelete" />
             </a-tooltip>
           </template>
         </div>

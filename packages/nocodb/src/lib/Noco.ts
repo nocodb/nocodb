@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 
 import * as Sentry from '@sentry/node';
 import bodyParser from 'body-parser';
@@ -16,8 +17,11 @@ import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 
 import { NcConfig } from '../interface/config';
+import { NC_LICENSE_KEY } from './constants';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
+import Store from './models/Store';
 import NcConfigFactory from './utils/NcConfigFactory';
+import { Tele } from 'nc-help';
 
 import NcProjectBuilderCE from './v1-legacy/NcProjectBuilder';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilderEE';
@@ -38,7 +42,6 @@ import NocoCache from './cache/NocoCache';
 import registerMetaApis from './meta/api';
 import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
 import User from './models/User';
-import { Tele } from 'nc-help';
 import * as http from 'http';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
@@ -53,6 +56,7 @@ const NcProjectBuilder = process.env.EE
 
 export default class Noco {
   private static _this: Noco;
+  private static ee: boolean;
 
   public static get dashboardUrl(): string {
     let siteUrl = `http://localhost:${process.env.PORT || 8080}`;
@@ -101,36 +105,15 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    process.env.NC_VERSION = '0090000';
+    process.env.NC_VERSION = '0104004';
+
+    // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
+    if (process.env.NC_MINIMAL_DBS) {
+      process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
+    }
 
     this.router = express.Router();
     this.projectRouter = express.Router();
-
-    /* prepare config */
-    Noco.config = this.config = NcConfigFactory.make();
-
-    /******************* setup : start *******************/
-    this.env = '_noco'; //process.env['NODE_ENV'] || this.config.workingEnv || 'dev';
-    this.config.workingEnv = this.env;
-
-    this.config.type = 'docker';
-    if (!this.config.toolDir) {
-      this.config.toolDir = process.cwd();
-    }
-
-    // this.ncToolApi = new NcToolGui(this.config);
-    // if (server) {
-    //   server.set('view engine', 'ejs');
-    // }
-
-    const NcMetaImpl = process.env.EE ? NcMetaImplEE : NcMetaImplCE;
-    // const NcMetaMgr = process.env.EE ? NcMetaMgrEE : NcMetaMgrCE;
-
-    Noco._ncMeta = new NcMetaImpl(this, this.config);
-    // this.metaMgr = new NcMetaMgr(this, this.config, Noco._ncMeta);
-    // this.metaMgrv2 = new NcMetaMgrv2(this, this.config, Noco._ncMeta);
-
-    /******************* setup : end *******************/
 
     /******************* prints : start *******************/
     // this.sumTable = new Table({
@@ -161,6 +144,32 @@ export default class Noco {
     server?: http.Server,
     _app?: express.Express
   ) {
+    /* prepare config */
+    Noco.config = this.config = await NcConfigFactory.make();
+
+    /******************* setup : start *******************/
+    this.env = '_noco'; //process.env['NODE_ENV'] || this.config.workingEnv || 'dev';
+    this.config.workingEnv = this.env;
+
+    this.config.type = 'docker';
+    if (!this.config.toolDir) {
+      this.config.toolDir = process.cwd();
+    }
+
+    // this.ncToolApi = new NcToolGui(this.config);
+    // if (server) {
+    //   server.set('view engine', 'ejs');
+    // }
+
+    const NcMetaImpl = process.env.EE ? NcMetaImplEE : NcMetaImplCE;
+    // const NcMetaMgr = process.env.EE ? NcMetaMgrEE : NcMetaMgrCE;
+
+    Noco._ncMeta = new NcMetaImpl(this, this.config);
+    // this.metaMgr = new NcMetaMgr(this, this.config, Noco._ncMeta);
+    // this.metaMgrv2 = new NcMetaMgrv2(this, this.config, Noco._ncMeta);
+
+    /******************* setup : end *******************/
+
     // @ts-ignore
     const {
       progressCallback,
@@ -172,7 +181,7 @@ export default class Noco {
     log('Initializing app');
 
     // create tool directory if missing
-    mkdirp.sync(this.config.toolDir);
+    await mkdirp(this.config.toolDir);
 
     this.initSentry();
     NocoCache.init();
@@ -187,6 +196,7 @@ export default class Noco {
     }
 
     await Noco._ncMeta.metaInit();
+    await Noco.loadEEState();
     await this.initJwt();
     await initAdminFromEnv();
 
@@ -208,7 +218,6 @@ export default class Noco {
     });
 
     // to get ip addresses
-
     this.router.use(requestIp.mw());
     this.router.use(cookieParser());
     this.router.use(
@@ -270,6 +279,7 @@ export default class Noco {
       instance: getInstance,
     });
     Tele.emit('evt_app_started', await User.count());
+    console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
     weAreHiring();
     return this.router;
   }
@@ -450,7 +460,7 @@ export default class Noco {
             connectionConfig.meta.dbAlias,
             'migrations'
           );
-          if (!fs.existsSync(migrationFolder)) {
+          if (!(await promisify(fs.exists)(migrationFolder))) {
             await migrator.init({
               folder: this.config?.toolDir,
               env: this.env,
@@ -538,27 +548,15 @@ export default class Noco {
   public static getConfig(): NcConfig {
     return Noco.config;
   }
-}
 
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
+  public static isEE(): boolean {
+    return Noco.ee;
+  }
+
+  public static async loadEEState(): Promise<boolean> {
+    try {
+      return (Noco.ee = !!(await Store.get(NC_LICENSE_KEY))?.value);
+    } catch {}
+    return (Noco.ee = false);
+  }
+}

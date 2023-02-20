@@ -2,14 +2,14 @@ import { DbConfig } from "../../src/interface/config";
 import { NcConfigFactory } from "../../src/lib";
 import SqlMgrv2 from "../../src/lib/db/sql-mgr/v2/SqlMgrv2";
 import fs from 'fs';
-import knex from "knex";
+import { Knex, knex } from "knex";
 import process from "process";
 
 export default class TestDbMngr {
   public static readonly dbName = 'test_meta';
   public static readonly sakilaDbName = 'test_sakila';
-  public static metaKnex: knex;
-  public static sakilaKnex: knex;
+  public static metaKnex: Knex;
+  public static sakilaKnex: Knex;
 
   public static defaultConnection = {
     user: 'root',

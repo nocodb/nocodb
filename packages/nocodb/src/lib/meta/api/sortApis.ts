@@ -1,16 +1,16 @@
 import { Request, Response, Router } from 'express';
 // @ts-ignore
 import Model from '../../models/Model';
+import { Tele } from 'nc-help';
 // @ts-ignore
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { SortListType, TableReqType, TableType } from 'nocodb-sdk';
+import { SortListType, SortType, TableType } from 'nocodb-sdk';
 // @ts-ignore
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 // @ts-ignore
 import Project from '../../models/Project';
 import Sort from '../../models/Sort';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 
 // @ts-ignore
@@ -28,11 +28,11 @@ export async function sortList(
 }
 
 // @ts-ignore
-export async function sortCreate(req: Request<any, any, TableReqType>, res) {
+export async function sortCreate(req: Request<any, any, SortType>, res) {
   const sort = await Sort.insert({
     ...req.body,
     fk_view_id: req.params.viewId,
-  });
+  } as Sort);
   Tele.emit('evt', { evt_type: 'sort:created' });
   res.json(sort);
 }

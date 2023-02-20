@@ -130,7 +130,7 @@ AND t.table_name=?;`,
   },
   createDatabaseIfNotExists: {
     default: {
-      sql: `create database if not exists ??`,
+      sql: `create database if not exists ??  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
       paramsHints: ['database'],
     },
   },
@@ -212,7 +212,7 @@ AND t.table_name=?;`,
       kcu.TABLE_NAME as tn,
       kcu.COLUMN_NAME as cn,
       kcu.POSITION_IN_UNIQUE_CONSTRAINT as puc,
-      kcu.REFERENCED_TABLE_NAME as rtn, 
+      kcu.REFERENCED_TABLE_NAME as rtn,
       kcu.REFERENCED_COLUMN_NAME as rcn,
       rc.MATCH_OPTION as mo,
       rc.UPDATE_RULE as ur,
@@ -222,7 +222,8 @@ AND t.table_name=?;`,
       information_schema.KEY_COLUMN_USAGE AS kcu
     INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS AS rc ON
       kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
-	Group by kcu.CONSTRAINT_NAME,
+    Group by
+      kcu.CONSTRAINT_NAME,
       kcu.TABLE_NAME,
       kcu.COLUMN_NAME,
       kcu.POSITION_IN_UNIQUE_CONSTRAINT,
@@ -230,71 +231,90 @@ AND t.table_name=?;`,
       kcu.REFERENCED_COLUMN_NAME,
       rc.MATCH_OPTION,
       rc.UPDATE_RULE,
-      rc.DELETE_RULE ,kcu.table_schema
+      rc.DELETE_RULE ,
+      kcu.table_schema
     Having
       kcu.table_schema = ?
       AND kcu.referenced_column_name IS NOT NULL
-      AND kcu.table_name=?`,
+      AND kcu.table_name =?`,
       paramsHints: ['database', 'tn'],
     },
   },
 
   relationListAll: {
     default: {
-      sql: `
+      sql: `SELECT
+      kcu.constraint_name AS cstn,
+      kcu.table_name AS tn,
+      kcu.column_name AS cn,
+      kcu.position_in_unique_constraint AS puc,
+      kcu.referenced_table_name AS rtn,
+      kcu.referenced_column_name AS rcn,
+      rc.match_option AS mo,
+      rc.update_rule AS ur,
+      rc.delete_rule AS dr,
+      kcu.table_schema AS ts
+    FROM
+      (
+      SELECT
+        table_schema,
+        constraint_name,
+        table_name,
+        column_name,
+        position_in_unique_constraint,
+        referenced_table_name,
+        referenced_column_name
+      FROM
+        information_schema.KEY_COLUMN_USAGE
+      WHERE
+        table_schema = :databaseName) AS kcu
+    INNER JOIN
+              (
+      SELECT
+        constraint_schema,
+        match_option,
+        update_rule,
+        delete_rule,
+        constraint_name
+      FROM
+        information_schema.REFERENTIAL_CONSTRAINTS
+      WHERE
+        constraint_schema = :databaseName) AS rc ON
+      kcu.constraint_name = rc.constraint_name
+      AND kcu.table_schema = rc.constraint_schema
+    INNER JOIN
+              (
+      SELECT
+        table_schema,
+        table_name,
+        column_name
+      FROM
+        information_schema.COLUMNS
+      WHERE
+        table_schema = :databaseName
+        AND table_name IN (
         SELECT
-          kcu.CONSTRAINT_NAME AS cstn,
-          kcu.TABLE_NAME AS tn,
-          kcu.COLUMN_NAME AS cn,
-          kcu.POSITION_IN_UNIQUE_CONSTRAINT AS puc,
-          kcu.REFERENCED_TABLE_NAME AS rtn,
-          kcu.REFERENCED_COLUMN_NAME AS rcn,
-          rc.MATCH_OPTION AS mo,
-          rc.UPDATE_RULE AS ur,
-          rc.DELETE_RULE AS dr,
-          kcu.table_schema AS ts
+          table_name
         FROM
-          (SELECT
-             table_schema,
-             CONSTRAINT_NAME,
-             TABLE_NAME,
-             COLUMN_NAME,
-             POSITION_IN_UNIQUE_CONSTRAINT,
-             REFERENCED_TABLE_NAME,
-             REFERENCED_COLUMN_NAME
-           FROM
-             information_schema.KEY_COLUMN_USAGE
-           WHERE
-             table_schema = :databaseName) AS kcu
-            INNER JOIN
-          (SELECT
-             CONSTRAINT_SCHEMA,
-             MATCH_OPTION,
-             UPDATE_RULE,
-             DELETE_RULE,
-             CONSTRAINT_NAME
-           FROM
-             information_schema.REFERENTIAL_CONSTRAINTS
-           WHERE
-             CONSTRAINT_SCHEMA = :databaseName) AS rc ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
-            AND kcu.table_schema = rc.CONSTRAINT_SCHEMA
-            INNER JOIN
-          (SELECT
-             table_schema, TABLE_NAME, COLUMN_NAME
-           FROM
-             INFORMATION_SCHEMA.COLUMNS
-           WHERE
-             table_schema = :databaseName AND TABLE_NAME IN (SELECT
-                                                          TABLE_NAME
-                                                        FROM
-                                                          INFORMATION_SCHEMA.TABLES
-                                                        WHERE
-                                                          table_schema = :databaseName
-                                                          AND LOWER(TABLE_TYPE) = 'base table')) AS col ON col.table_schema = kcu.table_schema
-            AND col.table_name = kcu.TABLE_NAME
-
-            AND kcu.REFERENCED_COLUMN_NAME IS NOT NULL
-        GROUP BY cstn , tn , rcn , cn , puc , rtn ,cn,  mo , ur , dr , ts`,
+          information_schema.TABLES
+        WHERE
+          table_schema = :databaseName
+          AND Lower(table_type) = 'base table')) AS col ON
+      col.table_schema = kcu.table_schema
+      AND col.table_name = kcu.table_name
+      AND kcu.referenced_column_name IS NOT NULL
+    GROUP BY
+      cstn ,
+      tn ,
+      rcn ,
+      cn ,
+      puc ,
+      rtn ,
+      cn,
+      mo ,
+      ur ,
+      dr ,
+      ts`,
       paramsHints: ['database'],
     },
   },

@@ -7,7 +7,7 @@ const reloadEventHook = createEventHook()
 
 provide(ReloadViewDataHookInj, reloadEventHook)
 
-provide(ReadonlyInj, true)
+provide(ReadonlyInj, ref(true))
 
 provide(MetaInj, meta)
 

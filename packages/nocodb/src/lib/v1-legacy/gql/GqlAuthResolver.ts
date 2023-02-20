@@ -85,12 +85,14 @@ export default class GqlAuthResolver {
 
     this.app.router.get('/password/reset/:token', function (req, res) {
       res.render(__dirname + '/auth/resetPassword', {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         token: JSON.stringify(req.params?.token),
         baseUrl: `/api/${apiPrefix}/`,
       });
     });
     this.app.router.get('/email/verify/:token', function (req, res) {
       res.render(__dirname + '/auth/emailVerify', {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         token: JSON.stringify(req.params?.token),
         baseUrl: `/api/${apiPrefix}/`,
       });
@@ -98,12 +100,14 @@ export default class GqlAuthResolver {
 
     this.app.router.get('/signin', function (_req, res) {
       res.render(__dirname + '/auth/signin', {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         baseUrl: `/api/${apiPrefix}/`,
       });
     });
 
     this.app.router.get('/signup', function (_req, res) {
       res.render(__dirname + '/auth/signup', {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         baseUrl: `/api/${apiPrefix}/`,
       });
     });
@@ -162,7 +166,11 @@ export default class GqlAuthResolver {
             if (!user) {
               return done({ msg: `Email ${email} is not registered!` });
             }
-
+            if (!user.salt) {
+              return done({
+                msg: `Please sign up with the invite token first or reset the password by clicking Forgot your password.`,
+              });
+            }
             const hashedPassword = await promisify(bcrypt.hash)(
               password,
               user.salt
@@ -497,25 +505,3 @@ export default class GqlAuthResolver {
     return this.app?.metaMgr?.emailAdapter;
   }
 }
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

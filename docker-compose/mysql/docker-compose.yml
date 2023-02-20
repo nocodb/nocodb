@@ -1,36 +1,39 @@
-version: '2.1'
-
-services:
-  root_db:
-    image: mysql:5.7
-    volumes:
-      - db_data:/var/lib/mysql
+version: "2.1"
+services: 
+  nocodb: 
+    depends_on: 
+      root_db: 
+        condition: service_healthy
+    environment: 
+      NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
+    image: "nocodb/nocodb:latest"
+    ports: 
+      - "8080:8080"
+    restart: always
+    volumes: 
+      - "nc_data:/usr/app/data"
+  root_db: 
+    environment: 
+      MYSQL_DATABASE: root_db
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: noco
+    healthcheck: 
+      retries: 10
+      test: 
+        - CMD
+        - mysqladmin
+        - ping
+        - "-h"
+        - localhost
+      timeout: 20s
+    image: "mysql:8.0.32"
+    restart: always
+    volumes: 
+      - "db_data:/var/lib/mysql"
 #    below line shows how to change charset and collation
 #    uncomment it if necessary
 #    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: root_db
-      MYSQL_USER: noco
-      MYSQL_PASSWORD: password
-    healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
-      timeout: 20s
-      retries: 10
-
-  nocodb:
-    depends_on:
-      root_db:
-        condition: service_healthy
-    image: nocodb/nocodb:latest
-    ports:
-      - "8080:8080"
-    restart: always
-    volumes:
-      - nc_data:/usr/app/data
-    environment:
-      NC_DB: "mysql2://root_db:3306?u=noco&p=password&d=root_db"
-volumes:
+volumes: 
   db_data: {}
   nc_data: {}

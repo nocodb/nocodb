@@ -43,9 +43,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
+  const { project } = useProject()
+
   const { t } = useI18n()
 
-  const formState = ref({})
+  const formState = ref<Record<string, any>>({})
 
   const { state: additionalState } = useProvideSmartsheetRowStore(
     meta as Ref<TableType>,
@@ -83,6 +85,17 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
 
       await setMeta(viewMeta.model)
+
+      // if project is not defined then set it with an object containing base
+      if (!project.value?.bases)
+        project.value = {
+          bases: [
+            {
+              id: viewMeta.base_id,
+              type: viewMeta.client,
+            },
+          ],
+        }
 
       const relatedMetas = { ...viewMeta.relatedMetas }
 

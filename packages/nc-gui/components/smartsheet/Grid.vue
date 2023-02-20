@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, GridType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -11,16 +11,22 @@ import {
   IsGridInj,
   IsLockedInj,
   MetaInj,
+  NavigateDir,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
+  RowHeightInj,
+  SmartsheetStoreEvents,
   computed,
   createEventHook,
+  enumColor,
   extractPkFromRow,
   inject,
   isColumnRequiredAndNull,
+  isDrawerOrModalExist,
+  isMac,
   message,
   onBeforeUnmount,
   onClickOutside,
@@ -32,6 +38,8 @@ import {
   useI18n,
   useMetas,
   useMultiSelect,
+  useNuxtApp,
+  useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
@@ -39,7 +47,6 @@ import {
   watch,
 } from '#imports'
 import type { Row } from '~/lib'
-import { NavigateDir } from '~/lib'
 
 const { t } = useI18n()
 
@@ -47,15 +54,18 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+const { $e } = useNuxtApp()
+
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
+const { hasRole } = useRoles()
 const { isUIAllowed } = useUIPermission()
 const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
@@ -67,7 +77,7 @@ const isView = false
 
 let editEnabled = $ref(false)
 
-const { xWhere, isPkAvail, cellRefs, isSqlView } = useSmartsheetStoreOrThrow()
+const { xWhere, isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -83,11 +93,17 @@ const contextMenu = computed({
   },
 })
 
+const routeQuery = $computed(() => route.query as Record<string, string>)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
-const tbodyEl = ref<HTMLElement>()
+const gridWrapper = ref<HTMLElement>()
+const tableHead = ref<HTMLElement>()
+
+const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
+
+const isAddingEmptyRowAllowed = $computed(() => !isView && !isLocked.value && hasEditPermission && !isSqlView.value)
 
 const {
   isLoading,
@@ -101,33 +117,268 @@ const {
   deleteSelectedRows,
   selectedAllRecords,
   removeRowIfNew,
+  navigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 
-const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange, selected } = useMultiSelect(
+const getContainerScrollForElement = (
+  el: HTMLElement,
+  container: HTMLElement,
+  offset?: {
+    top?: number
+    bottom?: number
+    left?: number
+    right?: number
+  },
+) => {
+  const childPos = el.getBoundingClientRect()
+  const parentPos = container.getBoundingClientRect()
+  const relativePos = {
+    top: childPos.top - parentPos.top,
+    right: childPos.right - parentPos.right,
+    bottom: childPos.bottom - parentPos.bottom,
+    left: childPos.left - parentPos.left,
+  }
+
+  const scroll = {
+    top: 0,
+    left: 0,
+  }
+
+  /*
+   * If the element is to the right of the container, scroll right (positive)
+   * If the element is to the left of the container, scroll left (negative)
+   */
+  scroll.left =
+    relativePos.right + (offset?.right || 0) > 0
+      ? container.scrollLeft + relativePos.right + (offset?.right || 0)
+      : relativePos.left - (offset?.left || 0) < 0
+      ? container.scrollLeft + relativePos.left - (offset?.left || 0)
+      : container.scrollLeft
+
+  /*
+   * If the element is below the container, scroll down (positive)
+   * If the element is above the container, scroll up (negative)
+   */
+  scroll.top =
+    relativePos.bottom + (offset?.bottom || 0) > 0
+      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0)
+      : relativePos.top - (offset?.top || 0) < 0
+      ? container.scrollTop + relativePos.top - (offset?.top || 0)
+      : container.scrollTop
+
+  return scroll
+}
+
+const {
+  isCellSelected,
+  activeCell,
+  handleMouseDown,
+  handleMouseOver,
+  handleCellClick,
+  clearSelectedRange,
+  copyValue,
+  isCellActive,
+  tbodyEl,
+  resetSelectedRange,
+} = useMultiSelect(
+  meta,
   fields,
   data,
   $$(editEnabled),
   isPkAvail,
   clearCell,
   makeEditable,
-  () => {
-    if (selected.row !== null && selected.col !== null) {
-      // get active cell
-      const td = tbodyEl.value?.querySelectorAll('tr')[selected.row]?.querySelectorAll('td')[selected.col + 1]
-      if (!td) return
-      // scroll into the active cell
-      td.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest',
-      })
+  scrollToCell,
+  (e: KeyboardEvent) => {
+    // ignore navigating if picker(Date, Time, DateTime, Year)
+    // or single/multi select options is open
+    const activePickerOrDropdownEl = document.querySelector(
+      '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+    )
+    if (activePickerOrDropdownEl) {
+      e.preventDefault()
+      return true
+    }
+
+    // skip keyboard event handling if there is a drawer / modal
+    if (isDrawerOrModalExist()) {
+      return true
+    }
+
+    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+    const altOrOptionKey = e.altKey
+    if (e.key === ' ') {
+      if (isCellActive.value && !editEnabled && hasEditPermission) {
+        e.preventDefault()
+        clearSelectedRange()
+        const row = data.value[activeCell.row]
+        expandForm(row)
+        return true
+      }
+    } else if (e.key === 'Escape') {
+      if (editEnabled) {
+        editEnabled = false
+        return true
+      }
+    } else if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        // add a line break for types like LongText / JSON
+        return true
+      }
+      if (editEnabled) {
+        editEnabled = false
+        return true
+      }
+    }
+
+    if (cmdOrCtrl) {
+      if (!isCellActive.value) return
+
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = 0
+          activeCell.col = activeCell.col ?? 0
+          scrollToCell?.()
+          editEnabled = false
+          return true
+        case 'ArrowDown':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = data.value.length - 1
+          activeCell.col = activeCell.col ?? 0
+          scrollToCell?.()
+          editEnabled = false
+          return true
+        case 'ArrowRight':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = activeCell.row ?? 0
+          activeCell.col = fields.value?.length - 1
+          scrollToCell?.()
+          editEnabled = false
+          return true
+        case 'ArrowLeft':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = activeCell.row ?? 0
+          activeCell.col = 0
+          scrollToCell?.()
+          editEnabled = false
+          return true
+      }
+    }
+
+    if (altOrOptionKey) {
+      switch (e.keyCode) {
+        case 82: {
+          // ALT + R
+          if (isAddingEmptyRowAllowed) {
+            $e('c:shortcut', { key: 'ALT + R' })
+            addEmptyRow()
+            activeCell.row = data.value.length - 1
+            activeCell.col = 0
+            resetSelectedRange()
+            nextTick(() => {
+              ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
+                behavior: 'smooth',
+              })
+            })
+          }
+          break
+        }
+        case 67: {
+          // ALT + C
+          if (isAddingColumnAllowed) {
+            $e('c:shortcut', { key: 'ALT + C' })
+            addColumnDropdown.value = true
+          }
+          break
+        }
+      }
     }
   },
+  async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
+    const rowObj = data.value[ctx.row]
+    const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
+
+    if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+      return
+    }
+
+    // update/save cell value
+    await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
+  },
 )
+
+function scrollToCell(row?: number | null, col?: number | null) {
+  row = row ?? activeCell.row
+  col = col ?? activeCell.col
+
+  if (row !== null && col !== null) {
+    // get active cell
+    const rows = tbodyEl.value?.querySelectorAll('tr')
+    const cols = rows?.[row].querySelectorAll('td')
+    const td = cols?.[col === 0 ? 0 : col + 1]
+
+    if (!td || !gridWrapper.value) return
+
+    const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
+    const tdScroll = getContainerScrollForElement(td, gridWrapper.value, { top: headerHeight, bottom: 9, right: 9 })
+
+    if (rows && row === rows.length - 2) {
+      // if last row make 'Add New Row' visible
+      gridWrapper.value.scrollTo({
+        top: gridWrapper.value.scrollHeight,
+        left:
+          cols && col === cols.length - 2 // if corner cell
+            ? gridWrapper.value.scrollWidth
+            : tdScroll.left,
+        behavior: 'smooth',
+      })
+      return
+    }
+
+    if (cols && col === cols.length - 2) {
+      // if last column make 'Add New Column' visible
+      gridWrapper.value.scrollTo({
+        top: tdScroll.top,
+        left: gridWrapper.value.scrollWidth,
+        behavior: 'smooth',
+      })
+      return
+    }
+
+    // scroll into the active cell
+    gridWrapper.value.scrollTo({
+      top: tdScroll.top,
+      left: tdScroll.left,
+      behavior: 'smooth',
+    })
+  }
+}
+
+const rowHeight = computed(() => {
+  if ((view.value?.view as GridType)?.row_height !== undefined) {
+    switch ((view.value?.view as GridType)?.row_height) {
+      case 0:
+        return 1
+      case 1:
+        return 2
+      case 2:
+        return 4
+      case 3:
+        return 6
+      default:
+        return 1
+    }
+  }
+})
 
 onMounted(loadGridViewColumns)
 
@@ -141,7 +392,7 @@ provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
 
-provide(ReadonlyInj, !hasEditPermission)
+provide(RowHeightInj, rowHeight)
 
 const disableUrlOverlay = ref(false)
 provide(CellUrlDisableOverlayInj, disableUrlOverlay)
@@ -150,13 +401,13 @@ const showLoading = ref(true)
 
 const skipRowRemovalOnCancel = ref(false)
 
-const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
+function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (rowId) {
     router.push({
       query: {
-        ...route.query,
+        ...routeQuery,
         rowId,
       },
     })
@@ -190,7 +441,14 @@ watch(contextMenu, () => {
 
 const rowRefs = $ref<any[]>()
 
-async function clearCell(ctx: { row: number; col: number }) {
+async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
+  if (
+    !ctx ||
+    !hasEditPermission ||
+    (fields.value[ctx.col].uidt !== UITypes.LinkToAnotherRecord && isVirtualCol(fields.value[ctx.col]))
+  )
+    return
+
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
@@ -199,9 +457,23 @@ async function clearCell(ctx: { row: number; col: number }) {
     return
   }
 
-  rowObj.row[columnObj.title] = null
-  // update/save cell value
-  await updateOrSaveRow(rowObj, columnObj.title)
+  // handle Checkbox and rating fields in a special way
+  switch (columnObj.uidt) {
+    case UITypes.Checkbox:
+      rowObj.row[columnObj.title] = false
+      break
+    case UITypes.Rating:
+      rowObj.row[columnObj.title] = 0
+      break
+    default:
+      rowObj.row[columnObj.title] = null
+      break
+  }
+
+  if (!skipUpdate) {
+    // update/save cell value
+    await updateOrSaveRow(rowObj, columnObj.title)
+  }
 }
 
 function makeEditable(row: Row, col: ColumnType) {
@@ -239,33 +511,57 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
-onClickOutside(smartTable, () => {
-  clearRangeRows()
-  if (selected.col === null) return
 
-  const activeCol = fields.value[selected.col]
+onClickOutside(tbodyEl, (e) => {
+  // do nothing if context menu was open
+  if (contextMenu.value) return
+
+  if (activeCell.row === null || activeCell.col === null) return
+
+  const activeCol = fields.value[activeCell.col]
 
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
 
-  selected.row = null
-  selected.col = null
+  // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
+  // or single/multi select options
+  const activePickerOrDropdownEl = document.querySelector(
+    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+  )
+  if (
+    e.target &&
+    activePickerOrDropdownEl &&
+    (activePickerOrDropdownEl === e.target || activePickerOrDropdownEl?.contains(e.target as Element))
+  )
+    return
+
+  // skip if drawer / modal is active
+  if (isDrawerOrModalExist()) {
+    return
+  }
+
+  clearSelectedRange()
+  activeCell.row = null
+  activeCell.col = null
 })
 
 const onNavigate = (dir: NavigateDir) => {
-  if (selected.row === null || selected.col === null) return
+  if (activeCell.row === null || activeCell.col === null) return
+
+  editEnabled = false
+  clearSelectedRange()
+
   switch (dir) {
     case NavigateDir.NEXT:
-      if (selected.row < data.value.length - 1) {
-        selected.row++
+      if (activeCell.row < data.value.length - 1) {
+        activeCell.row++
       } else {
-        editEnabled = false
+        addEmptyRow()
+        activeCell.row++
       }
       break
     case NavigateDir.PREV:
-      if (selected.row > 0) {
-        selected.row--
-      } else {
-        editEnabled = false
+      if (activeCell.row > 0) {
+        activeCell.row--
       }
       break
   }
@@ -291,13 +587,16 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
       currentRow.rowMeta.changed = false
       continue
     }
+
     /** if existing row check updated cell and invoke update method */
     if (currentRow.rowMeta.changed) {
       currentRow.rowMeta.changed = false
       for (const field of (args.metaValue || meta.value)?.columns ?? []) {
-        if (isVirtualCol(field)) continue
-        if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
-          await updateOrSaveRow(currentRow, field.title!, args)
+        // `url` would be enriched in attachment during listing
+        // hence it would consider as a change while it is not necessary to update
+        if (isVirtualCol(field) || field.uidt === UITypes.Attachment) continue
+        if (field.title! in currentRow.row && currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
+          await updateOrSaveRow(currentRow, field.title!, {}, args)
         }
       }
     }
@@ -331,13 +630,13 @@ onBeforeUnmount(() => {
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!route.query.rowId
+    return !!routeQuery.rowId
   },
   set(val) {
     if (!val)
       router.push({
         query: {
-          ...route.query,
+          ...routeQuery,
           rowId: undefined,
         },
       })
@@ -350,37 +649,60 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 // trigger initial data load in grid
 // reloadViewDataHook.trigger()
 
+const switchingTab = ref(false)
+
 watch(
   view,
   async (next, old) => {
-    if (next && next.id !== old?.id) {
-      // whenever tab changes or view changes save any unsaved data
-      if (old?.id) {
-        const oldMeta = await getMeta(old.fk_model_id!)
-        if (oldMeta) {
-          await saveOrUpdateRecords({
-            viewMetaValue: old,
-            metaValue: oldMeta as TableType,
-            data: data.value,
-          })
+    try {
+      if (next && next.id !== old?.id) {
+        switchingTab.value = true
+        // whenever tab changes or view changes save any unsaved data
+        if (old?.id) {
+          const oldMeta = await getMeta(old.fk_model_id!)
+          if (oldMeta) {
+            await saveOrUpdateRecords({
+              viewMetaValue: old,
+              metaValue: oldMeta as TableType,
+              data: data.value,
+            })
+          }
         }
+        await loadData()
       }
-      await loadData()
+    } catch (e) {
+      console.log(e)
+    } finally {
+      switchingTab.value = false
     }
   },
   { immediate: true },
 )
+
+const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+eventBus.on(async (event, payload) => {
+  if (event === SmartsheetStoreEvents.FIELD_ADD) {
+    columnOrder.value = payload
+    addColumnDropdown.value = true
+  }
+})
+
+const closeAddColumnDropdown = () => {
+  columnOrder.value = null
+  addColumnDropdown.value = false
+}
 </script>
 
 <template>
-  <div class="relative flex flex-col h-full min-h-0 w-full">
-    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
+  <div class="relative flex flex-col h-full min-h-0 w-full" data-testid="nc-grid-wrapper">
+    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15" data-testid="grid-load-spinner">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
         <a-spin size="large" />
       </div>
     </general-overlay>
 
-    <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
+    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"
@@ -391,10 +713,10 @@ watch(
           class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
           @contextmenu="showContextMenu"
         >
-          <thead>
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
-              <th>
-                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center">
+          <thead ref="tableHead">
+            <tr class="nc-grid-header">
+              <th class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
+                <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
@@ -428,7 +750,7 @@ watch(
                 </div>
               </th>
               <th
-                v-if="!readOnly && !isLocked && isUIAllowed('add-column') && !isSqlView"
+                v-if="isAddingColumnAllowed"
                 v-e="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
@@ -445,8 +767,9 @@ watch(
                   <template #overlay>
                     <SmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
-                      @submit="addColumnDropdown = false"
-                      @cancel="addColumnDropdown = false"
+                      :column-position="columnOrder"
+                      @submit="closeAddColumnDropdown"
+                      @cancel="closeAddColumnDropdown"
                       @click.stop
                       @keydown.stop
                     />
@@ -455,19 +778,22 @@ watch(
               </th>
             </tr>
           </thead>
-          <!-- this prevent select text from field if not in edit mode -->
-          <tbody ref="tbodyEl" @selectstart.prevent>
+          <tbody ref="tbodyEl">
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
-                <tr class="nc-grid-row">
-                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
+                <tr
+                  class="nc-grid-row"
+                  :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
+                  :data-testid="`grid-row-${rowIndex}`"
+                >
+                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div
                         v-if="!readOnly || !isLocked"
                         class="nc-row-no text-xs text-gray-500"
                         :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                       >
-                        {{ rowIndex + 1 }}
+                        {{ ((paginationData.page ?? 1) - 1) * 25 + rowIndex + 1 }}
                       </div>
                       <div
                         v-if="!readOnly"
@@ -477,77 +803,95 @@ watch(
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
-                      <div v-if="!readOnly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
-                        <span
-                          v-if="row.rowMeta?.commentCount"
-                          class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                          :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
-                          @click="expandForm(row, state)"
-                        >
-                          {{ row.rowMeta.commentCount }}
-                        </span>
-                        <div
-                          v-else
-                          class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
-                        >
-                          <MdiArrowExpand
-                            v-e="['c:row-expand']"
-                            class="select-none transform hover:(text-accent scale-120) nc-row-expand"
+
+                      <div
+                        v-if="!readOnly || hasRole('commenter', true) || hasRole('viewer', true)"
+                        class="nc-expand"
+                        :data-testid="`nc-expand-${rowIndex}`"
+                        :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                      >
+                        <a-spin
+                          v-if="row.rowMeta.saving"
+                          class="!flex items-center"
+                          :data-testid="`row-save-spinner-${rowIndex}`"
+                        />
+                        <template v-else>
+                          <span
+                            v-if="row.rowMeta?.commentCount"
+                            class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                            :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
                             @click="expandForm(row, state)"
-                          />
-                        </div>
+                          >
+                            {{ row.rowMeta.commentCount }}
+                          </span>
+                          <div
+                            v-else
+                            class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
+                          >
+                            <MdiArrowExpand
+                              v-e="['c:row-expand']"
+                              class="select-none transform hover:(text-accent scale-120) nc-row-expand"
+                              @click="expandForm(row, state)"
+                            />
+                          </div>
+                        </template>
                       </div>
                     </div>
                   </td>
-                  <td
+                  <SmartsheetTableDataCell
                     v-for="(columnObj, colIndex) of fields"
-                    :ref="cellRefs.set"
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      'active':
-                        (isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex) ||
-                        (isUIAllowed('xcDatatableEditable') && selectedRange(rowIndex, colIndex)),
+                      'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
+                      'align-middle': !rowHeight || rowHeight === 1,
+                      'align-top': rowHeight && rowHeight !== 1,
                     }"
+                    :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
-                    @click="selectCell(rowIndex, colIndex)"
+                    @mousedown="handleMouseDown($event, rowIndex, colIndex)"
+                    @mouseover="handleMouseOver(rowIndex, colIndex)"
+                    @click="handleCellClick($event, rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
-                    @mousedown="startSelectRange($event, rowIndex, colIndex)"
-                    @mouseover="selectBlock(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
-                    <div class="w-full h-full">
+                    <div v-if="!switchingTab" class="w-full h-full">
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(columnObj)"
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
-                        :active="selected.col === colIndex && selected.row === rowIndex"
+                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
                         :row="row"
+                        :read-only="readOnly"
                         @navigate="onNavigate"
+                        @save="updateOrSaveRow(row, '', state)"
                       />
 
                       <LazySmartsheetCell
                         v-else
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
-                        :edit-enabled="hasEditPermission && editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                        :edit-enabled="
+                          !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
+                        "
                         :row-index="rowIndex"
-                        :active="selected.col === colIndex && selected.row === rowIndex"
-                        @update:edit-enabled="editEnabled = false"
+                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                        :read-only="readOnly"
+                        @update:edit-enabled="editEnabled = $event"
                         @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"
                         @cancel="editEnabled = false"
                       />
                     </div>
-                  </td>
+                  </SmartsheetTableDataCell>
                 </tr>
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="!isView && !isLocked && hasEditPermission && !isSqlView">
+            <tr v-if="isAddingEmptyRowAllowed">
               <td
                 v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
@@ -600,6 +944,13 @@ watch(
                 {{ $t('activity.insertRow') }}
               </div>
             </a-menu-item>
+
+            <a-menu-item v-if="contextMenuTarget" data-testid="context-menu-item-copy" @click="copyValue(contextMenuTarget)">
+              <div v-e="['a:row:copy']" class="nc-project-menu-item">
+                <!-- Copy -->
+                {{ $t('general.copy') }}
+              </div>
+            </a-menu-item>
           </a-menu>
         </template>
       </a-dropdown>
@@ -622,12 +973,15 @@ watch(
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormOnRowIdDlg"
-        :key="route.query.rowId"
+        :key="routeQuery.rowId"
         v-model="expandedFormOnRowIdDlg"
         :row="{ row: {}, oldRow: {}, rowMeta: {} }"
         :meta="meta"
-        :row-id="route.query.rowId"
+        :row-id="routeQuery.rowId"
         :view="view"
+        show-next-prev-icons
+        @next="navigateToSiblingRow(NavigateDir.NEXT)"
+        @prev="navigateToSiblingRow(NavigateDir.PREV)"
       />
     </Suspense>
   </div>
@@ -639,29 +993,31 @@ watch(
 
   td,
   th {
+    @apply border-gray-200 border-solid border-b border-r;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
   }
 
-  td:not(:first-child) > div {
-    overflow: hidden;
-    @apply flex items-center h-auto px-1;
+  th {
+    @apply bg-gray-100;
   }
 
-  table,
-  td,
-  th {
-    @apply !border-1;
-    border-collapse: collapse;
+  td:not(:first-child) > div {
+    overflow: hidden;
+    @apply flex px-1 h-auto;
+  }
+
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   td {
     text-overflow: ellipsis;
   }
 
-  td.active::after,
-  td.active::before {
+  td.active::after {
     content: '';
     position: absolute;
     z-index: 3;
@@ -674,11 +1030,41 @@ watch(
 
   // todo: replace with css variable
   td.active::after {
-    @apply border-2 border-solid border-primary;
+    @apply border-1 border-solid text-primary border-current bg-primary bg-opacity-5;
   }
 
-  td.active::before {
-    @apply bg-primary bg-opacity-5;
+  //td.active::before {
+  //  content: '';
+  //  z-index:4;
+  //  @apply absolute !w-[10px] !h-[10px] !right-[-5px] !bottom-[-5px] bg-primary;
+  //}
+
+  thead th:nth-child(1) {
+    position: sticky !important;
+    left: 0;
+    z-index: 5;
+  }
+
+  tbody td:nth-child(1) {
+    position: sticky !important;
+    left: 0;
+    z-index: 4;
+    background: white;
+  }
+
+  thead th:nth-child(2) {
+    position: sticky !important;
+    left: 80px;
+    z-index: 5;
+    @apply border-r-1 border-r-gray-300;
+  }
+
+  tbody td:nth-child(2) {
+    position: sticky !important;
+    left: 80px;
+    z-index: 4;
+    background: white;
+    @apply shadow-lg border-r-1 border-r-gray-300;
   }
 }
 
@@ -726,7 +1112,7 @@ watch(
   position: sticky;
   top: -1px;
 
-  @apply z-1;
+  @apply z-10 bg-gray-100;
 
   &:hover {
     .nc-no-label {

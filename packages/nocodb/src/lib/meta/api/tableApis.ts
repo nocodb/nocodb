@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import Model from '../../models/Model';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Tele } from 'nc-help';
+import { PagedResponseImpl } from '../helpers/PagedResponse';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
@@ -20,7 +20,7 @@ import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
 import View from '../../models/View';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import { NcError } from '../helpers/catchError';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import Column from '../../models/Column';
@@ -89,15 +89,22 @@ export async function tableList(req: Request, res: Response<TableListType>) {
 
 export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const project = await Project.getWithInfo(req.params.projectId);
-  const base = project.bases[0];
+  let base = project.bases[0];
 
-  if (!req.body.table_name) {
+  if (req.params.baseId) {
+    base = project.bases.find((b) => b.id === req.params.baseId);
+  }
+
+  if (
+    !req.body.table_name ||
+    (project.prefix && project.prefix === req.body.table_name)
+  ) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
     );
   }
 
-  if (project.prefix) {
+  if (base.is_meta && project.prefix) {
     if (!req.body.table_name.startsWith(project.prefix)) {
       req.body.table_name = `${project.prefix}_${req.body.table_name}`;
     }
@@ -141,10 +148,11 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -155,6 +163,16 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 
   if (req.body.table_name.length > tableNameLengthLimit) {
     NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+  }
+
+  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+  for (const column of req.body.columns) {
+    if (column.column_name.length > mxColumnLength) {
+      NcError.badRequest(
+        `Column name ${column.column_name} exceeds ${mxColumnLength} characters`
+      );
+    }
   }
 
   req.body.columns = req.body.columns?.map((c) => ({
@@ -180,6 +198,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 
   await Audit.insert({
     project_id: project.id,
+    base_id: base.id,
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.CREATED,
     user: (req as any)?.user?.email,
@@ -187,7 +206,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     ip: (req as any).clientIp,
   }).then(() => {});
 
-  mapDefaultPrimaryValue(req.body.columns);
+  mapDefaultDisplayValue(req.body.columns);
 
   Tele.emit('evt', { evt_type: 'table:created' });
 
@@ -220,8 +239,22 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 export async function tableUpdate(req: Request<any, any>, res) {
   const model = await Model.get(req.params.tableId);
 
-  const project = await Project.getWithInfo(req.body.project_id);
-  const base = project.bases[0];
+  const project = await Project.getWithInfo(
+    req.body.project_id || (req as any).ncProjectId
+  );
+  const base = project.bases.find((b) => b.id === model.base_id);
+
+  if (model.project_id !== project.id) {
+    NcError.badRequest('Model does not belong to project');
+  }
+
+  // if meta present update meta and return
+  // todo: allow user to update meta  and other prop in single api call
+  if ('meta' in req.body) {
+    await Model.updateMeta(req.params.tableId, req.body.meta);
+
+    return res.json({ msg: 'success' });
+  }
 
   if (!req.body.table_name) {
     NcError.badRequest(
@@ -229,7 +262,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
     );
   }
 
-  if (project.prefix) {
+  if (base.is_meta && project.prefix) {
     if (!req.body.table_name.startsWith(project.prefix)) {
       req.body.table_name = `${project.prefix}${req.body.table_name}`;
     }
@@ -273,10 +306,10 @@ export async function tableUpdate(req: Request<any, any>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -350,6 +383,7 @@ export async function tableDelete(req: Request, res: Response) {
 
   await Audit.insert({
     project_id: project.id,
+    base_id: base.id,
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.DELETED,
     user: (req as any)?.user?.email,
@@ -368,8 +402,18 @@ router.get(
   metaApiMetrics,
   ncMetaAclMw(tableList, 'tableList')
 );
+router.get(
+  '/api/v1/db/meta/projects/:projectId/:baseId/tables',
+  metaApiMetrics,
+  ncMetaAclMw(tableList, 'tableList')
+);
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
+  metaApiMetrics,
+  ncMetaAclMw(tableCreate, 'tableCreate')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   metaApiMetrics,
   ncMetaAclMw(tableCreate, 'tableCreate')
 );

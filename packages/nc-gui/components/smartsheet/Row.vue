@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { Ref } from 'vue'
+import type { TableType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import {
   ReloadRowDataHookInj,
@@ -20,7 +22,7 @@ const currentRow = toRef(props, 'row')
 
 const { meta } = useSmartsheetStoreOrThrow()
 
-const { isNew, state, syncLTARRefs, clearLTARCell } = useProvideSmartsheetRowStore(meta, currentRow)
+const { isNew, state, syncLTARRefs, clearLTARCell } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
 
 // on changing isNew(new record insert) status sync LTAR cell values
 watch(isNew, async (nextVal, prevVal) => {

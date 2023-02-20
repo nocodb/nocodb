@@ -15,6 +15,7 @@ import {
   inject,
   ref,
   useProvideLTARStore,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
 } from '#imports'
@@ -31,7 +32,7 @@ const row = inject(RowInj)!
 
 const active = inject(ActiveCellInj)!
 
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -43,7 +44,7 @@ const listItemsDlg = ref(false)
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
+const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -70,13 +71,22 @@ const unlinkRef = async (rec: Record<string, any>) => {
     await unlink(rec)
   }
 }
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      listItemsDlg.value = true
+      e.stopPropagation()
+      break
+  }
+})
 </script>
 
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
     <div class="chips flex items-center flex-1">
-      <template v-if="value && relatedTablePrimaryValueProp">
-        <VirtualCellComponentsItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
+      <template v-if="value && relatedTableDisplayValueProp">
+        <VirtualCellComponentsItemChip :item="value" :value="value[relatedTableDisplayValueProp]" @unlink="unlinkRef(value)" />
       </template>
     </div>
 

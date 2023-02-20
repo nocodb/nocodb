@@ -10,6 +10,8 @@ export enum MetaTable {
   COL_LOOKUP = 'nc_col_lookup_v2',
   COL_ROLLUP = 'nc_col_rollup_v2',
   COL_FORMULA = 'nc_col_formula_v2',
+  COL_QRCODE = 'nc_col_qrcode_v2',
+  COL_BARCODE = 'nc_col_barcode_v2',
   FILTER_EXP = 'nc_filter_exp_v2',
   // HOOK_FILTER_EXP = 'nc_hook_filter_exp_v2',
   SORT = 'nc_sort_v2',
@@ -37,6 +39,7 @@ export enum MetaTable {
   API_TOKENS = 'nc_api_tokens',
   SYNC_SOURCE = 'nc_sync_source_v2',
   SYNC_LOGS = 'nc_sync_logs_v2',
+  STORE = 'nc_store',
 }
 
 export const orderedMetaTables = [
@@ -74,6 +77,32 @@ export const orderedMetaTables = [
   MetaTable.PROJECT,
 ];
 
+export const sakilaTableNames = [
+  'actor',
+  'address',
+  'category',
+  'city',
+  'country',
+  'customer',
+  'film',
+  'film_actor',
+  'film_category',
+  'film_text',
+  'inventory',
+  'language',
+  'payment',
+  'rental',
+  'staff',
+  'store',
+  'actor_info',
+  'customer_list',
+  'film_list',
+  'nicer_but_slower_film_list',
+  'sales_by_film_category',
+  'sales_by_store',
+  'staff_list',
+];
+
 export enum CacheScope {
   PROJECT = 'project',
   BASE = 'base',
@@ -85,6 +114,8 @@ export enum CacheScope {
   COL_LOOKUP = 'colLookup',
   COL_ROLLUP = 'colRollup',
   COL_FORMULA = 'colFormula',
+  COL_QRCODE = 'colQRCode',
+  COL_BARCODE = 'colBarcode',
   FILTER_EXP = 'filterExp',
   SORT = 'sort',
   SHARED_VIEW = 'sharedView',
@@ -109,6 +140,7 @@ export enum CacheScope {
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
   API_TOKEN = 'apiToken',
   INSTANCE_META = 'instanceMeta',
+  USER_PROJECT = 'userProject',
 }
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',

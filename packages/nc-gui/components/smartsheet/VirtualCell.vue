@@ -1,17 +1,37 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ActiveCellInj, CellValueInj, ColumnInj, IsFormInj, RowInj, inject, provide, ref, toRef, useVirtualCell } from '#imports'
+import {
+  ActiveCellInj,
+  CellValueInj,
+  ColumnInj,
+  IsFormInj,
+  IsGridInj,
+  RowInj,
+  SaveRowInj,
+  inject,
+  isBarcode,
+  isBt,
+  isCount,
+  isFormula,
+  isHm,
+  isLookup,
+  isMm,
+  isQrCode,
+  isRollup,
+  provide,
+  toRef,
+} from '#imports'
 import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
 
 const props = defineProps<{
   column: ColumnType
   modelValue: any
-  row: Row
+  row?: Row
   active?: boolean
 }>()
 
-const emit = defineEmits(['update:modelValue', 'navigate'])
+const emit = defineEmits(['update:modelValue', 'navigate', 'save'])
 
 const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
@@ -21,10 +41,11 @@ provide(ColumnInj, column)
 provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
+provide(SaveRowInj, () => emit('save'))
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
-
-const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
 
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)
@@ -35,16 +56,19 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
 
 <template>
   <div
-    class="nc-virtual-cell w-full"
+    class="nc-virtual-cell w-full flex items-center"
+    :class="{ 'text-right justify-end': isGrid && !isForm && isRollup(column) }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
-    <LazyVirtualCellHasMany v-if="isHm" />
-    <LazyVirtualCellManyToMany v-else-if="isMm" />
-    <LazyVirtualCellBelongsTo v-else-if="isBt" />
-    <LazyVirtualCellRollup v-else-if="isRollup" />
-    <LazyVirtualCellFormula v-else-if="isFormula" />
-    <LazyVirtualCellCount v-else-if="isCount" />
-    <LazyVirtualCellLookup v-else-if="isLookup" />
+    <LazyVirtualCellHasMany v-if="isHm(column)" />
+    <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
+    <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
+    <LazyVirtualCellRollup v-else-if="isRollup(column)" />
+    <LazyVirtualCellFormula v-else-if="isFormula(column)" />
+    <LazyVirtualCellQrCode v-else-if="isQrCode(column)" />
+    <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />
+    <LazyVirtualCellCount v-else-if="isCount(column)" />
+    <LazyVirtualCellLookup v-else-if="isLookup(column)" />
   </div>
 </template>

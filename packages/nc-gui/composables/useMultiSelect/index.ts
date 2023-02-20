@@ -1,163 +1,212 @@
 import type { MaybeRef } from '@vueuse/core'
-import { UITypes } from 'nocodb-sdk'
-import { message, reactive, unref, useCopy, useEventListener, useI18n } from '#imports'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { Cell } from './cellRange'
+import { CellRange } from './cellRange'
+import convertCellData from './convertCellData'
+import type { Nullable, Row } from '~/lib'
+import {
+  copyTable,
+  extractPkFromRow,
+  extractSdkResponseErrorMsg,
+  isMac,
+  isTypableInputColumn,
+  message,
+  reactive,
+  ref,
+  unref,
+  useCopy,
+  useEventListener,
+  useGlobal,
+  useI18n,
+  useMetas,
+  useProject,
+} from '#imports'
 
-interface SelectedBlock {
-  row: number | null
-  col: number | null
-}
+const MAIN_MOUSE_PRESSED = 0
 
 /**
  * Utility to help with multi-selecting rows/cells in the smartsheet
  */
 export function useMultiSelect(
-  fields: MaybeRef<any[]>,
-  data: MaybeRef<any[]>,
-  editEnabled: MaybeRef<boolean>,
-  isPkAvail: MaybeRef<boolean>,
+  _meta: MaybeRef<TableType | undefined>,
+  fields: MaybeRef<ColumnType[]>,
+  data: MaybeRef<Row[]>,
+  _editEnabled: MaybeRef<boolean>,
+  isPkAvail: MaybeRef<boolean | undefined>,
   clearCell: Function,
   makeEditable: Function,
-  scrollToActiveCell?: () => void,
+  scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
+  keyEventHandler?: Function,
+  syncCellData?: Function,
 ) {
+  const meta = ref(_meta)
+
+  const tbodyEl = ref<HTMLElement>()
+
   const { t } = useI18n()
 
   const { copy } = useCopy()
 
-  const selected = reactive<SelectedBlock>({ row: null, col: null })
+  const { getMeta } = useMetas()
 
-  // save the first and the last column where the mouse is down while the value isSelectedRow is true
-  const selectedRows = reactive({ startCol: NaN, endCol: NaN, startRow: NaN, endRow: NaN })
+  const { appInfo } = useGlobal()
 
-  // calculate the min and the max column where the mouse is down while the value isSelectedRow is true
-  const rangeRows = reactive({ minRow: NaN, maxRow: NaN, minCol: NaN, maxCol: NaN })
+  const { isMysql } = useProject()
 
-  // check if mouse is down or up false=mouseup and true=mousedown
-  let isSelectedBlock = $ref(false)
+  let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
+
+  const editEnabled = ref(_editEnabled)
+
+  let isMouseDown = $ref(false)
+
+  const selectedRange = reactive(new CellRange())
+
+  const activeCell = reactive<Nullable<Cell>>({ row: null, col: null })
 
   const columnLength = $computed(() => unref(fields)?.length)
 
-  function selectCell(row: number, col: number) {
-    clearRangeRows()
-    selected.row = row
-    selected.col = col
+  const isCellActive = computed(
+    () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
+  )
+
+  function makeActive(row: number, col: number) {
+    if (activeCell.row === row && activeCell.col === col) {
+      return
+    }
+
+    activeCell.row = row
+    activeCell.col = col
   }
 
-  function selectBlock(row: number, col: number) {
-    // if selected.col and selected.row are null and isSelectedBlock is true that means you are selecting a block
-    if (selected.col === null || selected.row === null) {
-      if (isSelectedBlock) {
-        // save the next value after the selectionStart
-        selectedRows.endCol = col
-        selectedRows.endRow = row
+  async function copyValue(ctx?: Cell) {
+    try {
+      if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
+        const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+        const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
+
+        await copyTable(cprows, cpcols)
+        message.success(t('msg.info.copiedToClipboard'))
+      } else {
+        // if copy was called with context (right click position) - copy value from context
+        // else if there is just one selected cell, copy it's value
+        const cpRow = ctx?.row ?? activeCell.row
+        const cpCol = ctx?.col ?? activeCell.col
+
+        if (cpRow != null && cpCol != null) {
+          const rowObj = unref(data)[cpRow]
+          const columnObj = unref(fields)[cpCol]
+
+          let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+
+          if (columnObj.uidt === UITypes.Checkbox) {
+            textToCopy = !!textToCopy
+          }
+
+          if (typeof textToCopy === 'object') {
+            textToCopy = JSON.stringify(textToCopy)
+          }
+          await copy(textToCopy)
+          message.success(t('msg.info.copiedToClipboard'))
+        }
       }
-    } else if (selected.col !== col || selected.row !== row) {
-      // if selected.col and selected.row is not null but the selected col and row is not equal at the row and col where the mouse is clicking
-      // and isSelectedBlock is true that means you are selecting a block
-      if (isSelectedBlock) {
-        selected.col = null
-        selected.row = null
-        // save the next value after the selectionStart
-        selectedRows.endCol = col
-        selectedRows.endRow = row
-      }
+    } catch {
+      message.error(t('msg.error.copyToClipboardError'))
     }
   }
 
-  function selectedRange(row: number, col: number) {
-    if (
-      !isNaN(selectedRows.startRow) &&
-      !isNaN(selectedRows.startCol) &&
-      !isNaN(selectedRows.endRow) &&
-      !isNaN(selectedRows.endCol)
-    ) {
-      // check if column selection is up or down
-      rangeRows.minRow = Math.min(selectedRows.startRow, selectedRows.endRow)
-      rangeRows.maxRow = Math.max(selectedRows.startRow, selectedRows.endRow)
-      rangeRows.minCol = Math.min(selectedRows.startCol, selectedRows.endCol)
-      rangeRows.maxCol = Math.max(selectedRows.startCol, selectedRows.endCol)
+  function handleMouseOver(row: number, col: number) {
+    if (!isMouseDown) {
+      return
+    }
+    selectedRange.endRange({ row, col })
+  }
 
-      // return if the column is in between the selection
-      return col >= rangeRows.minCol && col <= rangeRows.maxCol && row >= rangeRows.minRow && row <= rangeRows.maxRow
-    } else {
+  function isCellSelected(row: number, col: number) {
+    if (activeCell.col === col && activeCell.row === row) {
+      return true
+    }
+
+    if (selectedRange.start === null || selectedRange.end === null) {
       return false
     }
+
+    return (
+      col >= selectedRange.start.col &&
+      col <= selectedRange.end.col &&
+      row >= selectedRange.start.row &&
+      row <= selectedRange.end.row
+    )
   }
 
-  function startSelectRange(event: MouseEvent, row: number, col: number) {
-    // if editEnabled but the selected col or the selected row is not equal like the actual row or col, enabled selected multiple rows
-    if (unref(editEnabled) && (selected.col !== col || selected.row !== row)) {
-      event.preventDefault()
-    } else if (!unref(editEnabled)) {
-      // if editEnabled is not true, enabled selected multiple rows
-      event.preventDefault()
+  function handleMouseDown(event: MouseEvent, row: number, col: number) {
+    // if there was a right click on selected range, don't restart the selection
+    if (event?.button !== MAIN_MOUSE_PRESSED && isCellSelected(row, col)) {
+      return
     }
 
-    // clear the selection when the mouse is down
-    selectedRows.startCol = NaN
-    selectedRows.endCol = NaN
-    selectedRows.startRow = NaN
-    selectedRows.endRow = NaN
-    // asing where the selection start
-    selectedRows.startCol = col
-    selectedRows.startRow = row
-    isSelectedBlock = true
+    editEnabled.value = false
+    isMouseDown = true
+    selectedRange.startRange({ row, col })
   }
 
-  function clearRangeRows() {
-    // when the selection starts or ends or when enter/arrow/tab is pressed
-    // this clear the previous selection
-    rangeRows.minCol = NaN
-    rangeRows.maxCol = NaN
-    rangeRows.minRow = NaN
-    rangeRows.maxRow = NaN
-    selectedRows.startRow = NaN
-    selectedRows.startCol = NaN
-    selectedRows.endRow = NaN
-    selectedRows.endCol = NaN
+  const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+    isMouseDown = true
+    editEnabled.value = false
+    selectedRange.startRange({ row, col })
+    selectedRange.endRange({ row, col })
+    makeActive(row, col)
+    isMouseDown = false
   }
 
-  useEventListener(document, 'mouseup', (e) => {
-    // if the editEnabled is false prevent the mouseup event for not select text
+  const handleMouseUp = (event: MouseEvent) => {
+    // timeout is needed, because we want to set cell as active AFTER all the child's click handler's called
+    // this is needed e.g. for date field edit, where two clicks had to be done - one to select cell, and another one to open date dropdown
+    setTimeout(() => {
+      makeActive(selectedRange.start.row, selectedRange.start.col)
+    }, 0)
+
+    // if the editEnabled is false, prevent selecting text on mouseUp
     if (!unref(editEnabled)) {
-      e.preventDefault()
+      event.preventDefault()
     }
 
-    isSelectedBlock = false
-  })
+    isMouseDown = false
+  }
 
-  const onKeyDown = async (e: KeyboardEvent) => {
-    if (
-      !isNaN(selectedRows.startRow) &&
-      !isNaN(selectedRows.startCol) &&
-      !isNaN(selectedRows.endRow) &&
-      !isNaN(selectedRows.endCol)
-    ) {
-      // In case the user press tabs or arrows keys
-      selected.row = selectedRows.startRow
-      selected.col = selectedRows.startCol
+  const handleKeyDown = async (e: KeyboardEvent) => {
+    // invoke the keyEventHandler if provided and return if it returns true
+    if (await keyEventHandler?.(e)) {
+      return true
     }
 
-    if (selected.row === null || selected.col === null) return
+    if (!isCellActive.value) {
+      return
+    }
 
     /** on tab key press navigate through cells */
     switch (e.key) {
       case 'Tab':
         e.preventDefault()
-        clearRangeRows()
+        selectedRange.clear()
 
         if (e.shiftKey) {
-          if (selected.col > 0) {
-            selected.col--
-          } else if (selected.row > 0) {
-            selected.row--
-            selected.col = unref(columnLength) - 1
+          if (activeCell.col > 0) {
+            activeCell.col--
+            editEnabled.value = false
+          } else if (activeCell.row > 0) {
+            activeCell.row--
+            activeCell.col = unref(columnLength) - 1
+            editEnabled.value = false
           }
         } else {
-          if (selected.col < unref(columnLength) - 1) {
-            selected.col++
-          } else if (selected.row < unref(data).length - 1) {
-            selected.row++
-            selected.col = 0
+          if (activeCell.col < unref(columnLength) - 1) {
+            activeCell.col++
+            editEnabled.value = false
+          } else if (activeCell.row < unref(data).length - 1) {
+            activeCell.row++
+            activeCell.col = 0
+            editEnabled.value = false
           }
         }
         scrollToActiveCell?.()
@@ -165,94 +214,148 @@ export function useMultiSelect(
       /** on enter key press make cell editable */
       case 'Enter':
         e.preventDefault()
-        clearRangeRows()
-        makeEditable(unref(data)[selected.row], unref(fields)[selected.col])
+        selectedRange.clear()
+
+        makeEditable(unref(data)[activeCell.row], unref(fields)[activeCell.col])
         break
       /** on delete key press clear cell */
       case 'Delete':
-        if (!unref(editEnabled)) {
-          e.preventDefault()
-          clearRangeRows()
-          await clearCell(selected as { row: number; col: number })
-        }
+        e.preventDefault()
+        selectedRange.clear()
+
+        await clearCell(activeCell as { row: number; col: number })
         break
       /** on arrow key press navigate through cells */
       case 'ArrowRight':
         e.preventDefault()
-        clearRangeRows()
-        if (selected.col < unref(columnLength) - 1) {
-          selected.col++
+        selectedRange.clear()
+
+        if (activeCell.col < unref(columnLength) - 1) {
+          activeCell.col++
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       case 'ArrowLeft':
-        clearRangeRows()
         e.preventDefault()
-        clearRangeRows()
-        if (selected.col > 0) {
-          selected.col--
+        selectedRange.clear()
+
+        if (activeCell.col > 0) {
+          activeCell.col--
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       case 'ArrowUp':
-        clearRangeRows()
         e.preventDefault()
-        clearRangeRows()
-        if (selected.row > 0) {
-          selected.row--
+        selectedRange.clear()
+
+        if (activeCell.row > 0) {
+          activeCell.row--
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       case 'ArrowDown':
-        clearRangeRows()
         e.preventDefault()
-        clearRangeRows()
-        if (selected.row < unref(data).length - 1) {
-          selected.row++
+        selectedRange.clear()
+
+        if (activeCell.row < unref(data).length - 1) {
+          activeCell.row++
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       default:
         {
-          const rowObj = unref(data)[selected.row]
+          const rowObj = unref(data)[activeCell.row]
+          const columnObj = unref(fields)[activeCell.col]
 
-          const columnObj = unref(fields)[selected.col]
-
-          let cptext = '' // variable for save the text to be copy
-
-          if (!isNaN(rangeRows.minRow) && !isNaN(rangeRows.maxRow) && !isNaN(rangeRows.minCol) && !isNaN(rangeRows.maxCol)) {
-            const cprows = unref(data).slice(rangeRows.minRow, rangeRows.maxRow + 1) // slice the selected rows for copy
-
-            const cpcols = unref(fields).slice(rangeRows.minCol, rangeRows.maxCol + 1) // slice the selected cols for copy
-
-            cprows.forEach((row) => {
-              cpcols.forEach((col) => {
-                // todo: JSON stringify the attachment cell and LTAR contents for copy
-                // filter attachment cells and LATR cells from copy
-                if (col.uidt !== UITypes.Attachment && col.uidt !== UITypes.LinkToAnotherRecord) {
-                  cptext = `${cptext} ${row.row[col.title]} \t`
-                }
-              })
-
-              cptext = `${cptext.trim()}\n`
-            })
-
-            cptext.trim()
-          } else {
-            cptext = rowObj.row[columnObj.title] || ''
-          }
-
-          if ((!unref(editEnabled) && e.metaKey) || e.ctrlKey) {
+          if ((!unref(editEnabled) || !isTypableInputColumn(columnObj)) && (isMac() ? e.metaKey : e.ctrlKey)) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
-                await copy(cptext)
+                // set clipboard context only if single cell selected
+                // or if selected range is empty
+                if (selectedRange.isSingleCell() || (selectedRange.isEmpty() && rowObj && columnObj)) {
+                  clipboardContext = {
+                    value: rowObj.row[columnObj.title!],
+                    uidt: columnObj.uidt as UITypes,
+                  }
+                } else {
+                  clipboardContext = null
+                }
+                await copyValue()
                 break
+              // paste - ctrl/cmd + v
+              case 86:
+                try {
+                  // handle belongs to column
+                  if (
+                    columnObj.uidt === UITypes.LinkToAnotherRecord &&
+                    (columnObj.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.BELONGS_TO
+                  ) {
+                    if (!clipboardContext || typeof clipboardContext.value !== 'object') {
+                      return message.info('Invalid data')
+                    }
+                    rowObj.row[columnObj.title!] = convertCellData(
+                      {
+                        value: clipboardContext.value,
+                        from: clipboardContext.uidt,
+                        to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
+                      },
+                      isMysql(meta.value?.base_id),
+                    )
+                    e.preventDefault()
+
+                    const foreignKeyColumn = meta.value?.columns?.find(
+                      (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+                    )
+
+                    const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+
+                    if (!foreignKeyColumn) return
+
+                    rowObj.row[foreignKeyColumn.title!] = extractPkFromRow(
+                      clipboardContext.value,
+                      (relatedTableMeta as any)!.columns!,
+                    )
+
+                    return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+                  }
+
+                  // if it's a virtual column excluding belongs to cell type skip paste
+                  if (isVirtualCol(columnObj)) {
+                    return message.info(t('msg.info.pasteNotSupported'))
+                  }
+
+                  if (clipboardContext) {
+                    rowObj.row[columnObj.title!] = convertCellData(
+                      {
+                        value: clipboardContext.value,
+                        from: clipboardContext.uidt,
+                        to: columnObj.uidt as UITypes,
+                        column: columnObj,
+                        appInfo: unref(appInfo),
+                      },
+                      isMysql(meta.value?.base_id),
+                    )
+                    e.preventDefault()
+                    syncCellData?.(activeCell)
+                  } else {
+                    clearCell(activeCell as { row: number; col: number }, true)
+                    makeEditable(rowObj, columnObj)
+                  }
+                } catch (error: any) {
+                  message.error(await extractSdkResponseErrorMsg(error))
+                }
             }
           }
 
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
-            return
+            return true
           }
 
           /** on letter key press make cell editable and empty */
@@ -261,7 +364,7 @@ export function useMultiSelect(
               // Update not allowed for table which doesn't have primary Key
               return message.info(t('msg.info.updateNotAllowedWithoutPK'))
             }
-            if (makeEditable(rowObj, columnObj)) {
+            if (isTypableInputColumn(columnObj) && makeEditable(rowObj, columnObj) && columnObj.title) {
               rowObj.row[columnObj.title] = ''
             }
             // editEnabled = true
@@ -271,16 +374,23 @@ export function useMultiSelect(
     }
   }
 
-  useEventListener(document, 'keydown', onKeyDown)
+  const resetSelectedRange = () => selectedRange.clear()
+
+  const clearSelectedRange = selectedRange.clear.bind(selectedRange)
+
+  useEventListener(document, 'keydown', handleKeyDown)
+  useEventListener(tbodyEl, 'mouseup', handleMouseUp)
 
   return {
-    selectCell,
-    selectBlock,
-    selectedRange,
-    clearRangeRows,
-    startSelectRange,
-    selected,
-    selectedRows,
-    rangeRows,
+    isCellActive,
+    handleMouseDown,
+    handleMouseOver,
+    clearSelectedRange,
+    copyValue,
+    isCellSelected,
+    activeCell,
+    handleCellClick,
+    tbodyEl,
+    resetSelectedRange,
   }
 }

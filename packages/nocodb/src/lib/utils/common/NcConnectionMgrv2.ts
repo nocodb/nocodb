@@ -7,7 +7,7 @@ import { XKnex } from '../../db/sql-data-mapper';
 // import NcMetaIO from '../meta/NcMetaIO';
 import {
   defaultConnectionConfig,
-  defaultConnectionOptions
+  defaultConnectionOptions,
 } from '../NcConfigFactory';
 import Base from '../../models/Base';
 import Noco from '../../Noco';
@@ -40,6 +40,19 @@ export default class NcConnectionMgrv2 {
       try {
         const conn = this.connectionRefs?.[base.project_id]?.[base.id];
         conn.destroy();
+        delete this.connectionRefs?.[base.project_id][base.id];
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
+
+  public static async deleteAwait(base: Base) {
+    // todo: ignore meta projects
+    if (this.connectionRefs?.[base.project_id]?.[base.id]) {
+      try {
+        const conn = this.connectionRefs?.[base.project_id]?.[base.id];
+        await conn.destroy();
         delete this.connectionRefs?.[base.project_id][base.id];
       } catch (e) {
         console.log(e);
@@ -136,7 +149,7 @@ export default class NcConnectionMgrv2 {
   //   return config?.envs?.[env]?.db?.find(db => db?.meta?.dbAlias === dbAlias);
   // }
 
-  public static getSqlClient(base: Base, _knex = null): any {
+  public static async getSqlClient(base: Base, _knex = null) {
     const knex = _knex || this.get(base);
     return SqlClientFactory.create({
       knex,

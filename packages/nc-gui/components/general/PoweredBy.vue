@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { openLink } from '#imports'
+import { openLink, useGlobal } from '#imports'
+
+const { isLoading } = useGlobal()
 </script>
 
 <template>
@@ -9,7 +11,7 @@ import { openLink } from '#imports'
     @click="openLink('https://github.com/nocodb/nocodb')"
   >
     <span class="relative rounded">
-      <GeneralNocoIcon v-bind="$attrs" class="!relative !top-0" :width="32" :height="32" />
+      <GeneralNocoIcon v-bind="$attrs" :animate="isLoading" class="!relative !top-0" :size="32" />
     </span>
 
     <span>Powered by NocoDB</span>

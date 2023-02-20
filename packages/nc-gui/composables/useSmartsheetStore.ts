@@ -1,28 +1,30 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { computed, reactive, ref, unref, useInjectionState, useNuxtApp, useProject, useTemplateRefsList } from '#imports'
+import { computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
+import type { SmartsheetStoreEvents } from '~/lib'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
     view: Ref<ViewType | undefined>,
     meta: Ref<TableType | KanbanType | undefined>,
     shared = false,
-    initalSorts?: Ref<SortType[]>,
+    initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
     const { $api } = useNuxtApp()
 
-    const { sqlUi } = useProject()
+    const { sqlUis } = useProject()
 
-    const cellRefs = useTemplateRefsList<HTMLTableDataCellElement>()
+    const sqlUi = ref(
+      (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
+    )
 
-    // state
-    // todo: move to grid view store
-    const search = reactive({
-      field: '',
-      query: '',
-    })
+    const cellRefs = ref<HTMLTableDataCellElement[]>([])
+
+    const { search } = useFieldQuery()
+
+    const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 
     // getters
     const isLocked = computed(() => view.value?.lock_type === 'locked')
@@ -35,22 +37,21 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const xWhere = computed(() => {
       let where
       const col =
-        (meta.value as TableType)?.columns?.find(({ id }) => id === search.field) ||
+        (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
         (meta.value as TableType)?.columns?.find((v) => v.pv)
       if (!col) return
 
-      if (!search.query.trim()) return
+      if (!search.value.query.trim()) return
       if (['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
-        where = `(${col.title},like,%${search.query.trim()}%)`
+        where = `(${col.title},like,%${search.value.query.trim()}%)`
       } else {
-        where = `(${col.title},eq,${search.query.trim()})`
+        where = `(${col.title},eq,${search.value.query.trim()})`
       }
       return where
     })
 
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
-
-    const sorts = ref<SortType[]>(unref(initalSorts) ?? [])
+    const sorts = ref<Required<SortType>[]>((unref(initialSorts) as Required<SortType>[]) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
     return {
@@ -58,7 +59,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       meta,
       isLocked,
       $api,
-      search,
       xWhere,
       isPkAvail,
       isForm,
@@ -70,6 +70,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       sorts,
       nestedFilters,
       isSqlView,
+      eventBus,
     }
   },
   'smartsheet-store',
@@ -78,9 +79,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 export { useProvideSmartsheetStore }
 
 export function useSmartsheetStoreOrThrow() {
-  const smartsheetStore = useSmartsheetStore()
+  const state = useSmartsheetStore()
 
-  if (smartsheetStore == null) throw new Error('Please call `useSmartsheetStore` on the appropriate parent component')
+  if (!state) throw new Error('Please call `useProvideSmartsheetStore` on the appropriate parent component')
 
-  return smartsheetStore
+  return state
 }

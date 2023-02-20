@@ -13,6 +13,7 @@ import {
   inject,
   ref,
   useProvideLTARStore,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
 } from '#imports'
@@ -27,7 +28,7 @@ const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const isForm = inject(IsFormInj)
 
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const isLocked = inject(IsLockedInj)
 
@@ -39,7 +40,7 @@ const { isUIAllowed } = useUIPermission()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
+const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -59,9 +60,9 @@ const localCellValue = computed<any[]>(() => {
 
 const cells = computed(() =>
   localCellValue.value.reduce((acc, curr) => {
-    if (!relatedTablePrimaryValueProp.value) return acc
+    if (!relatedTableDisplayValueProp.value) return acc
 
-    const value = curr[relatedTablePrimaryValueProp.value]
+    const value = curr[relatedTableDisplayValueProp.value]
 
     if (!value) return acc
 
@@ -81,10 +82,19 @@ const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
 }
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      listItemsDlg.value = true
+      e.stopPropagation()
+      break
+  }
+})
 </script>
 
 <template>
-  <div class="flex items-center items-center gap-1 w-full chips-wrapper">
+  <div class="flex items-center gap-1 w-full chips-wrapper">
     <template v-if="!isForm">
       <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">

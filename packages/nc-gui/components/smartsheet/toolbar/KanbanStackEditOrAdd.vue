@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { IsLockedInj, IsPublicInj, useKanbanViewStoreOrThrow } from '#imports'
+import {
+  IsKanbanInj,
+  IsLockedInj,
+  IsPublicInj,
+  inject,
+  provide,
+  ref,
+  useKanbanViewStoreOrThrow,
+  useMenuCloseOnEsc,
+  useUIPermission,
+} from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -7,12 +17,14 @@ const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const addOrEditStackDropdown = ref(false)
-
 const IsPublic = inject(IsPublicInj, ref(false))
 
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
+
 const handleSubmit = async () => {
-  addOrEditStackDropdown.value = false
+  open.value = false
 }
 
 provide(IsKanbanInj, ref(true))
@@ -21,7 +33,7 @@ provide(IsKanbanInj, ref(true))
 <template>
   <a-dropdown
     v-if="!IsPublic && isUIAllowed('edit-column')"
-    v-model:visible="addOrEditStackDropdown"
+    v-model:visible="open"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-kanban-add-edit-stack-menu"
   >
@@ -42,10 +54,10 @@ provide(IsKanbanInj, ref(true))
     </div>
     <template #overlay>
       <LazySmartsheetColumnEditOrAddProvider
-        v-if="addOrEditStackDropdown"
+        v-if="open"
         :column="groupingFieldColumn"
         @submit="handleSubmit"
-        @cancel="addOrEditStackDropdown = false"
+        @cancel="open = false"
         @click.stop
         @keydown.stop
       />

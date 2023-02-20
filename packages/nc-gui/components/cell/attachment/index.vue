@@ -3,15 +3,17 @@ import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import {
+  ActiveCellInj,
   DropZoneRef,
   IsGalleryInj,
   IsKanbanInj,
   inject,
   isImage,
   nextTick,
-  openLink,
   ref,
+  useAttachment,
   useDropZone,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
   watch,
@@ -43,6 +45,8 @@ const sortableRef = ref<HTMLDivElement>()
 const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
 
 const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
+
+const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
 
 const {
   isPublic,
@@ -95,7 +99,7 @@ const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
 /** on new value, reparse our stored attachments */
 watch(
   () => modelValue,
-  (nextModel) => {
+  async (nextModel) => {
     if (nextModel) {
       try {
         const nextAttachments = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
@@ -113,9 +117,17 @@ watch(
           attachments.value = []
         }
       }
+    } else {
+      if (isPublic.value && isForm.value) {
+        storedFiles.value = []
+      } else {
+        attachments.value = []
+      }
     }
   },
-  { immediate: true },
+  {
+    immediate: true,
+  },
 )
 
 /** updates attachments array for autosave */
@@ -136,6 +148,18 @@ watch(
     rowState.value[column.value!.title!] = storedFiles.value
   },
 )
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+  if (e.key === 'Enter' && !isReadonly.value) {
+    e.stopPropagation()
+    if (!modalVisible.value) {
+      modalVisible.value = true
+    } else {
+      // click Attach File button
+      ;(document.querySelector('.nc-attachment-modal.active .nc-attach-file') as HTMLDivElement)?.click()
+    }
+  }
+})
 </script>
 
 <template>
@@ -152,7 +176,8 @@ watch(
         :target="currentCellRef"
         class="nc-attachment-cell-dropzone text-white text-lg ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
-        <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here
+        <MaterialSymbolsFileCopyOutline class="text-accent" />
+        Drop here
       </general-overlay>
     </template>
 
@@ -160,12 +185,13 @@ watch(
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
       class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <a-tooltip v-else placement="bottom">
-        <template #title> Click or drop a file into cell </template>
+        <template #title> Click or drop a file into cell</template>
 
         <div class="flex items-center gap-2">
           <MaterialSymbolsAttachFile
@@ -195,21 +221,12 @@ watch(
             <template #title>
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
-
-            <template v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)">
+            <div v-if="isImage(item.title, item.mimetype ?? item.type)">
               <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
-                <LazyNuxtImg
-                  quality="75"
-                  placeholder
-                  fit="cover"
-                  :alt="item.title || `#${i}`"
-                  :src="item.url || item.data"
-                  class="max-w-full max-h-full"
-                />
+                <LazyCellAttachmentImage :alt="item.title || `#${i}`" :srcs="getPossibleAttachmentSrc(item)" />
               </div>
-            </template>
-
-            <div v-else class="nc-attachment flex items-center justify-center" @click="openLink(item.url || item.data)">
+            </div>
+            <div v-else class="nc-attachment flex items-center justify-center" @click="openAttachment(item)">
               <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
               <IcOutlineInsertDriveFile v-else />
@@ -224,7 +241,7 @@ watch(
         <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">
-          <template #title> View attachments </template>
+          <template #title> View attachments</template>
 
           <MdiArrowExpand
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"

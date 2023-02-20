@@ -6,41 +6,34 @@ import Locales from '../util/Locales';
 import socialShareRules from './cliRules.json';
 import socialText from './SocialText';
 
-
 class SocialMgr {
-
   public static async share(args) {
-
     try {
       const shareUrl = await SocialMgr.getShareUrl({
         text: 'A revolutionary API framework with a Desktop App.',
         type: args.type,
         url: 'https://NocoDB.com'
       });
-      open(shareUrl, {wait: true});
+      open(shareUrl, { wait: true });
     } catch (e) {
       console.error(`Error in xc ${args.type}`, e);
     }
   }
 
   public static async shareSocial(_args = {}) {
-
     try {
+      const prompt: any = Locales.getPrompt();
 
-      const prompt:any = Locales.getPrompt();
-
-      const answer = await inquirer
-          .prompt([
-            {
-              choices: prompt.choices,
-              message: prompt.message,
-              name: 'media',
-              type: 'list'
-            }
-          ])
+      const answer = await inquirer.prompt([
+        {
+          choices: prompt.choices,
+          message: prompt.message,
+          name: 'media',
+          type: 'list'
+        }
+      ]);
 
       switch (answer.media) {
-
         case 'Next time':
           break;
 
@@ -52,9 +45,8 @@ class SocialMgr {
           break;
 
         case 'Github - ⭐️ or 👀 repo':
-          open('https://github.com/NocoDB/NocoDB', {wait: true});
+          open('https://github.com/NocoDB/NocoDB', { wait: true });
           break;
-
 
         default:
           const text = SocialMgr.getShareText(answer.media);
@@ -65,26 +57,21 @@ class SocialMgr {
             url: 'https://NocoDB.com'
           });
 
-          open(shareUrl, {wait: true});
+          open(shareUrl, { wait: true });
           break;
-
       }
-
-
     } catch (e) {
       console.error(`Error in xc share`, e);
     }
   }
 
-  public static getShareUrl({type, url, text}):any {
-
-    const encUrl = encodeURIComponent(url)
-    const encText = encodeURIComponent(text)
+  public static getShareUrl({ type, url, text }): any {
+    const encUrl = encodeURIComponent(url);
+    const encText = encodeURIComponent(text);
 
     console.log(__dirname, process.cwd());
 
     switch (type) {
-
       case 'Twitter':
         return `https://twitter.com/intent/tweet?url=${encUrl}&text=${encText}&hashtags=xgenecloud`;
         break;
@@ -134,36 +121,43 @@ class SocialMgr {
         break;
 
       case 'OKru':
-        return `https://connect.ok.ru/dk?st.cmd=WidgetSharePreview&st.shareUrl=${encUrl}`
+        return `https://connect.ok.ru/dk?st.cmd=WidgetSharePreview&st.shareUrl=${encUrl}`;
         break;
-
 
       case 'WeChat':
         return `https://www.addtoany.com/add_to/wechat?linkurl=${encUrl}&linkname=${encText}`;
         break;
-
-
     }
   }
 
-
   public static setShareRules(key, value) {
     socialShareRules[key] = value;
-    fs.writeFileSync(path.join(__dirname, 'cliRules.json'), JSON.stringify(socialShareRules));
+    fs.writeFileSync(
+      path.join(__dirname, 'cliRules.json'),
+      JSON.stringify(socialShareRules)
+    );
   }
 
-
   public static setCreatedApis(value) {
-    if (socialShareRules.dontPrompt) { return }
+    if (socialShareRules.dontPrompt) {
+      return;
+    }
     socialShareRules.createdApis = value;
     socialShareRules.prompt = value;
-    fs.writeFileSync(path.join(__dirname, 'cliRules.json'), JSON.stringify(socialShareRules));
+    fs.writeFileSync(
+      path.join(__dirname, 'cliRules.json'),
+      JSON.stringify(socialShareRules)
+    );
   }
 
   public static async showPrompt() {
     try {
-      if (socialShareRules.createdApis && socialShareRules.prompt && !socialShareRules.dontPrompt) {
-        await SocialMgr.shareSocial()
+      if (
+        socialShareRules.createdApis &&
+        socialShareRules.prompt &&
+        !socialShareRules.dontPrompt
+      ) {
+        await SocialMgr.shareSocial();
         SocialMgr.setShareRules('prompt', false);
       }
     } catch (e) {
@@ -171,15 +165,18 @@ class SocialMgr {
     }
   }
 
-
   public static getShareText(socialMediaType) {
-    return SocialMgr._getShareContentPrefix(socialMediaType) +
-        SocialMgr._getShareContentMid(socialMediaType) +
-        SocialMgr._getShareContentSuffix(socialMediaType)
+    return (
+      SocialMgr._getShareContentPrefix(socialMediaType) +
+      SocialMgr._getShareContentMid(socialMediaType) +
+      SocialMgr._getShareContentSuffix(socialMediaType)
+    );
   }
 
   public static _getShareContentPrefix(_socialMediaType) {
-    return socialText.prefix[Math.floor(Math.random() * socialText.prefix.length)];
+    return socialText.prefix[
+      Math.floor(Math.random() * socialText.prefix.length)
+    ];
   }
 
   public static _getShareContentMid(_socialMediaType) {
@@ -187,33 +184,10 @@ class SocialMgr {
   }
 
   public static _getShareContentSuffix(_socialMediaType) {
-    return socialText.suffix[Math.floor(Math.random() * socialText.suffix.length)];
+    return socialText.suffix[
+      Math.floor(Math.random() * socialText.suffix.length)
+    ];
   }
-
-
 }
 
-
 export default SocialMgr;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

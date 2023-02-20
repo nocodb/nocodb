@@ -20,7 +20,7 @@ export default defineConfig({
   },
 
   darkMode: 'class',
-
+  safelist: ['text-yellow-500', 'text-sky-500', 'text-red-500'],
   plugins: [
     scrollbar,
     animations,
@@ -50,7 +50,7 @@ export default defineConfig({
     fontFamily: {
       sans: ['Vazirmatn', 'sans-serif'],
       serif: ['Vazirmatn', 'serif'],
-      mono: ['Roboto', 'mono'],
+      mono: ['Inter', 'mono'],
     },
     extend: {
       textColor: {

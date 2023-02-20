@@ -51,6 +51,29 @@ const formulas: Record<string, any> = {
       'DATEADD({column1}, -2, "year")',
     ],
   },
+  DATETIME_DIFF: {
+    type: formulaTypes.DATE,
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+      },
+    },
+    description: 'Calculate the difference of two given date / datetime in specified units.',
+    syntax:
+      'DATETIME_DIFF(date | datetime, date | datetime, ["milliseconds" | "ms" | "seconds" | "s" | "minutes" | "m" | "hours" | "h" | "days" | "d" | "weeks" | "w" | "months" | "M" | "quarters" | "Q" | "years" | "y"])',
+    examples: [
+      'DATEDIFF({column1}, {column2})',
+      'DATEDIFF({column1}, {column2}, "seconds")',
+      'DATEDIFF({column1}, {column2}, "s")',
+      'DATEDIFF({column1}, {column2}, "years")',
+      'DATEDIFF({column1}, {column2}, "y")',
+      'DATEDIFF({column1}, {column2}, "minutes")',
+      'DATEDIFF({column1}, {column2}, "m")',
+      'DATEDIFF({column1}, {column2}, "days")',
+      'DATEDIFF({column1}, {column2}, "d")',
+    ],
+  },
   AND: {
     type: formulaTypes.COND_EXP,
     validation: {
@@ -176,12 +199,13 @@ const formulas: Record<string, any> = {
     type: formulaTypes.NUMERIC,
     validation: {
       args: {
-        rqd: 1,
+        min: 1,
+        max: 2,
       },
     },
-    description: 'Nearest integer to the input parameter',
-    syntax: 'ROUND(value)',
-    examples: ['ROUND(3.1415) => 3', 'ROUND({column1})'],
+    description: 'Rounded number to a specified number of decimal places or the nearest integer if not specified',
+    syntax: 'ROUND(value, precision), ROUND(value)',
+    examples: ['ROUND(3.1415) => 3', 'ROUND(3.1415, 2) => 3.14', 'ROUND({column1}, 3)'],
   },
   MOD: {
     type: formulaTypes.NUMERIC,

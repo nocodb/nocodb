@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
+import type { DefaultConnection, ProjectCreateForm } from '#imports'
 import {
   CertTypes,
+  ClientType,
   Form,
   Modal,
   SSLUsage,
-  clientTypes,
+  clientTypes as _clientTypes,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
@@ -25,8 +27,8 @@ import {
   useSidebar,
   watch,
 } from '#imports'
-import { ClientType } from '~/lib'
-import type { DefaultConnection, ProjectCreateForm } from '~/utils'
+
+const { appInfo } = useGlobal()
 
 const useForm = Form.useForm
 
@@ -46,8 +48,8 @@ let formState = $ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
@@ -57,14 +59,50 @@ const customFormState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
+    inflectionColumn: 'none',
+    inflectionTable: 'none',
   },
   sslUse: SSLUsage.No,
   extraParameters: [],
 })
 
+const clientTypes = computed(() => {
+  return _clientTypes.filter((type) => {
+    return appInfo.value?.ee || type.value !== ClientType.SNOWFLAKE
+  })
+})
+
 const validators = computed(() => {
+  let clientValidations: Record<string, any[]> = {
+    'dataSource.connection.host': [fieldRequiredValidator()],
+    'dataSource.connection.port': [fieldRequiredValidator()],
+    'dataSource.connection.user': [fieldRequiredValidator()],
+    'dataSource.connection.password': [fieldRequiredValidator()],
+    'dataSource.connection.database': [fieldRequiredValidator()],
+  }
+
+  switch (formState.dataSource.client) {
+    case ClientType.SQLITE:
+      clientValidations = {
+        'dataSource.connection.connection.filename': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.SNOWFLAKE:
+      clientValidations = {
+        'dataSource.connection.account': [fieldRequiredValidator()],
+        'dataSource.connection.username': [fieldRequiredValidator()],
+        'dataSource.connection.password': [fieldRequiredValidator()],
+        'dataSource.connection.warehouse': [fieldRequiredValidator()],
+        'dataSource.connection.database': [fieldRequiredValidator()],
+        'dataSource.connection.schema': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.PG:
+    case ClientType.MSSQL:
+      clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
+      break
+  }
+
   return {
     'title': [
       {
@@ -75,22 +113,7 @@ const validators = computed(() => {
     ],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
-    ...(formState.dataSource.client === ClientType.SQLITE
-      ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator()],
-        }
-      : {
-          'dataSource.connection.host': [fieldRequiredValidator()],
-          'dataSource.connection.port': [fieldRequiredValidator()],
-          'dataSource.connection.user': [fieldRequiredValidator()],
-          'dataSource.connection.password': [fieldRequiredValidator()],
-          'dataSource.connection.database': [fieldRequiredValidator()],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
-            ? {
-                'dataSource.searchPath.0': [fieldRequiredValidator()],
-              }
-            : {}),
-        }),
+    ...clientValidations,
   }
 })
 
@@ -113,6 +136,9 @@ const onSSLModeChange = ((mode: SSLUsage) => {
         delete connection.ssl
         break
       case SSLUsage.Allowed:
+        connection.ssl = 'no-verify'
+        break
+      case SSLUsage.Preferred:
         connection.ssl = 'true'
         break
       default:
@@ -382,6 +408,43 @@ onMounted(async () => {
         <a-input v-model:value="formState.dataSource.connection.connection.filename" />
       </a-form-item>
 
+      <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
+        <!-- Account -->
+        <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
+          <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
+        </a-form-item>
+
+        <!-- Username -->
+        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
+          <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
+        </a-form-item>
+
+        <!-- Password -->
+        <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
+          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
+        </a-form-item>
+
+        <!-- Warehouse -->
+        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
+          <a-input v-model:value="formState.dataSource.connection.warehouse" />
+        </a-form-item>
+
+        <!-- Database -->
+        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+          <!-- Database : create if not exists -->
+          <a-input
+            v-model:value="formState.dataSource.connection.database"
+            :placeholder="$t('labels.dbCreateIfNotExists')"
+            class="nc-extdb-host-database"
+          />
+        </a-form-item>
+
+        <!-- Schema name -->
+        <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
+          <a-input v-model:value="formState.dataSource.connection.schema" />
+        </a-form-item>
+      </template>
+
       <template v-else>
         <!-- Host Address -->
         <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
@@ -435,7 +498,7 @@ onMounted(async () => {
             </template>
             <a-form-item label="SSL mode">
               <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
-                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
+                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
               </a-select>
             </a-form-item>
 
@@ -498,7 +561,9 @@ onMounted(async () => {
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                  <div class="flex items-center justify-center">
+                    <MdiPlus />
+                  </div>
                 </a-button>
               </a-card>
             </a-form-item>
@@ -548,6 +613,7 @@ onMounted(async () => {
 
     <a-modal
       v-model:visible="configEditDlg"
+      :class="{ active: configEditDlg }"
       :title="$t('activity.editConnJson')"
       width="600px"
       wrap-class-name="nc-modal-edit-connection-json"
@@ -559,6 +625,7 @@ onMounted(async () => {
     <!--    Use Connection URL -->
     <a-modal
       v-model:visible="importURLDlg"
+      :class="{ active: importURLDlg }"
       :title="$t('activity.useConnectionUrl')"
       width="600px"
       :ok-text="$t('general.ok')"

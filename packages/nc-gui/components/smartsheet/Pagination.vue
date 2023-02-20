@@ -47,7 +47,7 @@ const size = computed({
 
 <template>
   <div class="flex items-center mb-1">
-    <span v-if="count !== null && count !== Infinity" class="caption ml-5 text-gray-500">
+    <span v-if="count !== null && count !== Infinity" class="caption ml-5 text-gray-500" data-testid="grid-pagination">
       {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
     </span>
 
@@ -87,6 +87,6 @@ const size = computed({
 }
 
 :deep(.ant-pagination-item-link) {
-  @apply text-gray-500;
+  @apply text-gray-500 flex items-center justify-center;
 }
 </style>

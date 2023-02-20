@@ -1,9 +1,10 @@
-import { ViewTypes } from 'nocodb-sdk'
-import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
+import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
   NOCO,
+  NavigateDir,
   computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
@@ -11,12 +12,14 @@ import {
   message,
   populateInsertObject,
   ref,
+  until,
   useApi,
   useGlobal,
   useI18n,
   useMetas,
   useNuxtApp,
   useProject,
+  useRouter,
   useSharedView,
   useSmartsheetStoreOrThrow,
   useUIPermission,
@@ -43,14 +46,23 @@ export function useViewData(
 
   const { api, isLoading, error } = useApi()
 
+  const router = useRouter()
+
+  const route = $(router.currentRoute)
+
   const { appInfo } = $(useGlobal())
+
+  const { getMeta } = useMetas()
+
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
+
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
+
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
 
   const galleryData = ref<GalleryType>()
 
-  const formColumnData = ref<FormType>()
+  const formColumnData = ref<Record<string, any>[]>()
 
   const formViewData = ref<FormType>()
 
@@ -60,13 +72,15 @@ export function useViewData(
 
   const { project, isSharedBase } = useProject()
 
-  const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
+  const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
   const { $api, $e } = useNuxtApp()
 
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
   const { isUIAllowed } = useUIPermission()
+
+  const routeQuery = $computed(() => route.query as Record<string, string>)
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -185,6 +199,14 @@ export function useViewData(
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
+
+    // to cater the case like when querying with a non-zero offset
+    // the result page may point to the target page where the actual returned data don't display on
+    const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
+    if (expectedPage < paginationData.value.page!) {
+      await changePage(expectedPage)
+    }
+
     if (viewMeta.value?.type === ViewTypes.GRID) {
       await loadAggCommentsCount()
     }
@@ -192,19 +214,19 @@ export function useViewData(
 
   async function loadGalleryData() {
     if (!viewMeta?.value?.id) return
-
-    galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
+    galleryData.value = isPublic.value
+      ? (sharedView.value?.view as GalleryType)
+      : await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
   async function insertRow(
-    row: Record<string, any>,
-    rowIndex = formattedData.value?.length,
+    currentRow: Row,
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    const row = currentRow.row
+    if (currentRow.rowMeta) currentRow.rowMeta.saving = true
     try {
-      const { getMeta } = useMetas()
-
       const { missingRequiredColumns, insertObj } = await populateInsertObject({
         meta: metaValue!,
         ltarState,
@@ -222,9 +244,9 @@ export function useViewData(
         insertObj,
       )
 
-      formattedData.value?.splice(rowIndex ?? 0, 1, {
-        row: insertedData,
-        rowMeta: {},
+      Object.assign(currentRow, {
+        row: { ...insertedData, ...row },
+        rowMeta: { ...(currentRow.rowMeta || {}), new: undefined },
         oldRow: { ...insertedData },
       })
 
@@ -232,25 +254,32 @@ export function useViewData(
       return insertedData
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
+    } finally {
+      if (currentRow.rowMeta) currentRow.rowMeta.saving = false
     }
   }
 
+  // inside this method use metaValue and viewMetaValue to refer meta
+  // since sometimes we need to pass old metas
   async function updateRowProperty(
     toUpdate: Row,
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
+
     try {
-      const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
+      const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        id,
+        encodeURIComponent(id),
         {
-          [property]: toUpdate.row[property],
+          // if value is undefined treat it as null
+          [property]: toUpdate.row[property] ?? null,
         },
         // todo:
         // {
@@ -258,21 +287,37 @@ export function useViewData(
         // }
       )
       // audit
-      $api.utils
-        .auditRowUpdate(id, {
-          fk_model_id: meta.value?.id as string,
-          column_name: property,
-          row_id: id,
-          value: getHTMLEncodedText(toUpdate.row[property]),
-          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
-        })
-        .then(() => {})
+      $api.utils.auditRowUpdate(encodeURIComponent(id), {
+        fk_model_id: metaValue?.id as string,
+        column_name: property,
+        row_id: id,
+        value: getHTMLEncodedText(toUpdate.row[property]),
+        prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
+      })
 
-      /** update row data(to sync formula and other related columns) */
-      Object.assign(toUpdate.row, updatedRowData)
+      /** update row data(to sync formula and other related columns)
+       * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
+       */
+      Object.assign(
+        toUpdate.row,
+        metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+          if (
+            col.uidt === UITypes.Formula ||
+            col.uidt === UITypes.QrCode ||
+            col.uidt === UITypes.Barcode ||
+            col.uidt === UITypes.Rollup ||
+            col.au ||
+            col.cdf?.includes(' on update ')
+          )
+            acc[col.title!] = updatedRowData[col.title!]
+          return acc
+        }, {} as Record<string, any>),
+      )
       Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+    } finally {
+      if (toUpdate.rowMeta) toUpdate.rowMeta.saving = false
     }
   }
 
@@ -282,10 +327,19 @@ export function useViewData(
     ltarState?: Record<string, any>,
     args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    // update changed status
+    if (row.rowMeta) row.rowMeta.changed = false
+
+    // if new row and save is in progress then wait until the save is complete
+    await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
+
     if (row.rowMeta.new) {
-      return await insertRow(row.row, formattedData.value.indexOf(row), ltarState, args)
+      return await insertRow(row, ltarState, args)
     } else {
-      await updateRowProperty(row, property!, args)
+      // if the field name is missing skip update
+      if (property) {
+        await updateRowProperty(row, property, args)
+      }
     }
   }
 
@@ -377,14 +431,14 @@ export function useViewData(
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
-      const { columns, ...view } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
+      const { columns, ...view } = await $api.dbView.formRead(viewMeta.value.id)
 
-      const fieldById = columns.reduce(
+      const fieldById = (columns || []).reduce(
         (o: Record<string, any>, f: Record<string, any>) => ({
           ...o,
           [f.fk_column_id]: f,
         }),
-        {},
+        {} as Record<string, FormColumnType>,
       )
 
       let order = 1
@@ -400,7 +454,7 @@ export function useViewData(
           order: (fieldById[c.id] && fieldById[c.id].order) || order++,
           id: fieldById[c.id] && fieldById[c.id].id,
         }))
-        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>
+        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
     } catch (e: any) {
       return message.error(`${t('msg.error.setFormDataFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
@@ -420,6 +474,47 @@ export function useViewData(
 
     if (index > -1 && row.rowMeta.new) {
       formattedData.value.splice(index, 1)
+    }
+  }
+
+  const navigateToSiblingRow = async (dir: NavigateDir) => {
+    // get current expanded row index
+    const expandedRowIndex = formattedData.value.findIndex(
+      (row: Row) => routeQuery.rowId === extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+    )
+
+    // calculate next row index based on direction
+    let siblingRowIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+
+    const currentPage = paginationData?.value?.page || 1
+
+    // if next row index is less than 0, go to previous page and point to last element
+    if (siblingRowIndex < 0) {
+      // if first page, do nothing
+      if (currentPage === 1) return message.info(t('msg.info.noMoreRecords'))
+
+      await changePage(currentPage - 1)
+      siblingRowIndex = formattedData.value.length - 1
+
+      // if next row index is greater than total rows in current view
+      // then load next page of formattedData and set next row index to 0
+    } else if (siblingRowIndex >= formattedData.value.length) {
+      if (paginationData?.value?.isLastPage) return message.info(t('msg.info.noMoreRecords'))
+
+      await changePage(currentPage + 1)
+      siblingRowIndex = 0
+    }
+
+    // extract the row id of the sibling row
+    const rowId = extractPkFromRow(formattedData.value[siblingRowIndex].row, meta.value?.columns as ColumnType[])
+
+    if (rowId) {
+      router.push({
+        query: {
+          ...routeQuery,
+          rowId,
+        },
+      })
     }
   }
 
@@ -450,5 +545,7 @@ export function useViewData(
     loadAggCommentsCount,
     removeLastEmptyRow,
     removeRowIfNew,
+    navigateToSiblingRow,
+    deleteRowById,
   }
 }

@@ -1,9 +1,23 @@
 <script lang="ts" setup>
-import { ReloadViewDataHookInj, computed, inject, onClickOutside, ref, useSmartsheetStoreOrThrow } from '#imports'
+import type { TableType } from 'nocodb-sdk'
+import {
+  ActiveViewInj,
+  ReloadViewDataHookInj,
+  computed,
+  inject,
+  onClickOutside,
+  ref,
+  useFieldQuery,
+  useSmartsheetStoreOrThrow,
+} from '#imports'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
-const { search, meta } = useSmartsheetStoreOrThrow()
+const { meta } = useSmartsheetStoreOrThrow()
+
+const activeView = inject(ActiveViewInj, ref())
+
+const { search, loadFieldQuery } = useFieldQuery()
 
 const isDropdownOpen = ref(false)
 
@@ -12,10 +26,20 @@ const searchDropdown = ref(null)
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
-  meta.value?.columns?.map((c) => ({
-    value: c.id,
-    label: c.title,
+  (meta.value as TableType)?.columns?.map((column) => ({
+    value: column.id,
+    label: column.title,
   })),
+)
+
+watch(
+  () => activeView.value?.id,
+  (n, o) => {
+    if (n !== o) {
+      loadFieldQuery(activeView.value?.id)
+    }
+  },
+  { immediate: true },
 )
 
 function onPressEnter() {
@@ -49,12 +73,19 @@ function onPressEnter() {
     <a-input
       v-model:value="search.query"
       size="small"
-      class="max-w-[200px]"
+      class="max-w-[200px] !text-xs"
       :placeholder="$t('placeholder.filterQuery')"
       :bordered="false"
+      data-testid="search-data-input"
       @press-enter="onPressEnter"
     >
       <template #addonBefore> </template>
     </a-input>
   </div>
 </template>
+
+<style scoped>
+:deep(input::placeholder) {
+  @apply !text-xs;
+}
+</style>

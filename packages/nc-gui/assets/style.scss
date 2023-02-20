@@ -1,11 +1,13 @@
 @import 'ant-design-vue/dist/antd.variable.min.css';
-@import '@braks/vue-flow/dist/style.css';
-@import '@braks/vue-flow/dist/theme-default.css';
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/core/dist/theme-default.css';
 
 :root {
   --header-height: 42px;
   --toolbar-height: 48px;
   --tw-text-opacity: 1;
+  --navbar-bg: #FAFAFA;
+  --navbar-border: #e0e0e0;
 }
 
 .ant-layout-header {
@@ -34,7 +36,7 @@ a {
 }
 
 .nc-icon {
-  @apply color-transition;
+  @apply color-transition inline;
 }
 
 // menu item styling
@@ -86,6 +88,11 @@ a {
   @apply relative after:(absolute top-[-2px] right-[-2px] w-[8px] h-[8px] rounded-full bg-primary content-[''] !z-20);
 }
 
+// badge with count
+.nc-count-badge {
+  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-primary bg-opacity-100 text-white !text-[9px] !z-21;
+}
+
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn {
   @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
@@ -116,37 +123,37 @@ a {
 
 @-webkit-keyframes gradient {
   0% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
   50% {
-    background-position: 100% 79%
+    background-position: 100% 79%;
   }
   100% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
 }
 
 @-moz-keyframes gradient {
   0% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
   50% {
-    background-position: 100% 79%
+    background-position: 100% 79%;
   }
   100% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
 }
 
 @keyframes gradient {
   0% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
   50% {
-    background-position: 100% 79%
+    background-position: 100% 79%;
   }
   100% {
-    background-position: 0% 22%
+    background-position: 0% 22%;
   }
 }
 
@@ -214,24 +221,21 @@ a {
   @apply z-1 relative color-transition rounded-md px-4 py-2 text-white;
 
   &::after {
-    @apply ring-opacity-100 ring-[2px] ring-slate-300 rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
+    @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
     content: '';
     z-index: -1;
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-accent;
-  }
-
-  &:active::after {
-    @apply ring ring-accent;
+    @apply transform scale-110;
   }
 }
 
 .ant-dropdown-menu-submenu {
   @apply !py-0;
 
-  .ant-dropdown-menu, .ant-menu {
+  .ant-dropdown-menu,
+  .ant-menu {
     @apply m-0 p-0;
   }
 
@@ -260,8 +264,9 @@ a {
   @apply m-0;
 }
 
-.ant-dropdown-menu-item, .ant-menu-item {
-  @apply !py-0 active:(ring ring-accent ring-opacity-100);
+.ant-dropdown-menu-item,
+.ant-menu-item {
+  @apply py-0;
 }
 
 .ant-dropdown-menu-title-content,
@@ -280,4 +285,47 @@ a {
 
 .nc-toolbar-btn {
   @apply !shadow-none rounded hover:(ring-1 ring-primary ring-opacity-100) focus:(ring-1 ring-accent ring-opacity-100);
+}
+
+.ant-modal {
+  @apply !top-[50px];
+}
+
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  @apply bg-primary bg-opacity-20;
+}
+
+.ant-select-selection-search-input:focus {
+  @apply !ring-0;
+}
+
+.nc-null {
+  @apply text-gray-300 italic;
+  input::placeholder {
+    @apply text-gray-300 italic;
+  }
+}
+
+.ant-btn-loading-icon{
+  & > span {
+    @apply block;
+  }
+}
+
+
+.nc-copy-failed-modal .ant-modal-confirm-content{
+  @apply pt-4 overflow-auto;
+  white-space: pre;
+  user-select: auto;
+}
+
+
+
+.nc-drawer-expanded-form .ant-drawer-content-wrapper {
+  transition: width 0.3s !important;
+}
+
+
+.nc-icon-transition {
+  @apply transform transition-transform !hover:(scale-115) !active:(scale-100)
 }

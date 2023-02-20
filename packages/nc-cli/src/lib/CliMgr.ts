@@ -12,14 +12,13 @@ import client from './mgr/Client';
 // import PermissionsMgr from './mgr/PermissionsMgr';
 // import SocialMgr from './mgr/SocialMgr';
 // import DockerMgr from "./mgr/DockerMgr";
-import NewMgr from "./mgr/NewMgr";
+import NewMgr from './mgr/NewMgr';
 // import TryMgr from "./mgr/TryMgr";
 
 let cmdProcessedOnce = 0;
 let cmdOriginalArgs = null;
 
 class CliMgr {
-
   public static async runCmd(str) {
     shell.echo(`\nNow, executing command : ${str}\n\n`.blue);
     if (shell.exec(str).code !== 0) {
@@ -30,13 +29,11 @@ class CliMgr {
   }
 
   public static async process(args) {
-
     cmdOriginalArgs = cmdOriginalArgs ? cmdOriginalArgs : args;
 
     try {
       if (args._ && args._.length) {
         switch (args._[0]) {
-
           case 'man':
             if (args._.length > 1) {
               Util.showHelpForCommand(args);
@@ -53,11 +50,11 @@ class CliMgr {
             if (await NewMgr.getNewProjectInput(args)) {
               if (args._[0] === 'gap') {
                 console.log('gRPC code generation is not yet supported.');
-                process.exit(0)
+                process.exit(0);
               }
-              await client.requestSend(args)
+              await client.requestSend(args);
             } else {
-              process.exit(0)
+              process.exit(0);
             }
 
             break;
@@ -405,7 +402,6 @@ class CliMgr {
           //   process.exit(0)
           //   break;
 
-
           default:
             if (!cmdProcessedOnce) {
               cmdProcessedOnce = 1;
@@ -413,9 +409,11 @@ class CliMgr {
               args._.unshift('new');
               await this.process(args);
             } else {
-              console.log(`\nUnknown command. ${cmdOriginalArgs._[0]} -- please see help below`);
+              console.log(
+                `\nUnknown command. ${cmdOriginalArgs._[0]} -- please see help below`
+              );
               Util.showHelp(cmdOriginalArgs);
-              process.exit(0)
+              process.exit(0);
             }
             break;
         }
@@ -427,25 +425,3 @@ class CliMgr {
 }
 
 export default CliMgr;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

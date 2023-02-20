@@ -2,8 +2,8 @@ import { Request, Response, Router } from 'express';
 import { GalleryType, ViewTypes } from 'nocodb-sdk';
 import View from '../../models/View';
 import GalleryView from '../../models/GalleryView';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
+import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 export async function galleryViewGet(req: Request, res: Response<GalleryType>) {
   res.json(await GalleryView.get(req.params.galleryViewId));

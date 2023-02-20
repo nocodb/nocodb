@@ -1,7 +1,6 @@
 import User from '../../../models/User';
 import { v4 as uuidv4 } from 'uuid';
 import { promisify } from 'util';
-import { Tele } from 'nc-help';
 
 import bcrypt from 'bcryptjs';
 import Noco from '../../../Noco';
@@ -10,6 +9,7 @@ import ProjectUser from '../../../models/ProjectUser';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
 import NocoCache from '../../../cache/NocoCache';
+import { Tele } from 'nc-help';
 
 const { isEmail } = require('validator');
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
@@ -63,11 +63,10 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         salt
       );
       const email_verification_token = uuidv4();
+      const roles = 'user,super';
 
       // if super admin not present
       if (await User.isFirst(ncMeta)) {
-        const roles = 'user,super';
-
         // roles = 'owner,creator,editor'
         Tele.emit('evt', {
           evt_type: 'project:invite',
@@ -97,7 +96,55 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           roles: 'user,super',
         });
 
-        if (email !== superUser.email) {
+        if (!superUser?.id) {
+          const existingUserWithNewEmail = await User.getByEmail(email, ncMeta);
+          if (existingUserWithNewEmail?.id) {
+            // clear cache
+            await NocoCache.delAll(
+              CacheScope.USER,
+              `${existingUserWithNewEmail.email}___*`
+            );
+            await NocoCache.del(
+              `${CacheScope.USER}:${existingUserWithNewEmail.id}`
+            );
+            await NocoCache.del(
+              `${CacheScope.USER}:${existingUserWithNewEmail.email}`
+            );
+
+            // Update email and password of super admin account
+            await User.update(
+              existingUserWithNewEmail.id,
+              {
+                salt,
+                email,
+                password,
+                email_verification_token,
+                token_version: null,
+                refresh_token: null,
+                roles,
+              },
+              ncMeta
+            );
+          } else {
+            Tele.emit('evt', {
+              evt_type: 'project:invite',
+              count: 1,
+            });
+
+            await User.insert(
+              {
+                firstname: '',
+                lastname: '',
+                email,
+                salt,
+                password,
+                email_verification_token,
+                roles,
+              },
+              ncMeta
+            );
+          }
+        } else if (email !== superUser.email) {
           // update admin email and password and migrate projects
           // if user already present and associated with some project
 

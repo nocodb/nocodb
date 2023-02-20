@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { Knex } from  'knex';
 
 import glob from 'glob';
 import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
@@ -382,7 +383,7 @@ export default class KnexMigratorv2 {
   // }
 
   async _initDbWithSql(base: Base) {
-    const sqlClient = this.getSqlClient(base);
+    const sqlClient = await this.getSqlClient(base);
     const connectionConfig = base.getConnectionConfig();
     if (connectionConfig.client === 'oracledb') {
       this.emit(
@@ -428,12 +429,12 @@ export default class KnexMigratorv2 {
     // }
   }
 
-  protected getSqlClient(base: Base) {
+  protected async getSqlClient(base: Base) {
     return NcConnectionMgrv2.getSqlClient(base);
   }
 
   async _cleanDbWithSql(connectionConfig) {
-    const sqlClient = SqlClientFactory.create(connectionConfig);
+    const sqlClient = await SqlClientFactory.create(connectionConfig);
     if (connectionConfig.client === 'oracledb') {
       this.emit(`Dropping DB : ${connectionConfig.connection.user}`);
       await sqlClient.dropDatabase({
@@ -584,7 +585,7 @@ export default class KnexMigratorv2 {
       //   args.dbAlias,
       //   args.env
       // );
-      const sqlClient = this.getSqlClient(base);
+      const sqlClient = await this.getSqlClient(base);
 
       let migrations = await sqlClient.selectAll(
         // todo: replace
@@ -753,7 +754,7 @@ export default class KnexMigratorv2 {
             const vm = this;
 
             const trx = sqlClient.knex.isTransaction
-              ? sqlClient.knex
+              ? sqlClient.knex as Knex.Transaction
               : await sqlClient.knex.transaction();
             try {
               for (const query of upStatements) {
@@ -849,7 +850,7 @@ export default class KnexMigratorv2 {
       //   args.dbAlias,
       //   args.env
       // );
-      const sqlClient = this.getSqlClient(base); // SqlClientFactory.create(connection);
+      const sqlClient = await this.getSqlClient(base); // SqlClientFactory.create(connection);
       const migrations = await sqlClient.selectAll(
         sqlClient.getTnPath('nc_evolutions')
       );
@@ -920,7 +921,7 @@ export default class KnexMigratorv2 {
           const vm = this;
 
           const trx = sqlClient.knex.isTransaction
-            ? sqlClient.knex
+            ? sqlClient.knex as Knex.Transaction
             : await sqlClient.knex.transaction();
           try {
             for (const query of downStatements) {
@@ -1792,26 +1793,3 @@ export default class KnexMigratorv2 {
     return '';
   }
 }
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

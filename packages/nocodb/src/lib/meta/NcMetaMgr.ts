@@ -11,7 +11,6 @@ import extract from 'extract-zip';
 import isDocker from 'is-docker';
 import multer from 'multer';
 import { customAlphabet, nanoid } from 'nanoid';
-import { Tele } from 'nc-help';
 import slash from 'slash';
 import { v4 as uuidv4 } from 'uuid';
 import { ncp } from 'ncp';
@@ -27,6 +26,7 @@ import ExpressXcTsRoutesBt from '../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRout
 import ExpressXcTsRoutesHm from '../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutesHm';
 import NcHelp from '../utils/NcHelp';
 import mimetypes, { mimeIcons } from '../utils/mimeTypes';
+import { packageVersion } from '../utils/packageVersion';
 import projectAcl from '../utils/projectAcl';
 import Noco from '../Noco';
 import { GqlApiBuilder } from '../v1-legacy/gql/GqlApiBuilder';
@@ -34,13 +34,14 @@ import NcPluginMgr from '../v1-legacy/plugins/NcPluginMgr';
 import XcCache from '../v1-legacy/plugins/adapters/cache/XcCache';
 import { RestApiBuilder } from '../v1-legacy/rest/RestApiBuilder';
 import RestAuthCtrl from '../v1-legacy/rest/RestAuthCtrlEE';
-import { packageVersion } from 'nc-help';
 import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import { promisify } from 'util';
 import NcTemplateParser from '../v1-legacy/templates/NcTemplateParser';
 import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
 import { UITypes } from 'nocodb-sdk';
+import { Tele } from 'nc-help';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -132,6 +133,9 @@ export default class NcMetaMgr {
         storage: multer.diskStorage({
           // dest: path.join(this.config.toolDir, 'uploads')
         }),
+        limits: {
+          fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+        },
       });
       // router.post(this.config.dashboardPath, upload.single('file'));
       router.post(this.config.dashboardPath, upload.any());
@@ -433,9 +437,12 @@ export default class NcMetaMgr {
       await this.xcMetaTablesReset(args);
 
       for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
-        if (fs.existsSync(path.join(metaFolder, `${tn}.json`))) {
+        if (await promisify(fs.exists)(path.join(metaFolder, `${tn}.json`))) {
           const data = JSON.parse(
-            fs.readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8')
+            await promisify(fs.readFile)(
+              path.join(metaFolder, `${tn}.json`),
+              'utf8'
+            )
           );
           for (const row of data) {
             delete row.id;
@@ -484,14 +491,14 @@ export default class NcMetaMgr {
         },
       });
       // delete temporary upload file
-      fs.unlinkSync(file.path);
+      await promisify(fs.unlink)(file.path);
 
       let projectId = this.getProjectId(args);
       if (!projectConfigPath) {
         throw new Error('Missing project config file');
       }
 
-      const projectDetailsJSON: any = fs.readFileSync(
+      const projectDetailsJSON: any = await promisify(fs.readFile)(
         path.join(this.config.toolDir, 'uploads', projectConfigPath),
         'utf8'
       );
@@ -515,7 +522,7 @@ export default class NcMetaMgr {
 
         if (projectConfig?.prefix) {
           const metaProjConfig =
-            NcConfigFactory.makeProjectConfigFromConnection(
+            await NcConfigFactory.makeProjectConfigFromConnection(
               this.config?.meta?.db,
               args.args.projectType
             );
@@ -610,11 +617,11 @@ export default class NcMetaMgr {
         },
       });
       // delete temporary upload file
-      fs.unlinkSync(file.path);
+      await promisify(fs.unlink)(file.path);
 
       if (projectConfigPath) {
         // read project config and extract project id
-        let projectConfig: any = fs.readFileSync(
+        let projectConfig: any = await promisify(fs.readFile)(
           path.join(this.config?.toolDir, projectConfigPath),
           'utf8'
         );
@@ -698,14 +705,14 @@ export default class NcMetaMgr {
           'meta'
         );
 
-        mkdirp.sync(metaFolder);
+        await mkdirp(metaFolder);
 
         // const client = await this.projectGetSqlClient(args);
         const dbAlias = this.getDbAlias(args);
         for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
           // const metaData = await client.knex(tn).select();
           const metaData = await this.xcMeta.metaList(projectId, dbAlias, tn);
-          fs.writeFileSync(
+          await promisify(fs.writeFile)(
             path.join(metaFolder, `${tn}.json`),
             JSON.stringify(metaData, null, 2)
           );
@@ -716,7 +723,7 @@ export default class NcMetaMgr {
           true
         );
         projectMetaData.key = this.config?.auth?.jwt?.secret;
-        fs.writeFileSync(
+        await promisify(fs.writeFile)(
           path.join(metaFolder, `nc_project.json`),
           JSON.stringify(projectMetaData, null, 2)
         );
@@ -1547,7 +1554,9 @@ export default class NcMetaMgr {
           break;
 
         case 'testConnection':
-          result = await SqlClientFactory.create(args.args).testConnection();
+          result = await (
+            await SqlClientFactory.create(args.args)
+          ).testConnection();
           break;
         case 'xcProjectGetConfig':
           result = await this.xcMeta.projectGetById(this.getProjectId(args));
@@ -1598,7 +1607,7 @@ export default class NcMetaMgr {
           break;
         case 'projectCreateByOneClick':
           {
-            const config = NcConfigFactory.makeProjectConfigFromUrl(
+            const config = await NcConfigFactory.makeProjectConfigFromUrl(
               process.env.NC_DB,
               args.args.projectType
             );
@@ -1631,7 +1640,7 @@ export default class NcMetaMgr {
           break;
         case 'projectCreateByWebWithXCDB': {
           await this.checkIsUserAllowedToCreateProject(req);
-          const config = NcConfigFactory.makeProjectConfigFromConnection(
+          const config = await NcConfigFactory.makeProjectConfigFromConnection(
             this.config?.meta?.db,
             args.args.projectType
           );
@@ -2900,7 +2909,7 @@ export default class NcMetaMgr {
     }
   }
 
-  protected projectGetSqlClient(args) {
+  protected async projectGetSqlClient(args) {
     const builder = this.getBuilder(args);
     return builder?.getSqlClient();
   }
@@ -3436,7 +3445,7 @@ export default class NcMetaMgr {
   }
 
   // @ts-ignore
-  protected getSqlClient(project_id: string, dbAlias: string) {
+  protected async getSqlClient(project_id: string, dbAlias: string) {
     return this.app?.projectBuilders
       ?.find((pb) => pb?.id === project_id)
       ?.apiBuilders?.find((builder) => builder.dbAlias === dbAlias)
@@ -4246,7 +4255,7 @@ export default class NcMetaMgr {
         return { data: { list: columns } };
       }
 
-      return this.projectGetSqlClient(args).columnList(args.args);
+      return (await this.projectGetSqlClient(args)).columnList(args.args);
     } catch (e) {
       throw e;
     }
@@ -4591,7 +4600,7 @@ export default class NcMetaMgr {
         {}
       );
 
-      const sqlClient = this.projectGetSqlClient(args);
+      const sqlClient = await this.projectGetSqlClient(args);
 
       switch (args.args.type) {
         case 'table':
@@ -5703,26 +5712,3 @@ export class XCEeError extends Error {
     throw new XCEeError('Upgrade to Enterprise Edition');
   }
 }
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

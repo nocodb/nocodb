@@ -9,6 +9,8 @@ import {
   getSortDirectionOptions,
   inject,
   ref,
+  useMenuCloseOnEsc,
+  useSmartsheetStoreOrThrow,
   useViewSorts,
   watch,
 } from '#imports'
@@ -18,7 +20,15 @@ const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
 const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.SORT_RELOAD) {
+    loadSorts()
+  }
+})
 
 const columns = computed(() => meta.value?.columns || [])
 
@@ -30,6 +40,11 @@ const columnByID = computed(() =>
   }, {} as Record<string, ColumnType>),
 )
 
+const getColumnUidtByID = (key?: string) => {
+  if (!key) return ''
+  return columnByID.value[key]?.uidt || ''
+}
+
 watch(
   () => view.value?.id,
   (viewId) => {
@@ -37,25 +52,34 @@ watch(
   },
   { immediate: true },
 )
+
+const open = ref(false)
+
+useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
+  <a-dropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <MdiSort />
 
           <!-- Sort -->
-          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
+          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.sort') }}</span>
           <MdiMenuDown class="text-grey" />
+
+          <span v-if="sorts?.length" class="nc-count-badge">{{ sorts.length }}</span>
         </div>
       </a-button>
     </div>
     <template #overlay>
-      <div class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border">
+      <div
+        class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border"
+        data-testid="nc-sorts-menu"
+      >
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
-          <template v-for="(sort, i) in sorts || []" :key="i">
+          <template v-for="(sort, i) of sorts" :key="i">
             <MdiCloseBox class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
 
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
@@ -76,7 +100,7 @@ watch(
               @select="saveOrUpdate(sort, i)"
             >
               <a-select-option
-                v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
+                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
                 :key="j"
                 :value="option.value"
               >

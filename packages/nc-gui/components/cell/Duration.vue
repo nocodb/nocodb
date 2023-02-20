@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
 import {
   ColumnInj,
   EditModeInj,
@@ -12,11 +13,14 @@ import {
 
 interface Props {
   modelValue: number | string | null | undefined
+  showValidationError: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, showValidationError = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const { showNull } = useGlobal()
 
 const column = inject(ColumnInj)
 
@@ -28,7 +32,7 @@ const durationInMS = ref(0)
 
 const isEdited = ref(false)
 
-const durationType = ref(column?.value?.meta?.duration || 0)
+const durationType = computed(() => column?.value?.meta?.duration || 0)
 
 const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
 
@@ -67,13 +71,15 @@ const submitDuration = () => {
   }
   isEdited.value = false
 }
+
+const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
   <div class="duration-cell-wrapper">
     <input
       v-if="editEnabled"
-      ref="durationInput"
+      :ref="focus"
       v-model="localState"
       class="w-full !border-none p-0"
       :class="{ '!px-2': editEnabled }"
@@ -81,11 +87,20 @@ const submitDuration = () => {
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"
       @keydown.enter="submitDuration"
+      @keydown.down.stop
+      @keydown.left.stop
+      @keydown.right.stop
+      @keydown.up.stop
+      @keydown.delete.stop
+      @selectstart.capture.stop
+      @mousedown.stop
     />
+
+    <span v-else-if="modelValue === null && showNull" class="nc-null">NULL</span>
 
     <span v-else> {{ localState }}</span>
 
-    <div v-if="showWarningMessage" class="duration-warning">
+    <div v-if="showWarningMessage && showValidationError" class="duration-warning">
       <!-- TODO: i18n -->
       Please enter a number
     </div>
@@ -99,25 +114,4 @@ const submitDuration = () => {
 </style>
 
 <!--
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Wing-Kam Wong <wingkwong.code@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
 -->

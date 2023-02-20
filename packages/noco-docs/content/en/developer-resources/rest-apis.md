@@ -173,6 +173,15 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Meta | Get | utils | appVersion | /api/v1/version |
 | Meta | Get | utils | appHealth | /api/v1/health |
 | Meta | Get | utils | aggregatedMetaInfo | /api/v1/aggregated-meta-info |
+| Meta | Get | orgUsers | list | /api/v1/users |
+| Meta | Post | orgUsers | add | /api/v1/users |
+| Meta | Patch | orgUsers | update | /api/v1/users/{userId} |
+| Meta | Delete | orgUsers | delete | /api/v1/users/{userId} |
+| Meta | Get | orgTokens | list | /api/v1/tokens |
+| Meta | Post | orgTokens | create | /api/v1/tokens |
+| Meta | Delete | orgTokens | delete | /api/v1/tokens/{token} |
+| Meta | Get | orgAppSettings | get | /api/v1/app-settings |
+| Meta | Post | orgAppSettings | set | /api/v1/app-settings |
 
 ## Query params
 
@@ -212,6 +221,10 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | btw | between | (colName,btw,val1,val2) |
 | nbtw | not between | (colName,nbtw,val1,val2) |
 | like | like | (colName,like,%name) |
+| allof | includes all of | (colName,allof,val1,val2,...) |
+| anyof | includes any of | (colName,anyof,val1,val2,...) |
+| nallof | does not include all of (includes none or some, but not all of) | (colName,nallof,val1,val2,...) |
+| nanyof | does not include any of (includes none of) | (colName,nanyof,val1,val2,...) |
 
 ## Logical Operators
 

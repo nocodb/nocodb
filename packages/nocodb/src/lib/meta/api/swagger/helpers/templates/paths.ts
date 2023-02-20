@@ -8,10 +8,10 @@ import {
   getNestedParams,
   limitParam,
   offsetParam,
-  shuffleParam,
   referencedRowIdParam,
   relationTypeParam,
   rowIdParam,
+  shuffleParam,
   sortParam,
   whereParam,
 } from './params';

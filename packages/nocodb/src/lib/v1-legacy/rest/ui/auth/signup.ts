@@ -2,12 +2,11 @@ export default `<!DOCTYPE html>
 <html>
 <head>
     <title>NocoDB - Sign Up</title>
-    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
-
-    <script src="https://unpkg.com/vue"></script>
+    <link href="<%- ncPublicUrl %>/css/fonts.roboto.css" rel="stylesheet">
+    <link href="<%- ncPublicUrl %>/css/materialdesignicons.5.x.min.css" rel="stylesheet">
+    <link href="<%- ncPublicUrl %>/css/vuetify.2.x.min.css" rel="stylesheet">
+    <script src="<%- ncPublicUrl %>/js/vue.global.js"></script>
 </head>
 <body>
 <div id="app">
@@ -73,8 +72,8 @@ export default `<!DOCTYPE html>
         </v-container>
     </v-app>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js"></script>
+<script src="<%- ncPublicUrl %>/js/vuetify.2.x.min.js"></script>
+<script src="<%- ncPublicUrl %>/js/axios.0.19.2.min.js"></script>
 
 <script>
   var app = new Vue({
@@ -111,25 +110,3 @@ export default `<!DOCTYPE html>
 </script>
 </body>
 </html>`;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

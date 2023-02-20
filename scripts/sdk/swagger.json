@@ -6975,7 +6975,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiToken"
+                  "$ref": "#/components/schemas/ApiTokenReq"
                 }
               }
             }
@@ -8739,6 +8739,33 @@
         },
         "description": ""
       },
+      "GridReq": {
+        "title": "Grid",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
+          },
+          "row_height": {
+            "type": "number"
+          }
+        },
+        "description": "",
+        "required": [
+          "title"
+        ]
+      },
       "Gallery": {
         "title": "Gallery",
         "type": "object",
@@ -8801,6 +8828,51 @@
             ]
           }
         }
+      },
+      "GalleryReq": {
+        "title": "Gallery",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "next_enabled": {
+            "type": "boolean"
+          },
+          "prev_enabled": {
+            "type": "boolean"
+          },
+          "cover_image_idx": {
+            "type": "integer"
+          },
+          "cover_image": {
+            "type": "string"
+          },
+          "restrict_types": {
+            "type": "string"
+          },
+          "restrict_size": {
+            "type": "string"
+          },
+          "restrict_number": {
+            "type": "string"
+          },
+          "fk_cover_image_col_id": {
+            "type": "string"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
+          }
+        },
+        "required": [
+          "title"
+        ]
       },
       "GalleryColumn": {
         "title": "GalleryColumn",
@@ -8992,6 +9064,46 @@
           }
         }
       },
+      "KanbanReq": {
+        "title": "Kanban",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "fk_grp_col_id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "KanbanUpdateReq": {
+        "title": "Kanban",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "fk_grp_col_id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
       "Form": {
         "title": "Form",
         "type": "object",
@@ -9052,6 +9164,61 @@
           },
           "meta": {}
         }
+      },
+      "FormReq": {
+        "title": "Form",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "heading": {
+            "type": "string"
+          },
+          "subheading": {
+            "type": "string"
+          },
+          "success_msg": {
+            "type": "string"
+          },
+          "redirect_url": {
+            "type": "string"
+          },
+          "redirect_after_secs": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "banner_image_url": {
+            "type": "string"
+          },
+          "logo_url": {
+            "type": "string"
+          },
+          "submit_another_form": {
+            "type": "boolean"
+          },
+          "show_blank_form": {
+            "type": "boolean"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
+          },
+          "meta": {}
+        },
+        "required": [
+          "title"
+        ]
       },
       "FormColumn": {
         "description": "",
@@ -9542,7 +9709,82 @@
           "hook"
         ]
       },
-
+      "SignUpReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "SignInReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "ForgotPasswordReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "PasswordResetReq": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "PasswordChangeReq": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "ApiTokenReq": {
+        "title": "API Token Request",
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          }
+        }
+      },
       "Plugin": {
         "title": "Plugin",
         "type": "object",

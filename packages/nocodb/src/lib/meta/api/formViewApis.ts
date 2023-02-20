@@ -13,6 +13,7 @@ import View from '../../models/View';
 import FormView from '../../models/FormView';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers'
 
 // @ts-ignore
 export async function formViewGet(req: Request, res: Response<FormType>) {
@@ -43,6 +44,7 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/forms',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/FormReq'),
   ncMetaAclMw(formViewCreate, 'formViewCreate')
 );
 router.get(

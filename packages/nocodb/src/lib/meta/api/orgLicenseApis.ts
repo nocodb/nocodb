@@ -5,6 +5,7 @@ import Store from '../../models/Store';
 import Noco from '../../Noco';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
+import { getAjvValidatorMw } from './helpers'
 
 async function licenseGet(_req, res) {
   const license = await Store.get(NC_LICENSE_KEY);
@@ -30,6 +31,7 @@ router.get(
 router.post(
   '/api/v1/license',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/LicenseReq'),
   ncMetaAclMw(licenseSet, 'licenseSet', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,

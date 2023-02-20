@@ -4,6 +4,7 @@ import { Router } from 'express';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers'
 async function xcVisibilityMetaSetAll(req, res) {
   Tele.emit('evt', { evt_type: 'uiAcl:updated' });
   for (const d of req.body) {
@@ -122,6 +123,7 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/visibility-rules',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/KanbanViewReq'),
   ncMetaAclMw(xcVisibilityMetaSetAll, 'modelVisibilitySet')
 );
 export default router;

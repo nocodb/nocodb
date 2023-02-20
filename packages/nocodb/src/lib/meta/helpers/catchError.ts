@@ -1,3 +1,9 @@
+
+
+function extractDBError(_error:Error) {
+   // if (error instanceof knex.DBError) { switch (error.code) { case 'ER_NO_SUCH_TABLE': console.error('Table does not exist'); break; case 'ER_BAD_FIELD_ERROR': console.error('Invalid column name'); break; // Add more cases for other common errors here default: console.error('Unknown error:', error); break; } } else { console.error('Unexpected error:', error); } }).finally(() => { knex.destroy(); // Close the database connection });
+}
+
 export default function (
   requestHandler: (req: any, res: any, next?: any) => any
 ) {
@@ -5,6 +11,10 @@ export default function (
     try {
       return await requestHandler(req, res, next);
     } catch (e) {
+
+      extractDBError(e)
+
+
       // todo: error log
       console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
 

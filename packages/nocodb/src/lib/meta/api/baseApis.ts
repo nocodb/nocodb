@@ -7,7 +7,7 @@ import Base from '../../models/Base';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { populateMeta } from './helpers';
+import { getAjvValidatorMw, populateMeta } from './helpers'
 
 export async function baseGet(
   req: Request<any, any, any>,
@@ -107,6 +107,7 @@ export default (router) => {
   router.patch(
     '/api/v1/db/meta/projects/:projectId/bases/:baseId',
     metaApiMetrics,
+    getAjvValidatorMw('swagger.json#/components/schemas/BaseReq'),
     ncMetaAclMw(baseUpdate, 'baseUpdate')
   );
   router.delete(
@@ -117,6 +118,7 @@ export default (router) => {
   router.post(
     '/api/v1/db/meta/projects/:projectId/bases',
     metaApiMetrics,
+    getAjvValidatorMw('swagger.json#/components/schemas/BaseReq'),
     ncMetaAclMw(baseCreate, 'baseCreate')
   );
   router.get(

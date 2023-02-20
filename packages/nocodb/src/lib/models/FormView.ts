@@ -54,22 +54,24 @@ export default class FormView implements FormType {
   }
 
   static async insert(view: Partial<FormView>, ncMeta = Noco.ncMeta) {
-    const insertObj = {
-      fk_view_id: view.fk_view_id,
-      project_id: view.project_id,
-      base_id: view.base_id,
-      heading: view.heading,
-      subheading: view.subheading,
-      success_msg: view.success_msg,
-      redirect_url: view.redirect_url,
-      redirect_after_secs: view.redirect_after_secs,
-      email: view.email,
-      banner_image_url: view.banner_image_url,
-      logo_url: view.logo_url,
-      submit_another_form: view.submit_another_form,
-      show_blank_form: view.show_blank_form,
-      meta: serializeJSON(view.meta),
-    };
+    const insertObj = extractProps(view, [
+      'fk_view_id',
+      'project_id',
+      'base_id',
+      'heading',
+      'subheading',
+      'success_msg',
+      'redirect_url',
+      'redirect_after_secs',
+      'email',
+      'banner_image_url',
+      'logo_url',
+      'submit_another_form',
+      'show_blank_form',
+    ]);
+    if (insertObj.meta) {
+      insertObj.meta = serializeJSON(insertObj.meta);
+    }
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);
       insertObj.project_id = viewRef.project_id;

@@ -122,32 +122,44 @@ export default class Hook implements HookType {
     >,
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = {
-      fk_model_id: hook.fk_model_id,
-      title: hook.title,
-      description: hook.description,
-      env: hook.env,
-      type: hook.type,
-      event: hook.event?.toLowerCase?.(),
-      operation: hook.operation?.toLowerCase?.(),
-      async: hook.async,
-      payload: !!hook.payload,
-      url: hook.url,
-      headers: hook.headers,
-      condition: hook.condition,
-      notification:
-        hook.notification && typeof hook.notification === 'object'
-          ? JSON.stringify(hook.notification)
-          : hook.notification,
-      retries: hook.retries,
-      retry_interval: hook.retry_interval,
-      timeout: hook.timeout,
-      active: hook.active,
-      project_id: hook.project_id,
-      base_id: hook.base_id,
-      created_at: hook.created_at,
-      updated_at: hook.updated_at,
-    };
+    const insertObj = extractProps(hook, [
+      'fk_model_id',
+      'title',
+      'description',
+      'env',
+      'type',
+      'event',
+      'operation',
+      'async',
+      'url',
+      'headers',
+      'notification',
+      'retries',
+      'retry_interval',
+      'timeout',
+      'active',
+      'project_id',
+      'base_id',
+      'created_at',
+      'updated_at',
+    ]);
+
+    if (insertObj.event) {
+      insertObj.event = insertObj.event.toLowerCase() as 'after' | 'before';
+    }
+
+    if (insertObj.operation) {
+      insertObj.operation = insertObj.operation.toLowerCase() as
+        | 'insert'
+        | 'delete'
+        | 'update';
+    }
+
+    if (insertObj.notification) {
+      insertObj.notification && typeof insertObj.notification === 'object'
+        ? JSON.stringify(insertObj.notification)
+        : insertObj.notification;
+    }
 
     if (!(hook.project_id && hook.base_id)) {
       const model = await Model.getByIdOrName({ id: hook.fk_model_id }, ncMeta);

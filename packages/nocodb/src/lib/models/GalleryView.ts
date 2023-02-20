@@ -52,21 +52,23 @@ export default class GalleryView implements GalleryType {
       .then((v) => v?.getModel(ncMeta))
       .then((m) => m.getColumns(ncMeta));
 
-    const insertObj = {
-      project_id: view.project_id,
-      base_id: view.base_id,
-      fk_view_id: view.fk_view_id,
-      fk_cover_image_col_id:
-        view?.fk_cover_image_col_id ||
-        columns?.find((c) => c.uidt === UITypes.Attachment)?.id,
-      next_enabled: view.next_enabled,
-      prev_enabled: view.prev_enabled,
-      cover_image_idx: view.cover_image_idx,
-      cover_image: view.cover_image,
-      restrict_types: view.restrict_types,
-      restrict_size: view.restrict_size,
-      restrict_number: view.restrict_number,
-    };
+    const insertObj = extractProps(view, [
+      'project_id',
+      'base_id',
+      'fk_view_id',
+      'next_enabled',
+      'prev_enabled',
+      'cover_image_idx',
+      'cover_image',
+      'restrict_types',
+      'restrict_size',
+      'restrict_number',
+    ]);
+
+    insertObj.fk_cover_image_col_id =
+      view?.fk_cover_image_col_id ||
+      columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
+
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);
       insertObj.project_id = viewRef.project_id;

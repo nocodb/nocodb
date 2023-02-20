@@ -86,41 +86,50 @@ export default class Column<T = any> implements ColumnType {
   ) {
     if (!column.fk_model_id) NcError.badRequest('Missing model id');
 
-    const insertObj: any = {
-      id: column?.id,
-      fk_model_id: column.fk_model_id,
-      column_name: column.column_name || column.cn,
-      title: column.title || column._cn,
-      uidt: column.uidt,
-      dt: column.dt,
-      np: column.np,
-      ns: column.ns,
-      clen: column.clen,
-      cop: column.cop,
-      pk: column.pk,
-      rqd: column.rqd,
-      un: column.un,
-      ct: column.ct,
-      ai: column.ai,
-      unique: column.unique,
-      cdf: column.cdf,
-      cc: column.cc,
-      csn: column.csn,
-      dtx: column.dtx,
-      dtxp: column.dtxp,
-      dtxs: column.dtxs,
-      au: column.au,
-      pv: column.pv,
-      order: column.order,
-      project_id: column.project_id,
-      base_id: column.base_id,
-      system: column.system,
-      meta:
-        column.meta && typeof column.meta === 'object'
-          ? JSON.stringify(column.meta)
-          : column.meta,
-    };
+    // TODO: fix type
+    const insertObj = extractProps(column as any, [
+      'id',
+      'fk_model_id',
+      'column_name',
+      'title',
+      'uidt',
+      'dt',
+      'np',
+      'ns',
+      'clen',
+      'cop',
+      'pk',
+      'rqd',
+      'un',
+      'ct',
+      'ai',
+      'unique',
+      'cdf',
+      'cc',
+      'csn',
+      'dtx',
+      'dtxp',
+      'dtxs',
+      'au',
+      'pv',
+      'order',
+      'project_id',
+      'base_id',
+      'system',
+      'meta',
+    ]);
 
+    if (!insertObj.column_name) {
+      insertObj.column_name = column.cn;
+    }
+
+    if (!insertObj.title) {
+      insertObj.title = column._cn;
+    }
+
+    if (insertObj.meta && typeof insertObj.meta === 'object') {
+      insertObj.meta = JSON.stringify(insertObj.meta);
+    }
     if (column.validate) {
       if (typeof column.validate === 'string')
         insertObj.validate = column.validate;

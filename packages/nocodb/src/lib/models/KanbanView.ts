@@ -64,16 +64,17 @@ export default class KanbanView implements KanbanType {
       .then((v) => v?.getModel(ncMeta))
       .then((m) => m.getColumns(ncMeta));
 
-    const insertObj = {
-      project_id: view.project_id,
-      base_id: view.base_id,
-      fk_view_id: view.fk_view_id,
-      fk_grp_col_id: view.fk_grp_col_id,
-      fk_cover_image_col_id:
-        view?.fk_cover_image_col_id ||
-        columns?.find((c) => c.uidt === UITypes.Attachment)?.id,
-      meta: view.meta,
-    };
+    const insertObj = extractProps(view, [
+      'project_id',
+      'base_id',
+      'fk_view_id',
+      'fk_grp_col_id',
+      'meta',
+    ]);
+
+    insertObj.fk_cover_image_col_id =
+      view?.fk_cover_image_col_id ||
+      columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
 
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);

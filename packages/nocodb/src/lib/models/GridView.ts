@@ -41,14 +41,15 @@ export default class GridView {
   }
 
   static async insert(view: Partial<GridView>, ncMeta = Noco.ncMeta) {
-    const insertObj = {
-      fk_view_id: view.fk_view_id,
-      project_id: view.project_id,
-      base_id: view.base_id,
-      row_height: view.row_height,
-    };
-    if (!(view.project_id && view.base_id)) {
-      const viewRef = await View.get(view.fk_view_id, ncMeta);
+    const insertObj = extractProps(view, [
+      'fk_view_id',
+      'project_id',
+      'base_id',
+      'row_height',
+    ]);
+
+    if (!(insertObj.project_id && insertObj.base_id)) {
+      const viewRef = await View.get(insertObj.fk_view_id, ncMeta);
       insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
     }

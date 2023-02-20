@@ -48,14 +48,20 @@ const saveRow = inject(SaveRowInj, () => {})
 
 const selectedRowIndex = ref(0)
 
+const isAltKeyDown = ref(false)
+
 const linkRow = async (row: Record<string, any>) => {
   if (isNew.value) {
     addLTARRef(row, column?.value as ColumnType)
-    saveRow()
+    saveRow!()
   } else {
     await link(row)
   }
-  vModel.value = false
+  if (isAltKeyDown.value) {
+    loadChildrenExcludedList()
+  } else {
+    vModel.value = false
+  }
 }
 
 /** reload list on modal open */
@@ -159,6 +165,27 @@ useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
 const activeRow = (vNode?: InstanceType<typeof Card>) => {
   vNode?.$el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 }
+
+// set variable to true when alt key is pressed
+const keyDownHandler = (e: KeyboardEvent) => {
+  isAltKeyDown.value = e.altKey
+}
+
+// set variable to false when key is released
+const keyUpHandler = (e: KeyboardEvent) => {
+  isAltKeyDown.value = e.altKey
+}
+
+// add event listeners when vModel is true and remove when false
+watch(vModel, (nextVal) => {
+  if (nextVal) {
+    document.addEventListener('keydown', keyDownHandler)
+    document.addEventListener('keyup', keyUpHandler)
+  } else {
+    document.removeEventListener('keydown', keyDownHandler)
+    document.removeEventListener('keyup', keyUpHandler)
+  }
+})
 </script>
 
 <template>
@@ -219,7 +246,12 @@ const activeRow = (vNode?: InstanceType<typeof Card>) => {
             show-less-items
           />
         </div>
+
+        <div class="text-xs text-gray-400 text-center px-2 mt-4 pb-0">
+          * Use <kbd>ALT</kbd> / <kbd>OPT</kbd> + <kbd>Click</kbd> to select multiple records
+        </div>
       </template>
+
 
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 

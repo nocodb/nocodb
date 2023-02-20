@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { ref } from 'vue'
+import { StreamBarcodeReader } from 'vue-barcode-reader'
 import { useSharedFormStoreOrThrow } from '#imports'
 
 const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
@@ -16,6 +18,28 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   }
 
   return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
+}
+
+const showCodeScannerOverlay = ref(false)
+
+const scannerIsReady = ref(false)
+
+const onLoaded = async () => {
+  scannerIsReady.value = true
+}
+
+const showScannerIsLoadingMessage = computed(() => !scannerIsReady.value)
+
+const onDecode = async (codeValue: string) => {
+  if (!showScannerField.value) {
+    return
+  }
+  try {
+    showCodeScannerOverlay.value = false
+    alert(`you scanned "${codeValue}"`)
+  } catch (error) {
+    console.error(error)
+  }
 }
 </script>
 
@@ -109,16 +133,12 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                       {{ field.description }}
                     </div>
 
-
-
                     <div>
                       SCANNER PLACEHOLDER
                       <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerOverlay = true">
                         <div class="flex items-center gap-1">
                           <QrCodeScan />
-                          <span class="!text-xs font-weight-normal">
-                            {{ $t('activity.findRowByCodeScan') }}</span
-                          >
+                          <span class="!text-xs font-weight-normal"> {{ $t('activity.findRowByCodeScan') }}</span>
                         </div>
                       </a-button>
                       <a-modal
@@ -134,7 +154,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                         <div class="relative flex flex-col h-full">
                           <div>
                             <StreamBarcodeReader
-                              v-show="showScannerField"
+                              v-show="scannerIsReady"
                               @decode="onDecode"
                               @loaded="onLoaded"
                             ></StreamBarcodeReader>
@@ -145,9 +165,6 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                         </div>
                       </a-modal>
                     </div>
-
-
-
                   </div>
                 </div>
               </div>

@@ -47,10 +47,6 @@ const [setup, use] = useInjectionState(() => {
     return slugs.value.filter((_, i) => i > 0)
   })
 
-  const openedPageSlug = computed<string | undefined>(() =>
-    routePageSlugs.value.length > 0 ? routePageSlugs.value[routePageSlugs.value.length - 1] : undefined,
-  )
-
   const openedBook = computed<BookType | undefined>(() => {
     if (isPublic.value) return books.value?.length > 0 ? books.value[0] : undefined
 
@@ -84,7 +80,7 @@ const [setup, use] = useInjectionState(() => {
   )
 
   const openedPage = computed(() => {
-    if (!openedPageSlug.value) return undefined
+    if (routePageSlugs.value.length === 0) return undefined
     if (isFetching.value.nestedPages) return undefined
 
     return openedNestedPagesOfBook.value.length > 0
@@ -107,7 +103,6 @@ const [setup, use] = useInjectionState(() => {
     isErrored,
     routeBookSlug,
     routePageSlugs,
-    openedPageSlug,
     openedBook,
     flattenedNestedPages,
     isOnlyBookOpened,

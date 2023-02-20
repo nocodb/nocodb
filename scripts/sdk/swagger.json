@@ -752,7 +752,7 @@
       },
       "parameters": []
     },
-    "/api/v1/docs/page/slug/{slug}": {
+    "/api/v1/docs/page-slug": {
       "get": {
         "summary": "Get page by slug",
         "operationId": "get-page-by-slug",
@@ -789,9 +789,18 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "nestedSlug",
+            "in": "query",
+            "description": "Nested Slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
-        "description": "Get page by slug"
+        "description": "Get page by nested slug"
       }
     },
     "/api/v1/docs/page/{id}": {

@@ -123,27 +123,31 @@ export default class Page {
 
   public static async getBySlug(
     {
-      slug,
+      nestedSlug,
       bookId,
       projectId,
     }: {
-      slug: string;
+      nestedSlug: string;
       bookId: string;
       projectId: string;
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType> {
+    const slugsArr = nestedSlug.split('/');
     // todo: Add cache
     let page = undefined;
     if (!page) {
-      page = await ncMeta.metaGet2(
-        null,
-        null,
-        Page.tableName({ projectId, bookId }),
-        {
-          slug,
-        }
-      );
+      for (const slug of slugsArr) {
+        page = await ncMeta.metaGet2(
+          null,
+          null,
+          Page.tableName({ projectId, bookId }),
+          {
+            slug,
+            parent_page_id: page?.id || null,
+          }
+        );
+      }
       if (page) {
         await NocoCache.set(`${CacheScope.DOCS_PAGE}:${page.id}`, page);
       }

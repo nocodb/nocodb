@@ -100,8 +100,12 @@ const deleteNode = () => {
 
 <style lang="scss" scoped>
 .block-button {
-  @apply opacity-0 group-hover:opacity-100 !group-focus:opacity-100 !group-active:opacity-100 hover:bg-gray-50 rounded-sm text-lg py-0.5 h-6 mt-3;
+  @apply opacity-0 group-hover:opacity-100 !group-focus:opacity-100 !group-active:opacity-100 hover:bg-gray-50 rounded-sm text-lg h-6 mt-3;
   color: rgb(203, 203, 203);
+}
+
+.block-button svg {
+  @apply -mt-1.5;
 }
 
 .draggable-block-wrapper.focused {

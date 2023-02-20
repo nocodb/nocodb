@@ -22,16 +22,21 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 const showCodeScannerOverlay = ref(false)
 
+const fieldTitleForCurrentScan = ref('')
+
 const scannerIsReady = ref(false)
 
 const onLoaded = async () => {
   scannerIsReady.value = true
 }
 
-const showScannerIsLoadingMessage = computed(() => !scannerIsReady.value)
+const showCodeScannerForFieldTitle = (fieldTitle: string) => {
+  showCodeScannerOverlay.value = true
+  fieldTitleForCurrentScan.value = fieldTitle
+}
 
 const onDecode = async (codeValue: string) => {
-  if (!showScannerField.value) {
+  if (!showCodeScannerOverlay.value) {
     return
   }
   try {
@@ -79,6 +84,21 @@ const onDecode = async (codeValue: string) => {
         </template>
 
         <template v-else>
+          <a-modal
+            v-model:visible="showCodeScannerOverlay"
+            :closable="false"
+            width="28rem"
+            centered
+            :footer="null"
+            wrap-class-name="nc-modal-generate-token"
+            destroy-on-close
+            @cancel="scannerIsReady = false"
+          >
+            <div class="relative flex flex-col h-full">
+              <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
+              <a-button @click="() => onDecode('ABC')">Simulate scan</a-button>
+            </div>
+          </a-modal>
           <GeneralOverlay class="bg-gray-400/75" :model-value="isLoading" inline transition>
             <div class="w-full h-full flex items-center justify-center">
               <a-spin size="large" />
@@ -134,27 +154,12 @@ const onDecode = async (codeValue: string) => {
                     </div>
 
                     <div>
-                      <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerOverlay = true">
+                      <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerForFieldTitle(field.title)">
                         <div class="flex items-center gap-1">
                           <QrCodeScan />
-                          <span class="!text-xs font-weight-normal"> {{ $t('activity.findRowByCodeScan') }}</span>
+                          <span class="!text-xs font-weight-normal"> {{ $t('activity.fillByCodeScan') }}</span>
                         </div>
                       </a-button>
-                      <a-modal
-                        v-model:visible="showCodeScannerOverlay"
-                        :closable="false"
-                        width="28rem"
-                        centered
-                        :footer="null"
-                        wrap-class-name="nc-modal-generate-token"
-                        destroy-on-close
-                        @cancel="scannerIsReady = false"
-                      >
-                        <div class="relative flex flex-col h-full">
-                          <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded">
-                          </StreamBarcodeReader>
-                        </div>
-                      </a-modal>
                     </div>
                   </div>
                 </div>

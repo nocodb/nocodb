@@ -114,9 +114,7 @@ export default class Model implements TableType {
       'id',
     ]);
 
-    if (insertObj.mm) {
-      insertObj.mm = !!insertObj.mm;
-    }
+    insertObj.mm = !!insertObj.mm;
 
     if (!insertObj.order) {
       insertObj.order = await ncMeta.metaGetNextOrder(

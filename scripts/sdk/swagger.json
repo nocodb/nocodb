@@ -7318,7 +7318,10 @@
               "$ref": "#/components/schemas/BaseReq"
             }
           }
-        }
+        },
+        "required": [
+          "title"
+        ]
       },
       "Project": {
         "title": "Project",
@@ -8072,6 +8075,63 @@
         ]
       },
       "Filter": {
+        "type": "object",
+        "title": "Filter",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "fk_column_id": {
+            "type": "string"
+          },
+          "logical_op": {
+            "type": "string"
+          },
+          "comparison_op": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "string",
+              "number",
+              "integer",
+              "boolean",
+              "null"
+            ]
+          },
+          "is_group": {
+            "type": "boolean"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
+          },
+          "project_id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "base_id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "fk_parent_id": {
+            "type": "string"
+          },
+          "fk_view_id": {
+            "type": "string"
+          },
+          "fk_hook_id": {
+            "type": "string"
+          }
+        },
+        "readOnly": true
+      },
+      "FilterReq": {
         "type": "object",
         "title": "Filter",
         "properties": {
@@ -9396,6 +9456,93 @@
           }
         }
       },
+      "HookReq": {
+        "title": "AuditType",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "env": {
+            "type": "string"
+          },
+          "event": {
+            "type": "string",
+            "enum": [
+              "after",
+              "before"
+            ]
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "delete",
+              "update"
+            ]
+          },
+          "async": {
+            "type": "boolean"
+          },
+          "payload": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "headers": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "boolean"
+          },
+          "notification": {
+            "type": "object"
+          },
+          "retries": {
+            "type": "number"
+          },
+          "retry_interval": {
+            "type": "number"
+          },
+          "timeout": {
+            "type": "number"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "title",
+          "event",
+          "notification",
+          "operation"
+        ]
+      },
+      "HookTestReq": {
+        "title": "Hook test request payload",
+        "type": "object",
+        "properties": {
+          "payload": {},
+          "hook": {
+            "$ref": "#/components/schemas/HookReq"
+          }
+        },
+        "required": [
+          "payload",
+          "hook"
+        ]
+      },
+
       "Plugin": {
         "title": "Plugin",
         "type": "object",

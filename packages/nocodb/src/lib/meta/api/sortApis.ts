@@ -12,6 +12,7 @@ import Project from '../../models/Project';
 import Sort from '../../models/Sort';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers'
 
 // @ts-ignore
 export async function sortGet(req: Request, res: Response<TableType>) {}
@@ -58,6 +59,7 @@ router.get(
 router.post(
   '/api/v1/db/meta/views/:viewId/sorts/',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/sortReq'),
   ncMetaAclMw(sortCreate, 'sortCreate')
 );
 router.get(
@@ -68,6 +70,7 @@ router.get(
 router.patch(
   '/api/v1/db/meta/sorts/:sortId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/sortReq'),
   ncMetaAclMw(sortUpdate, 'sortUpdate')
 );
 router.delete(

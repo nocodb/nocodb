@@ -45,7 +45,7 @@ export interface UserListType {
 }
 
 export interface ProjectReqType {
-  title?: string;
+  title: string;
   description?: string;
   color?: string;
   bases?: BaseReqType[];
@@ -186,6 +186,22 @@ export interface TableListType {
 }
 
 export interface FilterType {
+  id?: string;
+  fk_model_id?: string;
+  fk_column_id?: string;
+  logical_op?: string;
+  comparison_op?: string;
+  value?: string | number | boolean | null;
+  is_group?: boolean;
+  children?: FilterType[];
+  project_id?: string;
+  base_id?: string;
+  fk_parent_id?: string;
+  fk_view_id?: string;
+  fk_hook_id?: string;
+}
+
+export interface FilterReqType {
   id?: string;
   fk_model_id?: string;
   fk_column_id?: string;
@@ -541,6 +557,31 @@ export interface HookType {
   retry_interval?: number;
   timeout?: number;
   active?: boolean;
+}
+
+export interface HookReqType {
+  id?: string;
+  fk_model_id?: string;
+  title: string;
+  description?: string;
+  env?: string;
+  event: 'after' | 'before';
+  operation: 'insert' | 'delete' | 'update';
+  async?: boolean;
+  payload?: string;
+  url?: string;
+  headers?: string;
+  condition?: boolean;
+  notification: object;
+  retries?: number;
+  retry_interval?: number;
+  timeout?: number;
+  active?: boolean;
+}
+
+export interface HookTestReqType {
+  payload: any;
+  hook: HookReqType;
 }
 
 export interface PluginType {

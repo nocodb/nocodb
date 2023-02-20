@@ -9,6 +9,7 @@ import Model from '../../models/Model';
 import populateSamplePayload from '../helpers/populateSamplePayload';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers'
 
 export async function hookList(
   req: Request<any, any, any>,
@@ -85,11 +86,13 @@ router.get(
 router.post(
   '/api/v1/db/meta/tables/:tableId/hooks/test',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/HookTestReq'),
   ncMetaAclMw(hookTest, 'hookTest')
 );
 router.post(
   '/api/v1/db/meta/tables/:tableId/hooks',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/HookReq'),
   ncMetaAclMw(hookCreate, 'hookCreate')
 );
 router.delete(
@@ -100,6 +103,7 @@ router.delete(
 router.patch(
   '/api/v1/db/meta/hooks/:hookId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/HookReq'),
   ncMetaAclMw(hookUpdate, 'hookUpdate')
 );
 router.get(

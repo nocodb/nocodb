@@ -40,12 +40,12 @@ import { MetaTable } from '../../utils/globals';
 import formulaQueryBuilderv2 from '../../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
 import {
   createHmAndBtColumn,
-  generateFkName,
+  generateFkName, getAjvValidatorMw,
   randomID,
   validateLookupPayload,
   validateRequiredField,
   validateRollupPayload,
-} from './helpers';
+} from './helpers'
 
 export enum Altered {
   NEW_COLUMN = 1,
@@ -1785,6 +1785,7 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/columns/',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/ColumnReq'),
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
 

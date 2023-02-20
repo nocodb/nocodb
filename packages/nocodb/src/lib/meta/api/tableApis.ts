@@ -17,6 +17,7 @@ import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import Project from '../../models/Project';
 import Audit from '../../models/Audit';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
+import { getAjvValidatorMw } from './helpers'
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
 import View from '../../models/View';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
@@ -410,11 +411,13 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/TableReq'),
   ncMetaAclMw(tableCreate, 'tableCreate')
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/TableReq'),
   ncMetaAclMw(tableCreate, 'tableCreate')
 );
 router.get(

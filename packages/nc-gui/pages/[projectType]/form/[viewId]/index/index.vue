@@ -134,7 +134,6 @@ const onDecode = async (codeValue: string) => {
                     </div>
 
                     <div>
-                      SCANNER PLACEHOLDER
                       <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerOverlay = true">
                         <div class="flex items-center gap-1">
                           <QrCodeScan />
@@ -152,16 +151,8 @@ const onDecode = async (codeValue: string) => {
                         @cancel="scannerIsReady = false"
                       >
                         <div class="relative flex flex-col h-full">
-                          <div>
-                            <StreamBarcodeReader
-                              v-show="scannerIsReady"
-                              @decode="onDecode"
-                              @loaded="onLoaded"
-                            ></StreamBarcodeReader>
-                            <div v-if="showScannerIsLoadingMessage" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-                              {{ $t('msg.info.codeScanner.loadingScanner') }}
-                            </div>
-                          </div>
+                          <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded">
+                          </StreamBarcodeReader>
                         </div>
                       </a-modal>
                     </div>

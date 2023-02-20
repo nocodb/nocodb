@@ -1,22 +1,29 @@
 <script lang="ts" setup>
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { useSharedFormStoreOrThrow } from '#imports'
+import { StreamBarcodeReader } from 'vue-barcode-reader'
+import { NOCO, useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
+import QrCodeScan from '~icons/mdi/qrcode-scan'
+
+// const meta = inject(MetaInj, ref())
+
+// const { t } = useI18n()
+
+
+const showCodeScannerOverlay = ref(false)
+
+const lastScannedCode = ref('')
+
+const scannerIsReady = ref(false)
+
+
+// TODO: better use directly scannerIsReady
+const showScannerField = computed(() => scannerIsReady.value)
+
+
+const { formColumns } =
   useSharedFormStoreOrThrow()
 
-function isRequired(_columnObj: Record<string, any>, required = false) {
-  let columnObj = _columnObj
-  if (
-    columnObj.uidt === UITypes.LinkToAnotherRecord &&
-    columnObj.colOptions &&
-    columnObj.colOptions.type === RelationTypes.BELONGS_TO
-  ) {
-    columnObj = formColumns.value?.find((c) => c.id === columnObj.colOptions.fk_child_column_id) as Record<string, any>
-  }
-
-  return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
-}
 </script>
 
 <template>
@@ -101,6 +108,44 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                       :edit-enabled="true"
                     />
 
+                    <div>
+                      SCANNER PLACEHOLDER
+
+                      <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerOverlay = true">
+                        <div class="flex items-center gap-1">
+                          <QrCodeScan />
+                          <span class="!text-xs font-weight-normal"> {{ $t('activity.fillByCodeScan') }}</span>
+                        </div>
+                      </a-button>
+                      <a-modal
+                        v-model:visible="showCodeScannerOverlay"
+                        :closable="false"
+                        width="28rem"
+                        centered
+                        :footer="null"
+                        wrap-class-name="nc-modal-generate-token"
+                        destroy-on-close
+                        @cancel="scannerIsReady = false"
+                      >
+                        <div class="relative flex flex-col h-full">
+                          <a-form-item :label="$t('labels.columnToScanFor')">
+                            <a-select v-model:value="selectedCodeColumnIdToScanFor" class="w-full" :options="codeFieldOptions" />
+                          </a-form-item>
+
+                          <div>
+                            <StreamBarcodeReader v-show="showScannerField" @decode="onDecode" @loaded="onLoaded">
+                            </StreamBarcodeReader>
+                            <div v-if="showPleaseSelectColumnMessage" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+                              {{ $t('msg.info.codeScanner.selectColumn') }}
+                            </div>
+                            <div v-if="showScannerIsLoadingMessage" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+                              {{ $t('msg.info.codeScanner.loadingScanner') }}
+                            </div>
+                          </div>
+                        </div>
+                      </a-modal>
+                    </div>
+
                     <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
                       <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                         {{ error.$message }}
@@ -136,6 +181,6 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 <style lang="scss" scoped>
 :deep(.nc-cell .nc-action-icon) {
-  @apply !text-white-500 !bg-white/50 !rounded-full !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover:!bg-white-600 !hover:!text-white-600 !transition;
+  @apply !text-white-500 !bg-white/50 !rounded-full !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover: !bg-white-600 !hover: !text-white-600 !transition;
 }
 </style>

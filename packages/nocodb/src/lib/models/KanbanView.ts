@@ -108,11 +108,8 @@ export default class KanbanView implements KanbanType {
       'meta',
     ]);
 
-    if (updateObj.meta) {
-      updateObj.meta =
-        typeof updateObj.meta === 'string'
-          ? updateObj.meta
-          : JSON.stringify(updateObj.meta ?? {});
+    if (updateObj.meta && typeof updateObj.meta === 'object') {
+      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
     }
 
     if (o) {

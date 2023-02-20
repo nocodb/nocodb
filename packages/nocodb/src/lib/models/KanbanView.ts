@@ -3,6 +3,7 @@ import { KanbanType, UITypes } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class KanbanView implements KanbanType {
   fk_view_id: string;
@@ -99,13 +100,20 @@ export default class KanbanView implements KanbanType {
     // get existing cache
     const key = `${CacheScope.KANBAN_VIEW}:${kanbanId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    const updateObj = {
-      ...body,
-      meta:
-        typeof body.meta === 'string'
-          ? body.meta
-          : JSON.stringify(body.meta ?? {}),
-    };
+
+    const updateObj = extractProps(body, [
+      'title',
+      'fk_cover_image_col_id',
+      'meta',
+    ]);
+
+    if (updateObj.meta) {
+      updateObj.meta =
+        typeof updateObj.meta === 'string'
+          ? updateObj.meta
+          : JSON.stringify(updateObj.meta ?? {});
+    }
+
     if (o) {
       o = { ...o, ...updateObj };
       // set cache

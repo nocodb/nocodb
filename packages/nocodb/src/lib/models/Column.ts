@@ -25,6 +25,7 @@ import addFormulaErrorIfMissingColumn from '../meta/helpers/addFormulaErrorIfMis
 import { NcError } from '../meta/helpers/catchError';
 import QrCodeColumn from './QrCodeColumn';
 import BarcodeColumn from './BarcodeColumn';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
@@ -873,7 +874,11 @@ export default class Column<T = any> implements ColumnType {
     );
   }
 
-  static async update(colId: string, column: any, ncMeta = Noco.ncMeta) {
+  static async update(
+    colId: string,
+    column: Partial<Column>,
+    ncMeta = Noco.ncMeta
+  ) {
     const oldCol = await Column.get({ colId }, ncMeta);
 
     switch (oldCol.uidt) {
@@ -965,33 +970,34 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
     }
-    const updateObj = {
-      column_name: column.column_name,
-      title: column.title,
-      uidt: column.uidt,
-      dt: column.dt,
-      np: column.np,
-      ns: column.ns,
-      clen: column.clen,
-      cop: column.cop,
-      pk: column.pk,
-      rqd: column.rqd,
-      un: column.un,
-      ct: column.ct,
-      ai: column.ai,
-      unique: column.unique,
-      cdf: column.cdf,
-      cc: column.cc,
-      csn: column.csn,
-      dtx: column.dtx,
-      dtxp: column.dtxp,
-      dtxs: column.dtxs,
-      au: column.au,
-      pv: column.pv,
-      system: column.system,
-      validate: null,
-      meta: column.meta,
-    };
+
+    const updateObj = extractProps(column, [
+      'column_name',
+      'title',
+      'uidt',
+      'dt',
+      'np',
+      'ns',
+      'clen',
+      'cop',
+      'pk',
+      'rqd',
+      'un',
+      'ct',
+      'ai',
+      'unique',
+      'cdf',
+      'cc',
+      'csn',
+      'dtx',
+      'dtxp',
+      'dtxs',
+      'au',
+      'pv',
+      'system',
+      'validate',
+      'meta',
+    ]);
 
     if (column.validate) {
       if (typeof column.validate === 'string')

@@ -10,6 +10,7 @@ import Model from './Model';
 import NocoCache from '../cache/NocoCache';
 import Filter from './Filter';
 import HookFilter from './HookFilter';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Hook implements HookType {
   id?: string;
@@ -18,7 +19,7 @@ export default class Hook implements HookType {
   description?: string;
   env?: string;
   type?: string;
-  event?: 'After' | 'Before';
+  event?: 'after' | 'before';
   operation?: 'insert' | 'delete' | 'update';
   async?: boolean;
   payload?: string;
@@ -175,27 +176,41 @@ export default class Hook implements HookType {
     hook: Partial<Hook>,
     ncMeta = Noco.ncMeta
   ) {
-    const updateObj = {
-      title: hook.title,
-      description: hook.description,
-      env: hook.env,
-      type: hook.type,
-      event: hook.event?.toLowerCase?.(),
-      operation: hook.operation?.toLowerCase?.(),
-      async: hook.async,
-      payload: !!hook.payload,
-      url: hook.url,
-      headers: hook.headers,
-      condition: !!hook.condition,
-      notification:
-        hook.notification && typeof hook.notification === 'object'
-          ? JSON.stringify(hook.notification)
-          : hook.notification,
-      retries: hook.retries,
-      retry_interval: hook.retry_interval,
-      timeout: hook.timeout,
-      active: hook.active,
-    };
+    const updateObj = extractProps(hook, [
+      'title',
+      'description',
+      'env',
+      'type',
+      'event',
+      'operation',
+      'async',
+      'payload',
+      'url',
+      'headers',
+      'condition',
+      'notification',
+      'retries',
+      'retry_interval',
+      'timeout',
+      'active',
+    ]);
+
+    if (updateObj.event) {
+      updateObj.event = updateObj.event.toLowerCase() as 'after' | 'before';
+    }
+
+    if (updateObj.operation) {
+      updateObj.operation = updateObj.operation.toLowerCase() as
+        | 'insert'
+        | 'delete'
+        | 'update';
+    }
+
+    if (updateObj.notification) {
+      updateObj.notification && typeof updateObj.notification === 'object'
+        ? JSON.stringify(updateObj.notification)
+        : updateObj.notification;
+    }
 
     // get existing cache
     const key = `${CacheScope.HOOK}:${hookId}`;
@@ -203,7 +218,6 @@ export default class Hook implements HookType {
     if (o) {
       // update data
       o = { ...o, ...updateObj };
-      o.notification = updateObj.notification;
       // set cache
       await NocoCache.set(key, o);
     }

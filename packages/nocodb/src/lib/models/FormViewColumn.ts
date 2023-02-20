@@ -150,7 +150,7 @@ export default class FormViewColumn implements FormColumnType {
     body: Partial<FormViewColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = extractProps(body, [
+    const updateObj = extractProps(body, [
       'label',
       'help',
       'description',
@@ -164,13 +164,13 @@ export default class FormViewColumn implements FormColumnType {
     const key = `${CacheScope.FORM_VIEW_COLUMN}:${columnId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {
-      Object.assign(o, insertObj);
+      Object.assign(o, updateObj);
       // set cache
       await NocoCache.set(key, o);
     }
 
-    if (insertObj.meta) {
-      insertObj.meta = serializeJSON(insertObj.meta);
+    if (updateObj.meta) {
+      updateObj.meta = serializeJSON(updateObj.meta);
     }
 
     // update meta
@@ -178,7 +178,7 @@ export default class FormViewColumn implements FormColumnType {
       null,
       null,
       MetaTable.FORM_VIEW_COLUMNS,
-      insertObj,
+      updateObj,
       columnId
     );
   }

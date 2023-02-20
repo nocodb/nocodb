@@ -246,7 +246,12 @@ watch(vModel, (nextVal) => {
             show-less-items
           />
         </div>
+
+        <div class="text-xs text-gray-400 text-center px-2 mt-4 pb-0">
+          * Use <kbd>ALT</kbd> / <kbd>OPT</kbd> + <kbd>Click</kbd> to select multiple records
+        </div>
       </template>
+
 
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 

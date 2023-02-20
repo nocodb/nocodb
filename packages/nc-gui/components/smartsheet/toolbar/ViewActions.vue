@@ -43,7 +43,8 @@ const showApiSnippetDrawer = ref(false)
 const showErd = ref(false)
 
 type QuickImportDialogType = 'csv' | 'excel' | 'json'
-const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel', 'json']
+// TODO: add 'json' when it's ready
+const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
 const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<boolean>> = quickImportDialogTypes.reduce(
   (acc: any, curr) => {
     acc[curr] = ref(false)

@@ -24,16 +24,11 @@ async function executeBulkOperation(
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
-  }).catch((error) => {
-    res.status(500).json(error);
   });
   if (!baseModel) {
     return;
   }
-  const sqlResult = await baseModel[operation](...options).catch((error) => {
-    res.status(500).json(error);
-  });
-  res.json(sqlResult);
+  res.json(await baseModel[operation](...options));
 }
 
 async function bulkDataInsert(req: Request, res: Response) {

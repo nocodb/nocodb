@@ -52,7 +52,7 @@ export default class SqlMgrv2Trans extends SqlMgrv2 {
     }
   }
 
-  protected async getSqlClient(base: Base): Promise<any> {
+  protected async getSqlClient(base: Base) {
     return NcConnectionMgrv2.getSqlClient(base, this.trx);
   }
 

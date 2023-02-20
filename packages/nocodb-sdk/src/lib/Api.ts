@@ -1409,26 +1409,27 @@ export class Api<
       }),
 
     /**
-     * @description Get page by slug
+     * @description Get page by nested slug
      *
      * @tags Noco docs
      * @name GetPageBySlug
      * @summary Get page by slug
-     * @request GET:/api/v1/docs/page/slug/{slug}
+     * @request GET:/api/v1/docs/page-slug
      * @response `200` `DocsPageType` OK
      */
     getPageBySlug: (
-      slug: string,
       query: {
         /** Project id */
         projectId: string;
         /** Book id */
         bookId: string;
+        /** Nested Slug */
+        nestedSlug: string;
       },
       params: RequestParams = {}
     ) =>
       this.request<DocsPageType, any>({
-        path: `/api/v1/docs/page/slug/${slug}`,
+        path: `/api/v1/docs/page-slug`,
         method: 'GET',
         query: query,
         format: 'json',

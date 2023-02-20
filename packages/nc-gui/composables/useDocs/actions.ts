@@ -19,7 +19,6 @@ export const actions = () => {
     nestedPages,
     openedPage,
     openedBook,
-    openedPageSlug,
     isPageErrored,
     isBookUpdating,
     routePageSlugs,
@@ -109,10 +108,11 @@ export const actions = () => {
           projectId: projectId!,
           bookId: book!.id!,
         })
-      } else if (openedPageSlug.value) {
-        return await $api.nocoDocs.getPageBySlug(openedPageSlug.value, {
+      } else if (routePageSlugs.value) {
+        return await $api.nocoDocs.getPageBySlug({
           projectId: projectId!,
           bookId: book!.id!,
+          nestedSlug: routePageSlugs.value.join('/'),
         })
       } else {
         throw new Error('No page id or slug provided')

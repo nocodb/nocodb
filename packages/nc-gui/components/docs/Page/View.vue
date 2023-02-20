@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
-import { useSubheading } from './utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import type { PageSidebarNode } from '~~/lib'
 
@@ -11,7 +10,7 @@ const {
   openedPage: openedPageInternal,
   updateContent,
   openedNestedPagesOfBook,
-  openedPageSlug,
+  routePageSlugs,
   nestedUrl,
   fetchPage,
   openPage,
@@ -97,7 +96,7 @@ watchDebounced(
 )
 
 watch(
-  () => [openedPageSlug.value, openedPageInternal.value?.id],
+  () => [routePageSlugs.value, openedPageInternal.value?.id],
   async ([newSlug, newPageId], oldData) => {
     if (!newSlug) return
 

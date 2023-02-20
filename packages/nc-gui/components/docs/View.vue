@@ -112,9 +112,10 @@ onMounted(async () => {
     <div v-if="isErrored">
       <DocsError />
     </div>
-
-    <DocsBookView v-if="isOnlyBookOpened" :key="openedBook?.id" />
-    <DocsPageView v-else-if="!isFetching.books" />
+    <template v-else>
+      <DocsBookView v-if="isOnlyBookOpened" :key="openedBook?.id" />
+      <DocsPageView v-else-if="!isFetching.books" />
+    </template>
   </NuxtLayout>
 </template>
 

@@ -39,7 +39,7 @@ async function getBySlug(
 ) {
   try {
     const page = await Page.getBySlug({
-      slug: req.params.slug,
+      nestedSlug: req.query?.nestedSlug as string,
       projectId: req.query?.projectId as string,
       bookId: req.query?.bookId as string,
     });
@@ -356,7 +356,7 @@ const router = Router({ mergeParams: true });
 // table data crud apis
 router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
 router.get(
-  '/api/v1/docs/page/slug/:slug',
+  '/api/v1/docs/page-slug',
   apiMetrics,
   ncMetaAclMw(getBySlug, 'pageListBySlug')
 );

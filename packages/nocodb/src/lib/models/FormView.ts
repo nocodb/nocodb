@@ -68,6 +68,7 @@ export default class FormView implements FormType {
       'logo_url',
       'submit_another_form',
       'show_blank_form',
+      'meta',
     ]);
     if (insertObj.meta) {
       insertObj.meta = serializeJSON(insertObj.meta);
@@ -103,6 +104,7 @@ export default class FormView implements FormType {
       'show_blank_form',
       'meta',
     ]);
+
     if (o) {
       o = { ...o, ...updateObj };
       // set cache

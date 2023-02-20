@@ -56,14 +56,14 @@ export const TableCell = Node.create<TableCellOptions>({
     return {
       Backspace: () => {
         // Do not delete the cell if the cell is empty
-        const selectedCellContent = this.editor.view.state.selection.$anchor.node()
+        const selectedCellContent = this.editor.view.state.selection.$head.node(-1)
         const parentNode = this.editor.view.state.selection.$anchor.node(-1)
 
         if (parentNode?.type.name !== 'tableCell') {
           return false
         }
 
-        if (selectedCellContent.textContent.length === 0) {
+        if (selectedCellContent.textContent.length === 0 && parentNode.childCount === 1) {
           return true
         }
 

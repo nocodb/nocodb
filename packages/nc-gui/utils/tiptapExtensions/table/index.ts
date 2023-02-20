@@ -3,6 +3,7 @@ import { columnResizing, tableEditing } from '@tiptap/prosemirror-tables'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { TableNodeView } from './TableNodeView'
 import TableComponent from './table.vue'
+
 export default Table.extend({
   draggable: true,
   resizable: true,
@@ -14,6 +15,7 @@ export default Table.extend({
 
   addProseMirrorPlugins() {
     return [
+      tableEditing(),
       columnResizing({
         handleWidth: 6,
         cellMinWidth: this.options.cellMinWidth,
@@ -22,7 +24,6 @@ export default Table.extend({
         // @ts-expect-error (incorrect type)
         lastColumnResizable: false,
       }),
-      tableEditing(),
     ]
   },
 }).configure({

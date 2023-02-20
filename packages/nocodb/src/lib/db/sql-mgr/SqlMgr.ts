@@ -17,6 +17,14 @@ import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
 import { customAlphabet } from 'nanoid';
 import Debug from '../util/Debug';
 import Result from '../util/Result';
+
+import type MssqlClient from '../sql-client/lib/mssql/MssqlClient';
+import type MysqlClient from '../sql-client/lib/mysql/MysqlClient';
+import type OracleClient from '../sql-client/lib/oracle/OracleClient';
+import type PGClient from '../sql-client/lib/pg/PgClient';
+import type SnowflakeClient from '../sql-client/lib/snowflake/SnowflakeClient';
+import type SqliteClient from '../sql-client/lib/sqlite/SqliteClient';
+
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 20);
 const log = new Debug('SqlMgr');
 
@@ -337,7 +345,7 @@ export default class SqlMgr {
    * @returns
    * @memberof SqlMgr
    */
-  public async projectGetSqlClient(args) {
+  public async projectGetSqlClient(args): Promise<SnowflakeClient | MysqlClient | SqliteClient | MssqlClient | OracleClient | PGClient> {
     const func = this.projectGetSqlClient.name;
     log.api(`${func}:args:`, args);
 

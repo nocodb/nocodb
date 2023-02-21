@@ -361,7 +361,7 @@ function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
   }
 }
 
-const columnSupportsScanning = (elementType: UITypes) => [UITypes.SingleLineText].includes(elementType)
+const columnSupportsScanning = (elementType: UITypes) => [UITypes.SingleLineText, UITypes.Number].includes(elementType)
 
 onClickOutside(draggableRef, () => {
   activeRow.value = ''

@@ -40,8 +40,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
     // if no display value column is set
     if (!view_columns_meta.some((column) => column.pv)) {
-      const pkIndex = view_columns_meta.findIndex((column) => column.pk)
-  
+      const pkIndex = view_columns_meta.findIndex((column) => column.pk);
+
       // if PK is at the end of table
       if (pkIndex === view_columns_meta.length - 1) {
         if (pkIndex > 0) {
@@ -61,8 +61,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             view_columns_meta[0].id
           );
         }
-      // pk is not at the end of table
-      } else if (pkIndex > -1) { 
+        // pk is not at the end of table
+      } else if (pkIndex > -1) {
         await ncMeta.metaUpdate(
           null,
           null,
@@ -70,7 +70,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           { pv: true },
           view_columns_meta[pkIndex + 1].id
         );
-      //  no pk at all
+        //  no pk at all
       } else if (view_columns_meta.length > 0) {
         await ncMeta.metaUpdate(
           null,

@@ -252,7 +252,6 @@ watch(vModel, (nextVal) => {
         </div>
       </template>
 
-
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
       <Suspense>

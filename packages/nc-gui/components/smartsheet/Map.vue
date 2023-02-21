@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
-import { OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
+import { OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref, IsPublicInj } from '#imports'
 import type { Row as RowType } from '~/lib'
 
 const route = useRoute()
@@ -22,6 +22,8 @@ const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
 const mapContainerRef = ref<HTMLElement>()
 
 const myMapRef = ref<L.Map>()
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const meta = inject(MetaInj, ref())
 
@@ -199,7 +201,6 @@ watch(view, async (nextView) => {
 })
 
 const count = computed(() => paginationData.value.totalRows)
-
 </script>
 
 <template>
@@ -219,8 +220,7 @@ const count = computed(() => paginationData.value.totalRows)
       </a-tooltip>
     </div>
   </div>
-
-  <Suspense>
+  <Suspense v-if="!isPublic">
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
@@ -230,8 +230,7 @@ const count = computed(() => paginationData.value.totalRows)
       :view="view"
     />
   </Suspense>
-
-  <Suspense>
+  <Suspense v-if="!isPublic">
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
       :key="route.query.rowId"

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
 import { Modal as AModal, latLongToJoinedString, useVModel } from '#imports'
+import GeoDataIcon from '~icons/mdi/map-marker'
 
 interface Props {
   modelValue?: string | null
@@ -20,10 +21,13 @@ let isExpanded = $ref(false)
 
 let isLoading = $ref(false)
 
+let isLocationSet = $ref(false)
+
 const [latitude, longitude] = (vModel.value || '').split(';')
 
 const latLongStr = computed(() => {
   const [latitude, longitude] = (vModel.value || '').split(';')
+  if (latitude) isLocationSet = true
   return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
 })
 
@@ -69,7 +73,18 @@ const onClickSetCurrentLocation = () => {
 
 <template>
   <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
-    <a-button>{{ latLongStr }}</a-button>
+    <div
+      v-if="!isLocationSet"
+      class="group cursor-pointer flex gap-1 items-center mx-auto max-w-32 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+    >
+      <div class="flex items-center gap-2">
+        <GeoDataIcon class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]" />
+        <div class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs">
+          {{ latLongStr }}
+        </div>
+      </div>
+    </div>
+    <div v-else>{{ latLongStr }}</div>
     <template #overlay>
       <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
         <a-form-item>

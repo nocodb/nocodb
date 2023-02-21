@@ -616,18 +616,28 @@ watch(view, (nextView) => {
                       />
                     </div>
 
+                    <a-form-item v-if="element.uidt === 'SingleLineText'" class="my-0 w-1/2 !mb-1">
+                      <div class="flex gap-2 items-center">
+                        <span
+                          class="text-gray-500 mr-2 nc-form-input-required"
+                          data-testid="nc-form-input-enable-scanner"
+                          @click="
+                            () => {
+                              element.general.enable_scanner = !element.general.enable_scanner
+                              updateColMeta(element)
+                            }
+                          "
+                        >
+                          {{ $t('general.enableScanner') }}
+                        </span>
 
-                    <a-form-item class="my-0 w-1/2 !mb-1" v-if="element.uidt === 'SingleLineText'">
-                      FOO
-                      <a-input
-                        v-model:value="element.enableScanner"
-                        type="text"
-                        class="form-meta-input nc-form-input-label"
-                        data-testid="nc-form-input-label"
-                        :placeholder="$t('general.enableScanner')"
-                        @change="updateColMeta(element)"
-                      >
-                      </a-input>
+                        <a-switch
+                          v-model:checked="element.enable_scanner"
+                          v-e="['a:form-view:field:mark-enable-scaner']"
+                          size="small"
+                          @change="updateColMeta(element)"
+                        />
+                      </div>
                     </a-form-item>
 
                     <a-form-item class="my-0 w-1/2 !mb-1">

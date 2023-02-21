@@ -8831,6 +8831,7 @@
             "help": null,
             "required": false,
             "show": 1,
+            "enable_scanner": 1,
             "order": 1,
             "created_at": "2022-02-15 12:39:04",
             "updated_at": "2022-02-15 12:39:16",
@@ -8856,6 +8857,9 @@
             "minLength": 1
           },
           "help": {},
+          "enable_scanner": {
+            "type": "boolean"
+          },
           "required": {
             "type": "boolean"
           },

@@ -12,6 +12,7 @@ export default class FormViewColumn implements FormColumnType {
   help?: string;
   description?: string;
   required?: boolean;
+  enable_scanner?: boolean;
   show?: boolean;
   order?: number;
 
@@ -68,6 +69,7 @@ export default class FormViewColumn implements FormColumnType {
       help: column.help,
       description: column.description,
       required: column.required,
+      enable_scanner: column.enable_scanner,
     };
 
     if (column.meta) {
@@ -158,6 +160,7 @@ export default class FormViewColumn implements FormColumnType {
       'show',
       'order',
       'meta',
+      'enable_scanner',
     ]);
 
     // get existing cache

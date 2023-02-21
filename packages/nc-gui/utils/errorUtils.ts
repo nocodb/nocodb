@@ -1,7 +1,7 @@
 export async function extractSdkResponseErrorMsg(e: Error & { response: any }) {
   if (!e || !e.response) return e.message
   let msg
-  let errors: any[]
+  let errors: any[] | null = null
   if (e.response.data instanceof Blob) {
     try {
       const parsedData = JSON.parse(await e.response.data.text())
@@ -15,8 +15,8 @@ export async function extractSdkResponseErrorMsg(e: Error & { response: any }) {
     errors = e.response.data.errors
   }
 
-  if (errors && errors.length) {
-    return errors.map((e: any) => e.message).join(', ')
+  if (Array.isArray(errors) && errors.length) {
+    return errors.map((e: any) => (e.instancePath ? `${e.instancePath} - ` : '') + e.message).join(', ')
   }
 
   return msg || 'Some error occurred'

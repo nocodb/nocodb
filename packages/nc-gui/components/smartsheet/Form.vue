@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isVirtualCol, ColumnType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   IsFormInj,
@@ -361,6 +361,8 @@ function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
   }
 }
 
+const columnSupportsScanning = (elementType: UITypes) => [UITypes.SingleLineText].includes(elementType)
+
 onClickOutside(draggableRef, () => {
   activeRow.value = ''
 })
@@ -616,7 +618,7 @@ watch(view, (nextView) => {
                       />
                     </div>
 
-                    <a-form-item v-if="element.uidt === 'SingleLineText'" class="my-0 w-1/2 !mb-1">
+                    <a-form-item v-if="columnSupportsScanning(element.uidt)" class="my-0 w-1/2 !mb-1">
                       <div class="flex gap-2 items-center">
                         <span
                           class="text-gray-500 mr-2 nc-form-input-required"

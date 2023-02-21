@@ -108,7 +108,7 @@
     "nc-lib-gui": "0.105.2",
     "nc-plugin": "0.1.2",
     "ncp": "^2.0.0",
-    "nocodb-sdk": "0.105.2",
+    "nocodb-sdk": "file:../nocodb-sdk",
     "nodemailer": "^6.4.10",
     "object-hash": "^3.0.0",
     "os-locale": "^5.0.0",

@@ -16,6 +16,7 @@ export interface AppInfo {
   oneClick: boolean
   projectHasAdmin: boolean
   teleEnabled: boolean
+  auditEnabled: boolean
   type: string
   version: string
   ee?: boolean

@@ -1,9 +1,9 @@
 import Noco from '../Noco';
 import Column from './Column';
 import Model from './Model';
-// import NocoCache from '../cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class LinkToAnotherRecordColumn {
   fk_column_id?: string;
@@ -89,27 +89,21 @@ export default class LinkToAnotherRecordColumn {
     data: Partial<LinkToAnotherRecordColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_RELATIONS, {
-      fk_column_id: data.fk_column_id,
-
-      // ref_db_alias
-      type: data.type,
-      // db_type:
-
-      fk_child_column_id: data.fk_child_column_id,
-      fk_parent_column_id: data.fk_parent_column_id,
-
-      fk_mm_model_id: data.fk_mm_model_id,
-      fk_mm_child_column_id: data.fk_mm_child_column_id,
-      fk_mm_parent_column_id: data.fk_mm_parent_column_id,
-
-      ur: data.ur,
-      dr: data.dr,
-
-      fk_index_name: data.fk_index_name,
-      fk_related_model_id: data.fk_related_model_id,
-      virtual: data.virtual,
-    });
+    const insertObj = extractProps(data, [
+      'fk_column_id',
+      'type',
+      'fk_child_column_id',
+      'fk_parent_column_id',
+      'fk_mm_model_id',
+      'fk_mm_child_column_id',
+      'fk_mm_parent_column_id',
+      'ur',
+      'dr',
+      'fk_index_name',
+      'fk_related_model_id',
+      'virtual',
+    ]);
+    await ncMeta.metaInsert2(null, null, MetaTable.COL_RELATIONS, insertObj);
     return this.read(data.fk_column_id, ncMeta);
   }
 

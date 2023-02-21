@@ -12,15 +12,17 @@ export default class QrCodeColumn {
   }
 
   public static async insert(
-    data: Partial<QrCodeColumn>,
+    qrCode: Partial<QrCodeColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_QRCODE, {
-      fk_column_id: data.fk_column_id,
-      fk_qr_value_column_id: data.fk_qr_value_column_id,
-    });
+    const insertObj = extractProps(qrCode, [
+      'fk_column_id',
+      'fk_qr_value_column_id',
+    ]);
 
-    return this.read(data.fk_column_id, ncMeta);
+    await ncMeta.metaInsert2(null, null, MetaTable.COL_QRCODE, insertObj);
+
+    return this.read(qrCode.fk_column_id, ncMeta);
   }
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {
     let column =

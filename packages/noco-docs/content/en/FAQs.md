@@ -65,7 +65,7 @@ Auth Token is a JWT Token generated based on the logged-in user. By default, the
 
 API Token is a Nano ID with a length of 40. If you are passing API Token, make sure that the header is called `xc-token`.
 
-## Do you plan to have Enterprise Edition ?
+## Do we plan to have an Enterprise Edition?
 For features that make sense for enterprises like below - yes 
 - SSO, SLA, Organisation wide reports and analytics, 
 - Advanced Audit or ACL,  
@@ -78,3 +78,17 @@ And increasing number of our customers are requesting it.
 
 - Depends on the effort and whether the intended users are enterprises.
  
+## What are the official socials for NocoDB?
+
+- Youtube: https://www.youtube.com/@nocodb
+- Twitter: https://twitter.com/nocodb
+- Discord: http://discord.nocodb.com/
+- GitHub: https://github.com/nocodb/nocodb
+- Community Forums: https://community.nocodb.com/
+- LinkedIn: https://www.linkedin.com/company/nocodb
+- Reddit: https://www.reddit.com/r/NocoDB/
+
+## Is NocoDB available on the cloud?
+
+Soon! NocoDB is currently developing cloud infrastructure.
+To join the upcoming FREE private beta program, [fill out this form here](https://docs.google.com/forms/d/e/1FAIpQLSfKLe8Rcrq0uo2_jM5W1kbVBbzDiQ3IvlP8Iov61FTekVAvzA/viewform) and be the first to try it!

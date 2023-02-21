@@ -10,6 +10,6 @@ function toggleGeodataFeature() {
     <template #title>
       <span> Toggle GeoData </span>
     </template>
-    <mdi-map-marker class="cursor-pointer" @click="toggleGeodataFeature" />
+    <mdi-map-marker class="cursor-pointer" data-testid="toggle-geodata-feature-icon" @click="toggleGeodataFeature" />
   </a-tooltip>
 </template>

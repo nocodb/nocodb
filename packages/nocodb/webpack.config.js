@@ -40,7 +40,8 @@ module.exports = {
     globalObject: "typeof self !== 'undefined' ? self : this"
   },
   node: {
-    fs: 'empty'
+    fs: 'empty',
+    __dirname: false,
   },
   plugins: [
     new webpack.EnvironmentPlugin([
@@ -58,5 +59,5 @@ module.exports = {
     // }, []),
   ],
 
-  target: 'node',
+  target: 'node'
 };

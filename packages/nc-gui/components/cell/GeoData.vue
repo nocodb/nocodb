@@ -92,6 +92,7 @@ const onClickSetCurrentLocation = () => {
             <div class="mr-2">{{ $t('labels.lat') }}:</div>
             <a-input
               v-model:value="formState.latitude"
+              data-testid="nc-geo-data-latitude"
               type="number"
               step="0.0000001"
               :min="-90"
@@ -109,6 +110,7 @@ const onClickSetCurrentLocation = () => {
             <div class="mr-2">{{ $t('labels.lng') }}:</div>
             <a-input
               v-model:value="formState.longitude"
+              data-testid="nc-geo-data-longitude"
               type="number"
               step="0.0000001"
               required
@@ -129,7 +131,7 @@ const onClickSetCurrentLocation = () => {
         <a-form-item>
           <div class="ml-auto mr-2">
             <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
-            <a-button type="primary" html-type="submit">{{ $t('general.submit') }}</a-button>
+            <a-button type="primary" html-type="submit" data-testid="nc-geo-data-save">{{ $t('general.submit') }}</a-button>
           </div>
         </a-form-item>
       </a-form>

@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
@@ -16,9 +17,31 @@ export class MapPage extends BasePage {
     return this.dashboard.get().locator('[data-testid="nc-map-wrapper"]');
   }
 
-  async openExpandedRow({ index }: { index: number }) {
-    await this.card(index).click();
-    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
+  async marker(lat: string, long: string) {
+    const latLongStr = `${lat}, ${long}`;
+    const marker = await this.get().locator(`.leaflet-marker-pane img[alt="${latLongStr}"]`);
+    return marker;
+  }
+
+  async clickAddRowButton() {
+    await this.rootPage.locator('.nc-add-new-row-btn').click();
+  }
+
+  async clickMarker(lat: string, long: string) {
+    return (await this.marker(lat, long)).click();
+  }
+
+  async verifyMarkerCount(count: number) {
+    const markers = await this.get().locator('.leaflet-marker-pane img');
+    await expect(markers).toHaveCount(count);
+  }
+
+  async zoomOut(times = 10) {
+    const zoomOutButton = await this.get().locator('.leaflet-control-zoom-out');
+    for (let i = 0; i < times; i++) {
+      await zoomOutButton.click();
+      await this.rootPage.waitForTimeout(400);
+    }
   }
 
   // todo: Wait for render to complete

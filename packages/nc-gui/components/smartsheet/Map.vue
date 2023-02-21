@@ -87,7 +87,9 @@ const addMarker = (lat: number, long: number, row: RowType) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Marker cluster is null')
   }
-  const newMarker = L.marker([lat, long]).on('click', () => {
+  const newMarker = L.marker([lat, long], {
+    alt: `${lat}, ${long}`
+  }).on('click', () => {
     expandForm(row)
   })
   markersClusterGroupRef.value?.addLayer(newMarker)
@@ -204,7 +206,7 @@ const count = computed(() => paginationData.value.totalRows)
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full no-underline">
+  <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
     <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">
       <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-3 right-3 p-2 z-500 cursor-default">
         <template #title>

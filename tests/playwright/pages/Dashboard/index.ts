@@ -15,6 +15,7 @@ import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
 import { ProjectsPage } from '../ProjectsPage';
+import { MapPage } from './Map';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -66,6 +67,11 @@ export class DashboardPage extends BasePage {
   async gotoSettings() {
     await this.rootPage.getByTestId('nc-project-menu').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
+  }
+
+  async gotoProjectSubMenu({ title }: { title: string }) {
+    await this.rootPage.getByTestId('nc-project-menu').click();
+    await this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`).click();
   }
 
   async verifyInTabBar({ title }: { title: string }) {

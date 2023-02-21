@@ -616,6 +616,20 @@ watch(view, (nextView) => {
                       />
                     </div>
 
+
+                    <a-form-item class="my-0 w-1/2 !mb-1" v-if="element.uidt === 'SingleLineText'">
+                      FOO
+                      <a-input
+                        v-model:value="element.enableScanner"
+                        type="text"
+                        class="form-meta-input nc-form-input-label"
+                        data-testid="nc-form-input-label"
+                        :placeholder="$t('general.enableScanner')"
+                        @change="updateColMeta(element)"
+                      >
+                      </a-input>
+                    </a-form-item>
+
                     <a-form-item class="my-0 w-1/2 !mb-1">
                       <a-input
                         v-model:value="element.label"

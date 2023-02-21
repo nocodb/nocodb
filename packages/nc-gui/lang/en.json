@@ -39,6 +39,7 @@
     "signIn": "SIGN IN",
     "signOut": "Sign Out",
     "required": "Required",
+    "enableScanner": "Enable Scanner for filling",
     "preferred": "Preferred",
     "mandatory": "Mandatory",
     "loading": "Loading ...",

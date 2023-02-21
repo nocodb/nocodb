@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
@@ -35,13 +36,27 @@ const showCodeScannerForFieldTitle = (fieldTitle: string) => {
   fieldTitleForCurrentScan.value = fieldTitle
 }
 
-const onDecode = async (codeValue: string) => {
+const getScannedValueTransformerByFieldType = (fieldType: UITypes) => {
+  switch (fieldType) {
+    case UITypes.Number:
+      return (originalVal: string) => parseInt(originalVal)
+    default:
+      return (originalVal: string) => originalVal
+  }
+}
+
+const onDecode = async (scannedCodeValue: string) => {
   if (!showCodeScannerOverlay.value) {
     return
   }
-  // TODO: remove try catch
   try {
-    formState.value[fieldTitleForCurrentScan.value] = codeValue
+    const fieldForCurrentScan = formColumns.value?.find((el: ColumnType) => el.title === fieldTitleForCurrentScan.value)
+    if (fieldForCurrentScan == null) {
+      throw new Error(`Field with title ${fieldTitleForCurrentScan.value} not found`)
+    }
+    const transformedVal =
+      getScannedValueTransformerByFieldType(fieldForCurrentScan.uidt as UITypes)(scannedCodeValue) || scannedCodeValue
+    formState.value[fieldTitleForCurrentScan.value] = transformedVal
     fieldTitleForCurrentScan.value = ''
     showCodeScannerOverlay.value = false
   } catch (error) {
@@ -98,7 +113,7 @@ const onDecode = async (codeValue: string) => {
           >
             <div class="relative flex flex-col h-full">
               <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
-              <a-button @click="() => onDecode('ABC')">Simulate scan</a-button>
+              <a-button @click="() => onDecode('1234')">Simulate scan</a-button>
             </div>
           </a-modal>
           <GeneralOverlay class="bg-gray-400/75" :model-value="isLoading" inline transition>

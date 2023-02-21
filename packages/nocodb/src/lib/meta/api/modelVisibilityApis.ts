@@ -123,7 +123,7 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/visibility-rules',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/KanbanViewReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/VisibilityRuleReq'),
   ncMetaAclMw(xcVisibilityMetaSetAll, 'modelVisibilitySet')
 );
 export default router;

@@ -8014,7 +8014,7 @@
           "columns": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Column"
+              "$ref": "#/components/schemas/NormalColumnRequest"
             }
           },
           "meta": {}
@@ -8348,15 +8348,42 @@
             "type": "string"
           },
           "np": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "ns": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "clen": {
-            "type": [
-              "string",
-              "integer"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "cop": {
@@ -10012,19 +10039,30 @@
             "type": "string"
           },
           "np": {
-            "type": "string"
-          },
-          "ns": {
-            "type": "string"
-          },
-          "clen": {
-            "type": [
-              "string",
-              "integer"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "cop": {
-            "type": "string"
+          "ns": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "pk": {
             "type": "boolean"
@@ -10033,13 +10071,33 @@
             "type": "boolean"
           },
           "rqd": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
           },
           "column_name": {
             "type": "string"
           },
           "un": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "ct": {
             "type": "string"
@@ -10051,7 +10109,14 @@
             "type": "boolean"
           },
           "cdf": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "cc": {
             "type": "string"
@@ -10062,11 +10127,24 @@
           "dtx": {
             "type": "string"
           },
-          "dtxp": {
-            "type": "string"
+          "dtxp": { "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
           },
           "dtxs": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+              ]
           },
           "au": {
             "type": "boolean"

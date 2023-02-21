@@ -22,6 +22,7 @@ import View from './View';
 import { NcError } from '../meta/helpers/catchError';
 import Audit from './Audit';
 import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Model implements TableType {
   copy_enabled: boolean;
@@ -103,25 +104,38 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta
   ) {
+    const insertObj = extractProps(model, [
+      'table_name',
+      'title',
+      'mm',
+      'order',
+      'type',
+      'created_at',
+      'updated_at',
+      'id',
+    ]);
+
+    insertObj.mm = !!insertObj.mm;
+
+    if (!insertObj.order) {
+      insertObj.order = await ncMeta.metaGetNextOrder(
+        MetaTable.FORM_VIEW_COLUMNS,
+        {
+          project_id: projectId,
+          base_id: baseId,
+        }
+      );
+    }
+
+    if (!insertObj.type) {
+      insertObj.type = ModelTypes.TABLE;
+    }
+
     const { id } = await ncMeta.metaInsert2(
       projectId,
       baseId,
       MetaTable.MODELS,
-      {
-        table_name: model.table_name,
-        title: model.title,
-        mm: !!model.mm,
-        order:
-          model.order ||
-          (await ncMeta.metaGetNextOrder(MetaTable.FORM_VIEW_COLUMNS, {
-            project_id: projectId,
-            base_id: baseId,
-          })),
-        type: model.type || ModelTypes.TABLE,
-        created_at: model.created_at,
-        updated_at: model.updated_at,
-        id: model.id,
-      }
+      insertObj
     );
 
     await NocoCache.appendToList(

@@ -10,6 +10,7 @@ import {
 import View from './View';
 import { FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Filter {
   id: string;
@@ -48,20 +49,19 @@ export default class Filter {
     filter: Partial<FilterType>,
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = {
-      id: filter.id,
-      fk_view_id: filter.fk_view_id,
-      fk_column_id: filter.fk_column_id,
-      comparison_op: filter.comparison_op,
-      value: filter.value,
-      fk_parent_id: filter.fk_parent_id,
+    const insertObj = extractProps(filter, [
+      'id',
+      'fk_view_id',
+      'fk_column_id',
+      'comparison_op',
+      'value',
+      'fk_parent_id',
+      'is_group',
+      'logical_op',
+      'project_id',
+      'base_id',
+    ]);
 
-      is_group: filter.is_group,
-      logical_op: filter.logical_op,
-
-      project_id: filter.project_id,
-      base_id: filter.base_id,
-    };
     if (!(filter.project_id && filter.base_id)) {
       const model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
       insertObj.project_id = model.project_id;
@@ -138,15 +138,14 @@ export default class Filter {
   }
 
   static async update(id, filter: Partial<Filter>, ncMeta = Noco.ncMeta) {
-    const updateObj = {
-      fk_column_id: filter.fk_column_id,
-      comparison_op: filter.comparison_op,
-      value: filter.value,
-      fk_parent_id: filter.fk_parent_id,
-
-      is_group: filter.is_group,
-      logical_op: filter.logical_op,
-    };
+    const updateObj = extractProps(filter, [
+      'fk_column_id',
+      'comparison_op',
+      'value',
+      'fk_parent_id',
+      'is_group',
+      'logical_op',
+    ]);
     // get existing cache
     const key = `${CacheScope.FILTER_EXP}:${id}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

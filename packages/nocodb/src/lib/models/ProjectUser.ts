@@ -8,6 +8,7 @@ import {
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
 import User from './User';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class ProjectUser {
   project_id: string;
@@ -22,17 +23,19 @@ export default class ProjectUser {
     projectUser: Partial<ProjectUser & { created_at?: any; updated_at?: any }>,
     ncMeta = Noco.ncMeta
   ) {
+    const insertObj = extractProps(projectUser, [
+      'fk_user_id',
+      'project_id',
+      'roles',
+      'created_at',
+      'updated_at',
+    ]);
+
     const { project_id, fk_user_id } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.PROJECT_USERS,
-      {
-        fk_user_id: projectUser.fk_user_id,
-        project_id: projectUser.project_id,
-        roles: projectUser.roles,
-        created_at: projectUser.created_at,
-        updated_at: projectUser.updated_at,
-      },
+      insertObj,
       true
     );
 

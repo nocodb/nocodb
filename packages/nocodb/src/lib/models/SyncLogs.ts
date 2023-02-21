@@ -1,5 +1,6 @@
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class SyncLogs {
   id?: string;
@@ -34,13 +35,13 @@ export default class SyncLogs {
     >,
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = {
-      project_id: syncLog?.project_id,
-      fk_sync_source_id: syncLog?.fk_sync_source_id,
-      time_taken: syncLog?.time_taken,
-      status: syncLog?.status,
-      status_details: syncLog?.status_details,
-    };
+    const insertObj = extractProps(syncLog, [
+      'project_id',
+      'fk_sync_source_id',
+      'time_taken',
+      'status',
+      'status_details',
+    ]);
 
     const { id } = await ncMeta.metaInsert2(
       null,

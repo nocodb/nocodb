@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
+import { TextSelection } from 'prosemirror-state'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import type { PageSidebarNode } from '~~/lib'
 
@@ -38,6 +39,17 @@ const breadCrumbs = computed(() => {
 
 const editor = useEditor({
   extensions: tiptapExtensions(),
+  onCreate: ({ editor }) => {
+    // TODO: Hack to fix the issue where cursor is on the last node, when the page is opened
+    // Thus when we click on the first node's start after mount, cursor will jump back to the last node
+    // Could not figure out from where the cursor change is coming from
+    // So for now, we just set the cursor to the start of the first node, after the editor is mounted
+    // https://github.com/nocodb/nocohub/issues/137
+    setTimeout(() => {
+      const draggableBlockSize = 2
+      editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, draggableBlockSize)))
+    })
+  },
   onUpdate: ({ editor }) => {
     if (!localPage.value) return
 

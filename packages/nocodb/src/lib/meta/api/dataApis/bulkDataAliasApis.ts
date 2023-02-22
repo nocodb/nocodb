@@ -1,4 +1,5 @@
 import { Request, Response, Router } from 'express';
+import { BaseModelSqlv2 } from '../../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import Model from '../../../models/Model';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
@@ -16,8 +17,18 @@ async function getModelAndBase(req: Request) {
 async function executeBulkOperation(
   req: Request,
   res: Response,
-  operation: string,
-  options: any = {}
+  operation:
+    | 'bulkInsert'
+    | 'bulkUpdate'
+    | 'bulkUpdateAll'
+    | 'bulkDelete'
+    | 'bulkDeleteAll',
+  options:
+    | Parameters<typeof BaseModelSqlv2.prototype.bulkInsert>
+    | Parameters<typeof BaseModelSqlv2.prototype.bulkUpdate>
+    | Parameters<typeof BaseModelSqlv2.prototype.bulkDelete>
+    | Parameters<typeof BaseModelSqlv2.prototype.bulkUpdateAll>
+    | Parameters<typeof BaseModelSqlv2.prototype.bulkDeleteAll>
 ) {
   const { model, view, base } = await getModelAndBase(req);
   const baseModel = await Model.getBaseModelSQL({
@@ -25,7 +36,7 @@ async function executeBulkOperation(
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
   });
-  res.json(await baseModel[operation](...options));
+  res.json(await baseModel[operation].apply(null, options));
 }
 
 async function bulkDataInsert(req: Request, res: Response) {

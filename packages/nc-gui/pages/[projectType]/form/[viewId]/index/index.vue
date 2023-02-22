@@ -32,9 +32,12 @@ const onLoaded = async () => {
 }
 
 const showCodeScannerForFieldTitle = (fieldTitle: string) => {
+  // findColumnByTitle(fieldTitle)?.enable_scanner
   showCodeScannerOverlay.value = true
   fieldTitleForCurrentScan.value = fieldTitle
 }
+
+const findColumnByTitle = (title: string) => formColumns.value?.find((el: ColumnType) => el.title === title)
 
 const getScannedValueTransformerByFieldType = (fieldType: UITypes) => {
   switch (fieldType) {
@@ -50,7 +53,7 @@ const onDecode = async (scannedCodeValue: string) => {
     return
   }
   try {
-    const fieldForCurrentScan = formColumns.value?.find((el: ColumnType) => el.title === fieldTitleForCurrentScan.value)
+    const fieldForCurrentScan = findColumnByTitle(fieldTitleForCurrentScan.value)
     if (fieldForCurrentScan == null) {
       throw new Error(`Field with title ${fieldTitleForCurrentScan.value} not found`)
     }
@@ -170,7 +173,7 @@ const onDecode = async (scannedCodeValue: string) => {
                       {{ field.description }}
                     </div>
 
-                    <div>
+                    <div v-if="field.enable_scanner">
                       <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerForFieldTitle(field.title)">
                         <div class="flex items-center gap-1">
                           <QrCodeScan />

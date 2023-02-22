@@ -35,7 +35,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedView = ref<ViewType>()
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
-  const columns = ref<(ColumnType & { required?: boolean; show?: boolean; label?: string })[]>()
+  const columns = ref<(ColumnType & { required?: boolean; show?: boolean; label?: string; enable_scanner?: boolean })[]>()
   const sharedViewMeta = ref<SharedViewMeta>({})
   const formResetHook = createEventHook<void>()
 

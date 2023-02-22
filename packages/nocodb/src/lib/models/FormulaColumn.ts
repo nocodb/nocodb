@@ -14,17 +14,18 @@ export default class FormulaColumn {
   }
 
   public static async insert(
-    data: Partial<FormulaColumn>,
+    formulaColumn: Partial<FormulaColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_FORMULA, {
-      fk_column_id: data.fk_column_id,
-      formula_raw: data.formula_raw,
-      formula: data.formula,
-      error: data.error,
-    });
+    const insertObj = extractProps(formulaColumn, [
+      'fk_column_id',
+      'formula_raw',
+      'formula',
+      'error',
+    ]);
+    await ncMeta.metaInsert2(null, null, MetaTable.COL_FORMULA, insertObj);
 
-    return this.read(data.fk_column_id, ncMeta);
+    return this.read(formulaColumn.fk_column_id, ncMeta);
   }
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {
     let column =

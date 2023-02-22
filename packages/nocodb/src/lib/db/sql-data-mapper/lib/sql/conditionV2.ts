@@ -271,13 +271,8 @@ const parseConditionV2 = async (
 
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
-        if (
-          [UITypes.Date, UITypes.DateTime].includes(column.uidt) &&
-          !val &&
-          ['is', 'isnot'].includes(filter.comparison_op)
-        ) {
-          // for date & datetime,
-          // val cannot be empty for non-is & non-isnot filters
+        if ([UITypes.Date, UITypes.DateTime].includes(column.uidt) && !val) {
+          // for date & datetime, val cannot be empty for all filters
           return;
         }
 

@@ -80,8 +80,12 @@ const reloadMetaAndData = async () => {
   }
 }
 
+const saving = ref(false)
+
 async function onSubmit() {
+  saving.value = true
   const saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
+  saving.value = false
 
   if (!saved) return
 
@@ -234,7 +238,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             {{ $t('general.cancel') }}
           </a-button>
 
-          <a-button html-type="submit" type="primary" @click.prevent="onSubmit">
+          <a-button html-type="submit" type="primary" :loading="saving" @click.prevent="onSubmit">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

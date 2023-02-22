@@ -37,9 +37,13 @@ const formState = reactive({
   title: '',
 })
 
+const creating = ref(false)
+
 const createProject = async () => {
   $e('a:project:create:xcdb')
   try {
+    creating.value = true
+
     const result = await api.project.create({
       title: formState.title,
     })
@@ -48,6 +52,7 @@ const createProject = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+  creating.value = false
 }
 
 const input: VNodeRef = ref<typeof Input>()
@@ -90,7 +95,8 @@ onMounted(async () => {
       </a-form-item>
 
       <div class="text-center">
-        <button class="scaling-btn bg-opacity-100" type="submit">
+        <a-spin v-if="creating" spinning />
+        <button v-else class="scaling-btn bg-opacity-100" type="submit">
           <span class="flex items-center gap-2">
             <MaterialSymbolsRocketLaunchOutline />
             {{ $t('general.create') }}

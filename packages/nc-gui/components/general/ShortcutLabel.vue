@@ -17,6 +17,7 @@ const getLabel = (key: string) => {
       case 'meta':
         return '⌘'
       case 'control':
+      case 'ctrl':
         return '⌃'
       case 'enter':
         return '↩'
@@ -51,6 +52,6 @@ const getLabel = (key: string) => {
 }
 
 .nc-shortcut-label {
-  @apply text-[.6rem] text-gray-200 bg-gray-200 bg-opacity-20 rounded  px-1;
+  @apply text-[0.7rem] leading-6 min-w-5 min-h-5 text-center relative z-0 after:(content-[''] left-0 top-0 -z-1 bg-current opacity-10 absolute w-full h-full rounded) px-1;
 }
 </style>

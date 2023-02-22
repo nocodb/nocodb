@@ -12,6 +12,7 @@ import Strike from '@tiptap/extension-strike'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
+import { Link } from './link'
 import { TableCell } from './table/cell'
 import { TableRow } from './table/row'
 import Table from './table'
@@ -87,6 +88,7 @@ const tiptapExtensions = (): Extensions => {
     }),
     ExternalContent,
     TrailingNode,
+    Link,
   ]
 }
 

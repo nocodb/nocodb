@@ -34,6 +34,7 @@ import LogosAirtableIcon from '~icons/logos/airtable'
 import LogosCodepenIcon from '~icons/logos/codepen-icon'
 import LogosTrelloIcon from '~icons/logos/trello'
 import LogosTypeformIcon from '~icons/logos/typeform-icon'
+import MdiLinkVariant from '~icons/mdi/link-variant'
 
 interface Props {
   command: Function
@@ -119,6 +120,14 @@ const items = [
     icon: MdiFormatHeader3,
     iconClass: 'pt-0.5',
     hasDivider: true,
+  },
+  {
+    title: 'Link',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setLink({ href: '' }).run()
+    },
+    icon: MdiLinkVariant,
   },
   {
     title: 'Body Text',
@@ -517,8 +526,8 @@ defineExpose({
 <template>
   <div class="items">
     <template v-if="isLinkInputFormState">
-      <div class="flex flex-col w-44 mx-1 mt-1 mb-1">
-        <div class="w-6 rounded-md my-1 p-1 cursor-pointer hover:bg-gray-200" @click="isLinkInputFormState = false">
+      <div class="flex flex-col w-56 mx-1 mt-1 mb-1">
+        <div class="w-8 rounded-md my-1 p-1 pl-2 cursor-pointer hover:bg-gray-200" @click="isLinkInputFormState = false">
           <MdiArrowLeft />
         </div>
         <input
@@ -573,7 +582,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 .items {
-  @apply px-1 my-0.5 w-48;
+  @apply px-1 my-0.5 w-60;
   position: relative;
   border-radius: 0.5rem;
   color: rgba(0, 0, 0, 0.8);

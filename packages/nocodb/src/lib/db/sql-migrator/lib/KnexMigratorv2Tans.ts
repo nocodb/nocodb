@@ -31,7 +31,16 @@ export default class KnexMigratorv2Tans extends KnexMigratorv2 {
   protected get metaDb(): XKnex {
     return this.ncMeta.knex || Noco.ncMeta.knex;
   }
-  protected async getSqlClient(base: Base): Promise<SnowflakeClient | MysqlClient | SqliteClient | MssqlClient | OracleClient | PGClient> {
+  protected async getSqlClient(
+    base: Base
+  ): Promise<
+    | SnowflakeClient
+    | MysqlClient
+    | SqliteClient
+    | MssqlClient
+    | OracleClient
+    | PGClient
+  > {
     return this.sqlClient || NcConnectionMgrv2.getSqlClient(base);
   }
 }

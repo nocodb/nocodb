@@ -3,6 +3,7 @@ import { KanbanType, UITypes } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class KanbanView implements KanbanType {
   fk_view_id: string;
@@ -63,16 +64,17 @@ export default class KanbanView implements KanbanType {
       .then((v) => v?.getModel(ncMeta))
       .then((m) => m.getColumns(ncMeta));
 
-    const insertObj = {
-      project_id: view.project_id,
-      base_id: view.base_id,
-      fk_view_id: view.fk_view_id,
-      fk_grp_col_id: view.fk_grp_col_id,
-      fk_cover_image_col_id:
-        view?.fk_cover_image_col_id ||
-        columns?.find((c) => c.uidt === UITypes.Attachment)?.id,
-      meta: view.meta,
-    };
+    const insertObj = extractProps(view, [
+      'project_id',
+      'base_id',
+      'fk_view_id',
+      'fk_grp_col_id',
+      'meta',
+    ]);
+
+    insertObj.fk_cover_image_col_id =
+      view?.fk_cover_image_col_id ||
+      columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
 
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);
@@ -99,13 +101,17 @@ export default class KanbanView implements KanbanType {
     // get existing cache
     const key = `${CacheScope.KANBAN_VIEW}:${kanbanId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    const updateObj = {
-      ...body,
-      meta:
-        typeof body.meta === 'string'
-          ? body.meta
-          : JSON.stringify(body.meta ?? {}),
-    };
+
+    const updateObj = extractProps(body, [
+      'title',
+      'fk_cover_image_col_id',
+      'meta',
+    ]);
+
+    if (updateObj.meta && typeof updateObj.meta === 'object') {
+      updateObj.meta = JSON.stringify(updateObj.meta ?? {});
+    }
+
     if (o) {
       o = { ...o, ...updateObj };
       // set cache

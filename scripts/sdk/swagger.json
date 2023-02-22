@@ -9175,8 +9175,8 @@
           "event": {
             "type": "string",
             "enum": [
-              "After",
-              "Before"
+              "after",
+              "before"
             ]
           },
           "operation": {

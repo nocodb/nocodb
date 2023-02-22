@@ -502,7 +502,7 @@ export interface HookType {
   description?: string;
   env?: string;
   type?: string;
-  event?: 'After' | 'Before';
+  event?: 'after' | 'before';
   operation?: 'insert' | 'delete' | 'update';
   async?: boolean;
   payload?: string;

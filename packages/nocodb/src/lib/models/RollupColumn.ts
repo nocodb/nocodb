@@ -2,6 +2,7 @@ import Noco from '../Noco';
 import Column from './Column';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class RollupColumn {
   fk_column_id;
@@ -20,12 +21,13 @@ export default class RollupColumn {
     data: Partial<RollupColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_ROLLUP, {
-      fk_column_id: data.fk_column_id,
-      fk_relation_column_id: data.fk_relation_column_id,
-      fk_rollup_column_id: data.fk_rollup_column_id,
-      rollup_function: data.rollup_function,
-    });
+    const insertObj = extractProps(data, [
+      'fk_column_id',
+      'fk_relation_column_id',
+      'fk_rollup_column_id',
+      'rollup_function',
+    ]);
+    await ncMeta.metaInsert2(null, null, MetaTable.COL_ROLLUP, insertObj);
 
     await NocoCache.appendToList(
       CacheScope.COL_ROLLUP,

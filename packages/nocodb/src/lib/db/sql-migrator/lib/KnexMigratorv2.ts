@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { Knex } from 'knex';
 
 import glob from 'glob';
 import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
@@ -428,7 +429,7 @@ export default class KnexMigratorv2 {
     // }
   }
 
-  protected async getSqlClient(base: Base): Promise<any> {
+  protected async getSqlClient(base: Base) {
     return NcConnectionMgrv2.getSqlClient(base);
   }
 
@@ -753,7 +754,7 @@ export default class KnexMigratorv2 {
             const vm = this;
 
             const trx = sqlClient.knex.isTransaction
-              ? sqlClient.knex
+              ? (sqlClient.knex as Knex.Transaction)
               : await sqlClient.knex.transaction();
             try {
               for (const query of upStatements) {
@@ -920,7 +921,7 @@ export default class KnexMigratorv2 {
           const vm = this;
 
           const trx = sqlClient.knex.isTransaction
-            ? sqlClient.knex
+            ? (sqlClient.knex as Knex.Transaction)
             : await sqlClient.knex.transaction();
           try {
             for (const query of downStatements) {

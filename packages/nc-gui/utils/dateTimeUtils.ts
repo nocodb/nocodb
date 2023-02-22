@@ -16,6 +16,45 @@ export const dateFormats = [
   'YYYY MM DD',
 ]
 
+export const isoToDate = (iso8601: string, ignoreTimezone = false) => {
+  // Differences from default `new Date()` are...
+  // - Returns a local datetime for all without-timezone inputs, including date-only strings.
+  // - ignoreTimezone processes datetimes-with-timezones as if they are without-timezones.
+  // - Accurate across all mobile browsers.  https://stackoverflow.com/a/61242262/25197
+
+  const dateTimeParts = iso8601.match(
+    /(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d{0,7}))?(?:([+-])(\d{2}):(\d{2}))?)?/,
+  )
+
+  if (!dateTimeParts) {
+    return
+  }
+
+  // Create a "localized" Date.
+  // If you create a date (without specifying time), you get a date set in UTC Zulu at midnight.
+  // https://www.diigo.com/0hc3eb
+  const date = new Date(
+    Number(dateTimeParts[1]), // year
+    Number(dateTimeParts[2]) - 1, // month (0-indexed)
+    Number(dateTimeParts[3]) || 1, // day
+    Number(dateTimeParts[4]) || 0, // hours
+    Number(dateTimeParts[5]) || 0, // minutes
+    Number(dateTimeParts[6]) || 0, // seconds
+    Number(dateTimeParts[7]) || 0, // milliseconds
+  )
+
+  const sign = dateTimeParts[8]
+  if (sign && !ignoreTimezone) {
+    const direction = sign === '+' ? 1 : -1
+    const hoursOffset = Number(dateTimeParts[9]) || 0
+    const minutesOffset = Number(dateTimeParts[10]) || 0
+    const offset = direction * (hoursOffset * 60 + minutesOffset)
+    date.setMinutes(date.getMinutes() - offset - date.getTimezoneOffset())
+  }
+
+  return date
+}
+
 export const timeFormats = ['HH:mm', 'HH:mm:ss']
 
 export const handleTZ = (val: any) => {

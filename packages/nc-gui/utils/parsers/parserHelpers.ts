@@ -1,6 +1,10 @@
+import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
+import { getDateFormat, isoToDate } from '~/utils'
 import { isValidURL } from '~/utils/urlUtils'
 import { validateEmail } from '~/utils/validation'
+
+export const specialCharRegex = /[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g
 
 const booleanOptions = [
   { checked: true, unchecked: false },
@@ -148,4 +152,75 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
   // TODO(import): currency
   // TODO(import): date / datetime
   return colProps
+}
+
+export const isDecimalVal = (vals: any[], limitRows: number) =>
+  vals.slice(0, limitRows).some((v) => !v[1].w || v[1].v?.toString().includes('.'))
+
+export const isCurrencyVal = (vals: any[], limitRows: number) =>
+  vals.slice(0, limitRows).every((v) => !v[1].w || v[1].w?.toString().includes('$'))
+
+export const isPercentageVal = (vals: any[], limitRows: number) =>
+  vals.slice(0, limitRows).every((v) => !v[1].w || v[1].w?.toString().includes('%'))
+
+export const isMultiLineTextVal = (vals: any[], limitRows: number) =>
+  isMultiLineTextType(vals.slice(0, limitRows).map((v: any) => v[1].v) as [])
+
+export const isMultiOrSingleSelectVal = (vals: any[], limitRows: number, column: Record<string, any>) => {
+  const props = extractMultiOrSingleSelectProps(vals.slice(0, limitRows).map((v: any) => v[1].v.replace('\\', '_')) as [])
+  if (!props) return false
+  Object.assign(column, props)
+  return true
+}
+
+export const isEmailVal = (vals: any[], limitRows: number) => isEmailType(vals.slice(0, limitRows).map((v: any) => v[1].v) as [])
+
+export const isUrlVal = (vals: any[], limitRows: number) => isUrlType(vals.slice(0, limitRows).map((v: any) => v[1].v) as [])
+
+export const isCheckboxVal = (vals: any[], limitRows: number) =>
+  isCheckboxType(vals.slice(0, limitRows).map((v: any) => v[1].v) as []).length === 1
+
+export const isNumberVal = (vals: any[], limitRows: number) =>
+  isUrlType(
+    vals
+      .slice(0, limitRows)
+      .map((v: any) => isNaN(v[1].w) || (v[1].w && !isNaN(Number(v[1].w)) && isNaN(parseFloat(v[1].w)))) as [],
+  )
+
+export const isIsoDateVal = (vals: any[], limitRows: number) => vals.slice(0, limitRows).every((v) => isoToDate(v[1].w))
+
+export const defaultFormater = (cell: any) => cell.v || null
+
+export const defaultRawFormater = (cell: any) => cell.w || null
+
+export const dateFormatter = (cell: any, format: string) => dayjs(cell.v).format(format) || null
+export const dateTimeFormatter = (cell: any) => cell.v || null
+
+export const checkBoxFormatter = (cell: any) => getCheckboxValue(cell.v) || null
+
+export const currencyFormatter = (cell: any) => cell.w.replace(/[^\d.]+/g, '') || null
+export const percentFormatter = (cell: any) => parseFloat(cell.w.slice(0, -1)) / 100 || null
+
+export const multiOrSingleSelectFormatter = (cell: any) => cell.w.replace('\\', '_') || null
+
+export const isAllDate = (vals: any[], column: Record<string, any>) => {
+  const isOnlyDate = vals.every(([_, cell]) => {
+    // TODO: more date types and more checks!
+    const onlyDate = !cell.w || cell.w?.split(' ').length === 1
+    if (onlyDate) {
+      const format = getDateFormat(cell.w)
+      column.dateFormats[format] = (column.dateFormats[format] || 0) + 1
+    }
+    return onlyDate
+  })
+  if (isOnlyDate) {
+    column.uidt = UITypes.Date
+    // take the date format with the max occurrence
+    column.date_format =
+      Object.keys(column.date_formats).reduce((x, y) => (column.date_formats[x] > column.date_formats[y] ? x : y)) || 'YYYY/MM/DD'
+    return isOnlyDate
+  }
+
+  column.uidt = UITypes.DateTime
+  return isOnlyDate
 }

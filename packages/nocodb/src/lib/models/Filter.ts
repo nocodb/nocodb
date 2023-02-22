@@ -52,6 +52,19 @@ export default class Filter {
     | 'is'
     | 'btw'
     | 'nbtw';
+
+  comparison_sub_op?:
+    | 'today'
+    | 'tomorrow'
+    | 'yesterday'
+    | 'one_week_ago'
+    | 'one_week_from_now'
+    | 'one_month_ago'
+    | 'one_month_from_now'
+    | 'number_of_days_ago'
+    | 'number_of_days_from_now'
+    | 'exact_date';
+
   value?: string;
 
   logical_op?: string;
@@ -86,6 +99,7 @@ export default class Filter {
       'fk_hook_id',
       'fk_column_id',
       'comparison_op',
+      'comparison_sub_op',
       'value',
       'fk_parent_id',
       'is_group',
@@ -223,6 +237,7 @@ export default class Filter {
     const updateObj = extractProps(filter, [
       'fk_column_id',
       'comparison_op',
+      'comparison_sub_op',
       'value',
       'fk_parent_id',
       'is_group',

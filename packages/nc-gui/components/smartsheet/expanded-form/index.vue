@@ -65,7 +65,16 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 provide(MetaInj, meta)
 
-const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow, save } = useProvideExpandedFormStore(meta, row)
+const {
+  commentsDrawer,
+  changedColumns,
+  state: rowState,
+  isNew,
+  loadRow,
+  saveRowAndStay,
+  syncLTARRefs,
+  save,
+} = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
 
@@ -159,19 +168,83 @@ onMounted(() => {
   setTimeout(() => (cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus())
 })
 
+const addNewRow = () => {
+  setTimeout(async () => {
+    row.value = {
+      row: {},
+      oldRow: {},
+      rowMeta: { new: true },
+    }
+    isExpanded.value = true
+  }, 500);
+}
+
 // attach keyboard listeners to switch between rows
 // using alt + left/right arrow keys
 useActiveKeyupListener(
   isExpanded,
-  (e: KeyboardEvent) => {
+  async (e: KeyboardEvent) => {
     if (!e.altKey) return
-
     if (e.key === 'ArrowLeft') {
       e.stopPropagation()
       emits('prev')
     } else if (e.key === 'ArrowRight') {
       e.stopPropagation()
       emits('next')
+    }
+    // on alt + s save record
+    else if (e.code === 'KeyS') {
+      e.stopPropagation()
+      e.preventDefault()
+      if (isNew.value) {
+        const data = await save(rowState.value)
+        await syncLTARRefs(data)
+        reloadHook?.trigger(null)
+      } else {
+        await save()
+        reloadHook?.trigger(null)
+      }
+      if (!saveRowAndStay.value) {
+        onClose()
+      }
+      // on alt + n create new record
+    } else if (e.code === 'KeyN') {
+      e.stopPropagation()
+      e.preventDefault()
+
+      if (changedColumns.value.size > 0) {
+        await Modal.confirm({
+          title: 'Do you want to save the changes?',
+          okText: 'Save',
+          cancelText: 'Discard',
+          onOk: async () => {
+            await save()
+            reloadHook?.trigger(null)
+            addNewRow()
+          },
+          onCancel: () => {
+            addNewRow()
+          },
+        })
+      } else if (isNew.value) {
+         await Modal.confirm({
+          title: 'Do you want to save the record?',
+          okText: 'Save',
+          cancelText: 'Discard',
+          onOk: async () => {
+            const data = await save(rowState.value)
+            await syncLTARRefs(data)
+            reloadHook?.trigger(null)
+            addNewRow()
+          },
+          onCancel: () => {
+            addNewRow()
+          },
+        })
+      } else {
+        addNewRow()
+      }
+
     }
   },
   { immediate: true },
@@ -202,18 +275,19 @@ export default {
           <template v-if="props.showNextPrevIcons">
             <a-tooltip placement="bottom">
               <template #title>
-                {{ $t('labels.nextRow') }}
-                <GeneralShortcutLabel class="justify-center" :keys="['Alt', '←']" />
-              </template>
-              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="onNext" />
-            </a-tooltip>
-            <a-tooltip placement="bottom">
-              <template #title>
                 {{ $t('labels.prevRow') }}
 
+                <GeneralShortcutLabel class="justify-center" :keys="['Alt', '←']" />
+              </template>
+              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
+            </a-tooltip>
+
+            <a-tooltip placement="bottom">
+              <template #title>
+                {{ $t('labels.nextRow') }}
                 <GeneralShortcutLabel class="justify-center" :keys="['Alt', '→']" />
               </template>
-              <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
+              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
             </a-tooltip>
           </template>
           <div class="w-[500px] mx-auto">
@@ -237,7 +311,8 @@ export default {
                 :ref="i ? null : (el) => (cellWrapperEl = el)"
                 class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative"
               >
-                <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+                <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row"
+                                           :column="col" />
 
                 <LazySmartsheetCell
                   v-else

@@ -89,8 +89,8 @@ const onDelete = () => {
 
 <template>
   <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }" :should-show="(checkLinkMark as any)">
-    <div v-if="!justDeleted" class="bubble-menu flex flex-row gap-x-1 bg-gray-50 py-1 rounded-lg px-1 items-center">
-      <div class="!border-1 !border-gray-200 m-0.5 !py-0.5 rounded-md bg-gray-100">
+    <div v-if="!justDeleted" class="relative bubble-menu flex flex-row gap-x-1 bg-gray-50 py-1 rounded-lg px-1 items-center">
+      <div class="!border-1 !border-gray-200 mx-0.5 my-1 !py-0.5 rounded-md bg-gray-100">
         <a-input
           v-model:value="href"
           class="flex-1 !w-96 !mx-1 !rounded-md"
@@ -102,6 +102,12 @@ const onDelete = () => {
       </div>
       <div class="flex mr-0.5 p-1.5 rounded-md cursor-pointer !hover:bg-gray-200 hover:text-red-400" @click="onDelete">
         <MdiDeleteOutline />
+      </div>
+      <div class="absolute -bottom-1.5 left-0 right-0 w-full flex flex-row justify-center">
+        <div
+          class="flex h-2.5 w-2.5 bg-gray-50 border-gray-100 border-r-1 border-b-1"
+          :style="{ transform: 'rotate(45deg)' }"
+        ></div>
       </div>
     </div>
   </BubbleMenu>

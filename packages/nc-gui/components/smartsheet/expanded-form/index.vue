@@ -203,12 +203,15 @@ export default {
             <a-tooltip placement="bottom">
               <template #title>
                 {{ $t('labels.nextRow') }}
+                <GeneralShortcutLabel class="justify-center" :keys="['Alt', '←']" />
               </template>
               <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="onNext" />
             </a-tooltip>
             <a-tooltip placement="bottom">
               <template #title>
                 {{ $t('labels.prevRow') }}
+
+                <GeneralShortcutLabel class="justify-center" :keys="['Alt', '→']" />
               </template>
               <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
             </a-tooltip>

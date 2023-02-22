@@ -176,7 +176,7 @@ export interface TableReqType {
   deleted?: boolean;
   order?: number;
   mm?: boolean;
-  columns: ColumnType[];
+  columns: NormalColumnRequestType[];
   meta?: any;
 }
 
@@ -244,17 +244,17 @@ export interface ColumnType {
   base_id?: string;
   fk_model_id?: string;
   title?: string;
-  uidt: string;
+  uidt?: string;
   dt?: string;
-  np?: string;
-  ns?: string;
-  clen?: string | number;
+  np?: string | number | null;
+  ns?: string | number | null;
+  clen?: string | number | null;
   cop?: string;
   pk?: boolean;
   pv?: boolean;
-  rqd?: boolean;
+  rqd?: boolean | number | null;
   column_name?: string;
-  un?: boolean;
+  un?: boolean | number | null;
   ct?: string;
   ai?: boolean;
   unique?: boolean;
@@ -359,6 +359,13 @@ export interface GridType {
   row_height?: number;
 }
 
+export interface GridReqType {
+  title: string;
+  order?: number;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  row_height?: number;
+}
+
 export interface GalleryType {
   fk_view_id?: string;
   title?: string;
@@ -374,6 +381,19 @@ export interface GalleryType {
   restrict_number?: string;
   columns?: GalleryColumnType[];
   fk_model_id?: string;
+  fk_cover_image_col_id?: string;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+}
+
+export interface GalleryReqType {
+  title: string;
+  next_enabled?: boolean;
+  prev_enabled?: boolean;
+  cover_image_idx?: number;
+  cover_image?: string;
+  restrict_types?: string;
+  restrict_size?: string;
+  restrict_number?: string;
   fk_cover_image_col_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
 }
@@ -441,6 +461,15 @@ export interface MapColumnType {
   fk_gallery_id?: string;
 }
 
+export interface KanbanReqType {
+  title: string;
+  fk_grp_col_id?: string | null;
+}
+
+export interface KanbanUpdateReqType {
+  fk_grp_col_id?: string | null;
+}
+
 export interface FormType {
   id?: string;
   title?: string;
@@ -455,6 +484,23 @@ export interface FormType {
   submit_another_form?: boolean;
   show_blank_form?: boolean;
   columns?: FormColumnType[];
+  fk_model_id?: string;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  meta?: any;
+}
+
+export interface FormReqType {
+  title: string;
+  heading?: string;
+  subheading?: string;
+  success_msg?: string;
+  redirect_url?: string;
+  redirect_after_secs?: string;
+  email?: string;
+  banner_image_url?: string;
+  logo_url?: string;
+  submit_another_form?: boolean;
+  show_blank_form?: boolean;
   fk_model_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   meta?: any;
@@ -584,6 +630,33 @@ export interface HookTestReqType {
   hook: HookReqType;
 }
 
+export interface SignUpReqType {
+  email: string;
+  password: string;
+}
+
+export interface SignInReqType {
+  email: string;
+  password: string;
+}
+
+export interface ForgotPasswordReqType {
+  email: string;
+}
+
+export interface PasswordResetReqType {
+  password: string;
+}
+
+export interface PasswordChangeReqType {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ApiTokenReqType {
+  description?: string;
+}
+
 export interface PluginType {
   id?: string;
   title?: string;
@@ -684,24 +757,22 @@ export interface NormalColumnRequestType {
   fk_model_id?: string;
   title?: string;
   dt?: string;
-  np?: string;
-  ns?: string;
-  clen?: string | number;
-  cop?: string;
+  np?: string | number | null;
+  ns?: string | number | null;
   pk?: boolean;
   pv?: boolean;
-  rqd?: boolean;
+  rqd?: number | null | boolean;
   column_name?: string;
-  un?: boolean;
+  un?: boolean | number | null;
   ct?: string;
   ai?: boolean;
   unique?: boolean;
-  cdf?: string;
+  cdf?: string | null;
   cc?: string;
   csn?: string;
   dtx?: string;
-  dtxp?: string;
-  dtxs?: string;
+  dtxp?: string | null;
+  dtxs?: string | null;
   au?: boolean;
 }
 
@@ -759,6 +830,17 @@ export interface UserInfoType {
   lastname?: string;
   roles?: any;
 }
+
+export type VisibilityRuleReqType = {
+  disabled?: {
+    commenter?: boolean;
+    creator?: boolean;
+    editor?: boolean;
+    guest?: boolean;
+    owner?: boolean;
+    viewer?: boolean;
+  };
+}[];
 
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
@@ -928,8 +1010,8 @@ export class Api<
 > extends HttpClient<SecurityDataType> {
   auth = {
     /**
- * @description Create a new user with provided email and password and first user is marked as super admin. 
- * 
+ * @description Create a new user with provided email and password and first user is marked as super admin.
+ *
  * @tags Auth
  * @name Signup
  * @summary Signup
@@ -968,8 +1050,8 @@ export class Api<
       }),
 
     /**
- * @description Authenticate existing user with their email and password. Successful login will return a JWT access-token. 
- * 
+ * @description Authenticate existing user with their email and password. Successful login will return a JWT access-token.
+ *
  * @tags Auth
  * @name Signin
  * @summary Signin
@@ -1056,7 +1138,7 @@ export class Api<
 
     /**
  * @description Change password of authenticated user with a new one.
- * 
+ *
  * @tags Auth
  * @name PasswordChange
  * @summary Password change
@@ -1167,7 +1249,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Auth
  * @name ProjectUserList
  * @summary Project users
@@ -1288,7 +1370,7 @@ export class Api<
   orgTokens = {
     /**
  * No description
- * 
+ *
  * @tags Org tokens
  * @name List
  * @summary Organisation API Tokens List
@@ -1358,7 +1440,7 @@ export class Api<
   orgLicense = {
     /**
  * No description
- * 
+ *
  * @tags Org license
  * @name Get
  * @summary App license get
@@ -1407,7 +1489,7 @@ export class Api<
   orgAppSettings = {
     /**
  * No description
- * 
+ *
  * @tags Org app settings
  * @name Get
  * @summary App settings get
@@ -1456,7 +1538,7 @@ export class Api<
   orgUsers = {
     /**
  * No description
- * 
+ *
  * @tags Org users
  * @name List
  * @summary Organisation Users
@@ -1557,7 +1639,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Org users
  * @name GeneratePasswordResetToken
  * @summary Organisation User Generate Password Reset Token
@@ -1585,7 +1667,7 @@ export class Api<
   project = {
     /**
  * No description
- * 
+ *
  * @tags Project
  * @name MetaGet
  * @summary Project info
@@ -1770,7 +1852,7 @@ export class Api<
 
     /**
  * @description Read project details
- * 
+ *
  * @tags Project
  * @name SharedBaseGet
  * @request GET:/api/v1/db/meta/projects/{projectId}/shared
@@ -1813,7 +1895,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Project
  * @name SharedBaseCreate
  * @request POST:/api/v1/db/meta/projects/{projectId}/shared
@@ -1850,7 +1932,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Project
  * @name SharedBaseUpdate
  * @request PATCH:/api/v1/db/meta/projects/{projectId}/shared
@@ -1952,7 +2034,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Project
  * @name AuditList
  * @request GET:/api/v1/db/meta/projects/{projectId}/audits
@@ -2832,7 +2914,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags DB view share
  * @name Create
  * @request POST:/api/v1/db/meta/views/{viewId}/share
@@ -2951,7 +3033,7 @@ export class Api<
   dbTableSort = {
     /**
  * No description
- * 
+ *
  * @tags DB table sort
  * @name List
  * @request GET:/api/v1/db/meta/views/{viewId}/sorts
@@ -4148,7 +4230,7 @@ export class Api<
 
     /**
  * @description Read project details
- * 
+ *
  * @tags Public
  * @name SharedBaseGet
  * @request GET:/api/v1/db/public/shared-base/{sharedBaseUuid}/meta
@@ -4172,7 +4254,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Public
  * @name SharedViewMetaGet
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
@@ -4309,7 +4391,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Utils
  * @name TestConnection
  * @request POST:/api/v1/db/meta/connection/test
@@ -4419,7 +4501,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags Utils
  * @name AggregatedMetaInfo
  * @request GET:/api/v1/aggregated-meta-info
@@ -4536,7 +4618,7 @@ export class Api<
   dbTableWebhook = {
     /**
  * No description
- * 
+ *
  * @tags DB table webhook
  * @name List
  * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
@@ -4608,7 +4690,7 @@ export class Api<
 
     /**
  * No description
- * 
+ *
  * @tags DB table webhook
  * @name SamplePayloadGet
  * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}
@@ -4677,7 +4759,7 @@ export class Api<
   plugin = {
     /**
  * No description
- * 
+ *
  * @tags Plugin
  * @name List
  * @request GET:/api/v1/db/meta/plugins
@@ -4804,7 +4886,7 @@ export class Api<
      * @name Create
      * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
      * @response `200` `void` OK
-     * @response `201` `ApiTokenType` Created
+     * @response `201` `ApiTokenReqType` Created
      */
     create: (
       projectId: string,

@@ -8396,13 +8396,33 @@
             "type": "boolean"
           },
           "rqd": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "column_name": {
             "type": "string"
           },
           "un": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "ct": {
             "type": "string"
@@ -8472,10 +8492,7 @@
               }
             ]
           }
-        },
-        "required": [
-          "uidt"
-        ]
+        }
       },
       "ColumnList": {
         "description": "",

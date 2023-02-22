@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useEventListener } from '@vueuse/core'
 import { ChangePageInj, PaginationDataInj, computed, inject } from '#imports'
 
 const paginatedData = inject(PaginationDataInj)!
@@ -14,6 +15,20 @@ const page = computed({
   set: (p) => {
     changePage?.(p)
   },
+})
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (!e.altKey) return
+
+  if (e.key === 'ArrowRight') {
+    changePage?.(page.value + 1)
+  } else if (e.key === 'ArrowLeft') {
+    changePage?.(page.value - 1)
+  } else if (e.key === 'ArrowUp') {
+    changePage?.(1)
+  } else if (e.key === 'ArrowDown') {
+    changePage?.(Math.ceil(count.value / size.value))
+  }
 })
 </script>
 

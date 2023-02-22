@@ -4,6 +4,7 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
 import { useSharedFormStoreOrThrow } from '#imports'
+import QrCodeScan from '~icons/mdi/qrcode-scan'
 
 const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
   useSharedFormStoreOrThrow()
@@ -173,14 +174,17 @@ const onDecode = async (scannedCodeValue: string) => {
                       {{ field.description }}
                     </div>
 
-                    <div v-if="field.enable_scanner">
-                      <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerForFieldTitle(field.title)">
-                        <div class="flex items-center gap-1">
-                          <QrCodeScan />
-                          <span class="!text-xs font-weight-normal"> {{ $t('activity.fillByCodeScan') }}</span>
-                        </div>
-                      </a-button>
-                    </div>
+                    <a-button
+                      v-if="field.enable_scanner"
+                      class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
+                      @click="showCodeScannerForFieldTitle(field.title)"
+                    >
+                      <div class="flex items-center gap-1">
+                        <QrCodeScan />
+                        <span class="!text-xs font-weight-normal"> {{ $t('activity.fillByCodeScan') }}</span>
+                      </div>
+                    </a-button>
+
                   </div>
                 </div>
               </div>

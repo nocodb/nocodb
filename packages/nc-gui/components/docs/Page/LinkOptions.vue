@@ -14,6 +14,13 @@ interface Props {
 const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
 
+const isHrefError = computed(() => {
+  const isHrefEmpty = href.value === ''
+  const validUrlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/
+  const isHrefInvalid = !isHrefEmpty && !validUrlRegex.test(href.value)
+  return !isHrefEmpty && isHrefInvalid
+})
+
 // This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
 // This is because checkLinkMark is not called in that case
 const justDeleted = ref(false)
@@ -98,7 +105,8 @@ const onDelete = () => {
           placeholder="https://"
           @change="onChange"
         />
-        <MdiLinkVariant class="mr-2 text-gray-400" />
+        <IcBaselineErrorOutline v-if="isHrefError" class="mr-2 text-red-500 mb-0.5" />
+        <MdiLinkVariant v-else class="mr-2 text-gray-400 mb-0.5" />
       </div>
       <div class="flex mr-0.5 p-1.5 rounded-md cursor-pointer !hover:bg-gray-200 hover:text-red-400" @click="onDelete">
         <MdiDeleteOutline />

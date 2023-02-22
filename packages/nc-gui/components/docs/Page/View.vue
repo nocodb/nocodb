@@ -188,15 +188,7 @@ watch(
           <DocsPageTitle v-if="localPage" @focus-editor="focusEditor" />
 
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
-          <FloatingMenu v-if="editor" :editor="editor" :tippy-options="{ duration: 100, placement: 'left' }">
-            <MdiPlus
-              class="hover:cursor-pointer hover:bg-gray-50 rounded-md"
-              :class="{
-                'mr-8': editor?.isActive('infoCallout') || editor?.isActive('tipCallout') || editor?.isActive('warningCallout'),
-              }"
-              @click="editor!.chain().focus().insertContent('/').run()"
-            />
-          </FloatingMenu>
+          <DocsPageLinkOptions v-if="editor" :editor="editor" />
           <EditorContent
             :editor="editor"
             class="px-2"

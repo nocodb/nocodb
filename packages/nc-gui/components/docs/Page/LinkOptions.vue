@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { defineProps } from 'vue'
-import type { Editor, Mark } from '@tiptap/vue-3'
+import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
+import { getMarkRange } from '@tiptap/core'
+import type { Mark } from 'prosemirror-model'
 
 const { editor } = defineProps<Props>()
 
@@ -12,7 +14,20 @@ interface Props {
 const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
 
+// This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
+// This is because checkLinkMark is not called in that case
+const justDeleted = ref(false)
+
+// This function is called by BubbleMenu on selection change
+// It is used to check if the link mark is active and only show the menu if it is
 const checkLinkMark = (editor: Editor) => {
+  if (justDeleted.value) {
+    setTimeout(() => {
+      justDeleted.value = false
+    }, 100)
+    return false
+  }
+
   const activeNode = editor?.state?.selection?.$from?.nodeBefore || editor?.state?.selection?.$from?.nodeAfter
 
   const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
@@ -29,16 +44,64 @@ const checkLinkMark = (editor: Editor) => {
     href.value = linkNodeMark.value?.attrs?.href
   }
 
+  const isTextSelected = editor?.state?.selection?.from !== editor?.state?.selection?.to
+
   // check if active node is a text node
-  return isActiveNodeMarkActive
+  return isActiveNodeMarkActive && !isTextSelected
+}
+
+const onChange = () => {
+  const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
+
+  if (isLinkMarkedStoredInEditor) {
+    editor.view.dispatch(
+      editor.view.state.tr
+        .removeStoredMark(editor?.schema.marks.link)
+        .addStoredMark(editor?.schema.marks.link.create({ href: href.value })),
+    )
+  } else if (linkNodeMark.value) {
+    const selection = editor?.state?.selection
+    const markSelection = getMarkRange(selection.$anchor, editor?.schema.marks.link) as any
+
+    editor.view.dispatch(
+      editor.view.state.tr
+        .removeMark(markSelection.from, markSelection.to, editor?.schema.marks.link)
+        .addMark(markSelection.from, markSelection.to, editor?.schema.marks.link.create({ href: href.value })),
+    )
+  }
+}
+
+const onDelete = () => {
+  const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
+
+  if (isLinkMarkedStoredInEditor) {
+    editor.view.dispatch(editor.view.state.tr.removeStoredMark(editor?.schema.marks.link))
+  } else if (linkNodeMark.value) {
+    const selection = editor?.state?.selection
+    const markSelection = getMarkRange(selection.$anchor, editor?.schema.marks.link) as any
+
+    editor.view.dispatch(editor.view.state.tr.removeMark(markSelection.from, markSelection.to, editor?.schema.marks.link))
+  }
+
+  justDeleted.value = true
 }
 </script>
 
 <template>
-  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }" :should-show="checkLinkMark">
-    <div class="bubble-menu flex flex-row gap-x-1 bg-gray-50 py-1 rounded-lg px-1">
+  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }" :should-show="(checkLinkMark as any)">
+    <div v-if="!justDeleted" class="bubble-menu flex flex-row gap-x-1 bg-gray-50 py-1 rounded-lg px-1 items-center">
       <div class="!border-1 !border-gray-200 m-0.5 !py-0.5 rounded-md bg-gray-100">
-        <a-input v-model:value="href" class="flex-1 !w-96 !mx-1 !rounded-md" :bordered="false" placeholder="https://" />
+        <a-input
+          v-model:value="href"
+          class="flex-1 !w-96 !mx-1 !rounded-md"
+          :bordered="false"
+          placeholder="https://"
+          @change="onChange"
+        />
+        <MdiLinkVariant class="mr-2 text-gray-400" />
+      </div>
+      <div class="flex mr-0.5 p-1.5 rounded-md cursor-pointer !hover:bg-gray-200 hover:text-red-400" @click="onDelete">
+        <MdiDeleteOutline />
       </div>
     </div>
   </BubbleMenu>

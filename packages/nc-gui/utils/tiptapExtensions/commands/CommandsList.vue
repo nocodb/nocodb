@@ -34,7 +34,7 @@ import LogosAirtableIcon from '~icons/logos/airtable'
 import LogosCodepenIcon from '~icons/logos/codepen-icon'
 import LogosTrelloIcon from '~icons/logos/trello'
 import LogosTypeformIcon from '~icons/logos/typeform-icon'
-import MdiLink from '~icons/mdi/link'
+import MdiLinkVariant from '~icons/mdi/link-variant'
 
 interface Props {
   command: Function
@@ -127,7 +127,7 @@ const items = [
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
       editor.chain().focus().deleteRange(range).setLink({ href: '' }).run()
     },
-    icon: MdiLink,
+    icon: MdiLinkVariant,
   },
   {
     title: 'Body Text',

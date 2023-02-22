@@ -245,7 +245,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     changedColumns,
     loadRow,
     primaryKey,
-    saveRowAndStay
+    saveRowAndStay,
   }
 }, 'expanded-form-store')
 

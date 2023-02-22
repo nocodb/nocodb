@@ -477,7 +477,6 @@ export function useViewData(
     }
   }
 
-
   // get current expanded row index
   function getExpandedRowIndex() {
     return formattedData.value.findIndex(
@@ -552,6 +551,6 @@ export function useViewData(
     removeRowIfNew,
     navigateToSiblingRow,
     deleteRowById,
-    getExpandedRowIndex
+    getExpandedRowIndex,
   }
 }

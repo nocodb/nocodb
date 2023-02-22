@@ -16,7 +16,7 @@ const href = ref('')
 
 const isHrefError = computed(() => {
   const isHrefEmpty = href.value === ''
-  const validUrlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/
+  const validUrlRegex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g
   const isHrefInvalid = !isHrefEmpty && !validUrlRegex.test(href.value)
   return !isHrefEmpty && isHrefInvalid
 })

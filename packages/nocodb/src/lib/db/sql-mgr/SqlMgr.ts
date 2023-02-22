@@ -345,7 +345,16 @@ export default class SqlMgr {
    * @returns
    * @memberof SqlMgr
    */
-  public async projectGetSqlClient(args): Promise<SnowflakeClient | MysqlClient | SqliteClient | MssqlClient | OracleClient | PGClient> {
+  public async projectGetSqlClient(
+    args
+  ): Promise<
+    | SnowflakeClient
+    | MysqlClient
+    | SqliteClient
+    | MssqlClient
+    | OracleClient
+    | PGClient
+  > {
     const func = this.projectGetSqlClient.name;
     log.api(`${func}:args:`, args);
 

@@ -32,6 +32,34 @@ const getNotLikeText = (fieldUiType: UITypes) => {
   return 'is not like'
 }
 
+const getGtText = (fieldUiType: UITypes) => {
+  if ([UITypes.Date, UITypes.DateTime].includes(fieldUiType)) {
+    return 'is after'
+  }
+  return '>'
+}
+
+const getLtText = (fieldUiType: UITypes) => {
+  if ([UITypes.Date, UITypes.DateTime].includes(fieldUiType)) {
+    return 'is before'
+  }
+  return '<'
+}
+
+const getGteText = (fieldUiType: UITypes) => {
+  if ([UITypes.Date, UITypes.DateTime].includes(fieldUiType)) {
+    return 'is on or after'
+  }
+  return '>='
+}
+
+const getLteText = (fieldUiType: UITypes) => {
+  if ([UITypes.Date, UITypes.DateTime].includes(fieldUiType)) {
+    return 'is on or before'
+  }
+  return '<='
+}
+
 export const comparisonOpList = (
   fieldUiType: UITypes,
 ): {
@@ -154,22 +182,22 @@ export const comparisonOpList = (
     includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect],
   },
   {
-    text: '>',
+    text: getGtText(fieldUiType),
     value: 'gt',
     includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
   },
   {
-    text: '<',
+    text: getLtText(fieldUiType),
     value: 'lt',
     includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
   },
   {
-    text: '>=',
+    text: getGteText(fieldUiType),
     value: 'gte',
     includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
   },
   {
-    text: '<=',
+    text: getLteText(fieldUiType),
     value: 'lte',
     includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
   },

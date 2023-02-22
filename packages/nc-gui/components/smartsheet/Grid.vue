@@ -118,6 +118,7 @@ const {
   selectedAllRecords,
   removeRowIfNew,
   navigateToSiblingRow,
+  getExpandedRowIndex
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -982,6 +983,8 @@ const closeAddColumnDropdown = () => {
         show-next-prev-icons
         @next="navigateToSiblingRow(NavigateDir.NEXT)"
         @prev="navigateToSiblingRow(NavigateDir.PREV)"
+        :first-row="getExpandedRowIndex() === 0"
+        :last-row="getExpandedRowIndex() === paginationData.totalRows - 1"
       />
     </Suspense>
   </div>

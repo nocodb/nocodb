@@ -35,6 +35,8 @@ interface Props {
   rowId?: string
   view?: ViewType
   showNextPrevIcons?: boolean
+  firstRow?: boolean
+  lastRow?: boolean
 }
 
 const props = defineProps<Props>()
@@ -280,7 +282,7 @@ export default {
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container relative">
           <template v-if="props.showNextPrevIcons">
-            <a-tooltip placement="bottom">
+            <a-tooltip placement="bottom" v-if="!props.firstRow">
               <template #title>
                 {{ $t('labels.prevRow') }}
 
@@ -289,7 +291,7 @@ export default {
               <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
             </a-tooltip>
 
-            <a-tooltip placement="bottom">
+            <a-tooltip placement="bottom" v-if="!props.lastRow">
               <template #title>
                 {{ $t('labels.nextRow') }}
                 <GeneralShortcutLabel class="justify-center" :keys="['Alt', '→']" />

@@ -477,11 +477,16 @@ export function useViewData(
     }
   }
 
-  const navigateToSiblingRow = async (dir: NavigateDir) => {
-    // get current expanded row index
-    const expandedRowIndex = formattedData.value.findIndex(
+
+  // get current expanded row index
+  function getExpandedRowIndex() {
+    return formattedData.value.findIndex(
       (row: Row) => routeQuery.rowId === extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
     )
+  }
+
+  const navigateToSiblingRow = async (dir: NavigateDir) => {
+    const expandedRowIndex = getExpandedRowIndex()
 
     // calculate next row index based on direction
     let siblingRowIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
@@ -547,5 +552,6 @@ export function useViewData(
     removeRowIfNew,
     navigateToSiblingRow,
     deleteRowById,
+    getExpandedRowIndex
   }
 }

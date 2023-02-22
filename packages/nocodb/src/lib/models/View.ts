@@ -244,25 +244,29 @@ export default class View implements ViewType {
       },
     ncMeta = Noco.ncMeta
   ) {
+    const insertObj = extractProps(view, [
+      'id',
+      'title',
+      'is_default',
+      'type',
+      'fk_model_id',
+      'project_id',
+      'base_id',
+      'created_at',
+      'updated_at',
+      'meta',
+    ]);
+
     // get order value
-    const order = await ncMeta.metaGetNextOrder(MetaTable.VIEWS, {
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.VIEWS, {
       fk_model_id: view.fk_model_id,
     });
 
-    const insertObj = {
-      id: view.id,
-      title: view.title,
-      show: true,
-      is_default: view.is_default,
-      order,
-      type: view.type,
-      fk_model_id: view.fk_model_id,
-      project_id: view.project_id,
-      base_id: view.base_id,
-      created_at: view.created_at,
-      updated_at: view.updated_at,
-      meta: view.meta ?? {},
-    };
+    insertObj.show = true;
+
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
 
     insertObj.meta = stringifyMetaProp(insertObj);
 

@@ -2,6 +2,7 @@ import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class GalleryViewColumn {
   id: string;
@@ -43,16 +44,20 @@ export default class GalleryViewColumn {
     column: Partial<GalleryViewColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = {
-      fk_view_id: column.fk_view_id,
-      fk_column_id: column.fk_column_id,
-      order: await ncMeta.metaGetNextOrder(MetaTable.GALLERY_VIEW_COLUMNS, {
+    const insertObj = extractProps(column, [
+      'fk_view_id',
+      'fk_column_id',
+      'show',
+      'project_id',
+      'base_id',
+    ]);
+
+    insertObj.order = await ncMeta.metaGetNextOrder(
+      MetaTable.GALLERY_VIEW_COLUMNS,
+      {
         fk_view_id: column.fk_view_id,
-      }),
-      show: column.show,
-      project_id: column.project_id,
-      base_id: column.base_id,
-    };
+      }
+    );
 
     if (!(column.project_id && column.base_id)) {
       const viewRef = await View.get(column.fk_view_id, ncMeta);

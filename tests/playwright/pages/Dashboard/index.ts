@@ -15,7 +15,6 @@ import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
 import { ProjectsPage } from '../ProjectsPage';
-import { MapPage } from './Map';
 
 export class DashboardPage extends BasePage {
   readonly project: any;

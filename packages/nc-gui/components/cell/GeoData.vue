@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
 import { Modal as AModal, latLongToJoinedString, useVModel } from '#imports'
-import GeoDataIcon from '~icons/mdi/map-marker'
 
 interface Props {
   modelValue?: string | null
@@ -78,7 +77,7 @@ const onClickSetCurrentLocation = () => {
       class="group cursor-pointer flex gap-1 items-center mx-auto max-w-32 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
     >
       <div class="flex items-center gap-2">
-        <GeoDataIcon class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]" />
+        <MdiMapMarker class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]" />
         <div class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs">
           {{ latLongStr }}
         </div>

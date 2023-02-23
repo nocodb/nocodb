@@ -14,7 +14,7 @@ type BulkOperation =
   | 'bulkDelete'
   | 'bulkDeleteAll';
 
-async function getModelAndBase(req: Request) {
+async function getModelViewBase(req: Request) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
@@ -27,7 +27,7 @@ async function executeBulkOperation<T extends BulkOperation>(
   operation: T,
   options: Parameters<typeof BaseModelSqlv2.prototype[T]>
 ) {
-  const { model, view, base } = await getModelAndBase(req);
+  const { model, view, base } = await getModelViewBase(req);
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,

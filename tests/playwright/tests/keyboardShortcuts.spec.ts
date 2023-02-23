@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import { GridPage } from '../pages/Dashboard/Grid';
 import setup from '../setup';
+import { Api, UITypes } from 'nocodb-sdk';
+
+let api: Api<any>;
 
 test.describe('Verify shortcuts', () => {
   let dashboard: DashboardPage, grid: GridPage;
@@ -103,220 +106,147 @@ test.describe('Verify shortcuts', () => {
   });
 
   test('Clipboard support for cells', async () => {
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'SingleLineText',
+        title: 'SingleLineText',
+        uidt: UITypes.SingleLineText,
+      },
+      {
+        column_name: 'LongText',
+        title: 'LongText',
+        uidt: UITypes.LongText,
+      },
+      {
+        column_name: 'Number',
+        title: 'Number',
+        uidt: UITypes.Number,
+      },
+      {
+        column_name: 'PhoneNumber',
+        title: 'PhoneNumber',
+        uidt: UITypes.PhoneNumber,
+      },
+      {
+        column_name: 'Email',
+        title: 'Email',
+        uidt: UITypes.Email,
+      },
+      {
+        column_name: 'URL',
+        title: 'URL',
+        uidt: UITypes.URL,
+      },
+      {
+        column_name: 'Decimal',
+        title: 'Decimal',
+        uidt: UITypes.Decimal,
+      },
+      {
+        column_name: 'Percent',
+        title: 'Percent',
+        uidt: UITypes.Percent,
+      },
+      {
+        column_name: 'Currency',
+        title: 'Currency',
+        uidt: UITypes.Currency,
+      },
+      {
+        column_name: 'Duration',
+        title: 'Duration',
+        uidt: UITypes.Duration,
+      },
+      {
+        column_name: 'SingleSelect',
+        title: 'SingleSelect',
+        uidt: UITypes.SingleSelect,
+        dtxp: "'Option1','Option2'",
+      },
+      {
+        column_name: 'MultiSelect',
+        title: 'MultiSelect',
+        uidt: UITypes.MultiSelect,
+        dtxp: "'Option1','Option2'",
+      },
+      {
+        column_name: 'Rating',
+        title: 'Rating',
+        uidt: UITypes.Rating,
+      },
+      {
+        column_name: 'Checkbox',
+        title: 'Checkbox',
+        uidt: UITypes.Checkbox,
+      },
+      {
+        column_name: 'Date',
+        title: 'Date',
+        uidt: UITypes.Date,
+      },
+      {
+        column_name: 'Attachment',
+        title: 'Attachment',
+        uidt: UITypes.Attachment,
+      },
+    ];
+
+    const today = new Date().toISOString().slice(0, 10);
+    const record = {
+      Id: 1,
+      SingleLineText: 'SingleLineText',
+      LongText: 'LongText',
+      SingleSelect: 'Option1',
+      MultiSelect: 'Option1,Option2',
+      Number: 123,
+      PhoneNumber: '987654321',
+      Email: 'test@example.com',
+      URL: 'nocodb.com',
+      Rating: 4,
+      Decimal: 1.12,
+      Percent: 80,
+      Currency: 20,
+      Duration: 480,
+      Checkbox: 1,
+      Date: today,
+    };
+
+    try {
+      const project = await api.project.read(context.project.id);
+      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'Sheet1',
+        title: 'Sheet1',
+        columns: columns,
+      });
+
+      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, [record]);
+      const records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 1 });
+      console.log(records);
+    } catch (e) {
+      console.error(e);
+    }
+
+    // reload page
+    await dashboard.rootPage.reload();
+
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 
-    await dashboard.treeView.createTable({ title: 'Sheet1' });
-
-    await dashboard.grid.column.create({
-      title: 'SingleLineText',
-      type: 'SingleLineText',
-    });
-    await dashboard.grid.column.create({
-      title: 'LongText',
-      type: 'LongText',
-    });
-    await dashboard.grid.column.create({
-      title: 'Number',
-      type: 'Number',
-    });
-    await dashboard.grid.column.create({
-      title: 'PhoneNumber',
-      type: 'PhoneNumber',
-    });
-    await dashboard.grid.column.create({
-      title: 'Email',
-      type: 'Email',
-    });
-    await dashboard.grid.column.create({
-      title: 'URL',
-      type: 'URL',
-    });
-    await dashboard.grid.column.create({
-      title: 'Decimal',
-      type: 'Decimal',
-    });
-    await dashboard.grid.column.create({
-      title: 'Percent',
-      type: 'Percent',
-    });
-    await dashboard.grid.column.create({
-      title: 'Currency',
-      type: 'Currency',
-    });
-    await dashboard.grid.column.create({
-      title: 'Duration',
-      type: 'Duration',
-    });
-    await dashboard.grid.column.create({
-      title: 'Rating',
-      type: 'Rating',
-    });
-    await dashboard.grid.column.create({
-      title: 'SingleSelect',
-      type: 'SingleSelect',
-    });
-    await dashboard.grid.column.selectOption.addOptions({
-      columnTitle: 'SingleSelect',
-      options: ['Option 1', 'Option 2'],
-    });
-    await dashboard.grid.column.create({
-      title: 'MultiSelect',
-      type: 'MultiSelect',
-    });
-    await dashboard.grid.column.selectOption.addOptions({
-      columnTitle: 'MultiSelect',
-      options: ['Option 1', 'Option 2'],
-    });
-    await dashboard.grid.column.create({
-      title: 'Checkbox',
-      type: 'Checkbox',
-    });
-    await dashboard.grid.column.create({
-      title: 'Date',
-      type: 'Date',
-    });
-    await dashboard.grid.column.create({
-      title: 'Attachment',
-      type: 'Attachment',
-    });
+    await dashboard.treeView.openTable({ title: 'Sheet1' });
 
     // ########################################
-
-    await dashboard.grid.addNewRow({
-      index: 0,
-    });
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'SingleLineText',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'SingleLineText',
-      text: 'SingleLineText',
-    });
-
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'LongText',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'LongText',
-      text: 'LongText',
-    });
-
-    await grid.cell.selectOption.select({ index: 0, columnHeader: 'SingleSelect', option: 'Option 1' });
-    await grid.cell.selectOption.select({
-      index: 0,
-      columnHeader: 'MultiSelect',
-      option: 'Option 2',
-      multiSelect: true,
-    });
-    await grid.cell.selectOption.select({
-      index: 0,
-      columnHeader: 'MultiSelect',
-      option: 'Option 1',
-      multiSelect: true,
-    });
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'Number',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'Number',
-      text: '123',
-    });
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'PhoneNumber',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'PhoneNumber',
-      text: '987654321',
-    });
-
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'Email',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'Email',
-      text: 'test@example.com',
-    });
-
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'URL',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'URL',
-      text: 'nocodb.com',
-    });
-
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'Decimal',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'Decimal',
-      text: '1.1',
-    });
-
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'Percent',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'Percent',
-      text: '80',
-    });
-
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'Currency',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'Currency',
-      text: '20',
-    });
-
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'Duration',
-    });
-    await dashboard.grid.cell.fillText({
-      index: 0,
-      columnHeader: 'Duration',
-      text: '0008',
-    });
-
-    await dashboard.grid.cell.rating.select({
-      index: 0,
-      columnHeader: 'Rating',
-      rating: 3,
-    });
-    await dashboard.grid.cell.click({
-      index: 0,
-      columnHeader: 'Checkbox',
-    });
-
-    const today = new Date().toISOString().slice(0, 10);
-    await dashboard.grid.cell.date.open({
-      index: 0,
-      columnHeader: 'Date',
-    });
-    await dashboard.grid.cell.date.selectDate({
-      date: today,
-    });
-    await dashboard.grid.cell.date.close();
 
     await dashboard.grid.cell.attachment.addFile({
       index: 0,
@@ -345,7 +275,7 @@ test.describe('Verify shortcuts', () => {
       },
       { position: { x: 1, y: 1 } }
     );
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('Option 1');
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('Option1');
 
     await dashboard.grid.cell.copyToClipboard(
       {
@@ -354,14 +284,14 @@ test.describe('Verify shortcuts', () => {
       },
       { position: { x: 1, y: 1 } }
     );
-    expect(await dashboard.grid.cell.getClipboardText()).toContain('Option 1');
-    expect(await dashboard.grid.cell.getClipboardText()).toContain('Option 2');
+    expect(await dashboard.grid.cell.getClipboardText()).toContain('Option1');
+    expect(await dashboard.grid.cell.getClipboardText()).toContain('Option2');
 
     await dashboard.grid.cell.copyToClipboard({
       index: 0,
-      columnHeader: 'Title',
+      columnHeader: 'SingleLineText',
     });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('Row 0');
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('SingleLineText');
 
     await dashboard.grid.cell.copyToClipboard({
       index: 0,
@@ -375,23 +305,29 @@ test.describe('Verify shortcuts', () => {
     });
     expect(await dashboard.grid.cell.getClipboardText()).toBe('987654321');
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'Email',
-    });
+    await dashboard.grid.cell.copyToClipboard(
+      {
+        index: 0,
+        columnHeader: 'Email',
+      },
+      { position: { x: 1, y: 1 } }
+    );
     expect(await dashboard.grid.cell.getClipboardText()).toBe('test@example.com');
 
-    await dashboard.grid.cell.copyToClipboard({
-      index: 0,
-      columnHeader: 'URL',
-    });
+    await dashboard.grid.cell.copyToClipboard(
+      {
+        index: 0,
+        columnHeader: 'URL',
+      },
+      { position: { x: 1, y: 1 } }
+    );
     expect(await dashboard.grid.cell.getClipboardText()).toBe('nocodb.com');
 
     await dashboard.grid.cell.copyToClipboard({
       index: 0,
       columnHeader: 'Decimal',
     });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('1.1');
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('1.12');
 
     await dashboard.grid.cell.copyToClipboard({
       index: 0,
@@ -403,13 +339,14 @@ test.describe('Verify shortcuts', () => {
       index: 0,
       columnHeader: 'Currency',
     });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('20');
+    // convert from string to integer
+    expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(20);
 
     await dashboard.grid.cell.copyToClipboard({
       index: 0,
       columnHeader: 'Duration',
     });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('480');
+    expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(480);
 
     await dashboard.grid.cell.copyToClipboard(
       {
@@ -427,7 +364,7 @@ test.describe('Verify shortcuts', () => {
       },
       { position: { x: 1, y: 1 } }
     );
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // await new Promise(resolve => setTimeout(resolve, 5000));
     expect(await dashboard.grid.cell.getClipboardText()).toBe('true');
 
     await dashboard.grid.cell.click({

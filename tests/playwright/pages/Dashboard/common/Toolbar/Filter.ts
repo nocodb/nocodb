@@ -32,12 +32,14 @@ export class ToolbarFilterPage extends BasePage {
   async add({
     columnTitle,
     opType,
+    opSubType,
     value,
     isLocallySaved,
     dataType,
   }: {
     columnTitle: string;
     opType: string;
+    opSubType?: string; // for date datatype
     value?: string;
     isLocallySaved: boolean;
     dataType?: string;
@@ -53,19 +55,6 @@ export class ToolbarFilterPage extends BasePage {
         .click();
     }
 
-    // network request will be triggered only after filter value is configured
-    //
-    // const selectColumn = this.rootPage
-    //   .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
-    //   .locator(`div[label="${columnTitle}"]`)
-    //   .click();
-    // await this.waitForResponse({
-    //   uiAction: selectColumn,
-    //   httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
-    //   requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
-    // });
-    // await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
-
     const selectedOpType = await this.rootPage.locator('.nc-filter-operation-select').textContent();
     if (selectedOpType !== opType) {
       await this.rootPage.locator('.nc-filter-operation-select').click();
@@ -76,22 +65,20 @@ export class ToolbarFilterPage extends BasePage {
         .first()
         .click();
     }
-    // if (selectedOpType !== opType) {
-    //   await this.rootPage.locator('.nc-filter-operation-select').last().click();
-    //   // first() : filter list has >, >=
-    //   const selectOpType = this.rootPage
-    //     .locator('.nc-dropdown-filter-comp-op')
-    //     .locator(`.ant-select-item:has-text("${opType}")`)
-    //     .first()
-    //     .click();
-    //
-    //   await this.waitForResponse({
-    //     uiAction: selectOpType,
-    //     httpMethodsToMatch: isLocallySaved ? ['GET'] : ['POST', 'PATCH'],
-    //     requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
-    //   });
-    //   await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
-    // }
+
+    // subtype for date
+    if (dataType === UITypes.Date && opSubType) {
+      const selectedSubType = await this.rootPage.locator('.nc-filter-sub_operation-select').textContent();
+      if (selectedSubType !== opSubType) {
+        await this.rootPage.locator('.nc-filter-sub_operation-select').click();
+        // first() : filter list has >, >=
+        await this.rootPage
+          .locator('.nc-dropdown-filter-comp-sub-op')
+          .locator(`.ant-select-item:has-text("${opSubType}")`)
+          .first()
+          .click();
+      }
+    }
 
     // if value field was provided, fill it
     if (value) {

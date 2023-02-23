@@ -47,6 +47,7 @@ async function validateRowArray(param) {
 async function verifyFilter(param: {
   column: string;
   opType: string;
+  opSubType?: string;
   value?: string;
   result: { rowCount: number };
   dataType?: string;
@@ -60,6 +61,7 @@ async function verifyFilter(param: {
   await toolbar.filter.add({
     columnTitle: param.column,
     opType: param.opType,
+    opSubType: param.opSubType,
     value: param.value,
     isLocallySaved: false,
     dataType: param?.dataType,
@@ -588,6 +590,145 @@ test.describe('Filter Tests: Select based', () => {
 
   test('Filter: Multi Select', async () => {
     await selectBasedFilterTest('MultiSelect', '', 'jan,feb,mar', 'jan,feb,mar');
+  });
+});
+
+// Date & Time related
+//
+
+test.describe.skip('Filter Tests: Date & Time related', () => {
+  async function dateTimeBasedFilterTest(dataType) {
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'dateTimeBased' });
+
+    // Enable NULL & EMPTY filters
+    await dashboard.gotoSettings();
+    await dashboard.settings.toggleNullEmptyFilters();
+
+    // store date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
+    const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0];
+    const oneWeekAgo = new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0];
+    const oneWeekFromNow = new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().split('T')[0];
+    const oneMonthAgo = new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0];
+    const oneMonthFromNow = new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0];
+    const daysAgo45 = new Date(new Date().setDate(new Date().getDate() + 45)).toISOString().split('T')[0];
+    const daysFromNow45 = new Date(new Date().setDate(new Date().getDate() - 45)).toISOString().split('T')[0];
+
+    console.log(today);
+
+    const filterList = [
+      {
+        op: 'is',
+        opSub: 'today',
+        rowCount: records.list.filter(r => r[dataType].split('T')[0] === today).length,
+      },
+      {
+        op: 'is',
+        opSub: 'tomorrow',
+        rowCount: records.list.filter(r => r[dataType].split('T')[0] === tomorrow).length,
+      },
+      {
+        op: 'is',
+        opSub: 'yesterday',
+        rowCount: records.list.filter(r => r[dataType].split('T')[0] === yesterday).length,
+      },
+      {
+        op: 'is',
+        opSub: 'one week ago',
+        rowCount: records.list.filter(r => r[dataType].split('T')[0] === oneWeekAgo).length,
+      },
+      {
+        op: 'is',
+        opSub: 'one week from now',
+        rowCount: records.list.filter(r => r[dataType].split('T')[0] === oneWeekFromNow).length,
+      },
+      {
+        op: 'is',
+        opSub: 'one month ago',
+        rowCount: records.list.filter(r => r[dataType].split('T')[0] === oneMonthAgo).length,
+      },
+      {
+        op: 'is',
+        opSub: 'one month from now',
+        rowCount: records.list.filter(r => r[dataType].split('T')[0] === oneMonthFromNow).length,
+      },
+      {
+        op: 'is',
+        opSub: 'number of days ago',
+        value: 45,
+        rowCount: records.list.filter(r => r[dataType].split('T')[0] === daysAgo45).length,
+      },
+      {
+        op: 'is',
+        opSub: 'number of days from now',
+        value: 45,
+        rowCount: records.list.filter(r => r[dataType].split('T')[0] === daysFromNow45).length,
+      },
+    ];
+
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: filterList[i].op,
+        opSubType: filterList[i].opSub,
+        value: filterList[i]?.value?.toString() || '',
+        result: { rowCount: filterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
+  }
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page });
+    dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.grid.toolbar;
+
+    api = new Api({
+      baseURL: `http://localhost:8080/`,
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+      {
+        column_name: 'Date',
+        title: 'Date',
+        uidt: UITypes.Date,
+      },
+    ];
+
+    try {
+      const project = await api.project.read(context.project.id);
+      const table = await api.base.tableCreate(context.project.id, project.bases?.[0].id, {
+        table_name: 'dateTimeBased',
+        title: 'dateTimeBased',
+        columns: columns,
+      });
+
+      const rowAttributes = [];
+      for (let i = 0; i < 800; i++) {
+        const row = {
+          Date: rowMixedValue(columns[1], i),
+        };
+        rowAttributes.push(row);
+      }
+
+      await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, rowAttributes);
+      records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 800 });
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+  test('Date', async () => {
+    await dateTimeBasedFilterTest('Date');
   });
 });
 

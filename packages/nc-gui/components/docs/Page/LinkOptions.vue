@@ -11,6 +11,7 @@ interface Props {
   editor: Editor
 }
 
+const selectedIndex = ref(0)
 const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
 
@@ -18,9 +19,7 @@ const filteredPages = computed(() => {
   if (href.value === '') return []
 
   return flattenedNestedPages.value.filter((page) => {
-    const pagePath = page.title.toLowerCase()
-    const hrefPath = href.value.toLowerCase()
-    return pagePath.includes(hrefPath) || hrefPath.includes(pagePath)
+    return page.title.toLowerCase().includes(href.value.toLowerCase())
   })
 })
 
@@ -110,21 +109,51 @@ const onPageClick = (page: any) => {
 
   editor.chain().focus().insertContent(page.title).run()
 }
+
+const handleKeyDown = (e: any) => {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    if (filteredPages.value.length > 0) {
+      onPageClick(filteredPages.value[selectedIndex.value])
+    }
+  }
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    if (selectedIndex.value < filteredPages.value.length - 1) {
+      selectedIndex.value += 1
+    }
+  }
+
+  if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    if (selectedIndex.value > 0) {
+      selectedIndex.value -= 1
+    }
+  }
+}
+
+watch(href, () => {
+  selectedIndex.value = 0
+})
 </script>
 
 <template>
   <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }" :should-show="(checkLinkMark as any)">
     <div
       v-if="!justDeleted"
+      ref="wrapperRef"
       class="relative bubble-menu flex flex-col bg-gray-50 py-1 px-1"
       :class="{
         'rounded-lg': filteredPages.length === 0,
         'rounded-t-lg': filteredPages.length > 0,
       }"
+      @keydown="handleKeyDown"
     >
       <div class="flex items-center gap-x-1">
         <div class="!border-1 !border-gray-200 mx-1 my-1 !py-0.5 bg-gray-100 rounded-md">
           <a-input
+            ref="inputRef"
             v-model:value="href"
             class="flex-1 !w-96 !mx-1 !rounded-md"
             :bordered="false"
@@ -150,6 +179,8 @@ const onPageClick = (page: any) => {
             v-for="(page, index) of filteredPages"
             :key="index"
             class="py-2 px-3.5 flex flex-row gap-x-3 items-center rounded-md hover:bg-gray-200 cursor-pointer"
+            :class="{ 'bg-gray-200': selectedIndex === index }"
+            role="button"
             @click="() => onPageClick(page)"
           >
             <MdiFileDocumentOutline />

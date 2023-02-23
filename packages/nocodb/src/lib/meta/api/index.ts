@@ -36,7 +36,7 @@ import cacheApis from './cacheApis';
 import apiTokenApis from './apiTokenApis';
 import hookFilterApis from './hookFilterApis';
 import testApis from './testApis';
-import { docsBookApis, docsPageApis } from './docsApis';
+import { docsPageApis } from './docsApis';
 import commandPaletteApis from './commandPaletteApis';
 import {
   bulkDataAliasApis,
@@ -49,7 +49,6 @@ import {
 import {
   publicDataApis,
   publicDataExportApis,
-  publicDocsBooksApis,
   publicDocsPagesApis,
   publicMetaApis,
 } from './publicApis';
@@ -90,7 +89,6 @@ export default function (router: Router, server) {
   router.use(publicDataApis);
   router.use(publicDataExportApis);
   router.use(publicMetaApis);
-  router.use(publicDocsBooksApis);
   router.use(publicDocsPagesApis);
   router.use(gridViewColumnApis);
   router.use(tableApis);
@@ -114,7 +112,6 @@ export default function (router: Router, server) {
   router.use(swaggerApis);
   router.use(syncSourceApis);
   router.use(kanbanViewApis);
-  router.use(docsBookApis);
   router.use(docsPageApis);
   router.use(workspaceApis);
   router.use(cowriterApis);

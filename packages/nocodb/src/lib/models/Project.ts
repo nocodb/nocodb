@@ -9,7 +9,7 @@ import {
 } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
-import Book from './Book';
+import Page from './Page';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -85,13 +85,8 @@ export default class Project implements ProjectType {
     }
 
     if (insertObj.type === 'documentation') {
-      await Book.create({
-        attributes: {
-          title: 'Version 1',
-          description: 'Version 1',
-        },
+      await Page.createPageTable({
         projectId,
-        user: project.user,
       });
     }
 

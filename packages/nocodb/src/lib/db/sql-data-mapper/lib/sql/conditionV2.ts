@@ -35,15 +35,6 @@ function getLogicalOpMethod(filter: Filter) {
   }
 }
 
-function parseDateOrDateTimeCondition(
-  qb: Knex.QueryBuilder,
-  op: '>' | '<' | '>=' | '<=' | '=' | '!=',
-  val: any
-) {
-  // TODO:
-  console.log(qb, op, val);
-}
-
 const parseConditionV2 = async (
   _filter: Filter | Filter[],
   knex: XKnex,
@@ -280,9 +271,13 @@ const parseConditionV2 = async (
 
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
-        if ([UITypes.Date, UITypes.DateTime].includes(column.uidt) && !val) {
-          // for date & datetime, val cannot be empty for all filters
-          return;
+        if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
+          if (!val) {
+            // for date & datetime, val cannot be empty for all filters
+            return;
+          }
+          // handle sub operation
+          // TODO:
         }
 
         if (isNumericCol(column.uidt) && typeof val === 'string') {
@@ -292,79 +287,71 @@ const parseConditionV2 = async (
 
         switch (filter.comparison_op) {
           case 'eq':
-            if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-              parseDateOrDateTimeCondition(qb, '=', val);
-            } else {
-              if (qb?.client?.config?.client === 'mysql2') {
-                if (
-                  [
-                    UITypes.Duration,
-                    UITypes.Currency,
-                    UITypes.Percent,
-                    UITypes.Number,
-                    UITypes.Decimal,
-                    UITypes.Rating,
-                    UITypes.Rollup,
-                  ].includes(column.uidt)
-                ) {
-                  qb = qb.where(field, val);
-                } else {
-                  // mysql is case-insensitive for strings, turn to case-sensitive
-                  qb = qb.whereRaw('BINARY ?? = ?', [field, val]);
-                }
-              } else {
+            if (qb?.client?.config?.client === 'mysql2') {
+              if (
+                [
+                  UITypes.Duration,
+                  UITypes.Currency,
+                  UITypes.Percent,
+                  UITypes.Number,
+                  UITypes.Decimal,
+                  UITypes.Rating,
+                  UITypes.Rollup,
+                ].includes(column.uidt)
+              ) {
                 qb = qb.where(field, val);
+              } else {
+                // mysql is case-insensitive for strings, turn to case-sensitive
+                qb = qb.whereRaw('BINARY ?? = ?', [field, val]);
               }
-              if (column.uidt === UITypes.Rating && val === 0) {
-                // unset rating is considered as NULL
-                qb = qb.orWhereNull(field);
-              }
+            } else {
+              qb = qb.where(field, val);
+            }
+            if (column.uidt === UITypes.Rating && val === 0) {
+              // unset rating is considered as NULL
+              qb = qb.orWhereNull(field);
             }
             break;
           case 'neq':
           case 'not':
-            if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-              parseDateOrDateTimeCondition(qb, '!=', val);
-            } else {
-              if (qb?.client?.config?.client === 'mysql2') {
-                if (
-                  [
-                    UITypes.Duration,
-                    UITypes.Currency,
-                    UITypes.Percent,
-                    UITypes.Number,
-                    UITypes.Decimal,
-                    UITypes.Rollup,
-                  ].includes(column.uidt)
-                ) {
-                  qb = qb.where((nestedQb) => {
-                    nestedQb
-                      .whereNot(field, val)
-                      .orWhereNull(customWhereClause ? _val : _field);
-                  });
-                } else if (column.uidt === UITypes.Rating) {
-                  // unset rating is considered as NULL
-                  if (val === 0) {
-                    qb = qb.whereNot(field, val).whereNotNull(field);
-                  } else {
-                    qb = qb.whereNot(field, val).orWhereNull(field);
-                  }
-                } else {
-                  // mysql is case-insensitive for strings, turn to case-sensitive
-                  qb = qb.where((nestedQb) => {
-                    nestedQb.whereRaw('BINARY ?? != ?', [field, val]);
-                    if (column.uidt !== UITypes.Rating) {
-                      nestedQb.orWhereNull(customWhereClause ? _val : _field);
-                    }
-                  });
-                }
-              } else {
+            if (qb?.client?.config?.client === 'mysql2') {
+              if (
+                [
+                  UITypes.Duration,
+                  UITypes.Currency,
+                  UITypes.Percent,
+                  UITypes.Number,
+                  UITypes.Decimal,
+                  UITypes.Rollup,
+                ].includes(column.uidt)
+              ) {
                 qb = qb.where((nestedQb) => {
                   nestedQb
                     .whereNot(field, val)
                     .orWhereNull(customWhereClause ? _val : _field);
                 });
+              } else if (column.uidt === UITypes.Rating) {
+                // unset rating is considered as NULL
+                if (val === 0) {
+                  qb = qb.whereNot(field, val).whereNotNull(field);
+                } else {
+                  qb = qb.whereNot(field, val).orWhereNull(field);
+                }
+              } else {
+                // mysql is case-insensitive for strings, turn to case-sensitive
+                qb = qb.where((nestedQb) => {
+                  nestedQb.whereRaw('BINARY ?? != ?', [field, val]);
+                  if (column.uidt !== UITypes.Rating) {
+                    nestedQb.orWhereNull(customWhereClause ? _val : _field);
+                  }
+                });
               }
+            } else {
+              qb = qb.where((nestedQb) => {
+                nestedQb
+                  .whereNot(field, val)
+                  .orWhereNull(customWhereClause ? _val : _field);
+              });
             }
             break;
           case 'like':
@@ -474,59 +461,43 @@ const parseConditionV2 = async (
             break;
           case 'gt':
             const gt_op = customWhereClause ? '<' : '>';
-            if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-              parseDateOrDateTimeCondition(qb, gt_op, val);
-            } else {
-              qb = qb.where(field, gt_op, val);
-              if (column.uidt === UITypes.Rating) {
-                // unset rating is considered as NULL
-                if (gt_op === '<' && val > 0) {
-                  qb = qb.orWhereNull(field);
-                }
+            qb = qb.where(field, gt_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset rating is considered as NULL
+              if (gt_op === '<' && val > 0) {
+                qb = qb.orWhereNull(field);
               }
             }
             break;
           case 'ge':
           case 'gte':
             const ge_op = customWhereClause ? '<=' : '>=';
-            if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-              parseDateOrDateTimeCondition(qb, ge_op, val);
-            } else {
-              qb = qb.where(field, ge_op, val);
-              if (column.uidt === UITypes.Rating) {
-                // unset rating is considered as NULL
-                if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
-                  qb = qb.orWhereNull(field);
-                }
+            qb = qb.where(field, ge_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset rating is considered as NULL
+              if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
+                qb = qb.orWhereNull(field);
               }
             }
             break;
           case 'lt':
             const lt_op = customWhereClause ? '>' : '<';
-            if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-              parseDateOrDateTimeCondition(qb, lt_op, val);
-            } else {
-              qb = qb.where(field, lt_op, val);
-              if (column.uidt === UITypes.Rating) {
-                // unset number is considered as NULL
-                if (lt_op === '<' && val > 0) {
-                  qb = qb.orWhereNull(field);
-                }
+            qb = qb.where(field, lt_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
+              if (lt_op === '<' && val > 0) {
+                qb = qb.orWhereNull(field);
               }
             }
             break;
           case 'le':
           case 'lte':
             const le_op = customWhereClause ? '>=' : '<=';
-            if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-              parseDateOrDateTimeCondition(qb, le_op, val);
-            } else {
-              qb = qb.where(field, le_op, val);
-              if (column.uidt === UITypes.Rating) {
-                // unset number is considered as NULL
-                if (le_op === '<=' || (le_op === '>=' && val === 0)) {
-                  qb = qb.orWhereNull(field);
-                }
+            qb = qb.where(field, le_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
+              if (le_op === '<=' || (le_op === '>=' && val === 0)) {
+                qb = qb.orWhereNull(field);
               }
             }
             break;

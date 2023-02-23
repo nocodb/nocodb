@@ -51,8 +51,9 @@ const createProject = async () => {
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    creating.value = false
   }
-  creating.value = false
 }
 
 const input: VNodeRef = ref<typeof Input>()

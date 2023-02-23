@@ -154,6 +154,9 @@ const selectFilterField = (filter: Filter, index: number) => {
 
   if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op)) {
     filter.comparison_sub_op = 'exact_date'
+  } else {
+    // reset
+    filter.comparison_sub_op = ''
   }
 
   // reset filter value as well
@@ -294,22 +297,21 @@ defineExpose({
               </template>
             </a-select>
 
-            <span
-              v-if="
-                filter.comparison_op &&
-                ['null', 'notnull', 'checked', 'notchecked', 'empty', 'notempty', 'blank', 'notblank'].includes(
-                  filter.comparison_op,
-                )
-              "
-              :key="`span${i}`"
-            />
-
             <a-checkbox
-              v-else-if="filter.field && types[filter.field] === 'boolean'"
+              v-if="filter.field && types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
               dense
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
+            />
+
+            <span
+              v-else-if="
+                filter.comparison_sub_op
+                  ? comparisonSubOpList.find((op) => op.value === filter.comparison_sub_op).ignoreVal
+                  : comparisonOpList(getColumn(filter)?.uidt).find((op) => op.value === filter.comparison_op).ignoreVal
+              "
+              :key="`span${i}`"
             />
 
             <LazySmartsheetToolbarFilterInput

@@ -215,7 +215,7 @@ test.describe('Verify shortcuts', () => {
       Email: 'test@example.com',
       URL: 'nocodb.com',
       Rating: '4',
-      Decimal: '1.1',
+      Decimal: '1.12',
       Percent: '80',
       Currency: '20',
       Duration: '480',
@@ -327,7 +327,7 @@ test.describe('Verify shortcuts', () => {
       index: 0,
       columnHeader: 'Decimal',
     });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('1.1');
+    expect(await dashboard.grid.cell.getClipboardText()).toBe('1.12');
 
     await dashboard.grid.cell.copyToClipboard({
       index: 0,

@@ -117,9 +117,11 @@ const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
     // use MultiSelect for SingleSelect columns for anyof / nanyof filters
     isSingleSelect: ['anyof', 'nanyof'].includes(props.filter.comparison_op!) ? MultiSelect : SingleSelect,
     isMultiSelect: MultiSelect,
-    isDate: DatePicker,
+    isDate: ['number_of_days_ago', 'number_of_days_from_now'].includes(props.filter.comparison_sub_op!) ? Decimal : DatePicker,
     isYear: YearPicker,
-    isDateTime: DateTimePicker,
+    isDateTime: ['number_of_days_ago', 'number_of_days_from_now'].includes(props.filter.comparison_sub_op!)
+      ? Decimal
+      : DateTimePicker,
     isTime: TimePicker,
     isRating: Rating,
     isDuration: Duration,

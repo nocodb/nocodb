@@ -76,14 +76,14 @@ const onClickSetCurrentLocation = () => {
       v-if="!isLocationSet"
       class="group cursor-pointer flex gap-1 items-center mx-auto max-w-32 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
     >
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2" data-testid="nc-geo-data-set-location-button">
         <MdiMapMarker class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]" />
         <div class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs">
           {{ latLongStr }}
         </div>
       </div>
     </div>
-    <div v-else>{{ latLongStr }}</div>
+    <div data-testid="nc-geo-data-latLong-set" v-else>{{ latLongStr }}</div>
     <template #overlay>
       <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
         <a-form-item>

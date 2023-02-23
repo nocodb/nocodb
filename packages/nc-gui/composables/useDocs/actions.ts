@@ -315,7 +315,7 @@ export const actions = () => {
     return completeUrl ? `${window.location.origin}/#${path}` : path
   }
 
-  function nestedUrl(id: string) {
+  const nestedSlugsFromPageId = (id: string) => {
     const page = findPage(id)!
     const slugs = []
     let parentPage = page
@@ -324,7 +324,11 @@ export const actions = () => {
       parentPage = findPage(parentPage.parentNodeId)!
     }
 
-    return urlFromPageSlugs(slugs)
+    return slugs
+  }
+
+  function nestedUrl(id: string) {
+    return urlFromPageSlugs(nestedSlugsFromPageId(id))
   }
 
   function urlFromPageSlugs(pageSlugs: string[]) {
@@ -636,5 +640,6 @@ export const actions = () => {
     magicOutline,
     getParentOfPage,
     nestedUrl,
+    nestedSlugsFromPageId,
   }
 }

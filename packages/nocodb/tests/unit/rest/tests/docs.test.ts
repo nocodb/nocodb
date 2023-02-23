@@ -1056,6 +1056,42 @@ function docTests() {
     expect(response.body.pages[1].id).to.equal(pageB.id)
     expect(response.body.pages[2].id).to.equal(pageC.id)
   })
+
+  it('Search pages', async () => {
+    const page1 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test1',
+        content: 'test1',
+      },
+      user: context.user,
+    });
+    const page2 = await createPage({
+      project: project,
+      book: book,
+      attributes: {
+        title: 'test2',
+        content: 'test2',
+      },
+      user: context.user,
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/docs/pages/search`)
+      .query({
+        projectId: project.id,
+        bookId: book.id,
+        query: 'test1',
+      })
+      .set('xc-auth', context.token)
+      .expect(200)
+    
+    console.log(response.body)
+
+    expect(response.body.pages.length).to.equal(1)
+    expect(response.body.pages[0].id).to.equal(page1.id)
+  })
 }
 
 export default function() {

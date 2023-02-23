@@ -111,6 +111,29 @@ async function update(
   }
 }
 
+async function search(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const pages = await Page.search({
+      projectId: req.query?.projectId as string,
+      bookId: req.query?.bookId as string,
+      query: req.query?.query as string,
+      pageNumber: req.query?.pageNumber
+        ? parseInt(req.query?.pageNumber as string)
+        : 1,
+    });
+
+    res // todo: pagination
+      .json(pages);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 async function deletePage(
   req: Request<any> & { user: { id: string; roles: string } },
   res: Response,
@@ -359,6 +382,11 @@ router.get(
   '/api/v1/docs/page-slug',
   apiMetrics,
   ncMetaAclMw(getBySlug, 'pageListBySlug')
+);
+router.get(
+  '/api/v1/docs/pages/search',
+  apiMetrics,
+  ncMetaAclMw(search, 'pageSearch')
 );
 router.get(
   '/api/v1/docs/page-parents',

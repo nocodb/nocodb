@@ -721,6 +721,35 @@ export default class Page {
     };
   }
 
+  static async search({
+    projectId,
+    bookId,
+    query,
+    pageNumber = 1,
+    perPage = 10,
+    orderBy = 'updated_at',
+    order = 'desc',
+  }: {
+    projectId: string;
+    bookId: string;
+    query: string;
+    pageNumber?: number;
+    perPage?: number;
+    orderBy?: string;
+    order?: 'asc' | 'desc';
+  }) {
+    const knex = Noco.ncMeta.knex;
+    const pages = await knex(Page.tableName({ projectId, bookId }))
+      .whereILike('title', `%${query}%`)
+      .orderBy(orderBy, order)
+      .offset((pageNumber - 1) * perPage)
+      .limit(perPage);
+
+    return {
+      pages,
+    };
+  }
+
   static async dropPageTable(
     { projectId, bookId }: { projectId: string; bookId: string },
     ncMeta = Noco.ncMeta

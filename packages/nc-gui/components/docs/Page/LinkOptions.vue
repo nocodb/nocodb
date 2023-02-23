@@ -6,13 +6,23 @@ import { getMarkRange } from '@tiptap/core'
 import type { Mark } from 'prosemirror-model'
 
 const { editor } = defineProps<Props>()
-
+const { flattenedNestedPages, nestedSlugsFromPageId, nestedUrl } = useDocs()
 interface Props {
   editor: Editor
 }
 
 const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
+
+const filteredPages = computed(() => {
+  if (href.value === '') return []
+
+  return flattenedNestedPages.value.filter((page) => {
+    const pagePath = page.title.toLowerCase()
+    const hrefPath = href.value.toLowerCase()
+    return pagePath.includes(hrefPath) || hrefPath.includes(pagePath)
+  })
+})
 
 const isHrefError = computed(() => {
   const isHrefEmpty = href.value === ''
@@ -92,30 +102,67 @@ const onDelete = () => {
 
   justDeleted.value = true
 }
+
+const onPageClick = (page: any) => {
+  href.value = `/#${nestedUrl(page.id)}`
+
+  onChange()
+
+  editor.chain().focus().insertContent(page.title).run()
+}
 </script>
 
 <template>
   <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }" :should-show="(checkLinkMark as any)">
-    <div v-if="!justDeleted" class="relative bubble-menu flex flex-row gap-x-1 bg-gray-50 py-1 rounded-lg px-1 items-center">
-      <div class="!border-1 !border-gray-200 mx-0.5 my-1 !py-0.5 rounded-md bg-gray-100">
-        <a-input
-          v-model:value="href"
-          class="flex-1 !w-96 !mx-1 !rounded-md"
-          :bordered="false"
-          placeholder="https://"
-          @change="onChange"
-        />
-        <IcBaselineErrorOutline v-if="isHrefError" class="mr-2 text-red-500 mb-0.5" />
-        <MdiLinkVariant v-else class="mr-2 text-gray-400 mb-0.5" />
+    <div
+      v-if="!justDeleted"
+      class="relative bubble-menu flex flex-col bg-gray-50 py-1 px-1"
+      :class="{
+        'rounded-lg': filteredPages.length === 0,
+        'rounded-t-lg': filteredPages.length > 0,
+      }"
+    >
+      <div class="flex items-center gap-x-1">
+        <div class="!border-1 !border-gray-200 mx-1 my-1 !py-0.5 bg-gray-100 rounded-md">
+          <a-input
+            v-model:value="href"
+            class="flex-1 !w-96 !mx-1 !rounded-md"
+            :bordered="false"
+            placeholder="https://"
+            @change="onChange"
+          />
+          <IcBaselineErrorOutline v-if="isHrefError" class="mr-2 text-red-500 mb-0.5" />
+          <MdiLinkVariant v-else class="mr-2 text-gray-400 mb-0.5" />
+        </div>
+        <div class="flex mr-0.5 p-1.5 rounded-md cursor-pointer !hover:bg-gray-200 hover:text-red-400" @click="onDelete">
+          <MdiDeleteOutline />
+        </div>
+        <div class="absolute -bottom-1.5 left-0 right-0 w-full flex flex-row justify-center">
+          <div
+            class="flex h-2.5 w-2.5 bg-gray-50 border-gray-100 border-r-1 border-b-1"
+            :style="{ transform: 'rotate(45deg)' }"
+          ></div>
+        </div>
       </div>
-      <div class="flex mr-0.5 p-1.5 rounded-md cursor-pointer !hover:bg-gray-200 hover:text-red-400" @click="onDelete">
-        <MdiDeleteOutline />
-      </div>
-      <div class="absolute -bottom-1.5 left-0 right-0 w-full flex flex-row justify-center">
-        <div
-          class="flex h-2.5 w-2.5 bg-gray-50 border-gray-100 border-r-1 border-b-1"
-          :style="{ transform: 'rotate(45deg)' }"
-        ></div>
+      <div v-if="filteredPages.length > 0" class="absolute w-full -bottom-62 mt-4 left-0 h-64">
+        <div class="bubble-menu flex flex-col -bottom-22 space-y-1 bg-gray-50 w-full px-2 rounded-b-lg py-2">
+          <div
+            v-for="(page, index) of filteredPages"
+            :key="index"
+            class="py-2 px-3.5 flex flex-row gap-x-3 items-center rounded-md hover:bg-gray-200 cursor-pointer"
+            @click="() => onPageClick(page)"
+          >
+            <MdiFileDocumentOutline />
+            <div class="flex flex-col">
+              <div class="flex">
+                {{ page.title }}
+              </div>
+              <div class="flex text-xs text-gray-400">
+                {{ nestedSlugsFromPageId(page.id!).join('/') }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </BubbleMenu>
@@ -125,28 +172,5 @@ const onDelete = () => {
 .bubble-menu {
   // shadow
   @apply shadow-gray-200 shadow-sm;
-
-  .is-active {
-    background-color: #e5e5e5;
-  }
-  .menu-button {
-    @apply rounded-md !py-0 !my-0 !px-1.5 !h-8;
-
-    &:hover {
-      background-color: #e5e5e5;
-    }
-  }
-  .divider {
-    @apply border-r border-gray-200 !h-6 !mx-0.5 my-1;
-  }
-  .ant-select-selector {
-    @apply !rounded-md;
-  }
-  .ant-select-selector .ant-select-selection-item {
-    @apply !text-xs;
-  }
-  .ant-btn-loading-icon {
-    @apply pb-0.5;
-  }
 }
 </style>

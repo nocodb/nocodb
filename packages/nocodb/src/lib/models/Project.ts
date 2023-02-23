@@ -91,7 +91,7 @@ export default class Project implements ProjectType {
           description: 'Version 1',
         },
         projectId,
-        user: insertObj.user,
+        user: project.user,
       });
     }
 

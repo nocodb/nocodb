@@ -644,6 +644,60 @@
       },
       "parameters": []
     },
+    "/api/v1/docs/pages/search": {
+      "get": {
+        "summary": "Search pages",
+        "operationId": "search-pages",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocsPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Page number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "in": "query",
+            "description": "book id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Search",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": "Search pages"
+      }
+    },
     "/api/v1/docs/pages/paginate": {
       "get": {
         "summary": "Paginate pages",

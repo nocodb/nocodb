@@ -29,7 +29,7 @@ test.describe('Geo Data column', () => {
 
     await grid.column.verify({ title: 'GeoData1', isVisible: true });
 
-    await grid.cell.geoData.open({
+    await grid.cell.geoData.openSetLocation({
       index: 0,
       columnHeader: 'GeoData1',
     });
@@ -47,7 +47,7 @@ test.describe('Geo Data column', () => {
     });
 
     // Trying to change to value that is not valid
-    await grid.cell.geoData.open({
+    await grid.cell.geoData.openLatLngSet({
       index: 0,
       columnHeader: 'GeoData1',
     });

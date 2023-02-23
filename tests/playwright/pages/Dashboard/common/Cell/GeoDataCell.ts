@@ -13,8 +13,12 @@ export class GeoDataCellPageObject extends BasePage {
     return this.cell.get({ index, columnHeader });
   }
 
-  async open({ index, columnHeader }: { index: number; columnHeader: string }) {
+  async openSetLocation({ index, columnHeader }: { index: number; columnHeader: string }) {
     await this.cell.get({ index, columnHeader }).locator(`[data-testid="nc-geo-data-set-location-button"]`).click();
+  }
+
+  async openLatLngSet({ index, columnHeader }: { index: number; columnHeader: string }) {
+    await this.cell.get({ index, columnHeader }).locator(`[data-testid="nc-geo-data-latLong-set"]`).click();
   }
 
   async enterLatLong({ lat, long }: { lat: string; long: string }) {

@@ -275,6 +275,8 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
       } else if (col.uidt === UITypes.DateTime && d) {
         const dateTimeFormat = getDateTimeFormat(data[key])
         d = dayjs(data[key], dateTimeFormat).format('YYYY-MM-DD HH:mm')
+      } else if (col.uid === UITypes.SingleSelect || col.uid === UITypes.MultiSelect) {
+        d = data[key].replace('\\', '')
       }
       return {
         ...aggObj,

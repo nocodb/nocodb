@@ -279,7 +279,11 @@ export function useViewData(
         encodeURIComponent(id),
         {
           // if value is undefined treat it as null
-          [property]: toUpdate.row[property] ?? null,
+          [property]:
+            metaValue?.columns?.find((c) => c.title === Object.keys(toUpdate.row)[0])?.dt === 'enum' ||
+            metaValue?.columns?.find((c) => c.title === Object.keys(toUpdate.row)[0])?.dt === 'set'
+              ? toUpdate.row[property]?.replaceAll('\\', '')
+              : toUpdate.row[property] ?? null,
         },
         // todo:
         // {

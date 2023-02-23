@@ -83,7 +83,7 @@ const onClickSetCurrentLocation = () => {
         </div>
       </div>
     </div>
-    <div data-testid="nc-geo-data-latLong-set" v-else>{{ latLongStr }}</div>
+    <div data-testid="nc-geo-data-lat-long-set" v-else>{{ latLongStr }}</div>
     <template #overlay>
       <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
         <a-form-item>

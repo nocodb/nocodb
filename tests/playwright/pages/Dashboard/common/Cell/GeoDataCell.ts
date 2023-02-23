@@ -18,7 +18,7 @@ export class GeoDataCellPageObject extends BasePage {
   }
 
   async openLatLngSet({ index, columnHeader }: { index: number; columnHeader: string }) {
-    await this.cell.get({ index, columnHeader }).locator(`[data-testid="nc-geo-data-latLong-set"]`).click();
+    await this.cell.get({ index, columnHeader }).locator(`[data-testid="nc-geo-data-lat-long-set"]`).click();
   }
 
   async enterLatLong({ lat, long }: { lat: string; long: string }) {

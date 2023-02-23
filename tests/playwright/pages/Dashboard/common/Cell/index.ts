@@ -158,7 +158,7 @@ export class CellPageObject extends BasePage {
           const cell = await this.get({
             index,
             columnHeader,
-          }).locator(`[data-testid="nc-geo-data-latLong-set"]`);
+          }).locator(`[data-testid="nc-geo-data-lat-long-set"]`);
           return await cell.textContent(); //.getAttribute('title');
         })
         .toEqual(expectedValue);

@@ -222,3 +222,66 @@ export const comparisonOpList = (
     excludedTypes: [UITypes.Checkbox],
   },
 ]
+
+export const comparisonSubOpList: {
+  text: string
+  value: string
+  ignoreVal?: boolean
+  includedTypes?: UITypes[]
+  excludedTypes?: UITypes[]
+}[] = [
+  {
+    text: 'tomorrow',
+    value: 'tomorrow',
+    ignoreVal: true,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+  {
+    text: 'yesterday',
+    value: 'yesterday',
+    ignoreVal: true,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+  {
+    text: 'one week ago',
+    value: 'one_week_ago',
+    ignoreVal: true,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+  {
+    text: 'one week from now',
+    value: 'one_week_from_now',
+    ignoreVal: true,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+  {
+    text: 'one month ago',
+    value: 'one_month_ago',
+    ignoreVal: true,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+  {
+    text: 'one month from now',
+    value: 'one_month_from_now',
+    ignoreVal: false,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+  {
+    text: 'number of days ago',
+    value: 'number_of_days_ago',
+    ignoreVal: false,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+  {
+    text: 'number of days from now',
+    value: 'number_of_days_from_now',
+    ignoreVal: true,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+  {
+    text: 'exact date',
+    value: 'exact_date',
+    ignoreVal: false,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+]

@@ -51,35 +51,6 @@ export interface WorkspaceUserInviteType {
 }
 
 /**
- * Book of Noco docs
- */
-export interface BookType {
-  /** Unique identifier for the given book. */
-  id?: string;
-  project_id?: string;
-  pages_table_name?: string;
-  title?: string;
-  description?: string;
-  create_by_id?: string;
-  order?: number;
-  slug?: string;
-  is_published?: boolean;
-  /** @format date */
-  last_published_date?: string;
-  last_published_by_id?: string;
-  /** @format date */
-  updated_at?: string;
-  last_updated_by_id?: string;
-  /** @format date */
-  created_at?: string;
-  created_by_id?: string;
-  /** @format date */
-  archived_date?: string;
-  archived_by_id?: string;
-  metaJson?: string | object;
-}
-
-/**
  * Page of Noco docs
  */
 export interface DocsPageType {
@@ -94,7 +65,6 @@ export interface DocsPageType {
   slug?: string;
   parent_page_id?: string;
   is_parent?: boolean;
-  book_id?: string;
   is_published?: boolean;
   /** @format date */
   last_published_date?: string;
@@ -991,32 +961,7 @@ export class Api<
 > extends HttpClient<SecurityDataType> {
   nocoDocs = {
     /**
-     * @description Get public book
-     *
-     * @tags Noco docs
-     * @name GetPublicBook
-     * @summary get public book
-     * @request GET:/api/v1/public/docs/books/{slug}
-     * @response `200` `BookType` OK
-     */
-    getPublicBook: (
-      slug: string,
-      query: {
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BookType, any>({
-        path: `/api/v1/public/docs/books/${slug}`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Get public book
+     * No description
      *
      * @tags Noco docs
      * @name ListDraftPages
@@ -1028,8 +973,6 @@ export class Api<
       query: {
         /** Project id */
         projectId: string;
-        /** book id */
-        bookId: string;
       },
       params: RequestParams = {}
     ) =>
@@ -1042,7 +985,7 @@ export class Api<
       }),
 
     /**
-     * @description Get public book
+     * No description
      *
      * @tags Noco docs
      * @name ListPublicPages
@@ -1054,8 +997,6 @@ export class Api<
       query: {
         /** Project id */
         projectId: string;
-        /** book id */
-        bookId: string;
         /** parent_page_id */
         parent_page_id?: string;
       },
@@ -1070,123 +1011,17 @@ export class Api<
       }),
 
     /**
-     * @description List books
-     *
-     * @tags Noco docs
-     * @name ListBooks
-     * @summary List books
-     * @request GET:/api/v1/docs/books
-     * @response `200` `(BookType)[]` OK
-     */
-    listBooks: (
-      query?: {
-        /** Book id */
-        id?: string;
-        /** Project id */
-        projectId?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BookType[], any>({
-        path: `/api/v1/docs/books`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Delete book
-     *
-     * @tags Noco docs
-     * @name DeleteBook
-     * @summary Delete book
-     * @request DELETE:/api/v1/docs/book/{id}
-     * @response `200` `void` OK
-     */
-    deleteBook: (
-      id: string,
-      query: {
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/docs/book/${id}`,
-        method: 'DELETE',
-        query: query,
-        ...params,
-      }),
-
-    /**
-     * @description Update book
-     *
-     * @tags Noco docs
-     * @name UpdateBook
-     * @summary Update book
-     * @request PUT:/api/v1/docs/book/{id}
-     * @response `200` `BookType` OK
-     */
-    updateBook: (
-      id: string,
-      data: {
-        /** Book of Noco docs */
-        attributes?: BookType;
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BookType, any>({
-        path: `/api/v1/docs/book/${id}`,
-        method: 'PUT',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Create book
-     *
-     * @tags Noco docs
-     * @name CreateBook
-     * @summary Create book
-     * @request POST:/api/v1/docs/book
-     * @response `200` `BookType` OK
-     */
-    createBook: (
-      data: {
-        /** Book of Noco docs */
-        attributes?: BookType;
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<BookType, any>({
-        path: `/api/v1/docs/book`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
      * @description Create book
      *
      * @tags Noco docs
      * @name CreateBookMagic
      * @summary Create magic
      * @request POST:/api/v1/docs/book/magic
-     * @response `200` `BookType` OK
+     * @response `200` `any` OK
      */
     createBookMagic: (
       data: {
-        /** Book of Noco docs */
-        attributes?: BookType;
+        attributes?: any;
         /** Project id */
         projectId: string;
         /** Project id */
@@ -1196,7 +1031,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<BookType, any>({
+      this.request<any, any>({
         path: `/api/v1/docs/book/magic`,
         method: 'POST',
         body: data,
@@ -1212,12 +1047,11 @@ export class Api<
      * @name ImportBook
      * @summary Import book
      * @request POST:/api/v1/docs/book/import
-     * @response `200` `BookType` OK
+     * @response `200` `any` OK
      */
     importBook: (
       data: {
-        /** Book of Noco docs */
-        attributes?: BookType;
+        attributes?: any;
         /** Project id */
         bookId: string;
         /** Project id */
@@ -1237,7 +1071,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<BookType, any>({
+      this.request<any, any>({
         path: `/api/v1/docs/book/import`,
         method: 'POST',
         body: data,
@@ -1261,8 +1095,6 @@ export class Api<
         pageId: string;
         /** Project id */
         projectId: string;
-        /** Book id */
-        bookId: string;
       },
       params: RequestParams = {}
     ) =>
@@ -1290,8 +1122,6 @@ export class Api<
         pageId: string;
         /** Project id */
         projectId: string;
-        /** Book id */
-        bookId: string;
         /** Text */
         text: string;
       },
@@ -1319,8 +1149,6 @@ export class Api<
       query: {
         /** Page number */
         projectId: string;
-        /** book id */
-        bookId: string;
         /** Parent page id */
         parent_page_id?: string;
       },
@@ -1347,8 +1175,6 @@ export class Api<
       query: {
         /** Page number */
         projectId: string;
-        /** book id */
-        bookId: string;
         /** pageId */
         pageId: string;
       },
@@ -1356,6 +1182,32 @@ export class Api<
     ) =>
       this.request<DocsPageType[], any>({
         path: `/api/v1/docs/page-parents`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Search pages
+     *
+     * @tags Noco docs
+     * @name SearchPages
+     * @summary Search pages
+     * @request GET:/api/v1/docs/pages/search
+     * @response `200` `(DocsPageType)[]` OK
+     */
+    searchPages: (
+      query: {
+        /** Page number */
+        projectId: string;
+        /** Search */
+        query: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<DocsPageType[], any>({
+        path: `/api/v1/docs/pages/search`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -1378,8 +1230,6 @@ export class Api<
       query: {
         /** Page number */
         projectId: string;
-        /** book id */
-        bookId: string;
         /** pageNumber */
         pageNumber: number;
         /** perPage */
@@ -1421,8 +1271,6 @@ export class Api<
       query: {
         /** Project id */
         projectId: string;
-        /** Book id */
-        bookId: string;
         /** Nested Slug */
         nestedSlug: string;
       },
@@ -1450,8 +1298,6 @@ export class Api<
       query: {
         /** Project id */
         projectId: string;
-        /** Book id */
-        bookId: string;
       },
       params: RequestParams = {}
     ) =>
@@ -1477,8 +1323,6 @@ export class Api<
       query: {
         /** Project id */
         projectId: string;
-        /** Book id */
-        bookId: string;
       },
       params: RequestParams = {}
     ) =>
@@ -1505,8 +1349,6 @@ export class Api<
         attributes?: DocsPageType;
         /** Project id */
         projectId: string;
-        /** Book id */
-        bookId: string;
       },
       params: RequestParams = {}
     ) =>
@@ -1533,8 +1375,6 @@ export class Api<
         pageIds?: string[];
         /** Project id */
         projectId: string;
-        /** Book id */
-        bookId: string;
       },
       params: RequestParams = {}
     ) =>
@@ -1561,8 +1401,6 @@ export class Api<
         attributes?: DocsPageType;
         /** Project id */
         projectId: string;
-        /** Book id */
-        bookId: string;
       },
       params: RequestParams = {}
     ) =>

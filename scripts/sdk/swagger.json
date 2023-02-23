@@ -13,39 +13,6 @@
     }
   ],
   "paths": {
-    "/api/v1/public/docs/books/{slug}": {
-      "get": {
-        "summary": "get public book",
-        "operationId": "get-public-book",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Book"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "description": "Get public book"
-      }
-    },
     "/api/v1/docs/page-drafts": {
       "get": {
         "summary": "list draft pages",
@@ -77,18 +44,9 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "bookId",
-            "in": "query",
-            "description": "book id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
-        "description": "Get public book"
+        "description": ""
       }
     },
     "/api/v1/public/docs/pages": {
@@ -124,15 +82,6 @@
             }
           },
           {
-            "name": "bookId",
-            "in": "query",
-            "description": "book id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "parent_page_id",
             "in": "query",
             "description": "parent_page_id",
@@ -141,162 +90,8 @@
             }
           }
         ],
-        "description": "Get public book"
+        "description": ""
       }
-    },
-    "/api/v1/docs/books": {
-      "get": {
-        "summary": "List books",
-        "operationId": "list-books",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Book"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "description": "Book id",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "description": "List books"
-      }
-    },
-    "/api/v1/docs/book/{id}": {
-      "delete": {
-        "summary": "Delete book",
-        "operationId": "delete-book",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "description": "Delete book"
-      },
-      "put": {
-        "summary": "Update book",
-        "operationId": "update-book",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Book"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "attributes": {
-                    "$ref": "#/components/schemas/Book"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Update book"
-      }
-    },
-    "/api/v1/docs/book": {
-      "post": {
-        "summary": "Create book",
-        "operationId": "create-book",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Book"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "attributes": {
-                    "$ref": "#/components/schemas/Book"
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Create book"
-      },
-      "parameters": []
     },
     "/api/v1/docs/book/magic": {
       "post": {
@@ -464,11 +259,6 @@
                     "description": "Project id",
                     "required": true
                   },
-                  "bookId": {
-                    "type": "string",
-                    "description": "Book id",
-                    "required": true
-                  }
                 }
               }
             }
@@ -514,11 +304,6 @@
                     "description": "Project id",
                     "required": true
                   },
-                  "bookId": {
-                    "type": "string",
-                    "description": "Book id",
-                    "required": true
-                  },
                   "text": {
                     "type": "string",
                     "description": "Text",
@@ -561,15 +346,6 @@
             "name": "projectId",
             "in": "query",
             "description": "Page number",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "bookId",
-            "in": "query",
-            "description": "book id",
             "required": true,
             "schema": {
               "type": "string"
@@ -622,15 +398,6 @@
             }
           },
           {
-            "name": "bookId",
-            "in": "query",
-            "description": "book id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "pageId",
             "in": "query",
             "description": "pageId",
@@ -671,15 +438,6 @@
             "name": "projectId",
             "in": "query",
             "description": "Page number",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "bookId",
-            "in": "query",
-            "description": "book id",
             "required": true,
             "schema": {
               "type": "string"
@@ -733,15 +491,6 @@
             "name": "projectId",
             "in": "query",
             "description": "Page number",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "bookId",
-            "in": "query",
-            "description": "book id",
             "required": true,
             "schema": {
               "type": "string"
@@ -836,15 +585,6 @@
             }
           },
           {
-            "name": "bookId",
-            "in": "query",
-            "description": "Book id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "nestedSlug",
             "in": "query",
             "description": "Nested Slug",
@@ -885,15 +625,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "bookId",
-            "in": "query",
-            "description": "Book id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "description": "Get page"
@@ -914,15 +645,6 @@
             "name": "projectId",
             "in": "query",
             "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "bookId",
-            "in": "query",
-            "description": "Book id",
             "required": true,
             "schema": {
               "type": "string"
@@ -962,11 +684,6 @@
                     "type": "string",
                     "description": "Project id",
                     "required": true
-                  },
-                  "bookId": {
-                    "type": "string",
-                    "description": "Book id",
-                    "required": true
                   }
                 }
               }
@@ -1005,11 +722,6 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required": true
-                  },
-                  "bookId": {
-                    "type": "string",
-                    "description": "Book id",
                     "required": true
                   }
                 }
@@ -1053,11 +765,6 @@
                   "projectId": {
                     "type": "string",
                     "description": "Project id",
-                    "required": true
-                  },
-                  "bookId": {
-                    "type": "string",
-                    "description": "Book id",
                     "required": true
                   }
                 }
@@ -9279,83 +8986,6 @@
           }
         }
       },
-      "Book": {
-        "title": "Book",
-        "type": "object",
-        "description": "Book of Noco docs",
-        "x-internal": false,
-        "examples": [
-          {
-            "id": "142",
-            "project_id": "sample_project_id",
-            "pages_table_name": "sample_pages_table_name"
-          }
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the given book."
-          },
-          "project_id": {
-            "type": "string"
-          },
-          "pages_table_name": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "create_by_id": {
-            "type": "string"
-          },
-          "order": {
-            "type": "number"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "is_published": {
-            "type": "boolean"
-          },
-          "last_published_date": {
-            "type": "string",
-            "format": "date"
-          },
-          "last_published_by_id": {
-            "type": "string"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date"
-          },
-          "last_updated_by_id": {
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date"
-          },
-          "created_by_id": {
-            "type": "string"
-          },
-          "archived_date": {
-            "type": "string",
-            "format": "date"
-          },
-          "archived_by_id": {
-            "type": "string"
-          },
-          "metaJson": {
-            "type": [
-              "string",
-              "object"
-            ]
-          }
-        }
-      },
       "DocsPage": {
         "title": "DocsPage",
         "type": "object",
@@ -9401,9 +9031,6 @@
           },
           "is_parent": {
             "type": "boolean"
-          },
-          "book_id": {
-            "type": "string"
           },
           "is_published": {
             "type": "boolean"

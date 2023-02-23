@@ -14,11 +14,11 @@ const {
   nestedUrl,
   deletePage,
   reorderPages,
-  openedBook,
   addNewPage,
   getChildrenOfPage,
-  isOnlyBookOpened,
   updatePage,
+  isNoPageOpen,
+  projectUrl,
 } = useDocs()
 
 const deleteModalOpen = ref(false)
@@ -44,7 +44,7 @@ const openDeleteModal = ({ pageId }: { pageId: string }) => {
 }
 
 const onDeletePage = async () => {
-  await deletePage({ pageId: selectedPageId.value, bookId: openedBook.value!.id })
+  await deletePage({ pageId: selectedPageId.value })
 
   selectedPageId.value = undefined
   deleteModalOpen.value = false
@@ -98,16 +98,16 @@ const onTabSelect = (_: any, e: { selected: boolean; selectedNodes: any; node: a
   navigateTo(nestedUrl(id))
 }
 
-const navigateToOpenedBook = () => {
-  navigateTo(nestedUrl(openedBook.value!.id!))
-}
-
 const setIcon = async (id: string, icon: string) => {
   try {
     await updatePage({ pageId: id, page: { icon } })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+}
+
+const navigateToHome = () => {
+  navigateTo(projectUrl())
 }
 </script>
 
@@ -125,13 +125,13 @@ const setIcon = async (id: string, icon: string) => {
     <div
       v-if="!isPublic"
       class="flex flex-row justify-between items-center pr-2 pl-4.5 py-2 border-b-gray-100 border-b-1 hover:(bg-gray-100 cursor-pointer)"
-      :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': isOnlyBookOpened, '': !isOnlyBookOpened }"
-      @click.self="navigateToOpenedBook"
+      :class="{ 'bg-primary-selected hover:(!bg-primary-selected bg-opacity-20)': isNoPageOpen, '': !isNoPageOpen }"
+      @click.self="navigateToHome"
     >
       <div
         class="flex flex-row text-xs font-semibold items-center gap-x-3"
-        :class="{ 'text-primary': isOnlyBookOpened }"
-        @click="navigateToOpenedBook"
+        :class="{ 'text-primary': isNoPageOpen }"
+        @click="navigateToHome"
       >
         <div class="flex">
           <MdiBookOpenOutline />
@@ -142,12 +142,8 @@ const setIcon = async (id: string, icon: string) => {
       </div>
       <div class="flex flex-row justify-between items-center">
         <div
-          class="flex select-none p-1 rounded-md"
-          :class="{
-            'cursor-not-allowed !bg-gray-50 text-gray-400': !openedBook,
-            'hover:(text-primary/100 !bg-gray-200 !bg-opacity-60) cursor-pointer': openedBook,
-          }"
-          @click="() => openedBook && addNewPage()"
+          class="flex select-none p-1 rounded-md hover:(text-primary/100 !bg-gray-200 !bg-opacity-60) cursor-pointer"
+          @click="() => addNewPage()"
         >
           <MdiPlus />
         </div>
@@ -155,7 +151,6 @@ const setIcon = async (id: string, icon: string) => {
     </div>
     <div v-else class="flex"></div>
     <a-tree
-      :key="openedBook?.id"
       v-model:expandedKeys="openedTabs"
       v-model:selectedKeys="openPageTabKeys"
       :load-data="onLoadData"

@@ -231,6 +231,12 @@ export const comparisonSubOpList: {
   excludedTypes?: UITypes[]
 }[] = [
   {
+    text: 'today',
+    value: 'today',
+    ignoreVal: true,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
+  },
+  {
     text: 'tomorrow',
     value: 'tomorrow',
     ignoreVal: true,

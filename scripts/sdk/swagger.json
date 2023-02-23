@@ -5713,7 +5713,7 @@
                         "columns": {
                           "allOf": [
                             {
-                              "oneOf": [
+                              "anyOf": [
                                 {
                                   "$ref": "#/components/schemas/GridColumn"
                                 },
@@ -5739,7 +5739,7 @@
                       "type": "object",
                       "properties": {
                         "view": {
-                          "oneOf": [
+                          "anyOf": [
                             {
                               "$ref": "#/components/schemas/Form"
                             },
@@ -7787,7 +7787,7 @@
             "type": "number"
           },
           "view": {
-            "oneOf": [
+            "anyOf": [
               {
                 "$ref": "#/components/schemas/Form"
               },
@@ -8471,7 +8471,7 @@
           },
           "meta": {},
           "colOptions": {
-            "oneOf": [
+            "anyOf": [
               {
                 "$ref": "#/components/schemas/LinkToAnotherRecord"
               },

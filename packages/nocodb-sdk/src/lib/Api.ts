@@ -276,7 +276,13 @@ export interface ColumnType {
     | RollupType
     | LookupType
     | SelectOptionsType
-    | object;
+    | object
+    | (LinkToAnotherRecordType &
+        FormulaType &
+        RollupType &
+        LookupType &
+        SelectOptionsType &
+        object);
 }
 
 export interface ColumnListType {
@@ -808,11 +814,16 @@ export interface FormulaColumnReqType {
 }
 
 export type ColumnReqType = (
-  | NormalColumnRequestType
   | LinkToAnotherColumnReqType
   | RollupColumnReqType
   | FormulaColumnReqType
   | LookupColumnReqType
+  | NormalColumnRequestType
+  | (LinkToAnotherColumnReqType &
+      RollupColumnReqType &
+      FormulaColumnReqType &
+      LookupColumnReqType &
+      NormalColumnRequestType)
 ) & {
   column_name?: string;
   title?: string;
@@ -4262,11 +4273,11 @@ export class Api<
   relatedMetas?: any,
   client?: string,
   base_id?: string,
-  columns?: ((GridColumnType | FormColumnType | GalleryColumnType) & ColumnType),
+  columns?: ((GridColumnType | FormColumnType | GalleryColumnType | (GridColumnType & FormColumnType & GalleryColumnType)) & ColumnType),
   model?: TableType,
 
 } & {
-  view?: (FormType | GridType | GalleryType),
+  view?: (FormType | GridType | GalleryType | (FormType & GridType & GalleryType)),
 
 })` OK
  */
@@ -4276,11 +4287,20 @@ export class Api<
           relatedMetas?: any;
           client?: string;
           base_id?: string;
-          columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
+          columns?: (
+            | GridColumnType
+            | FormColumnType
+            | GalleryColumnType
+            | (GridColumnType & FormColumnType & GalleryColumnType)
+          ) &
             ColumnType;
           model?: TableType;
         } & {
-          view?: FormType | GridType | GalleryType;
+          view?:
+            | FormType
+            | GridType
+            | GalleryType
+            | (FormType & GridType & GalleryType);
         },
         any
       >({

@@ -1,4 +1,4 @@
-import { mimeTypes, openLink, useGlobal } from '#imports'
+import { openLink, useGlobal } from '#imports'
 
 const useAttachment = () => {
   const { appInfo } = useGlobal()
@@ -15,11 +15,10 @@ const useAttachment = () => {
       return item.data
     }
     const sources = getPossibleAttachmentSrc(item)
-    const mimeType = mimeTypes[item?.mimetype?.split('/')?.pop() || 'txt']
     for (const source of sources) {
       // test if the source is accessible or not
-      const res = await fetch(source)
-      if (res.ok && res.headers.get('Content-Type') === mimeType) {
+      const res = await fetch(source, { method: 'HEAD' })
+      if (res.ok) {
         return source
       }
     }

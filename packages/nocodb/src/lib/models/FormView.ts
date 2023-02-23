@@ -5,6 +5,7 @@ import { deserializeJSON, serializeJSON } from '../utils/serialize';
 import FormViewColumn from './FormViewColumn';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class FormView implements FormType {
   show: boolean;
@@ -53,22 +54,25 @@ export default class FormView implements FormType {
   }
 
   static async insert(view: Partial<FormView>, ncMeta = Noco.ncMeta) {
-    const insertObj = {
-      fk_view_id: view.fk_view_id,
-      project_id: view.project_id,
-      base_id: view.base_id,
-      heading: view.heading,
-      subheading: view.subheading,
-      success_msg: view.success_msg,
-      redirect_url: view.redirect_url,
-      redirect_after_secs: view.redirect_after_secs,
-      email: view.email,
-      banner_image_url: view.banner_image_url,
-      logo_url: view.logo_url,
-      submit_another_form: view.submit_another_form,
-      show_blank_form: view.show_blank_form,
-      meta: serializeJSON(view.meta),
-    };
+    const insertObj = extractProps(view, [
+      'fk_view_id',
+      'project_id',
+      'base_id',
+      'heading',
+      'subheading',
+      'success_msg',
+      'redirect_url',
+      'redirect_after_secs',
+      'email',
+      'banner_image_url',
+      'logo_url',
+      'submit_another_form',
+      'show_blank_form',
+      'meta',
+    ]);
+    if (insertObj.meta) {
+      insertObj.meta = serializeJSON(insertObj.meta);
+    }
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);
       insertObj.project_id = viewRef.project_id;
@@ -86,44 +90,35 @@ export default class FormView implements FormType {
   ) {
     // get existing cache
     const key = `${CacheScope.FORM_VIEW}:${formId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    const updateObj = extractProps(body, [
+      'heading',
+      'subheading',
+      'success_msg',
+      'redirect_url',
+      'redirect_after_secs',
+      'email',
+      'banner_image_url',
+      'logo_url',
+      'submit_another_form',
+      'show_blank_form',
+      'meta',
+    ]);
+
     if (o) {
-      o.heading = body.heading;
-      o.subheading = body.subheading;
-      o.success_msg = body.success_msg;
-      o.redirect_url = body.redirect_url;
-      o.redirect_after_secs = body.redirect_after_secs;
-      o.email = body.email;
-      o.banner_image_url = body.banner_image_url;
-      o.logo_url = body.logo_url;
-      o.submit_another_form = body.submit_another_form;
-      o.show_blank_form = body.show_blank_form;
-      o.meta = body.meta;
+      o = { ...o, ...updateObj };
       // set cache
       await NocoCache.set(key, o);
-      o.meta = serializeJSON(body.meta);
     }
+
+    if (updateObj.meta) {
+      updateObj.meta = serializeJSON(updateObj.meta);
+    }
+
     // update meta
-    return await ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.FORM_VIEW,
-      {
-        heading: body.heading,
-        subheading: body.subheading,
-        success_msg: body.success_msg,
-        redirect_url: body.redirect_url,
-        redirect_after_secs: body.redirect_after_secs,
-        email: body.email,
-        banner_image_url: body.banner_image_url,
-        logo_url: body.logo_url,
-        submit_another_form: body.submit_another_form,
-        show_blank_form: body.show_blank_form,
-      },
-      {
-        fk_view_id: formId,
-      }
-    );
+    return await ncMeta.metaUpdate(null, null, MetaTable.FORM_VIEW, updateObj, {
+      fk_view_id: formId,
+    });
   }
 
   async getColumns(ncMeta = Noco.ncMeta) {

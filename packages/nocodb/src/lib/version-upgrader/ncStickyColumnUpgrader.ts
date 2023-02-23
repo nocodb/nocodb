@@ -38,6 +38,50 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       view_columns_meta.push(col_meta);
     }
 
+    // if no display value column is set
+    if (!view_columns_meta.some((column) => column.pv)) {
+      const pkIndex = view_columns_meta.findIndex((column) => column.pk);
+
+      // if PK is at the end of table
+      if (pkIndex === view_columns_meta.length - 1) {
+        if (pkIndex > 0) {
+          await ncMeta.metaUpdate(
+            null,
+            null,
+            MetaTable.COLUMNS,
+            { pv: true },
+            view_columns_meta[pkIndex - 1].id
+          );
+        } else if (view_columns_meta.length > 0) {
+          await ncMeta.metaUpdate(
+            null,
+            null,
+            MetaTable.COLUMNS,
+            { pv: true },
+            view_columns_meta[0].id
+          );
+        }
+        // pk is not at the end of table
+      } else if (pkIndex > -1) {
+        await ncMeta.metaUpdate(
+          null,
+          null,
+          MetaTable.COLUMNS,
+          { pv: true },
+          view_columns_meta[pkIndex + 1].id
+        );
+        //  no pk at all
+      } else if (view_columns_meta.length > 0) {
+        await ncMeta.metaUpdate(
+          null,
+          null,
+          MetaTable.COLUMNS,
+          { pv: true },
+          view_columns_meta[0].id
+        );
+      }
+    }
+
     const primary_value_column_meta = view_columns_meta.find((col) => col.pv);
 
     if (primary_value_column_meta) {

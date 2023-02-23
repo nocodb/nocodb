@@ -62,6 +62,10 @@ jobs:
           ./make.sh
           sudo cp ./ldid /usr/local/bin
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
       - name: Update nocodb-timely
         env:
           TAG: ${{ github.event.inputs.tag || inputs.tag }}
@@ -74,11 +78,6 @@ jobs:
           git commit package.json -m "Update to $TAG"
           git tag $TAG
           git push --tags
-
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
 
       - name : Install dependencies and build executables
         run: |

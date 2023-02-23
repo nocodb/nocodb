@@ -982,7 +982,7 @@ const closeAddColumnDropdown = () => {
         :view="view"
         show-next-prev-icons
         :first-row="getExpandedRowIndex() === 0"
-        :last-row="getExpandedRowIndex() === paginationData.totalRows - 1"
+        :last-row="getExpandedRowIndex() === data.length - 1"
         @next="navigateToSiblingRow(NavigateDir.NEXT)"
         @prev="navigateToSiblingRow(NavigateDir.PREV)"
       />

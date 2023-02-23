@@ -490,6 +490,11 @@ export function useViewData(
     // calculate next row index based on direction
     let siblingRowIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
 
+    // if unsaved row skip it
+    while (formattedData.value[siblingRowIndex]?.rowMeta?.new) {
+      siblingRowIndex = siblingRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+    }
+
     const currentPage = paginationData?.value?.page || 1
 
     // if next row index is less than 0, go to previous page and point to last element

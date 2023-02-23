@@ -263,7 +263,7 @@ export const comparisonSubOpList: {
   {
     text: 'one month from now',
     value: 'one_month_from_now',
-    ignoreVal: false,
+    ignoreVal: true,
     includedTypes: [UITypes.Date, UITypes.DateTime],
   },
   {
@@ -275,7 +275,7 @@ export const comparisonSubOpList: {
   {
     text: 'number of days from now',
     value: 'number_of_days_from_now',
-    ignoreVal: true,
+    ignoreVal: false,
     includedTypes: [UITypes.Date, UITypes.DateTime],
   },
   {

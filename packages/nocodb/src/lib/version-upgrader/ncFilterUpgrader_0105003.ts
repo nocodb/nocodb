@@ -47,9 +47,13 @@ async function migrateEqAndNeqFilters(ncMeta: NcMetaIO) {
       continue;
     }
     actions.push(
-      Filter.update(filter.id, {
-        comparison_sub_op: 'exact_date',
-      })
+      Filter.update(
+        filter.id,
+        {
+          comparison_sub_op: 'exact_date',
+        },
+        ncMeta
+      )
     );
   }
   await Promise.all(actions);

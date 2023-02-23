@@ -476,6 +476,27 @@ const parseConditionV2 = async (
               }
             }
             break;
+          case 'lt':
+            const lt_op = customWhereClause ? '>' : '<';
+            qb = qb.where(field, lt_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
+              if (lt_op === '<' && val > 0) {
+                qb = qb.orWhereNull(field);
+              }
+            }
+            break;
+          case 'le':
+          case 'lte':
+            const le_op = customWhereClause ? '>=' : '<=';
+            qb = qb.where(field, le_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
+              if (le_op === '<=' || (le_op === '>=' && val === 0)) {
+                qb = qb.orWhereNull(field);
+              }
+            }
+            break;
           case 'in':
             qb = qb.whereIn(
               field,
@@ -511,27 +532,6 @@ const parseConditionV2 = async (
               qb = qb.whereNot(customWhereClause || field, true);
             else if (filter.value === 'false')
               qb = qb.whereNot(customWhereClause || field, false);
-            break;
-          case 'lt':
-            const lt_op = customWhereClause ? '>' : '<';
-            qb = qb.where(field, lt_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset number is considered as NULL
-              if (lt_op === '<' && val > 0) {
-                qb = qb.orWhereNull(field);
-              }
-            }
-            break;
-          case 'le':
-          case 'lte':
-            const le_op = customWhereClause ? '>=' : '<=';
-            qb = qb.where(field, le_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset number is considered as NULL
-              if (le_op === '<=' || (le_op === '>=' && val === 0)) {
-                qb = qb.orWhereNull(field);
-              }
-            }
             break;
           case 'empty':
             if (column.uidt === UITypes.Formula) {

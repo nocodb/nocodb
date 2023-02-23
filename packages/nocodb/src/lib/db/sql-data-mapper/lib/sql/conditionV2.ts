@@ -10,6 +10,9 @@ import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
 import { RelationTypes, UITypes, isNumericCol } from 'nocodb-sdk';
 import { sanitize } from './helpers/sanitize';
+import dayjs, { extend } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+extend(customParseFormat);
 
 export default async function conditionV2(
   conditionObj: Filter | Filter[],
@@ -272,12 +275,52 @@ const parseConditionV2 = async (
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
         if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
-          if (!val) {
-            // for date & datetime, val cannot be empty for all filters
-            return;
-          }
+          const dateFormat =
+            qb?.client?.config?.client === 'mysql2'
+              ? 'YYYY-MM-DD HH:mm:ss'
+              : 'YYYY-MM-DD HH:mm:ssZ';
+          let now = dayjs(new Date());
           // handle sub operation
-          // TODO:
+          switch (filter.comparison_sub_op) {
+            case 'today':
+              val = now;
+              break;
+            case 'tomorrow':
+              val = now.add(1, 'day');
+              break;
+            case 'yesterday':
+              val = now.add(-1, 'day');
+              break;
+            case 'one_week_ago':
+              val = now.add(-7, 'day');
+              break;
+            case 'one_week_from_now':
+              val = now.add(7, 'day');
+              break;
+            case 'one_month_ago':
+              val = now.add(-1, 'month');
+              break;
+            case 'one_month_from_now':
+              val = now.add(1, 'month');
+              break;
+            case 'number_of_days_ago':
+              if (!val) return;
+              val = now.add(-val, 'day');
+              break;
+            case 'number_of_days_from_now':
+              if (!val) return;
+              val = now.add(val, 'day');
+              break;
+            case 'exact_date':
+              if (!val) return;
+              break;
+          }
+
+          if (filter.comparison_sub_op !== 'exact_date') {
+            // val for exact_date is not a dayjs object
+            val = val.format(dateFormat).toString();
+            val = column.uidt === UITypes.Date ? val.substring(0, 10) : val;
+          }
         }
 
         if (isNumericCol(column.uidt) && typeof val === 'string') {

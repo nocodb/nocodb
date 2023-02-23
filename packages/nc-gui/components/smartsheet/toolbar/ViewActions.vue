@@ -4,6 +4,7 @@ import {
   ActiveViewInj,
   IsLockedInj,
   IsPublicInj,
+  MetaInj,
   extractSdkResponseErrorMsg,
   inject,
   message,
@@ -57,7 +58,10 @@ const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<bool
 
 const { isUIAllowed } = useUIPermission()
 
-const { bases, isSharedBase } = useProject()
+const { isSharedBase } = useProject()
+
+const meta = inject(MetaInj, ref())
+const currentBaseId = computed(() => meta.value?.base_id)
 
 const Icon = computed(() => {
   switch (selectedView.value?.lock_type) {
@@ -248,7 +252,7 @@ useMenuCloseOnEsc(open)
       :key="type"
       v-model="quickImportDialogs[type].value"
       :import-type="type"
-      :base-id="bases[0].id"
+      :base-id="currentBaseId"
       :import-data-only="true"
     />
 

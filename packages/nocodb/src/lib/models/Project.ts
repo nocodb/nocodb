@@ -84,15 +84,14 @@ export default class Project implements ProjectType {
       );
     }
 
-    if (projectBody.type === 'documentation') {
-      console.log('projectBody.type', projectBody.type);
+    if (insertObj.type === 'documentation') {
       await Book.create({
         attributes: {
           title: 'Version 1',
           description: 'Version 1',
         },
         projectId,
-        user: projectBody.user,
+        user: insertObj.user,
       });
     }
 

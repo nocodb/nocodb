@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import {
+  Form,
+  computed,
+  nextTick,
+  onMounted,
+  ref,
+  useProject,
+  useTable,
+  useTabs,
+  useVModel,
+  validateTableName,
+} from '#imports'
 import { TabType } from '~/lib'
 
 const props = defineProps<{
@@ -78,14 +89,19 @@ const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
   disabled: index === 0,
 }))
 
+const creating = ref(false)
+
 const _createTable = async () => {
   try {
+    creating.value = true
     await validate()
+    await createTable()
   } catch (e: any) {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     if (e.errorFields.length) return
+  } finally {
+    creating.value = false
   }
-  await createTable()
 }
 
 onMounted(() => {
@@ -109,7 +125,10 @@ onMounted(() => {
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
-      <a-button key="submit" size="large" type="primary" @click="_createTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" size="large" type="primary" :loading="creating" @click="_createTable">{{
+          $t('general.submit')
+        }}
+      </a-button>
     </template>
 
     <div class="pl-10 pr-10 pt-5">
@@ -145,7 +164,8 @@ onMounted(() => {
           <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
 
           <a-form-item v-if="!project.prefix" v-bind="validateInfos.table_name">
-            <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
+            <a-input v-model:value="table.table_name" size="large" hide-details
+                     :placeholder="$t('msg.info.tableNameInDb')" />
           </a-form-item>
 
           <div>

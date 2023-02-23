@@ -34,7 +34,7 @@ test.describe('Map View', () => {
 
     await grid.column.verify({ title: 'Actors Birthplace', isVisible: true });
 
-    await grid.cell.geoData.open({
+    await grid.cell.geoData.openSetLocation({
       index: 0,
       columnHeader: 'Actors Birthplace',
     });

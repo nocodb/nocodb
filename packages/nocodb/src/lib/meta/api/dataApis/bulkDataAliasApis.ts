@@ -7,6 +7,13 @@ import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
 
+type BulkOperation =
+  | 'bulkInsert'
+  | 'bulkUpdate'
+  | 'bulkUpdateAll'
+  | 'bulkDelete'
+  | 'bulkDeleteAll';
+
 async function getModelAndBase(req: Request) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -14,21 +21,11 @@ async function getModelAndBase(req: Request) {
   return { model, view, base };
 }
 
-async function executeBulkOperation(
+async function executeBulkOperation<T extends BulkOperation>(
   req: Request,
   res: Response,
-  operation:
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkUpdateAll'
-    | 'bulkDelete'
-    | 'bulkDeleteAll',
-  options:
-    | Parameters<typeof BaseModelSqlv2.prototype.bulkInsert>
-    | Parameters<typeof BaseModelSqlv2.prototype.bulkUpdate>
-    | Parameters<typeof BaseModelSqlv2.prototype.bulkDelete>
-    | Parameters<typeof BaseModelSqlv2.prototype.bulkUpdateAll>
-    | Parameters<typeof BaseModelSqlv2.prototype.bulkDeleteAll>
+  operation: T,
+  options: Parameters<typeof BaseModelSqlv2.prototype[T]>
 ) {
   const { model, view, base } = await getModelAndBase(req);
   const baseModel = await Model.getBaseModelSQL({

@@ -5,13 +5,13 @@ import { XKnex } from '../../db/sql-data-mapper';
 // import Knex from 'knex';
 
 // import NcMetaIO from '../meta/NcMetaIO';
-import {
+import NcConfigFactory, {
   defaultConnectionConfig,
   defaultConnectionOptions,
 } from '../NcConfigFactory';
 import Base from '../../models/Base';
 import { Knex } from 'knex';
-import { NcConfigFactory } from '../../index';
+import Noco from '../../Noco';
 
 export default class NcConnectionMgrv2 {
   private static connectionRefs: {
@@ -63,7 +63,7 @@ export default class NcConnectionMgrv2 {
       // if data db is set, use it for generating knex connection
       if (process.env.NC_DATA_DB) {
         if (!this.dataKnex) {
-          await this.getConfig();
+          await this.getDataConfig();
           this.dataKnex = XKnex(this.dataConfig);
         }
         return this.dataKnex;
@@ -99,12 +99,16 @@ export default class NcConnectionMgrv2 {
     return this.connectionRefs[base.project_id][base.id];
   }
 
-  public static async getConfig() {
-    if (!this.dataConfig)
-      this.dataConfig = await NcConfigFactory.metaUrlToDbConfig(
-        process.env.NC_DATA_DB
-      );
-    return this.dataConfig;
+  public static async getDataConfig() {
+    if (process.env.NC_DATA_DB) {
+      if (!this.dataConfig)
+        this.dataConfig = await NcConfigFactory.metaUrlToDbConfig(
+          process.env.NC_DATA_DB
+        );
+      return this.dataConfig;
+    } else {
+      return Noco.getConfig()?.meta?.db;
+    }
   }
 
   public static async getSqlClient(base: Base, _knex = null): Promise<any> {

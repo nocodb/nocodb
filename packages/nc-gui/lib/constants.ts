@@ -59,6 +59,7 @@ const rolePermissions = {
       fieldsSync: true,
       gridColUpdate: true,
       filterSync: true,
+      filterChildrenRead: true,
       csvImport: true,
       apiDocs: true,
       projectSettings: true,

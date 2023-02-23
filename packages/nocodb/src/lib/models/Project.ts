@@ -39,30 +39,32 @@ export default class Project implements ProjectType {
   }
 
   public static async createProject(
-    projectBody: ProjectType & {
+    project: ProjectType & {
       created_at?;
       updated_at?;
       user?: any;
     },
     ncMeta = Noco.ncMeta
   ): Promise<Project> {
+    const insertObj = extractProps(project, [
+      'id',
+      'title',
+      'prefix',
+      'description',
+      'is_meta',
+      'created_at',
+      'updated_at',
+      'type',
+      'fk_workspace_id',
+      'meta',
+      'color',
+    ]);
+
     const { id: projectId } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.PROJECT,
-      {
-        id: projectBody?.id,
-        title: projectBody.title,
-        prefix: projectBody.prefix,
-        description: projectBody.description,
-        is_meta: projectBody.is_meta,
-        created_at: projectBody.created_at,
-        updated_at: projectBody.updated_at,
-        type: projectBody.type,
-        fk_workspace_id: projectBody.fk_workspace_id,
-        meta: projectBody.meta,
-        color: projectBody.color,
-      }
+      insertObj
     );
 
     await NocoCache.appendToList(
@@ -71,7 +73,7 @@ export default class Project implements ProjectType {
       `${CacheScope.PROJECT}:${projectId}`
     );
 
-    for (const base of projectBody.bases) {
+    for (const base of project.bases) {
       await Base.createBase(
         {
           type: base.config?.client,

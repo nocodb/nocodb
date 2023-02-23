@@ -1231,7 +1231,7 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
     env: string;
     tn: string;
     type: string;
-    event: 'After' | 'Before';
+    event: 'after' | 'before';
     operation: 'delete' | 'update' | 'insert';
     async: boolean;
     payload: string;

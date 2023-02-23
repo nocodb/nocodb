@@ -15,7 +15,9 @@ export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
 
   ssr: false,
-
+  server: {
+    host: '0', // default: localhost
+  },
   app: {
     pageTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
       ? false

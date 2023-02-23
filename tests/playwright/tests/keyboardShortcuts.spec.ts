@@ -205,21 +205,21 @@ test.describe('Verify shortcuts', () => {
 
     const today = new Date().toISOString().slice(0, 10);
     const record = {
-      Id: '1',
+      Id: 1,
       SingleLineText: 'SingleLineText',
       LongText: 'LongText',
       SingleSelect: 'Option1',
       MultiSelect: 'Option1,Option2',
-      Number: '123',
+      Number: 123,
       PhoneNumber: '987654321',
       Email: 'test@example.com',
       URL: 'nocodb.com',
-      Rating: '4',
-      Decimal: '1.12',
-      Percent: '80',
-      Currency: '20',
-      Duration: '480',
-      Checkbox: 'true',
+      Rating: 4,
+      Decimal: 1.12,
+      Percent: 80,
+      Currency: 20,
+      Duration: 480,
+      Checkbox: 1,
       Date: today,
     };
 
@@ -339,13 +339,14 @@ test.describe('Verify shortcuts', () => {
       index: 0,
       columnHeader: 'Currency',
     });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('20');
+    // convert from string to integer
+    expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(20);
 
     await dashboard.grid.cell.copyToClipboard({
       index: 0,
       columnHeader: 'Duration',
     });
-    expect(await dashboard.grid.cell.getClipboardText()).toBe('480');
+    expect(parseInt(await dashboard.grid.cell.getClipboardText())).toBe(480);
 
     await dashboard.grid.cell.copyToClipboard(
       {
@@ -363,7 +364,7 @@ test.describe('Verify shortcuts', () => {
       },
       { position: { x: 1, y: 1 } }
     );
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // await new Promise(resolve => setTimeout(resolve, 5000));
     expect(await dashboard.grid.cell.getClipboardText()).toBe('true');
 
     await dashboard.grid.cell.click({

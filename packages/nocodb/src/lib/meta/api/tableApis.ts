@@ -6,7 +6,6 @@ import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  ColumnType,
   isVirtualCol,
   ModelTypes,
   NormalColumnRequestType,

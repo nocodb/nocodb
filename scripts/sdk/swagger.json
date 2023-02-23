@@ -10170,6 +10170,7 @@
         }
       },
       "LinkToAnotherColumnReq": {
+        "type": "object",
         "properties": {
           "uidt": {
             "type": "string",
@@ -10207,6 +10208,7 @@
         ]
       },
       "RollupColumnReq": {
+        "type": "object",
         "properties": {
           "uidt": {
             "type": "string",
@@ -10266,10 +10268,7 @@
       "ColumnReq": {
         "allOf": [
           {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/NormalColumnRequest"
-              },
+            "anyOf": [
               {
                 "$ref": "#/components/schemas/LinkToAnotherColumnReq"
               },
@@ -10281,6 +10280,9 @@
               },
               {
                 "$ref": "#/components/schemas/LookupColumnReq"
+              },
+              {
+                "$ref": "#/components/schemas/NormalColumnRequest"
               }
             ]
           },

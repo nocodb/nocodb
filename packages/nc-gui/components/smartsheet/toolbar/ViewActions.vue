@@ -61,6 +61,7 @@ const { isUIAllowed } = useUIPermission()
 const { isSharedBase } = useProject()
 
 const meta = inject(MetaInj, ref())
+
 const currentBaseId = computed(() => meta.value?.base_id)
 
 const Icon = computed(() => {

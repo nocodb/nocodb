@@ -19,7 +19,8 @@ async function exportExcel(req: Request, res: Response) {
   if (
     view.type !== ViewTypes.GRID &&
     view.type !== ViewTypes.KANBAN &&
-    view.type !== ViewTypes.GALLERY
+    view.type !== ViewTypes.GALLERY &&
+    view.type !== ViewTypes.MAP
   )
     NcError.notFound('Not found');
 
@@ -67,7 +68,8 @@ async function exportCsv(req: Request, res: Response) {
   if (
     view.type !== ViewTypes.GRID &&
     view.type !== ViewTypes.KANBAN &&
-    view.type !== ViewTypes.GALLERY
+    view.type !== ViewTypes.GALLERY &&
+    view.type !== ViewTypes.MAP
   )
     NcError.notFound('Not found');
 

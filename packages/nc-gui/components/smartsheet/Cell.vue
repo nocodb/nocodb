@@ -21,6 +21,7 @@ import {
   isDuration,
   isEmail,
   isFloat,
+  isGeoData,
   isInt,
   isJSON,
   isManualSaved,
@@ -100,7 +101,9 @@ const syncValue = useDebounceFn(
 )
 
 const vModel = computed({
-  get: () => props.modelValue,
+  get: () => {
+    return props.modelValue
+  },
   set: (val) => {
     if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
@@ -151,6 +154,7 @@ const isNumericField = computed(() => {
   >
     <template v-if="column">
       <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
+      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />

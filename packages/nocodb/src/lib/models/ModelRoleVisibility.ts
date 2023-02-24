@@ -8,6 +8,7 @@ import {
 } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import View from './View';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   id?: string;
@@ -134,17 +135,17 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     >,
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = {
-      role: body.role,
-      disabled: body.disabled,
-      fk_view_id: body.fk_view_id,
-      project_id: body.project_id,
-      base_id: body.base_id,
-      created_at: body.created_at,
-      updated_at: body.updated_at,
-    };
+    const insertObj = extractProps(body, [
+      'role',
+      'disabled',
+      'fk_view_id',
+      'project_id',
+      'base_id',
+      'created_at',
+      'updated_at',
+    ]);
 
-    if (!(body.project_id && body.base_id)) {
+    if (!(insertObj.project_id && insertObj.base_id)) {
       const view = await View.get(body.fk_view_id, ncMeta);
       insertObj.project_id = view.project_id;
       insertObj.base_id = view.base_id;

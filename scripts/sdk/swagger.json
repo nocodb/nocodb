@@ -3320,6 +3320,99 @@
         ]
       }
     },
+    "/api/v1/db/meta/tables/{tableId}/maps": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "db-view-map-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Map"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/maps/{mapId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "mapId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-view-map-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Map"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "",
+        "operationId": "db-view-map-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Map"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/meta-diff": {
       "parameters": [
         {
@@ -7703,6 +7796,9 @@
               },
               {
                 "$ref": "#/components/schemas/Kanban"
+              },
+              {
+                "$ref": "#/components/schemas/Map"
               }
             ]
           }
@@ -8755,6 +8851,87 @@
           }
         }
       },
+      "GeoLocation": {
+        "title": "GeoLocation",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "Map": {
+        "title": "Map",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "alias": {
+            "type": "string"
+          },
+          "initial_geo_position": {
+            "$ref": "#/components/schemas/GeoLocation"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "fk_view_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fk_geo_data_col_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MapColumn"
+            }
+          },
+          "meta": {
+            "type": [
+              "string",
+              "object"
+            ]
+          }
+        }
+      },
+      "MapColumn": {
+        "title": "MapColumn",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string"
+          },
+          "fk_col_id": {
+            "type": "string"
+          },
+          "fk_gallery_id": {
+            "type": "string"
+          }
+        }
+      },
       "Form": {
         "title": "Form",
         "type": "object",
@@ -9175,8 +9352,8 @@
           "event": {
             "type": "string",
             "enum": [
-              "After",
-              "Before"
+              "after",
+              "before"
             ]
           },
           "operation": {
@@ -9407,6 +9584,7 @@
               "Collaborator",
               "Date",
               "Year",
+              "GeoData",
               "Time",
               "PhoneNumber",
               "Email",

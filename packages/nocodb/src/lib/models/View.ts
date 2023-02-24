@@ -27,6 +27,8 @@ import KanbanViewColumn from './KanbanViewColumn';
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import MapView from './MapView';
+import MapViewColumn from './MapViewColumn';
 
 const { v4: uuidv4 } = require('uuid');
 export default class View implements ViewType {
@@ -42,9 +44,13 @@ export default class View implements ViewType {
 
   fk_model_id: string;
   model?: Model;
-  view?: FormView | GridView | KanbanView | GalleryView;
+  view?: FormView | GridView | KanbanView | GalleryView | MapView;
   columns?: Array<
-    FormViewColumn | GridViewColumn | GalleryViewColumn | KanbanViewColumn
+    | FormViewColumn
+    | GridViewColumn
+    | GalleryViewColumn
+    | KanbanViewColumn
+    | MapViewColumn
   >;
 
   sorts: Sort[];
@@ -83,6 +89,9 @@ export default class View implements ViewType {
       case ViewTypes.GALLERY:
         this.view = await GalleryView.get(this.id);
         break;
+      case ViewTypes.MAP:
+        this.view = await MapView.get(this.id);
+        break;
       case ViewTypes.FORM:
         this.view = await FormView.get(this.id);
         break;
@@ -102,6 +111,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.GALLERY:
         this.view = await GalleryView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.MAP:
+        this.view = await MapView.get(this.id, ncMeta);
         break;
       case ViewTypes.FORM:
         this.view = await FormView.get(this.id, ncMeta);
@@ -236,7 +248,7 @@ export default class View implements ViewType {
 
   static async insert(
     view: Partial<View> &
-      Partial<FormView | GridView | GalleryView | KanbanView> & {
+      Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
         copy_from_id?: string;
         fk_grp_col_id?: string;
         created_at?;
@@ -244,25 +256,29 @@ export default class View implements ViewType {
       },
     ncMeta = Noco.ncMeta
   ) {
+    const insertObj = extractProps(view, [
+      'id',
+      'title',
+      'is_default',
+      'type',
+      'fk_model_id',
+      'project_id',
+      'base_id',
+      'created_at',
+      'updated_at',
+      'meta',
+    ]);
+
     // get order value
-    const order = await ncMeta.metaGetNextOrder(MetaTable.VIEWS, {
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.VIEWS, {
       fk_model_id: view.fk_model_id,
     });
 
-    const insertObj = {
-      id: view.id,
-      title: view.title,
-      show: true,
-      is_default: view.is_default,
-      order,
-      type: view.type,
-      fk_model_id: view.fk_model_id,
-      project_id: view.project_id,
-      base_id: view.base_id,
-      created_at: view.created_at,
-      updated_at: view.updated_at,
-      meta: view.meta ?? {},
-    };
+    insertObj.show = true;
+
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
 
     insertObj.meta = stringifyMetaProp(insertObj);
 
@@ -301,6 +317,15 @@ export default class View implements ViewType {
           {
             ...((copyFromView?.view as GridView) || {}),
             ...(view as GridView),
+            fk_view_id: view_id,
+          },
+          ncMeta
+        );
+        break;
+      case ViewTypes.MAP:
+        await MapView.insert(
+          {
+            ...(view as MapView),
             fk_view_id: view_id,
           },
           ncMeta
@@ -429,6 +454,11 @@ export default class View implements ViewType {
             // other columns will be hidden
             show = false;
           }
+        } else if (view.type === ViewTypes.MAP && !copyFromView) {
+          const mapView = await MapView.get(view_id, ncMeta);
+          if (vCol.id === mapView?.fk_geo_data_col_id) {
+            show = true;
+          }
         }
 
         // if columns is list of virtual columns then get the parent column
@@ -486,6 +516,16 @@ export default class View implements ViewType {
         case ViewTypes.GALLERY:
           await GalleryViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
+
+        case ViewTypes.MAP:
+          await MapViewColumn.insert(
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta
+          );
+          break;
         case ViewTypes.KANBAN:
           await KanbanViewColumn.insert(modifiedInsertObj, ncMeta);
           break;
@@ -521,6 +561,17 @@ export default class View implements ViewType {
       case ViewTypes.GALLERY:
         {
           col = await GalleryViewColumn.insert(
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta
+          );
+        }
+        break;
+      case ViewTypes.MAP:
+        {
+          col = await MapViewColumn.insert(
             {
               ...param,
               fk_view_id: view.id,
@@ -569,7 +620,11 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta
   ): Promise<
     Array<
-      GridViewColumn | FormViewColumn | GalleryViewColumn | KanbanViewColumn
+      | GridViewColumn
+      | FormViewColumn
+      | GalleryViewColumn
+      | KanbanViewColumn
+      | MapViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
@@ -582,6 +637,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.GALLERY:
         columns = await GalleryViewColumn.list(viewId, ncMeta);
+        break;
+      case ViewTypes.MAP:
+        columns = await MapViewColumn.list(viewId, ncMeta);
         break;
       case ViewTypes.FORM:
         columns = await FormViewColumn.list(viewId, ncMeta);
@@ -615,6 +673,10 @@ export default class View implements ViewType {
       case ViewTypes.GRID:
         table = MetaTable.GRID_VIEW_COLUMNS;
         cacheScope = CacheScope.GRID_VIEW_COLUMN;
+        break;
+      case ViewTypes.MAP:
+        table = MetaTable.MAP_VIEW_COLUMNS;
+        cacheScope = CacheScope.MAP_VIEW_COLUMN;
         break;
       case ViewTypes.GALLERY:
         table = MetaTable.GALLERY_VIEW_COLUMNS;
@@ -683,7 +745,12 @@ export default class View implements ViewType {
     },
     ncMeta = Noco.ncMeta
   ): Promise<
-    GridViewColumn | FormViewColumn | GalleryViewColumn | KanbanViewColumn | any
+    | GridViewColumn
+    | FormViewColumn
+    | GalleryViewColumn
+    | KanbanViewColumn
+    | MapViewColumn
+    | any
   > {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
@@ -724,6 +791,14 @@ export default class View implements ViewType {
           });
         case ViewTypes.KANBAN:
           return await KanbanViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
+          break;
+        case ViewTypes.MAP:
+          return await MapViewColumn.insert({
             fk_view_id: viewId,
             fk_column_id: fkColId,
             order: colData.order,
@@ -970,6 +1045,9 @@ export default class View implements ViewType {
       case ViewTypes.FORM:
         table = MetaTable.FORM_VIEW_COLUMNS;
         break;
+      case ViewTypes.MAP:
+        table = MetaTable.MAP_VIEW_COLUMNS;
+        break;
     }
     return table;
   }
@@ -989,6 +1067,9 @@ export default class View implements ViewType {
       case ViewTypes.FORM:
         table = MetaTable.FORM_VIEW;
         break;
+      case ViewTypes.MAP:
+        table = MetaTable.MAP_VIEW;
+        break;
     }
     return table;
   }
@@ -1001,6 +1082,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.GALLERY:
         scope = CacheScope.GALLERY_VIEW_COLUMN;
+        break;
+      case ViewTypes.MAP:
+        scope = CacheScope.MAP_VIEW_COLUMN;
         break;
       case ViewTypes.KANBAN:
         scope = CacheScope.KANBAN_VIEW_COLUMN;
@@ -1020,6 +1104,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.GALLERY:
         scope = CacheScope.GALLERY_VIEW;
+        break;
+      case ViewTypes.MAP:
+        scope = CacheScope.MAP_VIEW;
         break;
       case ViewTypes.KANBAN:
         scope = CacheScope.KANBAN_VIEW;
@@ -1136,9 +1223,20 @@ export default class View implements ViewType {
 
     // get existing cache
     const dataList = await NocoCache.getList(scope, [viewId]);
+
+    const colsEssentialForView =
+      view.type === ViewTypes.MAP
+        ? [(await MapView.get(viewId)).fk_geo_data_col_id]
+        : [];
+
+    const mergedIgnoreColdIds = [...ignoreColdIds, ...colsEssentialForView];
+
     if (dataList?.length) {
       for (const o of dataList) {
-        if (!ignoreColdIds?.length || !ignoreColdIds.includes(o.fk_column_id)) {
+        if (
+          !mergedIgnoreColdIds?.length ||
+          !mergedIgnoreColdIds.includes(o.fk_column_id)
+        ) {
           // set data
           o.show = false;
           // set cache
@@ -1155,7 +1253,7 @@ export default class View implements ViewType {
       {
         fk_view_id: viewId,
       },
-      ignoreColdIds?.length
+      mergedIgnoreColdIds?.length
         ? {
             _not: {
               fk_column_id: {

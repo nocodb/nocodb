@@ -1,8 +1,8 @@
 import Noco from '../Noco';
-// import NocoCache from '../cache/NocoCache';
 import Column from './Column';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class LookupColumn {
   fk_relation_column_id: string;
@@ -29,11 +29,13 @@ export default class LookupColumn {
     data: Partial<LookupColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_LOOKUP, {
-      fk_column_id: data.fk_column_id,
-      fk_relation_column_id: data.fk_relation_column_id,
-      fk_lookup_column_id: data.fk_lookup_column_id,
-    });
+    const insertObj = extractProps(data, [
+      'fk_column_id',
+      'fk_relation_column_id',
+      'fk_lookup_column_id',
+    ]);
+
+    await ncMeta.metaInsert2(null, null, MetaTable.COL_LOOKUP, insertObj);
 
     await NocoCache.appendToList(
       CacheScope.COL_LOOKUP,

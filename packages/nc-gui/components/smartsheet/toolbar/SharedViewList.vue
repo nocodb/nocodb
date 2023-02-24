@@ -56,6 +56,9 @@ const sharedViewUrl = (view: SharedViewType) => {
     case ViewTypes.FORM:
       viewType = 'form'
       break
+    case ViewTypes.MAP:
+      viewType = 'map'
+      break
     case ViewTypes.KANBAN:
       viewType = 'kanban'
       break

@@ -2909,7 +2909,7 @@ export default class NcMetaMgr {
     }
   }
 
-  protected async projectGetSqlClient(args): Promise<any> {
+  protected async projectGetSqlClient(args) {
     const builder = this.getBuilder(args);
     return builder?.getSqlClient();
   }

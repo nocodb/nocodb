@@ -1998,17 +1998,12 @@ export default async (
       const ncFilters = [];
 
       if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
+        let comparison_op = null;
+        let comparison_sub_op = null;
+        let value = null;
         if (['isEmpty', 'isNotEmpty'].includes(filter.operator)) {
-          const fx = {
-            fk_column_id: columnId,
-            logical_op: f.conjunction,
-            comparison_op: filter.operator === 'isEmpty' ? 'blank' : 'notblank',
-            value: null,
-          };
-          ncFilters.push(fx);
+          comparison_op = filter.operator === 'isEmpty' ? 'blank' : 'notblank';
         } else if (filter.operator === 'isWithin') {
-          let comparison_sub_op = null;
-          let value = null;
           switch (filter.value.mode) {
             case 'pastWeek':
               comparison_sub_op = 'oneWeekAgo';
@@ -2039,30 +2034,24 @@ export default async (
               value = filter.value.numberOfDays;
               break;
           }
-          const fx = {
-            fk_column_id: columnId,
-            logical_op: f.conjunction,
-            comparison_op: filter.operator,
-            comparison_sub_op,
-            value,
-          };
-          ncFilters.push(fx);
+          comparison_op = filter.operator;
         } else {
-          let value = null;
           if ('numberOfDays' in filter.value) {
             value = filter.value['numberOfDays'];
           } else if ('exactDate' in filter.value) {
             value = filter.value['exactDate'];
           }
-          const fx = {
-            fk_column_id: columnId,
-            logical_op: f.conjunction,
-            comparison_op: filterMap[filter.operator],
-            comparison_sub_op: filter.value.mode,
-            value,
-          };
-          ncFilters.push(fx);
+          comparison_op = filterMap[filter.operator];
+          comparison_sub_op = filter.value.mode;
         }
+        const fx = {
+          fk_column_id: columnId,
+          logical_op: f.conjunction,
+          comparison_op,
+          comparison_sub_op,
+          value,
+        };
+        ncFilters.push(fx);
       }
 
       // single-select & multi-select

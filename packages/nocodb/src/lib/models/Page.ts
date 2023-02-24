@@ -3,20 +3,84 @@ import { CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import slugify from 'slug';
 import { DocsPageType, UserType } from 'nocodb-sdk';
-import Book from './Book';
 const { v4: uuidv4 } = require('uuid');
+
 export default class Page {
   public id: string;
   public title: string;
   public description: string;
   public content: string;
   public slug: string;
-  public book_id: string;
   public parent_page_id: string;
   public order: number;
 
   constructor(attr: Partial<Page>) {
     Object.assign(this, attr);
+  }
+
+  public static tableName({ projectId }: { projectId: string }) {
+    return `nc_d_page_${projectId}`;
+  }
+
+  static async createPageTable(
+    { projectId }: { projectId: string },
+    ncMeta = Noco.ncMeta
+  ) {
+    const knex = ncMeta.knex;
+    await knex.schema.createTable(Page.tableName({ projectId }), (table) => {
+      table.string('id', 20).primary().notNullable();
+
+      table.string('title', 150).notNullable();
+      table.string('published_title', 150);
+      table.text('description', 'longtext').defaultTo('');
+
+      table.text('content', 'longtext').defaultTo('');
+      table.text('published_content', 'longtext').defaultTo('');
+      table.string('slug', 150).notNullable();
+
+      table.boolean('is_parent').defaultTo(false);
+      table.string('parent_page_id', 20).nullable();
+      table
+        .foreign('parent_page_id')
+        .references(`${Page.tableName({ projectId })}.id`)
+        .withKeyName(`nc_page_parent_${uuidv4()}`);
+
+      table.boolean('is_published').defaultTo(false);
+      table.datetime('last_published_date').nullable();
+      table.string('last_published_by_id', 20).nullable();
+      table
+        .foreign('last_published_by_id')
+        .references(`${MetaTable.USERS}.id`)
+        .withKeyName(`nc_page_last_published_id_${uuidv4()}`);
+
+      table.string('last_updated_by_id', 20).nullable();
+      table
+        .foreign('last_updated_by_id')
+        .references(`${MetaTable.USERS}.id`)
+        .withKeyName(`nc_page_last_updated_id_${uuidv4()}`);
+
+      table.string('created_by_id', 20).notNullable();
+      table
+        .foreign('created_by_id')
+        .references(`${MetaTable.USERS}.id`)
+        .withKeyName(`nc_page_last_created_id_${uuidv4()}`);
+
+      table.timestamp('archived_date').nullable();
+      table.string('archived_by_id', 20).nullable();
+      table
+        .foreign('archived_by_id')
+        .references(`${MetaTable.USERS}.id`)
+        .withKeyName(`nc_page_last_archived_id_${uuidv4()}`);
+
+      table.text('metaJson', 'longtext').defaultTo('{}');
+
+      table.float('order');
+
+      table.string('icon');
+
+      table.datetime('created_at', { useTz: true });
+      table.datetime('updated_at', { useTz: true });
+    });
   }
 
   public static async create(
@@ -30,7 +94,6 @@ export default class Page {
         published_content,
         is_published,
       },
-      bookId,
       projectId,
       user,
     }: {
@@ -43,7 +106,6 @@ export default class Page {
         published_content?: string;
         is_published?: boolean;
       };
-      bookId: string;
       projectId: string;
       user: UserType;
     },
@@ -52,7 +114,7 @@ export default class Page {
     const { id: createdPageId } = await ncMeta.metaInsert2(
       null,
       null,
-      Page.tableName({ projectId, bookId }),
+      Page.tableName({ projectId }),
       {
         title: title,
         description: description,
@@ -61,7 +123,6 @@ export default class Page {
         slug: await this.uniqueSlug(
           {
             title,
-            bookId,
             projectId,
             parent_page_id,
           },
@@ -70,7 +131,6 @@ export default class Page {
         published_content,
         is_published,
         order: order,
-        book_id: bookId,
         created_by_id: user.id,
       } as Partial<DocsPageType>
     );
@@ -79,7 +139,7 @@ export default class Page {
       await ncMeta.metaUpdate(
         null,
         null,
-        Page.tableName({ projectId, bookId }),
+        Page.tableName({ projectId }),
         {
           is_parent: true,
         },
@@ -87,19 +147,17 @@ export default class Page {
       );
     }
 
-    await this.reorder({ bookId, parent_page_id, projectId });
+    await this.reorder({ parent_page_id, projectId });
 
-    return await this.get({ id: createdPageId, bookId, projectId }, ncMeta);
+    return await this.get({ id: createdPageId, projectId }, ncMeta);
   }
 
   public static async get(
     {
       id,
-      bookId,
       projectId,
     }: {
       id: string;
-      bookId: string;
       projectId: string;
     },
     ncMeta = Noco.ncMeta
@@ -110,7 +168,7 @@ export default class Page {
       page = await ncMeta.metaGet2(
         null,
         null,
-        Page.tableName({ projectId, bookId }),
+        Page.tableName({ projectId }),
         id
       );
       if (page) {
@@ -124,11 +182,9 @@ export default class Page {
   public static async getBySlug(
     {
       nestedSlug,
-      bookId,
       projectId,
     }: {
       nestedSlug: string;
-      bookId: string;
       projectId: string;
     },
     ncMeta = Noco.ncMeta
@@ -141,7 +197,7 @@ export default class Page {
         page = await ncMeta.metaGet2(
           null,
           null,
-          Page.tableName({ projectId, bookId }),
+          Page.tableName({ projectId }),
           {
             slug,
             parent_page_id: page?.id || null,
@@ -158,13 +214,11 @@ export default class Page {
 
   public static async update(
     {
-      bookId,
       pageId,
       projectId,
       attributes,
       user,
     }: {
-      bookId: string;
       pageId: string;
       projectId: string;
       attributes: Partial<DocsPageType>;
@@ -173,10 +227,8 @@ export default class Page {
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType> {
     // const now = new Date();
-    const previousPage = await this.get({ id: pageId, bookId, projectId });
+    const previousPage = await this.get({ id: pageId, projectId });
     if (!previousPage) throw new Error('Page not found');
-
-    if (attributes.book_id) throw new Error('Cannot update book_id');
 
     if (attributes.title === previousPage.title) delete attributes.title;
 
@@ -186,7 +238,6 @@ export default class Page {
       }
 
       const uniqueSlug = await this.uniqueSlug({
-        bookId,
         projectId,
         parent_page_id: previousPage.parent_page_id,
         title: attributes.title,
@@ -207,8 +258,8 @@ export default class Page {
     await ncMeta.metaUpdate(
       null,
       null,
-      Page.tableName({ projectId, bookId }),
-      { ...attributes, book_id: bookId },
+      Page.tableName({ projectId }),
+      { ...attributes },
       pageId
     );
 
@@ -219,7 +270,6 @@ export default class Page {
       attributes.parent_page_id !== previousPage.parent_page_id
     ) {
       const previousParentChildren = await this.getChildPages({
-        bookId,
         parent_page_id: previousPage.parent_page_id,
         projectId,
       });
@@ -227,10 +277,9 @@ export default class Page {
         await ncMeta.metaUpdate(
           null,
           null,
-          Page.tableName({ projectId, bookId }),
+          Page.tableName({ projectId }),
           {
             is_parent: false,
-            book_id: bookId,
           },
           previousPage.parent_page_id
         );
@@ -240,7 +289,6 @@ export default class Page {
     if (attributes.order) {
       await this.reorder({
         projectId,
-        bookId,
         parent_page_id: attributes.parent_page_id,
         keepPageId: pageId,
       });
@@ -250,19 +298,17 @@ export default class Page {
       await ncMeta.metaUpdate(
         null,
         null,
-        Page.tableName({ projectId, bookId }),
+        Page.tableName({ projectId }),
         {
           is_parent: true,
-          book_id: bookId,
         },
         attributes.parent_page_id
       );
-      const currentPage = await this.get({ id: pageId, bookId, projectId });
+      const currentPage = await this.get({ id: pageId, projectId });
 
       // Since there can be slug collision, when page is moved to a new parent
       const uniqueSlug = await this.uniqueSlug(
         {
-          bookId,
           projectId,
           parent_page_id: attributes.parent_page_id,
           title: currentPage.title,
@@ -273,21 +319,19 @@ export default class Page {
         await ncMeta.metaUpdate(
           null,
           null,
-          Page.tableName({ projectId, bookId }),
+          Page.tableName({ projectId }),
           {
             slug: uniqueSlug,
-            book_id: bookId,
           },
           pageId
         );
       }
     }
 
-    return await this.get({ id: pageId, bookId, projectId });
+    return await this.get({ id: pageId, projectId });
   }
 
   public static async getChildPages({
-    bookId,
     projectId,
     parent_page_id,
     ncMeta = Noco.ncMeta,
@@ -295,11 +339,10 @@ export default class Page {
     const pageList = await ncMeta.metaList2(
       null,
       null,
-      Page.tableName({ projectId, bookId }),
+      Page.tableName({ projectId }),
       {
         condition: {
           parent_page_id: parent_page_id,
-          book_id: bookId,
         },
       }
     );
@@ -313,12 +356,10 @@ export default class Page {
 
   public static async list(
     {
-      bookId,
       parent_page_id,
       fetchAll,
       projectId,
     }: {
-      bookId: string;
       parent_page_id?: string;
       fetchAll?: boolean;
       projectId: string;
@@ -328,7 +369,7 @@ export default class Page {
     const pageList = await ncMeta.metaList2(
       null,
       null,
-      Page.tableName({ projectId, bookId }),
+      Page.tableName({ projectId }),
       {
         condition: fetchAll
           ? {}
@@ -343,7 +384,6 @@ export default class Page {
           'parent_page_id',
           'is_parent',
           'is_published',
-          'book_id',
           'updated_at',
           'created_at',
           'last_updated_by_id',
@@ -360,16 +400,13 @@ export default class Page {
   }
 
   public static async nestedList({
-    bookId,
     projectId,
     parent_page_id,
   }: {
-    bookId: string;
     projectId: string;
     parent_page_id?: string;
   }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
     const nestedList = await this.list({
-      bookId,
       projectId,
       parent_page_id,
       fetchAll: true,
@@ -396,29 +433,26 @@ export default class Page {
   }
 
   public static async count({
-    bookId,
     projectId,
   }: {
-    bookId: string;
     projectId: string;
   }): Promise<number> {
     return await Noco.ncMeta.metaCount(
       null,
       null,
-      Page.tableName({ projectId, bookId }),
+      Page.tableName({ projectId }),
       {}
     );
   }
 
   public static async delete(
-    { id, bookId, projectId },
+    { id, projectId },
     ncMeta = Noco.ncMeta
   ): Promise<void> {
-    const page = await this.get({ id, bookId, projectId }, ncMeta);
+    const page = await this.get({ id, projectId }, ncMeta);
     if (!page) throw new Error('Page not found');
 
     const childPages = await this.getChildPages({
-      bookId,
       parent_page_id: id,
       projectId,
     });
@@ -426,39 +460,29 @@ export default class Page {
     if (childPages?.length > 0) {
       await Promise.all(
         childPages.map((childPage) =>
-          this.delete({ id: childPage.id, bookId, projectId }, ncMeta)
+          this.delete({ id: childPage.id, projectId }, ncMeta)
         )
       );
     }
 
-    return ncMeta.metaDelete(
-      null,
-      null,
-      Page.tableName({ projectId, bookId }),
-      {
-        id,
-      }
-    );
+    return ncMeta.metaDelete(null, null, Page.tableName({ projectId }), {
+      id,
+    });
   }
 
   static async reorder(
     {
-      bookId,
       parent_page_id,
       keepPageId,
       projectId,
     }: {
       projectId: string;
-      bookId: string;
       parent_page_id?: string;
       keepPageId?: string;
     },
     ncMeta = Noco.ncMeta
   ) {
-    const pages = await this.list(
-      { bookId, parent_page_id, projectId },
-      ncMeta
-    );
+    const pages = await this.list({ parent_page_id, projectId }, ncMeta);
 
     if (keepPageId) {
       const kpPage = pages.splice(
@@ -477,36 +501,23 @@ export default class Page {
       await ncMeta.metaUpdate(
         null,
         null,
-        Page.tableName({ projectId, bookId }),
+        Page.tableName({ projectId }),
         {
           order: b.order,
-          book_id: b.book_id,
         },
         b.id
       );
     }
   }
 
-  public static tableName({
-    projectId,
-    bookId,
-  }: {
-    projectId: string;
-    bookId: string;
-  }) {
-    return Book.pages_table_name(projectId, bookId);
-  }
-
   private static async uniqueSlug(
     {
       title,
       projectId,
-      bookId,
       parent_page_id,
     }: {
       title: string;
       projectId: string;
-      bookId: string;
       parent_page_id?: string;
     },
     ncMeta = Noco.ncMeta
@@ -515,7 +526,7 @@ export default class Page {
     const count = await ncMeta.metaCount(
       null,
       null,
-      Page.tableName({ projectId, bookId }),
+      Page.tableName({ projectId }),
       {
         condition: {
           slug,
@@ -534,7 +545,7 @@ export default class Page {
       slugCount = await ncMeta.metaCount(
         null,
         null,
-        Page.tableName({ projectId, bookId }),
+        Page.tableName({ projectId }),
         {
           condition: {
             slug: newSlug,
@@ -548,83 +559,10 @@ export default class Page {
     }
   }
 
-  static async createPageTable(
-    { projectId, bookId }: { projectId: string; bookId: string },
-    ncMeta = Noco.ncMeta
-  ) {
-    const knex = ncMeta.knex;
-    await knex.schema.createTable(
-      Page.tableName({ projectId, bookId }),
-      (table) => {
-        table.string('id', 20).primary().notNullable();
-
-        table.string('book_id', 20).notNullable();
-        table.foreign('book_id').references(`${MetaTable.BOOK}.id`);
-
-        table.string('title', 150).notNullable();
-        table.string('published_title', 150);
-        table.text('description', 'longtext').defaultTo('');
-
-        table.text('content', 'longtext').defaultTo('');
-        table.text('published_content', 'longtext').defaultTo('');
-        table.string('slug', 150).notNullable();
-
-        table.boolean('is_parent').defaultTo(false);
-        table.string('parent_page_id', 20).nullable();
-        table
-          .foreign('parent_page_id')
-          .references(`${Page.tableName({ projectId, bookId })}.id`)
-          .withKeyName(`nc_page_parent_${uuidv4()}`);
-
-        table.boolean('is_published').defaultTo(false);
-        table.datetime('last_published_date').nullable();
-        table.string('last_published_by_id', 20).nullable();
-        table
-          .foreign('last_published_by_id')
-          .references(`${MetaTable.USERS}.id`)
-          .withKeyName(`nc_page_last_published_id_${uuidv4()}`);
-
-        table.string('last_updated_by_id', 20).nullable();
-        table
-          .foreign('last_updated_by_id')
-          .references(`${MetaTable.USERS}.id`)
-          .withKeyName(`nc_page_last_updated_id_${uuidv4()}`);
-
-        table.string('created_by_id', 20).notNullable();
-        table
-          .foreign('created_by_id')
-          .references(`${MetaTable.USERS}.id`)
-          .withKeyName(`nc_page_last_created_id_${uuidv4()}`);
-
-        table.timestamp('archived_date').nullable();
-        table.string('archived_by_id', 20).nullable();
-        table
-          .foreign('archived_by_id')
-          .references(`${MetaTable.USERS}.id`)
-          .withKeyName(`nc_page_last_archived_id_${uuidv4()}`);
-
-        table.text('metaJson', 'longtext').defaultTo('{}');
-
-        table.float('order');
-
-        table.string('icon');
-
-        table.datetime('created_at', { useTz: true });
-        table.datetime('updated_at', { useTz: true });
-      }
-    );
-  }
-
-  static async drafts({
-    projectId,
-    bookId,
-  }: {
-    projectId: string;
-    bookId: string;
-  }) {
+  static async drafts({ projectId }: { projectId: string }) {
     const knex = Noco.ncMeta.knex;
     const pages: DocsPageType[] = (await knex(
-      Page.tableName({ projectId, bookId })
+      Page.tableName({ projectId })
     ).orderBy('updated_at', 'asc')) as any;
 
     return pages.filter((p) => {
@@ -634,41 +572,35 @@ export default class Page {
 
   static async publish({
     projectId,
-    bookId,
     pageId,
     userId,
   }: {
     projectId: string;
-    bookId: string;
     pageId: string;
     userId: string;
   }) {
     const knex = Noco.ncMeta.knex;
-    const page = await this.get({ projectId, bookId, id: pageId });
+    const page = await this.get({ projectId, id: pageId });
 
     if (!page) throw new Error('Page not found');
 
-    await knex(Page.tableName({ projectId, bookId }))
-      .where({ id: pageId })
-      .update({
-        published_content: page.content,
-        published_title: page.title,
-        is_published: true,
-        last_published_date: new Date(),
-        last_published_by_id: userId,
-      });
+    await knex(Page.tableName({ projectId })).where({ id: pageId }).update({
+      published_content: page.content,
+      published_title: page.title,
+      is_published: true,
+      last_published_date: new Date(),
+      last_published_by_id: userId,
+    });
   }
 
   static async parents({
     projectId,
-    bookId,
     pageId,
   }: {
     projectId: string;
-    bookId: string;
     pageId: string;
   }) {
-    const page = await this.get({ projectId, bookId, id: pageId });
+    const page = await this.get({ projectId, id: pageId });
 
     if (!page) throw new Error('Page not found');
 
@@ -677,7 +609,6 @@ export default class Page {
     while (parent.parent_page_id) {
       parent = await this.get({
         projectId,
-        bookId,
         id: parent.parent_page_id,
       });
       parents.push(parent);
@@ -688,7 +619,6 @@ export default class Page {
 
   static async paginate({
     projectId,
-    bookId,
     pageNumber = 1,
     perPage = 10,
     orderBy = 'updated_at',
@@ -696,7 +626,6 @@ export default class Page {
     condition = {},
   }: {
     projectId: string;
-    bookId: string;
     pageNumber?: number;
     perPage?: number;
     orderBy?: string;
@@ -704,13 +633,13 @@ export default class Page {
     condition?: any;
   }) {
     const knex = Noco.ncMeta.knex;
-    const pages = await knex(Page.tableName({ projectId, bookId }))
+    const pages = await knex(Page.tableName({ projectId }))
       .where(condition)
       .orderBy(orderBy, order)
       .offset((pageNumber - 1) * perPage)
       .limit(perPage);
 
-    const total = await knex(Page.tableName({ projectId, bookId }))
+    const total = await knex(Page.tableName({ projectId }))
       .where(condition)
       .count('id as total')
       .first();
@@ -721,11 +650,38 @@ export default class Page {
     };
   }
 
+  static async search({
+    projectId,
+    query,
+    pageNumber = 1,
+    perPage = 10,
+    orderBy = 'updated_at',
+    order = 'desc',
+  }: {
+    projectId: string;
+    query: string;
+    pageNumber?: number;
+    perPage?: number;
+    orderBy?: string;
+    order?: 'asc' | 'desc';
+  }) {
+    const knex = Noco.ncMeta.knex;
+    const pages = await knex(Page.tableName({ projectId }))
+      .whereILike('title', `%${query}%`)
+      .orderBy(orderBy, order)
+      .offset((pageNumber - 1) * perPage)
+      .limit(perPage);
+
+    return {
+      pages,
+    };
+  }
+
   static async dropPageTable(
-    { projectId, bookId }: { projectId: string; bookId: string },
+    { projectId }: { projectId: string },
     ncMeta = Noco.ncMeta
   ) {
     const knex = ncMeta.knex;
-    await knex.schema.dropTable(Page.tableName({ projectId, bookId }));
+    await knex.schema.dropTable(Page.tableName({ projectId }));
   }
 }

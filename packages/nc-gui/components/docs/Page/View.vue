@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { EditorContent, FloatingMenu, useEditor } from '@tiptap/vue-3'
+import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import { TextSelection } from 'prosemirror-state'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
@@ -10,16 +10,16 @@ const isPublic = inject(IsDocsPublicInj, ref(false))
 const {
   openedPage: openedPageInternal,
   updateContent,
-  openedNestedPagesOfBook,
-  routePageSlugs,
+  openedNestedPages,
   nestedUrl,
   fetchPage,
   openPage,
+  openedPageId,
 } = useDocs()
 
 // Page opened in the Page component, which is updated to the server debounce-ly
-// The main reason we have it as a separate state, is since update syncing with server is debounced
-// We will run into syncing issue if we use `openedPage`from `useDocs`, which is synced with server directly,
+// Main reason is to speed up the page opening, as data from sidebar might take time
+// And the page content is not available in the sidebar, so we need to parallelly fetch it
 const localPage = ref<PageSidebarNode | undefined>()
 
 const wrapperRef = ref<HTMLDivElement | undefined>()
@@ -29,11 +29,13 @@ provide(DocsLocalPageInj, localPage)
 const content = computed(() => localPage.value?.content || '')
 
 const breadCrumbs = computed(() => {
-  const pagesBreadcrumbs = openedNestedPagesOfBook.value.map((page) => ({
-    title: page.title,
-    href: nestedUrl(page.slug!),
-    icon: page.icon,
-  }))
+  const pagesBreadcrumbs = openedNestedPages.value
+    .map((page) => ({
+      title: page.title,
+      href: nestedUrl(page.id!),
+      icon: page.icon,
+    }))
+    .reverse()
   return [...pagesBreadcrumbs]
 })
 
@@ -108,14 +110,9 @@ watchDebounced(
 )
 
 watch(
-  () => [routePageSlugs.value, openedPageInternal.value?.id],
-  async ([newSlug, newPageId], oldData) => {
-    if (!newSlug) return
-
-    if (oldData) {
-      const [oldSlug, oldPageId] = oldData!
-      if (oldSlug === newSlug || oldPageId === newPageId) return
-    }
+  openedPageId,
+  async () => {
+    if (!openedPageId.value) return
 
     localPage.value = undefined
 

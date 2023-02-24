@@ -4,13 +4,10 @@ import type { Ref } from 'vue'
 // import InfiniteLoading from 'v3-infinite-loading'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
-import type { PageSidebarNode } from '~~/composables/docs/useDocs'
+import type { PageSidebarNode } from '~composables/docs/useDocs'
+
 const { project } = useProject()
 const {
-  openedBook,
-  books,
-  selectBook,
-  createBook,
   createMagic,
   fetchNestedPages,
   addNewPage: _addNewPage,
@@ -20,18 +17,13 @@ const {
   // allPages,
   // allByTitle,
   openPage,
-  openChildPageOfRootPages,
+  openChildPageTabsOfRootPages,
   // fetchPublishedPages,
   // fetchAllPagesByTitle,
   // isOnlyBookOpened,
 } = useDocs()
 
 const showPublishModal = ref(false)
-
-const showCreateBookModal = ref(false)
-const bookFormModelData = ref({
-  title: '',
-})
 
 const activeTabKey = ref('all')
 // const activeTabPagination = ref(1)
@@ -117,11 +109,6 @@ const importFormData = ref({
 const isImporting = ref(false)
 const importType: Ref<'nuxt' | 'md' | 'docusaurus' | 'vitepress' | null> = ref(null)
 
-const onCreateBook = async () => {
-  await createBook({ book: { ...bookFormModelData.value } })
-  showCreateBookModal.value = false
-}
-
 const openMagicModal = () => {
   magicModalOpen.value = true
 }
@@ -136,8 +123,8 @@ const onMagic = async () => {
   try {
     await createMagic(magicFormData.value.title)
     magicFormData.value.title = ''
-    await fetchNestedPages({ book: openedBook.value! })
-    await openChildPageOfRootPages()
+    await fetchNestedPages()
+    await openChildPageTabsOfRootPages()
   } catch (e) {
     console.error(e)
   } finally {
@@ -150,8 +137,8 @@ const onImport = async () => {
   isImporting.value = true
   try {
     await createImport(importFormData.value.title, 'nuxt')
-    await fetchNestedPages({ book: openedBook.value! })
-    await openChildPageOfRootPages()
+    await fetchNestedPages()
+    await openChildPageTabsOfRootPages()
   } catch (e) {
     console.error(e)
   } finally {
@@ -278,53 +265,6 @@ const closeMagicModal = () => {
                     <div class="flex">Import</div>
                   </div>
                 </div>
-              </template>
-            </a-dropdown>
-            <a-dropdown trigger="click" placement="bottomLeft">
-              <div
-                class="my-1 pl-3 pr-1.5 rounded-md py-1 border-1 flex flex-row max-w-30 mr-4 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-opacity-75"
-                :style="{ borderColor: '#f4f4f4' }"
-              >
-                <div class="flex" :style="{ fontWeight: 600, fontSize: '0.75rem' }">
-                  {{ openedBook?.title }}
-                </div>
-                <MdiMenuDown />
-              </div>
-              <template #overlay>
-                <div class="flex flex-col bg-gray-100 shadow-gray-300 shadow-sm w-48 p-1 rounded-md gap-y-1">
-                  <div
-                    class="flex flex-row items-center text-xs gap-x-2 py-2.5 px-1.5 pl-2 cursor-pointer rounded-md justify-between hover:bg-gray-200"
-                    :style="{ fontWeight: 500 }"
-                    @click="showCreateBookModal = true"
-                  >
-                    <div class="flex">Create new version</div>
-                    <MdiPlus class="flex" />
-                  </div>
-                  <div class="flex border-t-1 border-gray-200 mx-1"></div>
-                  <div
-                    v-for="book in books"
-                    :key="book.id"
-                    class="flex flex-row items-center text-xs gap-x-2 p-1.5 pl-2 cursor-pointer rounded-md justify-between hover:bg-gray-200"
-                    :class="{ 'bg-gray-200': book.id === openedBook?.id }"
-                    @click="() => selectBook(book)"
-                  >
-                    <div class="flex">
-                      {{ book.title }}
-                    </div>
-                    <div
-                      v-if="book.is_published"
-                      class="flex px-1 border-1 rounded-md items-center gap-x-1.5 border-green-500 text-green-600 bg-green-50"
-                    >
-                      <div class="flex" :style="{ fontSize: '0.6rem' }">Published</div>
-                    </div>
-                  </div>
-                </div>
-                <!-- <a-menu>
-                  <a-menu-item class="!py-2" @click="showCreateBookModal = true"> Create new version </a-menu-item>
-                  <a-menu-item v-for="book in books" :key="book.id" class="!py-2" @click="() => selectBook(book)">
-                    {{ book.title }}
-                  </a-menu-item>
-                </a-menu> -->
               </template>
             </a-dropdown>
           </div>
@@ -459,14 +399,13 @@ const closeMagicModal = () => {
       </div>
     </div>
     <DocsBookPublishModal :model-value="showPublishModal" @update:model-value="showPublishModal = $event" />
-    <DocsBookVersions :model-value="showCreateBookModal" @update:model-value="showCreateBookModal = $event" />
     <a-modal
       :visible="magicModalOpen"
       :closable="false"
       ok-text="Submit"
       class="docs-magic-modal"
-      :ok-button-props="{ hidden: true }"
-      :cancel-button-props="{ hidden: true }"
+      :ok-button-props="{ hidden: true } as any"
+      :cancel-button-props="{ hidden: true } as any"
       :footer="null"
       :centered="true"
     >

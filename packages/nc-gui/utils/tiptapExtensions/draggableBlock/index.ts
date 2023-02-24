@@ -65,11 +65,7 @@ export const DraggableBlock = Node.create<DBlockOptions>({
               const target = event.target as HTMLElement
               const parent = target.parentElement
 
-              if (
-                target?.getAttribute('tiptap-draghandle-wrapper') !== 'true' &&
-                target?.getAttribute('tiptap-draghandle') !== 'true' &&
-                parent?.getAttribute('tiptap-draghandle') !== 'true'
-              ) {
+              if (!event.dataTransfer?.getData('text/html').includes('data-type="d-block"')) {
                 return false
               }
 

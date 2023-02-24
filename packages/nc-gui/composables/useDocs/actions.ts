@@ -1,5 +1,5 @@
 import { message } from 'ant-design-vue'
-import type { BookType, DocsPageType } from 'nocodb-sdk'
+import type { DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
 import { extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 import type { PageSidebarNode } from '~~/lib'
@@ -14,65 +14,23 @@ export const actions = () => {
 
   const {
     isFetching,
-    books,
-    isBookErrored,
+
     nestedPages,
     openedPage,
-    openedBook,
     isPageErrored,
-    isBookUpdating,
     routePageSlugs,
     openedTabs,
-    routeBookSlug,
-    isBulkPublishing,
   } = states()
 
-  const selectBook = async (book: BookType) => {
-    await fetchNestedPages({ book })
-    navigateTo(bookUrl(book.slug!))
-  }
-
-  const fetchBooks = async () => {
-    isFetching.value.books = true
-    try {
-      books.value = await $api.nocoDocs.listBooks({ projectId: projectId! })
-
-      return books
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
-    } finally {
-      isFetching.value.books = false
-    }
-  }
-
-  const fetchPublicBook = async ({ projectId, slug }: { projectId: string; slug?: string }) => {
-    isFetching.value.books = true
-    isBookErrored.value = false
-    try {
-      const book = await $api.nocoDocs.getPublicBook(slug ?? 'latest', { projectId })
-      books.value = [book]
-
-      return books
-    } catch (e) {
-      console.log(e)
-      isBookErrored.value = true
-    } finally {
-      isFetching.value.books = false
-    }
-  }
-
-  async function fetchNestedPages({ book }: { book: BookType }) {
+  async function fetchNestedPages() {
     isFetching.value.nestedPages = true
     try {
       const nestedDocTree = isPublic.value
         ? await $api.nocoDocs.listPublicPages({
             projectId: projectId!,
-            bookId: book.id!,
           })
         : await $api.nocoDocs.listPages({
             projectId: projectId!,
-            bookId: book.id!,
           })
 
       // traverse tree and add `isLeaf` and `key` properties
@@ -80,13 +38,13 @@ export const actions = () => {
         pages.forEach((p) => {
           p.isLeaf = !p.is_parent
           p.key = p.id!
-          p.parentNodeId = parentNode.id
+          p.parentNodeId = parentNode?.id
 
           if (p.children) traverse(p, p.children)
         })
       }
 
-      traverse(book, nestedDocTree as any)
+      traverse(undefined, nestedDocTree as any)
 
       nestedPages.value = nestedDocTree as any
 
@@ -99,24 +57,14 @@ export const actions = () => {
     }
   }
 
-  const fetchPage = async ({ page, book }: { page?: PageSidebarNode; book?: BookType } = {}) => {
-    book = book ?? openedBook.value
+  const fetchPage = async ({ page }: { page?: PageSidebarNode } = {}) => {
+    const pageId = page?.id || routePageSlugs.value?.[0]
+    if (!pageId) throw new Error('No page id or slug provided')
 
     try {
-      if (page?.id) {
-        return await $api.nocoDocs.getPage(page?.id, {
-          projectId: projectId!,
-          bookId: book!.id!,
-        })
-      } else if (routePageSlugs.value) {
-        return await $api.nocoDocs.getPageBySlug({
-          projectId: projectId!,
-          bookId: book!.id!,
-          nestedSlug: routePageSlugs.value.join('/'),
-        })
-      } else {
-        throw new Error('No page id or slug provided')
-      }
+      return await $api.nocoDocs.getPage(pageId, {
+        projectId: projectId!,
+      })
     } catch (e) {
       console.log(e)
       isPageErrored.value = true
@@ -124,75 +72,17 @@ export const actions = () => {
     }
   }
 
-  // const fetchPublishedPages = async ({ pageNumber, clear }: { pageNumber: number; clear?: boolean }) => {
-  //   try {
-  //     const docs = await $api.nocoDocs.paginatePages({
-  //       projectId: projectId!,
-  //       perPage: PAGES_PER_PAGE_LIST,
-  //       bookId: openedBook.value!.id!,
-  //       pageNumber,
-  //       filterField: 'is_published',
-  //       filterFieldValue: '1',
-  //     })
-  //     if (clear) publishedPages.value = []
-
-  //     const newPages = docs.pages?.map((d) => ({ ...d, isLeaf: !d.is_parent, key: d.id!, parentNodeId: d.book_id })) || []
-  //     publishedPages.value = [...publishedPages.value, ...newPages]
-  //     return { pages: newPages, total: (docs as any).total }
-  //   } catch (e) {
-  //     console.log(e)
-  //     message.error(await extractSdkResponseErrorMsg(e as any))
-  //   }
-  // }
-
-  async function openChildPagesFromRoute() {
-    if (routePageSlugs.value[0] === '') return
-
-    let parentPage: PageSidebarNode | undefined = nestedPages.value.find((page) => page.slug === routePageSlugs.value[0])
-    if (!parentPage) {
-      isPageErrored.value = true
-      return
-    }
-
-    const pagesIds = []
-    for (const slug of routePageSlugs.value) {
-      parentPage = findPage(slug)
-      if (!parentPage) {
-        isPageErrored.value = true
-        return
-      }
-
-      pagesIds.push(parentPage.id!)
-    }
-
-    for (const id of pagesIds) {
-      if (!openedTabs.value.includes(id)) {
-        openedTabs.value.push(id)
-      }
-    }
-  }
-
-  const createPage = async ({
-    page,
-    bookId,
-    nodeOverrides,
-  }: {
-    page: DocsPageType
-    bookId: string
-    nodeOverrides?: Record<string, any>
-  }) => {
-    const book = books.value.find((b) => b.id === bookId)! || openedBook.value!
+  const createPage = async ({ page, nodeOverrides }: { page: DocsPageType; nodeOverrides?: Record<string, any> }) => {
     try {
       let createdPageData = await $api.nocoDocs.createPage({
         attributes: page,
         projectId: projectId!,
-        bookId: book.id!,
       })
 
       if (nodeOverrides) createdPageData = { ...createdPageData, ...nodeOverrides }
 
       if (page.parent_page_id) {
-        const parentPage = findPage(page.parent_page_id)
+        const parentPage = findPage(nestedPages.value, page.parent_page_id)
         if (!parentPage) return
 
         if (!parentPage.children) parentPage.children = []
@@ -209,7 +99,7 @@ export const actions = () => {
           ...createdPageData,
           isLeaf: !createdPageData.is_parent,
           key: createdPageData.id!,
-          parentNodeId: book.id,
+          parentNodeId: undefined,
           children: [],
         })
       }
@@ -225,45 +115,10 @@ export const actions = () => {
     }
   }
 
-  const createBook = async ({ book, navigate = true }: { book: BookType; navigate?: boolean }) => {
-    try {
-      const createdBook = await $api.nocoDocs.createBook({
-        attributes: book,
-        projectId: projectId!,
-      })
-
-      books.value.push(createdBook)
-
-      nestedPages.value = []
-
-      if (navigate) {
-        navigateTo(bookUrl(createdBook.slug!))
-      }
-
-      return createdBook
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
-    }
-  }
-
-  const deleteBook = async ({ id }: { id: string }) => {
-    try {
-      await $api.nocoDocs.deleteBook(id, {
-        projectId: projectId!,
-      })
-
-      books.value = books.value.filter((book) => book.id !== id)
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e as any))
-    }
-  }
-
   const addNewPage = async (parentPageId?: string) => {
     let dummyTitle = 'Page'
     let conflictCount = 0
-    const parentPage = parentPageId && findPage(parentPageId)
+    const parentPage = parentPageId && findPage(nestedPages.value, parentPageId)
     const _pages = parentPage ? parentPage.children : nestedPages.value
 
     while (_pages?.find((page) => page.title === dummyTitle)) {
@@ -277,21 +132,19 @@ export const actions = () => {
         parent_page_id: parentPageId,
         content: '',
       },
-      bookId: openedBook.value!.id!,
       nodeOverrides: {
         new: true,
       },
     })
   }
 
-  const deletePage = async ({ pageId, bookId }: { pageId: string; bookId?: string }) => {
-    const book = bookId ? books.value.find((b) => b.id === bookId)! : openedBook.value!
+  const deletePage = async ({ pageId }: { pageId: string }) => {
     try {
-      const page = findPage(pageId)
-      await $api.nocoDocs.deletePage(pageId, { projectId: projectId!, bookId: book.id! })
+      const page = findPage(nestedPages.value, pageId)
+      await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
 
       if (page?.parent_page_id) {
-        const parentPage = findPage(page.parent_page_id)
+        const parentPage = findPage(nestedPages.value, page.parent_page_id)
         if (!parentPage) return
 
         parentPage.children = parentPage.children?.filter((p) => p.id !== pageId)
@@ -300,48 +153,43 @@ export const actions = () => {
         nestedPages.value = nestedPages.value.filter((p) => p.id !== pageId)
       }
 
-      navigateTo(page?.parent_page_id ? nestedUrl(page.parent_page_id) : bookUrl(book.slug!))
+      navigateTo(nestedUrl(page?.parent_page_id))
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
 
-  function bookUrl(bookSlug: string, { completeUrl, publicMode }: { completeUrl?: boolean; publicMode?: boolean } = {}) {
-    const publicSlug = routeBookSlug.value ?? bookSlug
-    const showPublicUrl = publicMode ?? isPublic.value
+  const nestedSlugsFromPageId = (id: string | undefined) => {
+    if (!id) return []
 
-    const path: string = showPublicUrl ? `/nc/doc/${projectId!}/public/${publicSlug}` : `/nc/doc/${projectId!}/${bookSlug}`
-    return completeUrl ? `${window.location.origin}/#${path}` : path
-  }
-
-  function nestedUrl(id: string) {
-    const page = findPage(id)!
+    const page = findPage(nestedPages.value, id)!
     const slugs = []
     let parentPage = page
     while (parentPage?.parentNodeId) {
       slugs.unshift(parentPage!.slug!)
-      parentPage = findPage(parentPage.parentNodeId)!
+      parentPage = findPage(nestedPages.value, parentPage.parentNodeId)!
     }
+    slugs.unshift(parentPage.slug!)
 
-    return urlFromPageSlugs(slugs)
+    return slugs
   }
 
-  function urlFromPageSlugs(pageSlugs: string[]) {
-    const publicBookSlug = routeBookSlug.value ?? books.value[0].slug!
-    const url = isPublic.value
-      ? `/nc/doc/${projectId!}/public/${publicBookSlug}/${pageSlugs.join('/')}`
-      : `/nc/doc/${projectId!}/${openedBook.value!.slug!}/${pageSlugs.join('/')}`
-    return url
+  function projectUrl() {
+    return isPublic.value ? `/nc/doc/${projectId!}/public` : `/nc/doc/${projectId!}`
+  }
+
+  function nestedUrl(id: string | undefined) {
+    const nestedSlugs = nestedSlugsFromPageId(id)
+    return isPublic.value ? `/nc/doc/${projectId!}/public/${id}` : `/nc/doc/${projectId!}/${id}/${nestedSlugs.join('/')}`
   }
 
   const createMagic = async (title: string) => {
     try {
       await $api.nocoDocs.createBookMagic({
-        bookId: openedBook.value!.id!,
         projectId: projectId!,
         title,
-      })
+      } as any)
     } catch (e) {
       message.warning('NocoAI failed for the demo reasons. Please try again.')
     }
@@ -351,7 +199,6 @@ export const actions = () => {
     try {
       const rs = gh(url)
       await $api.nocoDocs.importBook({
-        bookId: openedBook.value!.id!,
         user: rs!.owner!,
         repo: rs!.name!,
         branch: rs!.branch!,
@@ -359,39 +206,19 @@ export const actions = () => {
         projectId: projectId!,
         type,
         from,
-      })
+      } as any)
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
 
-  function findPage(pageIdOrSlug: string) {
-    // traverse the tree and find the parent page
-    const findPageInTree = (_pages: PageSidebarNode[], _pageIdOrSlug: string): PageSidebarNode | undefined => {
-      if (!_pages) {
-        console.error('nestedPages is undefined:', { _pageIdOrSlug, pageIdOrSlug, _pages })
-      }
-      for (const page of _pages) {
-        if (page.id === _pageIdOrSlug || page.slug === _pageIdOrSlug) return page
-
-        if (page.children) {
-          const foundPage = findPageInTree(page.children, _pageIdOrSlug)
-          if (foundPage) return foundPage
-        }
-      }
-    }
-
-    return findPageInTree(nestedPages.value, pageIdOrSlug)
-  }
-
   const updatePage = async ({ pageId, page }: { pageId: string; page: Partial<PageSidebarNode> }) => {
     const updatedPage = await $api.nocoDocs.updatePage(pageId, {
       attributes: page as any,
       projectId: projectId!,
-      bookId: openedBook.value!.id!,
     })
-    const foundPage = findPage(pageId)!
+    const foundPage = findPage(nestedPages.value, pageId)!
     if (page.title) {
       // todo: Update the page in a better way
       foundPage.slug = updatedPage.slug
@@ -412,24 +239,11 @@ export const actions = () => {
       await $api.nocoDocs.updatePage(pageId, {
         attributes: { content } as any,
         projectId: projectId!,
-        bookId: openedBook.value!.id!,
       })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
     }
-  }
-
-  const navigateToFirstBook = async () => {
-    const book = books.value[0]
-    await fetchNestedPages({ book })
-    await navigateTo(bookUrl(book.slug!))
-  }
-
-  const navigateToLastBook = async () => {
-    const book = books.value[books.value.length - 1]
-    await fetchNestedPages({ book })
-    navigateTo(bookUrl(book.slug!))
   }
 
   const reorderPages = async ({
@@ -441,10 +255,10 @@ export const actions = () => {
     targetNodeId?: string
     index: number
   }) => {
-    const sourceNode = findPage(sourceNodeId)!
-    const targetNode = targetNodeId ? findPage(targetNodeId) : undefined
+    const sourceNode = findPage(nestedPages.value, sourceNodeId)!
+    const targetNode = targetNodeId ? findPage(nestedPages.value, targetNodeId) : undefined
 
-    const sourceParentNode = findPage(sourceNode.parent_page_id!)
+    const sourceParentNode = findPage(nestedPages.value, sourceNode.parent_page_id!)
     const sourceNodeSiblings = sourceParentNode ? sourceParentNode.children! : nestedPages.value
 
     sourceNodeSiblings.splice(
@@ -458,10 +272,10 @@ export const actions = () => {
     const targetNodeSiblings = targetNode ? targetNode.children! : nestedPages.value
 
     sourceNode.parent_page_id = targetNode?.id
-    sourceNode.parentNodeId = targetNode?.id || openedBook.value!.id
+    sourceNode.parentNodeId = targetNode?.id
     targetNodeSiblings.splice(index, 0, sourceNode)
 
-    const node = findPage(sourceNodeId)!
+    const node = findPage(nestedPages.value, sourceNodeId)!
     await updatePage({ pageId: sourceNodeId, page: { order: index + 1, parent_page_id: targetNode?.id } as any })
 
     navigateTo(nestedUrl(node.id!))
@@ -477,7 +291,7 @@ export const actions = () => {
     const parents: PageSidebarNode[] = []
     let parent: PageSidebarNode | undefined = page
     while (parent.parent_page_id) {
-      parent = findPage(parent.parent_page_id!)
+      parent = findPage(nestedPages.value, parent.parent_page_id!)
       if (!parent) break
 
       parents.push(parent)
@@ -488,13 +302,13 @@ export const actions = () => {
   const getChildrenOfPage = (pageId?: string) => {
     if (!pageId) return nestedPages.value
 
-    const page = findPage(pageId!)
+    const page = findPage(nestedPages.value, pageId!)
     if (!page) return []
 
     return page.children || []
   }
 
-  const openChildPageOfRootPages = async () => {
+  const openChildPageTabsOfRootPages = async () => {
     for (const page of nestedPages.value) {
       if (!page.is_parent) continue
 
@@ -504,17 +318,22 @@ export const actions = () => {
     }
   }
 
-  // The page/its parents might not be in nestedPage list
-  const openPage = async (page: PageSidebarNode) => {
-    const parents = await $api.nocoDocs.parentPages({
-      bookId: openedBook.value!.id!,
-      pageId: page.id!,
-      projectId: projectId!,
-    })
+  const expandTabOfOpenedPage = () => {
+    if (!openedPage.value) throw new Error('openedPage is not defined')
 
-    const url = urlFromPageSlugs([...parents.map((p) => p.slug!).reverse(), page.slug!])
+    const pagesWithParents = getPageWithParents(openedPage.value)
+    for (const page of pagesWithParents) {
+      if (!openedTabs.value.includes(page.id!)) {
+        openedTabs.value.push(page.id!)
+      }
+    }
+    openedTabs.value = [...openedTabs.value]
+  }
+
+  const openPage = async (page: PageSidebarNode) => {
+    const url = nestedUrl(page.id!)
+
     await navigateTo(url)
-    openChildPagesFromRoute()
   }
 
   const uploadFile = async (file: File) => {
@@ -522,7 +341,7 @@ export const actions = () => {
     const randomId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     const data = await $api.storage.upload(
       {
-        path: [NOCO, projectId, openedBook.value!.id, randomId].join('/'),
+        path: [NOCO, projectId, randomId].join('/'),
       },
       {
         files: file,
@@ -531,27 +350,6 @@ export const actions = () => {
     )
 
     return data[0]?.path ? `${appInfo.ncSiteUrl}/${data[0].path}` : ''
-  }
-
-  const bulkPublish = async (toBePublishedPages: Array<PageSidebarNode & { isSelected: boolean }>) => {
-    isBulkPublishing.value = true
-    try {
-      await $api.nocoDocs.batchPublishPages({
-        projectId: projectId!,
-        bookId: openedBook.value!.id!,
-        pageIds: toBePublishedPages.map((p) => p.id!),
-      })
-      toBePublishedPages.forEach((draft) => {
-        const page = findPage(draft.id!)
-        if (page) {
-          page.is_published = true
-          page.published_content = page.content
-          page.published_title = page.title
-        }
-      })
-    } finally {
-      isBulkPublishing.value = false
-    }
   }
 
   async function navigateToFirstPage() {
@@ -563,7 +361,6 @@ export const actions = () => {
     const id = pageId || openedPage.value!.id!
     const response = await $api.nocoDocs.magicExpandText({
       projectId: projectId!,
-      bookId: openedBook.value!.id!,
       pageId: id,
       text,
     })
@@ -574,67 +371,60 @@ export const actions = () => {
     const id = pageId || openedPage.value!.id!
     const response = await $api.nocoDocs.magicOutlinePage({
       projectId: projectId!,
-      bookId: openedBook.value!.id!,
       pageId: id,
     })
     return response
   }
 
-  const updateBook = async (bookId: string, attributes: Partial<BookType>) => {
-    isBookUpdating.value = true
-    try {
-      const response = await $api.nocoDocs.updateBook(bookId, {
-        projectId: projectId!,
-        attributes,
-      })
-      const index = books.value.findIndex((b) => b.id === bookId)
-      books.value[index] = response
-    } catch (e) {
-      console.error(e)
-      message.error('Failed to update book')
-    } finally {
-      isBookUpdating.value = false
-    }
-  }
-
   const getParentOfPage = (pageId: string) => {
-    const page = findPage(pageId)
+    const page = findPage(nestedPages.value, pageId)
     if (!page) return undefined
     if (!page.parent_page_id) return undefined
 
-    return findPage(page.parent_page_id)
+    return findPage(nestedPages.value, page.parent_page_id)
   }
 
   return {
-    fetchBooks,
-    fetchPublicBook,
     fetchPage,
-    selectBook,
     openPage,
-    openChildPageOfRootPages,
-    openChildPagesFromRoute,
+    openChildPageTabsOfRootPages,
     fetchNestedPages,
-    bookUrl,
-    createBook,
     createPage,
     updatePage,
     deletePage,
-    deleteBook,
-    updateBook,
     addNewPage,
     createMagic,
     updateContent,
-    navigateToFirstBook,
-    navigateToLastBook,
     getChildrenOfPage,
     createImport,
     reorderPages,
-    bulkPublish,
     uploadFile,
     navigateToFirstPage,
     magicExpand,
     magicOutline,
     getParentOfPage,
     nestedUrl,
+    nestedSlugsFromPageId,
+    projectUrl,
+    expandTabOfOpenedPage,
   }
+}
+
+export function findPage(nestedPages: PageSidebarNode[], pageId: string) {
+  // traverse the tree and find the parent page
+  const findPageInTree = (_pages: PageSidebarNode[], _pageId: string): PageSidebarNode | undefined => {
+    if (!_pages) {
+      console.error('nestedPages is undefined:', { _pageId, pageId, _pages })
+    }
+    for (const page of _pages) {
+      if (page.id === _pageId) return page
+
+      if (page.children) {
+        const foundPage = findPageInTree(page.children, _pageId)
+        if (foundPage) return foundPage
+      }
+    }
+  }
+
+  return findPageInTree(nestedPages, pageId)
 }

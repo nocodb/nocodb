@@ -1,36 +1,24 @@
-import type { BookType } from 'nocodb-sdk'
+import { findPage } from './actions'
 import type { PageSidebarNode } from '~~/lib'
 
 const [setup, use] = useInjectionState(() => {
   const route = useRoute()
-  const isPublic = inject(IsDocsPublicInj, ref(false))
 
   const isPageErrored = ref<boolean>(false)
-  const isBookErrored = ref<boolean>(false)
 
   const isFetching = ref({
-    books: true,
     nestedPages: true,
     page: true,
   })
-
-  const isBulkPublishing = ref<boolean>(false)
-
-  const books = ref<BookType[]>([])
 
   const openedNestedPagesOfBook = ref([] as PageSidebarNode[])
 
   const nestedPages = ref<PageSidebarNode[]>([])
 
-  // const allPages = ref<PageSidebarNode[] | undefined>(undefined)
-  // const publishedPages = ref<PageSidebarNode[]>([])
-  // const allByTitle = ref<PageSidebarNode[]>([])
-
-  const isBookUpdating = ref<boolean>(false)
   const openedTabs = ref<string[]>([])
 
   const isErrored = computed<boolean>(() => {
-    return isPageErrored.value || isBookErrored.value
+    return isPageErrored.value
   })
 
   const slugs = computed<string[]>(() => {
@@ -39,20 +27,12 @@ const [setup, use] = useInjectionState(() => {
     return Array.isArray(slugs) ? slugs.filter((slug) => slug !== '') : []
   })
 
-  const routeBookSlug = computed<string | undefined>(() => {
-    return slugs.value[0]
-  })
-
   const routePageSlugs = computed<string[]>(() => {
-    return slugs.value.filter((_, i) => i > 0)
+    return slugs.value.filter((slug) => slug !== '')
   })
 
-  const openedBook = computed<BookType | undefined>(() => {
-    if (isPublic.value) return books.value?.length > 0 ? books.value[0] : undefined
-
-    if (!routeBookSlug.value) return undefined
-
-    return books.value.find((b) => b.slug === routeBookSlug.value)
+  const isNoPageOpen = computed<boolean>(() => {
+    return routePageSlugs.value.length === 0
   })
 
   const flattenedNestedPages = computed(() => {
@@ -75,39 +55,31 @@ const [setup, use] = useInjectionState(() => {
     return flatten(nestedPages.value)
   })
 
-  const isOnlyBookOpened = computed(
-    () => openedBook.value && openedNestedPagesOfBook.value.length === 0 && slugs.value.length === 1,
-  )
+  const openedPageId = computed(() => {
+    if (routePageSlugs.value.length === 0) return undefined
+
+    return routePageSlugs.value[0]
+  })
 
   const openedPage = computed(() => {
     if (routePageSlugs.value.length === 0) return undefined
     if (isFetching.value.nestedPages) return undefined
 
-    return openedNestedPagesOfBook.value.length > 0
-      ? openedNestedPagesOfBook.value[openedNestedPagesOfBook.value.length - 1]
-      : undefined
+    return findPage(nestedPages.value, routePageSlugs.value[0])
   })
 
   return {
     isPageErrored,
-    isBookErrored,
     isFetching,
-    isBulkPublishing,
-    books,
     nestedPages,
-    // allPages,
-    // publishedPages,
-    // allByTitle,
-    isBookUpdating,
     openedTabs,
     isErrored,
-    routeBookSlug,
     routePageSlugs,
-    openedBook,
     flattenedNestedPages,
-    isOnlyBookOpened,
     openedPage,
     openedNestedPagesOfBook,
+    isNoPageOpen,
+    openedPageId,
   }
 }, 'useDocs')
 

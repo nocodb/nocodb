@@ -1,8 +1,8 @@
 
-import { BookType, DocsPageType, ProjectType, UserType } from "nocodb-sdk";
+import { DocsPageType, ProjectType, UserType } from "nocodb-sdk";
 import Page from "../../../src/lib/models/Page";
 
-const createPage = async ({attributes, user, project, book}:{attributes?: Partial<DocsPageType>, user: UserType, project: ProjectType; book: BookType}): Promise<DocsPageType> => {
+const createPage = async ({attributes, user, project}:{attributes?: Partial<DocsPageType>, user: UserType, project: ProjectType}): Promise<DocsPageType> => {
   return await Page.create({
     attributes: {
       title: 'Test Page',
@@ -11,39 +11,39 @@ const createPage = async ({attributes, user, project, book}:{attributes?: Partia
       ...attributes
     } as any,
     projectId: project.id!,
-    bookId: book.id!,
+    
     user,
   });
 }
 
-const getPage = async ({id, user, project, book}:{id: string, user: UserType, project: ProjectType, book: BookType}): Promise<DocsPageType> => {
+const getPage = async ({id, user, project}:{id: string, user: UserType, project: ProjectType}): Promise<DocsPageType> => {
   return await Page.get({
     id,
     projectId: project.id!,
-    bookId: book.id!,
+    
   });
 }
 
-const booksCount = async ({user, project, book}:{user: UserType, project: ProjectType, book: BookType}): Promise<number> => {
+const booksCount = async ({user, project}:{user: UserType, project: ProjectType}): Promise<number> => {
   return await Page.count({
     projectId: project.id!,
-    bookId: book.id!,
+    
   });
 }
 
-const listPages = async ({user, project, book}:{user: UserType, project: ProjectType, book: BookType}): Promise<DocsPageType[]> => {
+const listPages = async ({user, project}:{user: UserType, project: ProjectType}): Promise<DocsPageType[]> => {
   return await Page.list({
     projectId: project.id!,
-    bookId: book.id!,
+    
   });
 }
 
-const updatePage = async ({id, attributes, user, project, book}:{id: string, attributes: Partial<DocsPageType>, user: UserType, project: ProjectType, book: BookType}): Promise<DocsPageType> => {
+const updatePage = async ({id, attributes, user, project}:{id: string, attributes: Partial<DocsPageType>, user: UserType, project: ProjectType}): Promise<DocsPageType> => {
   return await Page.update({
     pageId: id,
     attributes,
     projectId: project.id!,
-    bookId: book.id!,
+    
     user,
   });
 }

@@ -10,7 +10,13 @@ const emits = defineEmits(['update:modelValue'])
 
 const isOpen = useVModel(props, 'modelValue', emits)
 
-const { bulkPublish, fetchDrafts, drafts, nestedDrafts, openedBook } = useDocs()
+const {
+  bulkPublish,
+  fetchDrafts,
+  // drafts,
+  nestedDrafts,
+  openedBook,
+} = useDocs()
 
 const formStatus = ref<'notSubmited' | 'submitting' | 'submitted'>('notSubmited')
 const draftsFormTree = ref<Array<PublishTreeNode>>([])
@@ -82,8 +88,8 @@ const publishDrafts = async () => {
     :closable="false"
     ok-text="Publish"
     class="docs-publish-modal"
-    :ok-button-props="{ hidden: true }"
-    :cancel-button-props="{ hidden: true }"
+    :ok-button-props="{ hidden: true } as any"
+    :cancel-button-props="{ hidden: true } as any"
     :footer="null"
     :centered="true"
   >

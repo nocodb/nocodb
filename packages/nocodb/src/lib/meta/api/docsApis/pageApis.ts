@@ -5,6 +5,7 @@ import Page from '../../../models/Page';
 import { UserType } from 'nocodb-sdk';
 import { NcError } from '../../helpers/catchError';
 import Project from '../../../models/Project';
+
 const { Configuration, OpenAIApi } = require('openai');
 
 const configuration = new Configuration({
@@ -22,7 +23,6 @@ async function get(
     const page = await Page.get({
       id: req.params.id,
       projectId: req.query?.projectId as string,
-      bookId: req.query?.bookId as string,
     });
 
     res.json(page);
@@ -41,7 +41,6 @@ async function getBySlug(
     const page = await Page.getBySlug({
       nestedSlug: req.query?.nestedSlug as string,
       projectId: req.query?.projectId as string,
-      bookId: req.query?.bookId as string,
     });
 
     res.json(page);
@@ -58,7 +57,6 @@ async function list(
 ) {
   try {
     const pages = await Page.nestedList({
-      bookId: req.query?.bookId as string,
       projectId: req.query?.projectId as string,
     });
 
@@ -78,7 +76,7 @@ async function create(
   try {
     const page = await Page.create({
       attributes: req.body.attributes,
-      bookId: req.body.bookId,
+
       projectId: req.body.projectId as string,
       user: (req as any)?.session?.passport?.user as UserType,
     });
@@ -101,10 +99,32 @@ async function update(
       attributes: req.body.attributes,
       projectId: req.body.projectId as string,
       user: (req as any)?.session?.passport?.user as UserType,
-      bookId: req.body.bookId,
     });
 
     res.json(page);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
+async function search(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const pages = await Page.search({
+      projectId: req.query?.projectId as string,
+
+      query: req.query?.query as string,
+      pageNumber: req.query?.pageNumber
+        ? parseInt(req.query?.pageNumber as string)
+        : 1,
+    });
+
+    res // todo: pagination
+      .json(pages);
   } catch (e) {
     console.log(e);
     next(e);
@@ -120,7 +140,6 @@ async function deletePage(
     await Page.delete({
       id: req.params.id,
       projectId: req.query?.projectId as string,
-      bookId: req.query?.bookId,
     });
 
     res.json({});
@@ -137,7 +156,6 @@ async function drafts(
 ) {
   try {
     const drafts = await Page.drafts({
-      bookId: req.query?.bookId as string,
       projectId: req.query?.projectId as string,
     });
 
@@ -162,13 +180,12 @@ async function batchPublish(
     }
 
     const user = (req as any)?.session?.passport?.user as UserType;
-    const { projectId, bookId } = req.body;
+    const { projectId } = req.body;
 
     for (const pageId of req.body.pageIds) {
       await Page.publish({
         pageId,
         projectId,
-        bookId,
         userId: user.id,
       });
     }
@@ -194,14 +211,12 @@ async function magicExpand(
       await Page.parents({
         pageId: req.body.pageId,
         projectId: req.body.projectId,
-        bookId: req.body.bookId,
       })
     ).map((p) => p.title);
 
     const page = await Page.get({
       id: req.body.pageId,
       projectId: req.body.projectId,
-      bookId: req.body.bookId,
     });
 
     const markDownText = req.body.text;
@@ -251,14 +266,12 @@ async function magicOutline(
       await Page.parents({
         pageId: req.body.pageId,
         projectId: req.body.projectId,
-        bookId: req.body.bookId,
       })
     ).map((p) => p.title);
 
     const page = await Page.get({
       id: req.body.pageId,
       projectId: req.body.projectId,
-      bookId: req.body.bookId,
     });
 
     try {
@@ -301,7 +314,6 @@ async function paginate(
   try {
     const {
       projectId,
-      bookId,
       pageNumber,
       perPage,
       filterField,
@@ -315,7 +327,6 @@ async function paginate(
 
     const data = await Page.paginate({
       projectId,
-      bookId,
       pageNumber: parseInt(pageNumber, 10),
       perPage: parseInt(perPage, 10),
       condition: filterField ? { [filterField]: filterFieldValue } : {},
@@ -336,12 +347,11 @@ async function pageParents(
   next
 ) {
   try {
-    const { pageId, projectId, bookId } = req.query as Record<string, string>;
+    const { pageId, projectId } = req.query as Record<string, string>;
 
     const data = await Page.parents({
       pageId,
       projectId,
-      bookId,
     });
 
     res.json(data);
@@ -359,6 +369,11 @@ router.get(
   '/api/v1/docs/page-slug',
   apiMetrics,
   ncMetaAclMw(getBySlug, 'pageListBySlug')
+);
+router.get(
+  '/api/v1/docs/pages/search',
+  apiMetrics,
+  ncMetaAclMw(search, 'pageSearch')
 );
 router.get(
   '/api/v1/docs/page-parents',

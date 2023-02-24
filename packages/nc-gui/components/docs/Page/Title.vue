@@ -7,7 +7,6 @@ const isPublic = inject(IsDocsPublicInj, ref(false))
 const localPage = inject(DocsLocalPageInj)!
 const { updatePage } = useDocs()
 
-const isTitleInputRefLoaded = ref(false)
 const titleInputRef = ref<HTMLInputElement>()
 
 const title = computed({
@@ -46,16 +45,19 @@ watchDebounced(
   },
 )
 
-// todo: Hack to focus on title when its edited since on editing title, route will changed, which will cause re render
-watch(titleInputRef, (el) => {
-  if (!isTitleInputRefLoaded.value && !localPage.value?.new) {
-    isTitleInputRefLoaded.value = true
-    return
-  }
+watch(
+  titleInputRef,
+  () => {
+    if (!localPage.value?.new) {
+      return
+    }
 
-  isTitleInputRefLoaded.value = true
-  el?.focus()
-})
+    titleInputRef.value?.focus()
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -76,7 +78,7 @@ watch(titleInputRef, (el) => {
         </div>
       </template>
     </a-dropdown>
-    <a-input
+    <a-textarea
       ref="titleInputRef"
       v-model:value="title"
       class="!text-5xl font-semibold !px-1.5 !mb-6"
@@ -88,3 +90,10 @@ watch(titleInputRef, (el) => {
     />
   </div>
 </template>
+
+<style lang="scss" scoped>
+textarea {
+  overflow-y: hidden;
+  line-height: 125% !important;
+}
+</style>

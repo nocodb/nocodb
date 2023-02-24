@@ -281,6 +281,7 @@ defineExpose({
                 </a-select-option>
               </template>
             </a-select>
+
             <a-select
               v-if="
                 [UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt) &&
@@ -303,6 +304,8 @@ defineExpose({
                 </a-select-option>
               </template>
             </a-select>
+            
+            <span v-else />
 
             <a-checkbox
               v-if="filter.field && types[filter.field] === 'boolean'"

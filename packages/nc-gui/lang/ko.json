@@ -74,7 +74,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "프로젝트",
@@ -98,7 +99,8 @@
       "gallery": "갤러리",
       "form": "폼",
       "kanban": "칸반",
-      "calendar": "캘린더"
+      "calendar": "캘린더",
+      "map": "Map"
     },
     "user": "사용자",
     "users": "사용자",
@@ -136,6 +138,7 @@
     "Currency": "통화",
     "Percent": "퍼센트",
     "Duration": "기간",
+    "GeoData": "GeoData",
     "Rating": "등급",
     "Formula": "공식",
     "Rollup": "롤업",
@@ -253,6 +256,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "집합 함수",
     "dbCreateIfNotExists": "데이터베이스 : 존재하지 않는 경우 생성",
     "clientKey": "클라이언트 키",
@@ -452,6 +458,10 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +527,11 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "페이지 당 행",
       "upload": "업로드 할 파일 선택",
@@ -600,6 +615,7 @@
         "gallery": "갤러리 뷰 추가",
         "form": "폼 뷰 추가",
         "kanban": "칸반 뷰 추가",
+        "map": "Add Map View",
         "calendar": "캘린더 뷰 추가"
       },
       "tablesMetadataInSync": "테이블 메타 데이터가 동기화되어 있습니다",
@@ -690,6 +706,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",

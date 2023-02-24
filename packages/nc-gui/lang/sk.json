@@ -74,7 +74,8 @@
     "insertBefore": "Vložiť pred",
     "hideField": "Skryť pole",
     "sortAsc": "Zoradiť vzostupne",
-    "sortDesc": "Zoradiť zostupne"
+    "sortDesc": "Zoradiť zostupne",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +99,8 @@
       "gallery": "Galéria",
       "form": "Formulár",
       "kanban": "Kanban",
-      "calendar": "Kalendár"
+      "calendar": "Kalendár",
+      "map": "Map"
     },
     "user": "Používateľ",
     "users": "Používatelia",
@@ -136,6 +138,7 @@
     "Currency": "Mena",
     "Percent": "Percentá",
     "Duration": "Trvanie",
+    "GeoData": "GeoData",
     "Rating": "Hodnotenie",
     "Formula": "Vzorec",
     "Rollup": "Rollup",
@@ -253,6 +256,9 @@
     "barcodeFormat": "Formát čiarového kódu",
     "qrCodeValueTooLong": "Príliš veľa znakov pre kód QR",
     "barcodeValueTooLong": "Príliš veľa znakov pre čiarový kód",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Súhrnná funkcia",
     "dbCreateIfNotExists": "Databáza : vytvoriť, ak neexistuje",
     "clientKey": "Kľúč klienta",
@@ -452,6 +458,10 @@
       "stackedBy": "Naskladané podľa",
       "chooseGroupingField": "Výber zoskupovacieho poľa",
       "addOrEditStack": "Pridať / upraviť zásobník"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +527,11 @@
       "roles": {
         "orgCreator": "Creator môže vytvárať nové projekty a pristupovať k ľubovoľnému pozvanému projektu.",
         "orgViewer": "Prehliadač nemôže vytvárať nové projekty, ale môže pristupovať k ľubovoľnému pozvanému projektu."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Riadky na stránku",
       "upload": "Vyberte súbor na odoslanie",
@@ -600,6 +615,7 @@
         "gallery": "Pridanie zobrazenia galérie",
         "form": "Pridanie zobrazenia formulára",
         "kanban": "Pridanie zobrazenia Kanban",
+        "map": "Add Map View",
         "calendar": "Pridanie zobrazenia kalendára"
       },
       "tablesMetadataInSync": "Metadáta tabuliek sú synchronizované",
@@ -690,6 +706,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Meno by malo začínať abecedou alebo _",
       "followingCharactersAreNotAllowed": "Nasledujúce znaky nie sú povolené",
       "columnNameRequired": "Vyžaduje sa názov stĺpca",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Názov projektu presahuje 50 znakov",
       "projectNameCannotStartWithSpace": "Názov projektu nemôže začínať medzerou",
       "requiredField": "Povinné pole",

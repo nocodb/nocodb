@@ -74,7 +74,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "פּרוֹיֶקט",
@@ -98,7 +99,8 @@
       "gallery": "גלריה",
       "form": "טופס",
       "kanban": "קאנב\"כ",
-      "calendar": "לוּחַ שָׁנָה"
+      "calendar": "לוּחַ שָׁנָה",
+      "map": "Map"
     },
     "user": "מִשׁתַמֵשׁ",
     "users": "משתמשים.",
@@ -136,6 +138,7 @@
     "Currency": "מַטְבֵּעַ",
     "Percent": "אָחוּז",
     "Duration": "אורך זמן",
+    "GeoData": "GeoData",
     "Rating": "דירוג",
     "Formula": "נוּסחָה",
     "Rollup": "Rullup",
@@ -253,6 +256,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "פונקציה מצטברת",
     "dbCreateIfNotExists": "מסד נתונים: צור אם לא קיים",
     "clientKey": "מפתח הלקוח",
@@ -452,6 +458,10 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +527,11 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "שורות לדף",
       "upload": "בחר קובץ להעלאה",
@@ -600,6 +615,7 @@
         "gallery": "הוסף תצוגת גלריה",
         "form": "הוסף טופס View.",
         "kanban": "הוסף Kanban View.",
+        "map": "Add Map View",
         "calendar": "הוסף תצוגת לוח שנה"
       },
       "tablesMetadataInSync": "טבלאות מטא נתונים מסונכרנים",
@@ -690,6 +706,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",

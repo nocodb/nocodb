@@ -621,7 +621,7 @@ export interface HookReqType {
   id?: string;
   fk_model_id?: string;
   title: string;
-  description?: string;
+  description?: string | null;
   env?: string;
   event: 'after' | 'before';
   operation: 'insert' | 'delete' | 'update';

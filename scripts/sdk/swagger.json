@@ -9681,7 +9681,14 @@
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "env": {
             "type": "string"

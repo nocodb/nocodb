@@ -59,7 +59,7 @@ router.get(
 router.post(
   '/api/v1/db/meta/views/:viewId/sorts/',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/sortReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/SortReq'),
   ncMetaAclMw(sortCreate, 'sortCreate')
 );
 router.get(
@@ -70,7 +70,7 @@ router.get(
 router.patch(
   '/api/v1/db/meta/sorts/:sortId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/sortReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/SortReq'),
   ncMetaAclMw(sortUpdate, 'sortUpdate')
 );
 router.delete(

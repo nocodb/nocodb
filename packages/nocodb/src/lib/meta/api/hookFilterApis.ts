@@ -118,7 +118,7 @@ router.get(
 router.post(
   '/hooks/:hookId/filters/',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/filterReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/FilterReq'),
   ncMetaAclMw(filterCreate, 'filterCreate')
 );
 router.get(
@@ -129,7 +129,7 @@ router.get(
 router.patch(
   '/hooks/:hookId/filters/:filterId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/filterReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/FilterReq'),
   ncMetaAclMw(filterUpdate, 'filterUpdate')
 );
 router.delete(

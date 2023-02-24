@@ -136,7 +136,7 @@ router.get(
 router.post(
   '/api/v1/db/meta/views/:viewId/filters',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/filterReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/FilterReq'),
   ncMetaAclMw(filterCreate, 'filterCreate')
 );
 
@@ -147,7 +147,7 @@ router.get(
 router.post(
   '/api/v1/db/meta/hooks/:hookId/filters',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/filterReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/FilterReq'),
   ncMetaAclMw(hookFilterCreate, 'filterCreate')
 );
 
@@ -159,7 +159,7 @@ router.get(
 router.patch(
   '/api/v1/db/meta/filters/:filterId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/filterReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/FilterReq'),
   ncMetaAclMw(filterUpdate, 'filterUpdate')
 );
 router.delete(

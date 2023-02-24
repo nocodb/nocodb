@@ -39,7 +39,7 @@ const fields = ref<ColumnType[]>([])
 
 const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
 
-const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap } = useProvideSmartsheetStore(activeView, meta)
 
 const reloadEventHook = createEventHook<void | boolean>()
 
@@ -48,6 +48,7 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 const openNewRecordFormHook = createEventHook<void>()
 
 useProvideKanbanViewStore(meta, activeView)
+useProvideMapViewStore(meta, activeView)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -81,6 +82,8 @@ provide(
               <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
               <LazySmartsheetKanban v-else-if="isKanban" />
+
+              <LazySmartsheetMap v-else-if="isMap" />
             </div>
           </div>
         </template>

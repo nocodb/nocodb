@@ -8,6 +8,7 @@ import TextSubject from '~icons/mdi/text-subject'
 import JSONIcon from '~icons/mdi/code-json'
 import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 import Attachment from '~icons/mdi/attachment'
+import Marker from '~icons/mdi/map-marker'
 import CheckboxMarkedOutline from '~icons/mdi/checkbox-marked-outline'
 import FormatListBulletedSquare from '~icons/mdi/format-list-bulleted-square'
 import ArrowDownDropCircle from '~icons/mdi/arrow-down-drop-circle'
@@ -140,6 +141,11 @@ const uiTypes = [
   {
     name: UITypes.Geometry,
     icon: RulerSquareCompass,
+  },
+
+  {
+    name: UITypes.GeoData,
+    icon: Marker,
   },
   {
     name: UITypes.JSON,

@@ -1,8 +1,10 @@
 <script lang="ts" setup>
+import type { Ref } from '@vue/reactivity'
 import {
   ActiveViewInj,
   IsLockedInj,
   IsPublicInj,
+  MetaInj,
   extractSdkResponseErrorMsg,
   inject,
   message,
@@ -41,11 +43,26 @@ const showApiSnippetDrawer = ref(false)
 
 const showErd = ref(false)
 
-const quickImportDialog = ref(false)
+type QuickImportDialogType = 'csv' | 'excel' | 'json'
+
+// TODO: add 'json' when it's ready
+const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
+
+const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<boolean>> = quickImportDialogTypes.reduce(
+  (acc: any, curr) => {
+    acc[curr] = ref(false)
+    return acc
+  },
+  {},
+) as Record<QuickImportDialogType, Ref<boolean>>
 
 const { isUIAllowed } = useUIPermission()
 
 const { isSharedBase } = useProject()
+
+const meta = inject(MetaInj, ref())
+
+const currentBaseId = computed(() => meta.value?.base_id)
 
 const Icon = computed(() => {
   switch (selectedView.value?.lock_type) {
@@ -173,19 +190,20 @@ useMenuCloseOnEsc(open)
                 </template>
 
                 <template #expandIcon></template>
-                <a-menu-item v-if="isUIAllowed('csvImport') && !isView && !isPublicView">
-                  <div
-                    v-e="['a:actions:upload-csv']"
-                    class="nc-project-menu-item"
-                    :class="{ disabled: isLocked }"
-                    @click="!isLocked ? (quickImportDialog = true) : {}"
-                  >
-                    <MdiUploadOutline class="text-gray-500" />
-                    <!-- Upload CSV -->
-                    {{ $t('activity.uploadCSV') }}
-                    <div class="flex items-center text-gray-400"><MdiAlpha />version</div>
-                  </div>
-                </a-menu-item>
+                <template v-for="(dialog, type) in quickImportDialogs">
+                  <a-menu-item v-if="isUIAllowed(`${type}Import`) && !isView && !isPublicView" :key="type">
+                    <div
+                      v-e="[`a:actions:upload-${type}`]"
+                      class="nc-project-menu-item"
+                      :class="{ disabled: isLocked }"
+                      @click="!isLocked ? (dialog.value = true) : {}"
+                    >
+                      <MdiUploadOutline class="text-gray-500" />
+                      {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
+                      <div class="flex items-center text-gray-400"><MdiAlpha />version</div>
+                    </div>
+                  </a-menu-item>
+                </template>
               </a-sub-menu>
             </template>
 
@@ -230,7 +248,14 @@ useMenuCloseOnEsc(open)
       </template>
     </a-dropdown>
 
-    <LazyDlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-data-only="true" />
+    <LazyDlgQuickImport
+      v-for="type in quickImportDialogTypes"
+      :key="type"
+      v-model="quickImportDialogs[type].value"
+      :import-type="type"
+      :base-id="currentBaseId"
+      :import-data-only="true"
+    />
 
     <LazyWebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 

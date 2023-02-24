@@ -44,7 +44,7 @@ export const Link = TiptapLink.extend({
             const attrs = getAttributes(view.state, 'link')
 
             if (view.editable && !event.metaKey) {
-              return true
+              return false
             }
 
             const link = (event.target as HTMLElement)?.closest('a')

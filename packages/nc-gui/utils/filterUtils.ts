@@ -73,7 +73,7 @@ export const comparisonOpList = (
 ): {
   text: string
   value: string
-  ignoreVal?: boolean
+  ignoreVal: boolean
   includedTypes?: UITypes[]
   excludedTypes?: UITypes[]
 }[] => [
@@ -92,21 +92,25 @@ export const comparisonOpList = (
   {
     text: getEqText(fieldUiType),
     value: 'eq',
+    ignoreVal: false,
     excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },
   {
     text: getNeqText(fieldUiType),
     value: 'neq',
+    ignoreVal: false,
     excludedTypes: [UITypes.Checkbox, UITypes.MultiSelect, UITypes.Attachment],
   },
   {
     text: getLikeText(fieldUiType),
     value: 'like',
+    ignoreVal: false,
     excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
   {
     text: getNotLikeText(fieldUiType),
     value: 'nlike',
+    ignoreVal: false,
     excludedTypes: [UITypes.Checkbox, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.Collaborator, ...numericUITypes],
   },
   {
@@ -172,42 +176,56 @@ export const comparisonOpList = (
   {
     text: 'contains all of',
     value: 'allof',
+    ignoreVal: false,
     includedTypes: [UITypes.MultiSelect],
   },
   {
     text: 'contains any of',
     value: 'anyof',
+    ignoreVal: false,
     includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect],
   },
   {
     text: 'does not contain all of',
     value: 'nallof',
+    ignoreVal: false,
     includedTypes: [UITypes.MultiSelect],
   },
   {
     text: 'does not contain any of',
     value: 'nanyof',
+    ignoreVal: false,
     includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect],
   },
   {
     text: getGtText(fieldUiType),
     value: 'gt',
+    ignoreVal: false,
     includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
   },
   {
     text: getLtText(fieldUiType),
     value: 'lt',
+    ignoreVal: false,
     includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
   },
   {
     text: getGteText(fieldUiType),
     value: 'gte',
+    ignoreVal: false,
     includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
   },
   {
     text: getLteText(fieldUiType),
     value: 'lte',
+    ignoreVal: false,
     includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
+  },
+  {
+    text: 'is within',
+    value: 'isWithin',
+    ignoreVal: true,
+    includedTypes: [UITypes.Date, UITypes.DateTime],
   },
   {
     text: 'is blank',
@@ -226,7 +244,7 @@ export const comparisonOpList = (
 export const comparisonSubOpList: {
   text: string
   value: string
-  ignoreVal?: boolean
+  ignoreVal: boolean
   includedTypes?: UITypes[]
   excludedTypes?: UITypes[]
 }[] = [

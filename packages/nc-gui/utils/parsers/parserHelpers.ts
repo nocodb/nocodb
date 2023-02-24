@@ -167,7 +167,7 @@ export const isMultiLineTextVal = (vals: any[], limitRows: number) =>
   isMultiLineTextType(vals.slice(0, limitRows).map((v: any) => v[1].v) as [])
 
 export const isMultiOrSingleSelectVal = (vals: any[], limitRows: number, column: Record<string, any>) => {
-  const props = extractMultiOrSingleSelectProps(vals.slice(0, limitRows).map((v: any) => v[1].v.replace('\\', '_')) as [])
+  const props = extractMultiOrSingleSelectProps(vals.map((v: any) => v[1].v.replace('\\', '_')) as [])
   if (!props) return false
   Object.assign(column, props)
   return true
@@ -217,7 +217,7 @@ export const isAllDate = (vals: any[], column: Record<string, any>) => {
     column.uidt = UITypes.Date
     // take the date format with the max occurrence
     column.date_format =
-      Object.keys(column.date_formats).reduce((x, y) => (column.date_formats[x] > column.date_formats[y] ? x : y)) || 'YYYY/MM/DD'
+      Object.keys(column.dateFormats).reduce((x, y) => (column.dateFormats[x] > column.dateFormats[y] ? x : y)) || 'YYYY/MM/DD'
     return isOnlyDate
   }
 

@@ -274,7 +274,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     for (const [_, cell] of vals) {
                       cell.v = this.fixImportedDate(cell.v)
                     }
-                    column.date_formats = {}
+                    column.dateFormats = {}
                     if (isAllDate(vals, column)) {
                       this.addDataRows(tableName, columnName, vals, dateFormatter, column.meta.date_format)
                       break

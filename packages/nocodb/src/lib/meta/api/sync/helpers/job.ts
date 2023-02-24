@@ -1968,6 +1968,7 @@ export default async (
     '>=': 'gte',
     isEmpty: 'empty',
     isNotEmpty: 'notempty',
+    isWithin: 'isWithin',
     contains: 'like',
     doesNotContain: 'nlike',
     isAnyOf: 'anyof',
@@ -2003,6 +2004,47 @@ export default async (
             logical_op: f.conjunction,
             comparison_op: filter.operator === 'isEmpty' ? 'blank' : 'notblank',
             value: null,
+          };
+          ncFilters.push(fx);
+        } else if (filter.operator === 'isWithin') {
+          let comparison_sub_op = null;
+          let value = null;
+          switch (filter.value.mode) {
+            case 'pastWeek':
+              comparison_sub_op = 'oneWeekAgo';
+              break;
+            case 'pastMonth':
+              comparison_sub_op = 'oneMonthAgo';
+              break;
+            case 'pastYear':
+              comparison_sub_op = 'daysAgo';
+              value = 365;
+              break;
+            case 'nextWeek':
+              comparison_sub_op = 'oneWeekFromNow';
+              break;
+            case 'nextMonth':
+              comparison_sub_op = 'oneMonthFromNow';
+              break;
+            case 'nextYear':
+              comparison_sub_op = 'daysFromNow';
+              value = 365;
+              break;
+            case 'pastNumberOfDays':
+              comparison_sub_op = 'daysAgo';
+              value = filter.value.numberOfDays;
+              break;
+            case 'nextNumberOfDays':
+              comparison_sub_op = 'daysFromNow';
+              value = filter.value.numberOfDays;
+              break;
+          }
+          const fx = {
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filter.operator,
+            comparison_sub_op,
+            value,
           };
           ncFilters.push(fx);
         } else {

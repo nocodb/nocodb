@@ -281,6 +281,19 @@ watch(
     outline: none;
   }
 
+  img {
+    @apply !mb-6 !mt-2;
+  }
+  img[isuploading='true'] {
+    @apply hidden;
+  }
+  .image-uploading-wrapper {
+    @apply mt-1.5 !w-full;
+    .image-uploading {
+      @apply w-full py-2 px-3 rounded-md bg-gray-50 text-gray-500;
+    }
+  }
+
   .draggable-block-wrapper.selected {
     table {
       @apply !bg-primary-selected;

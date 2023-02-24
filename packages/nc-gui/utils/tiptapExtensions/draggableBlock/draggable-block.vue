@@ -36,7 +36,7 @@ const createNodeAfter = () => {
 
 const onDragClick = () => {
   dragClicked.value = !dragClicked.value
-  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos())))
+  editor.view.dispatch(editor.state.tr.setSelection(NodeSelection.create(editor.state.doc, getPos() + 1)))
   const wrapperDom = document.querySelector('.draggable-block-wrapper.focused')
   wrapperDom?.classList.add('selected')
 }

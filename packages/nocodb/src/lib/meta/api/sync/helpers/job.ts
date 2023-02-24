@@ -679,8 +679,6 @@ export default async (
       );
     }
 
-    // debug
-    // console.log(JSON.stringify(tables, null, 2));
     return tables;
   }
 
@@ -914,8 +912,6 @@ export default async (
               aTblLinkColumns[i].name + suffix,
               ncTbl.id
             );
-
-            // console.log(res.columns.find(x => x.title === aTblLinkColumns[i].name))
           }
         }
       }
@@ -1504,8 +1500,6 @@ export default async (
         })
         .eachPage(
           async function page(records, fetchNextPage) {
-            // console.log(JSON.stringify(records, null, 2));
-
             // This function (`page`) will get called for each page of records.
             // records.forEach(record => callback(table, record));
             logBasic(
@@ -2002,16 +1996,31 @@ export default async (
       const datatype = colSchema.uidt;
       const ncFilters = [];
 
-      // console.log(filter)
       if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
-        // skip filters over data datatype
-        updateMigrationSkipLog(
-          await sMap.getNcNameFromAtId(viewId),
-          colSchema.title,
-          colSchema.uidt,
-          `filter config skipped; filter over date datatype not supported`
-        );
-        continue;
+        if (['isEmpty', 'isNotEmpty'].includes(filter.operator)) {
+          const fx = {
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filter.operator === 'isEmpty' ? 'blank' : 'notblank',
+            value: null,
+          };
+          ncFilters.push(fx);
+        } else {
+          let value = null;
+          if ('numberOfDays' in filter.value) {
+            value = filter.value['numberOfDays'];
+          } else if ('exactDate' in filter.value) {
+            value = filter.value['exactDate'];
+          }
+          const fx = {
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filterMap[filter.operator],
+            comparison_sub_op: filter.value.mode,
+            value,
+          };
+          ncFilters.push(fx);
+        }
       }
 
       // single-select & multi-select

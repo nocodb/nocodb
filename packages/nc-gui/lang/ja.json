@@ -74,7 +74,8 @@
     "insertBefore": "前に挿入",
     "hideField": "フィールドを隠す",
     "sortAsc": "昇順",
-    "sortDesc": "降順"
+    "sortDesc": "降順",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "プロジェクト",
@@ -98,7 +99,8 @@
       "gallery": "ギャラリー",
       "form": "フォーム",
       "kanban": "カンバン",
-      "calendar": "カレンダー"
+      "calendar": "カレンダー",
+      "map": "Map"
     },
     "user": "ユーザー",
     "users": "ユーザー",
@@ -136,6 +138,7 @@
     "Currency": "通貨",
     "Percent": "パーセント",
     "Duration": "間隔",
+    "GeoData": "GeoData",
     "Rating": "レーティング",
     "Formula": "方式",
     "Rollup": "ロールアップ",
@@ -253,6 +256,9 @@
     "barcodeFormat": "バーコードのフォーマット",
     "qrCodeValueTooLong": "QRコードにするには文字数が多すぎる",
     "barcodeValueTooLong": "バーコードの文字数が多すぎる",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "集約関数",
     "dbCreateIfNotExists": "データベース：存在しない場合は作成",
     "clientKey": "クライアントキー",
@@ -452,6 +458,10 @@
       "stackedBy": "スタック",
       "chooseGroupingField": "グループ化するフィールドを選択",
       "addOrEditStack": "スタックの追加/編集"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +527,11 @@
       "roles": {
         "orgCreator": "「作成者」は新しいプロジェクトを作成でき、かつ招待されたプロジェクトにもアクセスできます。",
         "orgViewer": "ビューアーは新規プロジェクトを作成することはできませんが、招待されたプロジェクトにアクセスできます。"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "1ページあたりの行数",
       "upload": "アップロードするファイルを選択してください",
@@ -600,6 +615,7 @@
         "gallery": "ギャラリービューを追加",
         "form": "フォームビューを追加",
         "kanban": "カンバンビューを追加",
+        "map": "Add Map View",
         "calendar": "カレンダービューを追加"
       },
       "tablesMetadataInSync": "テーブルメタデータは同期されています",
@@ -690,6 +706,7 @@
       "nameShouldStartWithAnAlphabetOr_": "名前はアルファベットまたは_で始まる必要があります",
       "followingCharactersAreNotAllowed": "以下の文字種は使用できません",
       "columnNameRequired": "列名が必要です",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "プロジェクト名が50文字を超えています",
       "projectNameCannotStartWithSpace": "プロジェクト名の先頭にはスペースは利用できません",
       "requiredField": "必須フィールド",

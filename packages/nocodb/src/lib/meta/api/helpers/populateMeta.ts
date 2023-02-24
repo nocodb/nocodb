@@ -229,6 +229,8 @@ export async function populateMeta(base: Base, project: Project): Promise<any> {
       const columns = (await sqlClient.columnList({ tn: table.table_name }))
         ?.data?.list;
 
+      mapDefaultDisplayValue(columns);
+
       /* create nc_models and its rows if it doesn't exists  */
       models2[table.table_name] = await Model.insert(project.id, base.id, {
         table_name: table.table_name,

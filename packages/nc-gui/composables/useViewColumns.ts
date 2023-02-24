@@ -1,5 +1,5 @@
-import { isSystemColumn } from 'nocodb-sdk'
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { IsPublicInj, computed, inject, ref, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
 import type { Field } from '~/lib'
@@ -24,6 +24,13 @@ export function useViewColumns(
   const isLocalMode = computed(
     () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
   )
+
+  const isColumnViewEssential = (column: ColumnType) => {
+    // TODO: consider at some point ti delegate this via a cleaner design pattern to view specific check logic
+    // which could be inside of a view specific helper class (and generalized via an interface)
+    // (on the other hand, the logic complexity is still very low atm - might be overkill)
+    return view.value?.type === ViewTypes.MAP && (view.value?.view as MapType)?.fk_geo_data_col_id === column.id
+  }
 
   const metaColumnById = computed<Record<string, ColumnType>>(() => {
     if (!meta.value?.columns) return {}
@@ -62,8 +69,10 @@ export function useViewColumns(
             title: column.title,
             fk_column_id: column.id,
             ...currentColumnField,
+            show: currentColumnField.show || isColumnViewEssential(currentColumnField),
             order: currentColumnField.order || order++,
             system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
+            isViewEssentialField: isColumnViewEssential(column),
           }
         })
         .sort((a: Field, b: Field) => a.order - b.order)
@@ -98,7 +107,7 @@ export function useViewColumns(
     if (isLocalMode.value) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
-        show: false,
+        show: !!field.isViewEssentialField,
       }))
       reloadData?.()
       return

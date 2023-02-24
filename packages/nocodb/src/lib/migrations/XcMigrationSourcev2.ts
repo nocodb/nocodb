@@ -13,6 +13,7 @@ import * as nc_022_qr_code_column_type from './v2/nc_022_qr_code_column_type';
 import * as nc_023_multiple_source from './v2/nc_023_multiple_source';
 import * as nc_024_barcode_column_type from './v2/nc_024_barcode_column_type';
 import * as nc_025_add_row_height from './v2/nc_025_add_row_height';
+import * as nc_026_map_view from './v2/nc_026_map_view';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -37,6 +38,7 @@ export default class XcMigrationSourcev2 {
       'nc_023_multiple_source',
       'nc_024_barcode_column_type',
       'nc_025_add_row_height',
+      'nc_026_map_view',
     ]);
   }
 
@@ -76,6 +78,8 @@ export default class XcMigrationSourcev2 {
         return nc_024_barcode_column_type;
       case 'nc_025_add_row_height':
         return nc_025_add_row_height;
+      case 'nc_026_map_view':
+        return nc_026_map_view;
     }
   }
 }

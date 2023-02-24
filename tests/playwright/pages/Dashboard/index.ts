@@ -10,6 +10,7 @@ import { SettingsPage } from './Settings';
 import { ViewSidebarPage } from './ViewSidebar';
 import { GalleryPage } from './Gallery';
 import { KanbanPage } from './Kanban';
+import { MapPage } from './Map';
 import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
@@ -24,6 +25,7 @@ export class DashboardPage extends BasePage {
   readonly gallery: GalleryPage;
   readonly form: FormPage;
   readonly kanban: KanbanPage;
+  readonly map: MapPage;
   readonly expandedForm: ExpandedFormPage;
   readonly webhookForm: WebhookFormPage;
   readonly childList: ChildList;
@@ -43,6 +45,7 @@ export class DashboardPage extends BasePage {
     this.gallery = new GalleryPage(this);
     this.form = new FormPage(this);
     this.kanban = new KanbanPage(this);
+    this.map = new MapPage(this);
     this.expandedForm = new ExpandedFormPage(this);
     this.webhookForm = new WebhookFormPage(this);
     this.childList = new ChildList(this);

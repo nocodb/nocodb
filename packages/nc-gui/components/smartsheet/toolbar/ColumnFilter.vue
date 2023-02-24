@@ -90,11 +90,13 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // since `blank`, `empty`, `null` doesn't require value,
     // hence remove the previous value
     filter.value = ''
+    filter.comparison_sub_op = null
   } else if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
     filter.value = ''
+    if (!filter.comparison_sub_op) filter.comparison_sub_op = 'exact_date'
   }
   saveOrUpdate(filter, i)
   filterPrevComparisonOp.value[filter.id] = filter.comparison_op

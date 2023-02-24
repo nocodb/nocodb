@@ -90,3 +90,10 @@ watch(
     />
   </div>
 </template>
+
+<style lang="scss" scoped>
+textarea {
+  overflow-y: hidden;
+  line-height: 125% !important;
+}
+</style>

@@ -136,7 +136,6 @@ reloadHook.on(() => {
   if (isNew.value) return
   loadRow()
 })
-
 provide(ReloadRowDataHookInj, reloadHook)
 
 if (isKanban.value) {
@@ -151,9 +150,7 @@ if (isKanban.value) {
 const cellWrapperEl = ref<HTMLElement>()
 
 onMounted(() => {
-  setTimeout(() => {
-    ;(cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus()
-  })
+  setTimeout(() => (cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus())
 })
 </script>
 

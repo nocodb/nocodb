@@ -3,6 +3,7 @@ export enum ViewTypes {
   GALLERY = 2,
   GRID = 3,
   KANBAN = 4,
+  MAP = 5,
 }
 
 export enum RelationTypes {

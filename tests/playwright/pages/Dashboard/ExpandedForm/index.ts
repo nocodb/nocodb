@@ -67,6 +67,14 @@ export class ExpandedFormPage extends BasePage {
       case 'text':
         await field.locator('input').fill(value);
         break;
+      case 'geodata': {
+        const [lat, long] = value.split(',');
+        await this.rootPage.locator(`[data-testid="nc-geo-data-set-location-button"]`).click();
+        await this.rootPage.locator(`[data-testid="nc-geo-data-latitude"]`).fill(lat);
+        await this.rootPage.locator(`[data-testid="nc-geo-data-longitude"]`).fill(long);
+        await this.rootPage.locator(`[data-testid="nc-geo-data-save"]`).click();
+        break;
+      }
       case 'belongsTo':
         await field.locator('.nc-action-icon').click();
         await this.dashboard.linkRecord.select(value);

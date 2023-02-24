@@ -32,12 +32,12 @@ provide(MetaInj, cowriterTable)
           API Snippet
         </div>
       </a-button>
-      <div class="flex items-center cursor-pointer">
+      <!-- <div class="flex items-center cursor-pointer">
         <MdiFormSelect @click="cowriterLayout = 'form'" />
       </div>
       <div class="flex items-center cursor-pointer">
         <MdiGridLarge @click="cowriterLayout = 'grid'" />
-      </div>
+      </div> -->
     </div>
   </div>
   <LazyCowriterApiSnippet v-model="showApiSnippetDrawer" />

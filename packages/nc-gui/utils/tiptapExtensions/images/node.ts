@@ -19,13 +19,15 @@ export const createImageExtension = (uploadFn: UploadFn) => {
     draggable: true,
     addAttributes: () => ({
       src: {},
+      isUploading: { default: false },
       alt: { default: null },
       title: { default: null },
-      class: { default: 'mb-2' },
+      class: { default: '' },
+      id: { default: null },
     }),
     parseHTML: () => [
       {
-        tag: 'img[src]',
+        tag: 'img',
         getAttrs: (dom) => {
           if (typeof dom === 'string') return {}
           const element = dom as HTMLImageElement
@@ -45,25 +47,15 @@ export const createImageExtension = (uploadFn: UploadFn) => {
     addCommands() {
       return {
         setImage: (options: { src: any }) => async () => {
-          if (options?.src instanceof File) {
-            const url = await uploadFn(options.src)
-            options.src = url
-          }
-
           const view = this.editor.view
-          const { schema } = view.state
-
-          const node = schema.nodes.image.create({
-            src: options.src,
-          })
 
           const currentTextBlock = view.state.doc.nodeAt(view.state.selection.from - 1)!
           const currentParentNodePos = view.state.selection.from - 2 - currentTextBlock.nodeSize
 
-          const transaction = view.state.tr
-            .setSelection(NodeSelection.create(view.state.doc, currentParentNodePos))
-            .replaceSelectionWith(node)
-          view.dispatch(transaction)
+          // Otherwise prose mirror will throw an error, regarding transaction mismatch
+          await new Promise((resolve) => setTimeout(resolve, 0))
+
+          await addImage(options.src, view, uploadFn, currentParentNodePos)
 
           return true
         },

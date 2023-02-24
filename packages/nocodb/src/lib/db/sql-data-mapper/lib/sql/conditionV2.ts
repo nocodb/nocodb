@@ -316,7 +316,10 @@ const parseConditionV2 = async (
               break;
           }
 
-          if (filter.comparison_sub_op !== 'exact_date') {
+          if (
+            filter.comparison_sub_op &&
+            filter.comparison_sub_op !== 'exact_date'
+          ) {
             // val for exact_date is not a dayjs object
             val = val.format(dateFormat).toString();
             val = column.uidt === UITypes.Date ? val.substring(0, 10) : val;

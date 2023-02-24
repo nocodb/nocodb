@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
-import { OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref, IsPublicInj } from '#imports'
+import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
 import type { Row as RowType } from '~/lib'
 
 const route = useRoute()
@@ -14,7 +14,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 
-const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, addEmptyRow, syncCount, paginationData } =
+const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, addEmptyRow, paginationData } =
   useMapViewStoreOrThrow()
 
 const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
@@ -88,7 +88,7 @@ const addMarker = (lat: number, long: number, row: RowType) => {
     throw new Error('Marker cluster is null')
   }
   const newMarker = L.marker([lat, long], {
-    alt: `${lat}, ${long}`
+    alt: `${lat}, ${long}`,
   }).on('click', () => {
     expandForm(row)
   })

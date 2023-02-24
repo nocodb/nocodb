@@ -74,7 +74,8 @@
     "insertBefore": "Wstaw przed",
     "hideField": "Ukryj pole",
     "sortAsc": "Sortowanie rosnące",
-    "sortDesc": "Sortuj malejąco"
+    "sortDesc": "Sortuj malejąco",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +99,8 @@
       "gallery": "Galeria",
       "form": "Formularz",
       "kanban": "Kanban",
-      "calendar": "Kalendarz"
+      "calendar": "Kalendarz",
+      "map": "Map"
     },
     "user": "Użytkownik",
     "users": "Użytkownicy",
@@ -136,6 +138,7 @@
     "Currency": "Waluta",
     "Percent": "Procent",
     "Duration": "Czas trwania",
+    "GeoData": "GeoData",
     "Rating": "Ocena",
     "Formula": "Formuła",
     "Rollup": "Zliczanie",
@@ -253,6 +256,9 @@
     "barcodeFormat": "Format kodu kreskowego",
     "qrCodeValueTooLong": "Zbyt wiele znaków dla kodu QR",
     "barcodeValueTooLong": "Zbyt wiele znaków dla kodu kreskowego",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Funkcja agregacji",
     "dbCreateIfNotExists": "Baza danych: Utwórz, jeśli nie istnieje",
     "clientKey": "Klucz klienta",
@@ -452,6 +458,10 @@
       "stackedBy": "Ułożone według",
       "chooseGroupingField": "Wybierz pole grupowania",
       "addOrEditStack": "Dodaj / Edytuj stos"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +527,11 @@
       "roles": {
         "orgCreator": "Twórca może tworzyć nowe projekty i mieć dostęp do każdego zaproszonego projektu.",
         "orgViewer": "Widz nie może tworzyć nowych projektów, ale może mieć dostęp do każdego zaproszonego projektu."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Wiersze na stronę",
       "upload": "Wybierz plik do przesłania",
@@ -600,6 +615,7 @@
         "gallery": "Dodaj widok galerii.",
         "form": "Dodaj widok formy",
         "kanban": "Dodaj widok Kanban.",
+        "map": "Add Map View",
         "calendar": "Dodaj widok kalendarza"
       },
       "tablesMetadataInSync": "Tabele Metadane są synchronizowane",
@@ -690,6 +706,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Nazwa powinna zaczynać się od alfabetu lub od _",
       "followingCharactersAreNotAllowed": "Następujące znaki są niedozwolone",
       "columnNameRequired": "Nazwa kolumny jest wymagana",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Nazwa projektu przekracza 50 znaków",
       "projectNameCannotStartWithSpace": "Nazwa projektu nie może zaczynać się od spacji",
       "requiredField": "Pole wymagane",

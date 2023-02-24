@@ -57,6 +57,8 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     loadViewColumns()
+  } else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
+    loadViewColumns()
   }
 })
 
@@ -206,6 +208,7 @@ useMenuCloseOnEsc(open)
                   v-model:checked="field.show"
                   v-e="['a:fields:show-hide']"
                   class="shrink"
+                  :disabled="field.isViewEssentialField"
                   @change="saveOrUpdate(field, index)"
                 >
                   <div class="flex items-center">

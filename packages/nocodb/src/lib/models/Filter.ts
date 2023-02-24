@@ -77,29 +77,30 @@ export default class Filter {
   }
 
   public static async insert(
-    filter: Partial<FilterType>,
+    filter: Partial<FilterType> & { order?: number },
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = {
-      id: filter.id,
-      fk_view_id: filter.fk_view_id,
-      fk_hook_id: filter.fk_hook_id,
-      fk_column_id: filter.fk_column_id,
-      comparison_op: filter.comparison_op,
-      value: filter.value,
-      fk_parent_id: filter.fk_parent_id,
+    const insertObj = extractProps(filter, [
+      'id',
+      'fk_view_id',
+      'fk_hook_id',
+      'fk_column_id',
+      'comparison_op',
+      'value',
+      'fk_parent_id',
+      'is_group',
+      'logical_op',
+      'project_id',
+      'base_id',
+      'order',
+    ]);
 
-      is_group: filter.is_group,
-      logical_op: filter.logical_op,
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
+      [filter.fk_hook_id ? 'fk_hook_id' : 'fk_view_id']: filter.fk_hook_id
+        ? filter.fk_hook_id
+        : filter.fk_view_id,
+    });
 
-      project_id: filter.project_id,
-      base_id: filter.base_id,
-      order: await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
-        [filter.fk_hook_id ? 'fk_hook_id' : 'fk_view_id']: filter.fk_hook_id
-          ? filter.fk_hook_id
-          : filter.fk_view_id,
-      }),
-    };
     if (!(filter.project_id && filter.base_id)) {
       let model: { project_id?: string; base_id?: string };
       if (filter.fk_view_id) {

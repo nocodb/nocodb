@@ -118,7 +118,7 @@ export default class SqlMgrv2 {
     return sqlMigrationStatements;
   }
 
-  protected async getSqlClient(base: Base): Promise<any> {
+  protected async getSqlClient(base: Base) {
     return NcConnectionMgrv2.getSqlClient(base);
   }
 }

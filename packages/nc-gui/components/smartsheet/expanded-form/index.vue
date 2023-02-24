@@ -3,6 +3,7 @@ import type { TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
+  CellClickHookInj,
   FieldsInj,
   IsFormInj,
   IsKanbanInj,
@@ -48,6 +49,9 @@ const state = toRef(props, 'state')
 const meta = toRef(props, 'meta')
 
 const router = useRouter()
+
+// override cell click hook to avoid unexpected behavior at form fields
+provide(CellClickHookInj, null)
 
 const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
@@ -132,7 +136,6 @@ reloadHook.on(() => {
   if (isNew.value) return
   loadRow()
 })
-
 provide(ReloadRowDataHookInj, reloadHook)
 
 if (isKanban.value) {
@@ -147,9 +150,7 @@ if (isKanban.value) {
 const cellWrapperEl = ref<HTMLElement>()
 
 onMounted(() => {
-  setTimeout(() => {
-    ;(cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus()
-  })
+  setTimeout(() => (cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus())
 })
 </script>
 

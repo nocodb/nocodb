@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { IsPublicInj, inject, ref, useSharedView, useSidebar, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
 
-const { isGrid, isForm, isGallery, isKanban, isSqlView } = useSmartsheetStoreOrThrow()
+const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -18,7 +18,7 @@ const { allowCSVDownload } = useSharedView()
     style="z-index: 7"
   >
     <LazySmartsheetToolbarViewActions
-      v-if="(isGrid || isGallery || isKanban) && !isPublic && isUIAllowed('dataInsert')"
+      v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
       :show-system-fields="false"
       class="ml-1"
     />
@@ -29,15 +29,17 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
 
-    <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban" :show-system-fields="false" />
+    <LazySmartsheetToolbarMappedBy v-if="isMap" />
 
-    <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban" />
+    <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
+
+    <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
     <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
     <LazySmartsheetToolbarRowHeight v-if="isGrid" />
 
-    <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban || isGallery) && !isPublic" />
+    <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
     <div class="flex-1" />

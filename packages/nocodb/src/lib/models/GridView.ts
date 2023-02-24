@@ -3,6 +3,7 @@ import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import GridViewColumn from './GridViewColumn';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class GridView {
   fk_view_id: string;
@@ -40,14 +41,15 @@ export default class GridView {
   }
 
   static async insert(view: Partial<GridView>, ncMeta = Noco.ncMeta) {
-    const insertObj = {
-      fk_view_id: view.fk_view_id,
-      project_id: view.project_id,
-      base_id: view.base_id,
-      row_height: view.row_height,
-    };
-    if (!(view.project_id && view.base_id)) {
-      const viewRef = await View.get(view.fk_view_id, ncMeta);
+    const insertObj = extractProps(view, [
+      'fk_view_id',
+      'project_id',
+      'base_id',
+      'row_height',
+    ]);
+
+    if (!(insertObj.project_id && insertObj.base_id)) {
+      const viewRef = await View.get(insertObj.fk_view_id, ncMeta);
       insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
     }
@@ -69,23 +71,16 @@ export default class GridView {
   ) {
     // get existing cache
     const key = `${CacheScope.GRID_VIEW}:${viewId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    const updateObj = extractProps(body, ['row_height']);
     if (o) {
-      o.row_height = body.row_height;
+      o = { ...o, ...updateObj };
       // set cache
       await NocoCache.set(key, o);
     }
     // update meta
-    return await ncMeta.metaUpdate(
-      null,
-      null,
-      MetaTable.GRID_VIEW,
-      {
-        row_height: body.row_height,
-      },
-      {
-        fk_view_id: viewId,
-      }
-    );
+    return await ncMeta.metaUpdate(null, null, MetaTable.GRID_VIEW, updateObj, {
+      fk_view_id: viewId,
+    });
   }
 }

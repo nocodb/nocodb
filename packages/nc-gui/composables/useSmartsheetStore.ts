@@ -26,13 +26,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 
-    // getters
     const isLocked = computed(() => view.value?.lock_type === 'locked')
     const isPkAvail = computed(() => (meta.value as TableType)?.columns?.some((c) => c.pk))
     const isGrid = computed(() => view.value?.type === ViewTypes.GRID)
     const isForm = computed(() => view.value?.type === ViewTypes.FORM)
     const isGallery = computed(() => view.value?.type === ViewTypes.GALLERY)
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
+    const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
     const xWhere = computed(() => {
       let where
@@ -65,6 +65,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isGrid,
       isGallery,
       isKanban,
+      isMap,
       cellRefs,
       isSharedForm,
       sorts,

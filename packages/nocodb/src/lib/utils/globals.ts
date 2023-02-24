@@ -39,7 +39,10 @@ export enum MetaTable {
   API_TOKENS = 'nc_api_tokens',
   SYNC_SOURCE = 'nc_sync_source_v2',
   SYNC_LOGS = 'nc_sync_logs_v2',
+  MAP_VIEW = 'nc_map_view_v2',
+  MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
+
 }
 
 export const orderedMetaTables = [
@@ -51,6 +54,8 @@ export const orderedMetaTables = [
   MetaTable.ORGS,
   MetaTable.PROJECT_USERS,
   MetaTable.USERS,
+  MetaTable.MAP_VIEW,
+  MetaTable.MAP_VIEW_COLUMNS,
   MetaTable.KANBAN_VIEW_COLUMNS,
   MetaTable.KANBAN_VIEW,
   MetaTable.GRID_VIEW_COLUMNS,
@@ -127,6 +132,8 @@ export enum CacheScope {
   GRID_VIEW = 'gridView',
   GRID_VIEW_COLUMN = 'gridViewColumn',
   KANBAN_VIEW = 'kanbanView',
+  MAP_VIEW = 'mapView',
+  MAP_VIEW_COLUMN = 'mapViewColumn',
   KANBAN_VIEW_COLUMN = 'kanbanViewColumn',
   USER = 'user',
   ORGS = 'orgs',

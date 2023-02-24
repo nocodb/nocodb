@@ -1913,7 +1913,7 @@ class OracleClient extends KnexClient {
    * @returns {Number} code
    * @returns {String} message
    */
-  async totalRecords(_args: any = {}) {
+  async totalRecords(_args: any = {}): Promise<Result> {
     // @ts-ignore
     const func = this.totalRecords.name;
     throw new Error('Function not supported for oracle yet');

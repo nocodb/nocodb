@@ -65,12 +65,12 @@ const onDecode = async (codeValue: string) => {
         lastScannedCode.value = ''
       }, 4000)
       if (foundRowsForCode.length === 0) {
-        // extract into localisation file
         message.info(t('msg.info.codeScanner.noRowFoundForCode'))
       }
       if (foundRowsForCode.length > 1) {
-        // extract into localisation file
         message.warn(t('msg.info.codeScanner.moreThanOneRowFoundForCode'))
+        showCodeScannerOverlay.value = false
+        lastScannedCode.value = ''
       }
       return
     }

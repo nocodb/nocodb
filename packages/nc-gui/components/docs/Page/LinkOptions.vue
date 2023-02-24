@@ -11,9 +11,11 @@ interface Props {
   editor: Editor
 }
 
+const inputRef = ref<HTMLInputElement>()
 const selectedIndex = ref(0)
 const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
+const isLinkOptionsVisible = ref(false)
 
 const filteredPages = computed(() => {
   if (!href.value || href.value === '') return []
@@ -58,7 +60,10 @@ const checkLinkMark = (editor: Editor) => {
   const isTextSelected = editor?.state?.selection?.from !== editor?.state?.selection?.to
 
   // check if active node is a text node
-  return isActiveNodeMarkActive && !isTextSelected
+  const showLinkOptions = isActiveNodeMarkActive && !isTextSelected
+  isLinkOptionsVisible.value = !!showLinkOptions
+
+  return showLinkOptions
 }
 
 const onChange = () => {
@@ -130,6 +135,19 @@ const handleKeyDown = (e: any) => {
 
 watch(href, () => {
   selectedIndex.value = 0
+})
+
+watch(isLinkOptionsVisible, (value, oldValue) => {
+  if (value && !oldValue) {
+    const isPlaceholderEmpty =
+      !editor?.state?.selection.$from.nodeBefore?.textContent && !editor?.state?.selection.$from.nodeAfter?.textContent
+
+    if (!isPlaceholderEmpty) return
+
+    setTimeout(() => {
+      inputRef.value?.focus()
+    }, 100)
+  }
 })
 </script>
 

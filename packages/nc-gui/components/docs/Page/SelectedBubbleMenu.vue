@@ -166,7 +166,7 @@ watchDebounced(
       >
         <div class="flex flex-row items-center px-0.5">
           <MdiLink />
-          <div class="!text-xs !ml-1">Add Link</div>
+          <div class="!text-xs !ml-1">Link</div>
         </div>
       </a-button>
 

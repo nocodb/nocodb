@@ -19,6 +19,7 @@ import { ProjectsPage } from '../ProjectsPage';
 export class DashboardPage extends BasePage {
   readonly project: any;
   readonly tablesSideBar: Locator;
+  readonly projectMenuLink: Locator;
   readonly tabBar: Locator;
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
@@ -39,6 +40,7 @@ export class DashboardPage extends BasePage {
     super(rootPage);
     this.project = project;
     this.tablesSideBar = rootPage.locator('.nc-treeview-container');
+    this.projectMenuLink = rootPage.getByTestId('nc-project-menu');
     this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
@@ -63,14 +65,32 @@ export class DashboardPage extends BasePage {
     await this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
   }
 
+  getProjectMenuLink({ title }: { title: string }) {
+    return this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`);
+  }
+
+  async verifyTeamAndSettingsLinkIsVisible() {
+    await this.projectMenuLink.click();
+    const teamAndSettingsLink = await this.getProjectMenuLink({ title: ' Team & Settings' });
+    await expect(teamAndSettingsLink).toBeVisible();
+    await this.projectMenuLink.click();
+  }
+
+  async verifyTeamAndSettingsLinkIsNotVisible() {
+    await this.projectMenuLink.click();
+    const teamAndSettingsLink = await this.getProjectMenuLink({ title: ' Team & Settings' });
+    await expect(teamAndSettingsLink).not.toBeVisible();
+    await this.projectMenuLink.click();
+  }
+
   async gotoSettings() {
-    await this.rootPage.getByTestId('nc-project-menu').click();
-    await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
+    await this.projectMenuLink.click();
+    await this.getProjectMenuLink({ title: ' Team & Settings' }).click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {
-    await this.rootPage.getByTestId('nc-project-menu').click();
-    await this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`).click();
+    await this.projectMenuLink.click();
+    await this.getProjectMenuLink({ title }).click();
   }
 
   async verifyInTabBar({ title }: { title: string }) {
@@ -132,16 +152,17 @@ export class DashboardPage extends BasePage {
   }
 
   async toggleMobileMode() {
-    await this.rootPage.getByTestId('nc-project-menu').click();
+    await this.projectMenuLink.click();
     const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
     await projMenu.locator('[data-menu-id="mobile-mode"]:visible').click();
+    await this.projectMenuLink.click();
     // await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
     // await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
     // await new Promise(resolve => setTimeout(resolve, 150));
   }
 
   async signOut() {
-    await this.rootPage.getByTestId('nc-project-menu').click();
+    await this.projectMenuLink.click();
     const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
     await projMenu.locator('[data-menu-id="account"]:visible').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();

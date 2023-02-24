@@ -1,6 +1,7 @@
+import { Knex } from 'knex';
 import { MetaTable } from '../../utils/globals';
 
-const up = async (knex) => {
+const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.MAP_VIEW, (table) => {
     table.string('fk_view_id', 20).primary();
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
@@ -22,6 +23,7 @@ const up = async (knex) => {
     table.dateTime('created_at');
     table.dateTime('updated_at');
   });
+
   await knex.schema.createTable(MetaTable.MAP_VIEW_COLUMNS, (table) => {
     table.string('id', 20).primary().notNullable();
 
@@ -45,7 +47,7 @@ const up = async (knex) => {
   });
 };
 
-const down = async (knex) => {
+const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.MAP_VIEW);
   await knex.schema.dropTable(MetaTable.MAP_VIEW_COLUMNS);
 };

@@ -6,6 +6,7 @@ import MdiFormIcon from '~icons/mdi/form-select'
 import MdiCalendarIcon from '~icons/mdi/calendar'
 import MdiGalleryIcon from '~icons/mdi/camera-image'
 import MdiKanbanIcon from '~icons/mdi/tablet-dashboard'
+import MdiMapIcon from '~icons/mdi/map-outline'
 import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
 import type { Language } from '~/lib'
 
@@ -14,6 +15,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string }> = 
   [ViewTypes.FORM]: { icon: MdiFormIcon, color: themeV2Colors.pink['500'] },
   calendar: { icon: MdiCalendarIcon, color: 'purple' },
   [ViewTypes.GALLERY]: { icon: MdiGalleryIcon, color: 'orange' },
+  [ViewTypes.MAP]: { icon: MdiMapIcon, color: 'blue' },
   [ViewTypes.KANBAN]: { icon: MdiKanbanIcon, color: 'green' },
   view: { icon: MdiEyeIcon, color: 'blue' },
 }
@@ -23,6 +25,7 @@ export const viewTypeAlias: Record<number, string> = {
   [ViewTypes.FORM]: 'form',
   [ViewTypes.GALLERY]: 'gallery',
   [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
 }
 
 export const isRtlLang = (lang: keyof typeof Language) => ['fa', 'ar'].includes(lang)

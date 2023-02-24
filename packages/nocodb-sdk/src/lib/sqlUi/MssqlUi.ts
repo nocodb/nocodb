@@ -978,6 +978,9 @@ export class MssqlUi {
       case 'Collaborator':
         colProp.dt = 'varchar';
         break;
+      case 'GeoData':
+        colProp.dt = 'varchar';
+        break;
       case 'Date':
         colProp.dt = 'date';
 
@@ -1131,6 +1134,9 @@ export class MssqlUi {
         ];
 
       case 'Decimal':
+        return ['decimal', 'float'];
+
+      case 'GeoData':
         return ['decimal', 'float'];
 
       case 'Currency':

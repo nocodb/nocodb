@@ -74,7 +74,8 @@
     "insertBefore": "Вставить перед",
     "hideField": "Скрыть поле",
     "sortAsc": "По Возрастанию",
-    "sortDesc": "По убыванию"
+    "sortDesc": "По убыванию",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Проект",
@@ -98,7 +99,8 @@
       "gallery": "Галерея",
       "form": "Форма",
       "kanban": "Канбан",
-      "calendar": "Календарь"
+      "calendar": "Календарь",
+      "map": "Map"
     },
     "user": "Пользователь",
     "users": "Пользователи",
@@ -136,6 +138,7 @@
     "Currency": "Валюта",
     "Percent": "Процент",
     "Duration": "Интервал времени",
+    "GeoData": "GeoData",
     "Rating": "Рейтинг",
     "Formula": "Формула",
     "Rollup": "Итоги (Rollup)",
@@ -253,6 +256,9 @@
     "barcodeFormat": "Формат штрих-кода",
     "qrCodeValueTooLong": "Слишком много символов для QR-кода",
     "barcodeValueTooLong": "Слишком много символов для штрихкода",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Агрегатная функция",
     "dbCreateIfNotExists": "База данных: создать, если не существует",
     "clientKey": "Ключ клиента",
@@ -452,6 +458,10 @@
       "stackedBy": "Группировка по",
       "chooseGroupingField": "Выберите поле группировки",
       "addOrEditStack": "Добавление / редактирование стека"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +527,11 @@
       "roles": {
         "orgCreator": "Создатель может создавать новые проекты и получать доступ к любому приглашенному проекту.",
         "orgViewer": "Наблюдатель не может создавать новые проекты, но может получить доступ к любому проекту по приглашению."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Количество строк на странице",
       "upload": "Выберите файл для загрузки",
@@ -600,6 +615,7 @@
         "gallery": "Добавить представление галерея",
         "form": "Добавить представление форма",
         "kanban": "Добавить представление Канбан",
+        "map": "Add Map View",
         "calendar": "Добавить представление календарь"
       },
       "tablesMetadataInSync": "Таблицы метаданные синхронизируются",
@@ -690,6 +706,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Имя должно начинаться с алфавита или _",
       "followingCharactersAreNotAllowed": "Нельзя использовать следующие символы",
       "columnNameRequired": "Требуется название столбца",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Название проекта превышает 50 символов",
       "projectNameCannotStartWithSpace": "Название проекта не может начинаться с пробела",
       "requiredField": "Обязательное поле",

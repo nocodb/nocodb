@@ -16,10 +16,12 @@ const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
 
 const filteredPages = computed(() => {
-  if (href.value === '') return []
+  if (!href.value || href.value === '') return []
+
+  const hrefText = href.value.toLowerCase()
 
   return flattenedNestedPages.value.filter((page) => {
-    return page.title.toLowerCase().includes(href.value.toLowerCase())
+    return page.title.toLowerCase().includes(hrefText)
   })
 })
 

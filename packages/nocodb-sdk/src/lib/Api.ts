@@ -1127,12 +1127,37 @@ export class Api<
       }),
 
     /**
+ * @description Clear refresh token from the database and cookie.
+ * 
+ * @tags Auth
+ * @name Signout
+ * @summary Signin
+ * @request POST:/api/v1/auth/user/signin
+ * @response `200` `{
+  msg?: string,
+
+}` OK
+ */
+    signout: (params: RequestParams = {}) =>
+      this.request<
+        {
+          msg?: string;
+        },
+        any
+      >({
+        path: `/api/v1/auth/user/signin`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Authenticate existing user with their email and password. Successful login will return a JWT access-token. 
  * 
  * @tags Auth
  * @name Signin
  * @summary Signin
- * @request POST:/api/v1/auth/user/signin
+ * @request POST:/api/v1/auth/user/signout
  * @response `200` `{
   token?: string,
 
@@ -1151,7 +1176,7 @@ export class Api<
           msg?: string;
         }
       >({
-        path: `/api/v1/auth/user/signin`,
+        path: `/api/v1/auth/user/signout`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

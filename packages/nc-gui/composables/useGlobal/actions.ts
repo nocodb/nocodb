@@ -3,9 +3,15 @@ import { message, useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
   /** Sign out by deleting the token from localStorage */
-  const signOut: Actions['signOut'] = () => {
+  const signOut: Actions['signOut'] = async () => {
     state.token.value = null
     state.user.value = null
+    try {
+      if(state.token.value) {
+        const nuxtApp = useNuxtApp()
+        await nuxtApp.$api.auth.signout()
+      }
+    } catch {}
   }
 
   /** Sign in by setting the token in localStorage */
@@ -38,9 +44,9 @@ export function useGlobalActions(state: State): Actions {
             signIn(response.data.token)
           }
         })
-        .catch((err) => {
+        .catch(async (err) => {
           message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
-          signOut()
+          await signOut()
         })
         .finally(resolve)
     })

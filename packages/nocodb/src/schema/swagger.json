@@ -98,6 +98,34 @@
     "/api/v1/auth/user/signin": {
       "post": {
         "summary": "Signin",
+        "operationId": "auth-signout",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "description": "Clear refresh token from the database and cookie."
+      },
+      "parameters": []
+    },
+    "/api/v1/auth/user/signout": {
+      "post": {
+        "summary": "Signin",
         "operationId": "auth-signin",
         "responses": {
           "200": {

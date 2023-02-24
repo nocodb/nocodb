@@ -70,8 +70,8 @@ const sidebar = ref()
 
 const email = computed(() => user.value?.email ?? '---')
 
-const logout = () => {
-  signOut()
+const logout = async () => {
+  await signOut()
   navigateTo('/signin')
 }
 

@@ -10302,7 +10302,7 @@
                     "type": "string"
                   },
                   "order": {
-                    "type": "integer"
+                    "type": "number"
                   }
                 }
               }

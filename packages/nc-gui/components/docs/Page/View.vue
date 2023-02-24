@@ -18,8 +18,8 @@ const {
 } = useDocs()
 
 // Page opened in the Page component, which is updated to the server debounce-ly
-// The main reason we have it as a separate state, is since update syncing with server is debounced
-// We will run into syncing issue if we use `openedPage`from `useDocs`, which is synced with server directly,
+// Main reason is to speed up the page opening, as data from sidebar might take time
+// And the page content is not available in the sidebar, so we need to parallelly fetch it
 const localPage = ref<PageSidebarNode | undefined>()
 
 const wrapperRef = ref<HTMLDivElement | undefined>()

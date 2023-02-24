@@ -23,13 +23,6 @@ const filteredPages = computed(() => {
   })
 })
 
-const isHrefError = computed(() => {
-  const isHrefEmpty = href.value === ''
-  const validUrlRegex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g
-  const isHrefInvalid = !isHrefEmpty && !validUrlRegex.test(href.value)
-  return !isHrefEmpty && isHrefInvalid
-})
-
 // This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
 // This is because checkLinkMark is not called in that case
 const justDeleted = ref(false)
@@ -157,11 +150,10 @@ watch(href, () => {
             v-model:value="href"
             class="flex-1 !w-96 !mx-1 !rounded-md"
             :bordered="false"
-            placeholder="https://"
+            placeholder="Search for pages or enter a link"
             @change="onChange"
           />
-          <IcBaselineErrorOutline v-if="isHrefError" class="mr-2 text-red-500 mb-0.5" />
-          <MdiLinkVariant v-else class="mr-2 text-gray-400 mb-0.5" />
+          <MdiLinkVariant class="mr-2 text-gray-400 mb-0.5" />
         </div>
         <div class="flex mr-0.5 p-1.5 rounded-md cursor-pointer !hover:bg-gray-200 hover:text-red-400" @click="onDelete">
           <MdiDeleteOutline />

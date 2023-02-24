@@ -5,15 +5,7 @@ const isPublic = inject(IsDocsPublicInj, ref(false))
 
 const route = useRoute()
 
-const {
-  fetchNestedPages,
-  openChildPageTabsOfRootPages,
-  navigateToFirstPage,
-  isErrored,
-  isNoPageOpen,
-  expandTabOfOpenedPage,
-  openedPage,
-} = useDocs()
+const { fetchNestedPages, openChildPageTabsOfRootPages, navigateToFirstPage, isErrored, isNoPageOpen } = useDocs()
 
 useShortcuts()
 
@@ -48,18 +40,6 @@ watch(
     } else {
       toggleSidebar(true)
     }
-  },
-  {
-    immediate: true,
-  },
-)
-
-watch(
-  openedPage,
-  () => {
-    if (!openedPage.value) return
-
-    expandTabOfOpenedPage()
   },
   {
     immediate: true,

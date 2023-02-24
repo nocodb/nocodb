@@ -19,6 +19,7 @@ const {
   updatePage,
   isNoPageOpen,
   projectUrl,
+  expandTabOfOpenedPage,
 } = useDocs()
 
 const deleteModalOpen = ref(false)
@@ -109,6 +110,18 @@ const setIcon = async (id: string, icon: string) => {
 const navigateToHome = () => {
   navigateTo(projectUrl())
 }
+
+watch(
+  openedPage,
+  () => {
+    if (!openedPage.value) return
+
+    expandTabOfOpenedPage()
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -157,7 +170,7 @@ const navigateToHome = () => {
       :tree-data="(nestedPages as any)"
       :draggable="!isPublic"
       :on-drop="onDrop"
-      class="!w-full h-full overflow-y-scroll overflow-x-hidden pb-20"
+      class="!w-full h-full overflow-y-scroll !overflow-x-hidden pb-20"
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >

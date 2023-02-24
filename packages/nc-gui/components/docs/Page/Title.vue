@@ -7,6 +7,8 @@ const isPublic = inject(IsDocsPublicInj, ref(false))
 const localPage = inject(DocsLocalPageInj)!
 const { updatePage } = useDocs()
 
+const titleInputRef = ref<HTMLInputElement>()
+
 const title = computed({
   get: () => (localPage.value!.new ? '' : localPage.value?.title || ''),
   set: (value) => {
@@ -42,6 +44,20 @@ watchDebounced(
     maxWait: 300,
   },
 )
+
+watch(
+  titleInputRef,
+  () => {
+    if (!localPage.value?.new) {
+      return
+    }
+
+    titleInputRef.value?.focus()
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -62,7 +78,8 @@ watchDebounced(
         </div>
       </template>
     </a-dropdown>
-    <a-input
+    <a-textarea
+      ref="titleInputRef"
       v-model:value="title"
       class="!text-5xl font-semibold !px-1.5 !mb-6"
       :bordered="false"

@@ -332,7 +332,7 @@ const [setup, use] = useInjectionState(() => {
     targetNodeSiblings.splice(index, 0, sourceNode)
 
     const node = findPage(nestedPages.value, sourceNodeId)!
-    await updatePage({ pageId: sourceNodeId, page: { order: index + 1, parent_page_id: targetNode?.id } as any })
+    await updatePage({ pageId: sourceNodeId, page: { order: index + 1, parent_page_id: targetNode?.id ?? null } as any })
 
     navigateTo(nestedUrl(node.id!))
     const openedPages = [...getPageWithParents(node), node]

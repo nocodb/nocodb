@@ -50,6 +50,7 @@ export default class Filter {
     | 'in'
     | 'isnot'
     | 'is'
+    | 'isWithin'
     | 'btw'
     | 'nbtw';
 

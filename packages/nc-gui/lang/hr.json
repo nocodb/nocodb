@@ -74,7 +74,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +99,8 @@
       "gallery": "Galerija",
       "form": "Oblik",
       "kanban": "Kanban",
-      "calendar": "Kalendar"
+      "calendar": "Kalendar",
+      "map": "Map"
     },
     "user": "Korisnik",
     "users": "Korisnik",
@@ -136,6 +138,7 @@
     "Currency": "Valuta",
     "Percent": "Postotak",
     "Duration": "Trajanje",
+    "GeoData": "GeoData",
     "Rating": "Ocjena",
     "Formula": "Formula",
     "Rollup": "Valjak",
@@ -253,6 +256,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Agregatna funkcija",
     "dbCreateIfNotExists": "Baza podataka: stvoriti ako ne postoji",
     "clientKey": "Ključ klijenta",
@@ -452,6 +458,10 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +527,11 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Redaka po stranici",
       "upload": "Odaberite datoteku za prijenos",
@@ -600,6 +615,7 @@
         "gallery": "Dodajte pogled na galeriju",
         "form": "Dodajte prikaz obrasca",
         "kanban": "Dodajte Kanban pogled",
+        "map": "Add Map View",
         "calendar": "Dodajte prikaz kalendara"
       },
       "tablesMetadataInSync": "Metapodaci tablice se sinkroniziraju",
@@ -690,6 +706,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",

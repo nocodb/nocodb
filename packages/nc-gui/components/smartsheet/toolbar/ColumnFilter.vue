@@ -96,7 +96,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
     filter.value = ''
-    if (!filter.comparison_sub_op) filter.comparison_sub_op = 'exact_date'
+    if (!filter.comparison_sub_op) filter.comparison_sub_op = 'exactDate'
   }
   saveOrUpdate(filter, i)
   filterPrevComparisonOp.value[filter.id] = filter.comparison_op
@@ -160,7 +160,7 @@ const selectFilterField = (filter: Filter, index: number) => {
   )?.[0].value
 
   if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op)) {
-    filter.comparison_sub_op = 'exact_date'
+    filter.comparison_sub_op = 'exactDate'
   } else {
     // reset
     filter.comparison_sub_op = ''

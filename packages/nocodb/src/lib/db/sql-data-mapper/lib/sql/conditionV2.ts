@@ -291,36 +291,36 @@ const parseConditionV2 = async (
             case 'yesterday':
               val = now.add(-1, 'day');
               break;
-            case 'one_week_ago':
+            case 'oneWeekAgo':
               val = now.add(-7, 'day');
               break;
-            case 'one_week_from_now':
+            case 'oneWeekFromNow':
               val = now.add(7, 'day');
               break;
-            case 'one_month_ago':
+            case 'oneMonthAgo':
               val = now.add(-1, 'month');
               break;
-            case 'one_month_from_now':
+            case 'oneMonthFromNow':
               val = now.add(1, 'month');
               break;
-            case 'number_of_days_ago':
+            case 'daysAgo':
               if (!val) return;
               val = now.add(-val, 'day');
               break;
-            case 'number_of_days_from_now':
+            case 'daysFromNow':
               if (!val) return;
               val = now.add(val, 'day');
               break;
-            case 'exact_date':
+            case 'exactDate':
               if (!val) return;
               break;
           }
 
           if (
             filter.comparison_sub_op &&
-            filter.comparison_sub_op !== 'exact_date'
+            filter.comparison_sub_op !== 'exactDate'
           ) {
-            // val for exact_date is not a dayjs object
+            // val for exactDate is not a dayjs object
             val = val.format(dateFormat).toString();
             val = column.uidt === UITypes.Date ? val.substring(0, 10) : val;
           }

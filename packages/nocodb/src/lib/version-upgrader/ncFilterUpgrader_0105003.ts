@@ -50,7 +50,7 @@ async function migrateEqAndNeqFilters(ncMeta: NcMetaIO) {
       Filter.update(
         filter.id,
         {
-          comparison_sub_op: 'exact_date',
+          comparison_sub_op: 'exactDate',
         },
         ncMeta
       )

@@ -57,13 +57,13 @@ export default class Filter {
     | 'today'
     | 'tomorrow'
     | 'yesterday'
-    | 'one_week_ago'
-    | 'one_week_from_now'
-    | 'one_month_ago'
-    | 'one_month_from_now'
-    | 'number_of_days_ago'
-    | 'number_of_days_from_now'
-    | 'exact_date';
+    | 'oneWeekAgo'
+    | 'oneWeekFromNow'
+    | 'oneMonthAgo'
+    | 'oneMonthFromNow'
+    | 'daysAgo'
+    | 'daysFromNow'
+    | 'exactDate';
 
   value?: string;
 

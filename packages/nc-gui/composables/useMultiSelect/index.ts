@@ -145,14 +145,12 @@ export function useMultiSelect(
       return
     }
 
-    editEnabled.value = false
     isMouseDown = true
     selectedRange.startRange({ row, col })
   }
 
   const handleCellClick = (event: MouseEvent, row: number, col: number) => {
     isMouseDown = true
-    editEnabled.value = false
     selectedRange.startRange({ row, col })
     selectedRange.endRange({ row, col })
     makeActive(row, col)

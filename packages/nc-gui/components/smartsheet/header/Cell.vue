@@ -7,6 +7,7 @@ interface Props {
   required?: boolean | number
   hideMenu?: boolean
 }
+
 const props = defineProps<Props>()
 
 const hideMenu = toRef(props, 'hideMenu')
@@ -34,6 +35,12 @@ const closeAddColumnDropdown = () => {
   columnOrder.value = null
   editColumnDropdown.value = false
 }
+
+const openHeaderMenu = () => {
+  if (!isForm && isUIAllowed('edit-column')) {
+    editColumnDropdown.value = true
+  }
+}
 </script>
 
 <template>
@@ -47,20 +54,15 @@ const closeAddColumnDropdown = () => {
       class="name cursor-pointer"
       style="white-space: nowrap"
       :title="column.title"
-      @dblclick="editColumnDropdown = true"
-      >{{ column.title }}</span
-    >
+      @dblclick="openHeaderMenu"
+      >{{ column.title }}</span>
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
     <template v-if="!hideMenu">
       <div class="flex-1" />
 
-      <LazySmartsheetHeaderMenu
-        v-if="!isForm && isUIAllowed('edit-column')"
-        @add-column="addField"
-        @edit="editColumnDropdown = true"
-      />
+      <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" @add-column="addField" @edit="openHeaderMenu" />
     </template>
 
     <a-dropdown

@@ -198,7 +198,7 @@ export interface FilterType {
   logical_op?: string;
   comparison_op?: string;
   value?: string | number | boolean | null;
-  is_group?: string | number | null;
+  is_group?: boolean | number | null;
   children?: FilterType[];
   project_id?: string;
   base_id?: string;
@@ -214,7 +214,7 @@ export interface FilterReqType {
   logical_op?: string;
   comparison_op?: string;
   value?: string | number | boolean | null;
-  is_group?: string | number | null;
+  is_group?: boolean | number | null;
   children?: FilterType[];
   project_id?: string;
   base_id?: string;

@@ -8105,7 +8105,7 @@
           "is_group": {
             "oneOf": [
               {
-                "type": "string"
+                "type": "boolean"
               },
               {
                 "type": "integer"
@@ -8172,7 +8172,7 @@
           "is_group": {
             "oneOf": [
               {
-                "type": "string"
+                "type": "boolean"
               },
               {
                 "type": "integer"

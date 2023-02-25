@@ -55,7 +55,7 @@ export default class Filter {
   value?: string;
 
   logical_op?: string;
-  is_group?: boolean;
+  is_group?: boolean | number;
   children?: Filter[];
   project_id?: string;
   base_id?: string;

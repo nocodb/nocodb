@@ -8133,10 +8133,24 @@
             "type": "string"
           },
           "fk_view_id": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "fk_hook_id": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "readOnly": true
@@ -8200,10 +8214,24 @@
             "type": "string"
           },
           "fk_view_id": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "fk_hook_id": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "readOnly": true
@@ -9044,18 +9072,29 @@
             "type": "string"
           },
           "fk_grp_col_id": {
-            "type": [
-              "string",
-              "null"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "fk_cover_image_col_id": {
             "type": "string"
           },
           "meta": {
-            "type": [
-              "string",
-              "object"
+            "oneOf": [
+                {
+                    "type": "object"
+                },
+                {
+                    "type": "null"
+                },
+              {
+                "type": "string"
+              }
             ]
           }
         }
@@ -9100,9 +9139,13 @@
             "minLength": 1
           },
           "fk_geo_data_col_id": {
-            "type": [
-              "string",
-              "null"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "columns": {
@@ -9112,9 +9155,13 @@
             }
           },
           "meta": {
-            "type": [
-              "string",
-              "object"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object"
+              }
             ]
           }
         }
@@ -9382,13 +9429,17 @@
             "type": "integer"
           },
           "sort": {
-            "type": [
-              "string",
-              "array"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/Sort"
-            }
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Sort"
+                }
+              }
+            ]
           },
           "isFirstPage": {
             "type": "boolean"
@@ -9681,9 +9732,7 @@
           "async": {
             "type": "boolean"
           },
-          "payload": {
-            "type": "string"
-          },
+          "payload": { },
           "url": {
             "type": "string"
           },
@@ -9764,9 +9813,7 @@
               }
             ]
           },
-          "payload": {
-            "type": "string"
-          },
+          "payload": {},
           "url": {
             "type": "string"
           },
@@ -9936,9 +9983,20 @@
             "type": "string"
           },
           "input": {
-            "type": [
-              "string",
-              "null"
+
+            "items": {
+              "$ref": "#/components/schemas/Sort"
+            }
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "creator": {
@@ -10013,7 +10071,16 @@
             "type": "string"
           },
           "fk_hook_id": {
-            "type": "string"
+
+  "oneOf": [
+    {
+      "type": "string"
+    },
+    {
+      "type": "null"
+    }
+  ]
+
           },
           "type": {
             "type": "string"
@@ -10027,9 +10094,7 @@
           "test_call": {
             "type": "boolean"
           },
-          "payload": {
-            "type": "string"
-          },
+          "payload": {},
           "conditions": {
             "type": "string"
           },

@@ -31,9 +31,6 @@ import {
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 
-
-const emit = defineEmits(['clickedTableLink'])
-
 const { isMobileMode } = useGlobal()
 
 const { addTab, updateTab } = useTabs()
@@ -171,7 +168,6 @@ const reloadTables = async () => {
 }
 
 const addTableTab = (table: TableType) => {
-  emit('clickedTableLink')
   addTab({ title: table.title, id: table.id, type: table.type as TabType })
 }
 

@@ -66,8 +66,6 @@ const dataSourcesState = ref<string>('')
 
 const dropdownOpen = ref(false)
 
-const activeView = ref()
-
 /** Sidebar ref */
 const sidebar = ref()
 
@@ -404,8 +402,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         @click.stop="setIsMobileMode(!isMobileMode)"
                       >
                         <MaterialSymbolsMobileFriendly class="group-hover:text-accent" />
-                        <!-- TODO: use i18n here -->
-                        Toggle Mobile Mode
+                        {{ $t('activity.toggleMobileMode') }}
                       </div>
                     </a-menu-item>
 

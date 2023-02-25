@@ -465,7 +465,8 @@
     "map": {
       "mappedBy": "Mapped By",
       "chooseMappingField": "Choose a Mapping Field"
-    }
+    },
+    "toggleMobileMode": "Toggle Mobile Mode"
   },
   "tooltip": {
     "saveChanges": "Save changes",

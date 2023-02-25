@@ -15,7 +15,7 @@ const router = Router({ mergeParams: true });
 router.patch(
   '/api/v1/db/meta/form-columns/:formViewColumnId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/FormViewColumnReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/FormColumnReq'),
   ncMetaAclMw(columnUpdate, 'columnUpdate')
 );
 export default router;

@@ -76,6 +76,18 @@ export class ToolbarPage extends BasePage {
     if (menuOpen) await this.sort.get().waitFor({ state: 'hidden' });
   }
 
+  async verifyFieldsButtonIsVisibleWithTextAndIcon() {
+    await expect(this.get().locator(`button.nc-fields-menu-btn`)).toBeVisible();
+    await expect(this.get().locator(`button.nc-fields-menu-btn`)).toHaveText('Fields');
+    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`svg`).count()).toBe(2);
+  }
+
+  async verifyFieldsButtonIsVisibleWithoutTextButIcon() {
+    await expect(this.get().locator(`button.nc-fields-menu-btn`)).toBeVisible();
+    await expect(this.get().locator(`button.nc-fields-menu-btn`)).not.toHaveText('Fields');
+    expect(await this.get().locator(`button.nc-fields-menu-btn`).locator(`svg`).count()).toBe(2);
+  }
+
   async clickFilter({
     // `networkValidation` is used to verify that api calls are made when the button is clicked
     // which happens when the filter is opened for the first time

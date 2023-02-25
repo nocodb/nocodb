@@ -3,7 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import setup from '../setup';
 
-test.describe('Mobile Mode', () => {
+test.describe.only('Mobile Mode', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;
@@ -15,17 +15,26 @@ test.describe('Mobile Mode', () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test('activating Mobile Mode results in hiding some menu items and only showing the icons of menu items', async () => {
-    await dashboard.verifyTeamAndSettingsLinkIsVisible();
-    await dashboard.toggleMobileMode();
-    await dashboard.verifyTeamAndSettingsLinkIsNotVisible();
-  });
-
   // test('displays Toggle Mobile Mode menu item in correct location and with correct label', async () => {
   //   const mobileModeButton = await homePage.getMobileModeButton();
   //   expect(await mobileModeButton.isVisible()).toBeTruthy();
   //   expect(await mobileModeButton.innerText()).toEqual('Toggle Mobile Mode');
   // });
+
+  test('activating Mobile Mode results in hiding some menu items and only showing the icons of menu items', async () => {
+    await dashboard.verifyTeamAndSettingsLinkIsVisible();
+
+    await dashboard.treeView.createTable({ title: 'test-table-for-mobile-mode' });
+    // await dashboard.rootPage.pause();
+    // await toolbar.fields.verifyVisibleWithIconAndText();
+    await toolbar.verifyFieldsButtonIsVisibleWithTextAndIcon();
+
+    await dashboard.toggleMobileMode();
+
+    await dashboard.verifyTeamAndSettingsLinkIsNotVisible();
+    await toolbar.verifyFieldsButtonIsVisibleWithoutTextButIcon();
+    // await dashboard
+  });
 
   // test('changes appearance of menu bars when Toggle Mobile Mode is clicked', async () => {
   //   await homePage.toggleMobileMode();

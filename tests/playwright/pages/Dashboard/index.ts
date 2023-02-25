@@ -89,15 +89,11 @@ export class DashboardPage extends BasePage {
   async gotoSettings() {
     await this.rootPage.getByTestId('nc-project-menu').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
-    // await this.projectMenuLink.click();
-    // await this.getProjectMenuLink({ title: ' Team & Settings' }).click();
   }
 
   async gotoProjectSubMenu({ title }: { title: string }) {
     await this.rootPage.getByTestId('nc-project-menu').click();
     await this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`).click();
-    // await this.projectMenuLink.click();
-    // await this.getProjectMenuLink({ title }).click();
   }
 
   async verifyInTabBar({ title }: { title: string }) {
@@ -163,9 +159,6 @@ export class DashboardPage extends BasePage {
     const projMenu = this.rootPage.locator('.nc-dropdown-project-menu');
     await projMenu.locator('[data-menu-id="mobile-mode"]:visible').click();
     await this.projectMenuLink.click();
-    // await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
-    // await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
-    // await new Promise(resolve => setTimeout(resolve, 150));
   }
 
   async signOut() {

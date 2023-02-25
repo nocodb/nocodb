@@ -22,10 +22,6 @@ export class TreeViewPage extends BasePage {
     return await this.get().isVisible();
   }
 
-  // async isInViewport() {
-  //   return await this.get().isIntersectingViewport();
-  // }
-
   async verifyVisibility({ isVisible }: { isVisible: boolean }) {
     if (isVisible) {
       await expect(this.get()).toBeVisible();

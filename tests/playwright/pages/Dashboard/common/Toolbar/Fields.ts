@@ -14,12 +14,6 @@ export class ToolbarFieldsPage extends BasePage {
     return this.rootPage.locator(`[data-testid="nc-fields-menu"]`);
   }
 
-  // async verifyVisibleWithIconAndText() {
-  //   await expect(this.get()).toBeVisible();
-  //   await expect(this.get().locator(`button`)).toBeVisible();
-  //   await expect(this.get().locator(`button`).locator(`svg`)).toBeVisible();
-  // }
-
   // todo: Click and toggle are similar method. Remove one of them
   async toggle({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
     await this.toolbar.clickFields();

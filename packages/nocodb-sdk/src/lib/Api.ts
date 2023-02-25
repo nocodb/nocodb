@@ -1053,13 +1053,7 @@ export class Api<
  * @response `401` `void` Unauthorized
  * @response `403` `void` Forbidden
  */
-    signup: (
-      data: {
-        email?: string;
-        password?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    signup: (data: SignUpReqType, params: RequestParams = {}) =>
       this.request<
         {
           token?: string;
@@ -1091,13 +1085,7 @@ export class Api<
 
 }` Bad Request
  */
-    signin: (
-      data: {
-        email: string;
-        password: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    signin: (data: SignInReqType, params: RequestParams = {}) =>
       this.request<
         {
           token?: string;
@@ -1148,12 +1136,7 @@ export class Api<
      * @response `200` `void` OK
      * @response `401` `void` Unauthorized
      */
-    passwordForgot: (
-      data: {
-        email?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    passwordForgot: (data: ForgotPasswordReqType, params: RequestParams = {}) =>
       this.request<void, void>({
         path: `/api/v1/auth/password/forgot`,
         method: 'POST',
@@ -1178,13 +1161,7 @@ export class Api<
 
 }` Bad request
  */
-    passwordChange: (
-      data: {
-        currentPassword?: string;
-        newPassword?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    passwordChange: (data: PasswordChangeReqType, params: RequestParams = {}) =>
       this.request<
         {
           msg?: string;
@@ -1244,9 +1221,7 @@ export class Api<
      */
     passwordReset: (
       token: string,
-      data: {
-        new_password?: string;
-      },
+      data: PasswordResetReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -1498,12 +1473,7 @@ export class Api<
      * @request POST:/api/v1/license
      * @response `200` `void` OK
      */
-    set: (
-      data: {
-        key?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    set: (data: LicenseReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/license`,
         method: 'POST',
@@ -1761,14 +1731,14 @@ export class Api<
      * @tags Project
      * @name ModelVisibilitySet
      * @request POST:/api/v1/db/meta/projects/{projectId}/visibility-rules
-     * @response `200` `any` OK
+     * @response `200` `VisibilityRuleReqType` OK
      */
     modelVisibilitySet: (
       projectId: string,
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<VisibilityRuleReqType, any>({
         path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
         method: 'POST',
         body: data,
@@ -2612,7 +2582,11 @@ export class Api<
      * @request POST:/api/v1/db/meta/tables/{tableId}/grids
      * @response `200` `GridType` OK
      */
-    gridCreate: (tableId: string, data: GridType, params: RequestParams = {}) =>
+    gridCreate: (
+      tableId: string,
+      data: GridReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<GridType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/grids`,
         method: 'POST',
@@ -2630,7 +2604,11 @@ export class Api<
      * @request POST:/api/v1/db/meta/tables/{tableId}/forms
      * @response `200` `FormType` OK
      */
-    formCreate: (tableId: string, data: FormType, params: RequestParams = {}) =>
+    formCreate: (
+      tableId: string,
+      data: FormReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<FormType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/forms`,
         method: 'POST',
@@ -2761,7 +2739,7 @@ export class Api<
      */
     galleryCreate: (
       tableId: string,
-      data: GalleryType,
+      data: GalleryReqType,
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
@@ -2783,7 +2761,7 @@ export class Api<
      */
     galleryUpdate: (
       galleryId: string,
-      data: GalleryType,
+      data: GalleryReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -2820,7 +2798,7 @@ export class Api<
      */
     kanbanCreate: (
       tableId: string,
-      data: KanbanType,
+      data: KanbanReqType,
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
@@ -2842,7 +2820,7 @@ export class Api<
      */
     kanbanUpdate: (
       kanbanId: string,
-      data: KanbanType,
+      data: KanbanUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -3182,7 +3160,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/views/{viewId}/filters
      * @response `200` `FilterType` OK
      */
-    create: (viewId: string, data: FilterType, params: RequestParams = {}) =>
+    create: (viewId: string, data: FilterReqType, params: RequestParams = {}) =>
       this.request<FilterType, any>({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'POST',
@@ -3216,7 +3194,11 @@ export class Api<
      * @request PATCH:/api/v1/db/meta/filters/{filterId}
      * @response `200` `void` OK
      */
-    update: (filterId: string, data: FilterType, params: RequestParams = {}) =>
+    update: (
+      filterId: string,
+      data: FilterReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'PATCH',
@@ -3280,7 +3262,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `void` OK
      */
-    create: (hookId: string, data: FilterType, params: RequestParams = {}) =>
+    create: (hookId: string, data: FilterReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'POST',
@@ -4705,13 +4687,7 @@ export class Api<
      */
     test: (
       tableId: string,
-      data: {
-        payload?: {
-          data?: any;
-          user?: any;
-        };
-        hook?: HookType;
-      },
+      data: HookTestReqType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

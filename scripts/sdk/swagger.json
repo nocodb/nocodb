@@ -138,19 +138,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "email",
-                  "password"
-                ]
+                "$ref": "#/components/schemas/SignInReq"
               },
               "examples": {
                 "example-1": {
@@ -234,12 +222,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/ForgotPasswordReq"
               }
             }
           },
@@ -311,15 +294,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "currentPassword": {
-                    "type": "string"
-                  },
-                  "newPassword": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/PasswordChangeReq"
               },
               "examples": {
                 "example-1": {
@@ -403,12 +378,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "new_password": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/PasswordResetReq"
               }
             }
           }
@@ -557,12 +527,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "key": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/LicenseReq"
               }
             }
           }
@@ -1087,7 +1052,9 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/VisibilityRuleReq"
+                }
               }
             }
           }
@@ -2701,7 +2668,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Filter"
+                "$ref": "#/components/schemas/FilterReq"
               }
             }
           }
@@ -2746,7 +2713,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Filter"
+                "$ref": "#/components/schemas/FilterReq"
               }
             }
           }
@@ -2798,7 +2765,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Filter"
+                "$ref": "#/components/schemas/FilterReq"
               }
             }
           }
@@ -2884,7 +2851,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Grid"
+                "$ref": "#/components/schemas/GridReq"
               }
             }
           }
@@ -2925,7 +2892,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Form"
+                "$ref": "#/components/schemas/FormReq"
               }
             }
           }
@@ -3168,7 +3135,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Gallery"
+                "$ref": "#/components/schemas/GalleryReq"
               }
             }
           }
@@ -3201,7 +3168,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Gallery"
+                "$ref": "#/components/schemas/GalleryReq"
               }
             }
           }
@@ -3261,7 +3228,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Kanban"
+                "$ref": "#/components/schemas/KanbanReq"
               }
             }
           }
@@ -3294,7 +3261,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Kanban"
+                "$ref": "#/components/schemas/KanbanUpdateReq"
               }
             }
           }
@@ -6113,19 +6080,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "payload": {
-                    "type": "object",
-                    "properties": {
-                      "data": {},
-                      "user": {}
-                    }
-                  },
-                  "hook": {
-                    "$ref": "#/components/schemas/Hook"
-                  }
-                }
+                "$ref": "#/components/schemas/HookTestReq"
               }
             }
           }
@@ -9106,12 +9061,12 @@
           },
           "meta": {
             "oneOf": [
-                {
-                    "type": "object"
-                },
-                {
-                    "type": "null"
-                },
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              },
               {
                 "type": "string"
               }
@@ -9752,7 +9707,7 @@
           "async": {
             "type": "boolean"
           },
-          "payload": { },
+          "payload": {},
           "url": {
             "type": "string"
           },
@@ -9821,7 +9776,7 @@
             ]
           },
           "async": {
-             "oneOf": [
+            "oneOf": [
               {
                 "type": "string"
               },
@@ -10108,16 +10063,14 @@
             "type": "string"
           },
           "fk_hook_id": {
-
-  "oneOf": [
-    {
-      "type": "string"
-    },
-    {
-      "type": "null"
-    }
-  ]
-
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "type": {
             "type": "string"
@@ -10540,27 +10493,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "description": "",
-              "type": "object",
-              "x-examples": {
-                "example-1": {
-                  "email": true
-                }
-              },
-              "properties": {
-                "email": {
-                  "type": "string"
-                },
-                "password": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "application/xml": {
-            "schema": {
-              "type": "object",
-              "properties": {}
+           "$ref": "#/components/schemas/SignUpReq"
             }
           }
         }

@@ -30,9 +30,9 @@ test.describe.only('Mobile Mode', () => {
     // and all toolbar items have icons AND text
     await toolbar.verifyFieldsButtonIsVisibleWithTextAndIcon();
 
-    await dashboard.rootPage.pause();
+    // await dashboard.rootPage.pause();
     await dashboard.toggleMobileMode();
-    await dashboard.rootPage.pause();
+    // await dashboard.rootPage.pause();
 
     // in mobile-mode, some menu items are hidden
     await dashboard.verifyTeamAndSettingsLinkIsNotVisible();

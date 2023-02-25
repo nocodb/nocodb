@@ -4,7 +4,7 @@ import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import { FormPage } from '../pages/Dashboard/Form';
 import setup from '../setup';
 
-test.describe.only('Find row by scanner', () => {
+test.describe('Find row by scanner', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;
@@ -19,19 +19,12 @@ test.describe.only('Find row by scanner', () => {
 
   test.describe('clicking on the toolbars scanner button', async () => {
     test.beforeEach(async () => {
-      // close 'Team & Auth' tab
       await dashboard.closeTab({ title: 'Team & Auth' });
       await dashboard.treeView.openTable({ title: 'Country' });
       await toolbar.clickFindRowByScanButton();
     });
     test('opens the scanner overlay', async () => {
-      await dashboard.rootPage.pause();
       expect(await dashboard.findRowByScanOverlay.isVisible()).toBeTruthy();
-    });
-
-    test.describe('selecting a column', () => {
-      // Selecting a column
-      // expect that the scanner screen is visible
     });
   });
 });

@@ -23,6 +23,15 @@ export class FindRowByScanOverlay extends BasePage {
     return await this.get().isVisible();
   }
 
+  async scannerScreenIsVisible() {
+    return await this.get().locator(`.nc-scanner-screen`).isVisible();
+  }
+
+  async selectColumnToScan({ columnName }: { columnName: string }) {
+    await this.selectColumnDropdown.click();
+    await this.selectColumnDropdown.selectOption({ label: columnName });
+  }
+
   // async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {
   //   await this.toolbar.clickActions();
   //   await this.toolbar.actions.click('Webhooks');

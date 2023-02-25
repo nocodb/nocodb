@@ -92,7 +92,7 @@ const onDecode = async (codeValue: string) => {
 </script>
 
 <template>
-  <div class="nc-overlay-find-row-by-scan">
+  <div>
     <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerOverlay = true">
       <div class="flex items-center gap-1">
         <QrCodeScan />
@@ -101,6 +101,7 @@ const onDecode = async (codeValue: string) => {
     </a-button>
     <a-modal
       v-model:visible="showCodeScannerOverlay"
+      class="nc-overlay-find-row-by-scan"
       :closable="false"
       width="28rem"
       centered

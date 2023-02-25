@@ -23,10 +23,15 @@ test.describe.only('Find row by scanner', () => {
       await dashboard.closeTab({ title: 'Team & Auth' });
       await dashboard.treeView.openTable({ title: 'Country' });
       await toolbar.clickFindRowByScanButton();
-      await dashboard.rootPage.pause();
     });
     test('opens the scanner overlay', async () => {
-      expect(2 + 2).toBe(6);
+      await dashboard.rootPage.pause();
+      expect(await dashboard.findRowByScanOverlay.isVisible()).toBeTruthy();
+    });
+
+    test.describe('selecting a column', () => {
+      // Selecting a column
+      // expect that the scanner screen is visible
     });
   });
 });

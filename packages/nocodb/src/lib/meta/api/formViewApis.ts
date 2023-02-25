@@ -13,7 +13,7 @@ import View from '../../models/View';
 import FormView from '../../models/FormView';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers'
+import { getAjvValidatorMw } from './helpers';
 
 // @ts-ignore
 export async function formViewGet(req: Request, res: Response<FormType>) {

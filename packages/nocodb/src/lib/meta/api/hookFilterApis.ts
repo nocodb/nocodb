@@ -13,7 +13,7 @@ import Project from '../../models/Project';
 import Filter from '../../models/Filter';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers'
+import { getAjvValidatorMw } from './helpers';
 
 // @ts-ignore
 export async function filterGet(req: Request, res: Response, next) {

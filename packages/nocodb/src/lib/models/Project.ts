@@ -1,6 +1,6 @@
 import Base from './/Base';
 import Noco from '../Noco';
-import { NcBoolType, ProjectType } from 'nocodb-sdk'
+import { NcBoolType, ProjectType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,

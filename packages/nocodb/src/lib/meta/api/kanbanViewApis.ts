@@ -5,7 +5,7 @@ import KanbanView from '../../models/KanbanView';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers'
+import { getAjvValidatorMw } from './helpers';
 
 export async function kanbanViewGet(req: Request, res: Response<KanbanType>) {
   res.json(await KanbanView.get(req.params.kanbanViewId));

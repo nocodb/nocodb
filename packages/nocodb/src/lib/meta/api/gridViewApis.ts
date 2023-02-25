@@ -13,7 +13,7 @@ import View from '../../models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import GridView from '../../models/GridView';
-import { getAjvValidatorMw } from './helpers'
+import { getAjvValidatorMw } from './helpers';
 
 // @ts-ignore
 export async function gridViewCreate(req: Request<any, any>, res) {

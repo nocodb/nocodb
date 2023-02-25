@@ -5,7 +5,7 @@ import GalleryView from '../../models/GalleryView';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers'
+import { getAjvValidatorMw } from './helpers';
 export async function galleryViewGet(req: Request, res: Response<GalleryType>) {
   res.json(await GalleryView.get(req.params.galleryViewId));
 }

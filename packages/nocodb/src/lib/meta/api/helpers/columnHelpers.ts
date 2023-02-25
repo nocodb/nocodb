@@ -2,12 +2,13 @@ import { customAlphabet } from 'nanoid';
 import {
   ColumnReqType,
   LinkToAnotherRecordType,
-  LookupColumnReqType, NcBoolType,
+  LookupColumnReqType,
+  NcBoolType,
   RelationTypes,
   RollupColumnReqType,
   TableType,
   UITypes,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import Column from '../../../models/Column';
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../models/LookupColumn';

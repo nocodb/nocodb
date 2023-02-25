@@ -7,7 +7,7 @@ import Base from '../../models/Base';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw, populateMeta } from './helpers'
+import { getAjvValidatorMw, populateMeta } from './helpers';
 
 export async function baseGet(
   req: Request<any, any, any>,

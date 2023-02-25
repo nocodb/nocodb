@@ -4,7 +4,7 @@ import { Router } from 'express';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers'
+import { getAjvValidatorMw } from './helpers';
 async function xcVisibilityMetaSetAll(req, res) {
   Tele.emit('evt', { evt_type: 'uiAcl:updated' });
   for (const d of req.body) {

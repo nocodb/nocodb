@@ -12,7 +12,7 @@ import Project from '../../models/Project';
 import Sort from '../../models/Sort';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers'
+import { getAjvValidatorMw } from './helpers';
 
 // @ts-ignore
 export async function sortGet(req: Request, res: Response<TableType>) {}

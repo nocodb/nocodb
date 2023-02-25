@@ -18,7 +18,7 @@ import { metaApiMetrics } from '../helpers/apiMetrics';
 import { extractPropsAndSanitize } from '../helpers/extractProps';
 import NcConfigFactory from '../../utils/NcConfigFactory';
 import { promisify } from 'util';
-import { getAjvValidatorMw, populateMeta } from './helpers'
+import { getAjvValidatorMw, populateMeta } from './helpers';
 import Filter from '../../models/Filter';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);

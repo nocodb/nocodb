@@ -5,7 +5,7 @@ import Store from '../../models/Store';
 import Noco from '../../Noco';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { getAjvValidatorMw } from './helpers'
+import { getAjvValidatorMw } from './helpers';
 
 async function licenseGet(_req, res) {
   const license = await Store.get(NC_LICENSE_KEY);

@@ -9,7 +9,7 @@ import Model from '../../models/Model';
 import populateSamplePayload from '../helpers/populateSamplePayload';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers'
+import { getAjvValidatorMw } from './helpers';
 
 export async function hookList(
   req: Request<any, any, any>,

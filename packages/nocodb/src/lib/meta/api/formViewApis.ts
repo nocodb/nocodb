@@ -55,6 +55,7 @@ router.get(
 router.patch(
   '/api/v1/db/meta/forms/:formViewId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/FormReq'),
   ncMetaAclMw(formViewUpdate, 'formViewUpdate')
 );
 router.delete(

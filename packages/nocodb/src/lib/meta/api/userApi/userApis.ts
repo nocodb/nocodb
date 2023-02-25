@@ -593,6 +593,7 @@ const mapRoutes = (router) => {
   );
   router.post(
     '/api/v1/db/auth/password/reset/:tokenId',
+    getAjvValidatorMw('swagger.json#/components/schemas/PasswordResetReq'),
     catchError(passwordReset)
   );
   router.post(

@@ -478,7 +478,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApiToken"
+                "$ref": "#/components/schemas/ApiTokenReq"
               }
             }
           }
@@ -713,7 +713,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/OrgUserReq"
               }
             }
           },
@@ -858,7 +858,8 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                }
               }
             }
           }
@@ -866,7 +867,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUserReq"
+              }
             }
           }
         },
@@ -977,7 +980,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUserReq"
+              }
             }
           }
         },
@@ -1472,18 +1477,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "uuid": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string"
-                    },
-                    "roles": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/SharedBaseReq"
                 }
               }
             }
@@ -5793,23 +5787,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "row_id": {
-                    "type": "string"
-                  },
-                  "fk_model_id": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "row_id",
-                  "fk_model_id",
-                  "comment"
-                ]
+                "$ref": "#/components/schemas/CommentReq"
               }
             }
           }
@@ -5946,24 +5924,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "fk_model_id": {
-                    "type": "string"
-                  },
-                  "column_name": {
-                    "type": "string"
-                  },
-                  "row_id": {
-                    "type": "string"
-                  },
-                  "value": {
-                    "type": "string"
-                  },
-                  "prev_value": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/AuditRowUpdateReq"
               }
             }
           }
@@ -6307,19 +6268,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "title": {
-                    "type": "string"
-                  },
-                  "input": {},
-                  "category": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/PluginTestReq"
               }
             }
           }
@@ -6346,7 +6295,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plugin"
+                  "$ref": "#/components/schemas/PluginReq"
                 }
               }
             }
@@ -10028,6 +9977,22 @@
           "updated_at": {}
         }
       },
+      "ApiTokenReq": {
+        "title": "ApiToken",
+        "type": "object",
+        "properties": {
+          "description": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+          }
+        }
+      },
       "HookLog": {
         "title": "ApiToken",
         "type": "object",
@@ -10468,6 +10433,106 @@
             "type": "null"
           }
         ]
+      },
+      "CommentReq": {
+        "type": "object",
+        "properties": {
+          "row_id": {
+            "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "row_id",
+          "fk_model_id",
+          "comment"
+        ]
+      },
+      "AuditRowUpdateReq": {
+        "type": "object",
+        "properties": {
+          "fk_model_id": {
+            "type": "string"
+          },
+          "column_name": {
+            "type": "string"
+          },
+          "row_id": {
+            "type": "string"
+          },
+          "value": { },
+          "prev_value": { }
+        }
+      },
+      "OrgUserReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        }
+      },
+      "ProjectUserReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        }
+      },
+      "SharedBaseReq": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "roles": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "PluginTestReq": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "input": {}
+        }
+      },
+      "PluginReq": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "$ref": "#/components/schemas/NcBool"
+          },
+          "input": {}
+        }
       }
     },
     "requestBodies": {

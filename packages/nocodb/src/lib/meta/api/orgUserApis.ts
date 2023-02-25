@@ -22,6 +22,7 @@ import { extractProps } from '../helpers/extractProps';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { randomTokenString } from '../helpers/stringHelpers';
+import { getAjvValidatorMw } from './helpers';
 import { sendInviteEmail } from './projectUserApis';
 
 async function userList(req, res) {
@@ -266,6 +267,7 @@ router.get(
 router.patch(
   '/api/v1/users/:userId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/OrgUserReq'),
   ncMetaAclMw(userUpdate, 'userUpdate', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
@@ -282,6 +284,7 @@ router.delete(
 router.post(
   '/api/v1/users',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/OrgUserReq'),
   ncMetaAclMw(userAdd, 'userAdd', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,

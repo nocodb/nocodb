@@ -672,7 +672,7 @@ export interface SignInReqType {
   password: string;
 }
 
-export interface ForgotPasswordReqType {
+export interface PasswordForgotReqType {
   email: string;
 }
 
@@ -686,7 +686,7 @@ export interface PasswordChangeReqType {
 }
 
 export interface ApiTokenReqType {
-  description?: string;
+  description?: string | null;
 }
 
 export interface PluginType {
@@ -880,6 +880,45 @@ export type VisibilityRuleReqType = {
 }[];
 
 export type NcBoolType = boolean | number | null;
+
+export interface CommentReqType {
+  row_id: string;
+  fk_model_id: string;
+  description?: string;
+}
+
+export interface AuditRowUpdateReqType {
+  fk_model_id?: string;
+  column_name?: string;
+  row_id?: string;
+  value?: any;
+  prev_value?: any;
+}
+
+export interface OrgUserReqType {
+  email?: string;
+  roles?: string;
+}
+
+export interface ProjectUserReqType {
+  email?: string;
+  roles?: string;
+}
+
+export interface SharedBaseReqType {
+  uuid?: string | null;
+  roles?: string | null;
+}
+
+export interface PluginTestReqType {
+  title?: string;
+  input?: any;
+}
+
+export interface PluginReqType {
+  active?: NcBoolType;
+  input?: any;
+}
 
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 
@@ -1149,7 +1188,7 @@ export class Api<
      * @response `200` `void` OK
      * @response `401` `void` Unauthorized
      */
-    passwordForgot: (data: ForgotPasswordReqType, params: RequestParams = {}) =>
+    passwordForgot: (data: PasswordForgotReqType, params: RequestParams = {}) =>
       this.request<void, void>({
         path: `/api/v1/auth/password/forgot`,
         method: 'POST',
@@ -1304,7 +1343,7 @@ export class Api<
      */
     projectUserAdd: (
       projectId: string,
-      data: any,
+      data: ProjectUserReqType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -1328,7 +1367,7 @@ export class Api<
     projectUserUpdate: (
       projectId: string,
       userId: string,
-      data: any,
+      data: ProjectUserReqType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -1427,7 +1466,7 @@ export class Api<
      * @request POST:/api/v1/tokens
      * @response `200` `void` OK
      */
-    create: (data: ApiTokenType, params: RequestParams = {}) =>
+    create: (data: ApiTokenReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/tokens`,
         method: 'POST',
@@ -1605,7 +1644,11 @@ export class Api<
      * @request PATCH:/api/v1/users/{userId}
      * @response `200` `void` OK
      */
-    update: (userId: string, data: UserType, params: RequestParams = {}) =>
+    update: (
+      userId: string,
+      data: OrgUserReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}`,
         method: 'PATCH',
@@ -1903,18 +1946,13 @@ export class Api<
       }),
 
     /**
- * No description
- * 
- * @tags Project
- * @name SharedBaseCreate
- * @request POST:/api/v1/db/meta/projects/{projectId}/shared
- * @response `200` `{
-  uuid?: string,
-  url?: string,
-  roles?: string,
-
-}` OK
- */
+     * No description
+     *
+     * @tags Project
+     * @name SharedBaseCreate
+     * @request POST:/api/v1/db/meta/projects/{projectId}/shared
+     * @response `200` `SharedBaseReqType` OK
+     */
     sharedBaseCreate: (
       projectId: string,
       data: {
@@ -1923,14 +1961,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<
-        {
-          uuid?: string;
-          url?: string;
-          roles?: string;
-        },
-        any
-      >({
+      this.request<SharedBaseReqType, any>({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'POST',
         body: data,
@@ -4353,14 +4384,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/audits/comments
      * @response `200` `void` OK
      */
-    commentRow: (
-      data: {
-        row_id: string;
-        fk_model_id: string;
-        description?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    commentRow: (data: CommentReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/audits/comments`,
         method: 'POST',
@@ -4402,13 +4426,7 @@ export class Api<
      */
     auditRowUpdate: (
       rowId: string,
-      data: {
-        fk_model_id?: string;
-        column_name?: string;
-        row_id?: string;
-        value?: string;
-        prev_value?: string;
-      },
+      data: AuditRowUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -4833,15 +4851,7 @@ export class Api<
      * @response `400` `void` Bad Request
      * @response `401` `void` Unauthorized
      */
-    test: (
-      data: {
-        id?: string;
-        title?: string;
-        input?: any;
-        category?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    test: (data: PluginTestReqType, params: RequestParams = {}) =>
       this.request<any, void>({
         path: `/api/v1/db/meta/plugins/test`,
         method: 'POST',
@@ -4857,10 +4867,10 @@ export class Api<
      * @tags Plugin
      * @name Update
      * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
-     * @response `200` `PluginType` OK
+     * @response `200` `PluginReqType` OK
      */
     update: (pluginId: string, data: PluginType, params: RequestParams = {}) =>
-      this.request<PluginType, any>({
+      this.request<PluginReqType, any>({
         path: `/api/v1/db/meta/plugins/${pluginId}`,
         method: 'PATCH',
         body: data,

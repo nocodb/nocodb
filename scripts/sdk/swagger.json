@@ -9707,16 +9707,6 @@
           "async": {
             "type": "boolean"
           },
-          "payload": {},
-          "url": {
-            "type": "string"
-          },
-          "headers": {
-            "type": "string"
-          },
-          "condition": {
-            "type": "boolean"
-          },
           "notification": {
             "type": "string"
           },
@@ -9782,37 +9772,6 @@
               },
               {
                 "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "payload": {},
-          "url": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "headers": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "condition": {
-            "oneOf": [
-              {
-                "type": "boolean"
               },
               {
                 "type": "null"

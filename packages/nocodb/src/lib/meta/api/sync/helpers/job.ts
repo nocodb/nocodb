@@ -2003,38 +2003,6 @@ export default async (
         let value = null;
         if (['isEmpty', 'isNotEmpty'].includes(filter.operator)) {
           comparison_op = filter.operator === 'isEmpty' ? 'blank' : 'notblank';
-        } else if (filter.operator === 'isWithin') {
-          switch (filter.value.mode) {
-            case 'pastWeek':
-              comparison_sub_op = 'oneWeekAgo';
-              break;
-            case 'pastMonth':
-              comparison_sub_op = 'oneMonthAgo';
-              break;
-            case 'pastYear':
-              comparison_sub_op = 'daysAgo';
-              value = 365;
-              break;
-            case 'nextWeek':
-              comparison_sub_op = 'oneWeekFromNow';
-              break;
-            case 'nextMonth':
-              comparison_sub_op = 'oneMonthFromNow';
-              break;
-            case 'nextYear':
-              comparison_sub_op = 'daysFromNow';
-              value = 365;
-              break;
-            case 'pastNumberOfDays':
-              comparison_sub_op = 'daysAgo';
-              value = filter.value.numberOfDays;
-              break;
-            case 'nextNumberOfDays':
-              comparison_sub_op = 'daysFromNow';
-              value = filter.value.numberOfDays;
-              break;
-          }
-          comparison_op = filter.operator;
         } else {
           if ('numberOfDays' in filter.value) {
             value = filter.value['numberOfDays'];

@@ -92,7 +92,7 @@ const onDecode = async (codeValue: string) => {
 </script>
 
 <template>
-  <div>
+  <div class="nc-overlay-find-row-by-scan">
     <a-button class="nc-btn-find-row-by-scan nc-toolbar-btn" @click="showCodeScannerOverlay = true">
       <div class="flex items-center gap-1">
         <QrCodeScan />
@@ -110,7 +110,7 @@ const onDecode = async (codeValue: string) => {
       @cancel="scannerIsReady = false"
     >
       <div class="relative flex flex-col h-full">
-        <a-form-item :label="$t('labels.columnToScanFor')">
+        <a-form-item :label="$t('labels.columnToScanFor')" class="nc-dropdown-scanner-column-id">
           <a-select v-model:value="selectedCodeColumnIdToScanFor" class="w-full" :options="codeFieldOptions" />
         </a-form-item>
 

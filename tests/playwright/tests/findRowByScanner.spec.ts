@@ -4,7 +4,7 @@ import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import { FormPage } from '../pages/Dashboard/Form';
 import setup from '../setup';
 
-test.describe('Find row by scanner', () => {
+test.describe.only('Find row by scanner', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;
@@ -22,10 +22,11 @@ test.describe('Find row by scanner', () => {
       // close 'Team & Auth' tab
       await dashboard.closeTab({ title: 'Team & Auth' });
       await dashboard.treeView.openTable({ title: 'Country' });
-      // await toolbar.clickActions;
+      await toolbar.clickFindRowByScanButton();
+      await dashboard.rootPage.pause();
     });
     test('opens the scanner overlay', async () => {
-      expect(2 + 2).toBe(4);
+      expect(2 + 2).toBe(6);
     });
   });
 });

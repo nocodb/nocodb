@@ -15,6 +15,7 @@ import { ImportAirtablePage } from './Import/Airtable';
 import { ImportTemplatePage } from './Import/ImportTemplate';
 import { WebhookFormPage } from './WebhookForm';
 import { ProjectsPage } from '../ProjectsPage';
+import { FindRowByScanOverlay } from './FindRowByScanOverlay';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -29,6 +30,7 @@ export class DashboardPage extends BasePage {
   readonly map: MapPage;
   readonly expandedForm: ExpandedFormPage;
   readonly webhookForm: WebhookFormPage;
+  readonly findRowByScanOverlay: FindRowByScanOverlay;
   readonly childList: ChildList;
   readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
@@ -50,6 +52,7 @@ export class DashboardPage extends BasePage {
     this.map = new MapPage(this);
     this.expandedForm = new ExpandedFormPage(this);
     this.webhookForm = new WebhookFormPage(this);
+    this.findRowByScanOverlay = new FindRowByScanOverlay(this);
     this.childList = new ChildList(this);
     this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);

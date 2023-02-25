@@ -21,19 +21,30 @@ test.describe.only('Mobile Mode', () => {
   //   expect(await mobileModeButton.innerText()).toEqual('Toggle Mobile Mode');
   // });
 
-  test('activating Mobile Mode results in hiding some menu items and only showing the icons of menu items', async () => {
+  test('activating and deactivating Mobile Mode results correct behavior', async () => {
+    // in non-mobile mode, all menu items are visible
     await dashboard.verifyTeamAndSettingsLinkIsVisible();
 
     await dashboard.treeView.createTable({ title: 'test-table-for-mobile-mode' });
-    // await dashboard.rootPage.pause();
-    // await toolbar.fields.verifyVisibleWithIconAndText();
+
+    // and all toolbar items have icons AND text
     await toolbar.verifyFieldsButtonIsVisibleWithTextAndIcon();
 
+    await dashboard.rootPage.pause();
     await dashboard.toggleMobileMode();
+    await dashboard.rootPage.pause();
 
+    // in mobile-mode, some menu items are hidden
     await dashboard.verifyTeamAndSettingsLinkIsNotVisible();
+
+    // and toolbar items have icons but no text
     await toolbar.verifyFieldsButtonIsVisibleWithoutTextButIcon();
-    // await dashboard
+
+    // toolbar items still work as expected
+
+    // // changing back to non-mobile mode leads to the original appearance
+    // await dashboard.verifyTeamAndSettingsLinkIsVisible();
+    // await toolbar.verifyFieldsButtonIsVisibleWithTextAndIcon();
   });
 
   // test('changes appearance of menu bars when Toggle Mobile Mode is clicked', async () => {

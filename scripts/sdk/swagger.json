@@ -8507,10 +8507,30 @@
             "type": "string"
           },
           "dtxp": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "dtxs": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "au": {
             "type": "boolean"
@@ -10292,6 +10312,9 @@
                 "type": "string"
               },
               {
+                "type": "number"
+              },
+              {
                 "type": "null"
               }
             ]
@@ -10300,6 +10323,9 @@
             "oneOf": [
               {
                 "type": "string"
+              },
+              {
+                "type": "number"
               },
               {
                 "type": "null"

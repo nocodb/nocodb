@@ -203,8 +203,8 @@ export interface FilterType {
   project_id?: string;
   base_id?: string;
   fk_parent_id?: string;
-  fk_view_id?: string;
-  fk_hook_id?: string;
+  fk_view_id?: string | null;
+  fk_hook_id?: string | null;
 }
 
 export interface FilterReqType {
@@ -219,8 +219,8 @@ export interface FilterReqType {
   project_id?: string;
   base_id?: string;
   fk_parent_id?: string;
-  fk_view_id?: string;
-  fk_hook_id?: string;
+  fk_view_id?: string | null;
+  fk_hook_id?: string | null;
 }
 
 export interface FilterListType {
@@ -273,8 +273,8 @@ export interface ColumnType {
   cc?: string;
   csn?: string;
   dtx?: string;
-  dtxp?: string;
-  dtxs?: string;
+  dtxp?: string | number | null;
+  dtxs?: string | number | null;
   au?: boolean;
   deleted?: boolean;
   visible?: boolean;
@@ -448,7 +448,7 @@ export interface KanbanType {
   fk_model_id?: string;
   fk_grp_col_id?: string | null;
   fk_cover_image_col_id?: string;
-  meta?: string | object;
+  meta?: object | null | string;
 }
 
 export interface GeoLocationType {
@@ -546,7 +546,7 @@ export interface FormColumnType {
 export interface PaginatedType {
   pageSize?: number;
   totalRows?: number;
-  sort?: string | any[];
+  sort?: string | SortType[];
   isFirstPage?: boolean;
   isLastPage?: boolean;
   page?: number;
@@ -615,7 +615,7 @@ export interface HookType {
   event?: 'after' | 'before';
   operation?: 'insert' | 'delete' | 'update';
   async?: boolean;
-  payload?: string;
+  payload?: any;
   url?: string;
   headers?: string;
   condition?: boolean;
@@ -635,10 +635,10 @@ export interface HookReqType {
   event: 'after' | 'before';
   operation: 'insert' | 'delete' | 'update';
   async?: string | number | null;
-  payload?: string;
-  url?: string;
-  headers?: string;
-  condition?: boolean;
+  payload?: any;
+  url?: string | null;
+  headers?: string | null;
+  condition?: boolean | null;
   notification: object;
   retries?: number;
   retry_interval?: number;
@@ -693,7 +693,7 @@ export interface PluginType {
   tags?: string;
   category?: string;
   input_schema?: string;
-  input?: string | null;
+  input?: string | number | null;
   creator?: string;
   creator_website?: string;
   price?: string;
@@ -722,12 +722,12 @@ export interface HookLogType {
   id?: string;
   base_id?: string;
   project_id?: string;
-  fk_hook_id?: string;
+  fk_hook_id?: string | null;
   type?: string;
   event?: string;
   operation?: string;
   test_call?: boolean;
-  payload?: string;
+  payload?: any;
   conditions?: string;
   notifications?: string;
   error_code?: string;
@@ -792,8 +792,8 @@ export interface NormalColumnRequestType {
   cc?: string;
   csn?: string;
   dtx?: string;
-  dtxp?: string | null;
-  dtxs?: string | null;
+  dtxp?: string | number | null;
+  dtxs?: string | number | null;
   au?: boolean;
 }
 

@@ -222,7 +222,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ForgotPasswordReq"
+                "$ref": "#/components/schemas/PasswordForgotReq"
               }
             }
           },
@@ -9865,7 +9865,7 @@
           "password"
         ]
       },
-      "ForgotPasswordReq": {
+      "PasswordForgotReq": {
         "type": "object",
         "properties": {
           "email": {

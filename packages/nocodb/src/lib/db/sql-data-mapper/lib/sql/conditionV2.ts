@@ -275,11 +275,12 @@ const parseConditionV2 = async (
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
         if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
+          const now = dayjs(new Date());
           const dateFormat =
             qb?.client?.config?.client === 'mysql2'
               ? 'YYYY-MM-DD HH:mm:ss'
               : 'YYYY-MM-DD HH:mm:ssZ';
-          let now = dayjs(new Date());
+          let convertDayJsObjToStr = true;
           // handle sub operation
           switch (filter.comparison_sub_op) {
             case 'today':
@@ -292,10 +293,10 @@ const parseConditionV2 = async (
               val = now.add(-1, 'day');
               break;
             case 'oneWeekAgo':
-              val = now.add(-7, 'day');
+              val = now.add(-1, 'week');
               break;
             case 'oneWeekFromNow':
-              val = now.add(7, 'day');
+              val = now.add(1, 'week');
               break;
             case 'oneMonthAgo':
               val = now.add(-1, 'month');
@@ -313,15 +314,43 @@ const parseConditionV2 = async (
               break;
             case 'exactDate':
               if (!val) return;
+              convertDayJsObjToStr = false;
+              break;
+            // sub-ops for `isWithin` comparison
+            case 'pastWeek':
+              val = now.add(-1, 'week');
+              break;
+            case 'pastMonth':
+              val = now.add(-1, 'month');
+              break;
+            case 'pastYear':
+              val = now.add(-1, 'year');
+              break;
+            case 'nextWeek':
+              val = now.add(1, 'week');
+              break;
+            case 'nextMonth':
+              val = now.add(1, 'month');
+              break;
+            case 'nextYear':
+              val = now.add(1, 'year');
+              break;
+            case 'pastNumberOfDays':
+              if (!val) return;
+              convertDayJsObjToStr = false;
+              val = now.add(-val, 'day');
+              break;
+            case 'nextNumberOfDays':
+              if (!val) return;
+              convertDayJsObjToStr = false;
+              val = now.add(val, 'day');
               break;
           }
 
-          if (
-            filter.comparison_sub_op &&
-            filter.comparison_sub_op !== 'exactDate'
-          ) {
-            // val for exactDate is not a dayjs object
+          if (convertDayJsObjToStr) {
+            // turn `val` in dayjs object format to string
             val = val.format(dateFormat).toString();
+            // keep YYYY-MM-DD only for date
             val = column.uidt === UITypes.Date ? val.substring(0, 10) : val;
           }
         }
@@ -643,6 +672,22 @@ const parseConditionV2 = async (
           case 'nbtw':
             qb = qb.whereNotBetween(field, val.split(','));
             break;
+          case 'isWithin':
+            const now = dayjs(new Date()).toString();
+            switch (filter.comparison_sub_op) {
+              case 'pastWeek':
+              case 'pastMonth':
+              case 'pastYear':
+              case 'pastNumberOfDays':
+                qb = qb.whereBetween(field, [val, now]);
+                break;
+              case 'nextWeek':
+              case 'nextMonth':
+              case 'nextYear':
+              case 'nextNumberOfDays':
+                qb = qb.whereBetween(field, [now, val]);
+                break;
+            }
         }
       };
     }

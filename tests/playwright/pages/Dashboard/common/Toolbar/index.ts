@@ -67,6 +67,10 @@ export class ToolbarPage extends BasePage {
     if (menuOpen) await this.fields.get().waitFor({ state: 'hidden' });
   }
 
+  async clickFindRowByScanButton() {
+    await this.get().locator(`button.nc-btn-find-row-by-scan`).click();
+  }
+
   async clickSort() {
     const menuOpen = await this.sort.get().isVisible();
 

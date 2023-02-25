@@ -3,6 +3,7 @@ import FormViewColumn from '../../models/FormViewColumn';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers'
 // import { getAjvValidatorMw } from './helpers'
 
 export async function columnUpdate(req: Request, res: Response) {
@@ -14,7 +15,7 @@ const router = Router({ mergeParams: true });
 router.patch(
   '/api/v1/db/meta/form-columns/:formViewColumnId',
   metaApiMetrics,
-  // getAjvValidatorMw('swagger.json#/components/schemas/FormViewColumnReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/FormViewColumnReq'),
   ncMetaAclMw(columnUpdate, 'columnUpdate')
 );
 export default router;

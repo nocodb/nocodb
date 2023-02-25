@@ -2,12 +2,12 @@ import { customAlphabet } from 'nanoid';
 import {
   ColumnReqType,
   LinkToAnotherRecordType,
-  LookupColumnReqType,
+  LookupColumnReqType, NcBoolType,
   RelationTypes,
   RollupColumnReqType,
   TableType,
   UITypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import Column from '../../../models/Column';
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../models/LookupColumn';
@@ -27,7 +27,7 @@ export async function createHmAndBtColumn(
   type?: RelationTypes,
   alias?: string,
   fkColName?: string,
-  virtual = false,
+  virtual: NcBoolType = false,
   isSystemCol = false
 ) {
   // save bt column

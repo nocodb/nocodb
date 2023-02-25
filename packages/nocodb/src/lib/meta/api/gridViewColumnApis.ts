@@ -23,7 +23,7 @@ router.get(
 router.patch(
   '/api/v1/db/meta/grid-columns/:gridViewColumnId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/GridViewColumnReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/GridColumnReq'),
   ncMetaAclMw(gridColumnUpdate, 'gridColumnUpdate')
 );
 export default router;

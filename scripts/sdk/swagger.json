@@ -2984,7 +2984,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FormColumn"
+                "$ref": "#/components/schemas/FormColumnReq"
               }
             }
           }
@@ -3094,7 +3094,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GridColumn"
+                "$ref": "#/components/schemas/GridColumnReq"
               }
             }
           }
@@ -7304,10 +7304,7 @@
             "type": "string"
           },
           "deleted": {
-            "type": [
-              "string",
-              "boolean"
-            ]
+            "$ref": "#/components/schemas/NcBool"
           },
           "order": {
             "type": "number"
@@ -7319,7 +7316,7 @@
             }
           },
           "is_meta": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "prefix": {
             "type": "string"
@@ -7394,8 +7391,7 @@
             "type": "string"
           },
           "is_meta": {
-            "type": "boolean",
-            "readOnly": true
+            "$ref": "#/components/schemas/NcBool"
           },
           "config": {},
           "created_at": {},
@@ -7410,7 +7406,7 @@
             "type": "number"
           },
           "enabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           }
         }
       },
@@ -7590,7 +7586,7 @@
             "type": "string"
           },
           "enabled": {
-            "type": "boolean"
+            "$ref" : "#/components/schemas/NcBool"
           },
           "parent_id": {
             "type": "string"
@@ -7602,10 +7598,10 @@
             "type": "string"
           },
           "pinned": {
-            "type": "boolean"
+            "$ref" : "#/components/schemas/NcBool"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref" : "#/components/schemas/NcBool"
           },
           "order": {
             "type": "number"
@@ -7623,10 +7619,7 @@
             "type": "string"
           },
           "mm": {
-            "type": [
-              "boolean",
-              "number"
-            ]
+            "$ref": "#/components/schemas/NcBool"
           },
           "meta": {}
         },
@@ -7712,7 +7705,7 @@
             "type": "string"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "order": {
             "type": "number"
@@ -7728,7 +7721,7 @@
           },
           "meta": {},
           "show_system_fields": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "lock_type": {
             "type": "string",
@@ -7888,10 +7881,10 @@
             "type": "string"
           },
           "pinned": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "order": {
             "type": "number"
@@ -7955,16 +7948,16 @@
             "type": "string"
           },
           "pinned": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "order": {
             "type": "number"
           },
           "mm": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "columns": {
             "type": "array",
@@ -8048,15 +8041,7 @@
           "comparison_op": {
             "type": "string"
           },
-          "value": {
-            "type": [
-              "string",
-              "number",
-              "integer",
-              "boolean",
-              "null"
-            ]
-          },
+          "value": { },
           "is_group": {
             "oneOf": [
               {
@@ -8129,15 +8114,7 @@
           "comparison_op": {
             "type": "string"
           },
-          "value": {
-            "type": [
-              "string",
-              "number",
-              "integer",
-              "boolean",
-              "null"
-            ]
-          },
+          "value": { },
           "is_group": {
             "oneOf": [
               {
@@ -8406,48 +8383,28 @@
             "type": "string"
           },
           "pk": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "pv": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "rqd": {
-            "oneOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/NcBool"
           },
           "column_name": {
             "type": "string"
           },
           "un": {
-            "oneOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/NcBool"
           },
           "ct": {
             "type": "string"
           },
           "ai": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "unique": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "cdf": {
             "type": "string"
@@ -8488,22 +8445,19 @@
             ]
           },
           "au": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "visible": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "order": {
             "type": "number"
           },
           "system": {
-            "type": [
-              "number",
-              "boolean"
-            ]
+            "$ref": "#/components/schemas/NcBool"
           },
           "meta": {},
           "colOptions": {
@@ -8595,7 +8549,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8646,7 +8600,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8676,7 +8630,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8709,7 +8663,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8800,7 +8754,7 @@
             "type": "string"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "order": {
             "type": "number"
@@ -8861,16 +8815,16 @@
             "type": "string"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "order": {
             "type": "number"
           },
           "next_enabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "prev_enabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "cover_image_idx": {
             "type": "integer"
@@ -8918,10 +8872,10 @@
             "type": "string"
           },
           "next_enabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "prev_enabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "cover_image_idx": {
             "type": "integer"
@@ -8972,6 +8926,28 @@
             "type": "string"
           },
           "fk_gallery_id": {
+            "type": "string"
+          }
+        }
+      },
+      "GridColumnReq": {
+        "title": "GridColumn",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string"
+          },
+          "fk_column_id": {
+            "type": "string"
+          },
+          "fk_gallery_id": {
+            "type": "string"
+          },
+          "width": {
             "type": "string"
           }
         }
@@ -9249,10 +9225,10 @@
             "type": "string"
           },
           "submit_another_form": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "show_blank_form": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "columns": {
             "type": "array",
@@ -9307,10 +9283,10 @@
             "type": "string"
           },
           "submit_another_form": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "show_blank_form": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "fk_model_id": {
             "type": "string"
@@ -9370,10 +9346,10 @@
           },
           "help": {},
           "required": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "show": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "order": {
             "type": "number"
@@ -9385,6 +9361,50 @@
           "updated_at": {
             "type": "string",
             "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "meta": {}
+        }
+      },
+      "FormColumnReq": {
+        "description": "",
+        "type": "object",
+        "x-examples": {
+          "example-1": {
+            "_cn": "first_name",
+            "alias": "first_name",
+            "fk_column_id": "cl_yvyhsl9u81tokc",
+            "id": "fvc_8z1i7t8aswkqxx",
+            "fk_view_id": "vw_s1pf4umdnikoyn",
+            "uuid": null,
+            "label": "dsdsds",
+            "help": null,
+            "required": false,
+            "show": 1,
+            "order": 1,
+            "created_at": "2022-02-15 12:39:04",
+            "updated_at": "2022-02-15 12:39:16",
+            "description": "dsdsdsdsd"
+          }
+        },
+        "properties": {
+          "uuid": {},
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "help": {},
+          "required": {
+            "$ref": "#/components/schemas/NcBool"
+          },
+          "show": {
+            "$ref": "#/components/schemas/NcBool"
+          },
+          "order": {
+            "type": "number"
           },
           "description": {
             "type": "string",
@@ -9705,7 +9725,7 @@
             ]
           },
           "async": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "notification": {
             "type": "string"
@@ -9720,7 +9740,7 @@
             "type": "number"
           },
           "active": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           }
         }
       },
@@ -9791,7 +9811,7 @@
             "type": "number"
           },
           "active": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           }
         },
         "required": [
@@ -9905,7 +9925,7 @@
             "type": "string"
           },
           "active": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "rating": {
             "type": "number"
@@ -9984,7 +10004,7 @@
             "type": "string"
           },
           "disabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           }
         }
       },
@@ -10041,7 +10061,7 @@
             "type": "string"
           },
           "test_call": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "payload": {},
           "conditions": {
@@ -10156,10 +10176,10 @@
             ]
           },
           "pk": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "pv": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "rqd": {
             "oneOf": [
@@ -10170,7 +10190,7 @@
                 "type": "null"
               },
               {
-                "type": "boolean"
+                "$ref": "#/components/schemas/NcBool"
               }
             ]
           },
@@ -10178,26 +10198,16 @@
             "type": "string"
           },
           "un": {
-            "oneOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/NcBool"
           },
           "ct": {
             "type": "string"
           },
           "ai": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "unique": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "cdf": {
             "oneOf": [
@@ -10245,7 +10255,7 @@
             ]
           },
           "au": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           }
         }
       },
@@ -10262,7 +10272,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/NcBool"
           },
           "parentId": {
             "type": "string"
@@ -10424,27 +10434,40 @@
               "type": "object",
               "properties": {
                 "commenter": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/NcBool"
                 },
                 "creator": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/NcBool"
                 },
                 "editor": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/NcBool"
                 },
                 "guest": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/NcBool"
                 },
                 "owner": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/NcBool"
                 },
                 "viewer": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/NcBool"
                 }
               }
             }
           }
         }
+      },
+      "NcBool": {
+        "oneOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
       }
     },
     "requestBodies": {

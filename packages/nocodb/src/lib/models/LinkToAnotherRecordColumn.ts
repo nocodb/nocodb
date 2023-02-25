@@ -1,3 +1,4 @@
+import { NcBoolType } from 'nocodb-sdk'
 import Noco from '../Noco';
 import Column from './Column';
 import Model from './Model';
@@ -19,7 +20,7 @@ export default class LinkToAnotherRecordColumn {
   fk_index_name?: string;
 
   type: 'hm' | 'bt' | 'mm';
-  virtual = false;
+  virtual: NcBoolType = false;
 
   mmModel?: Model;
   relatedTable?: Model;

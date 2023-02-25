@@ -7,7 +7,7 @@ import {
   MetaTable,
 } from '../utils/globals';
 import Model from './Model';
-import { BaseType, UITypes } from 'nocodb-sdk';
+import { BaseType, NcBoolType, UITypes } from 'nocodb-sdk'
 import NocoCache from '../cache/NocoCache';
 import CryptoJS from 'crypto-js';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -20,14 +20,14 @@ export default class Base implements BaseType {
   project_id?: string;
   alias?: string;
   type?: string;
-  is_meta?: boolean;
+  is_meta?: NcBoolType;
   config?: any;
   created_at?: any;
   updated_at?: any;
   inflection_column?: string;
   inflection_table?: string;
   order?: number;
-  enabled?: boolean;
+  enabled?: NcBoolType;
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);

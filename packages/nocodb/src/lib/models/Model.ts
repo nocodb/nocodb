@@ -7,6 +7,7 @@ import { BaseModelSqlv2 } from '../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import {
   isVirtualCol,
   ModelTypes,
+  NcBoolType,
   TableReqType,
   TableType,
   UITypes,
@@ -25,17 +26,17 @@ import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
 import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Model implements TableType {
-  copy_enabled: boolean;
+  copy_enabled: NcBoolType;
   created_at: Date | number | string;
   base_id: 'db' | string;
-  deleted: boolean;
-  enabled: boolean;
-  export_enabled: boolean;
+  deleted: NcBoolType;
+  enabled: NcBoolType;
+  export_enabled: NcBoolType;
   id: string;
   order: number;
   parent_id: string;
   password: string;
-  pin: boolean;
+  pin: NcBoolType;
   project_id: string;
   schema: any;
   show_all_fields: boolean;
@@ -46,7 +47,7 @@ export default class Model implements TableType {
   table_name: string;
   title: string;
 
-  mm: boolean;
+  mm: NcBoolType;
 
   uuid: string;
 
@@ -98,7 +99,7 @@ export default class Model implements TableType {
     projectId,
     baseId,
     model: Partial<TableReqType> & {
-      mm?: boolean;
+      mm?: NcBoolType;
       created_at?: any;
       updated_at?: any;
     },

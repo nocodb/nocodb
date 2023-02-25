@@ -64,7 +64,16 @@ export default class Filter {
     | 'oneMonthFromNow'
     | 'daysAgo'
     | 'daysFromNow'
-    | 'exactDate';
+    | 'exactDate'
+    // sub ops for isWithin
+    | 'pastWeek'
+    | 'pastMonth'
+    | 'pastYear'
+    | 'nextWeek'
+    | 'nextMonth'
+    | 'nextYear'
+    | 'pastNumberOfDays'
+    | 'nextNumberOfDays';
 
   value?: string;
 

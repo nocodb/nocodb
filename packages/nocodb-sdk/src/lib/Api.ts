@@ -198,7 +198,7 @@ export interface FilterType {
   logical_op?: string;
   comparison_op?: string;
   value?: string | number | boolean | null;
-  is_group?: boolean;
+  is_group?: string | number | null;
   children?: FilterType[];
   project_id?: string;
   base_id?: string;
@@ -214,7 +214,7 @@ export interface FilterReqType {
   logical_op?: string;
   comparison_op?: string;
   value?: string | number | boolean | null;
-  is_group?: boolean;
+  is_group?: string | number | null;
   children?: FilterType[];
   project_id?: string;
   base_id?: string;
@@ -237,6 +237,11 @@ export interface SortType {
   order?: number;
   project_id?: string;
   base_id?: string;
+}
+
+export interface SortReqType {
+  fk_column_id?: string;
+  direction?: string;
 }
 
 export interface SortListType {
@@ -473,6 +478,10 @@ export interface MapColumnType {
   fk_gallery_id?: string;
 }
 
+export interface LicenseReqType {
+  key?: string;
+}
+
 export interface KanbanReqType {
   title: string;
   fk_grp_col_id?: string | null;
@@ -625,7 +634,7 @@ export interface HookReqType {
   env?: string;
   event: 'after' | 'before';
   operation: 'insert' | 'delete' | 'update';
-  async?: boolean;
+  async?: string | number | null;
   payload?: string;
   url?: string;
   headers?: string;

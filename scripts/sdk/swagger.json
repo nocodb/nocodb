@@ -8103,7 +8103,17 @@
             ]
           },
           "is_group": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "children": {
             "type": "array",
@@ -8160,7 +8170,17 @@
             ]
           },
           "is_group": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "children": {
             "type": "array",
@@ -8270,6 +8290,19 @@
             "readOnly": true
           }
         }
+      },
+      "SortReq": {
+        "title": "Sort",
+        "type": "object",
+        "properties": {
+          "fk_column_id": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          }
+        },
+        "minProperties": "1"
       },
       "SortList": {
         "description": "",
@@ -9108,6 +9141,16 @@
           }
         }
       },
+      "LicenseReq": {
+        "title": "License Key",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
       "KanbanReq": {
         "title": "Kanban",
         "type": "object",
@@ -9709,7 +9752,17 @@
             ]
           },
           "async": {
-            "type": "boolean"
+             "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "payload": {
             "type": "string"

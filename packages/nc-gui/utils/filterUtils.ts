@@ -241,71 +241,128 @@ export const comparisonOpList = (
   },
 ]
 
-export const comparisonSubOpList: {
+export const comparisonSubOpList = (
+  // TODO: type
+  comparison_op: string,
+): {
   text: string
   value: string
   ignoreVal: boolean
   includedTypes?: UITypes[]
   excludedTypes?: UITypes[]
-}[] = [
-  {
-    text: 'today',
-    value: 'today',
-    ignoreVal: true,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'tomorrow',
-    value: 'tomorrow',
-    ignoreVal: true,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'yesterday',
-    value: 'yesterday',
-    ignoreVal: true,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'one week ago',
-    value: 'oneWeekAgo',
-    ignoreVal: true,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'one week from now',
-    value: 'oneWeekFromNow',
-    ignoreVal: true,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'one month ago',
-    value: 'oneMonthAgo',
-    ignoreVal: true,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'one month from now',
-    value: 'oneMonthFromNow',
-    ignoreVal: true,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'number of days ago',
-    value: 'daysAgo',
-    ignoreVal: false,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'number of days from now',
-    value: 'daysFromNow',
-    ignoreVal: false,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-  {
-    text: 'exact date',
-    value: 'exactDate',
-    ignoreVal: false,
-    includedTypes: [UITypes.Date, UITypes.DateTime],
-  },
-]
+}[] => {
+  if (comparison_op === 'isWithin') {
+    return [
+      {
+        text: 'the past week',
+        value: 'pastWeek',
+        ignoreVal: true,
+        includedTypes: [UITypes.Date, UITypes.DateTime],
+      },
+      {
+        text: 'the past month',
+        value: 'pastMonth',
+        ignoreVal: true,
+        includedTypes: [UITypes.Date, UITypes.DateTime],
+      },
+      {
+        text: 'the past year',
+        value: 'pastYear',
+        ignoreVal: true,
+        includedTypes: [UITypes.Date, UITypes.DateTime],
+      },
+      {
+        text: 'the next week',
+        value: 'nextWeek',
+        ignoreVal: true,
+        includedTypes: [UITypes.Date, UITypes.DateTime],
+      },
+      {
+        text: 'the next month',
+        value: 'nextMonth',
+        ignoreVal: true,
+        includedTypes: [UITypes.Date, UITypes.DateTime],
+      },
+      {
+        text: 'the next year',
+        value: 'nextYear',
+        ignoreVal: true,
+        includedTypes: [UITypes.Date, UITypes.DateTime],
+      },
+      {
+        text: 'the next number of days',
+        value: 'pastNumberOfDays',
+        ignoreVal: false,
+        includedTypes: [UITypes.Date, UITypes.DateTime],
+      },
+      {
+        text: 'the past number of days',
+        value: 'nextNumberOfDays',
+        ignoreVal: false,
+        includedTypes: [UITypes.Date, UITypes.DateTime],
+      },
+    ]
+  }
+  return [
+    {
+      text: 'today',
+      value: 'today',
+      ignoreVal: true,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+    {
+      text: 'tomorrow',
+      value: 'tomorrow',
+      ignoreVal: true,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+    {
+      text: 'yesterday',
+      value: 'yesterday',
+      ignoreVal: true,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+    {
+      text: 'one week ago',
+      value: 'oneWeekAgo',
+      ignoreVal: true,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+    {
+      text: 'one week from now',
+      value: 'oneWeekFromNow',
+      ignoreVal: true,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+    {
+      text: 'one month ago',
+      value: 'oneMonthAgo',
+      ignoreVal: true,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+    {
+      text: 'one month from now',
+      value: 'oneMonthFromNow',
+      ignoreVal: true,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+    {
+      text: 'number of days ago',
+      value: 'daysAgo',
+      ignoreVal: false,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+    {
+      text: 'number of days from now',
+      value: 'daysFromNow',
+      ignoreVal: false,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+    {
+      text: 'exact date',
+      value: 'exactDate',
+      ignoreVal: false,
+      includedTypes: [UITypes.Date, UITypes.DateTime],
+    },
+  ]
+}

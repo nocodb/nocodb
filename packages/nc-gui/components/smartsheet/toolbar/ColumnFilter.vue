@@ -90,13 +90,23 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // since `blank`, `empty`, `null` doesn't require value,
     // hence remove the previous value
     filter.value = ''
-    filter.comparison_sub_op = null
+    filter.comparison_sub_op = ''
   } else if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
     filter.value = ''
-    if (!filter.comparison_sub_op) filter.comparison_sub_op = 'exactDate'
+    if (
+      !comparisonSubOpList(filter.comparison_op!)
+        .map((op) => op.value)
+        .includes(filter.comparison_sub_op!)
+    ) {
+      if (filter.comparison_op === 'isWithin') {
+        filter.comparison_sub_op = 'pastNumberOfDays'
+      } else {
+        filter.comparison_sub_op = 'exactDate'
+      }
+    }
   }
   saveOrUpdate(filter, i)
   filterPrevComparisonOp.value[filter.id] = filter.comparison_op
@@ -160,7 +170,11 @@ const selectFilterField = (filter: Filter, index: number) => {
   )?.[0].value
 
   if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op)) {
-    filter.comparison_sub_op = 'exactDate'
+    if (filter.comparison_op === 'isWithin') {
+      filter.comparison_sub_op = 'pastNumberOfDays'
+    } else {
+      filter.comparison_sub_op = 'exactDate'
+    }
   } else {
     // reset
     filter.comparison_sub_op = ''
@@ -298,13 +312,13 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-sub-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <template v-for="compSubOp of comparisonSubOpList" :key="compSubOp.value">
+              <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
                 <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
                   {{ compSubOp.text }}
                 </a-select-option>
               </template>
             </a-select>
-            
+
             <span v-else />
 
             <a-checkbox
@@ -318,8 +332,9 @@ defineExpose({
             <span
               v-else-if="
                 filter.comparison_sub_op
-                  ? comparisonSubOpList.find((op) => op.value === filter.comparison_sub_op).ignoreVal
-                  : comparisonOpList(getColumn(filter)?.uidt).find((op) => op.value === filter.comparison_op).ignoreVal
+                  ? comparisonSubOpList(filter.comparison_op).find((op) => op.value === filter.comparison_sub_op)?.ignoreVal ??
+                    false
+                  : comparisonOpList(getColumn(filter)?.uidt).find((op) => op.value === filter.comparison_op)?.ignoreVal ?? false
               "
               :key="`span${i}`"
             />

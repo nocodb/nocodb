@@ -9983,10 +9983,6 @@
             "type": "string"
           },
           "input": {
-
-            "items": {
-              "$ref": "#/components/schemas/Sort"
-            }
             "oneOf": [
               {
                 "type": "string"

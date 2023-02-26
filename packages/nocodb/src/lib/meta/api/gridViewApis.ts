@@ -13,6 +13,7 @@ import View from '../../models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import GridView from '../../models/GridView';
+import { getAjvValidatorMw } from './helpers';
 
 // @ts-ignore
 export async function gridViewCreate(req: Request<any, any>, res) {
@@ -35,6 +36,7 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/grids/',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/GridReq'),
   ncMetaAclMw(gridViewCreate, 'gridViewCreate')
 );
 router.patch(

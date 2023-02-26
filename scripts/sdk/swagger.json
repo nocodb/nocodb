@@ -93,20 +93,13 @@
         "description": ""
       }
     },
-    "/api/v1/docs/book/magic": {
+    "/api/v1/docs/pages/magic": {
       "post": {
-        "summary": "Create magic",
-        "operationId": "create-book-magic",
+        "summary": "Create nested pages magic",
+        "operationId": "create-nested-pages-magic",
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Book"
-                }
-              }
-            }
+            "description": "OK"
           }
         },
         "tags": [
@@ -118,15 +111,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "attributes": {
-                    "$ref": "#/components/schemas/Book"
-                  },
                   "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
-                  "bookId": {
                     "type": "string",
                     "description": "Project id",
                     "required": true
@@ -146,20 +131,13 @@
       },
       "parameters": []
     },
-    "/api/v1/docs/book/import": {
+    "/api/v1/docs/pages/import": {
       "post": {
-        "summary": "Import book",
-        "operationId": "import-book",
+        "summary": "Import pages",
+        "operationId": "import-pages",
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Book"
-                }
-              }
-            }
+            "description": "OK"
           }
         },
         "tags": [
@@ -171,14 +149,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "attributes": {
-                    "$ref": "#/components/schemas/Book"
-                  },
-                  "bookId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  },
                   "user": {
                     "type": "string",
                     "description": "Project id",
@@ -220,7 +190,7 @@
           },
           "required": true
         },
-        "description": "Create book"
+        "description": "Import pages"
       },
       "parameters": []
     },

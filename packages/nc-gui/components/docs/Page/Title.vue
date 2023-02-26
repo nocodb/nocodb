@@ -34,10 +34,11 @@ const setIcon = async (icon: string) => {
 
 watchDebounced(
   () => [localPage.value?.id, localPage.value?.title],
-  async ([newId, newTitle], [oldId, oldTitle]) => {
-    if (newId === oldId && newTitle && newTitle.length > 0 && newTitle !== oldTitle) {
-      await updatePage({ pageId: newId!, page: { title: newTitle } as any })
+  async ([oldPageId], [newPageId]) => {
+    if (oldPageId !== newPageId) {
+      return
     }
+    await updatePage({ pageId: localPage.value!.id!, page: { title: localPage.value?.title } as any })
   },
   {
     debounce: 100,

@@ -1014,46 +1014,39 @@ export class Api<
      * @description Create book
      *
      * @tags Noco docs
-     * @name CreateBookMagic
-     * @summary Create magic
-     * @request POST:/api/v1/docs/book/magic
-     * @response `200` `any` OK
+     * @name CreateNestedPagesMagic
+     * @summary Create nested pages magic
+     * @request POST:/api/v1/docs/pages/magic
+     * @response `200` `void` OK
      */
-    createBookMagic: (
+    createNestedPagesMagic: (
       data: {
-        attributes?: any;
         /** Project id */
         projectId: string;
-        /** Project id */
-        bookId: string;
         /** Title */
         title: string;
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
-        path: `/api/v1/docs/book/magic`,
+      this.request<void, any>({
+        path: `/api/v1/docs/pages/magic`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: 'json',
         ...params,
       }),
 
     /**
-     * @description Create book
+     * @description Import pages
      *
      * @tags Noco docs
-     * @name ImportBook
-     * @summary Import book
-     * @request POST:/api/v1/docs/book/import
-     * @response `200` `any` OK
+     * @name ImportPages
+     * @summary Import pages
+     * @request POST:/api/v1/docs/pages/import
+     * @response `200` `void` OK
      */
-    importBook: (
+    importPages: (
       data: {
-        attributes?: any;
-        /** Project id */
-        bookId: string;
         /** Project id */
         user: string;
         /** Project id */
@@ -1071,12 +1064,11 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
-        path: `/api/v1/docs/book/import`,
+      this.request<void, any>({
+        path: `/api/v1/docs/pages/import`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: 'json',
         ...params,
       }),
 

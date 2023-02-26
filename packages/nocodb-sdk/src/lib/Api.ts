@@ -5020,6 +5020,24 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Utils
+     * @name SelectQuery
+     * @request POST:/api/v1/db/meta/connection/select
+     * @response `200` `any` OK
+     */
+    selectQuery: (data: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/connection/select`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Get select options using NocoAI
      *
      * @tags Utils
@@ -5036,7 +5054,10 @@ export class Api<
           | 'predictFormula'
           | 'predictNextColumn'
           | 'predictNextFormulas'
-          | 'generateSinglePrompt';
+          | 'generateSinglePrompt'
+          | 'generateQueryPrompt'
+          | 'generateSQL'
+          | 'repairSQL';
         data?: object;
       },
       params: RequestParams = {}

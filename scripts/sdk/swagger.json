@@ -7720,6 +7720,32 @@
         "description": ""
       }
     },
+    "/api/v1/db/meta/connection/select": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "utils-select-query",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {}
+          }
+        },
+        "description": ""
+      }
+    },
     "/api/v1/db/meta/magic": {
       "parameters": [],
       "post": {
@@ -7753,7 +7779,10 @@
                       "predictFormula",
                       "predictNextColumn",
                       "predictNextFormulas",
-                      "generateSinglePrompt"
+                      "generateSinglePrompt",
+                      "generateQueryPrompt",
+                      "generateSQL",
+                      "repairSQL"
                     ]
                   },
                   "data": {

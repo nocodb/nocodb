@@ -105,7 +105,7 @@ onMounted(async () => {
       try {
         isValid.value = true
 
-        if (disableDeepCompare) {
+        if (disableDeepCompare || lang !== 'json') {
           vModel = editor.getValue()
         } else {
           const obj = JSON.parse(editor.getValue())
@@ -129,7 +129,7 @@ watch($$(vModel), (v) => {
   if (!editor || !v) return
 
   const editorValue = editor?.getValue()
-  if (!disableDeepCompare) {
+  if (!disableDeepCompare && lang === 'json') {
     if (!editorValue || !deepCompare(JSON.parse(v), JSON.parse(editorValue))) {
       editor.setValue(v)
     }

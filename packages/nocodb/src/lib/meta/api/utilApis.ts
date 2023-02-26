@@ -14,10 +14,12 @@ import NcConfigFactory, {
   defaultConnectionConfig,
 } from '../../utils/NcConfigFactory';
 import User from '../../models/User';
-import catchError from '../helpers/catchError';
+import catchError, { NcError } from '../helpers/catchError';
 import axios from 'axios';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import JSON5 from 'json5';
+import Base from '../../models/Base';
+
 const { Configuration, OpenAIApi } = require('openai');
 
 const configuration = new Configuration({
@@ -549,6 +551,111 @@ async function generateSinglePrompt(req: Request, res: Response) {
   res.json(resObject);
 }
 
+async function generateSQL(req: Request, res: Response) {
+  let schemaPrompt = ''
+  for (const table of req.body.data.base.tables) {
+    const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
+    schemaPrompt += `Table ${table.title}, columns = [${colPrompt}]\n`;
+  }
+
+  const response = await openai.createCompletion({
+    model: 'text-davinci-003',
+    prompt: `${schemaPrompt}\n\nGenerate SQL (${req.body.data.base.type}) SELECT query for '${req.body.data.prompt}' return in form of Object<{ data: Array<{ description: string; query: string }> }> with escaped new lines as parsable JSON:`,
+    temperature: 0.7,
+    max_tokens: 1500,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
+    return;
+  }
+
+  try {
+    const resObject = { data: JSON5.parse(response.data.choices[0].text)?.data || [] };
+    res.json(resObject);
+  } catch (e) {
+    console.log(response.data.choices[0].text)
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
+  }
+}
+
+async function repairSQL(req: Request, res: Response) {
+  let schemaPrompt = ''
+  for (const table of req.body.data.base.tables) {
+    const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
+    schemaPrompt += `Table ${table.title}, columns = [${colPrompt}]\n`;
+  }
+
+  const response = await openai.createCompletion({
+    model: 'text-davinci-003',
+    prompt: `${schemaPrompt}\n\nFix following query using SQL (${req.body.data.base.type})\n\`${req.body.data.sql}\`\nreturn fixed query in form of Object<{ data: { query: string } }> with escaped new lines as parsable JSON:\n`,
+    temperature: 0.7,
+    max_tokens: 1500,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
+    return;
+  }
+
+  try {
+    const resObject = { data: JSON5.parse(response.data.choices[0].text)?.data || [] };
+    res.json(resObject);
+  } catch (e) {
+    console.log(response.data.choices[0].text)
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
+  }
+}
+
+async function generateQueryPrompt(req: Request, res: Response) {
+  let schemaPrompt = ''
+  for (const table of req.body.data.base.tables) {
+    const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
+    schemaPrompt += `Table ${table.title}, columns = [${colPrompt}]\n`;
+  }
+
+  const response = await openai.createCompletion({
+    model: 'text-davinci-003',
+    prompt: `${schemaPrompt}\n\nPossible ${req.body.data.prompt} queries using JOIN, GROUP BY and HAVING using SQL (${req.body.data.base.type}) (maximum ${req.body.data.max || 5}) in form of Object<{ data: Array<{ description: string; query: string }> }> with escaped new lines as parsable JSON:\n`,
+    temperature: 0.7,
+    max_tokens: 1500,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  });
+
+  if (response.data.choices.length === 0) {
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
+    return;
+  }
+
+  try {
+    const resObject = { data: JSON5.parse(response.data.choices[0].text)?.data || [] };
+    res.json(resObject);
+  } catch (e) {
+    console.log(response.data.choices[0].text)
+    res
+      .status(500)
+      .json({ msg: 'Unable to process request, please try again!' });
+  }
+}
+
 export async function genericGPT(req: Request, res: Response) {
   // req.body.operation
   // req.body.data
@@ -573,6 +680,15 @@ export async function genericGPT(req: Request, res: Response) {
       case 'generateSinglePrompt':
         // req.body.data.prompt
         return await generateSinglePrompt(req, res);
+      case 'generateSQL':
+        // req.body.data.prompt req.body.data.base (type, tables (title, columns))
+        return await generateSQL(req, res);
+      case 'repairSQL':
+        // req.body.data.sql req.body.data.base (type, tables (title, columns))
+        return await repairSQL(req, res);
+      case 'generateQueryPrompt':
+        // req.body.data.prompt req.body.data.max req.body.data.base (type, tables (title, columns))
+        return await generateQueryPrompt(req, res);
       default:
         return res.status(500).json({ msg: 'Unknown operation' });
     }
@@ -584,12 +700,32 @@ export async function genericGPT(req: Request, res: Response) {
   }
 }
 
+export async function runSelectQuery(req: Request, res: Response) {
+  // req.body.baseId
+  // req.body.query
+
+  const base = await Base.get(req.body.baseId);
+  if (!base) return NcError.internalServerError('Base not found');
+
+  const baseDriver = (await NcConnectionMgrv2.getSqlClient(base))?.knex;
+
+  if (!baseDriver) return NcError.internalServerError('Unable to connect to base');
+
+  try {
+    const result = await baseDriver.raw(req.body.query);
+    return res.json({ data: result[0] });
+  } catch (e) {
+    return NcError.internalServerError(e.message);
+  }
+}
+
 export default (router) => {
   router.post(
     '/api/v1/db/meta/connection/test',
     ncMetaAclMw(testConnection, 'testConnection')
   );
   router.post('/api/v1/db/meta/magic', ncMetaAclMw(genericGPT, 'genericGPT'));
+  router.post('/api/v1/db/meta/connection/select', ncMetaAclMw(runSelectQuery, 'runSelectQuery'));
 
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));

@@ -19,6 +19,7 @@ import {
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
+  useSqlEditor,
   useUIPermission,
 } from '#imports'
 import type { TabItem } from '~/lib'
@@ -40,6 +41,8 @@ const fields = ref<ColumnType[]>([])
 const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
 
 const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
+
+useSqlEditor()
 
 const reloadEventHook = createEventHook<void | boolean>()
 

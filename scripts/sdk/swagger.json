@@ -2892,7 +2892,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FormReq"
+                "$ref": "#/components/schemas/FormCreateReq"
               }
             }
           }
@@ -2925,7 +2925,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Form"
+                "$ref": "#/components/schemas/FormReq"
               }
             }
           }
@@ -7538,7 +7538,7 @@
             "type": "string"
           },
           "enabled": {
-            "$ref" : "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool"
           },
           "parent_id": {
             "type": "string"
@@ -7550,10 +7550,10 @@
             "type": "string"
           },
           "pinned": {
-            "$ref" : "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool"
           },
           "deleted": {
-            "$ref" : "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -7999,7 +7999,7 @@
           "comparison_op": {
             "type": "string"
           },
-          "value": { },
+          "value": {},
           "is_group": {
             "oneOf": [
               {
@@ -8031,24 +8031,10 @@
             "type": "string"
           },
           "fk_view_id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "fk_hook_id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           }
         },
         "readOnly": true
@@ -8072,7 +8058,7 @@
           "comparison_op": {
             "type": "string"
           },
-          "value": { },
+          "value": {},
           "is_group": {
             "oneOf": [
               {
@@ -8104,24 +8090,10 @@
             "type": "string"
           },
           "fk_view_id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "fk_hook_id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           }
         },
         "readOnly": true
@@ -8983,14 +8955,7 @@
             "type": "string"
           },
           "fk_grp_col_id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "fk_cover_image_col_id": {
             "type": "string"
@@ -9040,14 +9005,7 @@
             "minLength": 1
           },
           "fk_geo_data_col_id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "columns": {
             "type": "array",
@@ -9055,7 +9013,7 @@
               "$ref": "#/components/schemas/MapColumn"
             }
           },
-          "meta":{
+          "meta": {
             "$ref": "#/components/schemas/Meta"
           }
         }
@@ -9101,14 +9059,7 @@
             "type": "string"
           },
           "fk_grp_col_id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           }
         },
         "required": [
@@ -9121,14 +9072,7 @@
         "description": "",
         "properties": {
           "fk_grp_col_id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           }
         }
       },
@@ -9153,19 +9097,19 @@
             "type": "string"
           },
           "redirect_url": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "redirect_after_secs": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "email": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "banner_image_url": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "logo_url": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "submit_another_form": {
             "$ref": "#/components/schemas/Bool"
@@ -9212,29 +9156,27 @@
           "success_msg": {
             "type": "string"
           },
+
           "redirect_url": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "redirect_after_secs": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "email": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "banner_image_url": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "logo_url": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "submit_another_form": {
             "$ref": "#/components/schemas/Bool"
           },
           "show_blank_form": {
             "$ref": "#/components/schemas/Bool"
-          },
-          "fk_model_id": {
-            "type": "string"
           },
           "lock_type": {
             "type": "string",
@@ -9247,9 +9189,18 @@
           "meta": {
             "$ref": "#/components/schemas/Meta"
           }
-        },
-        "required": [
-          "title"
+        }
+      },
+      "FormCreateReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FormReq"
+          },
+          {
+            "required": [
+              "title"
+            ]
+          }
         ]
       },
       "FormColumn": {
@@ -9709,14 +9660,7 @@
             "type": "string"
           },
           "description": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "env": {
             "type": "string"
@@ -9911,13 +9855,10 @@
           "input": {
             "oneOf": [
               {
-                "type": "string"
-              },
-              {
                 "type": "integer"
               },
               {
-                "type": "null"
+                "$ref": "#/components/schemas/StringOrNull"
               }
             ]
           },
@@ -9984,14 +9925,7 @@
         "type": "object",
         "properties": {
           "description": {
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "null"
-                }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           }
         }
       },
@@ -10009,14 +9943,7 @@
             "type": "string"
           },
           "fk_hook_id": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "type": {
             "type": "string"
@@ -10119,26 +10046,20 @@
           "np": {
             "oneOf": [
               {
-                "type": "string"
-              },
-              {
                 "type": "integer"
               },
               {
-                "type": "null"
+                "$ref": "#/components/schemas/StringOrNull"
               }
             ]
           },
           "ns": {
             "oneOf": [
               {
-                "type": "string"
-              },
-              {
                 "type": "integer"
               },
               {
-                "type": "null"
+                "$ref": "#/components/schemas/StringOrNull"
               }
             ]
           },
@@ -10149,17 +10070,7 @@
             "$ref": "#/components/schemas/Bool"
           },
           "rqd": {
-            "oneOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/Bool"
-              }
-            ]
+            "$ref": "#/components/schemas/Bool"
           },
           "column_name": {
             "type": "string"
@@ -10177,14 +10088,7 @@
             "$ref": "#/components/schemas/Bool"
           },
           "cdf": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "cc": {
             "type": "string"
@@ -10198,26 +10102,20 @@
           "dtxp": {
             "oneOf": [
               {
-                "type": "string"
-              },
-              {
                 "type": "number"
               },
               {
-                "type": "null"
+                "$ref": "#/components/schemas/StringOrNull"
               }
             ]
           },
           "dtxs": {
             "oneOf": [
               {
-                "type": "string"
-              },
-              {
                 "type": "number"
               },
               {
-                "type": "null"
+                "$ref": "#/components/schemas/StringOrNull"
               }
             ]
           },
@@ -10436,6 +10334,16 @@
           }
         ]
       },
+      "StringOrNull": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
       "Meta": {
         "oneOf": [
           {
@@ -10480,8 +10388,8 @@
           "row_id": {
             "type": "string"
           },
-          "value": { },
-          "prev_value": { }
+          "value": {},
+          "prev_value": {}
         }
       },
       "OrgUserReq": {
@@ -10510,24 +10418,10 @@
         "type": "object",
         "properties": {
           "uuid": {
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "roles": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           }
         }
       },
@@ -10555,7 +10449,7 @@
         "content": {
           "application/json": {
             "schema": {
-           "$ref": "#/components/schemas/SignUpReq"
+              "$ref": "#/components/schemas/SignUpReq"
             }
           }
         }

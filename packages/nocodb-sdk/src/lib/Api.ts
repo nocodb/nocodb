@@ -203,8 +203,8 @@ export interface FilterType {
   project_id?: string;
   base_id?: string;
   fk_parent_id?: string;
-  fk_view_id?: string | null;
-  fk_hook_id?: string | null;
+  fk_view_id?: StringOrNullType;
+  fk_hook_id?: StringOrNullType;
 }
 
 export interface FilterReqType {
@@ -219,8 +219,8 @@ export interface FilterReqType {
   project_id?: string;
   base_id?: string;
   fk_parent_id?: string;
-  fk_view_id?: string | null;
-  fk_hook_id?: string | null;
+  fk_view_id?: StringOrNullType;
+  fk_hook_id?: StringOrNullType;
 }
 
 export interface FilterListType {
@@ -454,7 +454,7 @@ export interface KanbanType {
   alias?: string;
   columns?: KanbanColumnType[];
   fk_model_id?: string;
-  fk_grp_col_id?: string | null;
+  fk_grp_col_id?: StringOrNullType;
   fk_cover_image_col_id?: string;
   meta?: MetaType;
 }
@@ -473,7 +473,7 @@ export interface MapType {
   initial_geo_position?: GeoLocationType;
   fk_model_id?: string;
   fk_view_id?: string;
-  fk_geo_data_col_id?: string | null;
+  fk_geo_data_col_id?: StringOrNullType;
   columns?: MapColumnType[];
   meta?: MetaType;
 }
@@ -492,11 +492,11 @@ export interface LicenseReqType {
 
 export interface KanbanReqType {
   title: string;
-  fk_grp_col_id?: string | null;
+  fk_grp_col_id?: StringOrNullType;
 }
 
 export interface KanbanUpdateReqType {
-  fk_grp_col_id?: string | null;
+  fk_grp_col_id?: StringOrNullType;
 }
 
 export interface FormType {
@@ -505,11 +505,11 @@ export interface FormType {
   heading?: string;
   subheading?: string;
   success_msg?: string;
-  redirect_url?: string;
-  redirect_after_secs?: string;
-  email?: string;
-  banner_image_url?: string;
-  logo_url?: string;
+  redirect_url?: StringOrNullType;
+  redirect_after_secs?: StringOrNullType;
+  email?: StringOrNullType;
+  banner_image_url?: StringOrNullType;
+  logo_url?: StringOrNullType;
   submit_another_form?: BoolType;
   show_blank_form?: BoolType;
   columns?: FormColumnType[];
@@ -519,21 +519,22 @@ export interface FormType {
 }
 
 export interface FormReqType {
-  title: string;
+  title?: string;
   heading?: string;
   subheading?: string;
   success_msg?: string;
-  redirect_url?: string;
-  redirect_after_secs?: string;
-  email?: string;
-  banner_image_url?: string;
-  logo_url?: string;
+  redirect_url?: StringOrNullType;
+  redirect_after_secs?: StringOrNullType;
+  email?: StringOrNullType;
+  banner_image_url?: StringOrNullType;
+  logo_url?: StringOrNullType;
   submit_another_form?: BoolType;
   show_blank_form?: BoolType;
-  fk_model_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   meta?: MetaType;
 }
+
+export type FormCreateReqType = FormReqType;
 
 export interface FormColumnType {
   fk_column_id?: string;
@@ -645,7 +646,7 @@ export interface HookReqType {
   id?: string;
   fk_model_id?: string;
   title: string;
-  description?: string | null;
+  description?: StringOrNullType;
   env?: string;
   event: 'after' | 'before';
   operation: 'insert' | 'delete' | 'update';
@@ -686,7 +687,7 @@ export interface PasswordChangeReqType {
 }
 
 export interface ApiTokenReqType {
-  description?: string | null;
+  description?: StringOrNullType;
 }
 
 export interface PluginType {
@@ -704,7 +705,7 @@ export interface PluginType {
   tags?: string;
   category?: string;
   input_schema?: string;
-  input?: string | number | null;
+  input?: number | StringOrNullType;
   creator?: string;
   creator_website?: string;
   price?: string;
@@ -733,7 +734,7 @@ export interface HookLogType {
   id?: string;
   base_id?: string;
   project_id?: string;
-  fk_hook_id?: string | null;
+  fk_hook_id?: StringOrNullType;
   type?: string;
   event?: string;
   operation?: string;
@@ -789,22 +790,22 @@ export interface NormalColumnRequestType {
   fk_model_id?: string;
   title?: string;
   dt?: string;
-  np?: string | number | null;
-  ns?: string | number | null;
+  np?: number | StringOrNullType;
+  ns?: number | StringOrNullType;
   pk?: BoolType;
   pv?: BoolType;
-  rqd?: number | null | BoolType;
+  rqd?: BoolType;
   column_name?: string;
   un?: BoolType;
   ct?: string;
   ai?: BoolType;
   unique?: BoolType;
-  cdf?: string | null;
+  cdf?: StringOrNullType;
   cc?: string;
   csn?: string;
   dtx?: string;
-  dtxp?: string | number | null;
-  dtxs?: string | number | null;
+  dtxp?: number | StringOrNullType;
+  dtxs?: number | StringOrNullType;
   au?: BoolType;
 }
 
@@ -881,6 +882,8 @@ export type VisibilityRuleReqType = {
 
 export type BoolType = boolean | number | null;
 
+export type StringOrNullType = string | null;
+
 export type MetaType = object | string | null;
 
 export interface CommentReqType {
@@ -908,8 +911,8 @@ export interface ProjectUserReqType {
 }
 
 export interface SharedBaseReqType {
-  uuid?: string | null;
-  roles?: string | null;
+  uuid?: StringOrNullType;
+  roles?: StringOrNullType;
 }
 
 export interface PluginTestReqType {
@@ -2652,7 +2655,7 @@ export class Api<
      */
     formCreate: (
       tableId: string,
-      data: FormReqType,
+      data: FormCreateReqType,
       params: RequestParams = {}
     ) =>
       this.request<FormType, any>({
@@ -2672,7 +2675,11 @@ export class Api<
      * @request PATCH:/api/v1/db/meta/forms/{formId}
      * @response `200` `void` OK
      */
-    formUpdate: (formId: string, data: FormType, params: RequestParams = {}) =>
+    formUpdate: (
+      formId: string,
+      data: FormReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/forms/${formId}`,
         method: 'PATCH',

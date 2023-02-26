@@ -44,7 +44,7 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/forms',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/FormReq'),
+  getAjvValidatorMw('swagger.json#/components/schemas/FormCreateReq'),
   ncMetaAclMw(formViewCreate, 'formViewCreate')
 );
 router.get(

@@ -1,6 +1,6 @@
 import Base from './/Base';
 import Noco from '../Noco';
-import { NcBoolType, ProjectType } from 'nocodb-sdk';
+import { BoolType, ProjectType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -18,7 +18,7 @@ export default class Project implements ProjectType {
   public description: string;
   public meta: string;
   public color: string;
-  public deleted: NcBoolType;
+  public deleted: BoolType;
   public order: number;
   public is_meta = false;
   public bases?: Base[];

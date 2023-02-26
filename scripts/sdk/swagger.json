@@ -1933,7 +1933,9 @@
                   "project_id": {
                     "type": "string"
                   },
-                  "meta": {}
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta"
+                  }
                 }
               }
             }
@@ -2166,7 +2168,9 @@
                   "order": {
                     "type": "number"
                   },
-                  "meta": {},
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta"
+                  },
                   "title": {
                     "type": "string"
                   },
@@ -2363,7 +2367,9 @@
                   "password": {
                     "type": "string"
                   },
-                  "meta": {}
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta"
+                  }
                 }
               }
             }
@@ -7244,16 +7250,13 @@
             "type": "string"
           },
           "meta": {
-            "type": [
-              "string",
-              "object"
-            ]
+            "$ref": "#/components/schemas/Meta"
           },
           "color": {
             "type": "string"
           },
           "deleted": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -7265,7 +7268,7 @@
             }
           },
           "is_meta": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "prefix": {
             "type": "string"
@@ -7340,7 +7343,7 @@
             "type": "string"
           },
           "is_meta": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "config": {},
           "created_at": {},
@@ -7355,7 +7358,7 @@
             "type": "number"
           },
           "enabled": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           }
         }
       },
@@ -7535,7 +7538,7 @@
             "type": "string"
           },
           "enabled": {
-            "$ref" : "#/components/schemas/NcBool"
+            "$ref" : "#/components/schemas/Bool"
           },
           "parent_id": {
             "type": "string"
@@ -7547,10 +7550,10 @@
             "type": "string"
           },
           "pinned": {
-            "$ref" : "#/components/schemas/NcBool"
+            "$ref" : "#/components/schemas/Bool"
           },
           "deleted": {
-            "$ref" : "#/components/schemas/NcBool"
+            "$ref" : "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -7568,9 +7571,11 @@
             "type": "string"
           },
           "mm": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         },
         "required": [
           "table_name",
@@ -7654,7 +7659,7 @@
             "type": "string"
           },
           "deleted": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -7668,9 +7673,11 @@
           "uuid": {
             "type": "string"
           },
-          "meta": {},
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
           "show_system_fields": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "lock_type": {
             "type": "string",
@@ -7830,10 +7837,10 @@
             "type": "string"
           },
           "pinned": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "deleted": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -7897,16 +7904,16 @@
             "type": "string"
           },
           "pinned": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "deleted": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
           },
           "mm": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "columns": {
             "type": "array",
@@ -7914,7 +7921,9 @@
               "$ref": "#/components/schemas/NormalColumnRequest"
             }
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         },
         "required": [
           "table_name",
@@ -8332,28 +8341,28 @@
             "type": "string"
           },
           "pk": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "pv": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "rqd": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "column_name": {
             "type": "string"
           },
           "un": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "ct": {
             "type": "string"
           },
           "ai": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "unique": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "cdf": {
             "type": "string"
@@ -8394,21 +8403,23 @@
             ]
           },
           "au": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "deleted": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "visible": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
           },
           "system": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
-          "meta": {},
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
           "colOptions": {
             "anyOf": [
               {
@@ -8498,7 +8509,7 @@
             "type": "string"
           },
           "virtual": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8549,7 +8560,7 @@
             "type": "string"
           },
           "virtual": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8579,7 +8590,7 @@
             "type": "string"
           },
           "virtual": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8612,7 +8623,7 @@
             "type": "string"
           },
           "virtual": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8703,7 +8714,7 @@
             "type": "string"
           },
           "deleted": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -8764,16 +8775,16 @@
             "type": "string"
           },
           "deleted": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
           },
           "next_enabled": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "prev_enabled": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "cover_image_idx": {
             "type": "integer"
@@ -8821,10 +8832,10 @@
             "type": "string"
           },
           "next_enabled": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "prev_enabled": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "cover_image_idx": {
             "type": "integer"
@@ -8985,17 +8996,7 @@
             "type": "string"
           },
           "meta": {
-            "oneOf": [
-              {
-                "type": "object"
-              },
-              {
-                "type": "null"
-              },
-              {
-                "type": "string"
-              }
-            ]
+            "$ref": "#/components/schemas/Meta"
           }
         }
       },
@@ -9054,15 +9055,8 @@
               "$ref": "#/components/schemas/MapColumn"
             }
           },
-          "meta": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "object"
-              }
-            ]
+          "meta":{
+            "$ref": "#/components/schemas/Meta"
           }
         }
       },
@@ -9174,10 +9168,10 @@
             "type": "string"
           },
           "submit_another_form": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "show_blank_form": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "columns": {
             "type": "array",
@@ -9196,7 +9190,9 @@
               "personal"
             ]
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         }
       },
       "FormReq": {
@@ -9232,10 +9228,10 @@
             "type": "string"
           },
           "submit_another_form": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "show_blank_form": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_model_id": {
             "type": "string"
@@ -9248,7 +9244,9 @@
               "personal"
             ]
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         },
         "required": [
           "title"
@@ -9295,10 +9293,10 @@
           },
           "help": {},
           "required": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "show": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -9315,7 +9313,9 @@
             "type": "string",
             "minLength": 1
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         }
       },
       "FormColumnReq": {
@@ -9347,10 +9347,10 @@
           },
           "help": {},
           "required": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "show": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -9359,7 +9359,9 @@
             "type": "string",
             "minLength": 1
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         }
       },
       "Paginated": {
@@ -9674,7 +9676,7 @@
             ]
           },
           "async": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "notification": {
             "type": "string"
@@ -9689,7 +9691,7 @@
             "type": "number"
           },
           "active": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           }
         }
       },
@@ -9760,7 +9762,7 @@
             "type": "number"
           },
           "active": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           }
         },
         "required": [
@@ -9874,7 +9876,7 @@
             "type": "string"
           },
           "active": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "rating": {
             "type": "number"
@@ -9953,7 +9955,7 @@
             "type": "string"
           },
           "disabled": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           }
         }
       },
@@ -10026,7 +10028,7 @@
             "type": "string"
           },
           "test_call": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "payload": {},
           "conditions": {
@@ -10141,10 +10143,10 @@
             ]
           },
           "pk": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "pv": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "rqd": {
             "oneOf": [
@@ -10155,7 +10157,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/NcBool"
+                "$ref": "#/components/schemas/Bool"
               }
             ]
           },
@@ -10163,16 +10165,16 @@
             "type": "string"
           },
           "un": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "ct": {
             "type": "string"
           },
           "ai": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "unique": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "cdf": {
             "oneOf": [
@@ -10220,7 +10222,7 @@
             ]
           },
           "au": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           }
         }
       },
@@ -10237,7 +10239,7 @@
             "type": "string"
           },
           "virtual": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "parentId": {
             "type": "string"
@@ -10399,40 +10401,49 @@
               "type": "object",
               "properties": {
                 "commenter": {
-                  "$ref": "#/components/schemas/NcBool"
+                  "$ref": "#/components/schemas/Bool"
                 },
                 "creator": {
-                  "$ref": "#/components/schemas/NcBool"
+                  "$ref": "#/components/schemas/Bool"
                 },
                 "editor": {
-                  "$ref": "#/components/schemas/NcBool"
+                  "$ref": "#/components/schemas/Bool"
                 },
                 "guest": {
-                  "$ref": "#/components/schemas/NcBool"
+                  "$ref": "#/components/schemas/Bool"
                 },
                 "owner": {
-                  "$ref": "#/components/schemas/NcBool"
+                  "$ref": "#/components/schemas/Bool"
                 },
                 "viewer": {
-                  "$ref": "#/components/schemas/NcBool"
+                  "$ref": "#/components/schemas/Bool"
                 }
               }
             }
           }
         }
       },
-      "NcBool": {
+      "Bool": {
         "oneOf": [
           {
             "type": "boolean"
           },
           {
             "type": "integer"
+          }
+        ],
+        "nullable": true
+      },
+      "Meta": {
+        "oneOf": [
+          {
+            "type": "object"
           },
           {
-            "type": "null"
+            "type": "string"
           }
-        ]
+        ],
+        "nullable": true
       },
       "CommentReq": {
         "type": "object",
@@ -10529,7 +10540,7 @@
         "type": "object",
         "properties": {
           "active": {
-            "$ref": "#/components/schemas/NcBool"
+            "$ref": "#/components/schemas/Bool"
           },
           "input": {}
         }

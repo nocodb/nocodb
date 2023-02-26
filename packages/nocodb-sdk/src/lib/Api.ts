@@ -56,12 +56,12 @@ export interface ProjectType {
   title?: string;
   status?: string;
   description?: string;
-  meta?: string | object;
+  meta?: MetaType;
   color?: string;
-  deleted?: NcBoolType;
+  deleted?: BoolType;
   order?: number;
   bases?: BaseType[];
-  is_meta?: NcBoolType;
+  is_meta?: BoolType;
   prefix?: string;
   created_at?: any;
   updated_at?: any;
@@ -78,14 +78,14 @@ export interface BaseType {
   project_id?: string;
   alias?: string;
   type?: string;
-  is_meta?: NcBoolType;
+  is_meta?: BoolType;
   config?: any;
   created_at?: any;
   updated_at?: any;
   inflection_column?: string;
   inflection_table?: string;
   order?: number;
-  enabled?: NcBoolType;
+  enabled?: BoolType;
 }
 
 export interface BaseReqType {
@@ -113,30 +113,30 @@ export interface TableType {
   table_name: string;
   title: string;
   type?: string;
-  enabled?: NcBoolType;
+  enabled?: BoolType;
   parent_id?: string;
   show_as?: string;
   tags?: string;
-  pinned?: NcBoolType;
-  deleted?: NcBoolType;
+  pinned?: BoolType;
+  deleted?: BoolType;
   order?: number;
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
-  mm?: NcBoolType;
-  meta?: any;
+  mm?: BoolType;
+  meta?: MetaType;
 }
 
 export interface ViewType {
   id?: string;
   title: string;
-  deleted?: NcBoolType;
+  deleted?: BoolType;
   order?: number;
   fk_model_id?: string;
   slug?: string;
   uuid?: string;
-  meta?: any;
-  show_system_fields?: NcBoolType;
+  meta?: MetaType;
+  show_system_fields?: BoolType;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
   view?:
@@ -159,8 +159,8 @@ export interface TableInfoType {
   parent_id?: string;
   show_as?: string;
   tags?: string;
-  pinned?: NcBoolType;
-  deleted?: NcBoolType;
+  pinned?: BoolType;
+  deleted?: BoolType;
   order?: number;
   column?: ColumnType[];
   filters?: FilterType[];
@@ -178,12 +178,12 @@ export interface TableReqType {
   parent_id?: string;
   show_as?: string;
   tags?: string;
-  pinned?: NcBoolType;
-  deleted?: NcBoolType;
+  pinned?: BoolType;
+  deleted?: BoolType;
   order?: number;
-  mm?: NcBoolType;
+  mm?: BoolType;
   columns: NormalColumnRequestType[];
-  meta?: any;
+  meta?: MetaType;
 }
 
 export interface TableListType {
@@ -261,26 +261,26 @@ export interface ColumnType {
   ns?: string | number | null;
   clen?: string | number | null;
   cop?: string;
-  pk?: NcBoolType;
-  pv?: NcBoolType;
-  rqd?: NcBoolType;
+  pk?: BoolType;
+  pv?: BoolType;
+  rqd?: BoolType;
   column_name?: string;
-  un?: NcBoolType;
+  un?: BoolType;
   ct?: string;
-  ai?: NcBoolType;
-  unique?: NcBoolType;
+  ai?: BoolType;
+  unique?: BoolType;
   cdf?: string;
   cc?: string;
   csn?: string;
   dtx?: string;
   dtxp?: string | number | null;
   dtxs?: string | number | null;
-  au?: NcBoolType;
-  deleted?: NcBoolType;
-  visible?: NcBoolType;
+  au?: BoolType;
+  deleted?: BoolType;
+  visible?: BoolType;
   order?: number;
-  system?: NcBoolType;
-  meta?: any;
+  system?: BoolType;
+  meta?: MetaType;
   colOptions?:
     | LinkToAnotherRecordType
     | FormulaType
@@ -305,7 +305,7 @@ export interface ColumnListType {
 export interface LinkToAnotherRecordType {
   id?: string;
   type?: string;
-  virtual?: NcBoolType;
+  virtual?: BoolType;
   fk_column_id?: string;
   fk_child_column_id?: string;
   fk_parent_column_id?: string;
@@ -323,7 +323,7 @@ export interface LinkToAnotherRecordType {
 export interface LookupType {
   id?: string;
   type?: string;
-  virtual?: NcBoolType;
+  virtual?: BoolType;
   fk_column_id?: string;
   fk_relation_column_id?: string;
   fk_lookup_column_id?: string;
@@ -334,7 +334,7 @@ export interface LookupType {
 export interface RollupType {
   id?: string;
   type?: string;
-  virtual?: NcBoolType;
+  virtual?: BoolType;
   fk_column_id?: string;
   fk_relation_column_id?: string;
   fk_rollup_column_id?: string;
@@ -346,7 +346,7 @@ export interface RollupType {
 export interface FormulaType {
   id?: string;
   type?: string;
-  virtual?: NcBoolType;
+  virtual?: BoolType;
   fk_column_id?: string;
   formula?: string;
   formula_raw?: string;
@@ -370,7 +370,7 @@ export interface GridType {
   id?: string;
   title?: string;
   alias?: string;
-  deleted?: NcBoolType;
+  deleted?: BoolType;
   order?: number;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   row_height?: number;
@@ -387,10 +387,10 @@ export interface GalleryType {
   fk_view_id?: string;
   title?: string;
   alias?: string;
-  deleted?: NcBoolType;
+  deleted?: BoolType;
   order?: number;
-  next_enabled?: NcBoolType;
-  prev_enabled?: NcBoolType;
+  next_enabled?: BoolType;
+  prev_enabled?: BoolType;
   cover_image_idx?: number;
   cover_image?: string;
   restrict_types?: string;
@@ -404,8 +404,8 @@ export interface GalleryType {
 
 export interface GalleryReqType {
   title: string;
-  next_enabled?: NcBoolType;
-  prev_enabled?: NcBoolType;
+  next_enabled?: BoolType;
+  prev_enabled?: BoolType;
   cover_image_idx?: number;
   cover_image?: string;
   restrict_types?: string;
@@ -456,7 +456,7 @@ export interface KanbanType {
   fk_model_id?: string;
   fk_grp_col_id?: string | null;
   fk_cover_image_col_id?: string;
-  meta?: object | null | string;
+  meta?: MetaType;
 }
 
 export interface GeoLocationType {
@@ -475,7 +475,7 @@ export interface MapType {
   fk_view_id?: string;
   fk_geo_data_col_id?: string | null;
   columns?: MapColumnType[];
-  meta?: string | object;
+  meta?: MetaType;
 }
 
 export interface MapColumnType {
@@ -510,12 +510,12 @@ export interface FormType {
   email?: string;
   banner_image_url?: string;
   logo_url?: string;
-  submit_another_form?: NcBoolType;
-  show_blank_form?: NcBoolType;
+  submit_another_form?: BoolType;
+  show_blank_form?: BoolType;
   columns?: FormColumnType[];
   fk_model_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
-  meta?: any;
+  meta?: MetaType;
 }
 
 export interface FormReqType {
@@ -528,11 +528,11 @@ export interface FormReqType {
   email?: string;
   banner_image_url?: string;
   logo_url?: string;
-  submit_another_form?: NcBoolType;
-  show_blank_form?: NcBoolType;
+  submit_another_form?: BoolType;
+  show_blank_form?: BoolType;
   fk_model_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
-  meta?: any;
+  meta?: MetaType;
 }
 
 export interface FormColumnType {
@@ -542,24 +542,24 @@ export interface FormColumnType {
   uuid?: any;
   label?: string;
   help?: any;
-  required?: NcBoolType;
-  show?: NcBoolType;
+  required?: BoolType;
+  show?: BoolType;
   order?: number;
   created_at?: string;
   updated_at?: string;
   description?: string;
-  meta?: any;
+  meta?: MetaType;
 }
 
 export interface FormColumnReqType {
   uuid?: any;
   label?: string;
   help?: any;
-  required?: NcBoolType;
-  show?: NcBoolType;
+  required?: BoolType;
+  show?: BoolType;
   order?: number;
   description?: string;
-  meta?: any;
+  meta?: MetaType;
 }
 
 export interface PaginatedType {
@@ -633,12 +633,12 @@ export interface HookType {
   type?: string;
   event?: 'after' | 'before';
   operation?: 'insert' | 'delete' | 'update';
-  async?: NcBoolType;
+  async?: BoolType;
   notification?: string;
   retries?: number;
   retry_interval?: number;
   timeout?: number;
-  active?: NcBoolType;
+  active?: BoolType;
 }
 
 export interface HookReqType {
@@ -654,7 +654,7 @@ export interface HookReqType {
   retries?: number;
   retry_interval?: number;
   timeout?: number;
-  active?: NcBoolType;
+  active?: BoolType;
 }
 
 export interface HookTestReqType {
@@ -693,7 +693,7 @@ export interface PluginType {
   id?: string;
   title?: string;
   description?: string;
-  active?: NcBoolType;
+  active?: BoolType;
   rating?: number;
   version?: string;
   docs?: string;
@@ -717,7 +717,7 @@ export interface ModelRoleVisibilityType {
   fk_model_id?: string;
   fk_view_id?: string;
   role?: string;
-  disabled?: NcBoolType;
+  disabled?: BoolType;
 }
 
 export interface ApiTokenType {
@@ -737,7 +737,7 @@ export interface HookLogType {
   type?: string;
   event?: string;
   operation?: string;
-  test_call?: NcBoolType;
+  test_call?: BoolType;
   payload?: any;
   conditions?: string;
   notifications?: string;
@@ -791,27 +791,27 @@ export interface NormalColumnRequestType {
   dt?: string;
   np?: string | number | null;
   ns?: string | number | null;
-  pk?: NcBoolType;
-  pv?: NcBoolType;
-  rqd?: number | null | NcBoolType;
+  pk?: BoolType;
+  pv?: BoolType;
+  rqd?: number | null | BoolType;
   column_name?: string;
-  un?: NcBoolType;
+  un?: BoolType;
   ct?: string;
-  ai?: NcBoolType;
-  unique?: NcBoolType;
+  ai?: BoolType;
+  unique?: BoolType;
   cdf?: string | null;
   cc?: string;
   csn?: string;
   dtx?: string;
   dtxp?: string | number | null;
   dtxs?: string | number | null;
-  au?: NcBoolType;
+  au?: BoolType;
 }
 
 export interface LinkToAnotherColumnReqType {
   uidt: 'LinkToAnotherRecord';
   title: string;
-  virtual?: NcBoolType;
+  virtual?: BoolType;
   parentId: string;
   childId: string;
   type: 'hm' | 'bt' | 'mm';
@@ -870,16 +870,18 @@ export interface UserInfoType {
 
 export type VisibilityRuleReqType = {
   disabled?: {
-    commenter?: NcBoolType;
-    creator?: NcBoolType;
-    editor?: NcBoolType;
-    guest?: NcBoolType;
-    owner?: NcBoolType;
-    viewer?: NcBoolType;
+    commenter?: BoolType;
+    creator?: BoolType;
+    editor?: BoolType;
+    guest?: BoolType;
+    owner?: BoolType;
+    viewer?: BoolType;
   };
 }[];
 
-export type NcBoolType = boolean | number | null;
+export type BoolType = boolean | number | null;
+
+export type MetaType = object | string | null;
 
 export interface CommentReqType {
   row_id: string;
@@ -916,7 +918,7 @@ export interface PluginTestReqType {
 }
 
 export interface PluginReqType {
-  active?: NcBoolType;
+  active?: BoolType;
   input?: any;
 }
 
@@ -2372,7 +2374,7 @@ export class Api<
         table_name?: string;
         title?: string;
         project_id?: string;
-        meta?: any;
+        meta?: MetaType;
       },
       params: RequestParams = {}
     ) =>
@@ -2544,7 +2546,7 @@ export class Api<
       viewId: string,
       data: {
         order?: number;
-        meta?: any;
+        meta?: MetaType;
         title?: string;
         show_system_fields?: boolean;
         lock_type?: 'collaborative' | 'locked' | 'personal';
@@ -2996,7 +2998,7 @@ export class Api<
       viewId: string,
       data: {
         password?: string;
-        meta?: any;
+        meta?: MetaType;
       },
       params: RequestParams = {}
     ) =>

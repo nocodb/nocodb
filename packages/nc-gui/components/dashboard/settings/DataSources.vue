@@ -204,6 +204,10 @@ watch(
         clientType = ClientType.SNOWFLAKE
         vState.value = DataSourcesSubTab.New
         break
+      case ClientType.ORACLEDB:
+        clientType = ClientType.ORACLEDB
+        vState.value = DataSourcesSubTab.New
+        break
       case DataSourcesSubTab.New:
         if (sources.length > 1 && !forceAwakened) {
           vState.value = ''
@@ -245,7 +249,7 @@ watch(
                       @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
                     >
                       <div class="flex items-center gap-2 text-gray-600 font-light">
-                        <a-tooltip v-if="metadiffbases.includes(sources[0].id as string)">
+                        <a-tooltip v-if="metadiffbases.includes(sources[0].id)">
                           <template #title>Out of sync</template>
                           <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
                         </a-tooltip>

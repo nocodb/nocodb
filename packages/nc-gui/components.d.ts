@@ -89,6 +89,7 @@ declare module '@vue/runtime-core' {
     IcTwotoneWidthNormal: typeof import('~icons/ic/twotone-width-normal')['default']
     LogosGoogleGmail: typeof import('~icons/logos/google-gmail')['default']
     LogosMysqlIcon: typeof import('~icons/logos/mysql-icon')['default']
+    LogosOracle: typeof import('~icons/logos/oracle')['default']
     LogosPostgresql: typeof import('~icons/logos/postgresql')['default']
     LogosRedditIcon: typeof import('~icons/logos/reddit-icon')['default']
     LogosSnowflakeIcon: typeof import('~icons/logos/snowflake-icon')['default']

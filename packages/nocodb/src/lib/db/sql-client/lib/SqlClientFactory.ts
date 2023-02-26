@@ -2,7 +2,6 @@ import Noco from '../../../Noco';
 import SqlClientFactoryEE from './ee/SqlClientFactoryEE';
 import MySqlClient from './mysql/MysqlClient';
 import MssqlClient from './mssql/MssqlClient';
-import OracleClient from './oracle/OracleClient';
 import SqliteClient from './sqlite/SqliteClient';
 import PgClient from './pg/PgClient';
 import YugabyteClient from './pg/YugabyteClient';
@@ -30,8 +29,6 @@ export class SqlClientFactory {
       return new SqliteClient(connectionConfig);
     } else if (connectionConfig.client === 'mssql') {
       return new MssqlClient(connectionConfig);
-    } else if (connectionConfig.client === 'oracledb') {
-      return new OracleClient(connectionConfig);
     } else if (connectionConfig.client === 'pg') {
       if (connectionConfig.meta.dbtype === 'yugabyte')
         return new YugabyteClient(connectionConfig);

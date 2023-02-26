@@ -1,3 +1,4 @@
+import OracleClient from '../oracle/OracleClient'
 import { SqlClientFactory } from '../SqlClientFactory';
 import SfClient from '../snowflake/SnowflakeClient';
 import { SnowflakeClient } from 'nc-help';
@@ -11,6 +12,8 @@ class SqlClientFactoryEE {
     if (connectionConfig.client === 'snowflake') {
       connectionConfig.client = SnowflakeClient;
       return new SfClient(connectionConfig);
+    } else if (connectionConfig.client === 'oracledb') {
+      return new OracleClient(connectionConfig);
     }
     return SqlClientFactory.create(connectionConfig);
   }

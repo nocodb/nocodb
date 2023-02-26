@@ -427,6 +427,16 @@ const setIcon = async (icon: string, table: TableType) => {
                       Snowflake
                     </div>
                   </a-menu-item>
+                  <a-menu-item
+                    v-if="appInfo.ee"
+                    key="connect-new-source"
+                    @click="toggleDialog(true, 'dataSources', ClientType.ORACLEDB)"
+                  >
+                    <div class="color-transition nc-project-menu-item group">
+                      <LogosOracle class="group-hover:text-accent" />
+                      Oracle
+                    </div>
+                  </a-menu-item>
                 </a-menu-item-group>
 
                 <a-menu-divider class="my-0" />
@@ -545,6 +555,16 @@ const setIcon = async (icon: string, table: TableType) => {
                       <div class="color-transition nc-project-menu-item group">
                         <LogosSnowflakeIcon class="group-hover:text-accent" />
                         Snowflake
+                      </div>
+                    </a-menu-item>
+                    <a-menu-item
+                      v-if="appInfo.ee"
+                      key="connect-new-source"
+                      @click="toggleDialog(true, 'dataSources', ClientType.ORACLEDB)"
+                    >
+                      <div class="color-transition nc-project-menu-item group">
+                        <LogosOracle class="group-hover:text-accent" />
+                        Oracle
                       </div>
                     </a-menu-item>
                   </a-menu-item-group>

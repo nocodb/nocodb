@@ -9,7 +9,7 @@ import {
   MetaTable,
 } from '../utils/globals';
 import View from './View';
-import { FilterType, UITypes } from 'nocodb-sdk';
+import { BoolType, FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -55,7 +55,7 @@ export default class Filter {
   value?: string;
 
   logical_op?: string;
-  is_group?: boolean | number;
+  is_group?: BoolType;
   children?: Filter[];
   project_id?: string;
   base_id?: string;

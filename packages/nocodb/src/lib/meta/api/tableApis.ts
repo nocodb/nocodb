@@ -1,8 +1,8 @@
-import { Request, Response, Router } from 'express';
-import Model from '../../models/Model';
-import { Tele } from 'nc-help';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import DOMPurify from 'isomorphic-dompurify';
+import { Request, Response, Router } from 'express'
+import Model from '../../models/Model'
+import { Tele } from 'nc-help'
+import { PagedResponseImpl } from '../helpers/PagedResponse'
+import DOMPurify from 'isomorphic-dompurify'
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -13,88 +13,90 @@ import {
   TableReqType,
   TableType,
   UITypes,
-} from 'nocodb-sdk';
-import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
-import Project from '../../models/Project';
-import Audit from '../../models/Audit';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
+} from 'nocodb-sdk'
+import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2'
+import Project from '../../models/Project'
+import Audit from '../../models/Audit'
+import ncMetaAclMw from '../helpers/ncMetaAclMw'
 import { getAjvValidatorMw } from './helpers';
-import { xcVisibilityMetaGet } from './modelVisibilityApis';
-import View from '../../models/View';
-import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import { NcError } from '../helpers/catchError';
-import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import Column from '../../models/Column';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import getColumnUiType from '../helpers/getColumnUiType';
-import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
-import { metaApiMetrics } from '../helpers/apiMetrics';
+import { xcVisibilityMetaGet } from './modelVisibilityApis'
+import View from '../../models/View'
+import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT'
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue'
+import { NcError } from '../helpers/catchError'
+import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName'
+import Column from '../../models/Column'
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2'
+import getColumnUiType from '../helpers/getColumnUiType'
+import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn'
+import { metaApiMetrics } from '../helpers/apiMetrics'
+
+import { tableService } from '../../services'
 
 export async function tableGet(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
     id: req.params.tableId,
-  });
+  })
 
   // todo: optimise
-  const viewList = <View[]>await xcVisibilityMetaGet(table.project_id, [table]);
+  const viewList = <View[]>await xcVisibilityMetaGet(table.project_id, [table])
 
   //await View.list(req.params.tableId)
   table.views = viewList.filter((table: any) => {
     return Object.keys((req as any).session?.passport?.user?.roles).some(
       (role) =>
         (req as any)?.session?.passport?.user?.roles[role] &&
-        !table.disabled[role]
-    );
-  });
+        !table.disabled[role],
+    )
+  })
 
-  res.json(table);
+  res.json(table)
 }
 
 export async function tableReorder(req: Request, res: Response) {
-  res.json(Model.updateOrder(req.params.tableId, req.body.order));
+  res.json(Model.updateOrder(req.params.tableId, req.body.order))
 }
 
 export async function tableList(req: Request, res: Response<TableListType>) {
-  const viewList = await xcVisibilityMetaGet(req.params.projectId);
+  const viewList = await tableService.xcVisibilityMetaGet(req.params.projectId)
 
   // todo: optimise
   const tableViewMapping = viewList.reduce((o, view: any) => {
-    o[view.fk_model_id] = o[view.fk_model_id] || 0;
+    o[view.fk_model_id] = o[view.fk_model_id] || 0
     if (
       Object.keys((req as any).session?.passport?.user?.roles).some(
         (role) =>
           (req as any)?.session?.passport?.user?.roles[role] &&
-          !view.disabled[role]
+          !view.disabled[role],
       )
     ) {
-      o[view.fk_model_id]++;
+      o[view.fk_model_id]++
     }
-    return o;
-  }, {});
+    return o
+  }, {})
 
   const tableList = (
     await Model.list({
       project_id: req.params.projectId,
       base_id: req.params.baseId,
     })
-  ).filter((t) => tableViewMapping[t.id]);
+  ).filter((t) => tableViewMapping[t.id])
 
   res.json(
     new PagedResponseImpl(
       req.query?.includeM2M === 'true'
         ? tableList
-        : (tableList.filter((t) => !t.mm) as Model[])
-    )
-  );
+        : (tableList.filter((t) => !t.mm) as Model[]),
+    ),
+  )
 }
 
 export async function tableCreate(req: Request<any, any, TableReqType>, res) {
-  const project = await Project.getWithInfo(req.params.projectId);
-  let base = project.bases[0];
+  const project = await Project.getWithInfo(req.params.projectId)
+  let base = project.bases[0]
 
   if (req.params.baseId) {
-    base = project.bases.find((b) => b.id === req.params.baseId);
+    base = project.bases.find((b) => b.id === req.params.baseId)
   }
 
   if (
@@ -102,23 +104,23 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     (project.prefix && project.prefix === req.body.table_name)
   ) {
     NcError.badRequest(
-      'Missing table name `table_name` property in request body'
-    );
+      'Missing table name `table_name` property in request body',
+    )
   }
 
   if (base.is_meta && project.prefix) {
     if (!req.body.table_name.startsWith(project.prefix)) {
-      req.body.table_name = `${project.prefix}_${req.body.table_name}`;
+      req.body.table_name = `${project.prefix}_${req.body.table_name}`
     }
   }
 
-  req.body.table_name = DOMPurify.sanitize(req.body.table_name);
+  req.body.table_name = DOMPurify.sanitize(req.body.table_name)
 
   // validate table name
   if (/^\s+|\s+$/.test(req.body.table_name)) {
     NcError.badRequest(
-      'Leading or trailing whitespace not allowed in table names'
-    );
+      'Leading or trailing whitespace not allowed in table names',
+    )
   }
 
   if (
@@ -128,15 +130,15 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
       base_id: base.id,
     }))
   ) {
-    NcError.badRequest('Duplicate table name');
+    NcError.badRequest('Duplicate table name')
   }
 
   if (!req.body.title) {
     req.body.title = getTableNameAlias(
       req.body.table_name,
       project.prefix,
-      base
-    );
+      base,
+    )
   }
 
   if (
@@ -146,57 +148,55 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
       base_id: base.id,
     }))
   ) {
-    NcError.badRequest('Duplicate table alias');
+    NcError.badRequest('Duplicate table alias')
   }
 
-  const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+  const sqlMgr = await ProjectMgrv2.getSqlMgr(project)
 
-  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base)
 
-  let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.knex.clientType();
+  let tableNameLengthLimit = 255
+  const sqlClientType = sqlClient.knex.clientType()
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
-    tableNameLengthLimit = 64;
+    tableNameLengthLimit = 64
   } else if (sqlClientType === 'pg') {
-    tableNameLengthLimit = 63;
+    tableNameLengthLimit = 63
   } else if (sqlClientType === 'mssql') {
-    tableNameLengthLimit = 128;
+    tableNameLengthLimit = 128
   }
 
   if (req.body.table_name.length > tableNameLengthLimit) {
-    NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+    NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`)
   }
 
-  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType)
 
   for (const column of req.body.columns) {
     if (column.column_name.length > mxColumnLength) {
       NcError.badRequest(
-        `Column name ${column.column_name} exceeds ${mxColumnLength} characters`
-      );
+        `Column name ${column.column_name} exceeds ${mxColumnLength} characters`,
+      )
     }
   }
 
   req.body.columns = req.body.columns?.map((c) => ({
     ...getColumnPropsFromUIDT(c as any, base),
     cn: c.column_name,
-  }));
+  }))
   await sqlMgr.sqlOpPlus(base, 'tableCreate', {
     ...req.body,
     tn: req.body.table_name,
-  });
+  })
 
-  const columns: Array<
-    Omit<Column, 'column_name' | 'title'> & {
-      cn: string;
-      system?: boolean;
-    }
-  > = (await sqlClient.columnList({ tn: req.body.table_name }))?.data?.list;
+  const columns: Array<Omit<Column, 'column_name' | 'title'> & {
+    cn: string;
+    system?: boolean;
+  }> = (await sqlClient.columnList({ tn: req.body.table_name }))?.data?.list
 
   const tables = await Model.list({
     project_id: project.id,
     base_id: base.id,
-  });
+  })
 
   await Audit.insert({
     project_id: project.id,
@@ -206,11 +206,12 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     user: (req as any)?.user?.email,
     description: `created table ${req.body.table_name} with alias ${req.body.title}  `,
     ip: (req as any).clientIp,
-  }).then(() => {});
+  }).then(() => {
+  })
 
-  mapDefaultDisplayValue(req.body.columns);
+  mapDefaultDisplayValue(req.body.columns)
 
-  Tele.emit('evt', { evt_type: 'table:created' });
+  Tele.emit('evt', { evt_type: 'table:created' })
 
   res.json(
     await Model.insert(project.id, base.id, {
@@ -227,7 +228,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
             getColumnUiType(base, c),
           ...c,
           dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
-            colMetaFromReq.uidt as any
+            colMetaFromReq.uidt as any,
           )
             ? colMetaFromReq.dtxp
             : c.dtxp,
@@ -237,49 +238,49 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
         } as NormalColumnRequestType;
       }),
       order: +(tables?.pop()?.order ?? 0) + 1,
-    })
-  );
+    }),
+  )
 }
 
 export async function tableUpdate(req: Request<any, any>, res) {
-  const model = await Model.get(req.params.tableId);
+  const model = await Model.get(req.params.tableId)
 
   const project = await Project.getWithInfo(
-    req.body.project_id || (req as any).ncProjectId
-  );
-  const base = project.bases.find((b) => b.id === model.base_id);
+    req.body.project_id || (req as any).ncProjectId,
+  )
+  const base = project.bases.find((b) => b.id === model.base_id)
 
   if (model.project_id !== project.id) {
-    NcError.badRequest('Model does not belong to project');
+    NcError.badRequest('Model does not belong to project')
   }
 
   // if meta present update meta and return
   // todo: allow user to update meta  and other prop in single api call
   if ('meta' in req.body) {
-    await Model.updateMeta(req.params.tableId, req.body.meta);
+    await Model.updateMeta(req.params.tableId, req.body.meta)
 
-    return res.json({ msg: 'success' });
+    return res.json({ msg: 'success' })
   }
 
   if (!req.body.table_name) {
     NcError.badRequest(
-      'Missing table name `table_name` property in request body'
-    );
+      'Missing table name `table_name` property in request body',
+    )
   }
 
   if (base.is_meta && project.prefix) {
     if (!req.body.table_name.startsWith(project.prefix)) {
-      req.body.table_name = `${project.prefix}${req.body.table_name}`;
+      req.body.table_name = `${project.prefix}${req.body.table_name}`
     }
   }
 
-  req.body.table_name = DOMPurify.sanitize(req.body.table_name);
+  req.body.table_name = DOMPurify.sanitize(req.body.table_name)
 
   // validate table name
   if (/^\s+|\s+$/.test(req.body.table_name)) {
     NcError.badRequest(
-      'Leading or trailing whitespace not allowed in table names'
-    );
+      'Leading or trailing whitespace not allowed in table names',
+    )
   }
 
   if (
@@ -289,15 +290,15 @@ export async function tableUpdate(req: Request<any, any>, res) {
       base_id: base.id,
     }))
   ) {
-    NcError.badRequest('Duplicate table name');
+    NcError.badRequest('Duplicate table name')
   }
 
   if (!req.body.title) {
     req.body.title = getTableNameAlias(
       req.body.table_name,
       project.prefix,
-      base
-    );
+      base,
+    )
   }
 
   if (
@@ -307,50 +308,50 @@ export async function tableUpdate(req: Request<any, any>, res) {
       base_id: base.id,
     }))
   ) {
-    NcError.badRequest('Duplicate table alias');
+    NcError.badRequest('Duplicate table alias')
   }
 
-  const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+  const sqlMgr = await ProjectMgrv2.getSqlMgr(project)
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base)
 
-  let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.knex.clientType();
+  let tableNameLengthLimit = 255
+  const sqlClientType = sqlClient.knex.clientType()
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
-    tableNameLengthLimit = 64;
+    tableNameLengthLimit = 64
   } else if (sqlClientType === 'pg') {
-    tableNameLengthLimit = 63;
+    tableNameLengthLimit = 63
   } else if (sqlClientType === 'mssql') {
-    tableNameLengthLimit = 128;
+    tableNameLengthLimit = 128
   }
 
   if (req.body.table_name.length > tableNameLengthLimit) {
-    NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+    NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`)
   }
 
   await Model.updateAliasAndTableName(
     req.params.tableId,
     req.body.title,
-    req.body.table_name
-  );
+    req.body.table_name,
+  )
 
   await sqlMgr.sqlOpPlus(base, 'tableRename', {
     ...req.body,
     tn: req.body.table_name,
     tn_old: model.table_name,
-  });
+  })
 
-  Tele.emit('evt', { evt_type: 'table:updated' });
+  Tele.emit('evt', { evt_type: 'table:updated' })
 
-  res.json({ msg: 'success' });
+  res.json({ msg: 'success' })
 }
 
 export async function tableDelete(req: Request, res: Response) {
-  const table = await Model.getByIdOrName({ id: req.params.tableId });
-  await table.getColumns();
+  const table = await Model.getByIdOrName({ id: req.params.tableId })
+  await table.getColumns()
 
   const relationColumns = table.columns.filter(
-    (c) => c.uidt === UITypes.LinkToAnotherRecord
-  );
+    (c) => c.uidt === UITypes.LinkToAnotherRecord,
+  )
 
   if (relationColumns?.length) {
     const referredTables = await Promise.all(
@@ -358,32 +359,32 @@ export async function tableDelete(req: Request, res: Response) {
         c
           .getColOptions<LinkToAnotherRecordColumn>()
           .then((opt) => opt.getRelatedTable())
-          .then()
-      )
-    );
+          .then(),
+      ),
+    )
     NcError.badRequest(
       `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
-        ', '
-      )}. Delete LinkToAnotherRecord columns and try again.`
-    );
+        ', ',
+      )}. Delete LinkToAnotherRecord columns and try again.`,
+    )
   }
 
-  const project = await Project.getWithInfo(table.project_id);
-  const base = project.bases.find((b) => b.id === table.base_id);
+  const project = await Project.getWithInfo(table.project_id)
+  const base = project.bases.find((b) => b.id === table.base_id)
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  (table as any).tn = table.table_name;
-  table.columns = table.columns.filter((c) => !isVirtualCol(c));
+  (table as any).tn = table.table_name
+  table.columns = table.columns.filter((c) => !isVirtualCol(c))
   table.columns.forEach((c) => {
-    (c as any).cn = c.column_name;
-  });
+    (c as any).cn = c.column_name
+  })
 
   if (table.type === ModelTypes.TABLE) {
-    await sqlMgr.sqlOpPlus(base, 'tableDelete', table);
+    await sqlMgr.sqlOpPlus(base, 'tableDelete', table)
   } else if (table.type === ModelTypes.VIEW) {
     await sqlMgr.sqlOpPlus(base, 'viewDelete', {
       ...table,
       view_name: table.table_name,
-    });
+    })
   }
 
   await Audit.insert({
@@ -394,54 +395,55 @@ export async function tableDelete(req: Request, res: Response) {
     user: (req as any)?.user?.email,
     description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
     ip: (req as any).clientIp,
-  }).then(() => {});
+  }).then(() => {
+  })
 
-  Tele.emit('evt', { evt_type: 'table:deleted' });
+  Tele.emit('evt', { evt_type: 'table:deleted' })
 
-  res.json(await table.delete());
+  res.json(await table.delete())
 }
 
-const router = Router({ mergeParams: true });
+const router = Router({ mergeParams: true })
 router.get(
   '/api/v1/db/meta/projects/:projectId/tables',
   metaApiMetrics,
-  ncMetaAclMw(tableList, 'tableList')
-);
+  ncMetaAclMw(tableList, 'tableList'),
+)
 router.get(
   '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   metaApiMetrics,
-  ncMetaAclMw(tableList, 'tableList')
-);
+  ncMetaAclMw(tableList, 'tableList'),
+)
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
   metaApiMetrics,
   getAjvValidatorMw('swagger.json#/components/schemas/TableReq'),
-  ncMetaAclMw(tableCreate, 'tableCreate')
-);
+  ncMetaAclMw(tableCreate, 'tableCreate'),
+)
 router.post(
   '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   metaApiMetrics,
   getAjvValidatorMw('swagger.json#/components/schemas/TableReq'),
-  ncMetaAclMw(tableCreate, 'tableCreate')
-);
+  ncMetaAclMw(tableCreate, 'tableCreate'),
+)
 router.get(
   '/api/v1/db/meta/tables/:tableId',
   metaApiMetrics,
-  ncMetaAclMw(tableGet, 'tableGet')
-);
+  ncMetaAclMw(tableGet, 'tableGet'),
+)
 router.patch(
   '/api/v1/db/meta/tables/:tableId',
   metaApiMetrics,
-  ncMetaAclMw(tableUpdate, 'tableUpdate')
-);
+  ncMetaAclMw(tableUpdate, 'tableUpdate'),
+)
 router.delete(
   '/api/v1/db/meta/tables/:tableId',
   metaApiMetrics,
-  ncMetaAclMw(tableDelete, 'tableDelete')
-);
+  ncMetaAclMw(tableDelete, 'tableDelete'),
+)
 router.post(
   '/api/v1/db/meta/tables/:tableId/reorder',
   metaApiMetrics,
-  ncMetaAclMw(tableReorder, 'tableReorder')
-);
-export default router;
+  ncMetaAclMw(tableReorder, 'tableReorder'),
+)
+export default router

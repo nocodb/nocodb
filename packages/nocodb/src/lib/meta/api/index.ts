@@ -1,10 +1,11 @@
 import { Tele } from 'nc-help';
+import tableController from '../../controllers/tableController'
 import orgLicenseApis from './orgLicenseApis';
 import orgTokenApis from './orgTokenApis';
 import orgUserApis from './orgUserApis';
 import projectApis from './projectApis';
 import baseApis from './baseApis';
-import tableApis from './tableApis';
+// import tableApis from './tableApis';
 import columnApis from './columnApis';
 import { Router } from 'express';
 import sortApis from './sortApis';
@@ -85,7 +86,8 @@ export default function (router: Router, server) {
   router.use(publicDataExportApis);
   router.use(publicMetaApis);
   router.use(gridViewColumnApis);
-  router.use(tableApis);
+  // router.use(tableApis);
+  router.use(tableController);
   router.use(galleryViewApis);
   router.use(formViewApis);
   router.use(viewApis);

@@ -9734,10 +9734,12 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "password": {
-            "type": "string"
+            "type": "string",
+            "minLength": 8
           }
         },
         "required": [
@@ -9749,7 +9751,8 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "password": {
             "type": "string"
@@ -9764,7 +9767,8 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email"
           }
         },
         "required": [
@@ -9775,7 +9779,10 @@
         "type": "object",
         "properties": {
           "password": {
-            "type": "string"
+            "type": "string",
+"minLength": 8,
+            "description": "New password",
+            "example": "newpassword"
           }
         },
         "required": [
@@ -9786,7 +9793,8 @@
         "type": "object",
         "properties": {
           "currentPassword": {
-            "type": "string"
+            "type": "string",
+            "minLength": 8
           },
           "newPassword": {
             "type": "string"

@@ -242,7 +242,7 @@ const [setup, use] = useInjectionState(() => {
 
   const createMagic = async (title: string) => {
     try {
-      await $api.nocoDocs.createBookMagic({
+      await $api.nocoDocs.createNestedPagesMagic({
         projectId: projectId!,
         title,
       } as any)
@@ -254,7 +254,7 @@ const [setup, use] = useInjectionState(() => {
   const createImport = async (url: string, type: 'md' | 'nuxt' | 'docusaurus' = 'md', from: 'github' | 'file' = 'github') => {
     try {
       const rs = gh(url)
-      await $api.nocoDocs.importBook({
+      await $api.nocoDocs.importPages({
         user: rs!.owner!,
         repo: rs!.name!,
         branch: rs!.branch!,

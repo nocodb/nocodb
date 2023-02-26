@@ -5,6 +5,8 @@ import Page from '../../../models/Page';
 import { UserType } from 'nocodb-sdk';
 import { NcError } from '../../helpers/catchError';
 import Project from '../../../models/Project';
+import JSON5 from 'json5';
+import { fetchGHDocs } from '../../helpers/docImportHelpers';
 
 const { Configuration, OpenAIApi } = require('openai');
 
@@ -281,7 +283,7 @@ async function magicOutline(
           project.title
         }/${parentPagesTitles.join(
           '/'
-        )}', give initial page structure in markdown format`,
+        )}', give page structure in markdown format without meta data, and placeholder as --content-- in where content should be added`,
         temperature: 0.7,
         max_tokens: 1500,
         top_p: 1,
@@ -361,6 +363,128 @@ async function pageParents(
   }
 }
 
+async function handlePageJSON(
+  pg: any,
+  parentPageId: string | undefined,
+  user: UserType,
+  projectId: string
+) {
+  const parentPage = await Page.create({
+    attributes: {
+      title: pg?.title,
+      description: pg?.description,
+      content: pg?.content || '',
+      parent_page_id: parentPageId || null,
+    },
+    projectId,
+    user: user,
+  });
+
+  if (pg.pages) {
+    for (const page of pg.pages) {
+      await handlePageJSON(page, parentPage.id, user, projectId);
+    }
+  }
+}
+
+async function magicCreatePages(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    let response;
+    const { projectId } = req.body;
+
+    try {
+      response = await openai.createCompletion({
+        model: 'text-davinci-003',
+        prompt: `list required pages and nested sub-pages for '${req.body.title}' documentation Page: { title: string, pages: Page } as { data: Array<Page> } in json:`,
+        temperature: 0.7,
+        max_tokens: 4000,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      });
+
+      if (response.data.choices.length === 0) {
+        NcError.badRequest('Failed to parse schema');
+      }
+
+      let pages = JSON5.parse(response.data.choices[0].text);
+      pages = pages.length ? pages : pages.data;
+      if (pages.length === 1) {
+        // Skip the root page since it's the same as the book title
+        pages = pages[0].pages;
+      }
+
+      for (const page of pages) {
+        await handlePageJSON(
+          page,
+          undefined,
+          (req as any)?.session?.passport?.user as UserType,
+          projectId
+        );
+      }
+
+      res.json(true);
+    } catch (e) {
+      console.log(response?.data?.choices[0]?.text);
+      console.log(e);
+      NcError.badRequest('Failed to parse schema');
+    }
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
+async function directoryImport(
+  req: Request<any> & { user: { id: string; roles: string } },
+  res: Response,
+  next
+) {
+  try {
+    const { projectId } = req.body;
+    try {
+      const pages = [];
+
+      switch (req.body.from) {
+        case 'github':
+          pages.push(
+            ...(await fetchGHDocs(
+              req.body.user,
+              req.body.repo,
+              req.body.branch,
+              req.body.path,
+              req.body.type
+            ))
+          );
+          break;
+        default:
+          NcError.badRequest('Invalid type');
+      }
+
+      for (const page of pages) {
+        await handlePageJSON(
+          page,
+          undefined,
+          (req as any)?.session?.passport?.user as UserType,
+          projectId as string
+        );
+      }
+
+      res.json(true);
+    } catch (e) {
+      console.log(e);
+      NcError.badRequest('Failed to parse schema');
+    }
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
+}
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis
@@ -418,5 +542,14 @@ router.get(
   apiMetrics,
   ncMetaAclMw(paginate, 'paginate')
 );
-
+router.post(
+  '/api/v1/docs/pages/magic',
+  apiMetrics,
+  ncMetaAclMw(magicCreatePages, 'magicCreatePages')
+);
+router.post(
+  '/api/v1/docs/pages/import',
+  apiMetrics,
+  ncMetaAclMw(directoryImport, 'directoryImport')
+);
 export default router;

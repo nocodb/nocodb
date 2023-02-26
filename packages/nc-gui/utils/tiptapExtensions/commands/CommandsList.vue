@@ -469,6 +469,10 @@ function onKeyDown({ event }: { event: KeyboardEvent }) {
 async function outlinePage(editor: Editor) {
   if (loadingOperationName.value) return
 
+  // Delete the current line
+  const { from } = editor.state.selection
+  const parent = editor.state.doc.resolve(from).parent
+
   loadingOperationName.value = 'Outline page'
   try {
     const converter = new showdown.Converter()
@@ -476,8 +480,25 @@ async function outlinePage(editor: Editor) {
 
     const response: any = await magicOutline()
 
-    const html = converter.makeHtml(response.text).replace('>\n<', '><')
-    const tiptapNewNodeJSON = generateJSON(html, editor.extensionManager.extensions)
+    const html = converter
+      .makeHtml(
+        response.text
+          .replace(/\n\n# .*?\n/g, '')
+          .replace('## ', '# ')
+          .replace('### ', '## '),
+      )
+      .replace('>\n<', '><')
+
+    // Removed line which has :content: text
+    const cleanedHtml = html.replace(/--content--/gi, '')
+    const tiptapNewNodeJSON = generateJSON(cleanedHtml, editor.extensionManager.extensions)
+
+    editor
+      .chain()
+      .focus()
+      .setNodeSelection(from - parent.nodeSize)
+      .deleteSelection()
+      .run()
 
     const transaction = editor?.state.tr
     for (const node of tiptapNewNodeJSON.content.reverse()) {

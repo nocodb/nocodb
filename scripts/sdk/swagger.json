@@ -10430,9 +10430,11 @@
           },
           {
             "type": "integer"
+          },
+          {
+            "type": "null"
           }
-        ],
-        "nullable": true
+        ]
       },
       "Meta": {
         "oneOf": [
@@ -10441,9 +10443,11 @@
           },
           {
             "type": "string"
+          },
+          {
+            "type": "null"
           }
-        ],
-        "nullable": true
+        ]
       },
       "CommentReq": {
         "type": "object",

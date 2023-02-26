@@ -37,7 +37,7 @@ const closeAddColumnDropdown = () => {
 }
 
 const openHeaderMenu = () => {
-  if (!isForm && isUIAllowed('edit-column')) {
+  if (!isForm.value && isUIAllowed('edit-column')) {
     editColumnDropdown.value = true
   }
 }
@@ -51,11 +51,13 @@ const openHeaderMenu = () => {
     <SmartsheetHeaderCellIcon v-if="column" />
     <span
       v-if="column"
-      class="name cursor-pointer"
+      class="name"
+      :class="{ 'cursor-pointer': !isForm && isUIAllowed('edit-column') }"
       style="white-space: nowrap"
       :title="column.title"
       @dblclick="openHeaderMenu"
-      >{{ column.title }}</span>
+      >{{ column.title }}</span
+    >
 
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 

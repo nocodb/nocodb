@@ -7,7 +7,7 @@ export function useGlobalActions(state: State): Actions {
     state.token.value = null
     state.user.value = null
     try {
-      if(state.token.value) {
+      if (state.token.value) {
         const nuxtApp = useNuxtApp()
         await nuxtApp.$api.auth.signout()
       }

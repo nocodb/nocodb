@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import Ajv, { ErrorObject } from 'ajv';
 // @ts-ignore
-import swagger from '../../../../../../../scripts/sdk/swagger.json';
+import swagger from '../../../../schema/swagger.json';
 
 export function parseHrtimeToSeconds(hrtime) {
   const seconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);

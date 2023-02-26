@@ -58,8 +58,7 @@
   "include": [
     "src/**/*.ts",
 //    "src/lib/xgene/migrations/*.js",
-    "src/**/*.json",
-    "../../scripts/sdk/swagger.json"
+    "src/**/*.json"
   ],
   "exclude": [
     "node_modules/**",

@@ -596,7 +596,7 @@ test.describe('Filter Tests: Select based', () => {
 // Date & Time related
 //
 
-test.describe.skip('Filter Tests: Date & Time related', () => {
+test.describe('Filter Tests: Date & Time related', () => {
   async function dateTimeBasedFilterTest(dataType) {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'dateTimeBased' });
@@ -605,80 +605,259 @@ test.describe.skip('Filter Tests: Date & Time related', () => {
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
 
-    // store date in YYYY-MM-DD format
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
-    const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0];
-    const oneWeekAgo = new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0];
-    const oneWeekFromNow = new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().split('T')[0];
-    const oneMonthAgo = new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0];
-    const oneMonthFromNow = new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0];
-    const daysAgo45 = new Date(new Date().setDate(new Date().getDate() + 45)).toISOString().split('T')[0];
-    const daysFromNow45 = new Date(new Date().setDate(new Date().getDate() - 45)).toISOString().split('T')[0];
+    // records array with time set to 00:00:00; store time in unix epoch
+    const recordsTimeSetToZero = records.list.map(r => {
+      const date = new Date(r[dataType]);
+      date.setHours(0, 0, 0, 0);
+      return date.getTime();
+    });
 
-    console.log(today);
+    const today = new Date().setHours(0, 0, 0, 0);
+    const tomorrow = new Date(new Date().setDate(new Date().getDate() + 1)).setHours(0, 0, 0, 0);
+    const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).setHours(0, 0, 0, 0);
+    const oneWeekAgo = new Date(new Date().setDate(new Date().getDate() - 7)).setHours(0, 0, 0, 0);
+    const oneWeekFromNow = new Date(new Date().setDate(new Date().getDate() + 7)).setHours(0, 0, 0, 0);
+    const oneMonthAgo = new Date(new Date().setMonth(new Date().getMonth() - 1)).setHours(0, 0, 0, 0);
+    const oneMonthFromNow = new Date(new Date().setMonth(new Date().getMonth() + 1)).setHours(0, 0, 0, 0);
+    const daysAgo45 = new Date(new Date().setDate(new Date().getDate() - 45)).setHours(0, 0, 0, 0);
+    const daysFromNow45 = new Date(new Date().setDate(new Date().getDate() + 45)).setHours(0, 0, 0, 0);
+    const thisMonth15 = new Date(new Date().setDate(15)).setHours(0, 0, 0, 0);
+    const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).setHours(0, 0, 0, 0);
+    const oneYearFromNow = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).setHours(0, 0, 0, 0);
 
+    const isFilterList = [
+      {
+        opSub: 'today',
+        rowCount: recordsTimeSetToZero.filter(r => r === today).length,
+      },
+      {
+        opSub: 'tomorrow',
+        rowCount: recordsTimeSetToZero.filter(r => r === tomorrow).length,
+      },
+      {
+        opSub: 'yesterday',
+        rowCount: recordsTimeSetToZero.filter(r => r === yesterday).length,
+      },
+      {
+        opSub: 'one week ago',
+        rowCount: recordsTimeSetToZero.filter(r => r === oneWeekAgo).length,
+      },
+      {
+        opSub: 'one week from now',
+        rowCount: recordsTimeSetToZero.filter(r => r === oneWeekFromNow).length,
+      },
+      {
+        opSub: 'one month ago',
+        rowCount: recordsTimeSetToZero.filter(r => r === oneMonthAgo).length,
+      },
+      {
+        opSub: 'one month from now',
+        rowCount: recordsTimeSetToZero.filter(r => r === oneMonthFromNow).length,
+      },
+      {
+        opSub: 'number of days ago',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r === daysAgo45).length,
+      },
+      {
+        opSub: 'number of days from now',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r === daysFromNow45).length,
+      },
+      {
+        opSub: 'exact date',
+        value: 15,
+        rowCount: recordsTimeSetToZero.filter(r => r === thisMonth15).length,
+      },
+    ];
+
+    for (let i = 0; i < isFilterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: 'is',
+        opSubType: isFilterList[i].opSub,
+        value: isFilterList[i]?.value?.toString() || '',
+        result: { rowCount: isFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
+
+    // mutually exclusive of "is" filter list
+    for (let i = 0; i < isFilterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: 'is not',
+        opSubType: isFilterList[i].opSub,
+        value: isFilterList[i]?.value?.toString() || '',
+        result: { rowCount: 800 - isFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
+
+    // "is after" filter list
+    const isAfterFilterList = [
+      {
+        opSub: 'today',
+        rowCount: recordsTimeSetToZero.filter(r => r > today).length,
+      },
+      {
+        opSub: 'tomorrow',
+        rowCount: recordsTimeSetToZero.filter(r => r > tomorrow).length,
+      },
+      {
+        opSub: 'yesterday',
+        rowCount: recordsTimeSetToZero.filter(r => r > yesterday).length,
+      },
+      {
+        opSub: 'one week ago',
+        rowCount: recordsTimeSetToZero.filter(r => r > oneWeekAgo).length,
+      },
+      {
+        opSub: 'one week from now',
+        rowCount: recordsTimeSetToZero.filter(r => r > oneWeekFromNow).length,
+      },
+      {
+        opSub: 'one month ago',
+        rowCount: recordsTimeSetToZero.filter(r => r > oneMonthAgo).length,
+      },
+      {
+        opSub: 'one month from now',
+        rowCount: recordsTimeSetToZero.filter(r => r > oneMonthFromNow).length,
+      },
+      {
+        opSub: 'number of days ago',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r > daysAgo45).length,
+      },
+      {
+        opSub: 'number of days from now',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r > daysFromNow45).length,
+      },
+      {
+        opSub: 'exact date',
+        value: 15,
+        rowCount: recordsTimeSetToZero.filter(r => r > thisMonth15).length,
+      },
+    ];
+
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: 'is after',
+        opSubType: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i]?.value?.toString() || '',
+        result: { rowCount: isAfterFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
+
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: 'is on or after',
+        opSubType: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i]?.value?.toString() || '',
+        result: { rowCount: 1 + isAfterFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
+
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: 'is before',
+        opSubType: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i]?.value?.toString() || '',
+        result: { rowCount: 800 - isAfterFilterList[i].rowCount - 1 },
+        dataType: dataType,
+      });
+    }
+
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: 'is on or before',
+        opSubType: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i]?.value?.toString() || '',
+        result: { rowCount: 800 - isAfterFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
+
+    // "is within" filter list
+    const isWithinFilterList = [
+      {
+        opSub: 'the past week',
+        rowCount: recordsTimeSetToZero.filter(r => r >= oneWeekAgo && r <= today).length,
+      },
+      {
+        opSub: 'the past month',
+        rowCount: recordsTimeSetToZero.filter(r => r >= oneMonthAgo && r <= today).length,
+      },
+      {
+        opSub: 'the past year',
+        rowCount: recordsTimeSetToZero.filter(r => r >= oneYearAgo && r <= today).length,
+      },
+      {
+        opSub: 'the next week',
+        rowCount: recordsTimeSetToZero.filter(r => r >= today && r <= oneWeekFromNow).length,
+      },
+      {
+        opSub: 'the next month',
+        rowCount: recordsTimeSetToZero.filter(r => r >= today && r <= oneMonthFromNow).length,
+      },
+      {
+        opSub: 'the next year',
+        rowCount: recordsTimeSetToZero.filter(r => r >= today && r <= oneYearFromNow).length,
+      },
+      {
+        opSub: 'the next number of days',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r >= today && r <= daysFromNow45).length,
+      },
+      {
+        opSub: 'the past number of days',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(r => r >= daysAgo45 && r <= today).length,
+      },
+    ];
+
+    for (let i = 0; i < isWithinFilterList.length; i++) {
+      await verifyFilter({
+        column: dataType,
+        opType: 'is within',
+        opSubType: isWithinFilterList[i].opSub,
+        value: isWithinFilterList[i]?.value?.toString() || '',
+        result: { rowCount: isWithinFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
+
+    // rest of the filters (without subop type)
     const filterList = [
       {
-        op: 'is',
-        opSub: 'today',
-        rowCount: records.list.filter(r => r[dataType].split('T')[0] === today).length,
+        opType: 'is blank',
+        rowCount: records.list.filter(r => r[dataType] === null || r[dataType] === '').length,
       },
       {
-        op: 'is',
-        opSub: 'tomorrow',
-        rowCount: records.list.filter(r => r[dataType].split('T')[0] === tomorrow).length,
-      },
-      {
-        op: 'is',
-        opSub: 'yesterday',
-        rowCount: records.list.filter(r => r[dataType].split('T')[0] === yesterday).length,
-      },
-      {
-        op: 'is',
-        opSub: 'oneWeekAgo',
-        rowCount: records.list.filter(r => r[dataType].split('T')[0] === oneWeekAgo).length,
-      },
-      {
-        op: 'is',
-        opSub: 'oneWeekFromNow',
-        rowCount: records.list.filter(r => r[dataType].split('T')[0] === oneWeekFromNow).length,
-      },
-      {
-        op: 'is',
-        opSub: 'oneMonthAgo',
-        rowCount: records.list.filter(r => r[dataType].split('T')[0] === oneMonthAgo).length,
-      },
-      {
-        op: 'is',
-        opSub: 'oneMonthFromNow',
-        rowCount: records.list.filter(r => r[dataType].split('T')[0] === oneMonthFromNow).length,
-      },
-      {
-        op: 'is',
-        opSub: 'daysAgo',
-        value: 45,
-        rowCount: records.list.filter(r => r[dataType].split('T')[0] === daysAgo45).length,
-      },
-      {
-        op: 'is',
-        opSub: 'daysFromNow',
-        value: 45,
-        rowCount: records.list.filter(r => r[dataType].split('T')[0] === daysFromNow45).length,
+        opType: 'is not blank',
+        rowCount: records.list.filter(r => r[dataType] !== null && r[dataType] !== '').length,
       },
     ];
 
     for (let i = 0; i < filterList.length; i++) {
       await verifyFilter({
         column: dataType,
-        opType: filterList[i].op,
-        opSubType: filterList[i].opSub,
-        value: filterList[i]?.value?.toString() || '',
+        opType: filterList[i].opType,
+        opSubType: null,
+        value: null,
         result: { rowCount: filterList[i].rowCount },
         dataType: dataType,
       });
     }
   }
+
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);

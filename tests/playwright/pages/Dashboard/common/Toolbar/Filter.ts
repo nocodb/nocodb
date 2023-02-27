@@ -84,6 +84,23 @@ export class ToolbarFilterPage extends BasePage {
     if (value) {
       let fillFilter: any = null;
       switch (dataType) {
+        case UITypes.Date:
+          if (opSubType === 'exact date') {
+            await this.get().locator('.nc-filter-value-select').click();
+            await this.rootPage.locator(`.ant-picker-dropdown:visible`);
+            await this.rootPage.locator(`.ant-picker-cell-inner:has-text("${value}")`).click();
+          } else {
+            fillFilter = () => this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
+            await this.waitForResponse({
+              uiAction: fillFilter,
+              httpMethodsToMatch: ['GET'],
+              requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+            });
+            await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+            await this.toolbar.parent.waitLoading();
+            break;
+          }
+          break;
         case UITypes.Duration:
           await this.get().locator('.nc-filter-value-select').locator('input').fill(value);
           break;

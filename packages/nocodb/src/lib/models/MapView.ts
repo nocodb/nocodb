@@ -93,7 +93,6 @@ export default class MapView implements MapType {
       await View.updateColumn(body.fk_view_id, mapViewMappedByColumn.id, {
         show: true,
       });
-
     }
 
     // update meta

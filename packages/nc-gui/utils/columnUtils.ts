@@ -221,6 +221,7 @@ const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
     UITypes.Duration,
     UITypes.JSON,
     UITypes.URL,
+    UITypes.SpecificDBType,
   ].includes(uidt)
 }
 

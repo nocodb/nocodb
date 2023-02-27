@@ -6,6 +6,7 @@ import { PagedResponseImpl } from '../helpers/PagedResponse';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 
 import DOMPurify from 'isomorphic-dompurify';
+import { getAjvValidatorMw } from './helpers';
 
 export async function commentRow(req: Request<any, any>, res) {
   res.json(
@@ -69,10 +70,12 @@ router.get(
 );
 router.post(
   '/api/v1/db/meta/audits/comments',
+  getAjvValidatorMw('swagger.json#/components/schemas/CommentReq'),
   ncMetaAclMw(commentRow, 'commentRow')
 );
 router.post(
   '/api/v1/db/meta/audits/rows/:rowId/update',
+  getAjvValidatorMw('swagger.json#/components/schemas/AuditRowUpdateReq'),
   ncMetaAclMw(auditRowUpdate, 'auditRowUpdate')
 );
 router.get(

@@ -6,6 +6,7 @@ import { PluginType } from 'nocodb-sdk';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers';
 
 export async function pluginList(_req: Request, res: Response) {
   res.json(new PagedResponseImpl(await Plugin.list()));
@@ -43,6 +44,8 @@ router.get(
 router.post(
   '/api/v1/db/meta/plugins/test',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/PluginTestReq'),
+
   ncMetaAclMw(pluginTest, 'pluginTest')
 );
 router.get(
@@ -53,6 +56,7 @@ router.get(
 router.patch(
   '/api/v1/db/meta/plugins/:pluginId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/PluginReq'),
   ncMetaAclMw(pluginUpdate, 'pluginUpdate')
 );
 router.get(

@@ -28,6 +28,7 @@ export async function mapViewUpdate(req, res) {
 
 const router = Router({ mergeParams: true });
 
+// todo: add schema in swagger and use getAjvValidatorMw
 router.post(
   '/api/v1/db/meta/tables/:tableId/maps',
   metaApiMetrics,

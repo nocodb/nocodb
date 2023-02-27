@@ -232,7 +232,10 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             v-model:value="formState"
           />
 
-          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" :advanced-db-options="advancedDbOptions" />
+          <LazySmartsheetColumnAdvancedOptions
+            v-model:value="formState"
+            :advanced-db-options="advancedDbOptions || formState.uidt === UITypes.SpecificDBType"
+          />
         </div>
       </Transition>
 

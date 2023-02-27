@@ -10,9 +10,7 @@ menuTitle: 'Column Types'
 
 | Type | Description |
 |---|---|
-<!-- | [ID](#id) | Primary column of the table | -->
 | [LinkToAnotherRecord](#linktoanotherrecord) | Has Many or Many To Many columns |
-<!-- | [ForeignKey](#foreignkey)|  Belongs To relation  | -->
 | [SingleLineText](#singlelinetext) |  For short text |
 | [LongText](#longtext) | For lengthy string content |
 | [Attachment](#attachment) | File attachment column |
@@ -36,7 +34,6 @@ menuTitle: 'Column Types'
 | [DateTime](#datetime)| Date & Time selector |
 | [QR Code](#qr-code)|  QR Code visualization of another referenced column |
 | [Barcode](#barcode)|  Barcode visualization of another referenced column |
-<!-- | [CreateTime](#createtime)| | -->
 | [Geometry](#geometry)|  Geometry column |
 | [GeoData](#geodata)|  GeoData column |
 | [Json](#json)|  Json column |

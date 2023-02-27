@@ -42,7 +42,6 @@ export enum MetaTable {
   MAP_VIEW = 'nc_map_view_v2',
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
-
 }
 
 export const orderedMetaTables = [

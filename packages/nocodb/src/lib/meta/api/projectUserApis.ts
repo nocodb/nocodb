@@ -17,6 +17,7 @@ import Noco from '../../Noco';
 import { PluginCategory } from 'nocodb-sdk';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { randomTokenString } from '../helpers/stringHelpers';
+import { getAjvValidatorMw } from './helpers';
 
 async function userList(req, res) {
   res.json({
@@ -310,11 +311,13 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/users',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/ProjectUserReq'),
   ncMetaAclMw(userInvite, 'userInvite')
 );
 router.patch(
   '/api/v1/db/meta/projects/:projectId/users/:userId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/ProjectUserReq'),
   ncMetaAclMw(projectUserUpdate, 'projectUserUpdate')
 );
 router.delete(

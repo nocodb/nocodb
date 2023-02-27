@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
 import { Modal as AModal, latLongToJoinedString, useVModel } from '#imports'
+import MdiMapIcon from '~icons/mdi/map-outline'
 
 interface Props {
   modelValue?: string | null
@@ -68,6 +69,18 @@ const onClickSetCurrentLocation = () => {
   }
   navigator.geolocation.getCurrentPosition(onSuccess, onError, options)
 }
+
+const openInGoogleMaps = () => {
+  const [latitude, longitude] = (vModel.value || '').split(';')
+  const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+  window.open(url, '_blank')
+}
+
+const openInOSM = () => {
+  const [latitude, longitude] = (vModel.value || '').split(';')
+  const url = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`
+  window.open(url, '_blank')
+}
 </script>
 
 <template>
@@ -128,7 +141,13 @@ const onClickSetCurrentLocation = () => {
           </div>
         </a-form-item>
         <a-form-item>
-          <div class="ml-auto mr-2">
+          <div class="mr-2 flex flex-col items-end gap-1 text-left">
+            <a-button @click="openInOSM"><MdiMapIcon class="mr-2" />Open in OSM</a-button>
+            <a-button @click="openInGoogleMaps"><MdiMapIcon class="mr-2" />Open in Google Maps</a-button>
+          </div>
+        </a-form-item>
+        <a-form-item>
+          <div class="ml-auto mr-2 w-auto">
             <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
             <a-button type="primary" html-type="submit" data-testid="nc-geo-data-save">{{ $t('general.submit') }}</a-button>
           </div>

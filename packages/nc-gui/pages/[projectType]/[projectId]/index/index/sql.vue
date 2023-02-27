@@ -375,7 +375,7 @@ onMounted(() => {
           @click="openSqlViewCreateDialog(selectedBase)"
         >
           <MdiEyeCircleOutline class="mr-2" />
-          Create View
+          Create SQL View
         </a-button>
       </div>
     </div>

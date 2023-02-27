@@ -32,7 +32,7 @@ export function reorderTable(param: { tableId: string; order: any }) {
   return Model.updateOrder(param.tableId, param.order);
 }
 
-export async function deleteTable(param: { tableId: string; user: User }) {
+export async function tableDelete(param: { tableId: string; user: User }) {
   const table = await Model.getByIdOrName({ id: param.tableId });
   await table.getColumns();
 
@@ -193,7 +193,7 @@ export async function getAccessibleTables(param: {
     : (tableList.filter((t) => !t.mm) as Model[]);
 }
 
-export async function createTable(args: {
+export async function tableCreate(args: {
   projectId: string;
   baseId?: string;
   table: TableReqType;

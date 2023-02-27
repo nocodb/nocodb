@@ -146,7 +146,7 @@ export default defineNuxtConfig({
       }),
       monacoEditorPlugin({
         languageWorkers: ['json'],
-        customWorkers: [{ label: 'sql', entry: 'monaco-sql-languages/out/esm/sql/sql.worker.js' }],
+        // customWorkers: [{ label: 'sql', entry: 'monaco-sql-languages/out/esm/sql/sql.worker.js' }],
         customDistPath: (root: string, buildOutDir: string) => {
           return `${buildOutDir}/` + `monacoeditorwork`
         },

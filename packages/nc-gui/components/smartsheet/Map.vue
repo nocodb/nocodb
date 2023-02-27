@@ -83,7 +83,7 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-const addMarker = (lat: number, long: number, row: RowType) => {
+const addMarker = (lat: number, long: number, row: RowType, popupContent: string) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Marker cluster is null')
   }
@@ -93,6 +93,10 @@ const addMarker = (lat: number, long: number, row: RowType) => {
     expandForm(row)
   })
   markersClusterGroupRef.value?.addLayer(newMarker)
+
+  if (newMarker && isPublic.value) {
+    newMarker.bindPopup(popupContent)
+  }
 }
 
 const resetZoomAndCenterBasedOnLocalStorage = () => {
@@ -189,9 +193,17 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
       return
     }
 
+    const listItems = Object.entries(row.row)
+      .map(([key, val]) => {
+        const prettyVal = val !== null && (typeof val === 'object' || Array.isArray(val)) ? JSON.stringify(val) : val
+        return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
+      })
+      .join('')
+    const popupContent = `<ul>${listItems}</ul>`
+
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
 
-    addMarker(lat, long, row)
+    addMarker(lat, long, row, popupContent)
   })
 })
 

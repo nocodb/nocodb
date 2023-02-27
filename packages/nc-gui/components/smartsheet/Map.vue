@@ -194,8 +194,9 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
     }
 
     const listItems = Object.entries(row.row)
+      .filter(([key, val]) => val !== null)
       .map(([key, val]) => {
-        const prettyVal = val !== null && (typeof val === 'object' || Array.isArray(val)) ? JSON.stringify(val) : val
+        const prettyVal = typeof val === 'object' || Array.isArray(val) ? JSON.stringify(val) : val
         return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
       })
       .join('')

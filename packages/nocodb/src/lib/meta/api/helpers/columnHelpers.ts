@@ -3,6 +3,7 @@ import {
   ColumnReqType,
   LinkToAnotherRecordType,
   LookupColumnReqType,
+  BoolType,
   RelationTypes,
   RollupColumnReqType,
   TableType,
@@ -27,7 +28,7 @@ export async function createHmAndBtColumn(
   type?: RelationTypes,
   alias?: string,
   fkColName?: string,
-  virtual = false,
+  virtual: BoolType = false,
   isSystemCol = false
 ) {
   // save bt column

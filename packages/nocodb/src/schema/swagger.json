@@ -138,19 +138,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "email",
-                  "password"
-                ]
+                "$ref": "#/components/schemas/SignInReq"
               },
               "examples": {
                 "example-1": {
@@ -234,12 +222,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/PasswordForgotReq"
               }
             }
           },
@@ -311,15 +294,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "currentPassword": {
-                    "type": "string"
-                  },
-                  "newPassword": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/PasswordChangeReq"
               },
               "examples": {
                 "example-1": {
@@ -403,12 +378,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "new_password": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/PasswordResetReq"
               }
             }
           }
@@ -508,7 +478,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApiToken"
+                "$ref": "#/components/schemas/ApiTokenReq"
               }
             }
           }
@@ -557,12 +527,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "key": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/LicenseReq"
               }
             }
           }
@@ -748,7 +713,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/OrgUserReq"
               }
             }
           },
@@ -893,7 +858,8 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                }
               }
             }
           }
@@ -901,7 +867,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUserReq"
+              }
             }
           }
         },
@@ -1012,7 +980,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUserReq"
+              }
             }
           }
         },
@@ -1087,7 +1057,9 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/VisibilityRuleReq"
+                }
               }
             }
           }
@@ -1505,18 +1477,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "uuid": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string"
-                    },
-                    "roles": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/SharedBaseReq"
                 }
               }
             }
@@ -1973,7 +1934,9 @@
                   "project_id": {
                     "type": "string"
                   },
-                  "meta": {}
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta"
+                  }
                 }
               }
             }
@@ -2206,7 +2169,9 @@
                   "order": {
                     "type": "number"
                   },
-                  "meta": {},
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta"
+                  },
                   "title": {
                     "type": "string"
                   },
@@ -2403,7 +2368,9 @@
                   "password": {
                     "type": "string"
                   },
-                  "meta": {}
+                  "meta": {
+                    "$ref": "#/components/schemas/Meta"
+                  }
                 }
               }
             }
@@ -2702,7 +2669,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Filter"
+                "$ref": "#/components/schemas/FilterReq"
               }
             }
           }
@@ -2747,7 +2714,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Filter"
+                "$ref": "#/components/schemas/FilterReq"
               }
             }
           }
@@ -2799,7 +2766,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Filter"
+                "$ref": "#/components/schemas/FilterReq"
               }
             }
           }
@@ -2885,7 +2852,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Grid"
+                "$ref": "#/components/schemas/GridReq"
               }
             }
           }
@@ -2926,7 +2893,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Form"
+                "$ref": "#/components/schemas/FormCreateReq"
               }
             }
           }
@@ -2959,7 +2926,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Form"
+                "$ref": "#/components/schemas/FormReq"
               }
             }
           }
@@ -3018,7 +2985,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FormColumn"
+                "$ref": "#/components/schemas/FormColumnReq"
               }
             }
           }
@@ -3128,7 +3095,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GridColumn"
+                "$ref": "#/components/schemas/GridColumnReq"
               }
             }
           }
@@ -3169,7 +3136,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Gallery"
+                "$ref": "#/components/schemas/GalleryReq"
               }
             }
           }
@@ -3202,7 +3169,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Gallery"
+                "$ref": "#/components/schemas/GalleryReq"
               }
             }
           }
@@ -3262,7 +3229,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Kanban"
+                "$ref": "#/components/schemas/KanbanReq"
               }
             }
           }
@@ -3295,7 +3262,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Kanban"
+                "$ref": "#/components/schemas/KanbanUpdateReq"
               }
             }
           }
@@ -5714,7 +5681,7 @@
                         "columns": {
                           "allOf": [
                             {
-                              "oneOf": [
+                              "anyOf": [
                                 {
                                   "$ref": "#/components/schemas/GridColumn"
                                 },
@@ -5740,7 +5707,7 @@
                       "type": "object",
                       "properties": {
                         "view": {
-                          "oneOf": [
+                          "anyOf": [
                             {
                               "$ref": "#/components/schemas/Form"
                             },
@@ -5827,23 +5794,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "row_id": {
-                    "type": "string"
-                  },
-                  "fk_model_id": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "row_id",
-                  "fk_model_id",
-                  "comment"
-                ]
+                "$ref": "#/components/schemas/CommentReq"
               }
             }
           }
@@ -5980,24 +5931,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "fk_model_id": {
-                    "type": "string"
-                  },
-                  "column_name": {
-                    "type": "string"
-                  },
-                  "row_id": {
-                    "type": "string"
-                  },
-                  "value": {
-                    "type": "string"
-                  },
-                  "prev_value": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/AuditRowUpdateReq"
               }
             }
           }
@@ -6114,19 +6048,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "payload": {
-                    "type": "object",
-                    "properties": {
-                      "data": {},
-                      "user": {}
-                    }
-                  },
-                  "hook": {
-                    "$ref": "#/components/schemas/Hook"
-                  }
-                }
+                "$ref": "#/components/schemas/HookTestReq"
               }
             }
           }
@@ -6353,19 +6275,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "title": {
-                    "type": "string"
-                  },
-                  "input": {},
-                  "category": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/PluginTestReq"
               }
             }
           }
@@ -6392,7 +6302,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plugin"
+                  "$ref": "#/components/schemas/PluginReq"
                 }
               }
             }
@@ -6976,7 +6886,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiToken"
+                  "$ref": "#/components/schemas/ApiTokenReq"
                 }
               }
             }
@@ -7319,7 +7229,10 @@
               "$ref": "#/components/schemas/BaseReq"
             }
           }
-        }
+        },
+        "required": [
+          "title"
+        ]
       },
       "Project": {
         "title": "Project",
@@ -7338,19 +7251,13 @@
             "type": "string"
           },
           "meta": {
-            "type": [
-              "string",
-              "object"
-            ]
+            "$ref": "#/components/schemas/Meta"
           },
           "color": {
             "type": "string"
           },
           "deleted": {
-            "type": [
-              "string",
-              "boolean"
-            ]
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -7362,7 +7269,7 @@
             }
           },
           "is_meta": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "prefix": {
             "type": "string"
@@ -7437,8 +7344,7 @@
             "type": "string"
           },
           "is_meta": {
-            "type": "boolean",
-            "readOnly": true
+            "$ref": "#/components/schemas/Bool"
           },
           "config": {},
           "created_at": {},
@@ -7453,7 +7359,7 @@
             "type": "number"
           },
           "enabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           }
         }
       },
@@ -7633,7 +7539,7 @@
             "type": "string"
           },
           "enabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "parent_id": {
             "type": "string"
@@ -7645,10 +7551,10 @@
             "type": "string"
           },
           "pinned": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -7666,12 +7572,11 @@
             "type": "string"
           },
           "mm": {
-            "type": [
-              "boolean",
-              "number"
-            ]
+            "$ref": "#/components/schemas/Bool"
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         },
         "required": [
           "table_name",
@@ -7755,7 +7660,7 @@
             "type": "string"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -7769,9 +7674,11 @@
           "uuid": {
             "type": "string"
           },
-          "meta": {},
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
           "show_system_fields": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "lock_type": {
             "type": "string",
@@ -7785,7 +7692,7 @@
             "type": "number"
           },
           "view": {
-            "oneOf": [
+            "anyOf": [
               {
                 "$ref": "#/components/schemas/Form"
               },
@@ -7932,10 +7839,10 @@
             "type": "string"
           },
           "pinned": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -7999,24 +7906,26 @@
             "type": "string"
           },
           "pinned": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
           },
           "mm": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "columns": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Column"
+              "$ref": "#/components/schemas/NormalColumnRequest"
             }
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         },
         "required": [
           "table_name",
@@ -8095,17 +8004,19 @@
           "comparison_sub_op": {
             "type": "string"
           },
-          "value": {
-            "type": [
-              "string",
-              "number",
-              "integer",
-              "boolean",
-              "null"
-            ]
-          },
+          "value": {},
           "is_group": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "children": {
             "type": "array",
@@ -8125,10 +8036,69 @@
             "type": "string"
           },
           "fk_view_id": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "fk_hook_id": {
+            "$ref": "#/components/schemas/StringOrNull"
+          }
+        },
+        "readOnly": true
+      },
+      "FilterReq": {
+        "type": "object",
+        "title": "Filter",
+        "properties": {
+          "id": {
             "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "fk_column_id": {
+            "type": "string"
+          },
+          "logical_op": {
+            "type": "string"
+          },
+          "comparison_op": {
+            "type": "string"
+          },
+          "value": {},
+          "is_group": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
+          },
+          "project_id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "base_id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "fk_parent_id": {
+            "type": "string"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/StringOrNull"
+          },
+          "fk_hook_id": {
+            "$ref": "#/components/schemas/StringOrNull"
           }
         },
         "readOnly": true
@@ -8216,6 +8186,19 @@
           }
         }
       },
+      "SortReq": {
+        "title": "Sort",
+        "type": "object",
+        "properties": {
+          "fk_column_id": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          }
+        },
+        "minProperties": 1
+      },
       "SortList": {
         "description": "",
         "type": "object",
@@ -8293,43 +8276,70 @@
             "type": "string"
           },
           "np": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "ns": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "clen": {
-            "type": [
-              "string",
-              "integer"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "cop": {
             "type": "string"
           },
           "pk": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "pv": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "rqd": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "column_name": {
             "type": "string"
           },
           "un": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "ct": {
             "type": "string"
           },
           "ai": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "unique": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "cdf": {
             "type": "string"
@@ -8344,32 +8354,51 @@
             "type": "string"
           },
           "dtxp": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "dtxs": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "au": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "visible": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
           },
           "system": {
-            "type": [
-              "number",
-              "boolean"
-            ]
+            "$ref": "#/components/schemas/Bool"
           },
-          "meta": {},
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
           "colOptions": {
-            "oneOf": [
+            "anyOf": [
               {
                 "$ref": "#/components/schemas/LinkToAnotherRecord"
               },
@@ -8390,10 +8419,7 @@
               }
             ]
           }
-        },
-        "required": [
-          "uidt"
-        ]
+        }
       },
       "ColumnList": {
         "description": "",
@@ -8460,7 +8486,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8511,7 +8537,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8541,7 +8567,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8574,7 +8600,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_column_id": {
             "type": "string"
@@ -8665,7 +8691,7 @@
             "type": "string"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -8684,6 +8710,33 @@
         },
         "description": ""
       },
+      "GridReq": {
+        "title": "Grid",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
+          },
+          "row_height": {
+            "type": "number"
+          }
+        },
+        "description": "",
+        "required": [
+          "title"
+        ]
+      },
       "Gallery": {
         "title": "Gallery",
         "type": "object",
@@ -8699,16 +8752,16 @@
             "type": "string"
           },
           "deleted": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
           },
           "next_enabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "prev_enabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "cover_image_idx": {
             "type": "integer"
@@ -8747,6 +8800,51 @@
           }
         }
       },
+      "GalleryReq": {
+        "title": "Gallery",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "next_enabled": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "prev_enabled": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "cover_image_idx": {
+            "type": "integer"
+          },
+          "cover_image": {
+            "type": "string"
+          },
+          "restrict_types": {
+            "type": "string"
+          },
+          "restrict_size": {
+            "type": "string"
+          },
+          "restrict_number": {
+            "type": "string"
+          },
+          "fk_cover_image_col_id": {
+            "type": "string"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
       "GalleryColumn": {
         "title": "GalleryColumn",
         "type": "object",
@@ -8765,6 +8863,28 @@
             "type": "string"
           },
           "fk_gallery_id": {
+            "type": "string"
+          }
+        }
+      },
+      "GridColumnReq": {
+        "title": "GridColumn",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string"
+          },
+          "fk_column_id": {
+            "type": "string"
+          },
+          "fk_gallery_id": {
+            "type": "string"
+          },
+          "width": {
             "type": "string"
           }
         }
@@ -8840,19 +8960,13 @@
             "type": "string"
           },
           "fk_grp_col_id": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "fk_cover_image_col_id": {
             "type": "string"
           },
           "meta": {
-            "type": [
-              "string",
-              "object"
-            ]
+            "$ref": "#/components/schemas/Meta"
           }
         }
       },
@@ -8896,10 +9010,7 @@
             "minLength": 1
           },
           "fk_geo_data_col_id": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "columns": {
             "type": "array",
@@ -8908,10 +9019,7 @@
             }
           },
           "meta": {
-            "type": [
-              "string",
-              "object"
-            ]
+            "$ref": "#/components/schemas/Meta"
           }
         }
       },
@@ -8937,6 +9045,42 @@
           }
         }
       },
+      "LicenseReq": {
+        "title": "License Key",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "KanbanReq": {
+        "title": "Kanban",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "fk_grp_col_id": {
+            "$ref": "#/components/schemas/StringOrNull"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "KanbanUpdateReq": {
+        "title": "Kanban",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "fk_grp_col_id": {
+            "$ref": "#/components/schemas/StringOrNull"
+          }
+        }
+      },
       "Form": {
         "title": "Form",
         "type": "object",
@@ -8958,25 +9102,25 @@
             "type": "string"
           },
           "redirect_url": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "redirect_after_secs": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "email": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "banner_image_url": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "logo_url": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "submit_another_form": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "show_blank_form": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "columns": {
             "type": "array",
@@ -8995,8 +9139,74 @@
               "personal"
             ]
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         }
+      },
+      "FormReq": {
+        "title": "Form",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "heading": {
+            "type": "string"
+          },
+          "subheading": {
+            "type": "string"
+          },
+          "success_msg": {
+            "type": "string"
+          },
+
+          "redirect_url": {
+            "$ref": "#/components/schemas/StringOrNull"
+          },
+          "redirect_after_secs": {
+            "$ref": "#/components/schemas/StringOrNull"
+          },
+          "email": {
+            "$ref": "#/components/schemas/StringOrNull"
+          },
+          "banner_image_url": {
+            "$ref": "#/components/schemas/StringOrNull"
+          },
+          "logo_url": {
+            "$ref": "#/components/schemas/StringOrNull"
+          },
+          "submit_another_form": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "show_blank_form": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "FormCreateReq": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FormReq"
+          },
+          {
+            "required": [
+              "title"
+            ]
+          }
+        ]
       },
       "FormColumn": {
         "description": "",
@@ -9039,10 +9249,10 @@
           },
           "help": {},
           "required": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "show": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "order": {
             "type": "number"
@@ -9059,7 +9269,55 @@
             "type": "string",
             "minLength": 1
           },
-          "meta": {}
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "FormColumnReq": {
+        "description": "",
+        "type": "object",
+        "x-examples": {
+          "example-1": {
+            "_cn": "first_name",
+            "alias": "first_name",
+            "fk_column_id": "cl_yvyhsl9u81tokc",
+            "id": "fvc_8z1i7t8aswkqxx",
+            "fk_view_id": "vw_s1pf4umdnikoyn",
+            "uuid": null,
+            "label": "dsdsds",
+            "help": null,
+            "required": false,
+            "show": 1,
+            "order": 1,
+            "created_at": "2022-02-15 12:39:04",
+            "updated_at": "2022-02-15 12:39:16",
+            "description": "dsdsdsdsd"
+          }
+        },
+        "properties": {
+          "uuid": {},
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "help": {},
+          "required": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "order": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         }
       },
       "Paginated": {
@@ -9073,13 +9331,17 @@
             "type": "integer"
           },
           "sort": {
-            "type": [
-              "string",
-              "array"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/Sort"
-            }
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Sort"
+                }
+              }
+            ]
           },
           "isFirstPage": {
             "type": "boolean"
@@ -9370,19 +9632,7 @@
             ]
           },
           "async": {
-            "type": "boolean"
-          },
-          "payload": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          },
-          "headers": {
-            "type": "string"
-          },
-          "condition": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "notification": {
             "type": "string"
@@ -9397,7 +9647,167 @@
             "type": "number"
           },
           "active": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
+          }
+        }
+      },
+      "HookReq": {
+        "title": "AuditType",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "$ref": "#/components/schemas/StringOrNull"
+          },
+          "env": {
+            "type": "string"
+          },
+          "event": {
+            "type": "string",
+            "enum": [
+              "after",
+              "before"
+            ]
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "delete",
+              "update"
+            ]
+          },
+          "async": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notification": {
+            "type": "object"
+          },
+          "retries": {
+            "type": "number"
+          },
+          "retry_interval": {
+            "type": "number"
+          },
+          "timeout": {
+            "type": "number"
+          },
+          "active": {
+            "$ref": "#/components/schemas/Bool"
+          }
+        },
+        "required": [
+          "title",
+          "event",
+          "notification",
+          "operation"
+        ]
+      },
+      "HookTestReq": {
+        "title": "Hook test request payload",
+        "type": "object",
+        "properties": {
+          "payload": {},
+          "hook": {
+            "$ref": "#/components/schemas/HookReq"
+          }
+        },
+        "required": [
+          "payload",
+          "hook"
+        ]
+      },
+      "SignUpReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "SignInReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "PasswordForgotReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "PasswordResetReq": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "PasswordChangeReq": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "ApiTokenReq": {
+        "title": "API Token Request",
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
           }
         }
       },
@@ -9415,7 +9825,7 @@
             "type": "string"
           },
           "active": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "rating": {
             "type": "number"
@@ -9448,9 +9858,13 @@
             "type": "string"
           },
           "input": {
-            "type": [
-              "string",
-              "null"
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "$ref": "#/components/schemas/StringOrNull"
+              }
             ]
           },
           "creator": {
@@ -9487,7 +9901,7 @@
             "type": "string"
           },
           "disabled": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           }
         }
       },
@@ -9511,6 +9925,15 @@
           "updated_at": {}
         }
       },
+      "ApiTokenReq": {
+        "title": "ApiToken",
+        "type": "object",
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/StringOrNull"
+          }
+        }
+      },
       "HookLog": {
         "title": "ApiToken",
         "type": "object",
@@ -9525,7 +9948,7 @@
             "type": "string"
           },
           "fk_hook_id": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "type": {
             "type": "string"
@@ -9537,11 +9960,9 @@
             "type": "string"
           },
           "test_call": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
-          "payload": {
-            "type": "string"
-          },
+          "payload": {},
           "conditions": {
             "type": "string"
           },
@@ -9628,46 +10049,51 @@
             "type": "string"
           },
           "np": {
-            "type": "string"
-          },
-          "ns": {
-            "type": "string"
-          },
-          "clen": {
-            "type": [
-              "string",
-              "integer"
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "$ref": "#/components/schemas/StringOrNull"
+              }
             ]
           },
-          "cop": {
-            "type": "string"
+          "ns": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "$ref": "#/components/schemas/StringOrNull"
+              }
+            ]
           },
           "pk": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "pv": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "rqd": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "column_name": {
             "type": "string"
           },
           "un": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "ct": {
             "type": "string"
           },
           "ai": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "unique": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "cdf": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "cc": {
             "type": "string"
@@ -9679,17 +10105,32 @@
             "type": "string"
           },
           "dtxp": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "$ref": "#/components/schemas/StringOrNull"
+              }
+            ]
           },
           "dtxs": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "$ref": "#/components/schemas/StringOrNull"
+              }
+            ]
           },
           "au": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           }
         }
       },
       "LinkToAnotherColumnReq": {
+        "type": "object",
         "properties": {
           "uidt": {
             "type": "string",
@@ -9701,7 +10142,7 @@
             "type": "string"
           },
           "virtual": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/Bool"
           },
           "parentId": {
             "type": "string"
@@ -9727,6 +10168,7 @@
         ]
       },
       "RollupColumnReq": {
+        "type": "object",
         "properties": {
           "uidt": {
             "type": "string",
@@ -9786,10 +10228,7 @@
       "ColumnReq": {
         "allOf": [
           {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/NormalColumnRequest"
-              },
+            "anyOf": [
               {
                 "$ref": "#/components/schemas/LinkToAnotherColumnReq"
               },
@@ -9801,6 +10240,9 @@
               },
               {
                 "$ref": "#/components/schemas/LookupColumnReq"
+              },
+              {
+                "$ref": "#/components/schemas/NormalColumnRequest"
               }
             ]
           },
@@ -9820,7 +10262,7 @@
                     "type": "string"
                   },
                   "order": {
-                    "type": "integer"
+                    "type": "number"
                   }
                 }
               }
@@ -9851,6 +10293,160 @@
           },
           "roles": {}
         }
+      },
+      "VisibilityRuleReq": {
+        "title": "Visibility Rule",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "disabled": {
+              "type": "object",
+              "properties": {
+                "commenter": {
+                  "$ref": "#/components/schemas/Bool"
+                },
+                "creator": {
+                  "$ref": "#/components/schemas/Bool"
+                },
+                "editor": {
+                  "$ref": "#/components/schemas/Bool"
+                },
+                "guest": {
+                  "$ref": "#/components/schemas/Bool"
+                },
+                "owner": {
+                  "$ref": "#/components/schemas/Bool"
+                },
+                "viewer": {
+                  "$ref": "#/components/schemas/Bool"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Bool": {
+        "oneOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "StringOrNull": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "Meta": {
+        "oneOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "CommentReq": {
+        "type": "object",
+        "properties": {
+          "row_id": {
+            "type": "string"
+          },
+          "fk_model_id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "row_id",
+          "fk_model_id",
+          "comment"
+        ]
+      },
+      "AuditRowUpdateReq": {
+        "type": "object",
+        "properties": {
+          "fk_model_id": {
+            "type": "string"
+          },
+          "column_name": {
+            "type": "string"
+          },
+          "row_id": {
+            "type": "string"
+          },
+          "value": {},
+          "prev_value": {}
+        }
+      },
+      "OrgUserReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        }
+      },
+      "ProjectUserReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        }
+      },
+      "SharedBaseReq": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "$ref": "#/components/schemas/StringOrNull"
+          },
+          "roles": {
+            "$ref": "#/components/schemas/StringOrNull"
+          }
+        }
+      },
+      "PluginTestReq": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "input": {}
+        }
+      },
+      "PluginReq": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "input": {}
+        }
       }
     },
     "requestBodies": {
@@ -9858,27 +10454,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "description": "",
-              "type": "object",
-              "x-examples": {
-                "example-1": {
-                  "email": true
-                }
-              },
-              "properties": {
-                "email": {
-                  "type": "string"
-                },
-                "password": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "application/xml": {
-            "schema": {
-              "type": "object",
-              "properties": {}
+              "$ref": "#/components/schemas/SignUpReq"
             }
           }
         }

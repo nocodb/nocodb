@@ -74,7 +74,8 @@
     "insertBefore": "Önce Ekle",
     "hideField": "Alanı Gizle",
     "sortAsc": "Artan Sırala",
-    "sortDesc": "Azalan Sıralama"
+    "sortDesc": "Azalan Sıralama",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Proje",
@@ -98,7 +99,8 @@
       "gallery": "Galeri",
       "form": "Form",
       "kanban": "Kanban",
-      "calendar": "Takvim"
+      "calendar": "Takvim",
+      "map": "Map"
     },
     "user": "Kullanıcı",
     "users": "Kullanıcılar",
@@ -136,6 +138,7 @@
     "Currency": "Para birimi",
     "Percent": "Yüzde",
     "Duration": "Süre",
+    "GeoData": "GeoData",
     "Rating": "Değerlendirme",
     "Formula": "Formül",
     "Rollup": "Referans hesapla",
@@ -253,6 +256,9 @@
     "barcodeFormat": "Barkod formatı",
     "qrCodeValueTooLong": "QR kodu için çok fazla karakter",
     "barcodeValueTooLong": "Barkod için çok fazla karakter",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Birleştirme fonksiyonu",
     "dbCreateIfNotExists": "Veritabanı : yoksa oluştur",
     "clientKey": "İstemci Anahtarı",
@@ -452,6 +458,10 @@
       "stackedBy": "Tarafından Yığılmış",
       "chooseGroupingField": "Bir Gruplama Alanı Seçin",
       "addOrEditStack": "Yığın Ekle / Düzenle"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +527,11 @@
       "roles": {
         "orgCreator": "İçerik oluşturucu yeni projeler oluşturabilir ve davet edilen herhangi bir projeye erişebilir.",
         "orgViewer": "İzleyicinin yeni proje oluşturmasına izin verilmez ancak davet edilen herhangi bir projeye erişebilir."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Sayfa başına satır",
       "upload": "Yüklenecek Dosyayı Seçin",
@@ -600,6 +615,7 @@
         "gallery": "Galeri görünümü ekle",
         "form": "Form görünümü ekle",
         "kanban": "Kanban görünümü ekle",
+        "map": "Add Map View",
         "calendar": "Takvim görünümü ekle"
       },
       "tablesMetadataInSync": "Tablonun meta verileri senkronize",
@@ -690,6 +706,7 @@
       "nameShouldStartWithAnAlphabetOr_": "İsim bir alfabe veya _ ile başlamalıdır",
       "followingCharactersAreNotAllowed": "Aşağıdaki karakterlere izin verilmez",
       "columnNameRequired": "Sütun adı gereklidir",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Proje adı 50 karakteri aşıyor",
       "projectNameCannotStartWithSpace": "Proje adı boşlukla başlayamaz",
       "requiredField": "Zorunlu alan",

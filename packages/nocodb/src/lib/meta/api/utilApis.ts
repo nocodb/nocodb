@@ -555,7 +555,7 @@ async function generateSQL(req: Request, res: Response) {
   let schemaPrompt = ''
   for (const table of req.body.data.base.tables) {
     const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
-    schemaPrompt += `Table ${table.title}, columns = [${colPrompt}]\n`;
+    schemaPrompt += `Table '${table.title}', columns = [${colPrompt}]\n`;
   }
 
   const response = await openai.createCompletion({
@@ -590,7 +590,7 @@ async function repairSQL(req: Request, res: Response) {
   let schemaPrompt = ''
   for (const table of req.body.data.base.tables) {
     const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
-    schemaPrompt += `Table ${table.title}, columns = [${colPrompt}]\n`;
+    schemaPrompt += `Table '${table.title}', columns = [${colPrompt}]\n`;
   }
 
   const response = await openai.createCompletion({
@@ -625,7 +625,7 @@ async function generateQueryPrompt(req: Request, res: Response) {
   let schemaPrompt = ''
   for (const table of req.body.data.base.tables) {
     const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
-    schemaPrompt += `Table ${table.title}, columns = [${colPrompt}]\n`;
+    schemaPrompt += `Table '${table.title}', columns = [${colPrompt}]\n`;
   }
 
   const response = await openai.createCompletion({

@@ -78,19 +78,19 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           }
         },
         "tags": [
           "Auth"
         ],
         "requestBody": {
-          "$ref": "#/components/requestBodies/Signup"
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignUpReq"
+              }
+            }
+          }
         },
         "description": "Create a new user with provided email and password and first user is marked as super admin. "
       }
@@ -676,7 +676,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/OrgUserReq"
               }
             }
           }
@@ -957,7 +957,8 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 20
           },
           "name": "userId",
           "in": "path",
@@ -1131,7 +1132,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "$ref": "#/components/schemas/ProjectReq"
                 }
               }
             }
@@ -7132,30 +7133,6 @@
           "email_verified"
         ]
       },
-      "PageReqQueryParams": {
-        "title": "PageReqQueryParams",
-        "type": "object",
-        "description": "",
-        "x-internal": false,
-        "properties": {
-          "offset": {
-            "type": "integer"
-          },
-          "limit": {
-            "type": "integer"
-          },
-          "query": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "firstname",
-          "lastname",
-          "email",
-          "email_verified"
-        ]
-      },
       "UserList": {
         "description": "",
         "type": "object",
@@ -7214,13 +7191,16 @@
         "type": "object",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
           },
           "description": {
             "type": "string"
           },
           "color": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 50
           },
           "bases": {
             "type": "array",
@@ -7366,21 +7346,24 @@
         "title": "Base",
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
-          "project_id": {
-            "type": "string"
-          },
           "alias": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 128
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "mysql",
+              "mysql2",
+              "pg",
+              "sqlite3",
+              "mssql",
+              "oracledb",
+              "snowflake"
+            ]
           },
           "is_meta": {
-            "type": "boolean",
-            "readOnly": true
+            "type": "boolean"
           },
           "config": {},
           "inflection_column": {
@@ -7873,47 +7856,21 @@
         "title": "Table",
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
-          "fk_project_id": {
-            "type": "string"
-          },
-          "fk_base_id": {
-            "type": "string"
-          },
           "table_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Table name",
+            "example": "table_name",
+            "minLength": 1,
+            "maxLength": 255
           },
           "title": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "enabled": {
-            "type": "string"
-          },
-          "parent_id": {
-            "type": "string"
-          },
-          "show_as": {
-            "type": "string"
-          },
-          "tags": {
-            "type": "string"
-          },
-          "pinned": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "deleted": {
-            "$ref": "#/components/schemas/Bool"
+            "type": "string",
+            "description": "Table title",
+            "example": "Table title",
+            "maxLength": 255
           },
           "order": {
             "type": "number"
-          },
-          "mm": {
-            "$ref": "#/components/schemas/Bool"
           },
           "columns": {
             "type": "array",
@@ -8043,57 +8000,50 @@
         "type": "object",
         "title": "Filter",
         "properties": {
-          "id": {
-            "type": "string"
-          },
-          "fk_model_id": {
-            "type": "string"
-          },
           "fk_column_id": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 20
           },
           "logical_op": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "and",
+              "or",
+              "not"
+            ]
           },
           "comparison_op": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "checked",
+              "notchecked",
+              "eq",
+              "neq",
+              "like",
+              "nlike",
+              "empty",
+              "notempty",
+              "null",
+              "notnull",
+              "allof",
+              "anyof",
+              "nallof",
+              "nanyof",
+              "gt",
+              "lt",
+              "gte",
+              "lte",
+              "blank",
+              "notblank"
+            ]
           },
           "value": {},
           "is_group": {
-            "oneOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "children": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Filter"
-            }
-          },
-          "project_id": {
-            "type": "string",
-            "readOnly": true
-          },
-          "base_id": {
-            "type": "string",
-            "readOnly": true
+            "$ref": "#/components/schemas/Bool"
           },
           "fk_parent_id": {
-            "type": "string"
-          },
-          "fk_view_id": {
-            "$ref": "#/components/schemas/StringOrNull"
-          },
-          "fk_hook_id": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "type": "string",
+            "maxLength": 20
           }
         },
         "readOnly": true
@@ -8186,10 +8136,15 @@
         "type": "object",
         "properties": {
           "fk_column_id": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 20
           },
           "direction": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
           }
         },
         "minProperties": 1
@@ -8710,10 +8665,16 @@
         "type": "object",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "The title of the grid",
+            "example": "My Grid",
+            "minLength": 1,
+            "maxLength": 255
           },
           "order": {
-            "type": "number"
+            "type": "number",
+            "description": "The order of the grid",
+            "example": 1
           },
           "lock_type": {
             "type": "string",
@@ -8724,7 +8685,10 @@
             ]
           },
           "row_height": {
-            "type": "number"
+            "type": "number",
+            "description": "The height of the grid rows",
+            "example": 1,
+            "minimum": 1
           }
         },
         "description": "",
@@ -8801,7 +8765,11 @@
         "description": "",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "The title of the gallery",
+            "example": "My Gallery",
+            "minLength": 1,
+            "maxLength": 255
           },
           "next_enabled": {
             "$ref": "#/components/schemas/Bool"
@@ -8810,7 +8778,8 @@
             "$ref": "#/components/schemas/Bool"
           },
           "cover_image_idx": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0
           },
           "cover_image": {
             "type": "string"
@@ -8825,7 +8794,9 @@
             "type": "string"
           },
           "fk_cover_image_col_id": {
-            "type": "string"
+            "type": "string",
+            "description": "The id of the column that contains the cover image",
+            "maxLength": 20
           },
           "lock_type": {
             "type": "string",
@@ -8868,10 +8839,14 @@
         "description": "",
         "properties": {
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "The label of the column",
+            "example": "My Column",
+            "maxLength": 255
           },
           "help": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
           },
           "fk_column_id": {
             "type": "string"
@@ -8880,7 +8855,11 @@
             "type": "string"
           },
           "width": {
-            "type": "string"
+            "type": "string",
+            "description": "The width of the column",
+            "example": "200px",
+            "maxLength": 255,
+            "pattern": "^[0-9]+(px|%)$"
           }
         }
       },
@@ -9046,7 +9025,11 @@
         "description": "",
         "properties": {
           "key": {
-            "type": "string"
+            "type": "string",
+            "description": "The license key",
+            "example": "1234567890",
+            "minLength": 10,
+            "maxLength": 255
           }
         }
       },
@@ -9056,7 +9039,11 @@
         "description": "",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "The title of the kanban",
+            "example": "My Kanban",
+            "minLength": 1,
+            "maxLength": 255
           },
           "fk_grp_col_id": {
             "$ref": "#/components/schemas/StringOrNull"
@@ -9145,26 +9132,63 @@
         "description": "",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "The title of the form",
+            "example": "My Form",
+            "minLength": 1,
+            "maxLength": 255
           },
           "heading": {
-            "type": "string"
+            "type": "string",
+            "description": "The heading of the form",
+            "example": "My Form",
+            "maxLength": 255
           },
           "subheading": {
-            "type": "string"
+            "type": "string",
+            "description": "The subheading of the form",
+            "example": "My Form Subheading",
+            "maxLength": 255
           },
           "success_msg": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
           },
-
           "redirect_url": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "redirect_after_secs": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]+$",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "email": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "banner_image_url": {
             "$ref": "#/components/schemas/StringOrNull"
@@ -9291,12 +9315,14 @@
           }
         },
         "properties": {
-          "uuid": {},
           "label": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           },
-          "help": {},
+          "help": {
+            "maxLength": 255
+          },
           "required": {
             "$ref": "#/components/schemas/Bool"
           },
@@ -9308,7 +9334,7 @@
           },
           "description": {
             "type": "string",
-            "minLength": 1
+            "maxLength": 255
           },
           "meta": {
             "$ref": "#/components/schemas/Meta"
@@ -9650,20 +9676,20 @@
         "title": "AuditType",
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
           "fk_model_id": {
             "type": "string"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
           },
           "description": {
             "$ref": "#/components/schemas/StringOrNull"
           },
           "env": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
           },
           "event": {
             "type": "string",
@@ -9681,29 +9707,41 @@
             ]
           },
           "async": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "notification": {},
+          "retries": {
             "oneOf": [
               {
-                "type": "string"
-              },
-              {
-                "type": "integer"
+                "type": "integer",
+                "minimum": 0
               },
               {
                 "type": "null"
               }
             ]
           },
-          "notification": {
-            "type": "object"
-          },
-          "retries": {
-            "type": "number"
-          },
           "retry_interval": {
-            "type": "number"
+            "oneOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "timeout": {
-            "type": "number"
+            "oneOf": [
+              {
+                "type": "number",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "active": {
             "$ref": "#/components/schemas/Bool"
@@ -9735,11 +9773,13 @@
         "properties": {
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "description": "Email address of the user"
           },
           "password": {
             "type": "string",
-            "minLength": 8
+            "minLength": 8,
+            "description": "Password of the user"
           }
         },
         "required": [
@@ -9752,10 +9792,12 @@
         "properties": {
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "description": "Email address of the user"
           },
           "password": {
-            "type": "string"
+            "type": "string",
+            "description": "Password of the user"
           }
         },
         "required": [
@@ -9768,7 +9810,8 @@
         "properties": {
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "description": "Email address of the user"
           }
         },
         "required": [
@@ -9780,9 +9823,9 @@
         "properties": {
           "password": {
             "type": "string",
-"minLength": 8,
-            "description": "New password",
-            "example": "newpassword"
+            "minLength": 8,
+            "example": "newpassword",
+            "description": "New password"
           }
         },
         "required": [
@@ -9793,11 +9836,11 @@
         "type": "object",
         "properties": {
           "currentPassword": {
-            "type": "string",
-            "minLength": 8
+            "type": "string"
           },
           "newPassword": {
-            "type": "string"
+            "type": "string",
+            "minLength": 8
           }
         },
         "required": [
@@ -9810,7 +9853,9 @@
         "type": "object",
         "properties": {
           "description": {
-            "type": "string"
+            "type": "string",
+            "maxLength":  255,
+            "description": "Description of the API token"
           }
         }
       },
@@ -9928,15 +9973,6 @@
           "updated_at": {}
         }
       },
-      "ApiTokenReq": {
-        "title": "ApiToken",
-        "type": "object",
-        "properties": {
-          "description": {
-            "$ref": "#/components/schemas/StringOrNull"
-          }
-        }
-      },
       "HookLog": {
         "title": "ApiToken",
         "type": "object",
@@ -10036,17 +10072,9 @@
               "Button"
             ]
           },
-          "id": {
-            "type": "string"
-          },
-          "base_id": {
-            "type": "string"
-          },
-          "fk_model_id": {
-            "type": "string"
-          },
           "title": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
           },
           "dt": {
             "type": "string"
@@ -10081,13 +10109,12 @@
             "$ref": "#/components/schemas/Bool"
           },
           "column_name": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1
           },
           "un": {
             "$ref": "#/components/schemas/Bool"
-          },
-          "ct": {
-            "type": "string"
           },
           "ai": {
             "$ref": "#/components/schemas/Bool"
@@ -10098,14 +10125,14 @@
           "cdf": {
             "$ref": "#/components/schemas/StringOrNull"
           },
-          "cc": {
-            "type": "string"
+          "cc":  {
+            "$ref": "#/components/schemas/StringOrNull"
           },
-          "csn": {
-            "type": "string"
+          "csn":  {
+            "$ref": "#/components/schemas/StringOrNull"
           },
-          "dtx": {
-            "type": "string"
+          "dtx":  {
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "dtxp": {
             "oneOf": [
@@ -10142,16 +10169,20 @@
             ]
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1
           },
           "virtual": {
             "$ref": "#/components/schemas/Bool"
           },
           "parentId": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 20
           },
           "childId": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 20
           },
           "type": {
             "type": "string",
@@ -10180,16 +10211,29 @@
             ]
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
           },
           "fk_relation_column_id": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 20
           },
           "fk_rollup_column_id": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 20
           },
           "rollup_function": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "count",
+              "min",
+              "max",
+              "avg",
+              "sum",
+              "countDistinct",
+              "sumDistinct",
+              "avgDistinct"
+            ]
           }
         }
       },
@@ -10202,20 +10246,26 @@
             ]
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
           },
           "fk_relation_column_id": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 20
           },
           "fk_lookup_column_id": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 20
           }
         }
       },
       "FormulaColumnReq": {
         "properties": {
           "uidt": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "Formula"
+            ]
           },
           "formula_raw": {
             "type": "string"
@@ -10224,7 +10274,9 @@
             "type": "string"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
           }
         }
       },
@@ -10256,7 +10308,9 @@
                 "type": "string"
               },
               "title": {
-                "type": "string"
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
               },
               "column_order": {
                 "type": "object",
@@ -10267,7 +10321,8 @@
                   "order": {
                     "type": "number"
                   }
-                }
+                },
+                "description": "Column order in a specific view"
               }
             }
           }
@@ -10342,10 +10397,15 @@
           }
         ]
       },
+      "Password": {
+        "type": "string",
+        "minLength": 8
+      },
       "StringOrNull": {
         "oneOf": [
           {
-            "type": "string"
+            "type": "string",
+            "maxLength": 255
           },
           {
             "type": "null"
@@ -10415,10 +10475,18 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "roles": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer",
+              "commenter",
+              "guest"
+            ]
           }
         }
       },
@@ -10449,231 +10517,6 @@
             "$ref": "#/components/schemas/Bool"
           },
           "input": {}
-        }
-      }
-    },
-    "requestBodies": {
-      "Signup": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/SignUpReq"
-            }
-          }
-        }
-      },
-      "ProjectCreate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/ProjectReq"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "external": {
-                      "type": "boolean",
-                      "default": false
-                    }
-                  }
-                }
-              ]
-            },
-            "examples": {
-              "example-1": {
-                "value": {
-                  "id": "string",
-                  "title": "string",
-                  "status": "string",
-                  "description": "string",
-                  "meta": "string",
-                  "color": "string",
-                  "deleted": "string",
-                  "order": 0,
-                  "bases": [
-                    {
-                      "id": "string",
-                      "project_id": "string",
-                      "alias": "string",
-                      "host": "string",
-                      "port": 0,
-                      "username": "string",
-                      "password": "string",
-                      "database": "string",
-                      "url": "string",
-                      "params": "string",
-                      "type": "string",
-                      "ssl": "string"
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
-      "BaseCreate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "TableCreate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "ColumnCreate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "ViewCreate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "SortCreate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "SharedViewCreate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "HookCreate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "ProjectUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ProjectReq"
-            }
-          }
-        }
-      },
-      "BaseUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "ColumnUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "TableUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "ViewUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "ViewColumnUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "SortUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "FilterUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "FilterCreate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "HookUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
-      },
-      "SharedViewUpdate": {
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
         }
       }
     },

@@ -5,9 +5,9 @@ import NocoCache from '../cache/NocoCache';
 import { XKnex } from '../db/sql-data-mapper';
 import { BaseModelSqlv2 } from '../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import {
+  BoolType,
   isVirtualCol,
   ModelTypes,
-  BoolType,
   TableReqType,
   TableType,
   UITypes,
@@ -102,6 +102,7 @@ export default class Model implements TableType {
       mm?: BoolType;
       created_at?: any;
       updated_at?: any;
+      type?: ModelTypes;
     },
     ncMeta = Noco.ncMeta
   ) {

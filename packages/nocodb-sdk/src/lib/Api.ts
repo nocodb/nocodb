@@ -31,12 +31,6 @@ export interface UserType {
   createDate?: string;
 }
 
-export interface PageReqQueryParamsType {
-  offset?: number;
-  limit?: number;
-  query?: string;
-}
-
 export interface UserListType {
   users: {
     list: UserType;
@@ -89,10 +83,15 @@ export interface BaseType {
 }
 
 export interface BaseReqType {
-  id?: string;
-  project_id?: string;
   alias?: string;
-  type?: string;
+  type?:
+    | 'mysql'
+    | 'mysql2'
+    | 'pg'
+    | 'sqlite3'
+    | 'mssql'
+    | 'oracledb'
+    | 'snowflake';
   is_meta?: boolean;
   config?: any;
   inflection_column?: string;
@@ -168,20 +167,17 @@ export interface TableInfoType {
 }
 
 export interface TableReqType {
-  id?: string;
-  fk_project_id?: string;
-  fk_base_id?: string;
+  /**
+   * Table name
+   * @example table_name
+   */
   table_name: string;
+  /**
+   * Table title
+   * @example Table title
+   */
   title: string;
-  type?: string;
-  enabled?: string;
-  parent_id?: string;
-  show_as?: string;
-  tags?: string;
-  pinned?: BoolType;
-  deleted?: BoolType;
   order?: number;
-  mm?: BoolType;
   columns: NormalColumnRequestType[];
   meta?: MetaType;
 }
@@ -208,19 +204,32 @@ export interface FilterType {
 }
 
 export interface FilterReqType {
-  id?: string;
-  fk_model_id?: string;
   fk_column_id?: string;
-  logical_op?: string;
-  comparison_op?: string;
+  logical_op?: 'and' | 'or' | 'not';
+  comparison_op?:
+    | 'checked'
+    | 'notchecked'
+    | 'eq'
+    | 'neq'
+    | 'like'
+    | 'nlike'
+    | 'empty'
+    | 'notempty'
+    | 'null'
+    | 'notnull'
+    | 'allof'
+    | 'anyof'
+    | 'nallof'
+    | 'nanyof'
+    | 'gt'
+    | 'lt'
+    | 'gte'
+    | 'lte'
+    | 'blank'
+    | 'notblank';
   value?: any;
-  is_group?: boolean | number | null;
-  children?: FilterType[];
-  project_id?: string;
-  base_id?: string;
+  is_group?: BoolType;
   fk_parent_id?: string;
-  fk_view_id?: StringOrNullType;
-  fk_hook_id?: StringOrNullType;
 }
 
 export interface FilterListType {
@@ -241,7 +250,7 @@ export interface SortType {
 
 export interface SortReqType {
   fk_column_id?: string;
-  direction?: string;
+  direction?: 'asc' | 'desc';
 }
 
 export interface SortListType {
@@ -377,9 +386,22 @@ export interface GridType {
 }
 
 export interface GridReqType {
+  /**
+   * The title of the grid
+   * @example My Grid
+   */
   title: string;
+  /**
+   * The order of the grid
+   * @example 1
+   */
   order?: number;
   lock_type?: 'collaborative' | 'locked' | 'personal';
+  /**
+   * The height of the grid rows
+   * @min 1
+   * @example 1
+   */
   row_height?: number;
 }
 
@@ -403,14 +425,20 @@ export interface GalleryType {
 }
 
 export interface GalleryReqType {
+  /**
+   * The title of the gallery
+   * @example My Gallery
+   */
   title: string;
   next_enabled?: BoolType;
   prev_enabled?: BoolType;
+  /** @min 0 */
   cover_image_idx?: number;
   cover_image?: string;
   restrict_types?: string;
   restrict_size?: string;
   restrict_number?: string;
+  /** The id of the column that contains the cover image */
   fk_cover_image_col_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
 }
@@ -424,10 +452,19 @@ export interface GalleryColumnType {
 }
 
 export interface GridColumnReqType {
+  /**
+   * The label of the column
+   * @example My Column
+   */
   label?: string;
   help?: string;
   fk_column_id?: string;
   fk_gallery_id?: string;
+  /**
+   * The width of the column
+   * @pattern ^[0-9]+(px|%)$
+   * @example 200px
+   */
   width?: string;
 }
 
@@ -487,10 +524,18 @@ export interface MapColumnType {
 }
 
 export interface LicenseReqType {
+  /**
+   * The license key
+   * @example 1234567890
+   */
   key?: string;
 }
 
 export interface KanbanReqType {
+  /**
+   * The title of the kanban
+   * @example My Kanban
+   */
   title: string;
   fk_grp_col_id?: StringOrNullType;
 }
@@ -519,13 +564,25 @@ export interface FormType {
 }
 
 export interface FormReqType {
+  /**
+   * The title of the form
+   * @example My Form
+   */
   title?: string;
+  /**
+   * The heading of the form
+   * @example My Form
+   */
   heading?: string;
+  /**
+   * The subheading of the form
+   * @example My Form Subheading
+   */
   subheading?: string;
   success_msg?: string;
-  redirect_url?: StringOrNullType;
-  redirect_after_secs?: StringOrNullType;
-  email?: StringOrNullType;
+  redirect_url?: string | null;
+  redirect_after_secs?: string | null;
+  email?: string | null;
   banner_image_url?: StringOrNullType;
   logo_url?: StringOrNullType;
   submit_another_form?: BoolType;
@@ -553,7 +610,6 @@ export interface FormColumnType {
 }
 
 export interface FormColumnReqType {
-  uuid?: any;
   label?: string;
   help?: any;
   required?: BoolType;
@@ -643,18 +699,17 @@ export interface HookType {
 }
 
 export interface HookReqType {
-  id?: string;
   fk_model_id?: string;
   title: string;
   description?: StringOrNullType;
   env?: string;
   event: 'after' | 'before';
   operation: 'insert' | 'delete' | 'update';
-  async?: string | number | null;
-  notification: object;
-  retries?: number;
-  retry_interval?: number;
-  timeout?: number;
+  async?: BoolType;
+  notification: any;
+  retries?: number | null;
+  retry_interval?: number | null;
+  timeout?: number | null;
   active?: BoolType;
 }
 
@@ -664,20 +719,38 @@ export interface HookTestReqType {
 }
 
 export interface SignUpReqType {
+  /**
+   * Email address of the user
+   * @format email
+   */
   email: string;
+  /** Password of the user */
   password: string;
 }
 
 export interface SignInReqType {
+  /**
+   * Email address of the user
+   * @format email
+   */
   email: string;
+  /** Password of the user */
   password: string;
 }
 
 export interface PasswordForgotReqType {
+  /**
+   * Email address of the user
+   * @format email
+   */
   email: string;
 }
 
 export interface PasswordResetReqType {
+  /**
+   * New password
+   * @example newpassword
+   */
   password: string;
 }
 
@@ -687,7 +760,8 @@ export interface PasswordChangeReqType {
 }
 
 export interface ApiTokenReqType {
-  description?: StringOrNullType;
+  /** Description of the API token */
+  description?: string;
 }
 
 export interface PluginType {
@@ -785,9 +859,6 @@ export interface NormalColumnRequestType {
     | 'SpecificDBType'
     | 'Barcode'
     | 'Button';
-  id?: string;
-  base_id?: string;
-  fk_model_id?: string;
   title?: string;
   dt?: string;
   np?: number | StringOrNullType;
@@ -797,13 +868,12 @@ export interface NormalColumnRequestType {
   rqd?: BoolType;
   column_name?: string;
   un?: BoolType;
-  ct?: string;
   ai?: BoolType;
   unique?: BoolType;
   cdf?: StringOrNullType;
-  cc?: string;
-  csn?: string;
-  dtx?: string;
+  cc?: StringOrNullType;
+  csn?: StringOrNullType;
+  dtx?: StringOrNullType;
   dtxp?: number | StringOrNullType;
   dtxs?: number | StringOrNullType;
   au?: BoolType;
@@ -823,7 +893,15 @@ export interface RollupColumnReqType {
   title?: string;
   fk_relation_column_id?: string;
   fk_rollup_column_id?: string;
-  rollup_function?: string;
+  rollup_function?:
+    | 'count'
+    | 'min'
+    | 'max'
+    | 'avg'
+    | 'sum'
+    | 'countDistinct'
+    | 'sumDistinct'
+    | 'avgDistinct';
 }
 
 export interface LookupColumnReqType {
@@ -834,7 +912,7 @@ export interface LookupColumnReqType {
 }
 
 export interface FormulaColumnReqType {
-  uidt?: string;
+  uidt?: 'Formula';
   formula_raw?: string;
   formula?: string;
   title?: string;
@@ -854,6 +932,7 @@ export type ColumnReqType = (
 ) & {
   column_name?: string;
   title?: string;
+  /** Column order in a specific view */
   column_order?: {
     view_id?: string;
     order?: number;
@@ -882,6 +961,8 @@ export type VisibilityRuleReqType = {
 
 export type BoolType = boolean | number | null;
 
+export type PasswordType = string;
+
 export type StringOrNullType = string | null;
 
 export type MetaType = object | string | null;
@@ -906,8 +987,9 @@ export interface OrgUserReqType {
 }
 
 export interface ProjectUserReqType {
+  /** @format email */
   email?: string;
-  roles?: string;
+  roles?: 'owner' | 'editor' | 'viewer' | 'commenter' | 'guest';
 }
 
 export interface SharedBaseReqType {
@@ -1107,8 +1189,6 @@ export class Api<
   msg?: string,
 
 }` Bad Request
- * @response `401` `void` Unauthorized
- * @response `403` `void` Forbidden
  */
     signup: (data: SignUpReqType, params: RequestParams = {}) =>
       this.request<
@@ -1117,11 +1197,12 @@ export class Api<
         },
         {
           msg?: string;
-        } | void
+        }
       >({
         path: `/api/v1/auth/user/signup`,
         method: 'POST',
         body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -1630,7 +1711,7 @@ export class Api<
      * @request POST:/api/v1/users
      * @response `200` `any` OK
      */
-    add: (data: UserType, params: RequestParams = {}) =>
+    add: (data: OrgUserReqType, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/users`,
         method: 'POST',
@@ -1839,7 +1920,7 @@ export class Api<
      * @name Create
      * @summary Project create
      * @request POST:/api/v1/db/meta/projects/
-     * @response `200` `ProjectType` OK
+     * @response `200` `ProjectReqType` OK
      */
     create: (
       data: ProjectType & {
@@ -1847,7 +1928,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<ProjectType, any>({
+      this.request<ProjectReqType, any>({
         path: `/api/v1/db/meta/projects/`,
         method: 'POST',
         body: data,

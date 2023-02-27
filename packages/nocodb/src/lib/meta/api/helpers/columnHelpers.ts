@@ -78,7 +78,7 @@ export async function createHmAndBtColumn(
 }
 
 export async function validateRollupPayload(
-  payload: ColumnReqType & { uidt: UITypes }
+  payload: ColumnReqType
 ) {
   validateParams(
     [
@@ -125,7 +125,7 @@ export async function validateRollupPayload(
 }
 
 export async function validateLookupPayload(
-  payload: ColumnReqType & { uidt: UITypes },
+  payload: ColumnReqType,
   columnId?: string
 ) {
   validateParams(

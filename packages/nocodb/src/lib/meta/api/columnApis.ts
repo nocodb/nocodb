@@ -59,7 +59,7 @@ export async function columnGet(req: Request, res: Response) {
 }
 
 export async function columnAdd(
-  req: Request<any, any, ColumnReqType & { uidt: UITypes }>,
+  req: Request<any, any, ColumnReqType>,
   res: Response<TableType>
 ) {
   const table = await Model.getWithInfo({

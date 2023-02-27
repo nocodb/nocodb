@@ -930,8 +930,8 @@ export type ColumnReqType = (
       LookupColumnReqType &
       NormalColumnRequestType)
 ) & {
-  column_name?: string;
-  title?: string;
+  column_name: string;
+  title: string;
   /** Column order in a specific view */
   column_order?: {
     view_id?: string;

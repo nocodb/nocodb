@@ -794,7 +794,7 @@ export class OracleUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+  static getDataTypeForUiType(col: { uidt?: UITypes }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':

@@ -9854,7 +9854,7 @@
         "properties": {
           "description": {
             "type": "string",
-            "maxLength":  255,
+            "maxLength": 255,
             "description": "Description of the API token"
           }
         }
@@ -10125,13 +10125,13 @@
           "cdf": {
             "$ref": "#/components/schemas/StringOrNull"
           },
-          "cc":  {
+          "cc": {
             "$ref": "#/components/schemas/StringOrNull"
           },
-          "csn":  {
+          "csn": {
             "$ref": "#/components/schemas/StringOrNull"
           },
-          "dtx":  {
+          "dtx": {
             "$ref": "#/components/schemas/StringOrNull"
           },
           "dtxp": {
@@ -10324,7 +10324,12 @@
                 },
                 "description": "Column order in a specific view"
               }
-            }
+            },
+            "required": [
+              "column_name",
+              "title",
+              "uidt"
+            ]
           }
         ],
         "description": "",

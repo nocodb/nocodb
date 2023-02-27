@@ -197,8 +197,8 @@ export interface FilterType {
   fk_column_id?: string;
   logical_op?: string;
   comparison_op?: string;
-  value?: any;
   comparison_sub_op?: string;
+  value?: any;
   is_group?: boolean | number | null;
   children?: FilterType[];
   project_id?: string;

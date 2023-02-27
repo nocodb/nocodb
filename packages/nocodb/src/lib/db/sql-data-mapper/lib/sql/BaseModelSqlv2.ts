@@ -2934,6 +2934,7 @@ function extractFilterFromXwhere(
   if (openIndex === -1) openIndex = str.indexOf('(~');
 
   let nextOpenIndex = openIndex;
+
   let closingIndex = str.indexOf('))');
 
   // if it's a simple query simply return array of conditions
@@ -2991,10 +2992,20 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
     // eslint-disable-next-line prefer-const
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
-    if (op === 'in') value = value.split(',');
+    let sub_op = null;
+    if ([UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)) {
+      value = value.split(',');
+      // the first element would be sub_op
+      sub_op = value[0];
+      // remove the first element which is sub_op
+      value.shift();
+    } else if (op === 'in') {
+      value = value.split(',');
+    }
 
     return new Filter({
       comparison_op: op,
+      ...(sub_op && { comparison_sub_op: sub_op }),
       fk_column_id: aliasColObjMap[alias]?.id,
       logical_op: logicOp,
       value,

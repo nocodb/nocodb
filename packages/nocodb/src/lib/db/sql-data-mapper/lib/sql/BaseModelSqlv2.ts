@@ -11,7 +11,11 @@ import DataLoader from 'dataloader';
 import Column from '../../../../models/Column';
 import { XcFilter, XcFilterWithAlias } from '../BaseModel';
 import conditionV2 from './conditionV2';
-import Filter from '../../../../models/Filter';
+import Filter, {
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from '../../../../models/Filter';
 import sortV2 from './sortV2';
 import Sort from '../../../../models/Sort';
 import FormulaColumn from '../../../../models/FormulaColumn';
@@ -2987,12 +2991,35 @@ function extractFilterFromXwhere(
   return nestedArrayConditions;
 }
 
+// mark `op` and `sub_op` any for being assignable to parameter of type
+function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
+  if (!COMPARISON_OPS.includes(op)) {
+    NcError.badRequest(`${op} is not supported.`);
+  }
+
+  if (sub_op) {
+    if (![UITypes.Date, UITypes.DateTime].includes(uidt)) {
+      NcError.badRequest(`'${sub_op}' is not supported for UI Type'${uidt}'.`);
+    }
+    if (!COMPARISON_SUB_OPS.includes(sub_op)) {
+      NcError.badRequest(`'${sub_op}' is not supported.`);
+    }
+    if (
+      (op === 'isWithin' && !IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op)) ||
+      (op !== 'isWithin' && IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op))
+    ) {
+      NcError.badRequest(`'${sub_op}' is not supported for '${op}'`);
+    }
+  }
+}
+
 function extractCondition(nestedArrayConditions, aliasColObjMap) {
   return nestedArrayConditions?.map((str) => {
     // eslint-disable-next-line prefer-const
     let [logicOp, alias, op, value] =
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
     let sub_op = null;
+
     if ([UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)) {
       value = value.split(',');
       // the first element would be sub_op
@@ -3002,6 +3029,8 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
     } else if (op === 'in') {
       value = value.split(',');
     }
+
+    validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
 
     return new Filter({
       comparison_op: op,

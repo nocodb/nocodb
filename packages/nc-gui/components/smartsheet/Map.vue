@@ -194,7 +194,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
     }
 
     const listItems = Object.entries(row.row)
-      .filter(([key, val]) => val !== null)
+      .filter(([key, val]) => val !== null && key !== 'Id')
       .map(([key, val]) => {
         let prettyVal = val
         if (val !== null && (typeof val === 'object' || Array.isArray(val))) {
@@ -206,7 +206,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
       })
       .join('')
 
-    const popupContent = `<ul class="selectable">${listItems}</ul>`
+    const popupContent = `<ul class="popup-content">${listItems}</ul>`
 
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
 
@@ -282,7 +282,10 @@ const count = computed(() => paginationData.value.totalRows)
   max-height: 255px;
   overflow: scroll;
 }
-.selectable {
+.popup-content {
   user-select: text;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
 }
 </style>

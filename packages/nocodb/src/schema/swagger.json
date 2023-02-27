@@ -1783,7 +1783,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -1958,7 +1957,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -1997,7 +1995,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -2119,7 +2116,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -2258,7 +2254,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -2409,7 +2404,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "viewId",
@@ -2418,7 +2412,6 @@
         },
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
@@ -2796,7 +2789,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -2837,7 +2829,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -2931,7 +2922,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "formViewColumnId",
@@ -3044,7 +3034,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
@@ -3083,7 +3072,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -3177,7 +3165,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -3271,7 +3258,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -3773,7 +3759,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "orgs",
@@ -3806,7 +3791,6 @@
         },
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
@@ -3890,7 +3874,6 @@
         },
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
@@ -5270,7 +5253,6 @@
         },
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
@@ -5768,7 +5750,6 @@
           },
           {
             "schema": {
-
               "$ref": "#/components/schemas/Id"
             },
             "in": "query",
@@ -5833,7 +5814,6 @@
           },
           {
             "schema": {
-
               "$ref": "#/components/schemas/Id"
             },
             "in": "query",
@@ -5950,7 +5930,7 @@
       "parameters": [
         {
           "schema": {
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -6067,7 +6047,6 @@
       "parameters": [
         {
           "schema": {
-
             "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
@@ -6322,7 +6301,6 @@
           "content": {
             "application/json": {
               "schema": {
-
                 "$ref": "#/components/schemas/PluginReq"
               }
             }
@@ -7650,7 +7628,6 @@
             "type": "number"
           },
           "fk_model_id": {
-
             "$ref": "#/components/schemas/Id"
           },
           "slug": {
@@ -7796,11 +7773,9 @@
             "type": "string"
           },
           "fk_project_id": {
-
             "$ref": "#/components/schemas/Id"
           },
           "fk_base_id": {
-
             "$ref": "#/components/schemas/Id"
           },
           "title": {
@@ -7951,11 +7926,9 @@
             "type": "string"
           },
           "fk_model_id": {
-
             "$ref": "#/components/schemas/Id"
           },
           "fk_column_id": {
-
             "$ref": "#/components/schemas/Id"
           },
           "logical_op": {
@@ -7993,7 +7966,6 @@
             "readOnly": true
           },
           "fk_parent_id": {
-
             "$ref": "#/components/schemas/Id"
           },
           "fk_view_id": {
@@ -8010,7 +7982,6 @@
         "title": "Filter",
         "properties": {
           "fk_column_id": {
-
             "$ref": "#/components/schemas/Id"
           },
           "logical_op": {
@@ -8051,7 +8022,6 @@
             "$ref": "#/components/schemas/Bool"
           },
           "fk_parent_id": {
-
             "$ref": "#/components/schemas/Id"
           }
         },
@@ -8119,12 +8089,10 @@
             "type": "string"
           },
           "fk_model_id": {
-
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           },
           "fk_column_id": {
-
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           },
           "direction": {
             "type": "string"
@@ -8147,7 +8115,7 @@
         "type": "object",
         "properties": {
           "fk_column_id": {
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           },
           "direction": {
             "type": "string",
@@ -10187,12 +10155,10 @@
             "$ref": "#/components/schemas/Bool"
           },
           "parentId": {
-
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           },
           "childId": {
-
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           },
           "type": {
             "type": "string",
@@ -10225,12 +10191,10 @@
             "maxLength": 255
           },
           "fk_relation_column_id": {
-
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           },
           "fk_rollup_column_id": {
-
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           },
           "rollup_function": {
             "type": "string",
@@ -10267,12 +10231,10 @@
             "maxLength": 255
           },
           "fk_relation_column_id": {
-
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           },
           "fk_lookup_column_id": {
-
-           "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id"
           }
         },
         "required": [
@@ -10497,10 +10459,15 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "roles": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "org-level-creator",
+              "org-level-viewer"
+            ]
           }
         }
       },
@@ -10595,7 +10562,7 @@
           }
         }
       },
-      "SharedViewReq":{
+      "SharedViewReq": {
         "type": "object",
         "properties": {
           "password": {

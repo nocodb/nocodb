@@ -14,6 +14,63 @@ import NocoCache from '../cache/NocoCache';
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
 
+export const COMPARISON_OPS = <const>[
+  'eq',
+  'neq',
+  'not',
+  'like',
+  'nlike',
+  'empty',
+  'notempty',
+  'null',
+  'notnull',
+  'checked',
+  'notchecked',
+  'blank',
+  'notblank',
+  'allof',
+  'anyof',
+  'nallof',
+  'nanyof',
+  'gt',
+  'lt',
+  'gte',
+  'lte',
+  'ge',
+  'le',
+  'in',
+  'isnot',
+  'is',
+  'isWithin',
+  'btw',
+  'nbtw',
+];
+
+export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
+  'pastWeek',
+  'pastMonth',
+  'pastYear',
+  'nextWeek',
+  'nextMonth',
+  'nextYear',
+  'pastNumberOfDays',
+  'nextNumberOfDays',
+];
+
+export const COMPARISON_SUB_OPS = <const>[
+  'today',
+  'tomorrow',
+  'yesterday',
+  'oneWeekAgo',
+  'oneWeekFromNow',
+  'oneMonthAgo',
+  'oneMonthFromNow',
+  'daysAgo',
+  'daysFromNow',
+  'exactDate',
+  ...IS_WITHIN_COMPARISON_SUB_OPS,
+];
+
 export default class Filter {
   id: string;
 
@@ -23,57 +80,8 @@ export default class Filter {
   fk_column_id?: string;
   fk_parent_id?: string;
 
-  comparison_op?:
-    | 'eq'
-    | 'neq'
-    | 'not'
-    | 'like'
-    | 'nlike'
-    | 'empty'
-    | 'notempty'
-    | 'null'
-    | 'notnull'
-    | 'checked'
-    | 'notchecked'
-    | 'blank'
-    | 'notblank'
-    | 'allof'
-    | 'anyof'
-    | 'nallof'
-    | 'nanyof'
-    | 'gt'
-    | 'lt'
-    | 'gte'
-    | 'lte'
-    | 'ge'
-    | 'le'
-    | 'in'
-    | 'isnot'
-    | 'is'
-    | 'isWithin'
-    | 'btw'
-    | 'nbtw';
-
-  comparison_sub_op?:
-    | 'today'
-    | 'tomorrow'
-    | 'yesterday'
-    | 'oneWeekAgo'
-    | 'oneWeekFromNow'
-    | 'oneMonthAgo'
-    | 'oneMonthFromNow'
-    | 'daysAgo'
-    | 'daysFromNow'
-    | 'exactDate'
-    // sub ops for isWithin
-    | 'pastWeek'
-    | 'pastMonth'
-    | 'pastYear'
-    | 'nextWeek'
-    | 'nextMonth'
-    | 'nextYear'
-    | 'pastNumberOfDays'
-    | 'nextNumberOfDays';
+  comparison_op?: typeof COMPARISON_OPS[number];
+  comparison_sub_op?: typeof COMPARISON_SUB_OPS[number];
 
   value?: string;
 

@@ -279,13 +279,15 @@ async function googleSignin(req, res, next) {
   )(req, res, next);
 }
 
+const REFRESH_TOKEN_COOKIE_KEY = 'refresh_token';
+
 function setTokenCookie(res, token): void {
   // create http only cookie with refresh token that expires in 7 days
   const cookieOptions = {
     httpOnly: true,
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   };
-  res.cookie('refresh_token', token, cookieOptions);
+  res.cookie(REFRESH_TOKEN_COOKIE_KEY, token, cookieOptions);
 }
 
 async function me(req, res): Promise<any> {
@@ -485,7 +487,9 @@ async function refreshToken(req, res): Promise<any> {
       return res.status(400).json({ msg: 'Missing refresh token' });
     }
 
-    const user = await User.getByRefreshToken(req.cookies.refresh_token);
+    const user = await User.getByRefreshToken(
+      req.cookies[REFRESH_TOKEN_COOKIE_KEY]
+    );
 
     if (!user) {
       return res.status(400).json({ msg: 'Invalid refresh token' });
@@ -522,6 +526,30 @@ async function renderPasswordReset(req, res): Promise<any> {
   }
 }
 
+// clear refresh token cookie and update user refresh token to null
+const signout = async (req, res): Promise<any> => {
+  const resBody = { msg: 'Success' };
+  if (!req.cookies[REFRESH_TOKEN_COOKIE_KEY]) {
+    return res.json(resBody);
+  }
+
+  const user = await User.getByRefreshToken(
+    req.cookies[REFRESH_TOKEN_COOKIE_KEY]
+  );
+
+  if (!user) {
+    return res.json(resBody);
+  }
+
+  res.clearCookie(REFRESH_TOKEN_COOKIE_KEY);
+
+  await User.update(user.id, {
+    refresh_token: null,
+  });
+
+  res.json(resBody);
+};
+
 const mapRoutes = (router) => {
   // todo: old api - /auth/signup?tool=1
   router.post(
@@ -534,6 +562,7 @@ const mapRoutes = (router) => {
     getAjvValidatorMw('swagger.json#/components/schemas/SignInReq'),
     catchError(signin)
   );
+  router.post('/auth/user/signout', catchError(signout));
   router.get('/auth/user/me', extractProjectIdAndAuthenticate, catchError(me));
   router.post(
     '/auth/password/forgot',
@@ -622,6 +651,7 @@ const mapRoutes = (router) => {
     getAjvValidatorMw('swagger.json#/components/schemas/SignInReq'),
     catchError(signin)
   );
+  router.post('/api/v1/auth/user/signout', catchError(signout));
   router.get(
     '/api/v1/auth/user/me',
     extractProjectIdAndAuthenticate,

@@ -67,11 +67,11 @@ const appendColumn = () => {
 
 <template>
   <NodeViewWrapper class="tiptap-table-wrapper flex flex-col h-full group">
-    <div class="flex flex-row gap-x-1">
+    <div class="flex flex-row gap-x-1 items-stretch">
       <NodeViewContent as="table" />
       <div
         v-if="!isPublic"
-        class="tiptap-create-column-btn flex flex-col bg-gray-50 hover:bg-gray-100 h-full justify-center cursor-pointer text-xs"
+        class="tiptap-create-column-btn flex flex-col bg-gray-50 hover:bg-gray-100 justify-center cursor-pointer text-xs"
         contenteditable="false"
         @click="appendColumn"
       >
@@ -145,7 +145,7 @@ const appendColumn = () => {
 
     .column-resize-handle {
       position: absolute;
-      right: -3px;
+      right: -2px;
       top: 0;
       bottom: 0px;
       margin-top: 1px;

@@ -344,6 +344,7 @@ watch(
 
   p.is-empty::before {
     content: attr(data-placeholder);
+    font-weight: 400;
     float: left;
     color: #bcc2c8;
     pointer-events: none;
@@ -356,23 +357,27 @@ watch(
   }
 
   p {
-    margin-top: 1em;
-    margin-bottom: 1em;
+    font-weight: 400;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
   }
 
   h1 {
-    font-size: 1.75rem;
+    font-weight: 600;
+    font-size: 1.85rem;
+    margin-bottom: 0.6em;
   }
 
   h2 {
-    font-size: 1.5rem;
-    margin-top: 0.25em;
-    margin-bottom: 1em;
+    font-weight: 600;
+    font-size: 1.45rem;
+    margin-bottom: 0.5em;
   }
 
   h3 {
-    font-size: 1.35rem;
-    margin-top: 0.3em;
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin-bottom: 0.3em;
   }
 
   h4 {
@@ -416,6 +421,8 @@ watch(
 
     li {
       display: flex;
+      padding-top: 0.25rem;
+      padding-bottom: 0.25rem;
 
       > label {
         margin-right: 0.5rem;
@@ -434,16 +441,19 @@ watch(
     }
   }
 
-  ul {
-    margin-top: 0.85rem;
+  ul,
+  ol {
     padding-left: 1rem;
-    // bullet color black
-    color: #000;
-    list-style: disc;
+
     li > p {
       margin-top: 0.25rem !important;
       margin-bottom: 0.25rem !important;
     }
+  }
+
+  ul {
+    // bullet color black
+    list-style: disc;
   }
 
   hr.nc-docs-horizontal-rule {

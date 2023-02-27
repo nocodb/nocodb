@@ -9,10 +9,48 @@ const isPublic = !editor.view.editable
 const dragClicked = ref(false)
 const optionsPopoverRef = ref()
 
-const isTable = computed(() => {
+const optionWrapperStyle = computed(() => {
   const { content } = node.content as any
 
-  return content[0].type.name === 'table'
+  console.log(content[0].type.name)
+
+  if (content[0].type.name === 'table') {
+    return {
+      marginTop: '1.4rem',
+    }
+  } else if (content[0].type.name === 'heading' && content[0].attrs.level === 1) {
+    return {
+      marginTop: '0.7rem',
+    }
+  } else if (content[0].type.name === 'heading' && content[0].attrs.level === 2) {
+    return {
+      marginTop: '0.35rem',
+    }
+  } else if (content[0].type.name === 'heading' && content[0].attrs.level === 3) {
+    return {
+      marginTop: '0.1rem',
+    }
+  } else if (content[0].type.name === 'paragraph') {
+    return {
+      marginTop: '0.15rem',
+    }
+  } else if (content[0].type.name === 'image') {
+    return {
+      marginTop: '0.5rem',
+    }
+  } else if (
+    content[0].type.name === 'bulletList' ||
+    content[0].type.name === 'orderedList' ||
+    content[0].type.name === 'taskList'
+  ) {
+    return {
+      marginTop: '0.15rem',
+    }
+  } else {
+    return {
+      marginTop: '0.7rem',
+    }
+  }
 })
 
 const createNodeAfter = () => {
@@ -55,52 +93,51 @@ const deleteNode = () => {
 
 <template>
   <NodeViewWrapper class="vue-component group draggable-block-wrapper">
-    <div v-if="!isPublic" class="flex flex-row gap-0.5 group w-full relative" tiptap-draghandle-wrapper="true">
-      <div type="button" class="block-button cursor-pointer" :class="{ '!mt-5': isTable }" @click="createNodeAfter">
-        <MdiPlus />
-      </div>
-
-      <div
-        ref="optionsPopoverRef"
-        class="flex flex-col absolute -left-10 bg-gray-100 rounded-md p-1 text-sm z-40"
-        :class="{
-          'hidden': !dragClicked,
-          'visible': dragClicked,
-          'top-4': isTable,
-          'top-2': !isTable,
-        }"
-        :contenteditable="false"
-      >
-        <div
-          class="flex flex-row justify-between cursor-pointer items-center gap-x-1 hover:bg-gray-200 p-1 rounded-md z-10"
-          @click="deleteNode"
-        >
-          <MdiDeleteOutline />
+    <div v-if="!isPublic" class="flex flex-row gap-0.5 group w-full items-start" tiptap-draghandle-wrapper="true">
+      <div class="flex flex-row relative" :style="optionWrapperStyle">
+        <div type="button" class="block-button cursor-pointer" @click="createNodeAfter">
+          <MdiPlus />
         </div>
-        <div class="w-2 h-2 absolute -right-1 top-3 bg-gray-100" :style="{ transform: 'rotate(45deg)' }"></div>
+
+        <div
+          ref="optionsPopoverRef"
+          class="flex flex-col absolute -left-10 bg-gray-100 rounded-md p-1 text-sm z-40 -top-0.75"
+          :class="{
+            hidden: !dragClicked,
+            visible: dragClicked,
+          }"
+          :contenteditable="false"
+        >
+          <div
+            class="flex flex-row justify-between cursor-pointer items-center gap-x-1 hover:bg-gray-200 p-1 rounded-md z-10"
+            @click="deleteNode"
+          >
+            <MdiDeleteOutline />
+          </div>
+          <div class="w-2 h-2 absolute -right-1 top-3 bg-gray-100" :style="{ transform: 'rotate(45deg)' }"></div>
+        </div>
+
+        <div
+          class="block-button cursor-pointer group"
+          contenteditable="false"
+          :draggable="true"
+          :data-drag-handle="true"
+          :tiptap-draghandle="true"
+          @click="onDragClick"
+        >
+          <IcBaselineDragIndicator :tiptap-draghandle="true" />
+        </div>
       </div>
 
-      <div
-        class="block-button cursor-pointer group"
-        contenteditable="false"
-        :class="{ '!mt-5': isTable }"
-        :draggable="true"
-        :data-drag-handle="true"
-        :tiptap-draghandle="true"
-        @click="onDragClick"
-      >
-        <IcBaselineDragIndicator :tiptap-draghandle="true" />
-      </div>
-
-      <NodeViewContent class="node-view-drag-content w-full ml-0.5" :class="{ 'ml-1': isTable }" />
+      <NodeViewContent class="node-view-drag-content" />
     </div>
-    <NodeViewContent class="node-view-drag-content w-full ml-0.5" />
+    <NodeViewContent class="node-view-drag-content" />
   </NodeViewWrapper>
 </template>
 
 <style lang="scss" scoped>
 .block-button {
-  @apply opacity-0 group-hover:opacity-100 !group-focus:opacity-100 !group-active:opacity-100 hover:bg-gray-50 rounded-sm text-lg h-6 mt-3;
+  @apply opacity-0 group-hover:opacity-100 !group-focus:opacity-100 !group-active:opacity-100 hover:bg-gray-50 rounded-sm text-lg h-6;
   color: rgb(203, 203, 203);
 }
 
@@ -112,5 +149,8 @@ const deleteNode = () => {
   .block-button {
     @apply opacity-100;
   }
+}
+.node-view-drag-content {
+  @apply w-full ml-1.5;
 }
 </style>

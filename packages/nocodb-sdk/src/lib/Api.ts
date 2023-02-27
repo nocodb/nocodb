@@ -131,7 +131,7 @@ export interface ViewType {
   title: string;
   deleted?: BoolType;
   order?: number;
-  fk_model_id?: string;
+  fk_model_id?: IdType;
   slug?: string;
   uuid?: string;
   meta?: MetaType;
@@ -149,8 +149,8 @@ export interface ViewType {
 
 export interface TableInfoType {
   id?: string;
-  fk_project_id?: string;
-  fk_base_id?: string;
+  fk_project_id?: IdType;
+  fk_base_id?: IdType;
   title: string;
   table_name: string;
   type?: string;
@@ -189,8 +189,8 @@ export interface TableListType {
 
 export interface FilterType {
   id?: string;
-  fk_model_id?: string;
-  fk_column_id?: string;
+  fk_model_id?: IdType;
+  fk_column_id?: IdType;
   logical_op?: string;
   comparison_op?: string;
   value?: any;
@@ -198,13 +198,13 @@ export interface FilterType {
   children?: FilterType[];
   project_id?: string;
   base_id?: string;
-  fk_parent_id?: string;
+  fk_parent_id?: IdType;
   fk_view_id?: StringOrNullType;
   fk_hook_id?: StringOrNullType;
 }
 
 export interface FilterReqType {
-  fk_column_id?: string;
+  fk_column_id?: IdType;
   logical_op?: 'and' | 'or' | 'not';
   comparison_op?:
     | 'checked'
@@ -229,7 +229,7 @@ export interface FilterReqType {
     | 'notblank';
   value?: any;
   is_group?: BoolType;
-  fk_parent_id?: string;
+  fk_parent_id?: IdType;
 }
 
 export interface FilterListType {
@@ -240,8 +240,8 @@ export interface FilterListType {
 
 export interface SortType {
   id?: string;
-  fk_model_id?: string;
-  fk_column_id?: string;
+  fk_model_id?: IdType;
+  fk_column_id?: IdType;
   direction?: string;
   order?: number;
   project_id?: string;
@@ -249,7 +249,7 @@ export interface SortType {
 }
 
 export interface SortReqType {
-  fk_column_id?: string;
+  fk_column_id?: IdType;
   direction?: 'asc' | 'desc';
 }
 
@@ -883,17 +883,17 @@ export interface LinkToAnotherColumnReqType {
   uidt: 'LinkToAnotherRecord';
   title: string;
   virtual?: BoolType;
-  parentId: string;
-  childId: string;
+  parentId: IdType;
+  childId: IdType;
   type: 'hm' | 'bt' | 'mm';
 }
 
 export interface RollupColumnReqType {
-  uidt?: 'Rollup';
-  title?: string;
-  fk_relation_column_id?: string;
-  fk_rollup_column_id?: string;
-  rollup_function?:
+  uidt: 'Rollup';
+  title: string;
+  fk_relation_column_id: IdType;
+  fk_rollup_column_id: IdType;
+  rollup_function:
     | 'count'
     | 'min'
     | 'max'
@@ -905,10 +905,10 @@ export interface RollupColumnReqType {
 }
 
 export interface LookupColumnReqType {
-  uidt?: 'Lookup';
-  title?: string;
-  fk_relation_column_id?: string;
-  fk_lookup_column_id?: string;
+  uidt: 'Lookup';
+  title: string;
+  fk_relation_column_id: IdType;
+  fk_lookup_column_id: IdType;
 }
 
 export interface FormulaColumnReqType {
@@ -961,6 +961,8 @@ export type VisibilityRuleReqType = {
 
 export type BoolType = boolean | number | null;
 
+export type IdType = string;
+
 export type PasswordType = string;
 
 export type StringOrNullType = string | null;
@@ -988,23 +990,37 @@ export interface OrgUserReqType {
 
 export interface ProjectUserReqType {
   /** @format email */
-  email?: string;
-  roles?: 'owner' | 'editor' | 'viewer' | 'commenter' | 'guest';
+  email: string;
+  roles: 'owner' | 'editor' | 'viewer' | 'commenter' | 'guest';
 }
 
 export interface SharedBaseReqType {
-  uuid?: StringOrNullType;
-  roles?: StringOrNullType;
+  roles?: 'editor' | 'viewer' | 'commenter';
+  password?: string;
 }
 
 export interface PluginTestReqType {
-  title?: string;
-  input?: any;
+  title: string;
+  input: any;
 }
 
 export interface PluginReqType {
   active?: BoolType;
   input?: any;
+}
+
+export interface ViewReqType {
+  /** @min 0 */
+  order?: number;
+  meta?: MetaType;
+  title?: string;
+  show_system_fields?: BoolType;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+}
+
+export interface SharedViewReqType {
+  password?: string;
+  meta?: MetaType;
 }
 
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
@@ -1371,18 +1387,27 @@ export class Api<
       }),
 
     /**
-     * No description
-     *
-     * @tags Auth
-     * @name TokenRefresh
-     * @summary Refresh token
-     * @request POST:/api/v1/auth/token/refresh
-     * @response `200` `void` OK
-     */
+ * No description
+ * 
+ * @tags Auth
+ * @name TokenRefresh
+ * @summary Refresh token
+ * @request POST:/api/v1/auth/token/refresh
+ * @response `200` `{
+  token?: string,
+
+}` OK
+ */
     tokenRefresh: (params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        {
+          token?: string;
+        },
+        any
+      >({
         path: `/api/v1/auth/token/refresh`,
         method: 'POST',
+        format: 'json',
         ...params,
       }),
 
@@ -1402,7 +1427,7 @@ export class Api<
 
 }` OK
  */
-    projectUserList: (projectId: string, params: RequestParams = {}) =>
+    projectUserList: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           users?: {
@@ -1428,7 +1453,7 @@ export class Api<
      * @response `200` `any` OK
      */
     projectUserAdd: (
-      projectId: string,
+      projectId: IdType,
       data: ProjectUserReqType,
       params: RequestParams = {}
     ) =>
@@ -1451,8 +1476,8 @@ export class Api<
      * @response `200` `any` OK
      */
     projectUserUpdate: (
-      projectId: string,
-      userId: string,
+      projectId: IdType,
+      userId: IdType,
       data: ProjectUserReqType,
       params: RequestParams = {}
     ) =>
@@ -1475,8 +1500,8 @@ export class Api<
      * @response `200` `any` OK
      */
     projectUserRemove: (
-      projectId: string,
-      userId: string,
+      projectId: IdType,
+      userId: IdType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -1495,8 +1520,8 @@ export class Api<
      * @response `200` `any` OK
      */
     projectUserResendInvite: (
-      projectId: string,
-      userId: string,
+      projectId: IdType,
+      userId: IdType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -1731,7 +1756,7 @@ export class Api<
      * @response `200` `void` OK
      */
     update: (
-      userId: string,
+      userId: IdType,
       data: OrgUserReqType,
       params: RequestParams = {}
     ) =>
@@ -1752,7 +1777,7 @@ export class Api<
      * @request DELETE:/api/v1/users/{userId}
      * @response `200` `void` OK
      */
-    delete: (userId: string, params: RequestParams = {}) =>
+    delete: (userId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}`,
         method: 'DELETE',
@@ -1768,7 +1793,7 @@ export class Api<
      * @request POST:/api/v1/users/{userId}/resend-invite
      * @response `200` `void` OK
      */
-    resendInvite: (userId: string, params: RequestParams = {}) =>
+    resendInvite: (userId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}/resend-invite`,
         method: 'POST',
@@ -1788,7 +1813,7 @@ export class Api<
 
 }` OK
  */
-    generatePasswordResetToken: (userId: string, params: RequestParams = {}) =>
+    generatePasswordResetToken: (userId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           reset_password_token?: string;
@@ -1822,7 +1847,7 @@ export class Api<
 
 }` OK
  */
-    metaGet: (projectId: string, params: RequestParams = {}, query: object) =>
+    metaGet: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           Node?: string;
@@ -1838,7 +1863,6 @@ export class Api<
       >({
         path: `/api/v1/db/meta/projects/${projectId}/info`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params,
       }),
@@ -1853,7 +1877,7 @@ export class Api<
      * @response `200` `(any)[]` OK
      */
     modelVisibilityList: (
-      projectId: string,
+      projectId: IdType,
       query?: {
         includeM2M?: boolean;
       },
@@ -1876,7 +1900,7 @@ export class Api<
      * @response `200` `VisibilityRuleReqType` OK
      */
     modelVisibilitySet: (
-      projectId: string,
+      projectId: IdType,
       data: any,
       params: RequestParams = {}
     ) =>
@@ -1946,7 +1970,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/projects/{projectId}
      * @response `200` `object` OK
      */
-    read: (projectId: string, params: RequestParams = {}) =>
+    read: (projectId: IdType, params: RequestParams = {}) =>
       this.request<object, any>({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'GET',
@@ -1963,7 +1987,7 @@ export class Api<
      * @request DELETE:/api/v1/db/meta/projects/{projectId}
      * @response `200` `void` OK
      */
-    delete: (projectId: string, params: RequestParams = {}) =>
+    delete: (projectId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'DELETE',
@@ -1979,7 +2003,7 @@ export class Api<
      * @request PATCH:/api/v1/db/meta/projects/{projectId}
      * @response `200` `void` OK
      */
-    update: (projectId: string, data: any, params: RequestParams = {}) =>
+    update: (projectId: IdType, data: any, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'PATCH',
@@ -2001,7 +2025,7 @@ export class Api<
 
 }` OK
  */
-    sharedBaseGet: (projectId: string, params: RequestParams = {}) =>
+    sharedBaseGet: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           uuid?: string;
@@ -2024,7 +2048,7 @@ export class Api<
      * @request DELETE:/api/v1/db/meta/projects/{projectId}/shared
      * @response `200` `void` OK
      */
-    sharedBaseDisable: (projectId: string, params: RequestParams = {}) =>
+    sharedBaseDisable: (projectId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'DELETE',
@@ -2032,22 +2056,29 @@ export class Api<
       }),
 
     /**
-     * No description
-     *
-     * @tags Project
-     * @name SharedBaseCreate
-     * @request POST:/api/v1/db/meta/projects/{projectId}/shared
-     * @response `200` `SharedBaseReqType` OK
-     */
+ * No description
+ * 
+ * @tags Project
+ * @name SharedBaseCreate
+ * @request POST:/api/v1/db/meta/projects/{projectId}/shared
+ * @response `200` `{
+  uuid?: StringOrNullType,
+  roles?: StringOrNullType,
+
+}` OK
+ */
     sharedBaseCreate: (
-      projectId: string,
-      data: {
-        roles?: string;
-        password?: string;
-      },
+      projectId: IdType,
+      data: SharedBaseReqType,
       params: RequestParams = {}
     ) =>
-      this.request<SharedBaseReqType, any>({
+      this.request<
+        {
+          uuid?: StringOrNullType;
+          roles?: StringOrNullType;
+        },
+        any
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'POST',
         body: data,
@@ -2070,11 +2101,8 @@ export class Api<
 }` OK
  */
     sharedBaseUpdate: (
-      projectId: string,
-      data: {
-        roles?: string;
-        password?: string;
-      },
+      projectId: IdType,
+      data: SharedBaseReqType,
       params: RequestParams = {}
     ) =>
       this.request<
@@ -2102,7 +2130,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/projects/{projectId}/cost
      * @response `200` `object` OK
      */
-    cost: (projectId: string, params: RequestParams = {}) =>
+    cost: (projectId: IdType, params: RequestParams = {}) =>
       this.request<object, any>({
         path: `/api/v1/db/meta/projects/${projectId}/cost`,
         method: 'GET',
@@ -2118,7 +2146,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff
      * @response `200` `any` OK
      */
-    metaDiffSync: (projectId: string, params: RequestParams = {}) =>
+    metaDiffSync: (projectId: IdType, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
         method: 'POST',
@@ -2134,7 +2162,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff
      * @response `200` `any` OK
      */
-    metaDiffGet: (projectId: string, params: RequestParams = {}) =>
+    metaDiffGet: (projectId: IdType, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
         method: 'GET',
@@ -2150,7 +2178,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters
      * @response `200` `any` OK
      */
-    hasEmptyOrNullFilters: (projectId: string, params: RequestParams = {}) =>
+    hasEmptyOrNullFilters: (projectId: IdType, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/projects/${projectId}/has-empty-or-null-filters`,
         method: 'GET',
@@ -2171,10 +2199,12 @@ export class Api<
 }` OK
  */
     auditList: (
-      projectId: string,
+      projectId: IdType,
       query?: {
-        offset?: string;
-        limit?: string;
+        /** @min 0 */
+        offset?: number;
+        /** @max 1 */
+        limit?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -2202,7 +2232,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
      * @response `200` `object` OK
      */
-    read: (projectId: string, baseId: string, params: RequestParams = {}) =>
+    read: (projectId: IdType, baseId: string, params: RequestParams = {}) =>
       this.request<object, any>({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
         method: 'GET',
@@ -2219,7 +2249,7 @@ export class Api<
      * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
      * @response `200` `void` OK
      */
-    delete: (projectId: string, baseId: string, params: RequestParams = {}) =>
+    delete: (projectId: IdType, baseId: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
         method: 'DELETE',
@@ -2236,7 +2266,7 @@ export class Api<
      * @response `200` `void` OK
      */
     update: (
-      projectId: string,
+      projectId: IdType,
       baseId: string,
       data: any,
       params: RequestParams = {}
@@ -2258,7 +2288,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/projects/{projectId}/bases/
      * @response `200` `object` OK
      */
-    list: (projectId: string, params: RequestParams = {}) =>
+    list: (projectId: IdType, params: RequestParams = {}) =>
       this.request<object, any>({
         path: `/api/v1/db/meta/projects/${projectId}/bases/`,
         method: 'GET',
@@ -2276,7 +2306,7 @@ export class Api<
      * @response `200` `BaseType` OK
      */
     create: (
-      projectId: string,
+      projectId: IdType,
       data: BaseType & {
         external?: boolean;
       },
@@ -2300,7 +2330,7 @@ export class Api<
      * @response `200` `TableListType`
      */
     tableList: (
-      projectId: string,
+      projectId: IdType,
       baseId: string,
       query?: {
         page?: number;
@@ -2326,7 +2356,7 @@ export class Api<
      * @response `200` `TableType` OK
      */
     tableCreate: (
-      projectId: string,
+      projectId: IdType,
       baseId: string,
       data: TableReqType,
       params: RequestParams = {}
@@ -2349,7 +2379,7 @@ export class Api<
      * @response `200` `any` OK
      */
     metaDiffSync: (
-      projectId: string,
+      projectId: IdType,
       baseId: string,
       params: RequestParams = {}
     ) =>
@@ -2369,7 +2399,7 @@ export class Api<
      * @response `200` `any` OK
      */
     metaDiffGet: (
-      projectId: string,
+      projectId: IdType,
       baseId: string,
       params: RequestParams = {}
     ) =>
@@ -2390,7 +2420,7 @@ export class Api<
      * @response `200` `TableType` OK
      */
     create: (
-      projectId: string,
+      projectId: IdType,
       data: TableReqType,
       params: RequestParams = {}
     ) =>
@@ -2412,7 +2442,7 @@ export class Api<
      * @response `200` `TableListType`
      */
     list: (
-      projectId: string,
+      projectId: IdType,
       query?: {
         page?: number;
         pageSize?: number;
@@ -2436,7 +2466,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/tables/{tableId}
      * @response `200` `TableInfoType` OK
      */
-    read: (tableId: string, params: RequestParams = {}) =>
+    read: (tableId: IdType, params: RequestParams = {}) =>
       this.request<TableInfoType, any>({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'GET',
@@ -2453,7 +2483,7 @@ export class Api<
      * @response `200` `any` OK
      */
     update: (
-      tableId: string,
+      tableId: IdType,
       data: {
         table_name?: string;
         title?: string;
@@ -2479,7 +2509,7 @@ export class Api<
      * @request DELETE:/api/v1/db/meta/tables/{tableId}
      * @response `200` `void` OK
      */
-    delete: (tableId: string, params: RequestParams = {}) =>
+    delete: (tableId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'DELETE',
@@ -2495,7 +2525,7 @@ export class Api<
      * @response `200` `void` OK
      */
     reorder: (
-      tableId: string,
+      tableId: IdType,
       data: {
         order?: number;
       },
@@ -2520,7 +2550,7 @@ export class Api<
      * @response `200` `void` OK
      */
     create: (
-      tableId: string,
+      tableId: IdType,
       data: ColumnReqType,
       params: RequestParams = {}
     ) =>
@@ -2611,7 +2641,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/tables/{tableId}/views
      * @response `200` `ViewListType`
      */
-    list: (tableId: string, params: RequestParams = {}) =>
+    list: (tableId: IdType, params: RequestParams = {}) =>
       this.request<ViewListType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/views`,
         method: 'GET',
@@ -2626,17 +2656,7 @@ export class Api<
      * @request PATCH:/api/v1/db/meta/views/{viewId}
      * @response `200` `void` OK
      */
-    update: (
-      viewId: string,
-      data: {
-        order?: number;
-        meta?: MetaType;
-        title?: string;
-        show_system_fields?: boolean;
-        lock_type?: 'collaborative' | 'locked' | 'personal';
-      },
-      params: RequestParams = {}
-    ) =>
+    update: (viewId: string, data: ViewReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/views/${viewId}`,
         method: 'PATCH',
@@ -2713,7 +2733,7 @@ export class Api<
      * @response `200` `GridType` OK
      */
     gridCreate: (
-      tableId: string,
+      tableId: IdType,
       data: GridReqType,
       params: RequestParams = {}
     ) =>
@@ -2735,7 +2755,7 @@ export class Api<
      * @response `200` `FormType` OK
      */
     formCreate: (
-      tableId: string,
+      tableId: IdType,
       data: FormCreateReqType,
       params: RequestParams = {}
     ) =>
@@ -2791,14 +2811,14 @@ export class Api<
      * @tags DB view
      * @name FormColumnUpdate
      * @request PATCH:/api/v1/db/meta/form-columns/{formViewColumnId}
-     * @response `200` `any` OK
+     * @response `200` `FormColumnReqType` OK
      */
     formColumnUpdate: (
-      formViewColumnId: string,
+      formViewColumnId: IdType,
       data: FormColumnReqType,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<FormColumnReqType, any>({
         path: `/api/v1/db/meta/form-columns/${formViewColumnId}`,
         method: 'PATCH',
         body: data,
@@ -2850,7 +2870,7 @@ export class Api<
      * @response `200` `any` OK
      */
     gridColumnUpdate: (
-      columnId: string,
+      columnId: IdType,
       data: GridColumnReqType,
       params: RequestParams = {}
     ) =>
@@ -2872,7 +2892,7 @@ export class Api<
      * @response `200` `object` OK
      */
     galleryCreate: (
-      tableId: string,
+      tableId: IdType,
       data: GalleryReqType,
       params: RequestParams = {}
     ) =>
@@ -2931,7 +2951,7 @@ export class Api<
      * @response `200` `object` OK
      */
     kanbanCreate: (
-      tableId: string,
+      tableId: IdType,
       data: KanbanReqType,
       params: RequestParams = {}
     ) =>
@@ -2989,7 +3009,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/tables/{tableId}/maps
      * @response `200` `object` OK
      */
-    mapCreate: (tableId: string, data: MapType, params: RequestParams = {}) =>
+    mapCreate: (tableId: IdType, data: MapType, params: RequestParams = {}) =>
       this.request<object, any>({
         path: `/api/v1/db/meta/tables/${tableId}/maps`,
         method: 'POST',
@@ -3042,7 +3062,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/tables/{tableId}/share
      * @response `200` `(any)[]` OK
      */
-    list: (tableId: string, params: RequestParams = {}) =>
+    list: (tableId: IdType, params: RequestParams = {}) =>
       this.request<any[], any>({
         path: `/api/v1/db/meta/tables/${tableId}/share`,
         method: 'GET',
@@ -3084,10 +3104,7 @@ export class Api<
      */
     update: (
       viewId: string,
-      data: {
-        password?: string;
-        meta?: MetaType;
-      },
+      data: SharedViewReqType,
       params: RequestParams = {}
     ) =>
       this.request<SharedViewType, any>({
@@ -3155,8 +3172,8 @@ export class Api<
      * @response `200` `void` OK
      */
     update: (
-      viewId: string,
-      columnId: string,
+      viewId: IdType,
+      columnId: IdType,
       data: any,
       params: RequestParams = {}
     ) =>
@@ -3208,7 +3225,7 @@ export class Api<
      */
     create: (
       viewId: string,
-      data: SortType & {
+      data: SortReqType & {
         push_to_top?: boolean;
       },
       params: RequestParams = {}
@@ -3245,7 +3262,7 @@ export class Api<
      * @request PATCH:/api/v1/db/meta/sorts/{sortId}
      * @response `200` `void` OK
      */
-    update: (sortId: string, data: SortType, params: RequestParams = {}) =>
+    update: (sortId: string, data: SortReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/sorts/${sortId}`,
         method: 'PATCH',
@@ -3421,10 +3438,18 @@ export class Api<
       tableName: string,
       query?: {
         fields?: any[];
-        sort?: any[];
+        sort?: string[] | string;
         where?: string;
-        offset?: string;
-        limit?: string;
+        /**
+         * Offset in rows
+         * @min 0
+         */
+        offset?: number;
+        /**
+         * Limit in rows
+         * @min 1
+         */
+        limit?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -3507,7 +3532,9 @@ export class Api<
         column_name?: string;
         sort?: any[];
         where?: string;
+        /** @min 1 */
         limit?: number;
+        /** @min 0 */
         offset?: number;
       },
       params: RequestParams = {}
@@ -3533,7 +3560,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      columnId: string,
+      columnId: IdType,
       query?: {
         fields?: any[];
         sort?: any[];
@@ -3819,8 +3846,10 @@ export class Api<
       relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
-        limit?: string | number;
-        offset?: string | number;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
         where?: string;
       },
       params: RequestParams = {}
@@ -3851,8 +3880,10 @@ export class Api<
       columnName: string,
       refRowId: string,
       query?: {
-        limit?: string;
-        offset?: string;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -3907,8 +3938,10 @@ export class Api<
       relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
-        limit?: string | number;
-        offset?: string | number;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
         where?: string;
       },
       params: RequestParams = {}
@@ -3932,11 +3965,11 @@ export class Api<
      * @response `200` `any` OK
      */
     groupedDataList: (
-      orgs: string,
+      orgs: IdType,
       projectName: string,
       tableName: string,
       viewName: string,
-      columnId: string,
+      columnId: IdType,
       query?: {
         fields?: any[];
         sort?: any[];
@@ -4062,7 +4095,9 @@ export class Api<
         column_name?: string;
         sort?: any[];
         where?: string;
+        /** @min 1 */
         limit?: number;
+        /** @min 0 */
         offset?: number;
       },
       params: RequestParams = {}
@@ -4237,10 +4272,12 @@ export class Api<
      */
     groupedDataList: (
       sharedViewUuid: string,
-      columnId: string,
+      columnId: IdType,
       query?: {
-        limit?: string;
-        offset?: string;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -4263,8 +4300,10 @@ export class Api<
     dataList: (
       sharedViewUuid: string,
       query?: {
-        limit?: string;
-        offset?: string;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -4312,8 +4351,10 @@ export class Api<
       relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
-        limit?: string;
-        offset?: string;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -4357,8 +4398,10 @@ export class Api<
       sharedViewUuid: string,
       columnName: string,
       query?: {
-        limit?: string;
-        offset?: string;
+        /** @min 1 */
+        limit?: number;
+        /** @min 0 */
+        offset?: number;
       },
       params: RequestParams = {}
     ) =>
@@ -4453,7 +4496,7 @@ export class Api<
     commentList: (
       query: {
         row_id: string;
-        fk_model_id: string;
+        fk_model_id: IdType;
         comments_only?: boolean;
       },
       params: RequestParams = {}
@@ -4494,7 +4537,7 @@ export class Api<
     commentCount: (
       query: {
         ids: any;
-        fk_model_id: string;
+        fk_model_id: IdType;
       },
       params: RequestParams = {}
     ) =>
@@ -4766,7 +4809,7 @@ export class Api<
 
 }` OK
  */
-    list: (tableId: string, params: RequestParams = {}) =>
+    list: (tableId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           list: HookType[];
@@ -4788,7 +4831,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
      * @response `200` `AuditType` OK
      */
-    create: (tableId: string, data: AuditType, params: RequestParams = {}) =>
+    create: (tableId: IdType, data: AuditType, params: RequestParams = {}) =>
       this.request<AuditType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/hooks`,
         method: 'POST',
@@ -4807,7 +4850,7 @@ export class Api<
      * @response `200` `any` OK
      */
     test: (
-      tableId: string,
+      tableId: IdType,
       data: HookTestReqType,
       params: RequestParams = {}
     ) =>
@@ -4836,7 +4879,7 @@ export class Api<
 }` OK
  */
     samplePayloadGet: (
-      tableId: string,
+      tableId: IdType,
       operation: 'update' | 'delete' | 'insert',
       params: RequestParams = {}
     ) =>
@@ -4957,10 +5000,14 @@ export class Api<
      * @tags Plugin
      * @name Update
      * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
-     * @response `200` `PluginReqType` OK
+     * @response `200` `any` OK
      */
-    update: (pluginId: string, data: PluginType, params: RequestParams = {}) =>
-      this.request<PluginReqType, any>({
+    update: (
+      pluginId: string,
+      data: PluginReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
         path: `/api/v1/db/meta/plugins/${pluginId}`,
         method: 'PATCH',
         body: data,
@@ -4995,7 +5042,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
      * @response `200` `(ApiTokenType)[]` OK
      */
-    list: (projectId: string, params: RequestParams = {}) =>
+    list: (projectId: IdType, params: RequestParams = {}) =>
       this.request<ApiTokenType[], any>({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
         method: 'GET',
@@ -5010,13 +5057,11 @@ export class Api<
      * @name Create
      * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
      * @response `200` `void` OK
-     * @response `201` `ApiTokenReqType` Created
+     * @response `201` `any` Created
      */
     create: (
-      projectId: string,
-      data: {
-        description?: string;
-      },
+      projectId: IdType,
+      data: ApiTokenReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -5035,7 +5080,7 @@ export class Api<
      * @request DELETE:/api/v1/db/meta/projects/{projectId}/api-tokens/{token}
      * @response `200` `void` OK
      */
-    delete: (projectId: string, token: string, params: RequestParams = {}) =>
+    delete: (projectId: IdType, token: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens/${token}`,
         method: 'DELETE',

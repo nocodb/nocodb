@@ -328,7 +328,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "name": "token",
           "in": "path",
@@ -353,7 +354,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "name": "token",
           "in": "path",
@@ -387,7 +389,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "name": "token",
           "in": "path",
@@ -401,7 +404,19 @@
         "operationId": "auth-token-refresh",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "description": "",
@@ -690,7 +705,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "userId",
           "in": "path",
@@ -738,7 +753,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "userId",
           "in": "path",
@@ -762,7 +777,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "userId",
           "in": "path",
@@ -843,7 +858,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -882,7 +897,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -932,16 +947,6 @@
         },
         "tags": [
           "Project"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "number",
-              "minimum": 1,
-              "multipleOf": 1
-            },
-            "in": "query"
-          }
         ]
       }
     },
@@ -949,7 +954,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -957,8 +962,7 @@
         },
         {
           "schema": {
-            "type": "string",
-            "maxLength": 20
+            "$ref": "#/components/schemas/Id"
           },
           "name": "userId",
           "in": "path",
@@ -1043,7 +1047,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -1169,7 +1173,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -1243,7 +1247,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -1325,7 +1329,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -1409,7 +1413,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -1478,7 +1482,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SharedBaseReq"
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "$ref": "#/components/schemas/StringOrNull"
+                    },
+                    "roles": {
+                      "$ref": "#/components/schemas/StringOrNull"
+                    }
+                  }
                 }
               }
             }
@@ -1491,15 +1503,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "roles": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/SharedBaseReq"
               }
             }
           }
@@ -1535,15 +1539,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "roles": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/SharedBaseReq"
               }
             }
           }
@@ -1558,7 +1554,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -1601,7 +1597,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -1690,7 +1686,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -1787,7 +1783,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -1961,7 +1958,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -1999,7 +1997,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -2120,7 +2119,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -2164,29 +2164,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "order": {
-                    "type": "number"
-                  },
-                  "meta": {
-                    "$ref": "#/components/schemas/Meta"
-                  },
-                  "title": {
-                    "type": "string"
-                  },
-                  "show_system_fields": {
-                    "type": "boolean"
-                  },
-                  "lock_type": {
-                    "type": "string",
-                    "enum": [
-                      "collaborative",
-                      "locked",
-                      "personal"
-                    ]
-                  }
-                }
+                "$ref": "#/components/schemas/ViewReq"
               }
             }
           }
@@ -2280,7 +2258,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -2363,15 +2342,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "password": {
-                    "type": "string"
-                  },
-                  "meta": {
-                    "$ref": "#/components/schemas/Meta"
-                  }
-                }
+                "$ref": "#/components/schemas/SharedViewReq"
               }
             }
           },
@@ -2438,7 +2409,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "viewId",
           "in": "path",
@@ -2446,7 +2418,8 @@
         },
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
           "in": "path",
@@ -2533,7 +2506,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/Sort"
+                    "$ref": "#/components/schemas/SortReq"
                   },
                   {
                     "type": "object",
@@ -2595,7 +2568,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Sort"
+                "$ref": "#/components/schemas/SortReq"
               }
             }
           }
@@ -2823,7 +2796,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -2863,7 +2837,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -2956,7 +2931,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "formViewColumnId",
           "in": "path",
@@ -2972,7 +2948,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": ""
+                  "$ref": "#/components/schemas/FormColumnReq"
                 }
               }
             }
@@ -3068,7 +3044,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
           "in": "path",
@@ -3106,7 +3083,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -3199,7 +3177,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -3292,7 +3271,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -3385,7 +3365,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -3432,7 +3412,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -3462,7 +3442,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -3557,7 +3537,17 @@
           },
           {
             "schema": {
-              "type": "array"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "in": "query",
             "name": "sort"
@@ -3571,17 +3561,21 @@
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
-            "name": "offset"
+            "name": "offset",
+            "description": "Offset in rows"
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
-            "name": "limit"
+            "name": "limit",
+            "description": "Limit in rows"
           }
         ],
         "responses": {
@@ -3748,14 +3742,16 @@
           },
           {
             "schema": {
-              "type": "number"
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "number"
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
@@ -3777,7 +3773,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "orgs",
           "in": "path",
@@ -3809,7 +3806,8 @@
         },
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
           "in": "path",
@@ -3892,7 +3890,8 @@
         },
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
           "in": "path",
@@ -4211,14 +4210,16 @@
           },
           {
             "schema": {
-              "type": "number"
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "number"
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
@@ -5016,20 +5017,16 @@
         "parameters": [
           {
             "schema": {
-              "type": [
-                "string",
-                "number"
-              ]
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": [
-                "string",
-                "number"
-              ]
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
@@ -5127,14 +5124,16 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
@@ -5235,20 +5234,16 @@
         "parameters": [
           {
             "schema": {
-              "type": [
-                "string",
-                "number"
-              ]
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": [
-                "string",
-                "number"
-              ]
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
@@ -5275,7 +5270,8 @@
         },
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "columnId",
           "in": "path",
@@ -5309,14 +5305,16 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
@@ -5362,14 +5360,16 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
@@ -5471,14 +5471,16 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
@@ -5579,14 +5581,16 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
@@ -5764,7 +5768,8 @@
           },
           {
             "schema": {
-              "type": "string"
+
+              "$ref": "#/components/schemas/Id"
             },
             "in": "query",
             "name": "fk_model_id",
@@ -5828,7 +5833,8 @@
           },
           {
             "schema": {
-              "type": "string"
+
+              "$ref": "#/components/schemas/Id"
             },
             "in": "query",
             "name": "fk_model_id",
@@ -5844,7 +5850,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -5887,14 +5893,16 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "minimum": 0
             },
             "in": "query",
             "name": "offset"
           },
           {
             "schema": {
-              "type": "string"
+              "type": "integer",
+              "maximum": 1
             },
             "in": "query",
             "name": "limit"
@@ -5942,7 +5950,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+           "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -6021,7 +6029,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -6059,7 +6067,8 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "name": "tableId",
           "in": "path",
@@ -6301,9 +6310,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PluginReq"
-                }
+                "schema": {}
               }
             }
           }
@@ -6315,7 +6322,8 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Plugin"
+
+                "$ref": "#/components/schemas/PluginReq"
               }
             }
           }
@@ -6886,7 +6894,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiTokenReq"
                 }
               }
             }
@@ -6896,12 +6903,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/ApiTokenReq"
               }
             }
           }
@@ -6913,7 +6915,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -6937,7 +6939,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -7039,7 +7041,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "projectId",
           "in": "path",
@@ -7047,7 +7049,7 @@
         },
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id"
           },
           "name": "userId",
           "in": "path",
@@ -7648,7 +7650,8 @@
             "type": "number"
           },
           "fk_model_id": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "slug": {
             "type": "string"
@@ -7793,10 +7796,12 @@
             "type": "string"
           },
           "fk_project_id": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "fk_base_id": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "title": {
             "type": "string"
@@ -7867,6 +7872,7 @@
             "type": "string",
             "description": "Table title",
             "example": "Table title",
+            "minLength": 1,
             "maxLength": 255
           },
           "order": {
@@ -7945,10 +7951,12 @@
             "type": "string"
           },
           "fk_model_id": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "fk_column_id": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "logical_op": {
             "type": "string"
@@ -7985,7 +7993,8 @@
             "readOnly": true
           },
           "fk_parent_id": {
-            "type": "string"
+
+            "$ref": "#/components/schemas/Id"
           },
           "fk_view_id": {
             "$ref": "#/components/schemas/StringOrNull"
@@ -8001,8 +8010,8 @@
         "title": "Filter",
         "properties": {
           "fk_column_id": {
-            "type": "string",
-            "maxLength": 20
+
+            "$ref": "#/components/schemas/Id"
           },
           "logical_op": {
             "type": "string",
@@ -8042,8 +8051,8 @@
             "$ref": "#/components/schemas/Bool"
           },
           "fk_parent_id": {
-            "type": "string",
-            "maxLength": 20
+
+            "$ref": "#/components/schemas/Id"
           }
         },
         "readOnly": true
@@ -8110,10 +8119,12 @@
             "type": "string"
           },
           "fk_model_id": {
-            "type": "string"
+
+           "$ref": "#/components/schemas/Id"
           },
           "fk_column_id": {
-            "type": "string"
+
+           "$ref": "#/components/schemas/Id"
           },
           "direction": {
             "type": "string"
@@ -8136,8 +8147,7 @@
         "type": "object",
         "properties": {
           "fk_column_id": {
-            "type": "string",
-            "maxLength": 20
+           "$ref": "#/components/schemas/Id"
           },
           "direction": {
             "type": "string",
@@ -10177,12 +10187,12 @@
             "$ref": "#/components/schemas/Bool"
           },
           "parentId": {
-            "type": "string",
-            "maxLength": 20
+
+           "$ref": "#/components/schemas/Id"
           },
           "childId": {
-            "type": "string",
-            "maxLength": 20
+
+           "$ref": "#/components/schemas/Id"
           },
           "type": {
             "type": "string",
@@ -10215,12 +10225,12 @@
             "maxLength": 255
           },
           "fk_relation_column_id": {
-            "type": "string",
-            "maxLength": 20
+
+           "$ref": "#/components/schemas/Id"
           },
           "fk_rollup_column_id": {
-            "type": "string",
-            "maxLength": 20
+
+           "$ref": "#/components/schemas/Id"
           },
           "rollup_function": {
             "type": "string",
@@ -10235,7 +10245,14 @@
               "avgDistinct"
             ]
           }
-        }
+        },
+        "required": [
+          "uidt",
+          "title",
+          "fk_relation_column_id",
+          "fk_rollup_column_id",
+          "rollup_function"
+        ]
       },
       "LookupColumnReq": {
         "properties": {
@@ -10250,14 +10267,20 @@
             "maxLength": 255
           },
           "fk_relation_column_id": {
-            "type": "string",
-            "maxLength": 20
+
+           "$ref": "#/components/schemas/Id"
           },
           "fk_lookup_column_id": {
-            "type": "string",
-            "maxLength": 20
+
+           "$ref": "#/components/schemas/Id"
           }
-        }
+        },
+        "required": [
+          "uidt",
+          "title",
+          "fk_relation_column_id",
+          "fk_lookup_column_id"
+        ]
       },
       "FormulaColumnReq": {
         "properties": {
@@ -10402,6 +10425,11 @@
           }
         ]
       },
+      "Id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 20
+      },
       "Password": {
         "type": "string",
         "minLength": 8
@@ -10493,16 +10521,26 @@
               "guest"
             ]
           }
-        }
+        },
+        "required": [
+          "email",
+          "roles"
+        ]
       },
       "SharedBaseReq": {
         "type": "object",
         "properties": {
-          "uuid": {
-            "$ref": "#/components/schemas/StringOrNull"
-          },
           "roles": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "type": "string",
+            "enum": [
+              "editor",
+              "viewer",
+              "commenter"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
           }
         }
       },
@@ -10510,10 +10548,15 @@
         "type": "object",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 45
           },
           "input": {}
-        }
+        },
+        "required": [
+          "title",
+          "input"
+        ]
       },
       "PluginReq": {
         "type": "object",
@@ -10522,6 +10565,46 @@
             "$ref": "#/components/schemas/Bool"
           },
           "input": {}
+        }
+      },
+      "ViewReq": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "show_system_fields": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
+          }
+        }
+      },
+      "SharedViewReq":{
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
         }
       }
     },

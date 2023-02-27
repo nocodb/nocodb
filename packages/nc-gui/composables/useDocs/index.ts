@@ -235,9 +235,10 @@ const [setup, use] = useInjectionState(() => {
     return isPublic.value ? `/nc/doc/${projectId!}/public` : `/nc/doc/${projectId!}`
   }
 
-  function nestedUrl(id: string | undefined) {
+  function nestedUrl(id: string | undefined, { completeUrl = false } = {}) {
     const nestedSlugs = nestedSlugsFromPageId(id)
-    return isPublic.value ? `/nc/doc/${projectId!}/public/${id}` : `/nc/doc/${projectId!}/${id}/${nestedSlugs.join('/')}`
+    const url = `/nc/doc/${projectId!}/${id}/${nestedSlugs.join('/')}`
+    return completeUrl ? `${window.location.origin}/#${url}` : url
   }
 
   const createMagic = async (title: string) => {

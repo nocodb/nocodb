@@ -55,9 +55,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-68">
+  <div class="flex flex-col">
     <a-form ref="formRef" :validate-on-rule-change="false" :model="usersData" validate-trigger="onBlur" @finish="saveUser">
-      <div class="flex flex-col mb-6 h-38">
+      <div class="flex flex-col mb-16">
         <div class="flex flex-row space-x-4 mx-2 border-1 border-gray-200 bg-gray-100 rounded-md">
           <div class="flex flex-col w-3/4 relative mt-0.5">
             <a-form-item

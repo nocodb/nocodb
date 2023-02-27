@@ -5,123 +5,154 @@ interface Emits {
 
 const emits = defineEmits<Emits>()
 
-const { project } = useProject()
+const { project, updateProject, loadBookProject } = useProject()
 
-const { openedBook, updateBook, isBookUpdating, bookUrl } = useDocs()
+const { openedPage, updatePage, nestedUrl } = useDocs()
 
-const showPublish = ref(false)
+const isPagePublishing = ref(false)
+const isProjectPublishing = ref(false)
 
-onMounted(() => {
-  showPublish.value = false
+const projectMeta = computed(() => {
+  if (!project.value) {
+    throw new Error('Project is not defined')
+  }
+
+  if (!project.value.meta) {
+    throw new Error('Project meta is not defined')
+  }
+
+  if (typeof project.value.meta === 'string') {
+    return JSON.parse(project.value.meta)
+  } else {
+    return project.value.meta
+  }
 })
 
-const publishBook = async () => {
-  await updateBook(openedBook.value!.id!, { is_published: true })
-  showPublish.value = true
+const copyProjectUrl = async () => {
+  await navigator.clipboard.writeText(`${window.location.origin}/#/nc/doc/${project?.value?.id}/`)
 }
 
-const copyPublicUrl = async () => {
-  await navigator.clipboard.writeText(bookUrl(openedBook.value!.slug!, { completeUrl: true, publicMode: true }))
+const openProjectUrl = async () => {
+  window.open(`${window.location.origin}/#/nc/doc/${project?.value?.id}/`, '_blank')
 }
 
-const openPublicUrl = async () => {
-  window.open(bookUrl(openedBook.value!.slug!, { completeUrl: true, publicMode: true }), '_blank')
-}
-
-const embedHtml = async () => {
+const embedProjectHtml = async () => {
   await navigator.clipboard.writeText(
-    `<iframe src="${bookUrl(openedBook.value!.slug!, {
+    `<iframe src="${window.location.origin}/#/nc/doc/${project?.value?.id}/" width="100%" height="100%" style="border: none;"></iframe>`,
+  )
+}
+
+const toggleProjectPublishedState = async () => {
+  isProjectPublishing.value = true
+  try {
+    await updateProject({
+      meta: {
+        ...projectMeta.value,
+        isPublic: !projectMeta.value.isPublic,
+      },
+    })
+    await loadBookProject()
+  } finally {
+    isProjectPublishing.value = false
+  }
+}
+
+const copyPageUrl = async () => {
+  await navigator.clipboard.writeText(nestedUrl(openedPage.value!.id!, { completeUrl: true }))
+}
+
+const openPageUrl = async () => {
+  window.open(nestedUrl(openedPage.value!.id!, { completeUrl: true }), '_blank')
+}
+
+const embedPageHtml = async () => {
+  await navigator.clipboard.writeText(
+    `<iframe src="${nestedUrl(openedPage.value!.id!, {
       completeUrl: true,
-      publicMode: true,
     })}" width="100%" height="100%" style="border: none;"></iframe>`,
   )
+}
+
+const togglePagePublishedState = async () => {
+  isPagePublishing.value = true
+  try {
+    await updatePage({
+      pageId: openedPage.value!.id!,
+      page: {
+        is_published: !openedPage.value!.is_published,
+      },
+    })
+  } finally {
+    isPagePublishing.value = false
+  }
 }
 </script>
 
 <template>
-  <div class="flex flex-col h-64">
-    <template v-if="openedBook?.is_published">
-      <div class="flex flex-col h-64">
-        <div class="flex text-xs" :style="{ fontWeight: 500 }">Public share option</div>
-        <div v-if="showPublish" class="flex flex-row px-2 py-3 border-green-700 border-1 rounded-md mt-2 bg-green-50">
-          <MdiCheck class="my-auto text-green-700" />
-          <div class="flex ml-2 text-xs text-green-700">All pages from {{ openedBook?.title }} have been published.</div>
-          <div class="flex flex-grow"></div>
-        </div>
-        <div class="flex flex-row items-center mt-3 w-full border-gray-300 border-1 rounded-md bg-gray-50">
-          <div
-            class="flex flex-row w-1/3 py-2 px-3.5 justify-center hover:bg-gray-100 cursor-pointer items-center gap-x-3 border-gray-300 border-r-1"
-            @click="copyPublicUrl"
-          >
-            <MdiContentCopy class="!h-3.5" />
-            <div>Copy public view link</div>
-          </div>
-          <div
-            class="flex flex-row w-1/3 py-2 px-2 justify-center !hover:bg-gray-100 cursor-pointer items-center gap-x-3 border-gray-300 border-r-1"
-            @click="openPublicUrl"
-          >
-            <MdiOpenInNew class="!h-4" />
-            <div>Open public link</div>
-          </div>
-          <div
-            class="flex flex-row w-1/3 py-2 px-3.5 justify-center hover:bg-gray-100 cursor-pointer items-center gap-x-3"
-            @click="embedHtml"
-          >
-            <MdiCodeTags class="!h-4" />
-            <div>Embed</div>
-          </div>
-        </div>
-        <div class="flex flex-grow"></div>
-        <div class="flex flex-row pt-4 border-t-1 border-gray-200 justify-end">
-          <a-button type="primary" class="flex !rounded-md" :style="{ fontWeight: 500 }" @click="emits('close')">Done</a-button>
-        </div>
+  <div class="flex flex-col mt-1">
+    <div class="flex flex-col w-full px-3.5 py-3.5 border-gray-200 border-1 rounded-md gap-y-2">
+      <div class="flex flex-row w-full justify-between">
+        <div class="flex" :style="{ fontWeight: 500 }">Share all pages</div>
+        <a-switch :checked="projectMeta.isPublic" :loading="isProjectPublishing" @click="toggleProjectPublishedState" />
       </div>
-    </template>
-    <template v-else-if="showPublish && !openedBook?.is_published">
-      <div class="flex text-xs" :style="{ fontWeight: 500 }">Public share option</div>
-      <div class="flex flex-col bg-gray-100 px-3 mt-2 py-1 border-1 border-gray-200 rounded-md h-60">
-        <div class="flex text-base pb-1 border-b-1 border-gray-200 mt-1" :style="{ fontWeight: 500 }">Publish</div>
-        <div class="flex flex-row text-xs mt-3">
-          <span :style="{ fontWeight: 500 }">All pages in</span>
-          <span class="text-gray-500 pl-1">{{ project?.title }}</span>
-          <span class="bg-white px-1 border-1 border-gray-200 rounded-md mx-1" :style="{ fontSize: '0.65rem' }">{{
-            openedBook?.title
-          }}</span>
-          <span :style="{ fontWeight: 500 }">will be published.</span>
-        </div>
-        <div class="flex flex-grow"></div>
-        <div class="flex flex-row pt-3 pb-2 border-gray-200 border-t-1 justify-end gap-x-3">
-          <a-button
-            type="text"
-            class="!bg-white !hover:bg-gray-50 !rounded-md !border-gray-200 !border-1"
-            @click="showPublish = false"
-            >Cancel</a-button
-          >
-          <a-button type="primary" class="!rounded-md" :loading="isBookUpdating" @click="publishBook">
-            Publish {{ openedBook?.title }}
-          </a-button>
-        </div>
-      </div>
-    </template>
-    <template v-else-if="!showPublish && !openedBook?.is_published">
-      <div class="flex text-xs" :style="{ fontWeight: 500 }">Public share option</div>
-      <div class="flex flex-row px-2 py-3 border-orange-600 border-1 rounded-md mt-2 bg-orange-50">
-        <MdiAlertCircleOutline class="my-auto text-orange-600" />
-        <div class="flex ml-2 text-xs text-orange-600">
-          This version has not been published. To share public viewing please publish the current selected version.
+      <div class="flex text-xs">Share all pages in '{{ project?.title }}'</div>
+      <div v-if="projectMeta.isPublic" class="flex flex-row justify-end text-gray-600 gap-x-1.5">
+        <div
+          class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300"
+          @click="openProjectUrl"
+        >
+          <RiExternalLinkLine class="h-3.75" />
         </div>
         <div
-          class="flex px-3.5 py-0.5 bg-orange-400 text-white rounded-md text-xs items-center cursor-pointer hover:bg-opacity-80"
-          :style="{ fontWeight: 500 }"
-          @click="showPublish = true"
+          class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300"
+          @click="embedProjectHtml"
         >
-          Publish
+          <MdiCodeTags class="h-4" />
+        </div>
+        <div
+          class="flex flex-row py-1 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300 gap-x-1 items-center"
+          @click="copyProjectUrl"
+        >
+          <MdiContentCopy class="h-3.5" />
+          <div class="flex text-xs" :style="{ fontWeight: 500 }">Copy link</div>
         </div>
       </div>
-      <div class="flex flex-grow"></div>
-      <div class="flex flex-row pt-4 border-t-1 border-gray-200 justify-end">
-        <a-button type="primary" class="flex !rounded-md" :style="{ fontWeight: 500 }" @click="emits('close')">Done</a-button>
+    </div>
+    <div
+      v-if="openedPage && !projectMeta.isPublic"
+      class="flex flex-col w-full px-3.5 py-3.5 border-gray-200 border-1 rounded-md gap-y-2 mt-5"
+    >
+      <div class="flex flex-row w-full justify-between">
+        <div class="flex" :style="{ fontWeight: 500 }">Share current page</div>
+        <a-switch :checked="!!openedPage?.is_published" :loading="isPagePublishing" @click="togglePagePublishedState" />
       </div>
-    </template>
+      <div class="flex text-xs">Share only the current selected page</div>
+      <div v-if="openedPage?.is_published" class="flex flex-row justify-end text-gray-600 gap-x-1.5">
+        <div class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300" @click="openPageUrl">
+          <RiExternalLinkLine class="h-3.75" />
+        </div>
+        <div
+          class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300"
+          @click="embedPageHtml"
+        >
+          <MdiCodeTags class="h-4" />
+        </div>
+        <div
+          class="flex flex-row py-1 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300 gap-x-1 items-center"
+          @click="copyPageUrl"
+        >
+          <MdiContentCopy class="h-3.5" />
+          <div class="flex text-xs" :style="{ fontWeight: 500 }">Copy link</div>
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-row mt-8 mb-2 pt-4 border-t-1 border-gray-200 justify-end">
+      <div
+        class="flex !rounded-md border-1 border-gray-200 px-2.5 py-1.5 hover:bg-gray-50 cursor-pointer"
+        @click="emits('close')"
+      >
+        Cancel
+      </div>
+    </div>
   </div>
 </template>

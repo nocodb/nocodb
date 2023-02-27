@@ -80,7 +80,7 @@ watch(formStatus, (val) => {
         </div>
       </div>
       <ManageUsers v-if="formStatus === 'manageCollaborators'" @close="formStatus = 'collaborate'" />
-      <div v-else class="flex flex-col mx-4 h-80">
+      <div v-else class="flex flex-col mx-4">
         <a-tabs v-model:activeKey="formStatus">
           <a-tab-pane key="collaborate">
             <template #tab>

@@ -12,8 +12,6 @@ const optionsPopoverRef = ref()
 const optionWrapperStyle = computed(() => {
   const { content } = node.content as any
 
-  console.log(content[0].type.name)
-
   if (content[0].type.name === 'table') {
     return {
       marginTop: '1.4rem',

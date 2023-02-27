@@ -141,7 +141,6 @@ watch($$(vModel), (v) => {
 watch(
   () => readOnly,
   (v) => {
-    console.log(v)
     if (!editor) return
 
     editor.updateOptions({ readOnly: v })

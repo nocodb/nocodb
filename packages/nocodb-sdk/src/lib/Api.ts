@@ -1131,8 +1131,8 @@ export class Api<
  * 
  * @tags Auth
  * @name Signout
- * @summary Signin
- * @request POST:/api/v1/auth/user/signin
+ * @summary Signout
+ * @request POST:/api/v1/auth/user/signout
  * @response `200` `{
   msg?: string,
 
@@ -1145,7 +1145,7 @@ export class Api<
         },
         any
       >({
-        path: `/api/v1/auth/user/signin`,
+        path: `/api/v1/auth/user/signout`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -1157,7 +1157,7 @@ export class Api<
  * @tags Auth
  * @name Signin
  * @summary Signin
- * @request POST:/api/v1/auth/user/signout
+ * @request POST:/api/v1/auth/user/signin
  * @response `200` `{
   token?: string,
 
@@ -1176,7 +1176,7 @@ export class Api<
           msg?: string;
         }
       >({
-        path: `/api/v1/auth/user/signout`,
+        path: `/api/v1/auth/user/signin`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

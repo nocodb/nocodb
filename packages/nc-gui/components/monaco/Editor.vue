@@ -137,6 +137,16 @@ watch($$(vModel), (v) => {
     if (editorValue !== v) editor.setValue(v)
   }
 })
+
+watch(
+  () => readOnly,
+  (v) => {
+    console.log(v)
+    if (!editor) return
+
+    editor.updateOptions({ readOnly: v })
+  },
+)
 </script>
 
 <template>

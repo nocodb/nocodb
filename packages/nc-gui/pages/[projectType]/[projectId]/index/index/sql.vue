@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Ref } from 'vue'
-import type { SelectProps } from 'ant-design-vue'
+import type { ModalFuncProps, SelectProps } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import MdiHammer from '~icons/mdi/hammer'
@@ -25,6 +25,8 @@ const loadMagic = ref(false)
 const loadSQL = ref(false)
 
 const baseOptions = computed((): SelectProps['options'] => bases.value.map((b) => ({ label: b.alias || 'Default', value: b.id })))
+
+const dataQuery: Ref<string> = ref('')
 
 const data: Ref<Record<string, any>[]> = ref([])
 
@@ -225,7 +227,7 @@ const repairModal = (e?: string) => {
     cancelText: 'Skip',
     maskClosable: true,
     confirmLoading: loadSQL.value,
-  })
+  } as ModalFuncProps)
 }
 
 const runSQL = async () => {
@@ -242,6 +244,7 @@ const runSQL = async () => {
     })
     .then((res: { data: Record<string, any>[] }) => {
       addHistory(sqlPrompt.value, rawSql.value, true)
+      dataQuery.value = rawSql.value
       data.value = res.data
     })
     .catch(async (e) => {
@@ -249,8 +252,9 @@ const runSQL = async () => {
       addHistory(sqlPrompt.value, rawSql.value, false, error_msg)
       await repairModal(error_msg)
     })
-
-  loadSQL.value = false
+    .finally(() => {
+      loadSQL.value = false
+    })
 }
 
 watch(
@@ -333,6 +337,7 @@ onMounted(() => {
             class="w-full h-full"
             lang="sql"
             :hide-minimap="true"
+            :read-only="loadSQL"
             @input="activePrompt && activePrompt.status === false && (activePrompt.status = null)"
           />
         </div>

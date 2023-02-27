@@ -347,7 +347,7 @@ const parseConditionV2 = async (
               break;
           }
 
-          if (convertDayJsObjToStr) {
+          if (filter.comparison_sub_op && convertDayJsObjToStr) {
             // turn `val` in dayjs object format to string
             val = val.format(dateFormat).toString();
             // keep YYYY-MM-DD only for date

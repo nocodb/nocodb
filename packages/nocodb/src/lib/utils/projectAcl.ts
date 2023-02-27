@@ -359,6 +359,7 @@ const rolePermissions = {
       workspaceCreate: true,
       genericGPT: true,
       commandPalette: true,
+      runSelectQuery: true,
     },
   },
 

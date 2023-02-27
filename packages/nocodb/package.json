@@ -43,7 +43,8 @@
     "watch:run:pg": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
     "run": "ts-node src/run/docker",
     "watch:try": "nodemon -e ts,js -w ./src -x \"ts-node src/run/try --log-error --project tsconfig.json\"",
-    "example:docker": "ts-node src/run/docker.ts"
+    "example:docker": "ts-node src/run/docker.ts",
+    "redoc": "nodemon -e ts,json -w ./src/schema -x \"ts-node src/run/redoc --log-error --project tsconfig.json\""
   },
   "engines": {
     "node": ">=8.9"

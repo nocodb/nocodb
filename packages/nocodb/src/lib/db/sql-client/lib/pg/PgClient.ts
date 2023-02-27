@@ -1907,7 +1907,10 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      const query = args.view_definition;
+      const query = this.genQuery(
+        `CREATE VIEW ?? AS \n${args.view_definition}`,
+        [args.view_name]
+      );
 
       await this.sqlClient.raw(query);
       result.data.object = {
@@ -1970,7 +1973,10 @@ class PGClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.view_name}`
     try {
-      const query = `DROP VIEW ${args.view_name}`;
+      const query = this.genQuery(
+        `DROP VIEW ??`,
+        [args.view_name]
+      );
 
       await this.sqlClient.raw(query);
 

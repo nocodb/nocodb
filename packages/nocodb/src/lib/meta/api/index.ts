@@ -38,6 +38,7 @@ import hookFilterApis from './hookFilterApis';
 import testApis from './testApis';
 import { docsPageApis } from './docsApis';
 import commandPaletteApis from './commandPaletteApis';
+import sqlViewApis from './sqlViewApis';
 import {
   bulkDataAliasApis,
   dataAliasApis,
@@ -115,6 +116,7 @@ export default function (router: Router, server) {
   router.use(docsPageApis);
   router.use(workspaceApis);
   router.use(cowriterApis);
+  router.use(sqlViewApis);
 
   userApis(router);
 

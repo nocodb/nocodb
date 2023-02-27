@@ -245,7 +245,7 @@ const runSQL = async () => {
     .then((res: { data: Record<string, any>[] }) => {
       addHistory(sqlPrompt.value, rawSql.value, true)
       dataQuery.value = rawSql.value
-      data.value = res.data
+      data.value = Array.isArray(res.data) ? res.data : []
     })
     .catch(async (e) => {
       const error_msg = await extractSdkResponseErrorMsg(e)
@@ -255,6 +255,24 @@ const runSQL = async () => {
     .finally(() => {
       loadSQL.value = false
     })
+}
+
+function openSqlViewCreateDialog(baseId?: string) {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgSqlViewCreate'), {
+    'modelValue': isOpen,
+    'baseId': baseId || bases.value[0].id,
+    'title': activePrompt.value?.prompt,
+    'sql': dataQuery.value,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 
 watch(
@@ -350,6 +368,15 @@ onMounted(() => {
           :pagination="{ pageSize: 25 }"
           @resize-column="handleResizeColumn"
         />
+        <a-button
+          v-if="dataQuery"
+          type="primary"
+          class="!flex items-center absolute z-5 bottom-[50px]"
+          @click="openSqlViewCreateDialog(selectedBase)"
+        >
+          <MdiEyeCircleOutline class="mr-2" />
+          Create View
+        </a-button>
       </div>
     </div>
     <div

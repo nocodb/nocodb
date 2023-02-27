@@ -2725,6 +2725,33 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Base
+     * @name CreateSqlView
+     * @summary Create sql view
+     * @request POST:/api/v1/db/meta/projects/:projectId/bases/:baseId/sqlView
+     * @response `200` `object` OK
+     */
+    createSqlView: (
+      projectId: string,
+      baseId: string,
+      data: {
+        view_name?: string;
+        view_definition?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}/sqlView`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Get project base list
      *
      * @tags Base

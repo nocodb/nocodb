@@ -101,6 +101,23 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     }
   }
 
+  const createSqlView = async (sql: string) => {
+    if (!sqlUi?.value) return
+    if (!sql || sql.trim() === '') return
+
+    try {
+      const tableMeta = await $api.base.createSqlView(project?.value?.id as string, baseId as string, {
+        view_name: table.table_name,
+        view_definition: sql,
+      })
+
+      onTableCreate?.(tableMeta as TableType)
+      refreshCommandPalette()
+    } catch (e: any) {
+      message.warning(e)
+    }
+  }
+
   watch(
     () => table.title,
     (title) => {
@@ -168,5 +185,15 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
     })
   }
 
-  return { table, createTable, createTableMagic, createSchemaMagic, generateUniqueTitle, tables, project, deleteTable }
+  return {
+    table,
+    createTable,
+    createTableMagic,
+    createSchemaMagic,
+    createSqlView,
+    generateUniqueTitle,
+    tables,
+    project,
+    deleteTable,
+  }
 }

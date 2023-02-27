@@ -712,8 +712,19 @@ export async function runSelectQuery(req: Request, res: Response) {
   if (!baseDriver) return NcError.internalServerError('Unable to connect to base');
 
   try {
+    const sqlClientType = baseDriver.clientType();
+
     const result = await baseDriver.raw(req.body.query);
-    return res.json({ data: result[0] });
+
+    if (sqlClientType === 'mysql' || sqlClientType === 'mysql2') {
+      return res.json({ data: result[0] });
+    } else if (sqlClientType === 'pg') {
+      return res.json({ data: result.rows });
+    } else if (sqlClientType === 'snowflake') {
+      return res.json({ data: result.rows });
+    } else {
+      return res.json({ data: result });
+    }
   } catch (e) {
     return NcError.internalServerError(e.message);
   }

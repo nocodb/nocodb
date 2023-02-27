@@ -98,7 +98,7 @@ const openInOSM = () => {
     </div>
     <div v-else data-testid="nc-geo-data-lat-long-set">{{ latLongStr }}</div>
     <template #overlay>
-      <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
+      <a-form :model="formState" class="flex flex-col w-max-58" @finish="handleFinish">
         <a-form-item>
           <div class="flex mt-4 items-center mx-2">
             <div class="mr-2">{{ $t('labels.lat') }}:</div>
@@ -140,7 +140,7 @@ const openInOSM = () => {
             <a-button class="ml-2" @click="onClickSetCurrentLocation">{{ $t('labels.yourLocation') }}</a-button>
           </div>
         </a-form-item>
-        <a-form-item>
+        <a-form-item v-if="vModel">
           <div class="mr-2 flex flex-col items-end gap-1 text-left">
             <a-button @click="openInOSM"><MdiMapIcon class="mr-2" />Open in OSM</a-button>
             <a-button @click="openInGoogleMaps"><MdiMapIcon class="mr-2" />Open in Google Maps</a-button>

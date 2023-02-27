@@ -16,15 +16,8 @@ import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { getAjvValidatorMw } from '../meta/api/helpers';
 
 // @ts-ignore
-export async function filterGet(req: Request, res: Response, next) {
-  try {
-    const filter = await Filter.get(req.params.filterId);
-
-    res.json(filter);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
+export async function filterGet(req: Request, res: Response) {
+ res.json(await Filter.get(req.params.filterId));
 }
 
 // @ts-ignore
@@ -33,14 +26,11 @@ export async function filterList(
   res: Response,
   next
 ) {
-  try {
-    const filter = await Filter.rootFilterList({ viewId: req.params.viewId });
-
-    res.json(filter);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
+  res.json(
+    await Filter.rootFilterList({
+      viewId: req.params.viewId,
+    })
+  );
 }
 // @ts-ignore
 export async function filterChildrenRead(

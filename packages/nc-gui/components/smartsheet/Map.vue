@@ -196,11 +196,17 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
     const listItems = Object.entries(row.row)
       .filter(([key, val]) => val !== null)
       .map(([key, val]) => {
-        const prettyVal = typeof val === 'object' || Array.isArray(val) ? JSON.stringify(val) : val
+        let prettyVal = val
+        if (val !== null && (typeof val === 'object' || Array.isArray(val))) {
+          prettyVal = JSON.stringify(val)
+        } else if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
+          prettyVal = `<a href="${val}" target="_blank">${val}</a>`
+        }
         return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
       })
       .join('')
-    const popupContent = `<ul>${listItems}</ul>`
+
+    const popupContent = `<ul class="selectable">${listItems}</ul>`
 
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
 
@@ -275,5 +281,8 @@ const count = computed(() => paginationData.value.totalRows)
 .leaflet-popup-content-wrapper {
   max-height: 255px;
   overflow: scroll;
+}
+.selectable {
+  user-select: text;
 }
 </style>

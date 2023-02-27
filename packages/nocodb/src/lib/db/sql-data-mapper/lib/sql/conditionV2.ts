@@ -280,7 +280,6 @@ const parseConditionV2 = async (
             qb?.client?.config?.client === 'mysql2'
               ? 'YYYY-MM-DD HH:mm:ss'
               : 'YYYY-MM-DD HH:mm:ssZ';
-          let convertDayJsObjToStr = true;
           // handle sub operation
           switch (filter.comparison_sub_op) {
             case 'today':
@@ -314,7 +313,6 @@ const parseConditionV2 = async (
               break;
             case 'exactDate':
               if (!val) return;
-              convertDayJsObjToStr = false;
               break;
             // sub-ops for `isWithin` comparison
             case 'pastWeek':
@@ -337,17 +335,15 @@ const parseConditionV2 = async (
               break;
             case 'pastNumberOfDays':
               if (!val) return;
-              convertDayJsObjToStr = false;
               val = now.add(-val, 'day');
               break;
             case 'nextNumberOfDays':
               if (!val) return;
-              convertDayJsObjToStr = false;
               val = now.add(val, 'day');
               break;
           }
 
-          if (filter.comparison_sub_op && convertDayJsObjToStr) {
+          if (dayjs.isDayjs(val)) {
             // turn `val` in dayjs object format to string
             val = val.format(dateFormat).toString();
             // keep YYYY-MM-DD only for date

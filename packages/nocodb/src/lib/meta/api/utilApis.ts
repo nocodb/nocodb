@@ -1,24 +1,25 @@
 // // Project CRUD
 import { Request, Response } from 'express';
 import { compareVersions, validate } from 'compare-versions';
-
+import axios from 'axios';
+import JSON5 from 'json5';
+import { identify } from 'sql-query-identifier';
 import { ViewTypes } from 'nocodb-sdk';
+
 import Project from '../../models/Project';
+import Base from '../../models/Base';
 import Noco from '../../Noco';
+import User from '../../models/User';
+import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { MetaTable } from '../../utils/globals';
 import { packageVersion } from '../../utils/packageVersion';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
 import NcConfigFactory, {
   defaultConnectionConfig,
 } from '../../utils/NcConfigFactory';
-import User from '../../models/User';
 import catchError, { NcError } from '../helpers/catchError';
-import axios from 'axios';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
-import JSON5 from 'json5';
-import Base from '../../models/Base';
 
 const { Configuration, OpenAIApi } = require('openai');
 
@@ -706,6 +707,15 @@ export async function runSelectQuery(req: Request, res: Response) {
 
   const base = await Base.get(req.body.baseId);
   if (!base) return NcError.internalServerError('Base not found');
+  
+  try {
+    const statements = identify(req.body.query);
+    if (statements.length === 0) return NcError.internalServerError('Please provide a query');
+    if (statements.length > 1) return NcError.internalServerError('Only single query is supported');
+    if (statements[0].type !== 'SELECT') return NcError.internalServerError('Only SELECT queries are supported');
+  } catch (e) {
+    return NcError.internalServerError(e);
+  }
 
   const baseDriver = (await NcConnectionMgrv2.getSqlClient(base))?.knex;
 

@@ -1,15 +1,11 @@
-import { Tele } from 'nc-help';
 import catchError from '../meta/helpers/catchError';
 import { Request, Response, Router } from 'express';
-import Hook from '../models/Hook';
 import { HookListType, HookType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import { invokeWebhook } from '../meta/helpers/webhookHelpers';
-import Model from '../models/Model';
-import populateSamplePayload from '../meta/helpers/populateSamplePayload';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { getAjvValidatorMw } from '../meta/api/helpers';
+import { hookService } from '../services';
 
 export async function hookList(
   req: Request<any, any, any>,
@@ -17,7 +13,9 @@ export async function hookList(
 ) {
   // todo: pagination
   res.json(
-    new PagedResponseImpl(await Hook.list({ fk_model_id: req.params.tableId }))
+    new PagedResponseImpl(
+      await hookService.hookList({ tableId: req.params.tableId })
+    )
   );
 }
 
@@ -25,10 +23,9 @@ export async function hookCreate(
   req: Request<any, HookType>,
   res: Response<HookType>
 ) {
-  Tele.emit('evt', { evt_type: 'webhooks:created' });
-  const hook = await Hook.insert({
-    ...req.body,
-    fk_model_id: req.params.tableId,
+  const hook = await hookService.hookCreate({
+    hook: req.body,
+    tableId: req.params.tableId,
   });
   res.json(hook);
 }
@@ -37,44 +34,35 @@ export async function hookDelete(
   req: Request<any, HookType>,
   res: Response<any>
 ) {
-  Tele.emit('evt', { evt_type: 'webhooks:deleted' });
-  res.json(await Hook.delete(req.params.hookId));
+  res.json(await hookService.hookDelete({ hookId: req.params.hookId }));
 }
 
 export async function hookUpdate(
   req: Request<any, HookType>,
   res: Response<HookType>
 ) {
-  Tele.emit('evt', { evt_type: 'webhooks:updated' });
-
-  res.json(await Hook.update(req.params.hookId, req.body));
+  res.json(
+    await hookService.hookUpdate({ hookId: req.params.hookId, hook: req.body })
+  );
 }
 
 export async function hookTest(req: Request<any, any>, res: Response) {
-  const model = await Model.getByIdOrName({ id: req.params.tableId });
-
-  const {
-    hook,
-    payload: { data, user },
-  } = req.body;
-  await invokeWebhook(
-    new Hook(hook),
-    model,
-    data,
-    user,
-    (hook as any)?.filters,
-    true
-  );
-
-  Tele.emit('evt', { evt_type: 'webhooks:tested' });
-
+  await hookService.hookTest({
+    hookTest: req.body,
+    tableId: req.params.tableId,
+  });
   res.json({ msg: 'Success' });
 }
-export async function tableSampleData(req: Request, res: Response) {
-  const model = await Model.getByIdOrName({ id: req.params.tableId });
 
+export async function tableSampleData(req: Request, res: Response) {
   res // todo: pagination
-    .json(await populateSamplePayload(model, false, req.params.operation));
+    .json(
+      await hookService.tableSampleData({
+        tableId: req.params.tableId,
+        // todo: replace any with type
+        operation: req.params.operation as any,
+      })
+    );
 }
 
 const router = Router({ mergeParams: true });

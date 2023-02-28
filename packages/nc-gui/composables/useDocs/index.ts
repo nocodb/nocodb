@@ -10,7 +10,7 @@ const [setup, use] = useInjectionState(() => {
   const route = useRoute()
   const { $api } = useNuxtApp()
   const { appInfo } = $(useGlobal())
-  const isPublic = inject(IsDocsPublicInj, ref(false))
+  const isPublic = computed<boolean>(() => !!route.meta.public)
 
   const projectId = $(computed(() => route.params.projectId as string))
 
@@ -236,15 +236,15 @@ const [setup, use] = useInjectionState(() => {
   }
 
   function projectUrl() {
-    return isPublic.value ? `/nc/doc/${projectId!}/public` : `/nc/doc/${projectId!}`
+    return isPublic.value ? `/nc/doc/${projectId!}/s` : `/nc/doc/${projectId!}`
   }
 
   function nestedUrl(id: string | undefined, { completeUrl = false, publicUrl = false } = {}) {
     const nestedSlugs = nestedSlugsFromPageId(id)
     const url =
       isPublic.value || publicUrl
-        ? `/nc/doc/${projectId!}/public/${id}/${nestedSlugs.join('/')}`
-        : `/nc/doc/${projectId!}/${id}/${nestedSlugs.join('/')}`
+        ? `/nc/doc/${projectId!}/s/${id}/${nestedSlugs.join('/')}`
+        : `/nc/doc/${projectId!}/p/${id}/${nestedSlugs.join('/')}`
     return completeUrl ? `${window.location.origin}/#${url}` : url
   }
 
@@ -501,6 +501,7 @@ const [setup, use] = useInjectionState(() => {
     projectUrl,
     expandTabOfOpenedPage,
     openedNestedPages,
+    isPublic,
   }
 }, 'useDocs')
 

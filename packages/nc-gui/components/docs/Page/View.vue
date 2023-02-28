@@ -5,8 +5,6 @@ import { TextSelection } from 'prosemirror-state'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import type { PageSidebarNode } from '~~/lib'
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
-
 const {
   openedPage: openedPageInternal,
   updateContent,
@@ -15,6 +13,7 @@ const {
   fetchPage,
   openPage,
   openedPageId,
+  isPublic,
 } = useDocs()
 
 // Page opened in the Page component, which is updated to the server debounce-ly

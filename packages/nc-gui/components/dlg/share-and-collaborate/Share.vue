@@ -29,16 +29,16 @@ const projectMeta = computed(() => {
 })
 
 const copyProjectUrl = async () => {
-  await navigator.clipboard.writeText(`${window.location.origin}/#/nc/doc/${project?.value?.id}/public`)
+  await navigator.clipboard.writeText(`${window.location.origin}/#/nc/doc/${project?.value?.id}/s/`)
 }
 
 const openProjectUrl = async () => {
-  window.open(`${window.location.origin}/#/nc/doc/${project?.value?.id}/public`, '_blank')
+  window.open(`${window.location.origin}/#/nc/doc/${project?.value?.id}/s/`, '_blank')
 }
 
 const embedProjectHtml = async () => {
   await navigator.clipboard.writeText(
-    `<iframe src="${window.location.origin}/#/nc/doc/${project?.value?.id}/public" width="100%" height="100%" style="border: none;"></iframe>`,
+    `<iframe src="${window.location.origin}/#/nc/doc/${project?.value?.id}/s/" width="100%" height="100%" style="border: none;"></iframe>`,
   )
 }
 

@@ -4,8 +4,6 @@ import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
-
 const { project } = useProject()
 const {
   nestedPages,
@@ -20,6 +18,7 @@ const {
   isNoPageOpen,
   projectUrl,
   expandTabOfOpenedPage,
+  isPublic,
 } = useDocs()
 
 const deleteModalOpen = ref(false)

@@ -1,9 +1,7 @@
 import { onKeyStroke } from '@vueuse/core'
 
 const useShortcuts = () => {
-  const isPublic = inject(IsDocsPublicInj, ref(false))
-
-  const { openedPage, addNewPage, getParentOfPage } = useDocs()
+  const { openedPage, addNewPage, getParentOfPage, isPublic } = useDocs()
 
   const shortCuts = !isPublic.value
     ? [

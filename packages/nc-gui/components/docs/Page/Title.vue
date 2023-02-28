@@ -3,9 +3,8 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 
 const emit = defineEmits(['focusEditor'])
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
 const localPage = inject(DocsLocalPageInj)!
-const { updatePage } = useDocs()
+const { updatePage, isPublic } = useDocs()
 
 const titleInputRef = ref<HTMLInputElement>()
 

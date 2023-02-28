@@ -11,7 +11,7 @@ import getTableNameAlias, {
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import getColumnUiType from '../../helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
-import { extractAndGenerateManyToManyRelations } from '../../../controllers/metaDiffController';
+import { extractAndGenerateManyToManyRelations } from '../../../services/metaDiffService';
 import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { IGNORE_TABLES } from '../../../utils/common/BaseApiBuilder';
 

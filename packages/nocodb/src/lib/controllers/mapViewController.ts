@@ -1,29 +1,30 @@
 import { Request, Response, Router } from 'express';
-import { MapType, ViewTypes } from 'nocodb-sdk';
-import View from '../models/View';
+import { MapType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import MapView from '../models/MapView';
+import { mapViewService } from '../services';
 
 export async function mapViewGet(req: Request, res: Response<MapType>) {
-  res.json(await MapView.get(req.params.mapViewId));
+  res.json(
+    await mapViewService.mapViewGet({ mapViewId: req.params.mapViewId })
+  );
 }
 
 export async function mapViewCreate(req: Request<any, any>, res) {
-  Tele.emit('evt', { evt_type: 'vtable:created', show_as: 'map' });
-  const view = await View.insert({
-    ...req.body,
-    // todo: sanitize
-    fk_model_id: req.params.tableId,
-    type: ViewTypes.MAP,
+  const view = await mapViewService.mapViewCreate({
+    tableId: req.params.tableId,
+    map: req.body,
   });
   res.json(view);
 }
 
 export async function mapViewUpdate(req, res) {
-  Tele.emit('evt', { evt_type: 'view:updated', type: 'map' });
-  res.json(await MapView.update(req.params.mapViewId, req.body));
+  res.json(
+    await mapViewService.mapViewUpdate({
+      mapViewId: req.params.mapViewId,
+      map: req.body,
+    })
+  );
 }
 
 const router = Router({ mergeParams: true });

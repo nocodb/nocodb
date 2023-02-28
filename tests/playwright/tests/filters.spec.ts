@@ -377,9 +377,8 @@ test.describe('Filter Tests: Text based', () => {
       },
     ];
 
-    await toolbar.clickFilter();
     for (let i = 0; i < filterList.length; i++) {
-      await verifyFilter_withFixedModal({
+      await verifyFilter({
         column: dataType,
         opType: filterList[i].op,
         value: filterList[i].value,

@@ -14,7 +14,8 @@ const isLoading = ref(true)
 onMounted(async () => {
   isLoading.value = true
   if (!project.value.id && !isProjectLoading.value) {
-    await loadBookProject()
+    console.log('loadBookProject', isPublic.value)
+    if (!isPublic.value) await loadBookProject()
 
     await fetchNestedPages()
 

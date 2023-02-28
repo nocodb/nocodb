@@ -1025,6 +1025,8 @@ export class Api<
       query: {
         /** Project id */
         projectId: string;
+        /** nestedPageId */
+        nestedPageId?: string;
       },
       params: RequestParams = {}
     ) =>

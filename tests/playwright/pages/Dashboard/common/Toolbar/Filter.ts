@@ -29,6 +29,10 @@ export class ToolbarFilterPage extends BasePage {
     ).toBeChecked();
   }
 
+  async clickAddFilter() {
+    await this.get().locator(`button:has-text("Add Filter")`).first().click();
+  }
+
   async add({
     columnTitle,
     opType,
@@ -36,6 +40,7 @@ export class ToolbarFilterPage extends BasePage {
     value,
     isLocallySaved,
     dataType,
+    openModal = false,
   }: {
     columnTitle: string;
     opType: string;
@@ -43,8 +48,9 @@ export class ToolbarFilterPage extends BasePage {
     value?: string;
     isLocallySaved: boolean;
     dataType?: string;
+    openModal?: boolean;
   }) {
-    await this.get().locator(`button:has-text("Add Filter")`).first().click();
+    if (!openModal) await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
     const selectedField = await this.rootPage.locator('.nc-filter-field-select').textContent();
     if (selectedField !== columnTitle) {

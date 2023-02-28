@@ -44,6 +44,35 @@ async function validateRowArray(param) {
   await dashboard.grid.verifyTotalRowCount({ count: rowCount });
 }
 
+async function verifyFilter_withFixedModal(param: {
+  column: string;
+  opType: string;
+  opSubType?: string;
+  value?: string;
+  result: { rowCount: number };
+  dataType?: string;
+}) {
+  // if opType was included in skip list, skip it
+  if (skipList[param.column]?.includes(param.opType)) {
+    return;
+  }
+
+  await toolbar.filter.add({
+    columnTitle: param.column,
+    opType: param.opType,
+    opSubType: param.opSubType,
+    value: param.value,
+    isLocallySaved: false,
+    dataType: param?.dataType,
+    openModal: true,
+  });
+
+  // verify filtered rows
+  await validateRowArray({
+    rowCount: param.result.rowCount,
+  });
+}
+
 async function verifyFilter(param: {
   column: string;
   opType: string;
@@ -348,8 +377,9 @@ test.describe('Filter Tests: Text based', () => {
       },
     ];
 
+    await toolbar.clickFilter();
     for (let i = 0; i < filterList.length; i++) {
-      await verifyFilter({
+      await verifyFilter_withFixedModal({
         column: dataType,
         opType: filterList[i].op,
         value: filterList[i].value,
@@ -612,7 +642,7 @@ test.describe('Filter Tests: Date based', () => {
   const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).setHours(0, 0, 0, 0);
   const oneYearFromNow = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).setHours(0, 0, 0, 0);
 
-  async function dateTimeBasedFilterTest(dataType, suiteName) {
+  async function dateTimeBasedFilterTest(dataType) {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'dateTimeBased' });
 
@@ -770,106 +800,103 @@ test.describe('Filter Tests: Date based', () => {
       },
     ];
 
-    switch (suiteName) {
-      case 'is_is_not':
-        for (let i = 0; i < isFilterList.length; i++) {
-          await verifyFilter({
-            column: dataType,
-            opType: 'is',
-            opSubType: isFilterList[i].opSub,
-            value: isFilterList[i]?.value?.toString() || '',
-            result: { rowCount: isFilterList[i].rowCount },
-            dataType: dataType,
-          });
-        }
+    await toolbar.clickFilter();
+    await toolbar.filter.clickAddFilter();
 
-        // mutually exclusive of "is" filter list
-        for (let i = 0; i < isFilterList.length; i++) {
-          await verifyFilter({
-            column: dataType,
-            opType: 'is not',
-            opSubType: isFilterList[i].opSub,
-            value: isFilterList[i]?.value?.toString() || '',
-            result: { rowCount: 800 - isFilterList[i].rowCount },
-            dataType: dataType,
-          });
-        }
-        break;
+    // "is" filter list
+    for (let i = 0; i < isFilterList.length; i++) {
+      await verifyFilter_withFixedModal({
+        column: dataType,
+        opType: 'is',
+        opSubType: isFilterList[i].opSub,
+        value: isFilterList[i]?.value?.toString() || '',
+        result: { rowCount: isFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
 
-      case 'is_before_is_on_or_before':
-        for (let i = 0; i < isAfterFilterList.length; i++) {
-          await verifyFilter({
-            column: dataType,
-            opType: 'is before',
-            opSubType: isAfterFilterList[i].opSub,
-            value: isAfterFilterList[i]?.value?.toString() || '',
-            result: { rowCount: 800 - isAfterFilterList[i].rowCount - 1 },
-            dataType: dataType,
-          });
-        }
+    // mutually exclusive of "is" filter list
+    for (let i = 0; i < isFilterList.length; i++) {
+      await verifyFilter_withFixedModal({
+        column: dataType,
+        opType: 'is not',
+        opSubType: isFilterList[i].opSub,
+        value: isFilterList[i]?.value?.toString() || '',
+        result: { rowCount: 800 - isFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
 
-        for (let i = 0; i < isAfterFilterList.length; i++) {
-          await verifyFilter({
-            column: dataType,
-            opType: 'is on or before',
-            opSubType: isAfterFilterList[i].opSub,
-            value: isAfterFilterList[i]?.value?.toString() || '',
-            result: { rowCount: 800 - isAfterFilterList[i].rowCount },
-            dataType: dataType,
-          });
-        }
-        break;
+    // "is before" filter list
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      await verifyFilter_withFixedModal({
+        column: dataType,
+        opType: 'is before',
+        opSubType: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i]?.value?.toString() || '',
+        result: { rowCount: 800 - isAfterFilterList[i].rowCount - 1 },
+        dataType: dataType,
+      });
+    }
 
-      case 'is_after_is_on_or_after':
-        for (let i = 0; i < isAfterFilterList.length; i++) {
-          await verifyFilter({
-            column: dataType,
-            opType: 'is after',
-            opSubType: isAfterFilterList[i].opSub,
-            value: isAfterFilterList[i]?.value?.toString() || '',
-            result: { rowCount: isAfterFilterList[i].rowCount },
-            dataType: dataType,
-          });
-        }
+    // "is on or before" filter list
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      await verifyFilter_withFixedModal({
+        column: dataType,
+        opType: 'is on or before',
+        opSubType: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i]?.value?.toString() || '',
+        result: { rowCount: 800 - isAfterFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
 
-        for (let i = 0; i < isAfterFilterList.length; i++) {
-          await verifyFilter({
-            column: dataType,
-            opType: 'is on or after',
-            opSubType: isAfterFilterList[i].opSub,
-            value: isAfterFilterList[i]?.value?.toString() || '',
-            result: { rowCount: 1 + isAfterFilterList[i].rowCount },
-            dataType: dataType,
-          });
-        }
-        break;
+    // "is after" filter list
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      await verifyFilter_withFixedModal({
+        column: dataType,
+        opType: 'is after',
+        opSubType: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i]?.value?.toString() || '',
+        result: { rowCount: isAfterFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
 
-      case 'is_within_is_blank':
-        for (let i = 0; i < isWithinFilterList.length; i++) {
-          await verifyFilter({
-            column: dataType,
-            opType: 'is within',
-            opSubType: isWithinFilterList[i].opSub,
-            value: isWithinFilterList[i]?.value?.toString() || '',
-            result: { rowCount: isWithinFilterList[i].rowCount },
-            dataType: dataType,
-          });
-        }
+    // "is on or after" filter list
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      await verifyFilter_withFixedModal({
+        column: dataType,
+        opType: 'is on or after',
+        opSubType: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i]?.value?.toString() || '',
+        result: { rowCount: 1 + isAfterFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
 
-        for (let i = 0; i < filterList.length; i++) {
-          await verifyFilter({
-            column: dataType,
-            opType: filterList[i].opType,
-            opSubType: null,
-            value: null,
-            result: { rowCount: filterList[i].rowCount },
-            dataType: dataType,
-          });
-        }
-        break;
+    // "is within" filter list
+    for (let i = 0; i < isWithinFilterList.length; i++) {
+      await verifyFilter_withFixedModal({
+        column: dataType,
+        opType: 'is within',
+        opSubType: isWithinFilterList[i].opSub,
+        value: isWithinFilterList[i]?.value?.toString() || '',
+        result: { rowCount: isWithinFilterList[i].rowCount },
+        dataType: dataType,
+      });
+    }
 
-      default:
-        break;
+    // "is blank" and "is not blank" filter list
+    for (let i = 0; i < filterList.length; i++) {
+      await verifyFilter_withFixedModal({
+        column: dataType,
+        opType: filterList[i].opType,
+        opSubType: null,
+        value: null,
+        result: { rowCount: filterList[i].rowCount },
+        dataType: dataType,
+      });
     }
   }
 
@@ -921,20 +948,8 @@ test.describe('Filter Tests: Date based', () => {
     }
   });
 
-  test('Date : is, is not', async () => {
-    await dateTimeBasedFilterTest('Date', 'is_is_not');
-  });
-
-  test('Date : is before, is on or before', async () => {
-    await dateTimeBasedFilterTest('Date', 'is_before_is_on_or_before');
-  });
-
-  test('Date : is after, is on or after', async () => {
-    await dateTimeBasedFilterTest('Date', 'is_after_is_on_or_after');
-  });
-
-  test('Date : is within, is blank', async () => {
-    await dateTimeBasedFilterTest('Date', 'is_within_is_blank');
+  test('Date : filters', async () => {
+    await dateTimeBasedFilterTest('Date');
   });
 });
 

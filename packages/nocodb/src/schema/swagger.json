@@ -506,7 +506,7 @@
         },
         "description": "List all organisation API tokens.  Access with API tokens will be blocked.",
         "tags": [
-          "Org tokens"
+          "Organisation Tokens"
         ]
       },
       "parameters": [],
@@ -528,7 +528,7 @@
           }
         },
         "tags": [
-          "Org tokens"
+          "Organisation Tokens"
         ],
         "description": "Creat an organisation API token. Access with API tokens will be blocked."
       }
@@ -553,7 +553,7 @@
           }
         },
         "tags": [
-          "Org tokens"
+          "Organisation Tokens"
         ],
         "description": "Delete an organisation API token. Access with API tokens will be blocked."
       }
@@ -581,7 +581,7 @@
         },
         "description": "Get the application license key. Exclusive for super admin.",
         "tags": [
-          "Org license"
+          "Organisation License"
         ]
       },
       "parameters": [],
@@ -603,7 +603,7 @@
           }
         },
         "tags": [
-          "Org license"
+          "Organisation License"
         ],
         "description": "Set the application license key. Exclusive for super admin."
       }
@@ -631,7 +631,7 @@
         },
         "description": "Get the application settings. Exclusive for super admin.",
         "tags": [
-          "Org app settings"
+          "Organisation App Settings"
         ]
       },
       "parameters": [],
@@ -658,7 +658,7 @@
           }
         },
         "tags": [
-          "Org app settings"
+          "Organisation App Settings"
         ],
         "description": "Update the application settings. Exclusive for super admin."
       }
@@ -703,7 +703,7 @@
         },
         "description": "List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "tags": [
-          "Org users"
+          "Organisation Users"
         ]
       },
       "parameters": [],
@@ -730,7 +730,7 @@
           }
         },
         "tags": [
-          "Org users"
+          "Organisation Users"
         ],
         "description": "Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
@@ -755,7 +755,7 @@
           }
         },
         "tags": [
-          "Org users"
+          "Organisation Users"
         ],
         "description": "Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "requestBody": {
@@ -778,7 +778,7 @@
           }
         },
         "tags": [
-          "Org users"
+          "Organisation Users"
         ],
         "description": "Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
@@ -803,7 +803,7 @@
           }
         },
         "tags": [
-          "Org users"
+          "Organisation Users"
         ],
         "description": "Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
@@ -823,7 +823,7 @@
         "summary": "Generate Organisation User Password Reset Token",
         "operationId": "org-users-generate-password-reset-token",
         "tags": [
-          "Org users"
+          "Organisation Users"
         ],
         "responses": {
           "200": {
@@ -1678,7 +1678,7 @@
           }
         },
         "tags": [
-          "DB table"
+          "DB Table"
         ],
         "description": "Create a new table in a given project"
       },
@@ -1728,7 +1728,7 @@
           }
         ],
         "tags": [
-          "DB table"
+          "DB Table"
         ],
         "description": "List all tables in a given project"
       }
@@ -1850,7 +1850,7 @@
           }
         },
         "tags": [
-          "DB table"
+          "DB Table"
         ],
         "description": "Read the table meta data by the given table ID"
       },
@@ -1868,7 +1868,7 @@
           }
         },
         "tags": [
-          "DB table"
+          "DB Table"
         ],
         "requestBody": {
           "content": {
@@ -1904,7 +1904,7 @@
           }
         },
         "tags": [
-          "DB table"
+          "DB Table"
         ],
         "description": ""
       }
@@ -2042,7 +2042,7 @@
           }
         },
         "tags": [
-          "DB table"
+          "DB Table"
         ],
         "description": "Update the order of the given Table"
       }
@@ -2076,7 +2076,7 @@
           }
         },
         "tags": [
-          "DB table column"
+          "DB Table Column"
         ],
         "description": "Create a new column in a given Table"
       }
@@ -2117,7 +2117,7 @@
           }
         },
         "tags": [
-          "DB table column"
+          "DB Table Column"
         ],
         "description": "Update the existing column by the given column ID"
       },
@@ -2130,7 +2130,7 @@
           }
         },
         "tags": [
-          "DB table column"
+          "DB Table Column"
         ],
         "description": "Delete the existing column by the given column ID"
       },
@@ -2168,7 +2168,7 @@
           }
         },
         "tags": [
-          "DB table column"
+          "DB Table Column"
         ],
         "description": "Set a primary value on a given column"
       }
@@ -2193,7 +2193,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "description": "List all views in a given Table."
       }
@@ -2227,7 +2227,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "description": "Update the view with the given view Id."
       },
@@ -2240,7 +2240,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "description": "Delete the view with the given view Id."
       }
@@ -2265,7 +2265,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "description": "Show All Columns in a given View",
         "parameters": [
@@ -2299,7 +2299,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "parameters": [
           {
@@ -2342,7 +2342,7 @@
         },
         "description": "List all shared views in a given Table",
         "tags": [
-          "DB view share"
+          "DB View Share"
         ]
       }
     },
@@ -2378,7 +2378,7 @@
           }
         },
         "tags": [
-          "DB view share"
+          "DB View Share"
         ],
         "description": "Create a shared view in a given View.."
       },
@@ -2408,7 +2408,7 @@
           "description": ""
         },
         "tags": [
-          "DB view share"
+          "DB View Share"
         ],
         "description": "Update a shared view in a given View.."
       },
@@ -2422,7 +2422,7 @@
         },
         "description": "Delete a shared view in a given View.",
         "tags": [
-          "DB view share"
+          "DB View Share"
         ]
       }
     },
@@ -2442,7 +2442,7 @@
         "operationId": "db-view-column-list",
         "responses": {},
         "tags": [
-          "DB view column"
+          "DB View Column"
         ],
         "description": "List all columns by ViewID"
       },
@@ -2455,7 +2455,7 @@
           }
         },
         "tags": [
-          "DB view column"
+          "DB View Column"
         ],
         "requestBody": {
           "content": {
@@ -2495,7 +2495,7 @@
           }
         },
         "tags": [
-          "DB view column"
+          "DB View Column"
         ],
         "requestBody": {
           "content": {
@@ -2547,7 +2547,7 @@
           }
         },
         "tags": [
-          "DB table sort"
+          "DB Table Sort"
         ],
         "description": "List all the sort data in a given View"
       },
@@ -2560,7 +2560,7 @@
           }
         },
         "tags": [
-          "DB table sort"
+          "DB Table Sort"
         ],
         "requestBody": {
           "content": {
@@ -2613,7 +2613,7 @@
           }
         },
         "tags": [
-          "DB table sort"
+          "DB Table Sort"
         ],
         "description": "Get the sort data by Sort ID"
       },
@@ -2626,7 +2626,7 @@
           }
         },
         "tags": [
-          "DB table sort"
+          "DB Table Sort"
         ],
         "requestBody": {
           "content": {
@@ -2648,7 +2648,7 @@
           }
         },
         "tags": [
-          "DB table sort"
+          "DB Table Sort"
         ],
         "description": "Delete the sort data by Sort ID"
       }
@@ -2683,7 +2683,7 @@
           }
         },
         "tags": [
-          "DB table filter"
+          "DB Table Filter"
         ],
         "description": "Get the filter data in a given View"
       },
@@ -2703,7 +2703,7 @@
           }
         },
         "tags": [
-          "DB table filter"
+          "DB Table Filter"
         ],
         "requestBody": {
           "content": {
@@ -2737,7 +2737,7 @@
           }
         },
         "tags": [
-          "DB table webhook filter"
+          "DB Table Hook Filter"
         ],
         "description": "Get the filter data in a given Hook"
       },
@@ -2750,7 +2750,7 @@
           }
         },
         "tags": [
-          "DB table webhook filter"
+          "DB Table Hook Filter"
         ],
         "requestBody": {
           "content": {
@@ -2791,7 +2791,7 @@
           }
         },
         "tags": [
-          "DB table filter"
+          "DB Table Filter"
         ],
         "description": "Get the filter data with a given Filter ID"
       },
@@ -2804,7 +2804,7 @@
           }
         },
         "tags": [
-          "DB table filter"
+          "DB Table Filter"
         ],
         "requestBody": {
           "content": {
@@ -2826,7 +2826,7 @@
           }
         },
         "tags": [
-          "DB table filter"
+          "DB Table Filter"
         ],
         "description": "Delete the filter data with a given Filter ID"
       }
@@ -2861,7 +2861,7 @@
           }
         },
         "tags": [
-          "DB table filter"
+          "DB Table Filter"
         ],
         "description": "Get Filter Group Children of a given group ID"
       }
@@ -2893,7 +2893,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -2935,7 +2935,7 @@
         },
         "description": "Create a new form view in a given Table",
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -2968,7 +2968,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -2997,7 +2997,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "description": "Get the form data by Form ID"
       }
@@ -3029,7 +3029,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -3068,7 +3068,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -3112,7 +3112,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "description": "List all columns in the given Grid"
       }
@@ -3142,7 +3142,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -3184,7 +3184,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -3217,7 +3217,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -3246,7 +3246,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "description": "Get the Gallery View data with Gallery ID"
       }
@@ -3279,7 +3279,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -3313,7 +3313,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -3342,7 +3342,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "description": "Get the Kanban View data by Kanban ID"
       }
@@ -3375,7 +3375,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -3409,7 +3409,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "requestBody": {
           "content": {
@@ -3438,7 +3438,7 @@
           }
         },
         "tags": [
-          "DB view"
+          "DB View"
         ],
         "description": "Get the Map View data by Map ID"
       }
@@ -3613,7 +3613,7 @@
         "operationId": "db-table-row-list",
         "description": "List all table rows in a given table and project",
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "parameters": [
           {
@@ -3691,7 +3691,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "requestBody": {
           "content": {
@@ -3735,7 +3735,7 @@
         "operationId": "db-table-row-find-one",
         "description": "Return the first result of the target Table Row",
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "parameters": [
           {
@@ -3812,7 +3812,7 @@
         "operationId": "db-table-row-group-by",
         "description": "Get the result grouped by the given query",
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "parameters": [
           {
@@ -3906,7 +3906,7 @@
         "operationId": "db-view-row-grouped-data-list",
         "description": "Get the grouped data By Column ID. Used in Kanban View.",
         "tags": [
-          "DB view row"
+          "DB View Row"
         ],
         "parameters": [
           {
@@ -3989,7 +3989,7 @@
         "operationId": "db-table-row-grouped-data-list",
         "description": "Get the grouped data By Column ID. Used in Kanban View.",
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "parameters": [
           {
@@ -4072,7 +4072,7 @@
         "operationId": "db-view-row-list",
         "description": "List all table view rows",
         "tags": [
-          "DB view row"
+          "DB View Row"
         ],
         "parameters": [
           {
@@ -4135,7 +4135,7 @@
           }
         },
         "tags": [
-          "DB view row"
+          "DB View Row"
         ],
         "requestBody": {
           "content": {
@@ -4187,7 +4187,7 @@
         "operationId": "db-view-row-find-one",
         "description": "Return the first result of table view rows with the given query",
         "tags": [
-          "DB view row"
+          "DB View Row"
         ],
         "parameters": [
           {
@@ -4278,7 +4278,7 @@
         "operationId": "db-view-row-group-by",
         "description": "Get the table view rows groupe by the given query",
         "tags": [
-          "DB view row"
+          "DB View Row"
         ],
         "parameters": [
           {
@@ -4364,7 +4364,7 @@
         "operationId": "db-view-row-count",
         "description": "Count how many rows in the given Table View",
         "tags": [
-          "DB view row"
+          "DB View Row"
         ],
         "parameters": [
           {
@@ -4451,7 +4451,7 @@
         },
         "description": "Get the target Table View Row",
         "tags": [
-          "DB view row"
+          "DB View Row"
         ]
       },
       "patch": {
@@ -4468,7 +4468,7 @@
           }
         },
         "tags": [
-          "DB view row"
+          "DB View Row"
         ],
         "requestBody": {
           "content": {
@@ -4488,7 +4488,7 @@
           }
         },
         "tags": [
-          "DB view row"
+          "DB View Row"
         ],
         "description": "Delete the target Table View Row"
       }
@@ -4551,7 +4551,7 @@
         },
         "description": "Check row with provided primary key exists or not",
         "tags": [
-          "DB view row"
+          "DB View Row"
         ]
       }
     },
@@ -4605,7 +4605,7 @@
         },
         "description": "Get the Table Row",
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ]
       },
       "patch": {
@@ -4622,7 +4622,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "requestBody": {
           "content": {
@@ -4647,7 +4647,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "description": "Delete the Table Row"
       }
@@ -4702,7 +4702,7 @@
         },
         "description": "check row with provided primary key exists or not",
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ]
       }
     },
@@ -4747,7 +4747,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "requestBody": {
           "content": {
@@ -4772,7 +4772,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "requestBody": {
           "content": {
@@ -4797,7 +4797,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "requestBody": {
           "content": {
@@ -4857,7 +4857,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "requestBody": {
           "content": {
@@ -4882,7 +4882,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "requestBody": {
           "content": {
@@ -4946,7 +4946,7 @@
         "operationId": "db-view-row-export",
         "description": "Export Table View Rows by CSV or Excel",
         "tags": [
-          "DB view row"
+          "DB View Row"
         ],
         "wrapped": true,
         "responses": {
@@ -5013,7 +5013,7 @@
         "operationId": "db-table-row-csv-export",
         "description": "Export Table View Rows by CSV or Excel",
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "wrapped": true,
         "responses": {
@@ -5106,7 +5106,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "parameters": [
           {
@@ -5214,7 +5214,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "parameters": [
           {
@@ -5250,7 +5250,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "description": "Delete a new nested relations row"
       }
@@ -5325,7 +5325,7 @@
           }
         },
         "tags": [
-          "DB table row"
+          "DB Table Row"
         ],
         "parameters": [
           {
@@ -6092,7 +6092,7 @@
         "description": "List all hook records in the given Table",
         "parameters": [],
         "tags": [
-          "DB table webhook"
+          "DB Table Webhook"
         ]
       },
       "post": {
@@ -6121,7 +6121,7 @@
           }
         },
         "tags": [
-          "DB table webhook"
+          "DB Table Webhook"
         ]
       }
     },
@@ -6150,7 +6150,7 @@
           }
         },
         "tags": [
-          "DB table webhook"
+          "DB Table Webhook"
         ],
         "requestBody": {
           "content": {
@@ -6228,7 +6228,7 @@
         "description": "Get the sample hook payload",
         "parameters": [],
         "tags": [
-          "DB table webhook"
+          "DB Table Webhook"
         ]
       }
     },
@@ -6259,7 +6259,7 @@
           }
         },
         "tags": [
-          "DB table webhook"
+          "DB Table Webhook"
         ],
         "requestBody": {
           "content": {
@@ -6281,7 +6281,7 @@
           }
         },
         "tags": [
-          "DB table webhook"
+          "DB Table Webhook"
         ],
         "description": "Delete the exsiting hook by its ID"
       }
@@ -6967,7 +6967,7 @@
       "get": {
         "summary": "List API Tokens in Project",
         "tags": [
-          "Api token"
+          "API Token"
         ],
         "responses": {
           "200": {
@@ -7013,7 +7013,7 @@
           }
         },
         "tags": [
-          "Api token"
+          "API Token"
         ],
         "description": "Create API Token in a project"
       },
@@ -7038,7 +7038,7 @@
           }
         },
         "tags": [
-          "Api token"
+          "API Token"
         ],
         "description": "Delete the given API Token in project"
       },

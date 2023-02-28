@@ -124,7 +124,7 @@ const rowMixedValue = (column: ColumnType, index: number) => {
       // eslint-disable-next-line no-case-declarations
       const result = new Date();
       result.setDate(result.getDate() - 400 + index);
-      return result;
+      return result.toISOString().slice(0, 10);
     case UITypes.URL:
       return urls[index % urls.length];
     case UITypes.SingleSelect:

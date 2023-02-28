@@ -2,7 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "nocodb",
-    "version": "1.0"
+    "version": "1.0",
+    "description": "NocoDB API Documentation"
   },
   "servers": [
     {

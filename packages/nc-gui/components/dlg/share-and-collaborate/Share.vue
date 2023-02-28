@@ -59,17 +59,18 @@ const toggleProjectPublishedState = async () => {
 }
 
 const copyPageUrl = async () => {
-  await navigator.clipboard.writeText(nestedUrl(openedPage.value!.id!, { completeUrl: true }))
+  await navigator.clipboard.writeText(nestedUrl(openedPage.value!.id!, { completeUrl: true, publicUrl: true }))
 }
 
 const openPageUrl = async () => {
-  window.open(nestedUrl(openedPage.value!.id!, { completeUrl: true }), '_blank')
+  window.open(nestedUrl(openedPage.value!.id!, { completeUrl: true, publicUrl: true }), '_blank')
 }
 
 const embedPageHtml = async () => {
   await navigator.clipboard.writeText(
     `<iframe src="${nestedUrl(openedPage.value!.id!, {
       completeUrl: true,
+      publicUrl: true,
     })}" width="100%" height="100%" style="border: none;"></iframe>`,
   )
 }

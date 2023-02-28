@@ -13,14 +13,15 @@ async function get(
     const project = await Project.getWithInfo(req.query?.projectId as string);
     const projectMeta = JSON.parse(project.meta);
 
-    if (!projectMeta.isPublic) throw new Error('Project is not found');
-
     const page = await Page.get({
       id: req.params.id,
       projectId: req.query?.projectId as string,
     });
 
     if (!page) throw new Error('Page not found');
+
+    if (!projectMeta.isPublic && !page.is_published)
+      throw new Error('Page is not found');
 
     res.json(page);
   } catch (e) {
@@ -42,9 +43,7 @@ async function list(
       projectId: req.query?.projectId as string,
     });
 
-    const publishedPages = projectMeta.isPublic
-      ? pages
-      : pages.filter((page) => page.is_published);
+    const publishedPages = projectMeta.isPublic ? pages : [];
 
     res // todo: pagination
       .json(publishedPages);

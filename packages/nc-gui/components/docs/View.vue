@@ -5,7 +5,7 @@ const isPublic = inject(IsDocsPublicInj, ref(false))
 
 const route = useRoute()
 
-const { fetchNestedPages, openChildPageTabsOfRootPages, navigateToFirstPage, isErrored, isNoPageOpen } = useDocs()
+const { fetchNestedPages, openChildPageTabsOfRootPages, navigateToFirstPage, isErrored, isNoPageOpen, nestedPages } = useDocs()
 
 useShortcuts()
 
@@ -38,6 +38,8 @@ watch(
     if (isErrored.value && !isLoading.value) {
       toggleSidebar(false)
     } else {
+      if (isPublic.value && nestedPages.value.length < 1) return
+
       toggleSidebar(true)
     }
   },

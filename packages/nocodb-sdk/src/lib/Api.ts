@@ -1899,11 +1899,11 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description Hide / show views based on user role
      *
      * @tags Project
      * @name ModelVisibilityList
-     * @summary UI ACL
+     * @summary Get UI ACL
      * @request GET:/api/v1/db/meta/projects/{projectId}/visibility-rules
      * @response `200` `(any)[]` OK
      */
@@ -1923,10 +1923,11 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description Hide / show views based on user role
      *
      * @tags Project
      * @name ModelVisibilitySet
+     * @summary Create UI ACL
      * @request POST:/api/v1/db/meta/projects/{projectId}/visibility-rules
      * @response `200` `VisibilityRuleReqType` OK
      */

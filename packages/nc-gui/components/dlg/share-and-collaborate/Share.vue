@@ -110,7 +110,12 @@ const toggleNestedPagePublishedState = async () => {
     <div class="flex flex-col w-full px-3.5 py-3.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between">
         <div class="flex" :style="{ fontWeight: 500 }">Share all pages</div>
-        <a-switch :checked="projectMeta.isPublic" :loading="isProjectPublishing" @click="toggleProjectPublishedState" />
+        <a-switch
+          :checked="projectMeta.isPublic"
+          :loading="isProjectPublishing"
+          class="docs-share-public-toggle"
+          @click="toggleProjectPublishedState"
+        />
       </div>
       <div class="flex text-xs">Share all pages in '{{ project?.title }}'</div>
       <div v-if="projectMeta.isPublic" class="flex flex-row justify-end text-gray-600 gap-x-1.5">
@@ -141,17 +146,23 @@ const toggleNestedPagePublishedState = async () => {
     >
       <div class="flex flex-row w-full justify-between">
         <div class="flex" :style="{ fontWeight: 500 }">Share current page</div>
-        <a-switch :checked="!!openedPage?.is_published" :loading="isPagePublishing" @click="togglePagePublishedState" />
+        <a-switch
+          :checked="!!openedPage?.is_published"
+          :loading="isPagePublishing"
+          class="docs-share-public-toggle"
+          @click="togglePagePublishedState"
+        />
       </div>
       <div class="flex text-xs">Share only the current selected page</div>
       <div
         v-if="!!openedPage?.is_published"
-        class="mt-1 flex flex-row w-full justify-between items-center py-2 px-3 bg-gray-100 rounded-md"
+        class="my-1 flex flex-row w-full justify-between items-center py-2 px-3 bg-gray-100 rounded-md"
       >
         <div class="flex">Share nested pages</div>
         <a-switch
           :checked="!!openedPage?.is_nested_published"
           :loading="isNestedPagePublishing"
+          class="docs-share-public-toggle"
           @click="toggleNestedPagePublishedState"
         />
       </div>
@@ -184,3 +195,23 @@ const toggleNestedPagePublishedState = async () => {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.docs-share-public-toggle {
+  height: 1.25rem;
+  min-width: 2.4rem !important;
+  width: 2.4rem !important;
+  line-height: 1rem;
+
+  .ant-switch-handle {
+    height: 1rem !important;
+    min-width: 1rem !important;
+    line-height: 0.8rem !important;
+  }
+  .ant-switch-inner {
+    height: 1rem !important;
+    min-width: 1rem !important;
+    line-height: 1rem !important;
+  }
+}
+</style>

@@ -12,6 +12,7 @@ import Strike from '@tiptap/extension-strike'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
+import OrderedList from '@tiptap/extension-ordered-list'
 import { Link } from './link'
 import { TableCell } from './table/cell'
 import { TableRow } from './table/row'
@@ -54,6 +55,7 @@ const tiptapExtensions = (): Extensions => {
       placeholder: 'Press / to open the command menu or start writing',
     }),
     BulletList,
+    OrderedList,
     TaskList.configure({
       HTMLAttributes: {
         class: 'nc-docs-task-list',

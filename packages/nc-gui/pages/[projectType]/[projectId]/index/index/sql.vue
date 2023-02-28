@@ -56,7 +56,7 @@ const addHistory = (prompt: string, query: string, status: boolean | null = null
 }
 
 const generateSQL = async () => {
-  if (loadMagic.value) return
+  if (!isUIAllowed('sqlEditorAi') || loadMagic.value) return
   if (!sqlPrompt.value.length) return message.warning('Please enter a prompt first!')
 
   loadMagic.value = true
@@ -108,7 +108,7 @@ const generateSQL = async () => {
 }
 
 const generatePrompt = async (mode: 'KPI' | 'dashboard', max = 5) => {
-  if (loadMagic.value) return
+  if (!isUIAllowed('sqlEditorAi') || loadMagic.value) return
 
   loadMagic.value = true
 
@@ -156,7 +156,7 @@ const generatePrompt = async (mode: 'KPI' | 'dashboard', max = 5) => {
 }
 
 const repairSQL = async () => {
-  if (!isUIAllowed('repairSQL') || loadSQL.value) return
+  if (!isUIAllowed('sqlEditorAi') || loadSQL.value) return
 
   loadSQL.value = true
 
@@ -231,7 +231,7 @@ const repairModal = (e?: string) => {
 }
 
 const runSQL = async () => {
-  if (!isUIAllowed('runSQL') || loadSQL.value) return
+  if (!isUIAllowed('sqlEditor') || loadSQL.value) return
 
   if (activePrompt.value?.status === false) return await repairModal(activePrompt.value?.error)
 
@@ -369,13 +369,13 @@ onMounted(() => {
           @resize-column="handleResizeColumn"
         />
         <a-button
-          v-if="dataQuery"
+          v-if="dataQuery && data.length"
           type="primary"
           class="!flex items-center absolute z-5 bottom-[50px]"
           @click="openSqlViewCreateDialog(selectedBase)"
         >
           <MdiEyeCircleOutline class="mr-2" />
-          Create View
+          Create SQL View
         </a-button>
       </div>
     </div>

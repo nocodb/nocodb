@@ -40,6 +40,7 @@
     "@tiptap/extension-image": "^2.0.0-beta.207",
     "@tiptap/extension-link": "^2.0.0-beta.218",
     "@tiptap/extension-list-item": "^2.0.0-beta.207",
+    "@tiptap/extension-ordered-list": "^2.0.0-beta.218",
     "@tiptap/extension-placeholder": "^2.0.0-beta.206",
     "@tiptap/extension-strike": "^2.0.0-beta.205",
     "@tiptap/extension-table": "^2.0.0-beta.209",

@@ -25,12 +25,12 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdLoading = ref(false)
 
-  function cmdOnSelected(event: any) {
-    console.log('selected', event.detail)
+  function cmdOnSelected(_event: any) {
+    // console.log('selected', event.detail)
   }
 
-  function cmdOnChange(event: any) {
-    console.log('change', event.detail)
+  function cmdOnChange(_event: any) {
+    // console.log('change', event)
   }
 
   const cmdPlaceholder = ref('Quick actions')
@@ -92,7 +92,6 @@ export const useCommandPalette = createSharedComposable(() => {
           return item
         })
         cmdLoading.value = false
-        console.log(cmdData.value)
       })
       .catch(() => (cmdLoading.value = false))
   }

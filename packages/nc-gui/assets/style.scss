@@ -360,3 +360,6 @@ a {
   @apply transform transition-transform !hover:(scale-120) !active:(scale-100)
 }
 
+ninja-keys {
+  --ninja-z-index: 1000;
+}

@@ -17,7 +17,7 @@ export default Table.extend({
     return [
       tableEditing(),
       columnResizing({
-        handleWidth: 6,
+        handleWidth: 3,
         cellMinWidth: this.options.cellMinWidth,
         View: this.options.View,
         // TODO: PR for @types/prosemirror-tables

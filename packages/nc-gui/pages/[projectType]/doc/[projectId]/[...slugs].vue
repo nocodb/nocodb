@@ -3,29 +3,22 @@ definePageMeta({
   key: 'true',
   hideHeader: true,
   layout: 'docs',
-  public: true,
 })
 
 const isPublic = ref(false)
 provide(IsDocsPublicInj, isPublic)
 
 const { project, loadBookProject, isLoading } = useProject()
-const isLoadingProject = ref(true)
 
-onMounted(async () => {
-  isLoadingProject.value = true
+onMounted(() => {
   if (!project.value.id && !isLoading.value) {
-    await loadBookProject()
-    if (project.value.isPublicView) {
-      isPublic.value = true
-    }
+    loadBookProject()
   }
-  isLoadingProject.value = false
 })
 </script>
 
 <template>
-  <DocsView v-if="!isLoadingProject" :key="project?.id" />
+  <DocsView v-if="project?.id" :key="project?.id" />
 </template>
 
 <style lang="scss" scoped>

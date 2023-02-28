@@ -81,9 +81,13 @@ const [setup, use] = useInjectionState(() => {
   async function fetchNestedPages() {
     isFetching.value.nestedPages = true
     try {
-      const nestedDocTree = await $api.nocoDocs.listPages({
-        projectId: projectId!,
-      })
+      const nestedDocTree = isPublic.value
+        ? await $api.nocoDocs.listPublicPages({
+            projectId: projectId!,
+          })
+        : await $api.nocoDocs.listPages({
+            projectId: projectId!,
+          })
 
       // traverse tree and add `isLeaf` and `key` properties
       const traverse = (parentNode: any, pages: PageSidebarNode[]) => {
@@ -114,9 +118,13 @@ const [setup, use] = useInjectionState(() => {
     if (!pageId) throw new Error('No page id or slug provided')
 
     try {
-      return await $api.nocoDocs.getPage(pageId, {
-        projectId: projectId!,
-      })
+      return isPublic.value
+        ? await $api.nocoDocs.getPublicPage(pageId, {
+            projectId: projectId!,
+          })
+        : await $api.nocoDocs.getPage(pageId, {
+            projectId: projectId!,
+          })
     } catch (e) {
       console.log(e)
       isPageErrored.value = true
@@ -228,12 +236,15 @@ const [setup, use] = useInjectionState(() => {
   }
 
   function projectUrl() {
-    return `/nc/doc/${projectId!}`
+    return isPublic.value ? `/nc/doc/${projectId!}/public` : `/nc/doc/${projectId!}`
   }
 
-  function nestedUrl(id: string | undefined, { completeUrl = false } = {}) {
+  function nestedUrl(id: string | undefined, { completeUrl = false, publicUrl = false } = {}) {
     const nestedSlugs = nestedSlugsFromPageId(id)
-    const url = `/nc/doc/${projectId!}/${id}/${nestedSlugs.join('/')}`
+    const url =
+      isPublic.value || publicUrl
+        ? `/nc/doc/${projectId!}/public/${id}/${nestedSlugs.join('/')}`
+        : `/nc/doc/${projectId!}/${id}/${nestedSlugs.join('/')}`
     return completeUrl ? `${window.location.origin}/#${url}` : url
   }
 

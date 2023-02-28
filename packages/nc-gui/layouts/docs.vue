@@ -7,7 +7,7 @@ useSidebar('nc-left-sidebar')
 
 const hasSider = ref(false)
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
+const isPublic = computed(() => route.meta?.public)
 
 const sidebar = ref<HTMLDivElement>()
 

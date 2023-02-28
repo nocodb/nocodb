@@ -120,7 +120,6 @@ export interface ProjectType {
   updated_at?: any;
   slug?: string;
   fk_workspace_id?: string;
-  isPublicView?: boolean;
 }
 
 export interface ProjectListType {
@@ -1005,6 +1004,31 @@ export class Api<
     ) =>
       this.request<DocsPageType[], any>({
         path: `/api/v1/public/docs/pages`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Noco docs
+     * @name GetPublicPage
+     * @summary get public page
+     * @request GET:/api/v1/public/docs/page/{id}
+     * @response `200` `void` OK
+     */
+    getPublicPage: (
+      id: string,
+      query: {
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/public/docs/page/${id}`,
         method: 'GET',
         query: query,
         format: 'json',

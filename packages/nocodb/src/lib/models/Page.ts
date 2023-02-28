@@ -161,7 +161,7 @@ export default class Page {
       projectId: string;
     },
     ncMeta = Noco.ncMeta
-  ): Promise<DocsPageType> {
+  ): Promise<DocsPageType | undefined> {
     // todo: Add cache
     let page = undefined;
     if (!page) {

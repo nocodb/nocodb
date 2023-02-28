@@ -93,6 +93,37 @@
         "description": ""
       }
     },
+    "/api/v1/public/docs/page/{id}": {
+      "get": {
+        "summary": "get public page",
+        "operationId": "get-public-page",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "$ref": "#/components/schemas/DocsPage"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Noco docs"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "description": "Project id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "description": ""
+      }
+    },
     "/api/v1/docs/pages/magic": {
       "post": {
         "summary": "Create nested pages magic",
@@ -9291,9 +9322,6 @@
           },
           "fk_workspace_id": {
             "type": "string"
-          },
-          "isPublicView": {
-            "type": "boolean"
           }
         }
       },

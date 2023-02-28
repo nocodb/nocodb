@@ -20,7 +20,7 @@ useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | N
 
 const isHomeScreen = computed(() => route.name === 'index-index')
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
+const isPublic = computed(() => route.meta?.public)
 
 watch(hasSidebar, (val) => {
   if (!val) {

@@ -984,8 +984,9 @@ export interface AuditRowUpdateReqType {
 }
 
 export interface OrgUserReqType {
+  /** @format email */
   email?: string;
-  roles?: string;
+  roles?: 'org-level-creator' | 'org-level-viewer';
 }
 
 export interface ProjectUserReqType {

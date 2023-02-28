@@ -11,7 +11,7 @@ const emits = defineEmits<Emits>()
 const { users, totalUsers, editedUsers, currentPage, loadUsers, updateEditedUsers, isBatchUpdating } = useManageUsers()
 
 const owner = computed(() => users.value?.find((user) => user.roles?.includes('owner')))
-const nonOwners = computed(() => users.value?.filter((user) => !user.roles?.includes('owner')))
+const nonOwners = computed(() => users.value?.filter((user) => !user.roles?.includes('owner')) || [])
 
 const goBack = () => {
   emits('close', false)
@@ -37,7 +37,7 @@ const loadListData = async ($state: any) => {
 </script>
 
 <template>
-  <div class="flex flex-col mx-4">
+  <div class="flex flex-col mx-4 h-112">
     <div class="flex mt-2.5 mb-2.5 text-xs" :style="{ fontWeight: 500 }">Document Owner</div>
     <div v-if="owner" class="flex flex-row px-2 py-2 items-center gap-x-2 border-1 border-gray-200 rounded-md">
       <a-avatar></a-avatar>
@@ -48,11 +48,13 @@ const loadListData = async ($state: any) => {
         </div>
       </div>
     </div>
-    <div class="flex flex-row mt-2 mb-2 pt-2 border-gray-200 border-t-1 gap-x-3 items-center text-xs">
+    <div class="flex flex-grow"></div>
+    <div class="flex flex-row mt-4 mb-2 pt-3 border-gray-200 border-t-1 gap-x-3 items-center text-xs">
       <div :style="{ fontWeight: 500 }">People with access</div>
       <div class="bg-gray-100 border-gray-200 border-1 py-0.5 px-1.5 rounded-md">{{ totalUsers - 1 }} users</div>
     </div>
     <div class="flex flex-col mb-2 pr-0.5 h-96 overflow-y-auto users-list border-b-1 border-gray-200">
+      <div v-if="nonOwners.length === 0" class="text-xs mt-2">No users have access to this document</div>
       <div
         v-for="user of nonOwners"
         :key="user.id"

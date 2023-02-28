@@ -1011,6 +1011,31 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Noco docs
+     * @name GetPublicPage
+     * @summary get public page
+     * @request GET:/api/v1/public/docs/page/{id}
+     * @response `200` `void` OK
+     */
+    getPublicPage: (
+      id: string,
+      query: {
+        /** Project id */
+        projectId: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/public/docs/page/${id}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Create book
      *
      * @tags Noco docs

@@ -5,6 +5,9 @@ definePageMeta({
   layout: 'docs',
 })
 
+const isPublic = ref(false)
+provide(IsDocsPublicInj, isPublic)
+
 const { project, loadBookProject, isLoading } = useProject()
 
 onMounted(() => {

@@ -488,7 +488,7 @@ async function directoryImport(
 const router = Router({ mergeParams: true });
 
 // table data crud apis
-router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
+router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageGet'));
 router.get(
   '/api/v1/docs/page-slug',
   apiMetrics,

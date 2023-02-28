@@ -195,7 +195,7 @@ watch(
             }"
           />
           <div
-            v-if="openedPageInternal?.children?.length !== 0"
+            v-if="(openedPageInternal?.children ?? []).length > 0"
             class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
           >
             <div

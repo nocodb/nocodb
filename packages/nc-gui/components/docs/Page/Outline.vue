@@ -8,10 +8,9 @@ const { wrapperRef } = defineProps<{
   wrapperRef: HTMLDivElement | undefined
 }>()
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
 const localPage = inject(DocsLocalPageInj)!
 
-const showPageSubHeadings = ref(isPublic.value)
+const showPageSubHeadings = ref(false)
 const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean }>>([])
 let lastPageScrollTime = 0
 let topHeaderHeight = 60
@@ -125,7 +124,6 @@ onMounted(() => {
   <div v-if="showPageSubHeadings" class="pt-20 mr-24 flex flex-col w-full w-54">
     <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
     <div v-if="pageSubHeadings.length === 0">No content</div>
-
     <a
       v-for="(subHeading, index) in pageSubHeadings"
       :key="index"

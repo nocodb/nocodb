@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import apiMetrics from '../../helpers/apiMetrics';
 import Page from '../../../models/Page';
 import catchError from '../../helpers/catchError';
+import Project from '../../../models/Project';
 
 async function get(
   req: Request<any> & { user: { id: string; roles: string } },
@@ -9,12 +10,18 @@ async function get(
   next
 ) {
   try {
+    const project = await Project.getWithInfo(req.query?.projectId as string);
+    const projectMeta = JSON.parse(project.meta);
+
     const page = await Page.get({
       id: req.params.id,
       projectId: req.query?.projectId as string,
     });
 
     if (!page) throw new Error('Page not found');
+
+    if (!projectMeta.isPublic && !page.is_published)
+      throw new Error('Page is not found');
 
     res.json(page);
   } catch (e) {
@@ -29,11 +36,14 @@ async function list(
   next
 ) {
   try {
+    const project = await Project.getWithInfo(req.query?.projectId as string);
+    const projectMeta = JSON.parse(project.meta);
+
     const pages = await Page.nestedList({
       projectId: req.query?.projectId as string,
     });
 
-    const publishedPages = pages.filter((page) => page.is_published);
+    const publishedPages = projectMeta.isPublic ? pages : [];
 
     res // todo: pagination
       .json(publishedPages);

@@ -5,11 +5,15 @@ const isPublic = inject(IsDocsPublicInj, ref(false))
 
 const route = useRoute()
 
-const { fetchNestedPages, openChildPageTabsOfRootPages, navigateToFirstPage, isErrored, isNoPageOpen } = useDocs()
+const { fetchNestedPages, openChildPageTabsOfRootPages, navigateToFirstPage, isErrored, isNoPageOpen, nestedPages } = useDocs()
 
 useShortcuts()
 
-const { isOpen: isSidebarOpen, toggleHasSidebar: toggleSidebar } = useSidebar('nc-left-sidebar', {
+const {
+  isOpen: isSidebarOpen,
+  toggleHasSidebar,
+  toggle,
+} = useSidebar('nc-left-sidebar', {
   isOpen: true,
 })
 
@@ -32,12 +36,27 @@ const onPublicMount = async () => {
   await openChildPageTabsOfRootPages()
 }
 
+const toggleSidebar = (isOpen: boolean) => {
+  if (isOpen) {
+    toggleHasSidebar(true)
+    toggle(true)
+  } else {
+    toggleHasSidebar(false)
+    toggle(false)
+  }
+}
+
 watch(
   [isErrored, isLoading],
   () => {
     if (isErrored.value && !isLoading.value) {
       toggleSidebar(false)
     } else {
+      if (isPublic.value && nestedPages.value.length < 1 && !isLoading.value) {
+        toggleSidebar(false)
+        return
+      }
+
       toggleSidebar(true)
     }
   },
@@ -47,11 +66,19 @@ watch(
 )
 
 onMounted(async () => {
-  if (isPublic.value) {
-    await onPublicMount()
-  } else {
-    await onAdminMount()
+  toggleSidebar(true)
+  isLoading.value = true
+
+  try {
+    if (isPublic.value) {
+      await onPublicMount()
+    } else {
+      await onAdminMount()
+    }
+  } catch (e: any) {
+    console.error(e)
   }
+  isLoading.value = false
 })
 </script>
 
@@ -64,7 +91,7 @@ onMounted(async () => {
       <DocsError />
     </div>
     <template v-else>
-      <DocsBookView v-if="isNoPageOpen" />
+      <DocsBookView v-if="isNoPageOpen && !isPublic" />
       <DocsPageView v-else />
     </template>
   </NuxtLayout>

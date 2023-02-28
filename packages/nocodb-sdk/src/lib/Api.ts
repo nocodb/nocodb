@@ -120,6 +120,7 @@ export interface ProjectType {
   updated_at?: any;
   slug?: string;
   fk_workspace_id?: string;
+  isPublicView?: boolean;
 }
 
 export interface ProjectListType {

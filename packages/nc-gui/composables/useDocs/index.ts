@@ -81,13 +81,9 @@ const [setup, use] = useInjectionState(() => {
   async function fetchNestedPages() {
     isFetching.value.nestedPages = true
     try {
-      const nestedDocTree = isPublic.value
-        ? await $api.nocoDocs.listPublicPages({
-            projectId: projectId!,
-          })
-        : await $api.nocoDocs.listPages({
-            projectId: projectId!,
-          })
+      const nestedDocTree = await $api.nocoDocs.listPages({
+        projectId: projectId!,
+      })
 
       // traverse tree and add `isLeaf` and `key` properties
       const traverse = (parentNode: any, pages: PageSidebarNode[]) => {
@@ -232,7 +228,7 @@ const [setup, use] = useInjectionState(() => {
   }
 
   function projectUrl() {
-    return isPublic.value ? `/nc/doc/${projectId!}/public` : `/nc/doc/${projectId!}`
+    return `/nc/doc/${projectId!}`
   }
 
   function nestedUrl(id: string | undefined, { completeUrl = false } = {}) {

@@ -64,7 +64,7 @@ onMounted(async () => {
       <DocsError />
     </div>
     <template v-else>
-      <DocsBookView v-if="isNoPageOpen" />
+      <DocsBookView v-if="isNoPageOpen && !isPublic" />
       <DocsPageView v-else />
     </template>
   </NuxtLayout>

@@ -34,6 +34,40 @@ async function get(
   }
 }
 
+async function handleGetPublicPage(req, res, next) {
+  try {
+    if (req?.headers['xc-auth']) {
+      next();
+      return;
+    }
+
+    const project = await Project.getWithInfo(req.query?.projectId as string);
+    const projectMeta = JSON.parse(project.meta);
+
+    const page = await Page.get({
+      id: req.params.id,
+      projectId: req.query?.projectId as string,
+    });
+    if (page.is_published || projectMeta.isPublic) {
+      res.json({
+        title: page.title,
+        content: page.content,
+        update_at: page.updated_at,
+        created_at: page.created_at,
+        last_published_by_id: page.last_published_by_id,
+        last_published_date: page.last_published_date,
+        created_by_id: page.created_by_id,
+      });
+
+      return;
+    }
+  } catch (e) {
+    console.log(e);
+  }
+
+  next();
+}
+
 async function getBySlug(
   req: Request<any> & { user: { id: string; roles: string } },
   res: Response,
@@ -68,6 +102,53 @@ async function list(
     console.log(e);
     next(e);
   }
+}
+
+async function handleListPublicPage(req, res, next) {
+  if (req?.headers['xc-auth']) {
+    next();
+    return;
+  }
+
+  try {
+    const project = await Project.getWithInfo(req.query?.projectId as string);
+    const projectMeta = JSON.parse(project.meta);
+
+    const page = await Page.get({
+      id: req.query?.parent_page_id as string,
+      projectId: req.query?.projectId as string,
+    });
+    if (page.is_published || projectMeta.isPublic) {
+      const pages = await Page.nestedList({
+        parent_page_id: req.query?.parent_page_id as string,
+        projectId: req.query?.projectId as string,
+        onlyPublished: !projectMeta.isPublic,
+        fields: [
+          'id',
+          'title',
+          'slug',
+          'order',
+          'parent_page_id',
+          'is_parent',
+          'is_published',
+          'updated_at',
+          'created_at',
+          'last_updated_by_id',
+          'last_published_by_id',
+          'created_by_id',
+          'icon',
+        ],
+      });
+
+      res.json(pages);
+
+      return;
+    }
+  } catch (e) {
+    console.log(e);
+  }
+
+  next();
 }
 
 async function create(
@@ -488,7 +569,12 @@ async function directoryImport(
 const router = Router({ mergeParams: true });
 
 // table data crud apis
-router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageList'));
+router.get(
+  '/api/v1/docs/page/:id',
+  apiMetrics,
+  handleGetPublicPage,
+  ncMetaAclMw(get, 'pageGet')
+);
 router.get(
   '/api/v1/docs/page-slug',
   apiMetrics,
@@ -504,7 +590,12 @@ router.get(
   apiMetrics,
   ncMetaAclMw(pageParents, 'pageParents')
 );
-router.get('/api/v1/docs/pages', apiMetrics, ncMetaAclMw(list, 'pageList'));
+router.get(
+  '/api/v1/docs/pages',
+  apiMetrics,
+  handleListPublicPage,
+  ncMetaAclMw(list, 'pageList')
+);
 router.get(
   '/api/v1/docs/page-drafts',
   apiMetrics,

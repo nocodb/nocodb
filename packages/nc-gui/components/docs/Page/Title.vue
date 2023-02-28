@@ -35,9 +35,10 @@ const setIcon = async (icon: string) => {
 watchDebounced(
   () => [localPage.value?.id, localPage.value?.title],
   async ([oldPageId], [newPageId]) => {
-    if (oldPageId !== newPageId) {
-      return
-    }
+    if (isPublic.value) return
+
+    if (oldPageId !== newPageId) return
+
     await updatePage({ pageId: localPage.value!.id!, page: { title: localPage.value?.title } as any })
   },
   {

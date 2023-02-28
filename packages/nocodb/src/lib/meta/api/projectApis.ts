@@ -46,6 +46,33 @@ export async function projectGet(
   res.json(project);
 }
 
+async function handleGetPublicProject(req, res, next) {
+  if (req?.headers['xc-auth']) {
+    next();
+    return;
+  }
+
+  try {
+    const project = await Project.getWithInfo(req.params.projectId);
+    const projectMeta = JSON.parse(project.meta);
+
+    if (projectMeta?.isPublic) {
+      res.json({
+        id: project.id,
+        title: project.title,
+        meta: project.meta,
+        isPublicView: true,
+      });
+
+      return;
+    }
+  } catch (e) {
+    console.log(e);
+  }
+
+  next();
+}
+
 export async function projectUpdate(
   req: Request<any, any, any>,
   res: Response<ProjectListType>
@@ -294,6 +321,7 @@ export default (router) => {
   router.get(
     '/api/v1/db/meta/projects/:projectId',
     metaApiMetrics,
+    handleGetPublicProject,
     ncMetaAclMw(projectGet, 'projectGet')
   );
   router.patch(

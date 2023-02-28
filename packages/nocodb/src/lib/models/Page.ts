@@ -357,26 +357,34 @@ export default class Page {
   public static async list(
     {
       parent_page_id,
+      // Is used to fetch all the pages, since parent_page_id is null for root pages
       fetchAll,
       projectId,
+      onlyPublished,
+      fields,
     }: {
       parent_page_id?: string;
       fetchAll?: boolean;
       projectId: string;
+      onlyPublished?: boolean;
+      fields?: string[];
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType[]> {
+    const condition: any = {};
+    if (!fetchAll) {
+      condition.parent_page_id = parent_page_id ?? null;
+    }
+    if (onlyPublished) {
+      condition.is_published = true;
+    }
     const pageList = await ncMeta.metaList2(
       null,
       null,
       Page.tableName({ projectId }),
       {
-        condition: fetchAll
-          ? {}
-          : {
-              parent_page_id: parent_page_id ?? null,
-            },
-        fields: [
+        condition,
+        fields: fields ?? [
           'id',
           'title',
           'slug',
@@ -402,14 +410,20 @@ export default class Page {
   public static async nestedList({
     projectId,
     parent_page_id,
+    onlyPublished = false,
+    fields,
   }: {
     projectId: string;
     parent_page_id?: string;
+    onlyPublished?: boolean;
+    fields?: string[];
   }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
     const nestedList = await this.list({
       projectId,
       parent_page_id,
       fetchAll: true,
+      onlyPublished,
+      fields,
     });
 
     if (!nestedList || nestedList.length === 0) return [];

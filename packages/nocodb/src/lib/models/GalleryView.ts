@@ -1,24 +1,24 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { GalleryColumnType, GalleryType, UITypes } from 'nocodb-sdk';
+import { BoolType, GalleryColumnType, GalleryType, UITypes } from 'nocodb-sdk'
 import View from './View';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
 
 export default class GalleryView implements GalleryType {
   fk_view_id?: string;
-  deleted?: boolean;
+  deleted?: BoolType;
   order?: number;
-  next_enabled?: boolean;
-  prev_enabled?: boolean;
+  next_enabled?: BoolType;
+  prev_enabled?: BoolType;
   cover_image_idx?: number;
   cover_image?: string;
   restrict_types?: string;
   restrict_size?: string;
   restrict_number?: string;
-  public?: boolean;
+  public?: BoolType;
   password?: string;
-  show_all_fields?: boolean;
+  show_all_fields?: BoolType;
   fk_cover_image_col_id?: string;
 
   project_id?: string;

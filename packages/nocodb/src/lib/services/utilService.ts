@@ -1,33 +1,32 @@
-// // Project CRUD
-import { Request, Response } from 'express';
 import { compareVersions, validate } from 'compare-versions';
 
 import { ViewTypes } from 'nocodb-sdk';
-import Project from '../../models/Project';
-import Noco from '../../Noco';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { MetaTable } from '../../utils/globals';
-import { packageVersion } from '../../utils/packageVersion';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
+import { Project } from '../models';
+import { NcError } from '../meta/helpers/catchError';
+import Noco from '../Noco';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import { MetaTable } from '../utils/globals';
+import { packageVersion } from '../utils/packageVersion';
+import SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import NcConfigFactory, {
   defaultConnectionConfig,
-} from '../../utils/NcConfigFactory';
-import User from '../../models/User';
-import catchError from '../helpers/catchError';
+} from '../utils/NcConfigFactory';
+import { User } from '../models';
 import axios from 'axios';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 
 const versionCache = {
   releaseVersion: null,
   lastFetched: null,
 };
 
-export async function testConnection(req: Request, res: Response) {
-  res.json(await SqlMgrv2.testConnection(req.body));
+
+
+export async function testConnection(param:{body: any}) {
+  return await SqlMgrv2.testConnection(param.body);
 }
 
-export async function appInfo(req: Request, res: Response) {
+export async function appInfo(param: { req: { ncSiteUrl: string } }) {
   const projectHasAdmin = !(await User.isFirst());
   const result = {
     authType: 'jwt',
@@ -55,16 +54,16 @@ export async function appInfo(req: Request, res: Response) {
     ncMin: !!process.env.NC_MIN,
     teleEnabled: process.env.NC_DISABLE_TELE === 'true' ? false : true,
     auditEnabled: process.env.NC_DISABLE_AUDIT === 'true' ? false : true,
-    ncSiteUrl: (req as any).ncSiteUrl,
+    ncSiteUrl: (param.req as any).ncSiteUrl,
     ee: Noco.isEE(),
     ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
     ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
   };
 
-  res.json(result);
+  return result;
 }
 
-export async function versionInfo(_req: Request, res: Response) {
+export async function versionInfo() {
   if (
     !versionCache.lastFetched ||
     (versionCache.lastFetched &&
@@ -94,19 +93,23 @@ export async function versionInfo(_req: Request, res: Response) {
     releaseVersion: versionCache.releaseVersion,
   };
 
-  res.json(response);
+  return response;
 }
 
-export async function appHealth(_: Request, res: Response) {
-  res.json({
+export async function appHealth() {
+  return {
     message: 'OK',
     timestamp: Date.now(),
     uptime: process.uptime(),
-  });
+  };
 }
 
-async function _axiosRequestMake(req: Request, res: Response) {
-  const { apiMeta } = req.body;
+async function _axiosRequestMake(param: {
+  body: {
+    apiMeta: any;
+  };
+}) {
+  const { apiMeta } = param.body;
 
   if (apiMeta?.body) {
     try {
@@ -149,13 +152,17 @@ async function _axiosRequestMake(req: Request, res: Response) {
     withCredentials: true,
   };
   const data = await require('axios')(_req);
-  return res.json(data?.data);
+  return data?.data;
 }
 
-export async function axiosRequestMake(req: Request, res: Response) {
+export async function axiosRequestMake(param: {
+  body: {
+    apiMeta: any;
+  };
+}) {
   const {
     apiMeta: { url },
-  } = req.body;
+  } = param.body;
   const isExcelImport = /.*\.(xls|xlsx|xlsm|ods|ots)/;
   const isCSVImport = /.*\.(csv)/;
   const ipBlockList =
@@ -164,21 +171,27 @@ export async function axiosRequestMake(req: Request, res: Response) {
     ipBlockList.test(url) ||
     (!isCSVImport.test(url) && !isExcelImport.test(url))
   ) {
-    return res.json({});
+    return {};
   }
   if (isCSVImport || isExcelImport) {
-    req.body.apiMeta.responseType = 'arraybuffer';
+    param.body.apiMeta.responseType = 'arraybuffer';
   }
-  return await _axiosRequestMake(req, res);
+  return await _axiosRequestMake({
+    body: param.body,
+  });
 }
 
-export async function urlToDbConfig(req: Request, res: Response) {
-  const { url } = req.body;
+export async function urlToDbConfig(param: {
+  body: {
+    url: string;
+  };
+}) {
+  const { url } = param.body;
   try {
     const connectionConfig = NcConfigFactory.extractXcUrlFromJdbc(url, true);
-    return res.json(connectionConfig);
+    return connectionConfig;
   } catch (error) {
-    return res.sendStatus(500);
+    return NcError.internalServerError();
   }
 }
 
@@ -218,7 +231,7 @@ interface AllMeta {
   sharedBaseCount: number;
 }
 
-export async function aggregatedMetaInfo(_req: Request, res: Response) {
+export async function aggregatedMetaInfo() {
   const [projects, userCount] = await Promise.all([
     Project.list({}),
     Noco.ncMeta.metaCount(null, null, MetaTable.USERS),
@@ -354,7 +367,7 @@ export async function aggregatedMetaInfo(_req: Request, res: Response) {
     )
   );
 
-  res.json(result);
+  return result;
 }
 
 const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
@@ -365,20 +378,4 @@ const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
     console.log(result.reason);
     return null;
   });
-};
-
-export default (router) => {
-  router.post(
-    '/api/v1/db/meta/connection/test',
-    ncMetaAclMw(testConnection, 'testConnection')
-  );
-  router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
-  router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
-  router.get('/api/v1/version', catchError(versionInfo));
-  router.get('/api/v1/health', catchError(appHealth));
-  router.post('/api/v1/url_to_config', catchError(urlToDbConfig));
-  router.get(
-    '/api/v1/aggregated-meta-info',
-    ncMetaAclMw(aggregatedMetaInfo, 'aggregatedMetaInfo')
-  );
 };

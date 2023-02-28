@@ -1,13 +1,16 @@
 import { Request, Response, Router } from 'express';
-import FormViewColumn from '../../models/FormViewColumn';
-import { Tele } from 'nc-help';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../meta/helpers/apiMetrics';
+import { getAjvValidatorMw } from '../meta/api/helpers';
+import { formViewColumnService } from '../services';
 
 export async function columnUpdate(req: Request, res: Response) {
-  Tele.emit('evt', { evt_type: 'formViewColumn:updated' });
-  res.json(await FormViewColumn.update(req.params.formViewColumnId, req.body));
+  res.json(
+    await formViewColumnService.columnUpdate({
+      formViewColumnId: req.params.formViewColumnId,
+      formViewColumn: req.body,
+    })
+  );
 }
 
 const router = Router({ mergeParams: true });

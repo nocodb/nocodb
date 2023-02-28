@@ -3,7 +3,6 @@ import { Tele } from 'nc-help';
 import { SharedViewReqType, ViewReqType } from 'nocodb-sdk';
 import { xcVisibilityMetaGet } from '../meta/api/modelVisibilityApis';
 
-
 export async function viewList(param: {
   tableId: string;
   user: {

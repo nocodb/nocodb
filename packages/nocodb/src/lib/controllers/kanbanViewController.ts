@@ -1,11 +1,11 @@
 import { Request, Response, Router } from 'express';
 import { KanbanType, ViewTypes } from 'nocodb-sdk';
-import View from '../../models/View';
-import KanbanView from '../../models/KanbanView';
+import View from '../models/View';
+import KanbanView from '../models/KanbanView';
 import { Tele } from 'nc-help';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../meta/helpers/apiMetrics';
+import { getAjvValidatorMw } from '../meta/api/helpers';
 
 export async function kanbanViewGet(req: Request, res: Response<KanbanType>) {
   res.json(await KanbanView.get(req.params.kanbanViewId));

@@ -1,29 +1,34 @@
 import { Request, Response, Router } from 'express';
-import { GalleryType, ViewTypes } from 'nocodb-sdk';
-import View from '../../models/View';
-import GalleryView from '../../models/GalleryView';
-import { Tele } from 'nc-help';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers';
+import { GalleryType } from 'nocodb-sdk';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../meta/helpers/apiMetrics';
+import { getAjvValidatorMw } from '../meta/api/helpers';
+import { galleryViewService } from '../services';
+
 export async function galleryViewGet(req: Request, res: Response<GalleryType>) {
-  res.json(await GalleryView.get(req.params.galleryViewId));
+  res.json(
+    await galleryViewService.galleryViewGet({
+      galleryViewId: req.params.galleryViewId,
+    })
+  );
 }
 
 export async function galleryViewCreate(req: Request<any, any>, res) {
-  Tele.emit('evt', { evt_type: 'vtable:created', show_as: 'gallery' });
-  const view = await View.insert({
-    ...req.body,
+  const view = await galleryViewService.galleryViewCreate({
+    gallery: req.body,
     // todo: sanitize
-    fk_model_id: req.params.tableId,
-    type: ViewTypes.GALLERY,
+    tableId: req.params.tableId,
   });
   res.json(view);
 }
 
 export async function galleryViewUpdate(req, res) {
-  Tele.emit('evt', { evt_type: 'view:updated', type: 'gallery' });
-  res.json(await GalleryView.update(req.params.galleryViewId, req.body));
+  res.json(
+    await galleryViewService.galleryViewUpdate({
+      galleryViewId: req.params.galleryViewId,
+      gallery: req.body,
+    })
+  );
 }
 
 const router = Router({ mergeParams: true });

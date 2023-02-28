@@ -1128,6 +1128,31 @@ export class Api<
       }),
 
     /**
+ * @description Clear refresh token from the database and cookie.
+ * 
+ * @tags Auth
+ * @name Signout
+ * @summary Signout
+ * @request POST:/api/v1/auth/user/signout
+ * @response `200` `{
+  msg?: string,
+
+}` OK
+ */
+    signout: (params: RequestParams = {}) =>
+      this.request<
+        {
+          msg?: string;
+        },
+        any
+      >({
+        path: `/api/v1/auth/user/signout`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Authenticate existing user with their email and password. Successful login will return a JWT access-token. 
  * 
  * @tags Auth

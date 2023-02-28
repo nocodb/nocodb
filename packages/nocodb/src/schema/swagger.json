@@ -1054,7 +1054,7 @@
     },
     "/api/v1/db/meta/projects/{projectId}/visibility-rules": {
       "get": {
-        "summary": "UI ACL",
+        "summary": "Get UI ACL",
         "operationId": "project-model-visibility-list",
         "responses": {
           "200": {
@@ -1069,7 +1069,7 @@
             }
           }
         },
-        "description": "",
+        "description": "Hide / show views based on user role",
         "tags": [
           "Project"
         ],
@@ -1094,7 +1094,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Create UI ACL",
         "operationId": "project-model-visibility-set",
         "responses": {
           "200": {
@@ -1117,7 +1117,8 @@
         },
         "tags": [
           "Project"
-        ]
+        ],
+        "description": "Hide / show views based on user role"
       }
     },
     "/api/v1/db/meta/projects/": {

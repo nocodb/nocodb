@@ -66,7 +66,7 @@ watch(
 )
 
 onMounted(async () => {
-  toggleSidebar(false)
+  toggleSidebar(true)
   isLoading.value = true
 
   try {

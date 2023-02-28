@@ -10909,13 +10909,13 @@
     },
     "securitySchemes": {
       "xc-auth": {
-        "name": "API Key",
+        "name": "Auth Token",
         "type": "apiKey",
         "in": "header",
         "description": "JWT access token"
       },
       "xc-shared-base-id": {
-        "name": "API Key",
+        "name": "Shared Base ID",
         "type": "apiKey",
         "in": "header",
         "description": "Shared base uuid"

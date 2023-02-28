@@ -30,7 +30,7 @@ import projectUserApis from './projectUserApis';
 import sharedBaseApis from './sharedBaseApis';
 import { initStrategies } from './userApi/initStrategies';
 import modelVisibilityApis from './modelVisibilityApis';
-import metaDiffApis from './metaDiffApis';
+import metaDiffApis from '../../services/metaDiffService';
 import cacheApis from './cacheApis';
 import apiTokenApis from './apiTokenApis';
 import hookFilterApis from './hookFilterApis';
@@ -55,7 +55,7 @@ import crypto from 'crypto';
 import swaggerApis from './swagger/swaggerApis';
 import importApis from './sync/importApis';
 import syncSourceApis from './sync/syncSourceApis';
-import mapViewApis from './mapViewApis';
+import mapViewApis from '../../services/mapViewService';
 
 const clients: { [id: string]: Socket } = {};
 const jobs: { [id: string]: { last_message: any } } = {};

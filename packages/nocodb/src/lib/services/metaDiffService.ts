@@ -1,22 +1,23 @@
 // // Project CRUD
 
 import { Tele } from 'nc-help';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import Model from '../../models/Model';
-import Project from '../../models/Project';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
-import { Router } from 'express';
-import Base from '../../models/Base';
-import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
-import Column from '../../models/Column';
-import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
-import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
-import NcHelp from '../../utils/NcHelp';
-import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
-import getColumnUiType from '../helpers/getColumnUiType';
-import { metaApiMetrics } from '../helpers/apiMetrics';
+import {
+  Base,
+  Column,
+  LinkToAnotherRecordColumn,
+  Model,
+  Project,
+} from '../models';
+import ModelXcMetaFactory from '../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
+import { getUniqueColumnAliasName } from '../meta/helpers/getUniqueName';
+import NcHelp from '../utils/NcHelp';
+import getTableNameAlias, {
+  getColumnNameAlias,
+} from '../meta/helpers/getTableName';
+import mapDefaultDisplayValue from '../meta/helpers/mapDefaultDisplayValue';
+import getColumnUiType from '../meta/helpers/getColumnUiType';
 
 export enum MetaDiffType {
   TABLE_NEW = 'TABLE_NEW',
@@ -545,8 +546,8 @@ async function getMetaDiff(
   return changes;
 }
 
-export async function metaDiff(req, res) {
-  const project = await Project.getWithInfo(req.params.projectId);
+export async function metaDiff(param: { projectId: string }) {
+  const project = await Project.getWithInfo(param.projectId);
   let changes = [];
   for (const base of project.bases) {
     try {
@@ -558,22 +559,27 @@ export async function metaDiff(req, res) {
     }
   }
 
-  res.json(changes);
+  return changes;
 }
 
-export async function baseMetaDiff(req, res) {
-  const project = await Project.getWithInfo(req.params.projectId);
-  const base = await Base.get(req.params.baseId);
+export async function baseMetaDiff(param: {
+  projectId: string;
+  baseId: string;
+}) {
+  const project = await Project.getWithInfo(param.projectId);
+  const base = await Base.get(param.baseId);
   let changes = [];
 
   const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
   changes = await getMetaDiff(sqlClient, project, base);
 
-  res.json(changes);
+  return changes;
 }
 
-export async function metaDiffSync(req, res) {
-  const project = await Project.getWithInfo(req.params.projectId);
+export async function metaDiffSync(param: {
+  projectId: string;
+}) {
+  const project = await Project.getWithInfo(param.projectId);
   for (const base of project.bases) {
     const virtualColumnInsert: Array<() => Promise<void>> = [];
 
@@ -773,12 +779,15 @@ export async function metaDiffSync(req, res) {
 
   Tele.emit('evt', { evt_type: 'metaDiff:synced' });
 
-  res.json({ msg: 'success' });
+  return true;
 }
 
-export async function baseMetaDiffSync(req, res) {
-  const project = await Project.getWithInfo(req.params.projectId);
-  const base = await Base.get(req.params.baseId);
+export async function baseMetaDiffSync(param: {
+  projectId: string;
+  baseId: string;
+}) {
+  const project = await Project.getWithInfo(param.projectId);
+  const base = await Base.get(param.baseId);
 
   const virtualColumnInsert: Array<() => Promise<void>> = [];
 
@@ -962,7 +971,7 @@ export async function baseMetaDiffSync(req, res) {
 
   Tele.emit('evt', { evt_type: 'baseMetaDiff:synced' });
 
-  res.json({ msg: 'success' });
+  return true;
 }
 
 async function isMMRelationExist(
@@ -1094,26 +1103,3 @@ export async function extractAndGenerateManyToManyRelations(
     }
   }
 }
-
-const router = Router();
-router.get(
-  '/api/v1/db/meta/projects/:projectId/meta-diff',
-  metaApiMetrics,
-  ncMetaAclMw(metaDiff, 'metaDiff')
-);
-router.post(
-  '/api/v1/db/meta/projects/:projectId/meta-diff',
-  metaApiMetrics,
-  ncMetaAclMw(metaDiffSync, 'metaDiffSync')
-);
-router.get(
-  '/api/v1/db/meta/projects/:projectId/meta-diff/:baseId',
-  metaApiMetrics,
-  ncMetaAclMw(baseMetaDiff, 'baseMetaDiff')
-);
-router.post(
-  '/api/v1/db/meta/projects/:projectId/meta-diff/:baseId',
-  metaApiMetrics,
-  ncMetaAclMw(baseMetaDiffSync, 'baseMetaDiffSync')
-);
-export default router;

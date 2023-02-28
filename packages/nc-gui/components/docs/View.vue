@@ -9,7 +9,11 @@ const { fetchNestedPages, openChildPageTabsOfRootPages, navigateToFirstPage, isE
 
 useShortcuts()
 
-const { isOpen: isSidebarOpen, toggleHasSidebar: toggleSidebar } = useSidebar('nc-left-sidebar', {
+const {
+  isOpen: isSidebarOpen,
+  toggleHasSidebar,
+  toggle,
+} = useSidebar('nc-left-sidebar', {
   isOpen: true,
 })
 
@@ -32,13 +36,26 @@ const onPublicMount = async () => {
   await openChildPageTabsOfRootPages()
 }
 
+const toggleSidebar = (isOpen: boolean) => {
+  if (isOpen) {
+    toggleHasSidebar(true)
+    toggle(true)
+  } else {
+    toggleHasSidebar(false)
+    toggle(false)
+  }
+}
+
 watch(
   [isErrored, isLoading],
   () => {
     if (isErrored.value && !isLoading.value) {
       toggleSidebar(false)
     } else {
-      if (isPublic.value && nestedPages.value.length < 1) return
+      if (isPublic.value && nestedPages.value.length < 1 && !isLoading.value) {
+        toggleSidebar(false)
+        return
+      }
 
       toggleSidebar(true)
     }
@@ -49,11 +66,19 @@ watch(
 )
 
 onMounted(async () => {
-  if (isPublic.value) {
-    await onPublicMount()
-  } else {
-    await onAdminMount()
+  toggleSidebar(false)
+  isLoading.value = true
+
+  try {
+    if (isPublic.value) {
+      await onPublicMount()
+    } else {
+      await onAdminMount()
+    }
+  } catch (e: any) {
+    console.error(e)
   }
+  isLoading.value = false
 })
 </script>
 

@@ -5,6 +5,7 @@ definePageMeta({
   layout: 'docs',
 })
 
+const route = useRoute()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
 const { project, loadBookProject, isLoading: isProjectLoading } = useProject()
 const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, nestedPages, isPublic } = useDocs()
@@ -50,6 +51,18 @@ watch(
   },
   {
     immediate: true,
+  },
+)
+
+// todo: hacky. find a better way to reset the state. Tricky due nested public pages and key-ing of components
+// cannot be done
+watch(
+  () => route.fullPath,
+  () => {
+    if (isErrored.value) {
+      // reload window
+      window.location.reload()
+    }
   },
 )
 </script>

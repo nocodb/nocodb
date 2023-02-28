@@ -1,52 +1,52 @@
 import { Request, Response, Router } from 'express';
-// @ts-ignore
-import Model from '../models/Model';
-import { Tele } from 'nc-help';
-// @ts-ignore
+import { getAjvValidatorMw } from '../meta/api/helpers'
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import { SortListType, SortType, TableType } from 'nocodb-sdk';
-// @ts-ignore
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
-// @ts-ignore
-import Project from '../models/Project';
-import Sort from '../models/Sort';
+import { SortListType, SortReqType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 
-// @ts-ignore
-export async function sortGet(req: Request, res: Response<TableType>) {}
+import { sortService } from '../services';
 
 // @ts-ignore
 export async function sortList(
   req: Request<any, any, any>,
   res: Response<SortListType>
 ) {
-  const sortList = await Sort.list({ viewId: req.params.viewId });
+  const sortList = await sortService.sortList({
+    viewId: req.params.viewId,
+  });
   res.json({
     sorts: new PagedResponseImpl(sortList),
   });
 }
 
 // @ts-ignore
-export async function sortCreate(req: Request<any, any, SortType>, res) {
-  const sort = await Sort.insert({
-    ...req.body,
-    fk_view_id: req.params.viewId,
-  } as Sort);
-  Tele.emit('evt', { evt_type: 'sort:created' });
+export async function sortCreate(req: Request<any, any, SortReqType>, res) {
+  const sort = await sortService.sortCreate({
+    sort: req.body,
+    viewId: req.params.viewId,
+  });
   res.json(sort);
 }
 
 export async function sortUpdate(req, res) {
-  const sort = await Sort.update(req.params.sortId, req.body);
-  Tele.emit('evt', { evt_type: 'sort:updated' });
+  const sort = await sortService.sortUpdate({
+    sortId: req.params.sortId,
+    sort: req.body,
+  });
   res.json(sort);
 }
 
 export async function sortDelete(req: Request, res: Response) {
-  Tele.emit('evt', { evt_type: 'sort:deleted' });
-  const sort = await Sort.delete(req.params.sortId);
+  const sort = await sortService.sortDelete({
+    sortId: req.params.sortId,
+  });
+  res.json(sort);
+}
+export async function sortGet(req: Request, res: Response) {
+  const sort = await sortService.sortGet({
+    sortId: req.params.sortId,
+  });
   res.json(sort);
 }
 
@@ -62,11 +62,13 @@ router.post(
   getAjvValidatorMw('swagger.json#/components/schemas/SortReq'),
   ncMetaAclMw(sortCreate, 'sortCreate')
 );
+
 router.get(
   '/api/v1/db/meta/sorts/:sortId',
   metaApiMetrics,
   ncMetaAclMw(sortGet, 'sortGet')
 );
+
 router.patch(
   '/api/v1/db/meta/sorts/:sortId',
   metaApiMetrics,

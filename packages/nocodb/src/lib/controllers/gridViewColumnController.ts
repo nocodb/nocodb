@@ -1,17 +1,24 @@
 import { Request, Response, Router } from 'express';
-import GridViewColumn from '../models/GridViewColumn';
-import { Tele } from 'nc-help';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { getAjvValidatorMw } from '../meta/api/helpers';
+import { gridViewColumnService } from '../services';
 
 export async function columnList(req: Request, res: Response) {
-  res.json(await GridViewColumn.list(req.params.gridViewId));
+  res.json(
+    await gridViewColumnService.columnList({
+      gridViewId: req.params.gridViewId,
+    })
+  );
 }
 
 export async function gridColumnUpdate(req: Request, res: Response) {
-  Tele.emit('evt', { evt_type: 'gridViewColumn:updated' });
-  res.json(await GridViewColumn.update(req.params.gridViewColumnId, req.body));
+  res.json(
+    await gridViewColumnService.gridColumnUpdate({
+      gridViewColumnId: req.params.gridViewColumnId,
+      grid: req.body,
+    })
+  );
 }
 
 const router = Router({ mergeParams: true });

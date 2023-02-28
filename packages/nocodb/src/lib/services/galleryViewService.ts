@@ -1,8 +1,6 @@
-import { Request, Response, Router } from 'express';
-import { GalleryReqType, GalleryType, ViewTypes } from 'nocodb-sdk';
-import View from '../models/View';
-import GalleryView from '../models/GalleryView';
+import { GalleryReqType, ViewTypes } from 'nocodb-sdk';
 import { Tele } from 'nc-help';
+import { GalleryView, View } from '../models'
 
 export async function galleryViewGet(param: { galleryViewId: string }) {
   return await GalleryView.get(param.galleryViewId);

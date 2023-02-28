@@ -20,35 +20,19 @@ import { UITypes } from 'nocodb-sdk';
 //   - migrate `null` or `empty` filters to `blank`
 //   - add `exact date` in comparison_sub_op for existing filters `eq` and `neq`
 
-async function removeLikeAndNlikeFilters(ncMeta: NcMetaIO) {
+function removeLikeAndNlikeFilters(filter: Filter, ncMeta: NcMetaIO) {
   let actions = [];
-  const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
-  for (const filter of filters) {
-    if (!filter.fk_column_id || filter.is_group) {
-      continue;
-    }
-    const col = await Column.get({ colId: filter.fk_column_id }, ncMeta);
-    if ([UITypes.Date, UITypes.DateTime].includes(col.uidt)) {
-      // remove `is like` and `is not like`
-      if (['like', 'nlike'].includes(filter.comparison_op)) {
-        actions.push(Filter.delete(filter.id, ncMeta));
-      }
-    }
+  // remove `is like` and `is not like`
+  if (['like', 'nlike'].includes(filter.comparison_op)) {
+    actions.push(Filter.delete(filter.id, ncMeta));
   }
-  await Promise.all(actions);
+  return actions;
 }
 
-async function migrateEqAndNeqFilters(ncMeta: NcMetaIO) {
+function migrateEqAndNeqFilters(filter: Filter, ncMeta: NcMetaIO) {
   let actions = [];
-  const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
-  for (const filter of filters) {
-    if (
-      !filter.fk_column_id ||
-      filter.is_group ||
-      !['eq', 'neq'].includes(filter.comparison_op)
-    ) {
-      continue;
-    }
+  // remove `is like` and `is not like`
+  if (['eq', 'neq'].includes(filter.comparison_op)) {
     actions.push(
       Filter.update(
         filter.id,
@@ -59,49 +43,51 @@ async function migrateEqAndNeqFilters(ncMeta: NcMetaIO) {
       )
     );
   }
-  await Promise.all(actions);
+  return actions;
 }
 
-async function migrateEmptyAndNullFilters(ncMeta: NcMetaIO) {
+function migrateEmptyAndNullFilters(filter: Filter, ncMeta: NcMetaIO) {
   let actions = [];
-  const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
-  for (const filter of filters) {
-    if (
-      !filter.fk_column_id ||
-      filter.is_group ||
-      !['empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op)
-    ) {
-      continue;
-    }
-    if (['empty', 'null'].includes(filter.comparison_op)) {
-      // migrate to blank
-      actions.push(
-        Filter.update(
-          filter.id,
-          {
-            comparison_op: 'blank',
-          },
-          ncMeta
-        )
-      );
-    } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
-      // migrate to not blank
-      actions.push(
-        Filter.update(
-          filter.id,
-          {
-            comparison_op: 'notblank',
-          },
-          ncMeta
-        )
-      );
-    }
+  // remove `is like` and `is not like`
+  if (['empty', 'null'].includes(filter.comparison_op)) {
+    // migrate to blank
+    actions.push(
+      Filter.update(
+        filter.id,
+        {
+          comparison_op: 'blank',
+        },
+        ncMeta
+      )
+    );
+  } else if (['notempty', 'notnull'].includes(filter.comparison_op)) {
+    // migrate to not blank
+    actions.push(
+      Filter.update(
+        filter.id,
+        {
+          comparison_op: 'notblank',
+        },
+        ncMeta
+      )
+    );
   }
-  await Promise.all(actions);
+  return actions;
 }
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  await removeLikeAndNlikeFilters(ncMeta);
-  await migrateEmptyAndNullFilters(ncMeta);
-  await migrateEqAndNeqFilters(ncMeta);
+  const filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP);
+  for (const filter of filters) {
+    if (!filter.fk_column_id || filter.is_group) {
+      continue;
+    }
+    const col = await Column.get({ colId: filter.fk_column_id }, ncMeta);
+    if ([UITypes.Date, UITypes.DateTime].includes(col.uidt)) {
+      await Promise.all([
+        ...removeLikeAndNlikeFilters(filter, ncMeta),
+        ...migrateEmptyAndNullFilters(filter, ncMeta),
+        ...migrateEqAndNeqFilters(filter, ncMeta),
+      ]);
+    }
+  }
 }

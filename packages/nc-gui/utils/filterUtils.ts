@@ -307,13 +307,13 @@ export const comparisonSubOpList = (
       },
       {
         text: 'the next number of days',
-        value: 'pastNumberOfDays',
+        value: 'nextNumberOfDays',
         ignoreVal: false,
         includedTypes: [UITypes.Date, UITypes.DateTime],
       },
       {
         text: 'the past number of days',
-        value: 'nextNumberOfDays',
+        value: 'pastNumberOfDays',
         ignoreVal: false,
         includedTypes: [UITypes.Date, UITypes.DateTime],
       },

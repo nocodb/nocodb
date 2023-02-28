@@ -1186,6 +1186,8 @@ export class HttpClient<SecurityDataType = unknown> {
  * @title nocodb
  * @version 1.0
  * @baseUrl http://localhost:8080
+ *
+ * NocoDB API Documentation
  */
 export class Api<
   SecurityDataType extends unknown
@@ -1560,12 +1562,12 @@ export class Api<
         ...params,
       }),
   };
-  orgTokens = {
+  organisationTokens = {
     /**
  * @description List all organisation API tokens.  Access with API tokens will be blocked.
  * 
- * @tags Org tokens
- * @name List
+ * @tags Organisation Tokens
+ * @name OrgTokensList
  * @summary List Organisation API Tokens
  * @request GET:/api/v1/tokens
  * @response `200` `{
@@ -1580,7 +1582,7 @@ export class Api<
 
 }` OK
  */
-    list: (params: RequestParams = {}) =>
+    orgTokensList: (params: RequestParams = {}) =>
       this.request<
         {
           users?: {
@@ -1601,13 +1603,13 @@ export class Api<
     /**
      * @description Creat an organisation API token. Access with API tokens will be blocked.
      *
-     * @tags Org tokens
-     * @name Create
+     * @tags Organisation Tokens
+     * @name OrgTokensCreate
      * @summary Create Organisation API Token
      * @request POST:/api/v1/tokens
      * @response `200` `void` OK
      */
-    create: (data: ApiTokenReqType, params: RequestParams = {}) =>
+    orgTokensCreate: (data: ApiTokenReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/tokens`,
         method: 'POST',
@@ -1619,25 +1621,25 @@ export class Api<
     /**
      * @description Delete an organisation API token. Access with API tokens will be blocked.
      *
-     * @tags Org tokens
-     * @name Delete
+     * @tags Organisation Tokens
+     * @name OrgTokensDelete
      * @summary Delete Organisation API Tokens
      * @request DELETE:/api/v1/tokens/{token}
      * @response `200` `void` OK
      */
-    delete: (token: string, params: RequestParams = {}) =>
+    orgTokensDelete: (token: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/tokens/${token}`,
         method: 'DELETE',
         ...params,
       }),
   };
-  orgLicense = {
+  organisationLicense = {
     /**
  * @description Get the application license key. Exclusive for super admin.
  * 
- * @tags Org license
- * @name Get
+ * @tags Organisation License
+ * @name OrgLicenseGet
  * @summary Get App License
  * @request GET:/api/v1/license
  * @response `200` `{
@@ -1645,7 +1647,7 @@ export class Api<
 
 }` OK
  */
-    get: (params: RequestParams = {}) =>
+    orgLicenseGet: (params: RequestParams = {}) =>
       this.request<
         {
           key?: string;
@@ -1661,13 +1663,13 @@ export class Api<
     /**
      * @description Set the application license key. Exclusive for super admin.
      *
-     * @tags Org license
-     * @name Set
+     * @tags Organisation License
+     * @name OrgLicenseSet
      * @summary Create App License
      * @request POST:/api/v1/license
      * @response `200` `void` OK
      */
-    set: (data: LicenseReqType, params: RequestParams = {}) =>
+    orgLicenseSet: (data: LicenseReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/license`,
         method: 'POST',
@@ -1676,12 +1678,12 @@ export class Api<
         ...params,
       }),
   };
-  orgAppSettings = {
+  organisationAppSettings = {
     /**
  * @description Get the application settings. Exclusive for super admin.
  * 
- * @tags Org app settings
- * @name Get
+ * @tags Organisation App Settings
+ * @name OrgAppSettingsGet
  * @summary Get App Settings
  * @request GET:/api/v1/app-settings
  * @response `200` `{
@@ -1689,7 +1691,7 @@ export class Api<
 
 }` OK
  */
-    get: (params: RequestParams = {}) =>
+    orgAppSettingsGet: (params: RequestParams = {}) =>
       this.request<
         {
           invite_only_signup?: boolean;
@@ -1705,13 +1707,13 @@ export class Api<
     /**
      * @description Update the application settings. Exclusive for super admin.
      *
-     * @tags Org app settings
-     * @name Set
+     * @tags Organisation App Settings
+     * @name OrgAppSettingsSet
      * @summary Create App Settings
      * @request POST:/api/v1/app-settings
      * @response `200` `void` OK
      */
-    set: (
+    orgAppSettingsSet: (
       data: {
         invite_only_signup?: boolean;
       },
@@ -1725,12 +1727,12 @@ export class Api<
         ...params,
       }),
   };
-  orgUsers = {
+  organisationUsers = {
     /**
  * @description List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.
  * 
- * @tags Org users
- * @name List
+ * @tags Organisation Users
+ * @name OrgUsersList
  * @summary List Organisation Users
  * @request GET:/api/v1/users
  * @response `200` `{
@@ -1742,7 +1744,7 @@ export class Api<
 
 }` OK
  */
-    list: (params: RequestParams = {}) =>
+    orgUsersList: (params: RequestParams = {}) =>
       this.request<
         {
           users?: {
@@ -1761,13 +1763,13 @@ export class Api<
     /**
      * @description Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked.
      *
-     * @tags Org users
-     * @name Add
+     * @tags Organisation Users
+     * @name OrgUsersAdd
      * @summary Create Organisation User
      * @request POST:/api/v1/users
      * @response `200` `any` OK
      */
-    add: (data: OrgUserReqType, params: RequestParams = {}) =>
+    orgUsersAdd: (data: OrgUserReqType, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/users`,
         method: 'POST',
@@ -1780,13 +1782,13 @@ export class Api<
     /**
      * @description Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
      *
-     * @tags Org users
-     * @name Update
+     * @tags Organisation Users
+     * @name OrgUsersUpdate
      * @summary Update Organisation User
      * @request PATCH:/api/v1/users/{userId}
      * @response `200` `void` OK
      */
-    update: (
+    orgUsersUpdate: (
       userId: IdType,
       data: OrgUserReqType,
       params: RequestParams = {}
@@ -1802,13 +1804,13 @@ export class Api<
     /**
      * @description Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
      *
-     * @tags Org users
-     * @name Delete
+     * @tags Organisation Users
+     * @name OrgUsersDelete
      * @summary Delete Organisation User
      * @request DELETE:/api/v1/users/{userId}
      * @response `200` `void` OK
      */
-    delete: (userId: IdType, params: RequestParams = {}) =>
+    orgUsersDelete: (userId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}`,
         method: 'DELETE',
@@ -1818,13 +1820,13 @@ export class Api<
     /**
      * @description Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked.
      *
-     * @tags Org users
-     * @name ResendInvite
+     * @tags Organisation Users
+     * @name OrgUsersResendInvite
      * @summary Invite Organisation User
      * @request POST:/api/v1/users/{userId}/resend-invite
      * @response `200` `void` OK
      */
-    resendInvite: (userId: IdType, params: RequestParams = {}) =>
+    orgUsersResendInvite: (userId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}/resend-invite`,
         method: 'POST',
@@ -1834,8 +1836,8 @@ export class Api<
     /**
  * @description Generate Password Reset Token for Organisation User. Exclusive for Super Admin. Access with API Tokens will be blocked.
  * 
- * @tags Org users
- * @name GeneratePasswordResetToken
+ * @tags Organisation Users
+ * @name OrgUsersGeneratePasswordResetToken
  * @summary Generate Organisation User Password Reset Token
  * @request POST:/api/v1/users/{userId}/generate-reset-url
  * @response `200` `{
@@ -1844,7 +1846,10 @@ export class Api<
 
 }` OK
  */
-    generatePasswordResetToken: (userId: IdType, params: RequestParams = {}) =>
+    orgUsersGeneratePasswordResetToken: (
+      userId: IdType,
+      params: RequestParams = {}
+    ) =>
       this.request<
         {
           reset_password_token?: string;
@@ -2458,7 +2463,7 @@ export class Api<
     /**
      * @description Create a new table in a given project
      *
-     * @tags DB table
+     * @tags DB Table
      * @name Create
      * @summary Create Table
      * @request POST:/api/v1/db/meta/projects/{projectId}/tables
@@ -2481,7 +2486,7 @@ export class Api<
     /**
      * @description List all tables in a given project
      *
-     * @tags DB table
+     * @tags DB Table
      * @name List
      * @summary List Tables
      * @request GET:/api/v1/db/meta/projects/{projectId}/tables
@@ -2507,7 +2512,7 @@ export class Api<
     /**
      * @description Read the table meta data by the given table ID
      *
-     * @tags DB table
+     * @tags DB Table
      * @name Read
      * @summary Read Table
      * @request GET:/api/v1/db/meta/tables/{tableId}
@@ -2524,7 +2529,7 @@ export class Api<
     /**
      * @description Update the table meta data by the given table ID
      *
-     * @tags DB table
+     * @tags DB Table
      * @name Update
      * @summary Update Table
      * @request PATCH:/api/v1/db/meta/tables/{tableId}
@@ -2552,7 +2557,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB table
+     * @tags DB Table
      * @name Delete
      * @summary Delete Table
      * @request DELETE:/api/v1/db/meta/tables/{tableId}
@@ -2568,7 +2573,7 @@ export class Api<
     /**
      * @description Update the order of the given Table
      *
-     * @tags DB table
+     * @tags DB Table
      * @name Reorder
      * @summary Reorder Table
      * @request POST:/api/v1/db/meta/tables/{tableId}/reorder
@@ -2593,7 +2598,7 @@ export class Api<
     /**
      * @description Create a new column in a given Table
      *
-     * @tags DB table column
+     * @tags DB Table Column
      * @name Create
      * @summary Create Column
      * @request POST:/api/v1/db/meta/tables/{tableId}/columns
@@ -2615,7 +2620,7 @@ export class Api<
     /**
      * @description Update the existing column by the given column ID
      *
-     * @tags DB table column
+     * @tags DB Table Column
      * @name Update
      * @summary Update Column
      * @request PATCH:/api/v1/db/meta/columns/{columnId}
@@ -2638,7 +2643,7 @@ export class Api<
     /**
      * @description Delete the existing column by the given column ID
      *
-     * @tags DB table column
+     * @tags DB Table Column
      * @name Delete
      * @summary Delete Column
      * @request DELETE:/api/v1/db/meta/columns/{columnId}
@@ -2670,7 +2675,7 @@ export class Api<
     /**
      * @description Set a primary value on a given column
      *
-     * @tags DB table column
+     * @tags DB Table Column
      * @name PrimaryColumnSet
      * @summary Create Primary Value
      * @request POST:/api/v1/db/meta/columns/{columnId}/primary
@@ -2687,7 +2692,7 @@ export class Api<
     /**
      * @description List all views in a given Table.
      *
-     * @tags DB view
+     * @tags DB View
      * @name List
      * @summary List views
      * @request GET:/api/v1/db/meta/tables/{tableId}/views
@@ -2703,7 +2708,7 @@ export class Api<
     /**
      * @description Update the view with the given view Id.
      *
-     * @tags DB view
+     * @tags DB View
      * @name Update
      * @summary Update View
      * @request PATCH:/api/v1/db/meta/views/{viewId}
@@ -2721,7 +2726,7 @@ export class Api<
     /**
      * @description Delete the view with the given view Id.
      *
-     * @tags DB view
+     * @tags DB View
      * @name Delete
      * @summary Delete View
      * @request DELETE:/api/v1/db/meta/views/{viewId}
@@ -2737,7 +2742,7 @@ export class Api<
     /**
      * @description Show All Columns in a given View
      *
-     * @tags DB view
+     * @tags DB View
      * @name ShowAllColumn
      * @summary Show All Columns In View
      * @request POST:/api/v1/db/meta/views/{viewId}/show-all
@@ -2760,7 +2765,7 @@ export class Api<
     /**
      * @description Hide All Columns in a given View
      *
-     * @tags DB view
+     * @tags DB View
      * @name HideAllColumn
      * @summary Hide All Columns In View
      * @request POST:/api/v1/db/meta/views/{viewId}/hide-all
@@ -2783,7 +2788,7 @@ export class Api<
     /**
      * @description Create a new grid view in a given Table
      *
-     * @tags DB view
+     * @tags DB View
      * @name GridCreate
      * @summary Create Grid View
      * @request POST:/api/v1/db/meta/tables/{tableId}/grids
@@ -2806,7 +2811,7 @@ export class Api<
     /**
      * @description Create a new form view in a given Table
      *
-     * @tags DB view
+     * @tags DB View
      * @name FormCreate
      * @summary Create Form View
      * @request POST:/api/v1/db/meta/tables/{tableId}/forms
@@ -2829,7 +2834,7 @@ export class Api<
     /**
      * @description Update the form data by Form ID
      *
-     * @tags DB view
+     * @tags DB View
      * @name FormUpdate
      * @summary Update Form
      * @request PATCH:/api/v1/db/meta/forms/{formId}
@@ -2851,7 +2856,7 @@ export class Api<
     /**
      * @description Get the form data by Form ID
      *
-     * @tags DB view
+     * @tags DB View
      * @name FormRead
      * @summary Get Form
      * @request GET:/api/v1/db/meta/forms/{formId}
@@ -2868,7 +2873,7 @@ export class Api<
     /**
      * @description Update the form column(s) by Form View Column ID
      *
-     * @tags DB view
+     * @tags DB View
      * @name FormColumnUpdate
      * @summary Update Form Column
      * @request PATCH:/api/v1/db/meta/form-columns/{formViewColumnId}
@@ -2891,7 +2896,7 @@ export class Api<
     /**
      * @description Update Grid View
      *
-     * @tags DB view
+     * @tags DB View
      * @name GridUpdate
      * @summary Update Grid View
      * @request PATCH:/api/v1/db/meta/grids/{viewId}
@@ -2910,7 +2915,7 @@ export class Api<
     /**
      * @description List all columns in the given Grid
      *
-     * @tags DB view
+     * @tags DB View
      * @name GridColumnsList
      * @summary List Grid Columns
      * @request GET:/api/v1/db/meta/grids/{gridId}/grid-columns
@@ -2927,7 +2932,7 @@ export class Api<
     /**
      * @description Update grid column(s) in the given Grid
      *
-     * @tags DB view
+     * @tags DB View
      * @name GridColumnUpdate
      * @summary Update Grid Column
      * @request PATCH:/api/v1/db/meta/grid-columns/{columnId}
@@ -2950,7 +2955,7 @@ export class Api<
     /**
      * No description
      *
-     * @tags DB view
+     * @tags DB View
      * @name GalleryCreate
      * @summary Gallery View
      * @request POST:/api/v1/db/meta/tables/{tableId}/galleries
@@ -2973,7 +2978,7 @@ export class Api<
     /**
      * @description Update the Gallery View data with Gallery ID
      *
-     * @tags DB view
+     * @tags DB View
      * @name GalleryUpdate
      * @summary Update Gallery View
      * @request PATCH:/api/v1/db/meta/galleries/{galleryId}
@@ -2995,7 +3000,7 @@ export class Api<
     /**
      * @description Get the Gallery View data with Gallery ID
      *
-     * @tags DB view
+     * @tags DB View
      * @name GalleryRead
      * @summary Get Gallery View
      * @request GET:/api/v1/db/meta/galleries/{galleryId}
@@ -3012,7 +3017,7 @@ export class Api<
     /**
      * @description Create a new Kanban View
      *
-     * @tags DB view
+     * @tags DB View
      * @name KanbanCreate
      * @summary Create Kanban View
      * @request POST:/api/v1/db/meta/tables/{tableId}/kanbans
@@ -3035,7 +3040,7 @@ export class Api<
     /**
      * @description Update the Kanban View data with Kanban ID
      *
-     * @tags DB view
+     * @tags DB View
      * @name KanbanUpdate
      * @summary Update Kanban View
      * @request PATCH:/api/v1/db/meta/kanbans/{kanbanId}
@@ -3057,7 +3062,7 @@ export class Api<
     /**
      * @description Get the Kanban View data by Kanban ID
      *
-     * @tags DB view
+     * @tags DB View
      * @name KanbanRead
      * @summary Get Kanban View
      * @request GET:/api/v1/db/meta/kanbans/{kanbanId}
@@ -3074,7 +3079,7 @@ export class Api<
     /**
      * @description Create a new Map View
      *
-     * @tags DB view
+     * @tags DB View
      * @name MapCreate
      * @summary Create Map View
      * @request POST:/api/v1/db/meta/tables/{tableId}/maps
@@ -3093,7 +3098,7 @@ export class Api<
     /**
      * @description Update the Map View data by Map ID
      *
-     * @tags DB view
+     * @tags DB View
      * @name MapUpdate
      * @summary Update Map View
      * @request PATCH:/api/v1/db/meta/maps/{mapId}
@@ -3111,7 +3116,7 @@ export class Api<
     /**
      * @description Get the Map View data by Map ID
      *
-     * @tags DB view
+     * @tags DB View
      * @name MapRead
      * @summary Get Map View
      * @request GET:/api/v1/db/meta/maps/{mapId}
@@ -3129,7 +3134,7 @@ export class Api<
     /**
      * @description List all shared views in a given Table
      *
-     * @tags DB view share
+     * @tags DB View Share
      * @name List
      * @summary List Shared Views
      * @request GET:/api/v1/db/meta/tables/{tableId}/share
@@ -3146,7 +3151,7 @@ export class Api<
     /**
  * @description Create a shared view in a given View..
  * 
- * @tags DB view share
+ * @tags DB View Share
  * @name Create
  * @summary Create Shared View
  * @request POST:/api/v1/db/meta/views/{viewId}/share
@@ -3171,7 +3176,7 @@ export class Api<
     /**
      * @description Update a shared view in a given View..
      *
-     * @tags DB view share
+     * @tags DB View Share
      * @name Update
      * @summary Update Shared View
      * @request PATCH:/api/v1/db/meta/views/{viewId}/share
@@ -3194,7 +3199,7 @@ export class Api<
     /**
      * @description Delete a shared view in a given View.
      *
-     * @tags DB view share
+     * @tags DB View Share
      * @name Delete
      * @summary Delete Shared View
      * @request DELETE:/api/v1/db/meta/views/{viewId}/share
@@ -3211,7 +3216,7 @@ export class Api<
     /**
      * @description List all columns by ViewID
      *
-     * @tags DB view column
+     * @tags DB View Column
      * @name List
      * @summary List Columns In View
      * @request GET:/api/v1/db/meta/views/{viewId}/columns
@@ -3226,7 +3231,7 @@ export class Api<
     /**
      * @description Create a new column in a given View
      *
-     * @tags DB view column
+     * @tags DB View Column
      * @name Create
      * @summary Create Column in View
      * @request POST:/api/v1/db/meta/views/{viewId}/columns
@@ -3244,7 +3249,7 @@ export class Api<
     /**
      * @description Update a column in a View
      *
-     * @tags DB view column
+     * @tags DB View Column
      * @name Update
      * @summary Update View Column
      * @request PATCH:/api/v1/db/meta/views/{viewId}/columns/{columnId}
@@ -3268,7 +3273,7 @@ export class Api<
     /**
  * @description List all the sort data in a given View
  * 
- * @tags DB table sort
+ * @tags DB Table Sort
  * @name List
  * @summary List View Sorts
  * @request GET:/api/v1/db/meta/views/{viewId}/sorts
@@ -3298,7 +3303,7 @@ export class Api<
     /**
      * @description Update the sort data in a given View
      *
-     * @tags DB table sort
+     * @tags DB Table Sort
      * @name Create
      * @summary Update View Sort
      * @request POST:/api/v1/db/meta/views/{viewId}/sorts
@@ -3322,7 +3327,7 @@ export class Api<
     /**
      * @description Get the sort data by Sort ID
      *
-     * @tags DB table sort
+     * @tags DB Table Sort
      * @name Get
      * @summary Get Sort
      * @request GET:/api/v1/db/meta/sorts/{sortId}
@@ -3339,7 +3344,7 @@ export class Api<
     /**
      * @description Update the sort data by Sort ID
      *
-     * @tags DB table sort
+     * @tags DB Table Sort
      * @name Update
      * @summary Update Sort
      * @request PATCH:/api/v1/db/meta/sorts/{sortId}
@@ -3357,7 +3362,7 @@ export class Api<
     /**
      * @description Delete the sort data by Sort ID
      *
-     * @tags DB table sort
+     * @tags DB Table Sort
      * @name Delete
      * @summary Delete Sort
      * @request DELETE:/api/v1/db/meta/sorts/{sortId}
@@ -3374,7 +3379,7 @@ export class Api<
     /**
      * @description Get the filter data in a given View
      *
-     * @tags DB table filter
+     * @tags DB Table Filter
      * @name Read
      * @summary Get View Filter
      * @request GET:/api/v1/db/meta/views/{viewId}/filters
@@ -3391,7 +3396,7 @@ export class Api<
     /**
      * @description Update the filter data in a given View
      *
-     * @tags DB table filter
+     * @tags DB Table Filter
      * @name Create
      * @summary Create View Filter
      * @request POST:/api/v1/db/meta/views/{viewId}/filters
@@ -3410,7 +3415,7 @@ export class Api<
     /**
      * @description Get the filter data with a given Filter ID
      *
-     * @tags DB table filter
+     * @tags DB Table Filter
      * @name Get
      * @summary Get Filter
      * @request GET:/api/v1/db/meta/filters/{filterId}
@@ -3427,7 +3432,7 @@ export class Api<
     /**
      * @description Update the filter data with a given Filter ID
      *
-     * @tags DB table filter
+     * @tags DB Table Filter
      * @name Update
      * @summary Update Filter
      * @request PATCH:/api/v1/db/meta/filters/{filterId}
@@ -3449,7 +3454,7 @@ export class Api<
     /**
      * @description Delete the filter data with a given Filter ID
      *
-     * @tags DB table filter
+     * @tags DB Table Filter
      * @name Delete
      * @summary Delete Filter
      * @request DELETE:/api/v1/db/meta/filters/{filterId}
@@ -3465,7 +3470,7 @@ export class Api<
     /**
      * @description Get Filter Group Children of a given group ID
      *
-     * @tags DB table filter
+     * @tags DB Table Filter
      * @name ChildrenRead
      * @summary Get Filter Group Children
      * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
@@ -3479,17 +3484,17 @@ export class Api<
         ...params,
       }),
   };
-  dbTableWebhookFilter = {
+  dbTableHookFilter = {
     /**
      * @description Get the filter data in a given Hook
      *
-     * @tags DB table webhook filter
-     * @name Read
+     * @tags DB Table Hook Filter
+     * @name DbTableWebhookFilterRead
      * @summary Get Hook Filter
      * @request GET:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `FilterListType`
      */
-    read: (hookId: string, params: RequestParams = {}) =>
+    dbTableWebhookFilterRead: (hookId: string, params: RequestParams = {}) =>
       this.request<FilterListType, any>({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'GET',
@@ -3499,13 +3504,17 @@ export class Api<
     /**
      * @description Create filter(s) in a given Hook
      *
-     * @tags DB table webhook filter
-     * @name Create
+     * @tags DB Table Hook Filter
+     * @name DbTableWebhookFilterCreate
      * @summary Create Hook Filter
      * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `void` OK
      */
-    create: (hookId: string, data: FilterReqType, params: RequestParams = {}) =>
+    dbTableWebhookFilterCreate: (
+      hookId: string,
+      data: FilterReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'POST',
@@ -3518,7 +3527,7 @@ export class Api<
     /**
      * @description List all table rows in a given table and project
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name List
      * @summary List Table Rows
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}
@@ -3556,7 +3565,7 @@ export class Api<
     /**
      * @description Create a new row in a given table and project.
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name Create
      * @summary Create Table Row
      * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}
@@ -3581,7 +3590,7 @@ export class Api<
     /**
      * @description Return the first result of the target Table Row
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name FindOne
      * @summary Find One Table Row
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one
@@ -3609,7 +3618,7 @@ export class Api<
     /**
      * @description Get the result grouped by the given query
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name GroupBy
      * @summary Group By Table Row
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/groupby
@@ -3642,7 +3651,7 @@ export class Api<
     /**
      * @description Get the grouped data By Column ID. Used in Kanban View.
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name GroupedDataList
      * @summary Table Group by Column
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}
@@ -3673,7 +3682,7 @@ export class Api<
     /**
      * @description Get the Table Row
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name Read
      * @summary Get Table Row
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
@@ -3696,7 +3705,7 @@ export class Api<
     /**
      * @description Update the Table Row
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name Update
      * @summary Update Table Row
      * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
@@ -3722,7 +3731,7 @@ export class Api<
     /**
      * @description Delete the Table Row
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name Delete
      * @summary Delete Table Row
      * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
@@ -3745,7 +3754,7 @@ export class Api<
     /**
      * @description check row with provided primary key exists or not
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name Exist
      * @summary Does Table Row Exist
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist
@@ -3768,7 +3777,7 @@ export class Api<
     /**
      * @description Bulk insert table rows in one go.
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name BulkCreate
      * @summary Bulk Insert Table Rows
      * @request POST:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
@@ -3793,7 +3802,7 @@ export class Api<
     /**
      * @description Bulk Update Table Rows by given IDs
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name BulkUpdate
      * @summary Bulk Update Table Rows by IDs
      * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
@@ -3818,7 +3827,7 @@ export class Api<
     /**
      * @description Bulk Delete Table Rows by given IDs
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name BulkDelete
      * @summary Bulk Delete Table Rows by IDs
      * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}
@@ -3843,7 +3852,7 @@ export class Api<
     /**
      * @description Bulk Update all Table Rows if the condition is true
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name BulkUpdateAll
      * @summary Bulk Update Table Rows with Conditions
      * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
@@ -3872,7 +3881,7 @@ export class Api<
     /**
      * @description Bulk Delete all Table Rows if the condition is true
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name BulkDeleteAll
      * @summary Bulk Delete Table Rows with Conditions
      * @request DELETE:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
@@ -3901,7 +3910,7 @@ export class Api<
     /**
      * @description Export Table View Rows by CSV or Excel
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name CsvExport
      * @summary Export Table View Rows
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}
@@ -3917,14 +3926,13 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/export/${type}`,
         method: 'GET',
-        wrapped: true,
         ...params,
       }),
 
     /**
      * @description List all nested relations rows
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name NestedList
      * @summary List Nested Relations Rows
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}
@@ -3957,7 +3965,7 @@ export class Api<
     /**
      * @description Create a new nested relations row
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name NestedAdd
      * @summary Create Nested Relations Row
      * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
@@ -3990,7 +3998,7 @@ export class Api<
     /**
      * @description Delete a new nested relations row
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name NestedRemove
      * @summary Delete Nested Relations Row
      * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}
@@ -4016,7 +4024,7 @@ export class Api<
     /**
      * @description Get the table rows but exculding the current record's children and parent
      *
-     * @tags DB table row
+     * @tags DB Table Row
      * @name NestedChildrenExcludedList
      * @summary Referenced Table Rows Excluding Current Record's Children / Parent
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
@@ -4050,7 +4058,7 @@ export class Api<
     /**
      * @description Get the grouped data By Column ID. Used in Kanban View.
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name GroupedDataList
      * @summary Table Group by Column
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}
@@ -4082,7 +4090,7 @@ export class Api<
     /**
      * @description List all table view rows
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name List
      * @summary List Table View Rows
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
@@ -4114,7 +4122,7 @@ export class Api<
     /**
      * @description Create a new row in the given Table View
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name Create
      * @summary Create Table View Row
      * @request POST:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}
@@ -4140,7 +4148,7 @@ export class Api<
     /**
      * @description Return the first result of table view rows with the given query
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name FindOne
      * @summary Find One Table View Row
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one
@@ -4171,7 +4179,7 @@ export class Api<
     /**
      * @description Get the table view rows groupe by the given query
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name GroupBy
      * @summary Group By Table View Row
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupby
@@ -4205,7 +4213,7 @@ export class Api<
     /**
      * @description Count how many rows in the given Table View
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name Count
      * @summary Count Table View Rows
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count
@@ -4234,7 +4242,7 @@ export class Api<
     /**
      * @description Get the target Table View Row
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name Read
      * @summary Get Table View Row
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
@@ -4258,7 +4266,7 @@ export class Api<
     /**
      * @description Update the target Table View Row
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name Update
      * @summary Update Table View Row
      * @request PATCH:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
@@ -4285,7 +4293,7 @@ export class Api<
     /**
      * @description Delete the target Table View Row
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name Delete
      * @summary Delete Table View Row
      * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}
@@ -4308,7 +4316,7 @@ export class Api<
     /**
      * @description Check row with provided primary key exists or not
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name Exist
      * @summary Does Table View Row Exist
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist
@@ -4332,7 +4340,7 @@ export class Api<
     /**
      * @description Export Table View Rows by CSV or Excel
      *
-     * @tags DB view row
+     * @tags DB View Row
      * @name Export
      * @summary Export Table View Rows
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}
@@ -4349,7 +4357,6 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
         method: 'GET',
-        wrapped: true,
         ...params,
       }),
   };
@@ -4479,7 +4486,6 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
         method: 'GET',
-        wrapped: true,
         ...params,
       }),
 
@@ -4911,7 +4917,7 @@ export class Api<
     /**
  * @description List all hook records in the given Table
  * 
- * @tags DB table webhook
+ * @tags DB Table Webhook
  * @name List
  * @summary List Table Hooks
  * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
@@ -4938,7 +4944,7 @@ export class Api<
     /**
      * @description Create a hook in the given table
      *
-     * @tags DB table webhook
+     * @tags DB Table Webhook
      * @name Create
      * @summary Create Table Hook
      * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
@@ -4957,7 +4963,7 @@ export class Api<
     /**
      * @description Test the hook in the given Table
      *
-     * @tags DB table webhook
+     * @tags DB Table Webhook
      * @name Test
      * @summary Test Hook
      * @request POST:/api/v1/db/meta/tables/{tableId}/hooks/test
@@ -4980,7 +4986,7 @@ export class Api<
     /**
  * @description Get the sample hook payload
  * 
- * @tags DB table webhook
+ * @tags DB Table Webhook
  * @name SamplePayloadGet
  * @summary Get Sample Hook Payload
  * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}
@@ -5016,7 +5022,7 @@ export class Api<
     /**
      * @description Update the exsiting hook by its ID
      *
-     * @tags DB table webhook
+     * @tags DB Table Webhook
      * @name Update
      * @summary Update Hook
      * @request PATCH:/api/v1/db/meta/hooks/{hookId}
@@ -5035,7 +5041,7 @@ export class Api<
     /**
      * @description Delete the exsiting hook by its ID
      *
-     * @tags DB table webhook
+     * @tags DB Table Webhook
      * @name Delete
      * @summary Delete Hook
      * @request DELETE:/api/v1/db/meta/hooks/{hookId}
@@ -5158,7 +5164,7 @@ export class Api<
     /**
      * @description List API Tokens in the given project
      *
-     * @tags Api token
+     * @tags API Token
      * @name List
      * @summary List API Tokens in Project
      * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
@@ -5175,7 +5181,7 @@ export class Api<
     /**
      * @description Create API Token in a project
      *
-     * @tags Api token
+     * @tags API Token
      * @name Create
      * @summary Create API Token
      * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
@@ -5198,7 +5204,7 @@ export class Api<
     /**
      * @description Delete the given API Token in project
      *
-     * @tags Api token
+     * @tags API Token
      * @name Delete
      * @summary Delete API Token
      * @request DELETE:/api/v1/db/meta/projects/{projectId}/api-tokens/{token}

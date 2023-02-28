@@ -3020,17 +3020,21 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
       str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
     let sub_op = null;
 
-    if ([UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)) {
-      value = value.split(',');
-      // the first element would be sub_op
-      sub_op = value[0];
-      // remove the first element which is sub_op
-      value.shift();
-    } else if (op === 'in') {
-      value = value.split(',');
-    }
+    if (aliasColObjMap[alias]) {
+      if (
+        [UITypes.Date, UITypes.DateTime].includes(aliasColObjMap[alias].uidt)
+      ) {
+        value = value.split(',');
+        // the first element would be sub_op
+        sub_op = value[0];
+        // remove the first element which is sub_op
+        value.shift();
+      } else if (op === 'in') {
+        value = value.split(',');
+      }
 
-    validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
+      validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
+    }
 
     return new Filter({
       comparison_op: op,

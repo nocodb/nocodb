@@ -79,6 +79,17 @@ watch(
         </div>
       </template>
     </a-dropdown>
+    <template v-else>
+      <div v-if="localPage?.icon" class="flex flex-col justify-center h-16">
+        <IconifyIcon
+          v-if="localPage?.icon"
+          :key="localPage.icon"
+          :data-testid="`nc-doc-page-icon-${localPage.icon}`"
+          class="flex text-5xl"
+          :icon="localPage.icon"
+        ></IconifyIcon>
+      </div>
+    </template>
     <a-textarea
       ref="titleInputRef"
       v-model:value="title"

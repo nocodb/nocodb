@@ -199,6 +199,17 @@ watch(
                     </div>
                   </template>
                 </a-dropdown>
+                <template v-else>
+                  <div v-if="icon" class="flex px-0.5 pt-0.75">
+                    <IconifyIcon
+                      v-if="icon"
+                      :key="icon"
+                      :data-testid="`nc-doc-page-icon-${icon}`"
+                      class="flex text-lg"
+                      :icon="icon"
+                    ></IconifyIcon>
+                  </div>
+                </template>
               </a-popover>
             </div>
             <span

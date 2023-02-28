@@ -8,7 +8,7 @@ definePageMeta({
 const route = useRoute()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
 const { project, loadBookProject, isLoading: isProjectLoading } = useProject()
-const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, nestedPages, isPublic } = useDocs()
+const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, isPublic, nestedPublicParentPage } = useDocs()
 
 const isLoading = ref(true)
 
@@ -36,12 +36,12 @@ const toggleSidebar = (isOpen: boolean) => {
 }
 
 watch(
-  [isErrored, isLoading],
+  [isErrored, isLoading, nestedPublicParentPage.value?.is_nested_published],
   () => {
     if (isErrored.value && !isLoading.value) {
       toggleSidebar(false)
     } else {
-      if (isPublic.value && nestedPages.value.length < 1 && !isLoading.value) {
+      if (isPublic.value && !nestedPublicParentPage.value?.is_nested_published && !isLoading.value) {
         toggleSidebar(false)
         return
       }
@@ -51,6 +51,7 @@ watch(
   },
   {
     immediate: true,
+    deep: true,
   },
 )
 

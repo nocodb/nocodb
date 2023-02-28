@@ -526,6 +526,7 @@ const [setup, use] = useInjectionState(() => {
     openedNestedPages,
     isPublic,
     getPageWithParents,
+    nestedPublicParentPage,
   }
 }, 'useDocs')
 

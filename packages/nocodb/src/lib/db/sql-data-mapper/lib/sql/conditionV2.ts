@@ -275,12 +275,14 @@ const parseConditionV2 = async (
 
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
+
+        const dateFormat =
+          qb?.client?.config?.client === 'mysql2'
+            ? 'YYYY-MM-DD HH:mm:ss'
+            : 'YYYY-MM-DD HH:mm:ssZ';
+
         if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
           const now = dayjs(new Date());
-          const dateFormat =
-            qb?.client?.config?.client === 'mysql2'
-              ? 'YYYY-MM-DD HH:mm:ss'
-              : 'YYYY-MM-DD HH:mm:ssZ';
           // handle sub operation
           switch (filter.comparison_sub_op) {
             case 'today':
@@ -676,7 +678,8 @@ const parseConditionV2 = async (
             qb = qb.whereNotBetween(field, val.split(','));
             break;
           case 'isWithin':
-            const now = dayjs(new Date()).toString();
+            let now = dayjs(new Date()).format(dateFormat).toString();
+            now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
             switch (filter.comparison_sub_op) {
               case 'pastWeek':
               case 'pastMonth':

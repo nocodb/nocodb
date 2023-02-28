@@ -14,3 +14,5 @@ export * as formViewColumnService from './formViewColumnService';
 export * as gridViewService from './gridViewService';
 export * as galleryViewService from './galleryViewService';
 export * as kanbanViewService from './kanbanViewService';
+export * as gridViewColumnService from './gridViewColumnService';
+export * as viewColumnService from './viewColumnService';

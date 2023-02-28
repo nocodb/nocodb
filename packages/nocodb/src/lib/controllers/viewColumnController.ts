@@ -1,33 +1,30 @@
 import { Request, Response, Router } from 'express';
-import View from '../../models/View';
-import { Tele } from 'nc-help';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../helpers/apiMetrics';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../meta/helpers/apiMetrics';
+import { viewColumnService } from '../services';
 
 export async function columnList(req: Request, res: Response) {
-  res.json(await View.getColumns(req.params.viewId));
+  res.json(await viewColumnService.columnList({ viewId: req.params.viewId }));
 }
+
 export async function columnAdd(req: Request, res: Response) {
-  const viewColumn = await View.insertOrUpdateColumn(
-    req.params.viewId,
-    req.body.fk_column_id,
-    {
+  const viewColumn = await viewColumnService.columnAdd({
+    viewId: req.params.viewId,
+    columnId: req.body.fk_column_id,
+    column: {
       ...req.body,
       view_id: req.params.viewId,
-    }
-  );
-  Tele.emit('evt', { evt_type: 'viewColumn:inserted' });
-
+    },
+  });
   res.json(viewColumn);
 }
 
 export async function columnUpdate(req: Request, res: Response) {
-  const result = await View.updateColumn(
-    req.params.viewId,
-    req.params.columnId,
-    req.body
-  );
-  Tele.emit('evt', { evt_type: 'viewColumn:updated' });
+  const result = await viewColumnService.columnUpdate({
+    viewId: req.params.viewId,
+    columnId: req.params.columnId,
+    column: req.body,
+  });
   res.json(result);
 }
 

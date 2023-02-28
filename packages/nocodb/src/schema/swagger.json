@@ -136,7 +136,8 @@
                   "type": "object",
                   "properties": {
                     "token": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "The signed JWT token for information exchange"
                     }
                   }
                 }
@@ -186,7 +187,7 @@
     "/api/v1/auth/user/me": {
       "parameters": [],
       "get": {
-        "summary": "User info",
+        "summary": "Get User Info",
         "operationId": "auth-me",
         "responses": {
           "200": {
@@ -232,7 +233,7 @@
     },
     "/api/v1/auth/password/forgot": {
       "post": {
-        "summary": "Password forgot",
+        "summary": "Forget Password",
         "operationId": "auth-password-forgot",
         "responses": {
           "200": {
@@ -261,7 +262,7 @@
     },
     "/api/v1/auth/password/change": {
       "post": {
-        "summary": "Password change",
+        "summary": "Change Password",
         "operationId": "auth-password-change",
         "responses": {
           "200": {
@@ -341,14 +342,14 @@
     },
     "/api/v1/auth/token/validate/{token}": {
       "post": {
-        "summary": "Reset token verify",
+        "summary": "Verify Reset Token",
         "operationId": "auth-password-reset-token-validate",
         "responses": {
           "200": {
             "description": "OK"
           }
         },
-        "description": "Validtae password reset url token.",
+        "description": "Validate password reset url token.",
         "tags": [
           "Auth"
         ]
@@ -367,7 +368,7 @@
     },
     "/api/v1/auth/email/validate/{token}": {
       "post": {
-        "summary": "Verify email",
+        "summary": "Verify Email",
         "operationId": "auth-email-validate",
         "responses": {
           "200": {
@@ -393,7 +394,7 @@
     },
     "/api/v1/auth/password/reset/{token}": {
       "post": {
-        "summary": "Password reset",
+        "summary": "Reset Password",
         "operationId": "auth-password-reset",
         "responses": {
           "200": {
@@ -428,7 +429,7 @@
     },
     "/api/v1/auth/token/refresh": {
       "post": {
-        "summary": "Refresh token",
+        "summary": "Refresh Token",
         "operationId": "auth-token-refresh",
         "responses": {
           "200": {
@@ -447,7 +448,7 @@
             }
           }
         },
-        "description": "",
+        "description": "Regenerate user refresh token",
         "tags": [
           "Auth"
         ]
@@ -456,7 +457,7 @@
     },
     "/api/v1/tokens": {
       "get": {
-        "summary": "Organisation API Tokens List",
+        "summary": "List Organisation API Tokens",
         "operationId": "org-tokens-list",
         "responses": {
           "200": {
@@ -503,14 +504,14 @@
             }
           }
         },
-        "description": "",
+        "description": "List all organisation API tokens.  Access with API tokens will be blocked.",
         "tags": [
           "Org tokens"
         ]
       },
       "parameters": [],
       "post": {
-        "summary": "",
+        "summary": "Create Organisation API Token",
         "operationId": "org-tokens-create",
         "responses": {
           "200": {
@@ -528,12 +529,38 @@
         },
         "tags": [
           "Org tokens"
-        ]
+        ],
+        "description": "Creat an organisation API token. Access with API tokens will be blocked."
+      }
+    },
+    "/api/v1/tokens/{token}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "token",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "delete": {
+        "summary": "Delete Organisation API Tokens",
+        "operationId": "org-tokens-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org tokens"
+        ],
+        "description": "Delete an organisation API token. Access with API tokens will be blocked."
       }
     },
     "/api/v1/license": {
       "get": {
-        "summary": "App license get",
+        "summary": "Get App License",
         "operationId": "org-license-get",
         "responses": {
           "200": {
@@ -552,14 +579,14 @@
             }
           }
         },
-        "description": "",
+        "description": "Get the application license key. Exclusive for super admin.",
         "tags": [
           "Org license"
         ]
       },
       "parameters": [],
       "post": {
-        "summary": "App license get",
+        "summary": "Create App License",
         "operationId": "org-license-set",
         "responses": {
           "200": {
@@ -577,12 +604,13 @@
         },
         "tags": [
           "Org license"
-        ]
+        ],
+        "description": "Set the application license key. Exclusive for super admin."
       }
     },
     "/api/v1/app-settings": {
       "get": {
-        "summary": "App settings get",
+        "summary": "Get App Settings",
         "operationId": "org-app-settings-get",
         "responses": {
           "200": {
@@ -601,14 +629,14 @@
             }
           }
         },
-        "description": "",
+        "description": "Get the application settings. Exclusive for super admin.",
         "tags": [
           "Org app settings"
         ]
       },
       "parameters": [],
       "post": {
-        "summary": "App app settings get",
+        "summary": "Create App Settings",
         "operationId": "org-app-settings-set",
         "responses": {
           "200": {
@@ -631,36 +659,13 @@
         },
         "tags": [
           "Org app settings"
-        ]
-      }
-    },
-    "/api/v1/tokens/{token}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "token",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "delete": {
-        "summary": "",
-        "operationId": "org-tokens-delete",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "Org tokens"
-        ]
+        ],
+        "description": "Update the application settings. Exclusive for super admin."
       }
     },
     "/api/v1/users": {
       "get": {
-        "summary": "Organisation Users",
+        "summary": "List Organisation Users",
         "operationId": "org-users-list",
         "responses": {
           "200": {
@@ -696,14 +701,14 @@
             }
           }
         },
-        "description": "",
+        "description": "List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "tags": [
           "Org users"
         ]
       },
       "parameters": [],
       "post": {
-        "summary": "Organisation User Add",
+        "summary": "Create Organisation User",
         "operationId": "org-users-add",
         "responses": {
           "200": {
@@ -726,7 +731,8 @@
         },
         "tags": [
           "Org users"
-        ]
+        ],
+        "description": "Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
     "/api/v1/users/{userId}": {
@@ -741,7 +747,7 @@
         }
       ],
       "patch": {
-        "summary": "Organisation User Update",
+        "summary": "Update Organisation User",
         "operationId": "org-users-update",
         "responses": {
           "200": {
@@ -751,7 +757,7 @@
         "tags": [
           "Org users"
         ],
-        "description": "",
+        "description": "Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -764,7 +770,7 @@
         }
       },
       "delete": {
-        "summary": "Organisation User Delete",
+        "summary": "Delete Organisation User",
         "operationId": "org-users-delete",
         "responses": {
           "200": {
@@ -774,7 +780,7 @@
         "tags": [
           "Org users"
         ],
-        "description": ""
+        "description": "Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
     "/api/v1/users/{userId}/resend-invite": {
@@ -789,7 +795,7 @@
         }
       ],
       "post": {
-        "summary": "Organisation User Invite",
+        "summary": "Invite Organisation User",
         "operationId": "org-users-resend-invite",
         "responses": {
           "200": {
@@ -798,7 +804,8 @@
         },
         "tags": [
           "Org users"
-        ]
+        ],
+        "description": "Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
     "/api/v1/users/{userId}/generate-reset-url": {
@@ -813,7 +820,7 @@
         }
       ],
       "post": {
-        "summary": "Organisation User Generate Password Reset Token",
+        "summary": "Generate Organisation User Password Reset Token",
         "operationId": "org-users-generate-password-reset-token",
         "tags": [
           "Org users"
@@ -837,12 +844,13 @@
               }
             }
           }
-        }
+        },
+        "description": "Generate Password Reset Token for Organisation User. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
     "/api/v1/db/meta/projects/{projectId}/users": {
       "get": {
-        "summary": "Project users",
+        "summary": "List Project Users",
         "operationId": "auth-project-user-list",
         "responses": {
           "200": {
@@ -878,7 +886,7 @@
             }
           }
         },
-        "description": "",
+        "description": "List all users in the given project.",
         "tags": [
           "Auth"
         ]
@@ -894,15 +902,14 @@
         }
       ],
       "post": {
-        "summary": "Project User Add",
+        "summary": "Create Project User",
         "operationId": "auth-project-user-add",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {
-                }
+                "schema": {}
               }
             }
           }
@@ -918,7 +925,8 @@
         },
         "tags": [
           "Auth"
-        ]
+        ],
+        "description": "Create a user and add it to the given project"
       }
     },
     "/api/v1/db/meta/projects/{projectId}/info": {
@@ -933,7 +941,7 @@
         }
       ],
       "get": {
-        "summary": "Project info",
+        "summary": "Get Project info",
         "operationId": "project-meta-get",
         "responses": {
           "200": {
@@ -975,7 +983,8 @@
         },
         "tags": [
           "Project"
-        ]
+        ],
+        "description": "Get info such as node version, arch, platform, is docker, rootdb and package version of a given project"
       }
     },
     "/api/v1/db/meta/projects/{projectId}/users/{userId}": {
@@ -998,7 +1007,7 @@
         }
       ],
       "patch": {
-        "summary": "Project user update",
+        "summary": "Update Project User",
         "operationId": "auth-project-user-update",
         "responses": {
           "200": {
@@ -1021,10 +1030,11 @@
         },
         "tags": [
           "Auth"
-        ]
+        ],
+        "description": "Update a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked."
       },
       "delete": {
-        "summary": "Project user remove",
+        "summary": "Delete Project User",
         "operationId": "auth-project-user-remove",
         "responses": {
           "200": {
@@ -1038,7 +1048,8 @@
         },
         "tags": [
           "Auth"
-        ]
+        ],
+        "description": "Delete a given user in a given project. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
     "/api/v1/db/meta/projects/{projectId}/visibility-rules": {
@@ -1112,14 +1123,14 @@
     "/api/v1/db/meta/projects/": {
       "parameters": [],
       "get": {
-        "summary": "Project list",
+        "summary": "List Projects",
         "operationId": "project-list",
         "responses": {
           "201": {
             "$ref": "#/components/responses/ProjectList"
           }
         },
-        "description": "Read project details",
+        "description": "List all project meta data",
         "parameters": [
           {
             "schema": {
@@ -1156,7 +1167,7 @@
         ]
       },
       "post": {
-        "summary": "Project create",
+        "summary": "Create Project",
         "operationId": "project-create",
         "responses": {
           "200": {
@@ -1194,7 +1205,8 @@
         },
         "tags": [
           "Project"
-        ]
+        ],
+        "description": "Create a new project"
       }
     },
     "/api/v1/db/meta/projects/{projectId}": {
@@ -1209,9 +1221,9 @@
         }
       ],
       "get": {
-        "summary": "Project read",
+        "summary": "Get Project",
         "operationId": "project-read",
-        "description": "Read project details",
+        "description": "Get the info of a given projecct",
         "parameters": [
           {
             "schema": {
@@ -1240,7 +1252,7 @@
         }
       },
       "delete": {
-        "summary": "Project delete",
+        "summary": "Delete Project",
         "operationId": "project-delete",
         "responses": {
           "200": {
@@ -1249,10 +1261,11 @@
         },
         "tags": [
           "Project"
-        ]
+        ],
+        "description": "Delete the given project"
       },
       "patch": {
-        "summary": "Project update",
+        "summary": "Update Project",
         "operationId": "project-update",
         "responses": {
           "200": {
@@ -1268,7 +1281,8 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Update the given project"
       }
     },
     "/api/v1/db/meta/projects/{projectId}/bases/{baseId}": {
@@ -1291,9 +1305,9 @@
         }
       ],
       "get": {
-        "summary": "Base read",
+        "summary": "Get Base",
         "operationId": "base-read",
-        "description": "Read project base details",
+        "description": "Get the base details of a given project",
         "parameters": [
           {
             "schema": {
@@ -1322,7 +1336,7 @@
         }
       },
       "delete": {
-        "summary": "Base delete",
+        "summary": "Delete Base",
         "operationId": "base-delete",
         "responses": {
           "200": {
@@ -1331,10 +1345,11 @@
         },
         "tags": [
           "Base"
-        ]
+        ],
+        "description": "Delete the base details of a given project"
       },
       "patch": {
-        "summary": "Base update",
+        "summary": "Update Base",
         "operationId": "base-update",
         "responses": {
           "200": {
@@ -1350,7 +1365,8 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Update the base details of a given project"
       }
     },
     "/api/v1/db/meta/projects/{projectId}/bases/": {
@@ -1365,7 +1381,7 @@
         }
       ],
       "get": {
-        "summary": "Base list",
+        "summary": "List Bases",
         "operationId": "base-list",
         "description": "Get project base list",
         "parameters": [
@@ -1396,7 +1412,7 @@
         }
       },
       "post": {
-        "summary": "Base create",
+        "summary": "Create Base",
         "operationId": "base-create",
         "responses": {
           "200": {
@@ -1434,7 +1450,8 @@
         },
         "tags": [
           "Base"
-        ]
+        ],
+        "description": "Create a new base on a given project"
       }
     },
     "/api/v1/db/meta/projects/{projectId}/shared": {
@@ -1449,9 +1466,9 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get Project Shared Base",
         "operationId": "project-shared-base-get",
-        "description": "Read project details",
+        "description": "Get Project Shared Base",
         "parameters": [
           {
             "schema": {
@@ -1490,7 +1507,7 @@
         }
       },
       "delete": {
-        "summary": "",
+        "summary": "Delete Project Shared Base",
         "operationId": "project-shared-base-disable",
         "responses": {
           "200": {
@@ -1499,10 +1516,11 @@
         },
         "tags": [
           "Project"
-        ]
+        ],
+        "description": "Delete Project Shared Base"
       },
       "post": {
-        "summary": "",
+        "summary": "Create Project Shared Base",
         "operationId": "project-shared-base-create",
         "responses": {
           "200": {
@@ -1535,10 +1553,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Create Project Shared Base"
       },
       "patch": {
-        "summary": "",
+        "summary": "Update Project Shared Base",
         "operationId": "project-shared-base-update",
         "responses": {
           "200": {
@@ -1575,7 +1594,7 @@
         "tags": [
           "Project"
         ],
-        "description": ""
+        "description": "Update Project Shared Base"
       }
     },
     "/api/v1/db/meta/projects/{projectId}/cost": {
@@ -1590,9 +1609,9 @@
         }
       ],
       "get": {
-        "summary": "Project compare cost",
+        "summary": "Project Cost",
         "operationId": "project-cost",
-        "description": "Project compare cost",
+        "description": "Calculate the Project Cost",
         "parameters": [
           {
             "schema": {
@@ -1618,7 +1637,8 @@
               }
             }
           }
-        }
+        },
+        "x-internal": true
       }
     },
     "/api/v1/db/meta/projects/{projectId}/tables": {
@@ -1633,7 +1653,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Create Table",
         "operationId": "db-table-create",
         "responses": {
           "200": {
@@ -1658,10 +1678,11 @@
         },
         "tags": [
           "DB table"
-        ]
+        ],
+        "description": "Create a new table in a given project"
       },
       "get": {
-        "summary": "",
+        "summary": "List Tables",
         "operationId": "db-table-list",
         "responses": {
           "200": {
@@ -1707,104 +1728,8 @@
         ],
         "tags": [
           "DB table"
-        ]
-      }
-    },
-    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "table-list",
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/TableList"
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "header",
-            "name": "xc-auth"
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "in": "query",
-            "name": "page"
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "in": "query",
-            "name": "pageSize"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "boolean"
-            },
-            "in": "query",
-            "name": "includeM2M"
-          }
         ],
-        "tags": [
-          "Base"
-        ]
-      },
-      "post": {
-        "summary": "",
-        "operationId": "table-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Table"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TableReq"
-              }
-            }
-          }
-        },
-        "tags": [
-          "Base"
-        ]
+        "description": "List all tables in a given project"
       }
     },
     "/api/v1/db/meta/tables/{tableId}": {
@@ -1819,7 +1744,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Read Table",
         "operationId": "db-table-read",
         "responses": {
           "200": {
@@ -1925,10 +1850,11 @@
         },
         "tags": [
           "DB table"
-        ]
+        ],
+        "description": "Read the table meta data by the given table ID"
       },
       "patch": {
-        "summary": "",
+        "summary": "Update Table",
         "operationId": "db-table-update",
         "responses": {
           "200": {
@@ -1965,10 +1891,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the table meta data by the given table ID"
       },
       "delete": {
-        "summary": "",
+        "summary": "Delete Table",
         "operationId": "db-table-delete",
         "responses": {
           "200": {
@@ -1979,6 +1906,105 @@
           "DB table"
         ],
         "description": ""
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "List Tables",
+        "operationId": "table-list",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/TableList"
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "xc-auth"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "page"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "pageSize"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "includeM2M"
+          }
+        ],
+        "tags": [
+          "Base"
+        ],
+        "description": "List all tables in a given Project and Base"
+      },
+      "post": {
+        "summary": "Create Table",
+        "operationId": "table-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "description": "Create a new table in a given Project and Base"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/reorder": {
@@ -1993,7 +2019,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Reorder Table",
         "operationId": "db-table-reorder",
         "responses": {
           "200": {
@@ -2016,7 +2042,8 @@
         },
         "tags": [
           "DB table"
-        ]
+        ],
+        "description": "Update the order of the given Table"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/columns": {
@@ -2031,7 +2058,7 @@
         }
       ],
       "post": {
-        "summary": "Column create",
+        "summary": "Create Column",
         "operationId": "db-table-column-create",
         "responses": {
           "200": {
@@ -2049,7 +2076,8 @@
         },
         "tags": [
           "DB table column"
-        ]
+        ],
+        "description": "Create a new column in a given Table"
       }
     },
     "/api/v1/db/meta/columns/{columnId}": {
@@ -2064,7 +2092,7 @@
         }
       ],
       "patch": {
-        "summary": "Column Update",
+        "summary": "Update Column",
         "operationId": "db-table-column-update",
         "responses": {
           "200": {
@@ -2089,10 +2117,11 @@
         },
         "tags": [
           "DB table column"
-        ]
+        ],
+        "description": "Update the existing column by the given column ID"
       },
       "delete": {
-        "summary": "Column Delete",
+        "summary": "Delete Column",
         "operationId": "db-table-column-delete",
         "responses": {
           "200": {
@@ -2101,10 +2130,11 @@
         },
         "tags": [
           "DB table column"
-        ]
+        ],
+        "description": "Delete the existing column by the given column ID"
       },
       "get": {
-        "summary": "Column Get",
+        "summary": "Get Column",
         "operationId": "db-table-column-get",
         "responses": {
           "200": {
@@ -2113,7 +2143,8 @@
         },
         "tags": [
           "DB Table Column"
-        ]
+        ],
+        "description": "Get the existing column by the given column ID"
       }
     },
     "/api/v1/db/meta/columns/{columnId}/primary": {
@@ -2128,7 +2159,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Create Primary Value",
         "operationId": "db-table-column-primary-column-set",
         "responses": {
           "200": {
@@ -2137,7 +2168,8 @@
         },
         "tags": [
           "DB table column"
-        ]
+        ],
+        "description": "Set a primary value on a given column"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/views": {
@@ -2152,7 +2184,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List views",
         "operationId": "db-view-list",
         "responses": {
           "200": {
@@ -2162,7 +2194,7 @@
         "tags": [
           "DB view"
         ],
-        "description": ""
+        "description": "List all views in a given Table."
       }
     },
     "/api/v1/db/meta/views/{viewId}": {
@@ -2177,7 +2209,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update View",
         "operationId": "db-view-update",
         "responses": {
           "200": {
@@ -2195,10 +2227,11 @@
         },
         "tags": [
           "DB view"
-        ]
+        ],
+        "description": "Update the view with the given view Id."
       },
       "delete": {
-        "summary": "",
+        "summary": "Delete View",
         "operationId": "db-view-delete",
         "responses": {
           "200": {
@@ -2207,7 +2240,8 @@
         },
         "tags": [
           "DB view"
-        ]
+        ],
+        "description": "Delete the view with the given view Id."
       }
     },
     "/api/v1/db/meta/views/{viewId}/show-all": {
@@ -2222,7 +2256,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Show All Columns In View",
         "operationId": "db-view-show-all-column",
         "responses": {
           "200": {
@@ -2232,7 +2266,7 @@
         "tags": [
           "DB view"
         ],
-        "description": "",
+        "description": "Show All Columns in a given View",
         "parameters": [
           {
             "schema": {
@@ -2256,7 +2290,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Hide All Columns In View",
         "operationId": "db-view-hide-all-column",
         "responses": {
           "200": {
@@ -2275,7 +2309,7 @@
             "name": "ignoreIds"
           }
         ],
-        "description": ""
+        "description": "Hide All Columns in a given View"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/share": {
@@ -2290,7 +2324,7 @@
         }
       ],
       "get": {
-        "summary": "Shared view list",
+        "summary": "List Shared Views",
         "operationId": "db-view-share-list",
         "responses": {
           "200": {
@@ -2305,7 +2339,7 @@
             }
           }
         },
-        "description": "",
+        "description": "List all shared views in a given Table",
         "tags": [
           "DB view share"
         ]
@@ -2323,7 +2357,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Create Shared View",
         "operationId": "db-view-share-create",
         "responses": {
           "200": {
@@ -2344,10 +2378,11 @@
         },
         "tags": [
           "DB view share"
-        ]
+        ],
+        "description": "Create a shared view in a given View.."
       },
       "patch": {
-        "summary": "",
+        "summary": "Update Shared View",
         "operationId": "db-view-share-update",
         "responses": {
           "200": {
@@ -2373,17 +2408,18 @@
         },
         "tags": [
           "DB view share"
-        ]
+        ],
+        "description": "Update a shared view in a given View.."
       },
       "delete": {
-        "summary": "",
+        "summary": "Delete Shared View",
         "operationId": "db-view-share-delete",
         "responses": {
           "200": {
             "description": "OK"
           }
         },
-        "description": "",
+        "description": "Delete a shared view in a given View.",
         "tags": [
           "DB view share"
         ]
@@ -2401,15 +2437,16 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List Columns In View",
         "operationId": "db-view-column-list",
         "responses": {},
         "tags": [
           "DB view column"
-        ]
+        ],
+        "description": "List all columns by ViewID"
       },
       "post": {
-        "summary": "",
+        "summary": "Create Column in View",
         "operationId": "db-view-column-create",
         "responses": {
           "200": {
@@ -2425,7 +2462,8 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Create a new column in a given View"
       }
     },
     "/api/v1/db/meta/views/{viewId}/columns/{columnId}": {
@@ -2448,7 +2486,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update View Column",
         "operationId": "db-view-column-update",
         "responses": {
           "200": {
@@ -2464,7 +2502,8 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Update a column in a View"
       }
     },
     "/api/v1/db/meta/views/{viewId}/sorts": {
@@ -2479,7 +2518,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List View Sorts",
         "operationId": "db-table-sort-list",
         "responses": {
           "200": {
@@ -2508,10 +2547,11 @@
         },
         "tags": [
           "DB table sort"
-        ]
+        ],
+        "description": "List all the sort data in a given View"
       },
       "post": {
-        "summary": "",
+        "summary": "Update View Sort",
         "operationId": "db-table-sort-create",
         "responses": {
           "200": {
@@ -2541,7 +2581,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the sort data in a given View"
       }
     },
     "/api/v1/db/meta/sorts/{sortId}": {
@@ -2556,7 +2597,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get Sort",
         "operationId": "db-table-sort-get",
         "responses": {
           "200": {
@@ -2572,10 +2613,11 @@
         },
         "tags": [
           "DB table sort"
-        ]
+        ],
+        "description": "Get the sort data by Sort ID"
       },
       "patch": {
-        "summary": "",
+        "summary": "Update Sort",
         "operationId": "db-table-sort-update",
         "responses": {
           "200": {
@@ -2593,10 +2635,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the sort data by Sort ID"
       },
       "delete": {
-        "summary": "",
+        "summary": "Delete Sort",
         "operationId": "db-table-sort-delete",
         "responses": {
           "200": {
@@ -2605,7 +2648,8 @@
         },
         "tags": [
           "DB table sort"
-        ]
+        ],
+        "description": "Delete the sort data by Sort ID"
       }
     },
     "/api/v1/db/meta/views/{viewId}/filters": {
@@ -2620,7 +2664,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get View Filter",
         "operationId": "db-table-filter-read",
         "responses": {
           "200": {
@@ -2639,10 +2683,11 @@
         },
         "tags": [
           "DB table filter"
-        ]
+        ],
+        "description": "Get the filter data in a given View"
       },
       "post": {
-        "summary": "",
+        "summary": "Create View Filter",
         "operationId": "db-table-filter-create",
         "responses": {
           "200": {
@@ -2667,7 +2712,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the filter data in a given View"
       }
     },
     "/api/v1/db/meta/hooks/{hookId}/filters": {
@@ -2682,7 +2728,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get Hook Filter",
         "operationId": "db-table-webhook-filter-read",
         "responses": {
           "200": {
@@ -2691,10 +2737,11 @@
         },
         "tags": [
           "DB table webhook filter"
-        ]
+        ],
+        "description": "Get the filter data in a given Hook"
       },
       "post": {
-        "summary": "",
+        "summary": "Create Hook Filter",
         "operationId": "db-table-webhook-filter-create",
         "responses": {
           "200": {
@@ -2712,7 +2759,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Create filter(s) in a given Hook"
       }
     },
     "/api/v1/db/meta/filters/{filterId}": {
@@ -2727,7 +2775,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get Filter",
         "operationId": "db-table-filter-get",
         "responses": {
           "200": {
@@ -2743,10 +2791,11 @@
         },
         "tags": [
           "DB table filter"
-        ]
+        ],
+        "description": "Get the filter data with a given Filter ID"
       },
       "patch": {
-        "summary": "",
+        "summary": "Update Filter",
         "operationId": "db-table-filter-update",
         "responses": {
           "200": {
@@ -2764,10 +2813,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the filter data with a given Filter ID"
       },
       "delete": {
-        "summary": "",
+        "summary": "Delete Filter",
         "operationId": "db-table-filter-delete",
         "responses": {
           "200": {
@@ -2776,7 +2826,8 @@
         },
         "tags": [
           "DB table filter"
-        ]
+        ],
+        "description": "Delete the filter data with a given Filter ID"
       }
     },
     "/api/v1/db/meta/filters/{filterGroupId}/children": {
@@ -2791,7 +2842,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get Filter Group Children",
         "operationId": "db-table-filter-children-read",
         "responses": {
           "200": {
@@ -2810,7 +2861,8 @@
         },
         "tags": [
           "DB table filter"
-        ]
+        ],
+        "description": "Get Filter Group Children of a given group ID"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/grids": {
@@ -2825,7 +2877,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Create Grid View",
         "operationId": "db-view-grid-create",
         "responses": {
           "200": {
@@ -2850,7 +2902,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Create a new grid view in a given Table"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/forms": {
@@ -2865,7 +2918,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Create Form View",
         "operationId": "db-view-form-create",
         "responses": {
           "200": {
@@ -2879,7 +2932,7 @@
             }
           }
         },
-        "description": "",
+        "description": "Create a new form view in a given Table",
         "tags": [
           "DB view"
         ],
@@ -2906,7 +2959,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update Form",
         "operationId": "db-view-form-update",
         "responses": {
           "200": {
@@ -2924,10 +2977,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the form data by Form ID"
       },
       "get": {
-        "summary": "",
+        "summary": "Get Form",
         "operationId": "db-view-form-read",
         "responses": {
           "200": {
@@ -2943,7 +2997,8 @@
         },
         "tags": [
           "DB view"
-        ]
+        ],
+        "description": "Get the form data by Form ID"
       }
     },
     "/api/v1/db/meta/form-columns/{formViewColumnId}": {
@@ -2958,7 +3013,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update Form Column",
         "operationId": "db-view-form-column-update",
         "responses": {
           "200": {
@@ -2983,7 +3038,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the form column(s) by Form View Column ID"
       }
     },
     "/api/v1/db/meta/grids/{viewId}": {
@@ -2998,7 +3054,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update Grid View",
         "operationId": "db-view-grid-update",
         "responses": {
           "200": {
@@ -3021,7 +3077,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Update Grid View"
       }
     },
     "/api/v1/db/meta/grids/{gridId}/grid-columns": {
@@ -3036,7 +3093,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List Grid Columns",
         "operationId": "db-view-grid-columns-list",
         "responses": {
           "200": {
@@ -3055,7 +3112,8 @@
         },
         "tags": [
           "DB view"
-        ]
+        ],
+        "description": "List all columns in the given Grid"
       }
     },
     "/api/v1/db/meta/grid-columns/{columnId}": {
@@ -3070,7 +3128,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update Grid Column",
         "operationId": "db-view-grid-column-update",
         "responses": {
           "200": {
@@ -3093,7 +3151,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Update grid column(s) in the given Grid"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/galleries": {
@@ -3108,7 +3167,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Gallery View",
         "operationId": "db-view-gallery-create",
         "responses": {
           "200": {
@@ -3149,7 +3208,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update Gallery View",
         "operationId": "db-view-gallery-update",
         "responses": {
           "200": {
@@ -3167,10 +3226,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the Gallery View data with Gallery ID"
       },
       "get": {
-        "summary": "",
+        "summary": "Get Gallery View",
         "operationId": "db-view-gallery-read",
         "responses": {
           "200": {
@@ -3186,7 +3246,8 @@
         },
         "tags": [
           "DB view"
-        ]
+        ],
+        "description": "Get the Gallery View data with Gallery ID"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/kanbans": {
@@ -3201,7 +3262,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Create Kanban View",
         "operationId": "db-view-kanban-create",
         "responses": {
           "200": {
@@ -3227,7 +3288,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Create a new Kanban View"
       }
     },
     "/api/v1/db/meta/kanbans/{kanbanId}": {
@@ -3242,7 +3304,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update Kanban View",
         "operationId": "db-view-kanban-update",
         "responses": {
           "200": {
@@ -3260,10 +3322,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the Kanban View data with Kanban ID"
       },
       "get": {
-        "summary": "",
+        "summary": "Get Kanban View",
         "operationId": "db-view-kanban-read",
         "responses": {
           "200": {
@@ -3279,7 +3342,8 @@
         },
         "tags": [
           "DB view"
-        ]
+        ],
+        "description": "Get the Kanban View data by Kanban ID"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/maps": {
@@ -3294,7 +3358,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Create Map View",
         "operationId": "db-view-map-create",
         "responses": {
           "200": {
@@ -3320,7 +3384,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Create a new Map View"
       }
     },
     "/api/v1/db/meta/maps/{mapId}": {
@@ -3335,7 +3400,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update Map View",
         "operationId": "db-view-map-update",
         "responses": {
           "200": {
@@ -3353,10 +3418,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the Map View data by Map ID"
       },
       "get": {
-        "summary": "",
+        "summary": "Get Map View",
         "operationId": "db-view-map-read",
         "responses": {
           "200": {
@@ -3372,7 +3438,8 @@
         },
         "tags": [
           "DB view"
-        ]
+        ],
+        "description": "Get the Map View data by Map ID"
       }
     },
     "/api/v1/db/meta/projects/{projectId}/meta-diff": {
@@ -3387,7 +3454,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Sync Meta",
         "operationId": "project-meta-diff-sync",
         "responses": {
           "200": {
@@ -3401,10 +3468,11 @@
         },
         "tags": [
           "Project"
-        ]
+        ],
+        "description": "Synchronise the meta data difference between NC_DB and external data sources "
       },
       "get": {
-        "summary": "",
+        "summary": "Meta Diff",
         "operationId": "project-meta-diff-get",
         "parameters": [],
         "tags": [
@@ -3419,37 +3487,8 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id"
-          },
-          "name": "projectId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "project-has-empty-or-null-filters",
-        "parameters": [],
-        "tags": [
-          "Project"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
+        },
+        "description": "Get the meta data difference between NC_DB and external data sources "
       }
     },
     "/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}": {
@@ -3472,7 +3511,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Synchronise Base Meta",
         "operationId": "base-meta-diff-sync",
         "responses": {
           "200": {
@@ -3486,10 +3525,11 @@
         },
         "tags": [
           "Base"
-        ]
+        ],
+        "description": "Synchronise the meta data difference between NC_DB and external data sources in a given Base"
       },
       "get": {
-        "summary": "",
+        "summary": "Base Meta Diff",
         "operationId": "base-meta-diff-get",
         "parameters": [],
         "tags": [
@@ -3504,7 +3544,40 @@
               }
             }
           }
+        },
+        "description": "Get the meta data difference between NC_DB and external data sources in a given Base"
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
         }
+      ],
+      "get": {
+        "summary": "List Empty & Null Filter",
+        "operationId": "project-has-empty-or-null-filters",
+        "parameters": [],
+        "tags": [
+          "Project"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "description": "Check if a project contains empty and null filters. Used in `Show NULL and EMPTY in Filter` in Project Setting.",
+        "x-internal": true
       }
     },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}": {
@@ -3535,9 +3608,9 @@
         }
       ],
       "get": {
-        "summary": "Table row list",
+        "summary": "List Table Rows",
         "operationId": "db-table-row-list",
-        "description": "",
+        "description": "List all table rows in a given table and project",
         "tags": [
           "DB table row"
         ],
@@ -3604,7 +3677,7 @@
         }
       },
       "post": {
-        "summary": "Table row create",
+        "summary": "Create Table Row",
         "operationId": "db-table-row-create",
         "responses": {
           "200": {
@@ -3625,7 +3698,8 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Create a new row in a given table and project."
       }
     },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one": {
@@ -3656,9 +3730,9 @@
         }
       ],
       "get": {
-        "summary": "Table row FindOne",
+        "summary": "Find One Table Row",
         "operationId": "db-table-row-find-one",
-        "description": "",
+        "description": "Return the first result of the target Table Row",
         "tags": [
           "DB table row"
         ],
@@ -3733,9 +3807,9 @@
         }
       ],
       "get": {
-        "summary": "Table row Group by",
+        "summary": "Group By Table Row",
         "operationId": "db-table-row-group-by",
-        "description": "",
+        "description": "Get the result grouped by the given query",
         "tags": [
           "DB table row"
         ],
@@ -3829,7 +3903,7 @@
       "get": {
         "summary": "Table Group by Column",
         "operationId": "db-view-row-grouped-data-list",
-        "description": "",
+        "description": "Get the grouped data By Column ID. Used in Kanban View.",
         "tags": [
           "DB view row"
         ],
@@ -3912,7 +3986,7 @@
       "get": {
         "summary": "Table Group by Column",
         "operationId": "db-table-row-grouped-data-list",
-        "description": "",
+        "description": "Get the grouped data By Column ID. Used in Kanban View.",
         "tags": [
           "DB table row"
         ],
@@ -3993,9 +4067,9 @@
         }
       ],
       "get": {
-        "summary": "Table view row list",
+        "summary": "List Table View Rows",
         "operationId": "db-view-row-list",
-        "description": "",
+        "description": "List all table view rows",
         "tags": [
           "DB view row"
         ],
@@ -4047,7 +4121,7 @@
         }
       },
       "post": {
-        "summary": "Table view row create",
+        "summary": "Create Table View Row",
         "operationId": "db-view-row-create",
         "responses": {
           "200": {
@@ -4068,7 +4142,8 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Create a new row in the given Table View"
       }
     },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one": {
@@ -4107,9 +4182,9 @@
         }
       ],
       "get": {
-        "summary": "Table view row FindOne",
+        "summary": "Find One Table View Row",
         "operationId": "db-view-row-find-one",
-        "description": "",
+        "description": "Return the first result of table view rows with the given query",
         "tags": [
           "DB view row"
         ],
@@ -4198,9 +4273,9 @@
         }
       ],
       "get": {
-        "summary": "Table view row Group by",
+        "summary": "Group By Table View Row",
         "operationId": "db-view-row-group-by",
-        "description": "",
+        "description": "Get the table view rows groupe by the given query",
         "tags": [
           "DB view row"
         ],
@@ -4284,9 +4359,9 @@
         }
       ],
       "get": {
-        "summary": "Table view rows count",
+        "summary": "Count Table View Rows",
         "operationId": "db-view-row-count",
-        "description": "",
+        "description": "Count how many rows in the given Table View",
         "tags": [
           "DB view row"
         ],
@@ -4361,7 +4436,7 @@
         }
       ],
       "get": {
-        "summary": "Table view row read",
+        "summary": "Get Table View Row",
         "operationId": "db-view-row-read",
         "responses": {
           "201": {
@@ -4373,13 +4448,13 @@
             }
           }
         },
-        "description": "",
+        "description": "Get the target Table View Row",
         "tags": [
           "DB view row"
         ]
       },
       "patch": {
-        "summary": "Table view row update",
+        "summary": "Update Table View Row",
         "operationId": "db-view-row-update",
         "responses": {
           "200": {
@@ -4400,10 +4475,11 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Update the target Table View Row"
       },
       "delete": {
-        "summary": "Table view row delete",
+        "summary": "Delete Table View Row",
         "operationId": "db-view-row-delete",
         "responses": {
           "200": {
@@ -4413,7 +4489,7 @@
         "tags": [
           "DB view row"
         ],
-        "description": ""
+        "description": "Delete the target Table View Row"
       }
     },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist": {
@@ -4460,7 +4536,7 @@
         }
       ],
       "get": {
-        "summary": "Table view row exist",
+        "summary": "Does Table View Row Exist",
         "operationId": "db-view-row-exist",
         "responses": {
           "201": {
@@ -4472,7 +4548,7 @@
             }
           }
         },
-        "description": "check row with provided primary key exists or not",
+        "description": "Check row with provided primary key exists or not",
         "tags": [
           "DB view row"
         ]
@@ -4514,7 +4590,7 @@
         }
       ],
       "get": {
-        "summary": "Table row read",
+        "summary": "Get Table Row",
         "operationId": "db-table-row-read",
         "responses": {
           "201": {
@@ -4526,13 +4602,13 @@
             }
           }
         },
-        "description": "",
+        "description": "Get the Table Row",
         "tags": [
           "DB table row"
         ]
       },
       "patch": {
-        "summary": "Table row update",
+        "summary": "Update Table Row",
         "operationId": "db-table-row-update",
         "responses": {
           "200": {
@@ -4553,10 +4629,11 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Update the Table Row"
       },
       "delete": {
-        "summary": "Table row delete",
+        "summary": "Delete Table Row",
         "operationId": "db-table-row-delete",
         "responses": {
           "200": {
@@ -4571,7 +4648,7 @@
         "tags": [
           "DB table row"
         ],
-        "description": ""
+        "description": "Delete the Table Row"
       }
     },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist": {
@@ -4610,7 +4687,7 @@
         }
       ],
       "get": {
-        "summary": "Table row exist",
+        "summary": "Does Table Row Exist",
         "operationId": "db-table-row-exist",
         "responses": {
           "201": {
@@ -4656,7 +4733,7 @@
         }
       ],
       "post": {
-        "summary": "Bulk insert table rows",
+        "summary": "Bulk Insert Table Rows",
         "operationId": "db-table-row-bulk-create",
         "responses": {
           "200": {
@@ -4677,10 +4754,11 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Bulk insert table rows in one go."
       },
       "patch": {
-        "summary": "Bulk update all table rows by IDs",
+        "summary": "Bulk Update Table Rows by IDs",
         "operationId": "db-table-row-bulk-update",
         "responses": {
           "200": {
@@ -4701,10 +4779,11 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Bulk Update Table Rows by given IDs"
       },
       "delete": {
-        "summary": "Bulk delete all table rows by IDs",
+        "summary": "Bulk Delete Table Rows by IDs",
         "operationId": "db-table-row-bulk-delete",
         "responses": {
           "200": {
@@ -4725,7 +4804,8 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Bulk Delete Table Rows by given IDs"
       }
     },
     "/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all": {
@@ -4763,7 +4843,7 @@
         }
       ],
       "patch": {
-        "summary": "Bulk update all table rows with conditions",
+        "summary": "Bulk Update Table Rows with Conditions",
         "operationId": "db-table-row-bulk-update-all",
         "responses": {
           "200": {
@@ -4784,10 +4864,11 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Bulk Update all Table Rows if the condition is true"
       },
       "delete": {
-        "summary": "Bulk delete all table rows with conditions",
+        "summary": "Bulk Delete Table Rows with Conditions",
         "operationId": "db-table-row-bulk-delete-all",
         "responses": {
           "200": {
@@ -4808,7 +4889,8 @@
               "schema": {}
             }
           }
-        }
+        },
+        "description": "Bulk Delete all Table Rows if the condition is true"
       }
     },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/export/{type}": {
@@ -4859,9 +4941,9 @@
         }
       ],
       "get": {
-        "summary": "Table view rows export",
+        "summary": "Export Table View Rows",
         "operationId": "db-view-row-export",
-        "description": "CSV or Excel export",
+        "description": "Export Table View Rows by CSV or Excel",
         "tags": [
           "DB view row"
         ],
@@ -4926,9 +5008,9 @@
         }
       ],
       "get": {
-        "summary": "Tablerows export",
+        "summary": "Export Table View Rows",
         "operationId": "db-table-row-csv-export",
-        "description": "CSV or Excel export",
+        "description": "Export Table View Rows by CSV or Excel",
         "tags": [
           "DB table row"
         ],
@@ -5010,7 +5092,7 @@
         }
       ],
       "get": {
-        "summary": "Nested relations row list",
+        "summary": "List Nested Relations Rows",
         "operationId": "db-table-row-nested-list",
         "responses": {
           "200": {
@@ -5049,7 +5131,8 @@
             "in": "query",
             "name": "where"
           }
-        ]
+        ],
+        "description": "List all nested relations rows"
       }
     },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/{refRowId}": {
@@ -5117,7 +5200,7 @@
         }
       ],
       "post": {
-        "summary": "Nested relations row add",
+        "summary": "Create Nested Relations Row",
         "operationId": "db-table-row-nested-add",
         "responses": {
           "200": {
@@ -5150,10 +5233,10 @@
             "name": "offset"
           }
         ],
-        "description": ""
+        "description": "Create a new nested relations row"
       },
       "delete": {
-        "summary": "Nested relations row remove",
+        "summary": "Delete Nested Relations Row",
         "operationId": "db-table-row-nested-remove",
         "responses": {
           "200": {
@@ -5167,7 +5250,8 @@
         },
         "tags": [
           "DB table row"
-        ]
+        ],
+        "description": "Delete a new nested relations row"
       }
     },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude": {
@@ -5227,7 +5311,7 @@
         }
       ],
       "get": {
-        "summary": "Referenced tables rows excluding current records children/parent",
+        "summary": "Referenced Table Rows Excluding Current Record's Children / Parent",
         "operationId": "db-table-row-nested-children-excluded-list",
         "responses": {
           "200": {
@@ -5266,7 +5350,8 @@
             "in": "query",
             "name": "where"
           }
-        ]
+        ],
+        "description": "Get the table rows but exculding the current record's children and parent"
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}": {
@@ -5297,7 +5382,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List Shared View Grouped Data",
         "operationId": "public-grouped-data-list",
         "responses": {
           "200": {
@@ -5329,7 +5414,8 @@
             "in": "query",
             "name": "offset"
           }
-        ]
+        ],
+        "description": "List Shared View Grouped Data"
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows": {
@@ -5352,7 +5438,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List Shared View Rows",
         "operationId": "public-data-list",
         "responses": {
           "200": {
@@ -5384,10 +5470,11 @@
             "in": "query",
             "name": "offset"
           }
-        ]
+        ],
+        "description": "List all shared view rows"
       },
       "post": {
-        "summary": "",
+        "summary": "Create Share View Row",
         "operationId": "public-data-create",
         "responses": {
           "200": {
@@ -5419,7 +5506,8 @@
             },
             "in": "header"
           }
-        ]
+        ],
+        "description": "Create a new row for the target shared view"
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}": {
@@ -5463,7 +5551,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List Nested List Data",
         "operationId": "public-data-nested-list",
         "responses": {
           "200": {
@@ -5495,7 +5583,8 @@
             "in": "query",
             "name": "offset"
           }
-        ]
+        ],
+        "description": "List all nested list data in a given shared view"
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}": {
@@ -5522,9 +5611,9 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Export Rows in Share View",
         "operationId": "public-csv-export",
-        "description": "",
+        "description": "Export all rows in Share View in a CSV / Excel Format",
         "wrapped": true,
         "responses": {
           "200": {
@@ -5576,7 +5665,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List Nested Data Relation",
         "operationId": "public-data-relation-list",
         "responses": {
           "200": {
@@ -5609,7 +5698,7 @@
         "tags": [
           "Public"
         ],
-        "description": ""
+        "description": "List Nested Data Relation"
       }
     },
     "/api/v1/db/public/shared-base/{sharedBaseUuid}/meta": {
@@ -5624,9 +5713,9 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get Share Base Meta",
         "operationId": "public-shared-base-get",
-        "description": "Read project details",
+        "description": "Get Share Base Meta",
         "parameters": [],
         "responses": {
           "200": {
@@ -5670,7 +5759,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get Share View Meta",
         "operationId": "public-shared-view-meta-get",
         "responses": {
           "200": {
@@ -5747,14 +5836,14 @@
         "tags": [
           "Public"
         ],
-        "description": "",
+        "description": "Get Share View Meta",
         "parameters": []
       }
     },
     "/api/v1/db/meta/audits/comments": {
       "parameters": [],
       "get": {
-        "summary": "",
+        "summary": "List Comments in Audit",
         "operationId": "utils-comment-list",
         "responses": {
           "201": {
@@ -5766,7 +5855,7 @@
             }
           }
         },
-        "description": "",
+        "description": "List all comments",
         "parameters": [
           {
             "schema": {
@@ -5815,13 +5904,14 @@
         },
         "tags": [
           "Utils"
-        ]
+        ],
+        "description": "Create a new comment for Audit"
       }
     },
     "/api/v1/db/meta/audits/comments/count": {
       "parameters": [],
       "get": {
-        "summary": "",
+        "summary": "Count Comments",
         "operationId": "utils-comment-count",
         "responses": {
           "201": {
@@ -5833,7 +5923,7 @@
             }
           }
         },
-        "description": "",
+        "description": "Return the number of comments in the given query.",
         "parameters": [
           {
             "in": "query",
@@ -5866,7 +5956,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List Audits in Project",
         "operationId": "project-audit-list",
         "responses": {
           "200": {
@@ -5897,7 +5987,7 @@
             }
           }
         },
-        "description": "",
+        "description": "List all audit data in the given project",
         "parameters": [
           {
             "schema": {
@@ -5933,7 +6023,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Update Audit Row",
         "operationId": "utils-audit-row-update",
         "responses": {
           "200": {
@@ -5951,7 +6041,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Update Audit Row"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/hooks": {
@@ -5966,7 +6057,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "List Table Hooks",
         "operationId": "db-table-webhook-list",
         "responses": {
           "200": {
@@ -5997,14 +6088,14 @@
             }
           }
         },
-        "description": "",
+        "description": "List all hook records in the given Table",
         "parameters": [],
         "tags": [
           "DB table webhook"
         ]
       },
       "post": {
-        "summary": "",
+        "summary": "Create Table Hook",
         "operationId": "db-table-webhook-create",
         "responses": {
           "200": {
@@ -6018,7 +6109,7 @@
             }
           }
         },
-        "description": "",
+        "description": "Create a hook in the given table",
         "requestBody": {
           "content": {
             "application/json": {
@@ -6045,7 +6136,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Test Hook",
         "operationId": "db-table-webhook-test",
         "responses": {
           "200": {
@@ -6068,7 +6159,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Test the hook in the given Table"
       }
     },
     "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}": {
@@ -6096,7 +6188,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get Sample Hook Payload",
         "operationId": "db-table-webhook-sample-payload-get",
         "responses": {
           "200": {
@@ -6132,7 +6224,7 @@
             }
           }
         },
-        "description": "",
+        "description": "Get the sample hook payload",
         "parameters": [],
         "tags": [
           "DB table webhook"
@@ -6151,7 +6243,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update Hook",
         "operationId": "db-table-webhook-update",
         "responses": {
           "200": {
@@ -6176,10 +6268,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the exsiting hook by its ID"
       },
       "delete": {
-        "summary": "",
+        "summary": "Delete Hook",
         "operationId": "db-table-webhook-delete",
         "responses": {
           "200": {
@@ -6188,13 +6281,14 @@
         },
         "tags": [
           "DB table webhook"
-        ]
+        ],
+        "description": "Delete the exsiting hook by its ID"
       }
     },
     "/api/v1/db/meta/plugins": {
       "parameters": [],
       "get": {
-        "summary": "",
+        "summary": "List Plugins",
         "operationId": "plugin-list",
         "responses": {
           "200": {
@@ -6221,7 +6315,7 @@
             }
           }
         },
-        "description": "",
+        "description": "List all plugins",
         "parameters": [],
         "tags": [
           "Plugin"
@@ -6240,7 +6334,7 @@
         }
       ],
       "get": {
-        "summary": "",
+        "summary": "Get Plugin Status",
         "operationId": "plugin-status",
         "responses": {
           "200": {
@@ -6264,7 +6358,7 @@
     "/api/v1/db/meta/plugins/test": {
       "parameters": [],
       "post": {
-        "summary": "",
+        "summary": "Test Plugin",
         "operationId": "plugin-test",
         "responses": {
           "200": {
@@ -6282,7 +6376,7 @@
             "description": "Unauthorized"
           }
         },
-        "description": "",
+        "description": "Test if the plugin is working with the given configurations",
         "parameters": [],
         "tags": [
           "Plugin"
@@ -6310,7 +6404,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Update Plugin",
         "operationId": "plugin-update",
         "responses": {
           "200": {
@@ -6333,10 +6427,11 @@
               }
             }
           }
-        }
+        },
+        "description": "Update the plugin data by ID"
       },
       "get": {
-        "summary": "",
+        "summary": "Get Plugin",
         "operationId": "plugin-read",
         "responses": {
           "200": {
@@ -6352,13 +6447,14 @@
         },
         "tags": [
           "Plugin"
-        ]
+        ],
+        "description": "Get the plugin data by ID"
       }
     },
     "/api/v1/db/meta/connection/test": {
       "parameters": [],
       "post": {
-        "summary": "",
+        "summary": "Test DB Connection",
         "operationId": "utils-test-connection",
         "responses": {
           "200": {
@@ -6390,13 +6486,13 @@
             }
           }
         },
-        "description": ""
+        "description": "Test the DB Connection"
       }
     },
     "/api/v1/url_to_config": {
       "parameters": [],
       "post": {
-        "summary": "",
+        "summary": "Convert JDBC URL to Config",
         "operationId": "utils-url-to-config",
         "tags": [
           "Utils"
@@ -6408,13 +6504,13 @@
             }
           }
         },
-        "description": ""
+        "description": "Extract XC URL From JDBC and parse to connection config"
       }
     },
     "/api/v1/db/meta/nocodb/info": {
       "parameters": [],
       "get": {
-        "summary": "",
+        "summary": "Get App Info",
         "operationId": "utils-app-info",
         "responses": {
           "200": {
@@ -6429,13 +6525,13 @@
         "tags": [
           "Utils"
         ],
-        "description": ""
+        "description": "Get the application info such as authType, defaultLimit, version and etc."
       }
     },
     "/api/v1/db/meta/axiosRequestMake": {
       "parameters": [],
       "post": {
-        "summary": "",
+        "summary": "Axios Request",
         "operationId": "utils-axios-request-make",
         "responses": {
           "200": {
@@ -6462,13 +6558,14 @@
         },
         "tags": [
           "Utils"
-        ]
+        ],
+        "x-internal": true
       }
     },
     "/api/v1/version": {
       "parameters": [],
       "get": {
-        "summary": "",
+        "summary": "Get App Version",
         "operationId": "utils-app-version",
         "responses": {
           "200": {
@@ -6483,13 +6580,13 @@
         "tags": [
           "Utils"
         ],
-        "description": ""
+        "description": "Get the application version"
       }
     },
     "/api/v1/health": {
       "parameters": [],
       "get": {
-        "summary": "",
+        "summary": "Get Application Health Status",
         "operationId": "utils-app-health",
         "responses": {
           "200": {
@@ -6504,13 +6601,13 @@
         "tags": [
           "Utils"
         ],
-        "description": ""
+        "description": "Get Application Health Status"
       }
     },
     "/api/v1/aggregated-meta-info": {
       "parameters": [],
       "get": {
-        "summary": "",
+        "summary": "Get Aggregated Meta Info",
         "operationId": "utils-aggregated-meta-info",
         "responses": {
           "200": {
@@ -6837,12 +6934,12 @@
         "tags": [
           "Utils"
         ],
-        "description": ""
+        "description": "Get Aggregated Meta Info such as tableCount, dbViewCount, viewCount and etc."
       }
     },
     "/api/v1/db/meta/cache": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Get Cache",
         "tags": [
           "Utils"
         ],
@@ -6851,7 +6948,7 @@
         "description": "Get All K/V pairs in NocoCache"
       },
       "delete": {
-        "summary": "",
+        "summary": "Delete Cache",
         "operationId": "utils-cache-delete",
         "responses": {
           "200": {
@@ -6867,7 +6964,7 @@
     },
     "/api/v1/db/meta/projects/{projectId}/api-tokens": {
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "List API Tokens in Project",
         "tags": [
           "Api token"
         ],
@@ -6886,10 +6983,11 @@
             }
           }
         },
-        "operationId": "api-token-list"
+        "operationId": "api-token-list",
+        "description": "List API Tokens in the given project"
       },
       "post": {
-        "summary": "",
+        "summary": "Create API Token",
         "operationId": "api-token-create",
         "responses": {
           "200": {
@@ -6899,8 +6997,7 @@
             "description": "Created",
             "content": {
               "application/json": {
-                "schema": {
-                }
+                "schema": {}
               }
             }
           }
@@ -6916,7 +7013,8 @@
         },
         "tags": [
           "Api token"
-        ]
+        ],
+        "description": "Create API Token in a project"
       },
       "parameters": [
         {
@@ -6931,7 +7029,7 @@
     },
     "/api/v1/db/meta/projects/{projectId}/api-tokens/{token}": {
       "delete": {
-        "summary": "",
+        "summary": "Delete API Token",
         "operationId": "api-token-delete",
         "responses": {
           "200": {
@@ -6940,7 +7038,8 @@
         },
         "tags": [
           "Api token"
-        ]
+        ],
+        "description": "Delete the given API Token in project"
       },
       "parameters": [
         {
@@ -6963,7 +7062,7 @@
     },
     "/api/v1/db/storage/upload": {
       "post": {
-        "summary": "Attachment",
+        "summary": "Attachment Upload",
         "operationId": "storage-upload",
         "responses": {},
         "tags": [
@@ -6994,12 +7093,13 @@
             "in": "query",
             "required": true
           }
-        ]
+        ],
+        "description": "Upload attachment"
       }
     },
     "/api/v1/db/storage/upload-by-url": {
       "post": {
-        "summary": "Attachment",
+        "summary": "Attachment Upload by URL",
         "operationId": "storage-upload-by-url",
         "responses": {},
         "tags": [
@@ -7040,7 +7140,8 @@
             "in": "query",
             "required": true
           }
-        ]
+        ],
+        "description": "Upload attachment by URL. Used in Airtable Migration."
       }
     },
     "/api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite": {
@@ -7063,7 +7164,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Resend User Invitation",
         "operationId": "auth-project-user-resend-invite",
         "responses": {
           "200": {

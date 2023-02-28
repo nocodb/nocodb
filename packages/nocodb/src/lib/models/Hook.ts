@@ -1,4 +1,4 @@
-import { HookType } from 'nocodb-sdk';
+import { BoolType, HookType } from 'nocodb-sdk'
 import {
   CacheDelDirection,
   CacheGetType,
@@ -21,16 +21,16 @@ export default class Hook implements HookType {
   type?: string;
   event?: 'after' | 'before';
   operation?: 'insert' | 'delete' | 'update';
-  async?: boolean;
+  async?: BoolType;
   payload?: string;
   url?: string;
   headers?: string;
-  condition?: boolean;
+  condition?: BoolType;
   notification?: string;
   retries?: number;
   retry_interval?: number;
   timeout?: number;
-  active?: boolean;
+  active?: BoolType;
 
   project_id?: string;
   base_id?: string;

@@ -1,43 +1,21 @@
 import { Request, Response, Router } from 'express';
+import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
+import { View } from '../models';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../meta/helpers/apiMetrics';
+import { viewService } from '../services';
+
 // @ts-ignore
-import Model from '../../models/Model';
-import { Tele } from 'nc-help';
-// @ts-ignore
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-// @ts-ignore
-import { Table, TableReq, ViewList } from 'nocodb-sdk';
-// @ts-ignore
-import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
-// @ts-ignore
-import Project from '../../models/Project';
-import View from '../../models/View';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { xcVisibilityMetaGet } from './modelVisibilityApis';
-import { metaApiMetrics } from '../helpers/apiMetrics';
-// @ts-ignore
-export async function viewGet(req: Request, res: Response<Table>) {}
+export async function viewGet(req: Request, res: Response) {}
 
 // @ts-ignore
 export async function viewList(
   req: Request<any, any, any>,
-  res: Response<ViewList>
+  res: Response
 ) {
-  const model = await Model.get(req.params.tableId);
-
-  const viewList = await xcVisibilityMetaGet(
-    // req.params.projectId,
-    // req.params.baseId,
-    model.project_id,
-    [model]
-  );
-
-  //await View.list(req.params.tableId)
-  const filteredViewList = viewList.filter((view: any) => {
-    return Object.keys((req as any).session?.passport?.user?.roles).some(
-      (role) =>
-        (req as any)?.session?.passport?.user?.roles[role] &&
-        !view.disabled[role]
-    );
+  const filteredViewList = await viewService.viewList({
+    tableId: req.params.tableId,
+    user: (req as any).session?.passport?.user,
   });
 
   res.json(new PagedResponseImpl(filteredViewList));
@@ -48,8 +26,7 @@ export async function shareView(
   req: Request<any, any, any>,
   res: Response<View>
 ) {
-  Tele.emit('evt', { evt_type: 'sharedView:generated-link' });
-  res.json(await View.share(req.params.viewId));
+  res.json(await viewService.shareView({ viewId: req.params.viewId }));
 }
 
 // @ts-ignore
@@ -57,48 +34,56 @@ export async function viewCreate(req: Request<any, any>, res, next) {}
 
 // @ts-ignore
 export async function viewUpdate(req, res) {
-  const result = await View.update(req.params.viewId, req.body);
-  Tele.emit('evt', { evt_type: 'vtable:updated', show_as: result.type });
+  const result = await viewService.viewUpdate({
+    viewId: req.params.viewId,
+    view: req.body,
+  });
   res.json(result);
 }
 
 // @ts-ignore
 export async function viewDelete(req: Request, res: Response, next) {
-  const result = await View.delete(req.params.viewId);
-  Tele.emit('evt', { evt_type: 'vtable:deleted' });
+  const result = await viewService.viewDelete({ viewId: req.params.viewId });
   res.json(result);
 }
 
 async function shareViewUpdate(req: Request<any, any>, res) {
-  Tele.emit('evt', { evt_type: 'sharedView:updated' });
-  res.json(await View.update(req.params.viewId, req.body));
+  res.json(
+    await viewService.shareViewUpdate({
+      viewId: req.params.viewId,
+      sharedView: req.body,
+    })
+  );
 }
 
 async function shareViewDelete(req: Request<any, any>, res) {
-  Tele.emit('evt', { evt_type: 'sharedView:deleted' });
-  res.json(await View.sharedViewDelete(req.params.viewId));
+  res.json(await viewService.shareViewDelete({ viewId: req.params.viewId }));
 }
 
 async function showAllColumns(req: Request<any, any>, res) {
   res.json(
-    await View.showAllColumns(
-      req.params.viewId,
-      <string[]>(req.query?.ignoreIds || [])
-    )
+    await viewService.showAllColumns({
+      viewId: req.params.viewId,
+      ignoreIds: <string[]>(req.query?.ignoreIds || []),
+    })
   );
 }
 
 async function hideAllColumns(req: Request<any, any>, res) {
   res.json(
-    await View.hideAllColumns(
-      req.params.viewId,
-      <string[]>(req.query?.ignoreIds || [])
-    )
+    await viewService.hideAllColumns({
+      viewId: req.params.viewId,
+      ignoreIds: <string[]>(req.query?.ignoreIds || []),
+    })
   );
 }
 
 async function shareViewList(req: Request<any, any>, res) {
-  res.json(await View.shareViewList(req.params.tableId));
+  res.json(
+    await viewService.shareViewList({
+      tableId: req.params.tableId,
+    })
+  );
 }
 
 const router = Router({ mergeParams: true });

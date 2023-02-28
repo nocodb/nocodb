@@ -60,6 +60,8 @@ import DurationIcon from '~icons/mdi/timer-outline'
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
     return KeyIcon
+  } else if (isSpecificDBType(column)) {
+    return SpecificDBTypeIcon
   } else if (isJSON(column)) {
     return JSONIcon
   } else if (isDate(column, abstractType)) {
@@ -102,8 +104,6 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     return NumericIcon
   } else if (isString(column, abstractType)) {
     return StringIcon
-  } else if (isSpecificDBType(column)) {
-    return SpecificDBTypeIcon
   } else {
     return GenericIcon
   }

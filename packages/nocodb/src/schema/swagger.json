@@ -95,6 +95,34 @@
         "description": "Create a new user with provided email and password and first user is marked as super admin. "
       }
     },
+    "/api/v1/auth/user/signout": {
+      "post": {
+        "summary": "Signout",
+        "operationId": "auth-signout",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "description": "Clear refresh token from the database and cookie."
+      },
+      "parameters": []
+    },
     "/api/v1/auth/user/signin": {
       "post": {
         "summary": "Signin",

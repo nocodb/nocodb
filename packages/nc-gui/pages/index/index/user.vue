@@ -57,7 +57,7 @@ const passwordChange = async () => {
 
   message.success(t('msg.success.passwordChanged'))
 
-  signOut()
+  await signOut()
 
   navigateTo('/signin')
 }

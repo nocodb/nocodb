@@ -329,8 +329,8 @@
               "examples": {
                 "example-1": {
                   "value": {
-                    "currentPassword": "string",
-                    "newPassword": "string"
+                    "currentPassword": "currentPassword",
+                    "newPassword": "newPassword"
                   }
                 }
               }
@@ -4949,7 +4949,6 @@
         "tags": [
           "DB View Row"
         ],
-        "wrapped": true,
         "responses": {
           "200": {
             "description": "OK",
@@ -4966,8 +4965,7 @@
               }
             }
           }
-        },
-        "parameters": []
+        }
       }
     },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/export/{type}": {
@@ -5016,7 +5014,6 @@
         "tags": [
           "DB Table Row"
         ],
-        "wrapped": true,
         "responses": {
           "200": {
             "description": "OK",
@@ -5616,7 +5613,6 @@
         "summary": "Export Rows in Share View",
         "operationId": "public-csv-export",
         "description": "Export all rows in Share View in a CSV / Excel Format",
-        "wrapped": true,
         "responses": {
           "200": {
             "description": "OK",
@@ -6922,11 +6918,6 @@
                       "userCount": 1,
                       "sharedBaseCount": 0
                     }
-                  }
-                },
-                "examples": {
-                  "example-1": {
-                    "value": "{\n  \"projectCount\": 1,\n  \"projects\": [\n    {\n      \"tableCount\": {\n        \"table\": 3,\n        \"view\": 0\n      },\n      \"viewCount\": {\n        \"formCount\": 0,\n        \"gridCount\": 3,\n        \"galleryCount\": 0,\n        \"kanbanCount\": 0,\n        \"total\": 3,\n        \"sharedFormCount\": 0,\n        \"sharedGridCount\": 0,\n        \"sharedGalleryCount\": 0,\n        \"sharedKanbanCount\": 0,\n        \"sharedTotal\": 0,\n        \"sharedLockedCount\": 0\n      },\n      \"webhookCount\": 0,\n      \"filterCount\": 0,\n      \"sortCount\": 0,\n      \"rowCount\": [\n        {\n          \"TotalRecords\": \"76\"\n        }\n      ],\n      \"userCount\": 1\n    }\n  ],\n  \"userCount\": 1,\n  \"sharedBaseCount\": 0\n}"
                   }
                 }
               }

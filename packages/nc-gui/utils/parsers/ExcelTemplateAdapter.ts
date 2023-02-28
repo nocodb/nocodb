@@ -188,11 +188,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   return
                 }
                 const vals = Object.entries(ws as Record<string, any>)
-                  .slice(
-                    +firstEntryIsRef + skippedValues.length + +this.config.firstRowAsHeaders + range.e.c + cellIdx.c,
-                    -1 - +!firstEntryIsRef,
-                  )
                   .filter(([key, _]) => this.xlsx.utils.decode_cell(key).c === cellIdx.c)
+                  .slice(+this.config.firstRowAsHeaders, -1)
 
                 const maxCellIdx = vals.reduce((a: number, [v, _]) => {
                   const newIdx = this.xlsx.utils.decode_cell(v).r
@@ -202,7 +199,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                 if (maxCellIdx > this.data[tableName].length) {
                   // prefill
                   this.data[tableName].push(
-                    ...Array(maxCellIdx - this.data[tableName].length)
+                    ...Array(maxCellIdx - this.data[tableName].length + +!this.config.firstRowAsHeaders)
                       .fill(null)
                       .map(() => ({})),
                   )
@@ -274,7 +271,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     for (const [_, cell] of vals) {
                       cell.v = this.fixImportedDate(cell.v)
                     }
-                    column.dateFormats = {}
                     if (isAllDate(vals, column)) {
                       this.addDataRows(tableName, columnName, vals, dateFormatter, column.meta.date_format)
                       break
@@ -312,7 +308,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       for (const [_, cell] of vals) {
                         cell.v = this.fixImportedDate(isoToDate(cell.w) as Date)
                       }
-                      column.date_formats = {}
                       if (isAllDate(vals, column)) {
                         this.addDataRows(tableName, columnName, vals, dateFormatter, column.meta.date_format)
                         break

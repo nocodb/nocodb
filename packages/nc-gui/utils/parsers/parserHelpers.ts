@@ -167,7 +167,8 @@ export const isMultiLineTextVal = (vals: any[], limitRows: number) =>
   isMultiLineTextType(vals.slice(0, limitRows).map((v: any) => v[1].v) as [])
 
 export const isMultiOrSingleSelectVal = (vals: any[], limitRows: number, column: Record<string, any>) => {
-  const props = extractMultiOrSingleSelectProps(vals.map((v: any) => v[1].v.replace('\\', '_')) as [])
+  // TODO: optionally add '.map((v: any) => v[1].w.replace('\\', '_')) as []' to prevent encoding error for mysql set / enum
+  const props = extractMultiOrSingleSelectProps(vals as [])
   if (!props) return false
   Object.assign(column, props)
   return true
@@ -189,35 +190,38 @@ export const isNumberVal = (vals: any[], limitRows: number) =>
 
 export const isIsoDateVal = (vals: any[], limitRows: number) => vals.slice(0, limitRows).every((v) => isoToDate(v[1].w))
 
-export const defaultFormater = (cell: any) => cell.v || null
+// TODO: maybe split defaultFormater into more specific to pass default value if needed, e.g. numberFormater (with default 0), decimalFormater (with default 0.0)
+export const defaultFormater = (cell: any) => cell.v
 
 export const defaultRawFormater = (cell: any) => cell.w || null
 
-export const dateFormatter = (cell: any, format: string) => dayjs(cell.v).format(format) || null
-export const dateTimeFormatter = (cell: any) => cell.v || null
+export const dateFormatter = (cell: any, format: string) => dayjs(cell.v).format(format)
 
-export const checkBoxFormatter = (cell: any) => getCheckboxValue(cell.v) || null
+// TODO: pass Default Date if needed
+export const dateTimeFormatter = (cell: any) => cell.v
 
-export const currencyFormatter = (cell: any) => cell.w.replace(/[^\d.]+/g, '') || null
-export const percentFormatter = (cell: any) => parseFloat(cell.w.slice(0, -1)) / 100 || null
+export const checkBoxFormatter = (cell: any) => getCheckboxValue(cell.v)
 
-export const multiOrSingleSelectFormatter = (cell: any) => cell.w.replace('\\', '_') || null
+export const currencyFormatter = (cell: any) => cell.w?.replace(/[^\d.]+/g, '') || null
+export const percentFormatter = (cell: any) => parseFloat(cell.w?.slice(0, -1)) / 100 || null
+
+export const multiOrSingleSelectFormatter = (cell: any) => cell.w?.replace('\\', '_') || null
 
 export const isAllDate = (vals: any[], column: Record<string, any>) => {
+  const dateFormats: Record<string, number> = {}
   const isOnlyDate = vals.every(([_, cell]) => {
     // TODO: more date types and more checks!
     const onlyDate = !cell.w || cell.w?.split(' ').length === 1
     if (onlyDate) {
       const format = getDateFormat(cell.w)
-      column.dateFormats[format] = (column.dateFormats[format] || 0) + 1
+      dateFormats[format] = (dateFormats[format] || 0) + 1
     }
     return onlyDate
   })
   if (isOnlyDate) {
     column.uidt = UITypes.Date
     // take the date format with the max occurrence
-    column.date_format =
-      Object.keys(column.dateFormats).reduce((x, y) => (column.dateFormats[x] > column.dateFormats[y] ? x : y)) || 'YYYY/MM/DD'
+    column.meta.date_format = Object.keys(dateFormats).reduce((x, y) => (dateFormats[x] > dateFormats[y] ? x : y)) || 'YYYY/MM/DD'
     return isOnlyDate
   }
 

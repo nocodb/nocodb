@@ -34,6 +34,8 @@ const justDeleted = ref(false)
 // This function is called by BubbleMenu on selection change
 // It is used to check if the link mark is active and only show the menu if it is
 const checkLinkMark = (editor: Editor) => {
+  if (!editor.view.editable) return false
+
   if (justDeleted.value) {
     setTimeout(() => {
       justDeleted.value = false

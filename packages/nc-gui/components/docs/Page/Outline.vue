@@ -8,10 +8,9 @@ const { wrapperRef } = defineProps<{
   wrapperRef: HTMLDivElement | undefined
 }>()
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
 const localPage = inject(DocsLocalPageInj)!
 
-const showPageSubHeadings = ref(isPublic.value)
+const showPageSubHeadings = ref(false)
 const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean }>>([])
 let lastPageScrollTime = 0
 let topHeaderHeight = 60
@@ -110,35 +109,34 @@ onMounted(() => {
 </script>
 
 <template>
-  <template v-if="pageSubHeadings.length > 0">
-    <div class="flex flex-row justify-end cursor-pointer rounded-md">
-      <div
-        class="flex p-1 cursor-pointer rounded-md"
-        :class="{
-          'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
-          'bg-white hover:bg-gray-100': !showPageSubHeadings,
-        }"
-        @click="showPageSubHeadings = !showPageSubHeadings"
-      >
-        <AlignRightIcon />
-      </div>
+  <div class="flex flex-row justify-end cursor-pointer rounded-md">
+    <div
+      class="flex p-1 cursor-pointer rounded-md"
+      :class="{
+        'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
+        'bg-white hover:bg-gray-100': !showPageSubHeadings,
+      }"
+      @click="showPageSubHeadings = !showPageSubHeadings"
+    >
+      <AlignRightIcon />
     </div>
-    <div v-if="showPageSubHeadings" class="pt-20 mr-24 flex flex-col w-full w-54">
-      <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
-      <a
-        v-for="(subHeading, index) in pageSubHeadings"
-        :key="index"
-        :href="`#${subHeading.text}`"
-        class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all"
-        :class="{
-          'font-semibold text-primary': subHeading.active,
-          '!text-gray-700': !subHeading.active,
-          'ml-2.5': subHeading.type === 'h2',
-          'ml-5': subHeading.type === 'h3',
-        }"
-      >
-        {{ subHeading.text }}
-      </a>
-    </div>
-  </template>
+  </div>
+  <div v-if="showPageSubHeadings" class="pt-20 mr-24 flex flex-col w-full w-54">
+    <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
+    <div v-if="pageSubHeadings.length === 0">No content</div>
+    <a
+      v-for="(subHeading, index) in pageSubHeadings"
+      :key="index"
+      :href="`#${subHeading.text}`"
+      class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all"
+      :class="{
+        'font-semibold text-primary': subHeading.active,
+        '!text-gray-700': !subHeading.active,
+        'ml-2.5': subHeading.type === 'h2',
+        'ml-5': subHeading.type === 'h3',
+      }"
+    >
+      {{ subHeading.text }}
+    </a>
+  </div>
 </template>

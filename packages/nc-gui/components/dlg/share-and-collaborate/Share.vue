@@ -11,6 +11,7 @@ const { openedPage, updatePage, nestedUrl } = useDocs()
 
 const isPagePublishing = ref(false)
 const isProjectPublishing = ref(false)
+const isNestedPagePublishing = ref(false)
 
 const projectMeta = computed(() => {
   if (!project.value) {
@@ -88,6 +89,20 @@ const togglePagePublishedState = async () => {
     isPagePublishing.value = false
   }
 }
+
+const toggleNestedPagePublishedState = async () => {
+  isNestedPagePublishing.value = true
+  try {
+    await updatePage({
+      pageId: openedPage.value!.id!,
+      page: {
+        is_nested_published: !openedPage.value!.is_nested_published,
+      },
+    })
+  } finally {
+    isNestedPagePublishing.value = false
+  }
+}
 </script>
 
 <template>
@@ -129,6 +144,17 @@ const togglePagePublishedState = async () => {
         <a-switch :checked="!!openedPage?.is_published" :loading="isPagePublishing" @click="togglePagePublishedState" />
       </div>
       <div class="flex text-xs">Share only the current selected page</div>
+      <div
+        v-if="!!openedPage?.is_published"
+        class="mt-1 flex flex-row w-full justify-between items-center py-2 px-3 bg-gray-100 rounded-md"
+      >
+        <div class="flex">Share nested pages</div>
+        <a-switch
+          :checked="!!openedPage?.is_nested_published"
+          :loading="isNestedPagePublishing"
+          @click="toggleNestedPagePublishedState"
+        />
+      </div>
       <div v-if="openedPage?.is_published" class="flex flex-row justify-end text-gray-600 gap-x-1.5">
         <div class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300" @click="openPageUrl">
           <RiExternalLinkLine class="h-3.75" />

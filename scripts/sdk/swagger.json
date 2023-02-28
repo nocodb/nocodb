@@ -9122,6 +9122,9 @@
           "is_published": {
             "type": "boolean"
           },
+          "is_nested_published": {
+            "type": "boolean"
+          },
           "last_published_date": {
             "type": "string",
             "format": "date"

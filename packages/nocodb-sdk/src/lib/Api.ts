@@ -66,6 +66,7 @@ export interface DocsPageType {
   parent_page_id?: string;
   is_parent?: boolean;
   is_published?: boolean;
+  is_nested_published?: boolean;
   /** @format date */
   last_published_date?: string;
   last_published_by_id?: string;

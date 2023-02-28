@@ -52,6 +52,7 @@ export default class Page {
         .foreign('last_published_by_id')
         .references(`${MetaTable.USERS}.id`)
         .withKeyName(`nc_page_last_published_id_${uuidv4()}`);
+      table.boolean('is_nested_published').defaultTo(false);
 
       table.string('last_updated_by_id', 20).nullable();
       table

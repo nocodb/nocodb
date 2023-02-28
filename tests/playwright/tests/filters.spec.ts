@@ -57,6 +57,8 @@ async function verifyFilter(param: {
     return;
   }
 
+  console.log(`Verifying filter: ${param.opType} ${param.opSubType}`);
+
   await toolbar.clickFilter();
   await toolbar.filter.add({
     columnTitle: param.column,
@@ -596,8 +598,21 @@ test.describe('Filter Tests: Select based', () => {
 // Date & Time related
 //
 
-test.describe('Filter Tests: Date & Time related', () => {
-  async function dateTimeBasedFilterTest(dataType) {
+test.describe('Filter Tests: Date based', () => {
+  const today = new Date().setHours(0, 0, 0, 0);
+  const tomorrow = new Date(new Date().setDate(new Date().getDate() + 1)).setHours(0, 0, 0, 0);
+  const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).setHours(0, 0, 0, 0);
+  const oneWeekAgo = new Date(new Date().setDate(new Date().getDate() - 7)).setHours(0, 0, 0, 0);
+  const oneWeekFromNow = new Date(new Date().setDate(new Date().getDate() + 7)).setHours(0, 0, 0, 0);
+  const oneMonthAgo = new Date(new Date().setMonth(new Date().getMonth() - 1)).setHours(0, 0, 0, 0);
+  const oneMonthFromNow = new Date(new Date().setMonth(new Date().getMonth() + 1)).setHours(0, 0, 0, 0);
+  const daysAgo45 = new Date(new Date().setDate(new Date().getDate() - 45)).setHours(0, 0, 0, 0);
+  const daysFromNow45 = new Date(new Date().setDate(new Date().getDate() + 45)).setHours(0, 0, 0, 0);
+  const thisMonth15 = new Date(new Date().setDate(15)).setHours(0, 0, 0, 0);
+  const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).setHours(0, 0, 0, 0);
+  const oneYearFromNow = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).setHours(0, 0, 0, 0);
+
+  async function dateTimeBasedFilterTest(dataType, suiteName) {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'dateTimeBased' });
 
@@ -611,19 +626,6 @@ test.describe('Filter Tests: Date & Time related', () => {
       date.setHours(0, 0, 0, 0);
       return date.getTime();
     });
-
-    const today = new Date().setHours(0, 0, 0, 0);
-    const tomorrow = new Date(new Date().setDate(new Date().getDate() + 1)).setHours(0, 0, 0, 0);
-    const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).setHours(0, 0, 0, 0);
-    const oneWeekAgo = new Date(new Date().setDate(new Date().getDate() - 7)).setHours(0, 0, 0, 0);
-    const oneWeekFromNow = new Date(new Date().setDate(new Date().getDate() + 7)).setHours(0, 0, 0, 0);
-    const oneMonthAgo = new Date(new Date().setMonth(new Date().getMonth() - 1)).setHours(0, 0, 0, 0);
-    const oneMonthFromNow = new Date(new Date().setMonth(new Date().getMonth() + 1)).setHours(0, 0, 0, 0);
-    const daysAgo45 = new Date(new Date().setDate(new Date().getDate() - 45)).setHours(0, 0, 0, 0);
-    const daysFromNow45 = new Date(new Date().setDate(new Date().getDate() + 45)).setHours(0, 0, 0, 0);
-    const thisMonth15 = new Date(new Date().setDate(15)).setHours(0, 0, 0, 0);
-    const oneYearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).setHours(0, 0, 0, 0);
-    const oneYearFromNow = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).setHours(0, 0, 0, 0);
 
     const isFilterList = [
       {
@@ -670,29 +672,6 @@ test.describe('Filter Tests: Date & Time related', () => {
         rowCount: recordsTimeSetToZero.filter(r => r === thisMonth15).length,
       },
     ];
-
-    for (let i = 0; i < isFilterList.length; i++) {
-      await verifyFilter({
-        column: dataType,
-        opType: 'is',
-        opSubType: isFilterList[i].opSub,
-        value: isFilterList[i]?.value?.toString() || '',
-        result: { rowCount: isFilterList[i].rowCount },
-        dataType: dataType,
-      });
-    }
-
-    // mutually exclusive of "is" filter list
-    for (let i = 0; i < isFilterList.length; i++) {
-      await verifyFilter({
-        column: dataType,
-        opType: 'is not',
-        opSubType: isFilterList[i].opSub,
-        value: isFilterList[i]?.value?.toString() || '',
-        result: { rowCount: 800 - isFilterList[i].rowCount },
-        dataType: dataType,
-      });
-    }
 
     // "is after" filter list
     const isAfterFilterList = [
@@ -741,50 +720,6 @@ test.describe('Filter Tests: Date & Time related', () => {
       },
     ];
 
-    for (let i = 0; i < isAfterFilterList.length; i++) {
-      await verifyFilter({
-        column: dataType,
-        opType: 'is after',
-        opSubType: isAfterFilterList[i].opSub,
-        value: isAfterFilterList[i]?.value?.toString() || '',
-        result: { rowCount: isAfterFilterList[i].rowCount },
-        dataType: dataType,
-      });
-    }
-
-    for (let i = 0; i < isAfterFilterList.length; i++) {
-      await verifyFilter({
-        column: dataType,
-        opType: 'is on or after',
-        opSubType: isAfterFilterList[i].opSub,
-        value: isAfterFilterList[i]?.value?.toString() || '',
-        result: { rowCount: 1 + isAfterFilterList[i].rowCount },
-        dataType: dataType,
-      });
-    }
-
-    for (let i = 0; i < isAfterFilterList.length; i++) {
-      await verifyFilter({
-        column: dataType,
-        opType: 'is before',
-        opSubType: isAfterFilterList[i].opSub,
-        value: isAfterFilterList[i]?.value?.toString() || '',
-        result: { rowCount: 800 - isAfterFilterList[i].rowCount - 1 },
-        dataType: dataType,
-      });
-    }
-
-    for (let i = 0; i < isAfterFilterList.length; i++) {
-      await verifyFilter({
-        column: dataType,
-        opType: 'is on or before',
-        opSubType: isAfterFilterList[i].opSub,
-        value: isAfterFilterList[i]?.value?.toString() || '',
-        result: { rowCount: 800 - isAfterFilterList[i].rowCount },
-        dataType: dataType,
-      });
-    }
-
     // "is within" filter list
     const isWithinFilterList = [
       {
@@ -823,17 +758,6 @@ test.describe('Filter Tests: Date & Time related', () => {
       },
     ];
 
-    for (let i = 0; i < isWithinFilterList.length; i++) {
-      await verifyFilter({
-        column: dataType,
-        opType: 'is within',
-        opSubType: isWithinFilterList[i].opSub,
-        value: isWithinFilterList[i]?.value?.toString() || '',
-        result: { rowCount: isWithinFilterList[i].rowCount },
-        dataType: dataType,
-      });
-    }
-
     // rest of the filters (without subop type)
     const filterList = [
       {
@@ -846,15 +770,106 @@ test.describe('Filter Tests: Date & Time related', () => {
       },
     ];
 
-    for (let i = 0; i < filterList.length; i++) {
-      await verifyFilter({
-        column: dataType,
-        opType: filterList[i].opType,
-        opSubType: null,
-        value: null,
-        result: { rowCount: filterList[i].rowCount },
-        dataType: dataType,
-      });
+    switch (suiteName) {
+      case 'is_is_not':
+        for (let i = 0; i < isFilterList.length; i++) {
+          await verifyFilter({
+            column: dataType,
+            opType: 'is',
+            opSubType: isFilterList[i].opSub,
+            value: isFilterList[i]?.value?.toString() || '',
+            result: { rowCount: isFilterList[i].rowCount },
+            dataType: dataType,
+          });
+        }
+
+        // mutually exclusive of "is" filter list
+        for (let i = 0; i < isFilterList.length; i++) {
+          await verifyFilter({
+            column: dataType,
+            opType: 'is not',
+            opSubType: isFilterList[i].opSub,
+            value: isFilterList[i]?.value?.toString() || '',
+            result: { rowCount: 800 - isFilterList[i].rowCount },
+            dataType: dataType,
+          });
+        }
+        break;
+
+      case 'is_before_is_on_or_before':
+        for (let i = 0; i < isAfterFilterList.length; i++) {
+          await verifyFilter({
+            column: dataType,
+            opType: 'is before',
+            opSubType: isAfterFilterList[i].opSub,
+            value: isAfterFilterList[i]?.value?.toString() || '',
+            result: { rowCount: 800 - isAfterFilterList[i].rowCount - 1 },
+            dataType: dataType,
+          });
+        }
+
+        for (let i = 0; i < isAfterFilterList.length; i++) {
+          await verifyFilter({
+            column: dataType,
+            opType: 'is on or before',
+            opSubType: isAfterFilterList[i].opSub,
+            value: isAfterFilterList[i]?.value?.toString() || '',
+            result: { rowCount: 800 - isAfterFilterList[i].rowCount },
+            dataType: dataType,
+          });
+        }
+        break;
+
+      case 'is_after_is_on_or_after':
+        for (let i = 0; i < isAfterFilterList.length; i++) {
+          await verifyFilter({
+            column: dataType,
+            opType: 'is after',
+            opSubType: isAfterFilterList[i].opSub,
+            value: isAfterFilterList[i]?.value?.toString() || '',
+            result: { rowCount: isAfterFilterList[i].rowCount },
+            dataType: dataType,
+          });
+        }
+
+        for (let i = 0; i < isAfterFilterList.length; i++) {
+          await verifyFilter({
+            column: dataType,
+            opType: 'is on or after',
+            opSubType: isAfterFilterList[i].opSub,
+            value: isAfterFilterList[i]?.value?.toString() || '',
+            result: { rowCount: 1 + isAfterFilterList[i].rowCount },
+            dataType: dataType,
+          });
+        }
+        break;
+
+      case 'is_within_is_blank':
+        for (let i = 0; i < isWithinFilterList.length; i++) {
+          await verifyFilter({
+            column: dataType,
+            opType: 'is within',
+            opSubType: isWithinFilterList[i].opSub,
+            value: isWithinFilterList[i]?.value?.toString() || '',
+            result: { rowCount: isWithinFilterList[i].rowCount },
+            dataType: dataType,
+          });
+        }
+
+        for (let i = 0; i < filterList.length; i++) {
+          await verifyFilter({
+            column: dataType,
+            opType: filterList[i].opType,
+            opSubType: null,
+            value: null,
+            result: { rowCount: filterList[i].rowCount },
+            dataType: dataType,
+          });
+        }
+        break;
+
+      default:
+        break;
     }
   }
 
@@ -906,8 +921,20 @@ test.describe('Filter Tests: Date & Time related', () => {
     }
   });
 
-  test('Date', async () => {
-    await dateTimeBasedFilterTest('Date');
+  test('Date : is, is not', async () => {
+    await dateTimeBasedFilterTest('Date', 'is_is_not');
+  });
+
+  test('Date : is before, is on or before', async () => {
+    await dateTimeBasedFilterTest('Date', 'is_before_is_on_or_before');
+  });
+
+  test('Date : is after, is on or after', async () => {
+    await dateTimeBasedFilterTest('Date', 'is_after_is_on_or_after');
+  });
+
+  test('Date : is within, is blank', async () => {
+    await dateTimeBasedFilterTest('Date', 'is_within_is_blank');
   });
 });
 

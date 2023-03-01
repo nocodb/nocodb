@@ -22,7 +22,7 @@ export async function tableList(req: Request, res: Response<TableListType>) {
 }
 
 export async function tableCreate(req: Request<any, any, TableReqType>, res) {
-  const result = tableService.createTable({
+  const result = tableService.tableCreate({
     projectId: req.params.projectId,
     baseId: req.params.baseId,
     table: req.body,

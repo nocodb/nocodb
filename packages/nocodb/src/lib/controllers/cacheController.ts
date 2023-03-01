@@ -1,9 +1,9 @@
-import catchError from '../helpers/catchError';
-import NocoCache from '../../cache/NocoCache';
+import catchError from '../meta/helpers/catchError';
 import { Router } from 'express';
+import { cacheService } from '../services';
 
 export async function cacheGet(_, res) {
-  const data = await NocoCache.export();
+  const data = await cacheService.cacheGet();
   res.set({
     'Content-Type': 'application/json',
     'Content-Disposition': `attachment; filename="cache-export.json"`,
@@ -12,7 +12,7 @@ export async function cacheGet(_, res) {
 }
 
 export async function cacheDelete(_, res) {
-  return res.json(await NocoCache.destroy());
+  return res.json(await cacheService.cacheDelete());
 }
 
 const router = Router();

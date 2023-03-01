@@ -36,7 +36,8 @@ export async function getViewAndModelFromRequestByAliasOrId(
   return { model, view };
 }
 
-export async function extractXlsxData(view: View, req: Request) {
+export async function extractXlsxData(param: {view: View, query:any}) {
+  const { view, query } = param;
   const base = await Base.get(view.base_id);
 
   await view.getModelWithInfo();

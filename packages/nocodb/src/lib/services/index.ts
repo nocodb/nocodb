@@ -26,3 +26,4 @@ export * as orgLicenseService from './orgLicenseService';
 export * as projectUserService from './projectUserService';
 export * as attachmentService from './attachmentService';
 export * as hookFilterService from './hookFilterService';
+export * as dataService from './dataService';

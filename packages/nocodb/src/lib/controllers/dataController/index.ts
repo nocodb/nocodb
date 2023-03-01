@@ -98,16 +98,19 @@ async function dataRead(req: Request, res: Response) {
       rowId: req.params.rowId,
       query: req.query,
     })
+  );
 }
 
 async function dataExist(req: Request, res: Response) {
-  res.json(await dataService.dataExist({
-    projectName: req.params.projectName,
-    tableName: req.params.tableName,
-    viewName: req.params.viewName,
-    rowId: req.params.rowId,
-    query: req.query,
-  }));
+  res.json(
+    await dataService.dataExist({
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
+      viewName: req.params.viewName,
+      rowId: req.params.rowId,
+      query: req.query,
+    })
+  );
 }
 
 // todo: Handle the error case where view doesnt belong to model
@@ -118,7 +121,7 @@ async function groupedDataList(req: Request, res: Response) {
     tableName: req.params.tableName,
     viewName: req.params.viewName,
     query: req.query,
-    columnId: req.params.columnId
+    columnId: req.params.columnId,
   });
   const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
   res.setHeader('xc-db-response', elapsedSeconds);

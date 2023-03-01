@@ -7179,7 +7179,7 @@
   "components": {
     "schemas": {
       "User": {
-        "title": "User",
+        "title": "User Model",
         "type": "object",
         "examples": [
           {
@@ -7194,7 +7194,7 @@
           }
         ],
         "x-internal": false,
-        "description": "User Model",
+        "description": "Model for User",
         "properties": {
           "id": {
             "type": "string",
@@ -7278,8 +7278,8 @@
             }
           }
         },
-        "title": "UserList",
-        "description": "List of User Models",
+        "title": "User List Model",
+        "description": "Model for User List",
         "properties": {
           "users": {
             "type": "object",
@@ -7305,7 +7305,7 @@
         ]
       },
       "ProjectReq": {
-        "title": "ProjectReq",
+        "title": "Project Request Model",
         "type": "object",
         "properties": {
           "title": {
@@ -7336,10 +7336,11 @@
         },
         "required": [
           "title"
-        ]
+        ],
+        "description": "Model for Project Request"
       },
       "Project": {
-        "title": "Project",
+        "title": "Project Model",
         "type": "object",
         "properties": {
           "id": {
@@ -7404,7 +7405,8 @@
             "format": "date-time",
             "example": "2023-03-01 14:27:36"
           }
-        }
+        },
+        "description": "Model for Project"
       },
       "ProjectList": {
         "type": "object",
@@ -7451,10 +7453,12 @@
             "$ref": "#/components/schemas/Paginated",
             "description": "Pagination Info"
           }
-        }
+        },
+        "title": "Project List Model",
+        "description": "Model for Project List"
       },
       "Base": {
-        "title": "Base",
+        "title": "Base Model",
         "type": "object",
         "properties": {
           "id": {
@@ -7487,10 +7491,11 @@
           "enabled": {
             "$ref": "#/components/schemas/Bool"
           }
-        }
+        },
+        "description": "Model for Base"
       },
       "BaseReq": {
-        "title": "BaseReq",
+        "title": "Base Request",
         "type": "object",
         "properties": {
           "alias": {
@@ -7530,10 +7535,11 @@
             "description": "Inflection for tables",
             "example": "camelize"
           }
-        }
+        },
+        "description": "Model for Base Request"
       },
       "BaseList": {
-        "description": "",
+        "description": "Model for Base List",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -7588,10 +7594,11 @@
         },
         "required": [
           "bases"
-        ]
+        ],
+        "title": "Base List Model"
       },
       "Table": {
-        "title": "Table",
+        "title": "Table Model",
         "type": "object",
         "examples": [
           {
@@ -7721,10 +7728,11 @@
         "required": [
           "table_name",
           "title"
-        ]
+        ],
+        "description": "Model for Table"
       },
       "View": {
-        "title": "Table",
+        "title": "View Model",
         "type": "object",
         "examples": [
           {
@@ -7853,10 +7861,11 @@
         },
         "required": [
           "title"
-        ]
+        ],
+        "description": "Model for View"
       },
       "TableInfo": {
-        "title": "Table",
+        "title": "TableInfo Model",
         "type": "object",
         "examples": [
           {
@@ -8008,10 +8017,11 @@
         "required": [
           "title",
           "table_name"
-        ]
+        ],
+        "description": "Model for Table Info"
       },
       "TableReq": {
-        "title": "Table",
+        "title": "Table Request Model",
         "type": "object",
         "properties": {
           "table_name": {
@@ -8045,10 +8055,11 @@
           "table_name",
           "title",
           "columns"
-        ]
+        ],
+        "description": "Model for Table Request"
       },
       "TableList": {
-        "description": "",
+        "description": "Model for Table List",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -8094,11 +8105,12 @@
         },
         "required": [
           "tables"
-        ]
+        ],
+        "title": "Table List Model"
       },
       "Filter": {
         "type": "object",
-        "title": "Filter",
+        "title": "Filter Model",
         "properties": {
           "id": {
             "type": "string"
@@ -8153,11 +8165,12 @@
             "$ref": "#/components/schemas/StringOrNull"
           }
         },
-        "readOnly": true
+        "readOnly": true,
+        "description": "Model for Filter"
       },
       "FilterReq": {
         "type": "object",
-        "title": "Filter",
+        "title": "Filter Request Model",
         "properties": {
           "fk_column_id": {
             "$ref": "#/components/schemas/Id"
@@ -8203,10 +8216,11 @@
             "$ref": "#/components/schemas/Id"
           }
         },
-        "readOnly": true
+        "readOnly": true,
+        "description": "Model for Filter Request"
       },
       "FilterList": {
-        "description": "",
+        "description": "Model for Filter List",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -8257,10 +8271,11 @@
         },
         "required": [
           "filters"
-        ]
+        ],
+        "title": "Filter List Model"
       },
       "Sort": {
-        "title": "Sort",
+        "title": "Sort Model",
         "type": "object",
         "properties": {
           "id": {
@@ -8286,10 +8301,11 @@
             "type": "string",
             "readOnly": true
           }
-        }
+        },
+        "description": "Model for Sort"
       },
       "SortReq": {
-        "title": "Sort",
+        "title": "Sort Request Model",
         "type": "object",
         "properties": {
           "fk_column_id": {
@@ -8303,10 +8319,11 @@
             ]
           }
         },
-        "minProperties": 1
+        "minProperties": 1,
+        "description": "Model for Sort Request"
       },
       "SortList": {
-        "description": "",
+        "description": "Model for Sort List",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -8357,10 +8374,11 @@
         },
         "required": [
           "sorts"
-        ]
+        ],
+        "title": "Sort List Model"
       },
       "Column": {
-        "title": "Column",
+        "title": "Column Model",
         "type": "object",
         "properties": {
           "id": {
@@ -8525,10 +8543,11 @@
               }
             ]
           }
-        }
+        },
+        "description": "Model for Column"
       },
       "ColumnList": {
-        "description": "",
+        "description": "Model for Column List",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -8579,10 +8598,11 @@
         },
         "required": [
           "columns"
-        ]
+        ],
+        "title": "Column List Model"
       },
       "LinkToAnotherRecord": {
-        "title": "LinkToAnotherRecord",
+        "title": "LinkToAnotherRecord Model",
         "type": "object",
         "properties": {
           "id": {
@@ -8630,10 +8650,11 @@
           "order": {
             "type": "string"
           }
-        }
+        },
+        "description": "Model for LinkToAnotherRecord"
       },
       "Lookup": {
-        "title": "Lookup",
+        "title": "Lookup Model",
         "type": "object",
         "properties": {
           "id": {
@@ -8660,10 +8681,11 @@
           "order": {
             "type": "string"
           }
-        }
+        },
+        "description": "Model for Lookup"
       },
       "Rollup": {
-        "title": "Rollup",
+        "title": "Rollup Model",
         "type": "object",
         "properties": {
           "id": {
@@ -8693,10 +8715,11 @@
           "order": {
             "type": "string"
           }
-        }
+        },
+        "description": "Model for Rollup"
       },
       "Formula": {
-        "title": "Formula",
+        "title": "Formula Model",
         "type": "object",
         "properties": {
           "id": {
@@ -8723,10 +8746,11 @@
           "order": {
             "type": "string"
           }
-        }
+        },
+        "description": "Model for Formula"
       },
       "SelectOptions": {
-        "title": "SelectOptions",
+        "title": "SelectOptions Model",
         "type": "object",
         "properties": {
           "options": {
@@ -8751,10 +8775,11 @@
               }
             ]
           }
-        ]
+        ],
+        "description": "Model for SelectOptions"
       },
       "SelectOption": {
-        "title": "SelectOption",
+        "title": "SelectOption Model",
         "type": "object",
         "properties": {
           "id": {
@@ -8781,10 +8806,11 @@
             "color": "string",
             "order": 1
           }
-        ]
+        ],
+        "description": "Model for SelectOption"
       },
       "Grid": {
-        "title": "Grid",
+        "title": "Grid Model",
         "type": "object",
         "properties": {
           "id": {
@@ -8814,10 +8840,10 @@
             "type": "number"
           }
         },
-        "description": ""
+        "description": "Model for Grid"
       },
       "GridReq": {
-        "title": "Grid",
+        "title": "Grid Request Model",
         "type": "object",
         "properties": {
           "title": {
@@ -8847,15 +8873,15 @@
             "minimum": 1
           }
         },
-        "description": "",
+        "description": "Model for Grid Request",
         "required": [
           "title"
         ]
       },
       "Gallery": {
-        "title": "Gallery",
+        "title": "Gallery Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Gallery",
         "properties": {
           "fk_view_id": {
             "type": "string"
@@ -8916,9 +8942,9 @@
         }
       },
       "GalleryReq": {
-        "title": "Gallery",
+        "title": "Gallery Request Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Gallery Request",
         "properties": {
           "title": {
             "type": "string",
@@ -8968,9 +8994,9 @@
         ]
       },
       "GalleryColumn": {
-        "title": "GalleryColumn",
+        "title": "Gallery Column Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Gallery Column",
         "properties": {
           "id": {
             "type": "string"
@@ -8990,9 +9016,9 @@
         }
       },
       "GridColumnReq": {
-        "title": "GridColumn",
+        "title": "Grid Column Request Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Gallery Column Request",
         "properties": {
           "label": {
             "type": "string",
@@ -9020,9 +9046,9 @@
         }
       },
       "GridColumn": {
-        "title": "GridColumn",
+        "title": "Grid Column Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Grid Column",
         "properties": {
           "id": {
             "type": "string"
@@ -9045,9 +9071,9 @@
         }
       },
       "KanbanColumn": {
-        "title": "KanbanColumn",
+        "title": "Kanban Column Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Kanban Column",
         "properties": {
           "id": {
             "type": "string"
@@ -9067,9 +9093,9 @@
         }
       },
       "Kanban": {
-        "title": "Kanban",
+        "title": "Kanban Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Kanban",
         "properties": {
           "id": {
             "type": "string"
@@ -9101,9 +9127,9 @@
         }
       },
       "GeoLocation": {
-        "title": "GeoLocation",
+        "title": "Geo Location Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Geo Location",
         "properties": {
           "latitude": {
             "type": "number",
@@ -9116,9 +9142,9 @@
         }
       },
       "Map": {
-        "title": "Map",
+        "title": "Map Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Map",
         "properties": {
           "id": {
             "type": "string"
@@ -9154,9 +9180,9 @@
         }
       },
       "MapColumn": {
-        "title": "MapColumn",
+        "title": "Map Column Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Map Column",
         "properties": {
           "id": {
             "type": "string"
@@ -9176,9 +9202,9 @@
         }
       },
       "LicenseReq": {
-        "title": "License Key",
+        "title": "License Key Request Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Kanban Request",
         "properties": {
           "key": {
             "type": "string",
@@ -9190,9 +9216,9 @@
         }
       },
       "KanbanReq": {
-        "title": "Kanban",
+        "title": "Kanban Request Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Kanban Request",
         "properties": {
           "title": {
             "type": "string",
@@ -9210,9 +9236,9 @@
         ]
       },
       "KanbanUpdateReq": {
-        "title": "Kanban",
+        "title": "Kanban Update Request Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Kanban Update Request",
         "properties": {
           "fk_grp_col_id": {
             "$ref": "#/components/schemas/StringOrNull"
@@ -9220,9 +9246,9 @@
         }
       },
       "Form": {
-        "title": "Form",
+        "title": "Form Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Form",
         "properties": {
           "id": {
             "type": "string"
@@ -9283,9 +9309,9 @@
         }
       },
       "FormReq": {
-        "title": "Form",
+        "title": "Form Request Model",
         "type": "object",
-        "description": "",
+        "description": "Model for Form Request",
         "properties": {
           "title": {
             "type": "string",
@@ -9381,10 +9407,12 @@
               "title"
             ]
           }
-        ]
+        ],
+        "title": "Form Create Model",
+        "description": "Model for Form Create"
       },
       "FormColumn": {
-        "description": "",
+        "description": "Model for Form Column",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -9447,10 +9475,11 @@
           "meta": {
             "$ref": "#/components/schemas/Meta"
           }
-        }
+        },
+        "title": "Form Column Model"
       },
       "FormColumnReq": {
-        "description": "",
+        "description": "Model for Form Column Request",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -9495,10 +9524,11 @@
           "meta": {
             "$ref": "#/components/schemas/Meta"
           }
-        }
+        },
+        "title": "Form Column Request Model"
       },
       "Paginated": {
-        "title": "Paginated",
+        "title": "Paginated Model",
         "type": "object",
         "properties": {
           "pageSize": {
@@ -9529,10 +9559,11 @@
           "page": {
             "type": "number"
           }
-        }
+        },
+        "description": "Model for Paginated"
       },
       "HookList": {
-        "description": "",
+        "description": "Model for Hook List",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -9575,10 +9606,11 @@
           "pageInfo": {
             "$ref": "#/components/schemas/Paginated"
           }
-        }
+        },
+        "title": "Hook List Model"
       },
       "SharedView": {
-        "title": "SharedView",
+        "title": "Shared View Model",
         "type": "object",
         "properties": {
           "id": {
@@ -9593,10 +9625,11 @@
           "deleted": {
             "type": "string"
           }
-        }
+        },
+        "description": "Model for Shared View"
       },
       "SharedViewList": {
-        "description": "",
+        "description": "Model for Shared View List",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -9639,10 +9672,11 @@
           "pageInfo": {
             "$ref": "#/components/schemas/Paginated"
           }
-        }
+        },
+        "title": "Shared View List Model"
       },
       "ViewList": {
-        "description": "",
+        "description": "Model for View List",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -9687,10 +9721,10 @@
         "required": [
           "views"
         ],
-        "title": ""
+        "title": "View List Model"
       },
       "Attachment": {
-        "title": "Attachment",
+        "title": "Attachment Model",
         "type": "object",
         "properties": {
           "url": {
@@ -9712,10 +9746,11 @@
             "type": "string"
           },
           "data": {}
-        }
+        },
+        "description": "Model for Attachment"
       },
       "Webhook": {
-        "title": "Webhook",
+        "title": "Webhook Model",
         "type": "object",
         "properties": {
           "id": {
@@ -9727,10 +9762,11 @@
           "type": {
             "type": "string"
           }
-        }
+        },
+        "description": "Model for Webhook"
       },
       "Audit": {
-        "title": "AuditType",
+        "title": "Audit Model",
         "type": "object",
         "properties": {
           "id": {
@@ -9769,10 +9805,11 @@
           "details": {
             "type": "string"
           }
-        }
+        },
+        "description": "Model for Audit"
       },
       "Hook": {
-        "title": "AuditType",
+        "title": "Hook Model",
         "type": "object",
         "properties": {
           "id": {
@@ -9826,10 +9863,11 @@
           "active": {
             "$ref": "#/components/schemas/Bool"
           }
-        }
+        },
+        "description": "Model for Hook"
       },
       "HookReq": {
-        "title": "AuditType",
+        "title": "Hook Request Model",
         "type": "object",
         "properties": {
           "fk_model_id": {
@@ -9908,10 +9946,11 @@
           "event",
           "notification",
           "operation"
-        ]
+        ],
+        "description": "Model for Hook Request"
       },
       "HookTestReq": {
-        "title": "Hook test request payload",
+        "title": "Hook Test Request Model",
         "type": "object",
         "properties": {
           "payload": {},
@@ -9922,7 +9961,8 @@
         "required": [
           "payload",
           "hook"
-        ]
+        ],
+        "description": "Model for Hook Test Request"
       },
       "SignUpReq": {
         "type": "object",
@@ -9941,7 +9981,9 @@
         "required": [
           "email",
           "password"
-        ]
+        ],
+        "title": "Signup Request Model",
+        "description": "Model for Signup Request"
       },
       "SignInReq": {
         "type": "object",
@@ -9959,7 +10001,9 @@
         "required": [
           "email",
           "password"
-        ]
+        ],
+        "title": "Signin Request Model",
+        "description": "Model for Signin Request"
       },
       "PasswordForgotReq": {
         "type": "object",
@@ -9972,7 +10016,9 @@
         },
         "required": [
           "email"
-        ]
+        ],
+        "title": "Password Forgot Request Model",
+        "description": "Model for Password Forgot Request"
       },
       "PasswordResetReq": {
         "type": "object",
@@ -9986,7 +10032,9 @@
         },
         "required": [
           "password"
-        ]
+        ],
+        "title": "Password Reset Request Model",
+        "description": "Model for Password Reset Request"
       },
       "PasswordChangeReq": {
         "type": "object",
@@ -10002,10 +10050,12 @@
         "required": [
           "currentPassword",
           "newPassword"
-        ]
+        ],
+        "title": "Password Change Request Model",
+        "description": "Model for Password Change Request"
       },
       "ApiTokenReq": {
-        "title": "API Token Request",
+        "title": "API Token Request Model",
         "type": "object",
         "properties": {
           "description": {
@@ -10013,10 +10063,11 @@
             "maxLength": 255,
             "description": "Description of the API token"
           }
-        }
+        },
+        "description": "Model for API Token Request"
       },
       "Plugin": {
-        "title": "Plugin",
+        "title": "Plugin Model",
         "type": "object",
         "properties": {
           "id": {
@@ -10080,10 +10131,11 @@
           "price": {
             "type": "string"
           }
-        }
+        },
+        "description": "Model for Plugin"
       },
       "ModelRoleVisibility": {
-        "title": "ModelRoleVisibility",
+        "title": "ModelRoleVisibility Model",
         "type": "object",
         "properties": {
           "id": {
@@ -10107,10 +10159,11 @@
           "disabled": {
             "$ref": "#/components/schemas/Bool"
           }
-        }
+        },
+        "description": "Model for ModelRoleVisibility"
       },
       "ApiToken": {
-        "title": "ApiToken",
+        "title": "API Token Model",
         "type": "object",
         "properties": {
           "id": {
@@ -10127,10 +10180,11 @@
           },
           "created_at": {},
           "updated_at": {}
-        }
+        },
+        "description": "Model for API Token"
       },
       "HookLog": {
-        "title": "ApiToken",
+        "title": "Hook Log Model",
         "type": "object",
         "properties": {
           "id": {
@@ -10188,7 +10242,8 @@
           "updated_at": {
             "type": "string"
           }
-        }
+        },
+        "description": "Model for Hook Log"
       },
       "NormalColumnRequest": {
         "properties": {
@@ -10313,7 +10368,9 @@
           "au": {
             "$ref": "#/components/schemas/Bool"
           }
-        }
+        },
+        "description": "Model for Normal Column Request",
+        "title": "Normal Column Request Model"
       },
       "LinkToAnotherColumnReq": {
         "type": "object",
@@ -10353,7 +10410,9 @@
           "parentId",
           "childId",
           "type"
-        ]
+        ],
+        "title": "LinkToAnotherColumn Request Model",
+        "description": "Model for LinkToAnotherColumn Request"
       },
       "RollupColumnReq": {
         "type": "object",
@@ -10394,7 +10453,9 @@
           "fk_relation_column_id",
           "fk_rollup_column_id",
           "rollup_function"
-        ]
+        ],
+        "title": "Rollup Column Request Model",
+        "description": "Model for Rollup Column Request"
       },
       "LookupColumnReq": {
         "properties": {
@@ -10420,7 +10481,9 @@
           "title",
           "fk_relation_column_id",
           "fk_lookup_column_id"
-        ]
+        ],
+        "title": "Lookup Column Request Model",
+        "description": "Model for Lookup Column Request"
       },
       "FormulaColumnReq": {
         "properties": {
@@ -10441,7 +10504,9 @@
             "minLength": 1,
             "maxLength": 255
           }
-        }
+        },
+        "title": "Formula Column Request Model",
+        "description": "Model for Formula Column Request"
       },
       "ColumnReq": {
         "allOf": [
@@ -10495,13 +10560,14 @@
             ]
           }
         ],
-        "description": "",
-        "type": "object"
+        "description": "Model for Column Request",
+        "type": "object",
+        "title": "Column Request Model"
       },
       "UserInfo": {
-        "title": "UserInfo",
+        "title": "User Info Model",
         "type": "object",
-        "description": "User Info Model",
+        "description": "Model for User Info",
         "properties": {
           "id": {
             "type": "string",
@@ -10530,7 +10596,7 @@
         }
       },
       "VisibilityRuleReq": {
-        "title": "Visibility Rule",
+        "title": "Visibility Rule Request Model",
         "type": "array",
         "items": {
           "type": "object",
@@ -10559,7 +10625,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Model for Visibility Rule Request"
       },
       "Bool": {
         "oneOf": [
@@ -10572,16 +10639,22 @@
           {
             "type": "null"
           }
-        ]
+        ],
+        "title": "Bool Model",
+        "description": "Model for Bool"
       },
       "Id": {
         "type": "string",
         "minLength": 1,
-        "maxLength": 20
+        "maxLength": 20,
+        "title": "ID Model",
+        "description": "Model for ID"
       },
       "Password": {
         "type": "string",
-        "minLength": 8
+        "minLength": 8,
+        "title": "Password Model",
+        "description": "Model for Password"
       },
       "StringOrNull": {
         "oneOf": [
@@ -10592,7 +10665,9 @@
           {
             "type": "null"
           }
-        ]
+        ],
+        "title": "StringOrNull Model",
+        "description": "Model for StringOrNull"
       },
       "Meta": {
         "oneOf": [
@@ -10605,7 +10680,9 @@
           {
             "type": "null"
           }
-        ]
+        ],
+        "title": "Meta Model",
+        "description": "Model for Meta"
       },
       "CommentReq": {
         "type": "object",
@@ -10624,7 +10701,9 @@
           "row_id",
           "fk_model_id",
           "comment"
-        ]
+        ],
+        "title": "Comment Request Model",
+        "description": "Model for Comment Request"
       },
       "AuditRowUpdateReq": {
         "type": "object",
@@ -10640,7 +10719,9 @@
           },
           "value": {},
           "prev_value": {}
-        }
+        },
+        "title": "Audit Row Update Request Model",
+        "description": "Model for Audit Row Update Request"
       },
       "OrgUserReq": {
         "type": "object",
@@ -10656,7 +10737,9 @@
               "org-level-viewer"
             ]
           }
-        }
+        },
+        "title": "Organisation User Request Model",
+        "description": "Model for Organisation User Update Request"
       },
       "ProjectUserReq": {
         "type": "object",
@@ -10679,7 +10762,9 @@
         "required": [
           "email",
           "roles"
-        ]
+        ],
+        "title": "Project User Request Model",
+        "description": "Model for Project User Request"
       },
       "SharedBaseReq": {
         "type": "object",
@@ -10696,7 +10781,9 @@
             "type": "string",
             "minLength": 8
           }
-        }
+        },
+        "title": "Shared Base Request Model",
+        "description": "Model for Shared Base Request"
       },
       "PluginTestReq": {
         "type": "object",
@@ -10710,7 +10797,9 @@
         "required": [
           "title",
           "input"
-        ]
+        ],
+        "title": "Plugin Test Request Model",
+        "description": "Model for Plugin Test Request"
       },
       "PluginReq": {
         "type": "object",
@@ -10719,7 +10808,9 @@
             "$ref": "#/components/schemas/Bool"
           },
           "input": {}
-        }
+        },
+        "title": "Plugin Reqeust",
+        "description": "Model for Plugin Request"
       },
       "ViewReq": {
         "type": "object",
@@ -10747,7 +10838,9 @@
               "personal"
             ]
           }
-        }
+        },
+        "title": "View Request Model",
+        "description": "Model for View Request"
       },
       "SharedViewReq": {
         "type": "object",
@@ -10759,7 +10852,9 @@
           "meta": {
             "$ref": "#/components/schemas/Meta"
           }
-        }
+        },
+        "title": "Shared View Request Model",
+        "description": "Model for Shared View Request"
       }
     },
     "responses": {

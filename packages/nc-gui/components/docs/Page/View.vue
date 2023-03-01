@@ -17,6 +17,7 @@ const {
   openedPageId,
   isPublic,
   nestedPublicParentPage,
+  isFetching,
 } = useDocs()
 
 // Page opened in the Page component, which is updated to the server debounce-ly
@@ -146,7 +147,11 @@ watch(
 
 <template>
   <a-layout-content>
-    <div v-if="localPage" ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
+    <div
+      v-if="localPage && !(isPublic && isFetching.nestedPages)"
+      ref="wrapperRef"
+      class="nc-docs-page h-full flex flex-row relative"
+    >
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">

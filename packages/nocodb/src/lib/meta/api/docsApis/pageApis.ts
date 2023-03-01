@@ -60,6 +60,7 @@ async function list(
   try {
     const pages = await Page.nestedList({
       projectId: req.query?.projectId as string,
+      fetchAll: true,
     });
 
     res // todo: pagination

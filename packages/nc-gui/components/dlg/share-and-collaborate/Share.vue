@@ -78,12 +78,24 @@ const embedPageHtml = async () => {
 
 const togglePagePublishedState = async () => {
   isPagePublishing.value = true
+
+  let pageUpdates
+  if (openedPage.value!.is_published) {
+    pageUpdates = {
+      is_published: false,
+      is_nested_published: false,
+    }
+  } else {
+    pageUpdates = {
+      is_published: true,
+      is_nested_published: false,
+    }
+  }
+
   try {
     await updatePage({
       pageId: openedPage.value!.id!,
-      page: {
-        is_published: !openedPage.value!.is_published,
-      },
+      page: pageUpdates,
     })
   } finally {
     isPagePublishing.value = false
@@ -198,7 +210,7 @@ const toggleNestedPagePublishedState = async () => {
 
 <style lang="scss">
 .docs-share-public-toggle {
-  height: 1.25rem;
+  height: 1.25rem !important;
   min-width: 2.4rem !important;
   width: 2.4rem !important;
   line-height: 1rem;

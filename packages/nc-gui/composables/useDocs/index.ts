@@ -77,14 +77,24 @@ const [setup, use] = useInjectionState(() => {
   const openedPageId = computed(() => {
     if (routePageSlugs.value.length === 0) return undefined
 
-    return isNestedPublicPage.value ? routePageSlugs.value[1] : routePageSlugs.value[0]
+    if (isNestedPublicPage.value) {
+      if (routePageSlugs.value.length < 3) return routePageSlugs.value[0]
+      return routePageSlugs.value[2]
+    }
+
+    return routePageSlugs.value[0]
   })
 
   const openedPage = computed(() => {
     if (routePageSlugs.value.length === 0) return undefined
     if (isFetching.value.nestedPages) return undefined
 
-    return findPage(nestedPages.value, isNestedPublicPage.value ? routePageSlugs.value[1] : routePageSlugs.value[0])
+    if (isNestedPublicPage.value) {
+      if (routePageSlugs.value.length < 3) return findPage(nestedPages.value, routePageSlugs.value[0])
+      return findPage(nestedPages.value, routePageSlugs.value[2])
+    }
+
+    return findPage(nestedPages.value, isNestedPublicPage.value ? routePageSlugs.value[2] : routePageSlugs.value[0])
   })
 
   const openedNestedPages = computed(() => (openedPage.value ? getPageWithParents(openedPage.value) : []))
@@ -261,7 +271,9 @@ const [setup, use] = useInjectionState(() => {
     const isNestedPublicMode = nestedPublicParentPage.value?.is_nested_published || openedPage.value?.is_nested_published
     let url: string
     if (publicMode && isNestedPublicMode) {
-      url = `/nc/doc/${projectId!}/s/${nestedPublicParentPage.value?.id ?? id}/${id}/${nestedSlugs.join('/')}`
+      url = `/nc/doc/${projectId!}/s/${nestedPublicParentPage.value?.id ?? id}/${nestedSlugs[0]}/${id}/${nestedSlugs
+        .filter((_, i) => i > 0)
+        .join('/')}`
     } else if (publicMode) {
       url = `/nc/doc/${projectId!}/s/${id}/${nestedSlugs.join('/')}`
     } else {

@@ -52,6 +52,7 @@ export default class Page {
         .foreign('last_published_by_id')
         .references(`${MetaTable.USERS}.id`)
         .withKeyName(`nc_page_last_published_id_${uuidv4()}`);
+      table.boolean('is_nested_published').defaultTo(false);
 
       table.string('last_updated_by_id', 20).nullable();
       table
@@ -156,9 +157,11 @@ export default class Page {
     {
       id,
       projectId,
+      fields,
     }: {
       id: string;
       projectId: string;
+      fields?: string[];
     },
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType | undefined> {
@@ -169,14 +172,15 @@ export default class Page {
         null,
         null,
         Page.tableName({ projectId }),
-        id
+        id,
+        fields
       );
       if (page) {
         await NocoCache.set(`${CacheScope.DOCS_PAGE}:${id}`, page);
       }
     }
 
-    return page;
+    return page as DocsPageType | undefined;
   }
 
   public static async getBySlug(
@@ -334,6 +338,7 @@ export default class Page {
   public static async getChildPages({
     projectId,
     parent_page_id,
+    condition = {},
     ncMeta = Noco.ncMeta,
   }): Promise<Page[]> {
     const pageList = await ncMeta.metaList2(
@@ -343,6 +348,7 @@ export default class Page {
       {
         condition: {
           parent_page_id: parent_page_id,
+          ...condition,
         },
       }
     );
@@ -392,6 +398,7 @@ export default class Page {
           'parent_page_id',
           'is_parent',
           'is_published',
+          'is_nested_published',
           'updated_at',
           'created_at',
           'last_updated_by_id',
@@ -407,7 +414,43 @@ export default class Page {
     return pageList;
   }
 
-  public static async nestedList({
+  static async nestedChildren({
+    projectId,
+    parent_page_id,
+    onlyPublished = false,
+  }: // fields,
+
+  {
+    projectId: string;
+    parent_page_id?: string;
+    onlyPublished?: boolean;
+    fields?: string[];
+  }) {
+    const children = await this.getChildPages({
+      projectId,
+      parent_page_id,
+      condition: onlyPublished ? { is_published: true } : {},
+    });
+
+    if (!children || children.length === 0) return [];
+
+    const nestedPagesWithChildren = await Promise.all(
+      children.map(async (child) => {
+        const children = await this.nestedChildren({
+          projectId,
+          parent_page_id: child.id,
+        });
+        return {
+          ...child,
+          children,
+        };
+      })
+    );
+
+    return nestedPagesWithChildren;
+  }
+
+  static async _allPagesNestedList({
     projectId,
     parent_page_id,
     onlyPublished = false,
@@ -417,7 +460,7 @@ export default class Page {
     parent_page_id?: string;
     onlyPublished?: boolean;
     fields?: string[];
-  }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
+  }) {
     const nestedList = await this.list({
       projectId,
       parent_page_id,
@@ -444,6 +487,41 @@ export default class Page {
     > = arrayToTree(nestedList, parent_page_id);
 
     return nestedListWithChildren;
+  }
+
+  public static async nestedList({
+    projectId,
+    parent_page_id,
+    fields,
+    fetchAll = true,
+  }: {
+    projectId: string;
+    parent_page_id?: string;
+    fields?: string[];
+    fetchAll?: boolean;
+  }): Promise<Array<DocsPageType & { children: any[]; isLeaf: boolean }>> {
+    if (fetchAll) {
+      return await this._allPagesNestedList({
+        projectId,
+        parent_page_id,
+        fields,
+      });
+    }
+    const parentPage: DocsPageType & { children: any[]; isLeaf: boolean } =
+      (await this.get({
+        id: parent_page_id,
+        projectId,
+        fields: fields,
+      })) as any;
+
+    parentPage.children = await this.nestedChildren({
+      projectId,
+      fields,
+      parent_page_id,
+    });
+    parentPage.isLeaf = parentPage.children.length === 0;
+
+    return [parentPage];
   }
 
   public static async count({
@@ -629,6 +707,31 @@ export default class Page {
     }
 
     return parents;
+  }
+
+  static async isParent({
+    projectId,
+    pageId,
+    parentId,
+  }: {
+    projectId: string;
+    pageId: string;
+    parentId: string;
+  }) {
+    const page = await this.get({ projectId, id: pageId });
+
+    if (!page) throw new Error('Page not found');
+
+    let parent = page;
+    while (parent.parent_page_id) {
+      parent = await this.get({
+        projectId,
+        id: parent.parent_page_id,
+      });
+      if (parent.id === parentId) return true;
+    }
+
+    return false;
   }
 
   static async paginate({

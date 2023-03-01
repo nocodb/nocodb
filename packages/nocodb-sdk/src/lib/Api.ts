@@ -66,6 +66,7 @@ export interface DocsPageType {
   parent_page_id?: string;
   is_parent?: boolean;
   is_published?: boolean;
+  is_nested_published?: boolean;
   /** @format date */
   last_published_date?: string;
   last_published_by_id?: string;
@@ -1024,6 +1025,8 @@ export class Api<
       query: {
         /** Project id */
         projectId: string;
+        /** nestedPageId */
+        nestedPageId?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -4878,6 +4881,23 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/nested/${columnName}`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name GetProject
+     * @summary get public project
+     * @request GET:/api/v1/db/public/project/{id}
+     * @response `200` `void` OK
+     */
+    getProject: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/public/project/${id}`,
+        method: 'GET',
         format: 'json',
         ...params,
       }),

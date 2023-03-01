@@ -20,8 +20,26 @@ async function get(
 
     if (!page) throw new Error('Page not found');
 
-    if (!projectMeta.isPublic && !page.is_published)
-      throw new Error('Page is not found');
+    // if page and project is not public, check if the given parent page is published with nested pages
+    if (!projectMeta.isPublic && !page.is_published) {
+      const parentPage = await Page.get({
+        id: req.query?.nestedPageId as string,
+        projectId: req.query?.projectId as string,
+      });
+
+      if (!parentPage?.is_nested_published) throw new Error('Page not found.A');
+
+      if (
+        page.id !== parentPage.id &&
+        !Page.isParent({
+          parentId: parentPage.id,
+          pageId: page.id,
+          projectId: req.query?.projectId as string,
+        })
+      ) {
+        throw new Error('Page is not found.');
+      }
+    }
 
     res.json(page);
   } catch (e) {
@@ -39,14 +57,36 @@ async function list(
     const project = await Project.getWithInfo(req.query?.projectId as string);
     const projectMeta = JSON.parse(project.meta);
 
-    const pages = await Page.nestedList({
+    if (!projectMeta.isPublic && !req.query?.parent_page_id)
+      throw new Error('Project is not found');
+
+    if (projectMeta.isPublic) {
+      res.json(
+        await Page.nestedList({
+          projectId: req.query?.projectId as string,
+        })
+      );
+      return;
+    }
+
+    const page = await Page.get({
+      id: req.query?.parent_page_id as string,
       projectId: req.query?.projectId as string,
     });
+    if (!page) throw new Error('Page not found');
 
-    const publishedPages = projectMeta.isPublic ? pages : [];
+    if (page.is_published && page.is_nested_published) {
+      res.json(
+        await Page.nestedList({
+          projectId: req.query?.projectId as string,
+          parent_page_id: req.query?.parent_page_id as string,
+          fetchAll: false,
+        })
+      );
+      return;
+    }
 
-    res // todo: pagination
-      .json(publishedPages);
+    res.json([page]);
   } catch (e) {
     console.log(e);
     next(e);

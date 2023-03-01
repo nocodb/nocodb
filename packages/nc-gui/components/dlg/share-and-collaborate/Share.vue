@@ -11,6 +11,7 @@ const { openedPage, updatePage, nestedUrl } = useDocs()
 
 const isPagePublishing = ref(false)
 const isProjectPublishing = ref(false)
+const isNestedPagePublishing = ref(false)
 
 const projectMeta = computed(() => {
   if (!project.value) {
@@ -29,16 +30,16 @@ const projectMeta = computed(() => {
 })
 
 const copyProjectUrl = async () => {
-  await navigator.clipboard.writeText(`${window.location.origin}/#/nc/doc/${project?.value?.id}/public`)
+  await navigator.clipboard.writeText(`${window.location.origin}/#/nc/doc/${project?.value?.id}/s/`)
 }
 
 const openProjectUrl = async () => {
-  window.open(`${window.location.origin}/#/nc/doc/${project?.value?.id}/public`, '_blank')
+  window.open(`${window.location.origin}/#/nc/doc/${project?.value?.id}/s/`, '_blank')
 }
 
 const embedProjectHtml = async () => {
   await navigator.clipboard.writeText(
-    `<iframe src="${window.location.origin}/#/nc/doc/${project?.value?.id}/public" width="100%" height="100%" style="border: none;"></iframe>`,
+    `<iframe src="${window.location.origin}/#/nc/doc/${project?.value?.id}/s/" width="100%" height="100%" style="border: none;"></iframe>`,
   )
 }
 
@@ -88,6 +89,20 @@ const togglePagePublishedState = async () => {
     isPagePublishing.value = false
   }
 }
+
+const toggleNestedPagePublishedState = async () => {
+  isNestedPagePublishing.value = true
+  try {
+    await updatePage({
+      pageId: openedPage.value!.id!,
+      page: {
+        is_nested_published: !openedPage.value!.is_nested_published,
+      },
+    })
+  } finally {
+    isNestedPagePublishing.value = false
+  }
+}
 </script>
 
 <template>
@@ -95,7 +110,12 @@ const togglePagePublishedState = async () => {
     <div class="flex flex-col w-full px-3.5 py-3.5 border-gray-200 border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between">
         <div class="flex" :style="{ fontWeight: 500 }">Share all pages</div>
-        <a-switch :checked="projectMeta.isPublic" :loading="isProjectPublishing" @click="toggleProjectPublishedState" />
+        <a-switch
+          :checked="projectMeta.isPublic"
+          :loading="isProjectPublishing"
+          class="docs-share-public-toggle"
+          @click="toggleProjectPublishedState"
+        />
       </div>
       <div class="flex text-xs">Share all pages in '{{ project?.title }}'</div>
       <div v-if="projectMeta.isPublic" class="flex flex-row justify-end text-gray-600 gap-x-1.5">
@@ -126,9 +146,26 @@ const togglePagePublishedState = async () => {
     >
       <div class="flex flex-row w-full justify-between">
         <div class="flex" :style="{ fontWeight: 500 }">Share current page</div>
-        <a-switch :checked="!!openedPage?.is_published" :loading="isPagePublishing" @click="togglePagePublishedState" />
+        <a-switch
+          :checked="!!openedPage?.is_published"
+          :loading="isPagePublishing"
+          class="docs-share-public-toggle"
+          @click="togglePagePublishedState"
+        />
       </div>
       <div class="flex text-xs">Share only the current selected page</div>
+      <div
+        v-if="!!openedPage?.is_published"
+        class="my-1 flex flex-row w-full justify-between items-center py-2 px-3 bg-gray-100 rounded-md"
+      >
+        <div class="flex">Share nested pages</div>
+        <a-switch
+          :checked="!!openedPage?.is_nested_published"
+          :loading="isNestedPagePublishing"
+          class="docs-share-public-toggle"
+          @click="toggleNestedPagePublishedState"
+        />
+      </div>
       <div v-if="openedPage?.is_published" class="flex flex-row justify-end text-gray-600 gap-x-1.5">
         <div class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300" @click="openPageUrl">
           <RiExternalLinkLine class="h-3.75" />
@@ -158,3 +195,23 @@ const togglePagePublishedState = async () => {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.docs-share-public-toggle {
+  height: 1.25rem;
+  min-width: 2.4rem !important;
+  width: 2.4rem !important;
+  line-height: 1rem;
+
+  .ant-switch-handle {
+    height: 1rem !important;
+    min-width: 1rem !important;
+    line-height: 0.8rem !important;
+  }
+  .ant-switch-inner {
+    height: 1rem !important;
+    min-width: 1rem !important;
+    line-height: 1rem !important;
+  }
+}
+</style>

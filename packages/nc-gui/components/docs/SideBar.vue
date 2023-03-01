@@ -4,8 +4,6 @@ import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
 
-const isPublic = inject(IsDocsPublicInj, ref(false))
-
 const { project } = useProject()
 const {
   nestedPages,
@@ -20,6 +18,7 @@ const {
   isNoPageOpen,
   projectUrl,
   expandTabOfOpenedPage,
+  isPublic,
 } = useDocs()
 
 const deleteModalOpen = ref(false)
@@ -200,6 +199,17 @@ watch(
                     </div>
                   </template>
                 </a-dropdown>
+                <template v-else>
+                  <div v-if="icon" class="flex px-0.5 pt-0.75">
+                    <IconifyIcon
+                      v-if="icon"
+                      :key="icon"
+                      :data-testid="`nc-doc-page-icon-${icon}`"
+                      class="flex text-lg"
+                      :icon="icon"
+                    ></IconifyIcon>
+                  </div>
+                </template>
               </a-popover>
             </div>
             <span

@@ -19,6 +19,8 @@ const openProject = async (project: ProjectType) => {
   switch (project.type) {
     case NcProjectType.DOCS:
       await navigateTo(`/nc/doc/${project.id}`)
+      // todo: Hack
+      window.location.reload()
       break
     case NcProjectType.COWRITER:
       await navigateTo(`/nc/cowriter/${project.id}`)

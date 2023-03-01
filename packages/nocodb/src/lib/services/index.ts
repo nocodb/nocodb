@@ -21,3 +21,7 @@ export * as mapViewService from './mapViewService';
 export * as modelVisibilityService from './modelVisibilityService';
 export * as sharedBaseService from './sharedBaseService';
 export * as orgUserService from './orgUserService';
+export * as orgTokenService from './orgTokenService';
+export * as orgLicenseService from './orgLicenseService';
+export * as projectUserService from './projectUserService';
+export * as attachmentService from './attachmentService';

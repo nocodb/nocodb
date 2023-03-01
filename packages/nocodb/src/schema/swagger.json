@@ -7460,39 +7460,75 @@
       "Base": {
         "title": "Base Model",
         "type": "object",
+        "description": "Model for Base",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique Base ID"
           },
           "project_id": {
-            "type": "string"
+            "type": "string",
+            "description": "The project ID that this base belongs to"
           },
           "alias": {
-            "type": "string"
+            "type": "string",
+            "description": "Base Name - Default BASE will be null by default",
+            "example": "My Base"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "description": "DB Type",
+            "example": "mysql2",
+            "enum": [
+              "mysql2",
+              "sqlite",
+              "mysql",
+              "mssql",
+              "snowflake",
+              "oracledb",
+              "pg"
+            ]
           },
           "is_meta": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source connected externally"
           },
-          "config": {},
-          "created_at": {},
-          "updated_at": {},
-          "inflection_column": {
+          "config": {
+            "description": "Encrypted Base Configuration",
             "type": "string"
+          },
+          "created_at": {
+            "description": "The datatime this base is created at",
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-03-01 14:27:36"
+          },
+          "updated_at": {
+            "description": "The datatime this base is updated at",
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-03-01 14:27:36"
+          },
+          "inflection_column": {
+            "type": "string",
+            "description": "Inflection for columns",
+            "example": "camelize"
           },
           "inflection_table": {
-            "type": "string"
+            "type": "string",
+            "description": "Inflection for tables",
+            "example": "camelize"
           },
           "order": {
-            "type": "number"
+            "type": "number",
+            "description": "The order of the list of bases",
+            "example": 1
           },
           "enabled": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this base enabled"
           }
-        },
-        "description": "Model for Base"
+        }
       },
       "BaseReq": {
         "title": "Base Request",
@@ -10844,17 +10880,20 @@
       },
       "SharedViewReq": {
         "type": "object",
+        "title": "Shared View Request Model",
+        "description": "Model for Shared View Request",
         "properties": {
           "password": {
             "type": "string",
-            "minLength": 8
+            "minLength": 8,
+            "example": "123456789",
+            "description": "Password to restrict access"
           },
           "meta": {
-            "$ref": "#/components/schemas/Meta"
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data passing to Shared View such as if download is allowed or not."
           }
-        },
-        "title": "Shared View Request Model",
-        "description": "Model for Shared View Request"
+        }
       }
     },
     "responses": {

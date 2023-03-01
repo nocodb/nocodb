@@ -21,8 +21,8 @@ const { layout, elements } = useErdElements(tables, config)
 
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
-function init() {
-  layout(showSkeleton.value).then(() => {
+async function init() {
+  await layout(showSkeleton.value).then(() => {
     if (!showSkeleton.value) {
       zoomIn()
     }
@@ -42,8 +42,8 @@ onNodeDoubleClick(({ node }) => {
 })
 
 watch(tables, init)
-watch(showSkeleton, (isSkeleton) => {
-  layout(isSkeleton).then(() => {
+watch(showSkeleton, async (isSkeleton) => {
+  await layout(isSkeleton).then(() => {
     fitView({
       duration: 300,
       minZoom: isSkeleton ? undefined : viewport.value.zoom,

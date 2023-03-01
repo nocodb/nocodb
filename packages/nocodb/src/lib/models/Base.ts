@@ -19,11 +19,18 @@ export default class Base implements BaseType {
   id?: string;
   project_id?: string;
   alias?: string;
-  type?: string;
+  type?:
+    | 'mysql2'
+    | 'sqlite'
+    | 'mysql'
+    | 'mssql'
+    | 'snowflake'
+    | 'oracledb'
+    | 'pg';
   is_meta?: BoolType;
-  config?: any;
-  created_at?: any;
-  updated_at?: any;
+  config?: string;
+  created_at?: string;
+  updated_at?: string;
   inflection_column?: string;
   inflection_table?: string;
   order?: number;

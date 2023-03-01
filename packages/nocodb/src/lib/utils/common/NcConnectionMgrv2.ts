@@ -61,13 +61,11 @@ export default class NcConnectionMgrv2 {
   public static async get(base: Base): Promise<XKnex> {
     if (base.is_meta) {
       // if data db is set, use it for generating knex connection
-      if (process.env.NC_DATA_DB) {
-        if (!this.dataKnex) {
-          await this.getDataConfig();
-          this.dataKnex = XKnex(this.dataConfig);
-        }
-        return this.dataKnex;
+      if (!this.dataKnex) {
+        await this.getDataConfig();
+        this.dataKnex = XKnex(this.dataConfig);
       }
+      return this.dataKnex;
     }
 
     if (this.connectionRefs?.[base.project_id]?.[base.id]) {
@@ -107,7 +105,10 @@ export default class NcConnectionMgrv2 {
         );
       return this.dataConfig;
     } else {
-      return Noco.getConfig()?.meta?.db;
+      if (!this.dataConfig) {
+        this.dataConfig = Noco.getConfig()?.meta?.db;
+      }
+      return this.dataConfig;
     }
   }
 

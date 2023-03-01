@@ -1,9 +1,9 @@
-import { DbConfig } from "../../src/interface/config";
-import { NcConfigFactory } from "../../src/lib";
-import SqlMgrv2 from "../../src/lib/db/sql-mgr/v2/SqlMgrv2";
+import { DbConfig } from '../../src/interface/config';
+import { NcConfigFactory } from '../../src/lib';
+import SqlMgrv2 from '../../src/lib/db/sql-mgr/v2/SqlMgrv2';
 import fs from 'fs';
-import { Knex, knex } from "knex";
-import process from "process";
+import { Knex, knex } from 'knex';
+import process from 'process';
 
 export default class TestDbMngr {
   public static readonly dbName = 'test_meta';
@@ -17,7 +17,15 @@ export default class TestDbMngr {
     host: 'localhost',
     port: 3306,
     client: 'mysql2',
-  }
+  };
+
+  public static pgConnection = {
+    user: 'postgres',
+    password: 'password',
+    host: 'localhost',
+    port: 5432,
+    client: 'pg',
+  };
 
   public static connection: {
     user: string;
@@ -36,8 +44,8 @@ export default class TestDbMngr {
       password: process.env['DB_PASSWORD'] || password,
       host: process.env['DB_HOST'] || host,
       port: Number(process.env['DB_PORT']) || port,
-      client
-    }
+      client: process.env['DB_CLIENT'] || client,
+    };
   }
 
   static async testConnection(config: DbConfig) {
@@ -51,33 +59,23 @@ export default class TestDbMngr {
   }
 
   static async init() {
-    TestDbMngr.populateConnectionConfig()
+    TestDbMngr.populateConnectionConfig();
 
-    if(await TestDbMngr.isMysqlConfigured()){
-      await TestDbMngr.connectMysql();
+    // common for both pg and mysql
+    if (await TestDbMngr.isDbConfigured()) {
+      await TestDbMngr.connectDb();
     } else {
       console.log('Mysql is not configured. Switching to sqlite');
       await TestDbMngr.switchToSqlite();
     }
   }
 
-  static async isMysqlConfigured() {
+  static async connectDb() {
     const { user, password, host, port, client } = TestDbMngr.connection;
-    const config = NcConfigFactory.urlToDbConfig(`${client}://${user}:${password}@${host}:${port}`);
-    config.connection = {
-      user,
-      password,
-      host,
-      port,
-    }
-    const result = await TestDbMngr.testConnection(config);
-    return result.code !== -1;
-  }
-
-  static async connectMysql() {
-    const { user, password, host, port, client } = TestDbMngr.connection;
-    if(!process.env[`DATABASE_URL`]){
-      process.env[`DATABASE_URL`] = `${client}://${user}:${password}@${host}:${port}/${TestDbMngr.dbName}`;
+    if (!process.env[`DATABASE_URL`]) {
+      process.env[
+        `DATABASE_URL`
+      ] = `${client}://${user}:${password}@${host}:${port}/${TestDbMngr.dbName}`;
     }
 
     TestDbMngr.dbConfig = NcConfigFactory.urlToDbConfig(
@@ -95,21 +93,21 @@ export default class TestDbMngr {
         tn: 'camelize',
         cn: 'camelize',
       },
-    }
+    };
 
     await TestDbMngr.setupMeta();
     await TestDbMngr.setupSakila();
   }
 
   static async setupMeta() {
-    if(TestDbMngr.metaKnex){
+    if (TestDbMngr.metaKnex) {
       await TestDbMngr.metaKnex.destroy();
     }
 
-    if(TestDbMngr.isSqlite()){
+    if (TestDbMngr.isSqlite()) {
       await TestDbMngr.resetMetaSqlite();
       TestDbMngr.metaKnex = knex(TestDbMngr.getMetaDbConfig());
-      return
+      return;
     }
 
     TestDbMngr.metaKnex = knex(TestDbMngr.getDbConfigWithNoDb());
@@ -120,23 +118,29 @@ export default class TestDbMngr {
     await TestDbMngr.useDatabase(TestDbMngr.metaKnex, TestDbMngr.dbName);
   }
 
-  static async setupSakila () {
-    if(TestDbMngr.sakilaKnex) {
+  static async setupSakila() {
+    if (TestDbMngr.sakilaKnex) {
       await TestDbMngr.sakilaKnex.destroy();
     }
 
-    if(TestDbMngr.isSqlite()){
+    if (TestDbMngr.isSqlite()) {
       await TestDbMngr.seedSakila();
       TestDbMngr.sakilaKnex = knex(TestDbMngr.getSakilaDbConfig());
-      return
+      return;
     }
 
     TestDbMngr.sakilaKnex = knex(TestDbMngr.getDbConfigWithNoDb());
-    await TestDbMngr.resetDatabase(TestDbMngr.sakilaKnex, TestDbMngr.sakilaDbName);
+    await TestDbMngr.resetDatabase(
+      TestDbMngr.sakilaKnex,
+      TestDbMngr.sakilaDbName
+    );
     await TestDbMngr.sakilaKnex.destroy();
 
     TestDbMngr.sakilaKnex = knex(TestDbMngr.getSakilaDbConfig());
-    await TestDbMngr.useDatabase(TestDbMngr.sakilaKnex, TestDbMngr.sakilaDbName);
+    await TestDbMngr.useDatabase(
+      TestDbMngr.sakilaKnex,
+      TestDbMngr.sakilaDbName
+    );
   }
 
   static async switchToSqlite() {
@@ -161,23 +165,28 @@ export default class TestDbMngr {
           cn: 'camelize',
         },
       },
-    }
+    };
 
-    process.env[`NC_DB`] = `sqlite3:///?database=${__dirname}/${TestDbMngr.dbName}.db`;
+    process.env[
+      `NC_DB`
+    ] = `sqlite3:///?database=${__dirname}/${TestDbMngr.dbName}.db`;
     await TestDbMngr.setupMeta();
     await TestDbMngr.setupSakila();
   }
 
   private static async resetDatabase(knexClient, dbName) {
-    if(TestDbMngr.isSqlite()){
+    if (TestDbMngr.isSqlite()) {
       // return knexClient.raw(`DELETE FROM sqlite_sequence`);
     } else {
       try {
         await knexClient.raw(`DROP DATABASE ${dbName}`);
-      } catch(e) {}
+      } catch (e) {}
       await knexClient.raw(`CREATE DATABASE ${dbName}`);
       console.log(`Database ${dbName} created`);
-      await knexClient.raw(`USE ${dbName}`);
+
+      if (!TestDbMngr.isPg()) {
+        await knexClient.raw(`USE ${dbName}`);
+      }
     }
   }
 
@@ -185,14 +194,18 @@ export default class TestDbMngr {
     return TestDbMngr.dbConfig.client === 'sqlite3';
   }
 
+  static isPg() {
+    return TestDbMngr.dbConfig.client === 'pg';
+  }
+
   private static async useDatabase(knexClient, dbName) {
-    if(!TestDbMngr.isSqlite()){
+    if (!TestDbMngr.isSqlite() && !TestDbMngr.isPg()) {
       await knexClient.raw(`USE ${dbName}`);
     }
   }
 
   static getDbConfigWithNoDb() {
-    const dbConfig =JSON.parse(JSON.stringify(TestDbMngr.dbConfig));
+    const dbConfig = JSON.parse(JSON.stringify(TestDbMngr.dbConfig));
     delete dbConfig.connection.database;
     return dbConfig;
   }
@@ -202,7 +215,7 @@ export default class TestDbMngr {
   }
 
   private static resetMetaSqlite() {
-    if(fs.existsSync(`${__dirname}/test_meta.db`)){
+    if (fs.existsSync(`${__dirname}/test_meta.db`)) {
       fs.unlinkSync(`${__dirname}/test_meta.db`);
     }
   }
@@ -210,9 +223,9 @@ export default class TestDbMngr {
   static getSakilaDbConfig() {
     const sakilaDbConfig = JSON.parse(JSON.stringify(TestDbMngr.dbConfig));
     sakilaDbConfig.connection.database = TestDbMngr.sakilaDbName;
-    sakilaDbConfig.connection.multipleStatements = true
-    if(TestDbMngr.isSqlite()){
-        sakilaDbConfig.connection.filename = `${__dirname}/test_sakila.db`;
+    sakilaDbConfig.connection.multipleStatements = true;
+    if (TestDbMngr.isSqlite()) {
+      sakilaDbConfig.connection.filename = `${__dirname}/test_sakila.db`;
     }
     return sakilaDbConfig;
   }
@@ -220,47 +233,88 @@ export default class TestDbMngr {
   static async seedSakila() {
     const testsDir = __dirname.replace('tests/unit', 'tests');
 
-    if(TestDbMngr.isSqlite()){
-      if(fs.existsSync(`${__dirname}/test_sakila.db`)){
+    if (TestDbMngr.isSqlite()) {
+      if (fs.existsSync(`${__dirname}/test_sakila.db`)) {
         fs.unlinkSync(`${__dirname}/test_sakila.db`);
       }
-      fs.copyFileSync(`${testsDir}/sqlite-sakila-db/sakila.db`, `${__dirname}/test_sakila.db`);
+      fs.copyFileSync(
+        `${testsDir}/sqlite-sakila-db/sakila.db`,
+        `${__dirname}/test_sakila.db`
+      );
+    } else if (TestDbMngr.isPg()) {
+      const schemaFile = fs
+        .readFileSync(`${testsDir}/pg-sakila-db/01-postgres-sakila-schema.sql`)
+        .toString();
+      const dataFile = fs
+        .readFileSync(
+          `${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`
+        )
+        .toString();
+      await TestDbMngr.sakilaKnex.raw(schemaFile);
+      await TestDbMngr.sakilaKnex.raw(dataFile);
     } else {
-      const schemaFile = fs.readFileSync(`${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql`).toString();
-      const dataFile = fs.readFileSync(`${testsDir}/mysql-sakila-db/04-test-sakila-data.sql`).toString();
+      const schemaFile = fs
+        .readFileSync(`${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql`)
+        .toString();
+      const dataFile = fs
+        .readFileSync(`${testsDir}/mysql-sakila-db/04-test-sakila-data.sql`)
+        .toString();
       await TestDbMngr.sakilaKnex.raw(schemaFile);
       await TestDbMngr.sakilaKnex.raw(dataFile);
     }
   }
 
   static async disableForeignKeyChecks(knexClient) {
-    if(TestDbMngr.isSqlite()){
-      await knexClient.raw("PRAGMA foreign_keys = OFF");
-    }
-    else {
+    if (TestDbMngr.isSqlite()) {
+      await knexClient.raw('PRAGMA foreign_keys = OFF');
+    } else if (TestDbMngr.isPg()) {
+      await knexClient.raw(`SET session_replication_role = 'replica'`);
+    } else {
       await knexClient.raw(`SET FOREIGN_KEY_CHECKS = 0`);
     }
   }
 
   static async enableForeignKeyChecks(knexClient) {
-    if(TestDbMngr.isSqlite()){
+    if (TestDbMngr.isSqlite()) {
       await knexClient.raw(`PRAGMA foreign_keys = ON;`);
-    }
-    else {
+    } else if (TestDbMngr.isPg()) {
+      await knexClient.raw(`SET session_replication_role = 'origin'`);
+    } else {
       await knexClient.raw(`SET FOREIGN_KEY_CHECKS = 1`);
     }
   }
 
   static async showAllTables(knexClient) {
-    if(TestDbMngr.isSqlite()){
-      const tables = await knexClient.raw(`SELECT name FROM sqlite_master WHERE type='table'`);
-      return tables.filter(t => t.name !== 'sqlite_sequence' && t.name !== '_evolutions').map(t => t.name);
-    }
-    else {
-      const response = await knexClient.raw(`SHOW TABLES`);
-      return response[0].map(
-        (table) => Object.values(table)[0]
+    if (TestDbMngr.isSqlite()) {
+      const tables = await knexClient.raw(
+        `SELECT name FROM sqlite_master WHERE type='table'`
       );
+      return tables
+        .filter((t) => t.name !== 'sqlite_sequence' && t.name !== '_evolutions')
+        .map((t) => t.name);
+    } else if (TestDbMngr.isPg()) {
+      const tables = await knexClient.raw(
+        `SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';`
+      );
+      return tables.rows.map((t) => t.tablename);
+    } else {
+      const response = await knexClient.raw(`SHOW TABLES`);
+      return response[0].map((table) => Object.values(table)[0]);
     }
+  }
+
+  private static async isDbConfigured() {
+    const { user, password, host, port, client } = TestDbMngr.connection;
+    const config = NcConfigFactory.urlToDbConfig(
+      `${client}://${user}:${password}@${host}:${port}`
+    );
+    config.connection = {
+      user,
+      password,
+      host,
+      port,
+    };
+    const result = await TestDbMngr.testConnection(config);
+    return result.code !== -1;
   }
 }

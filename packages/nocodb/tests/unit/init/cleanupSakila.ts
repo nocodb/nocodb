@@ -6,13 +6,17 @@ import TestDbMngr from '../TestDbMngr';
 const dropTablesOfSakila = async () => {
   await TestDbMngr.disableForeignKeyChecks(TestDbMngr.sakilaKnex);
 
-  for(const tableName of sakilaTableNames){
+  for (const tableName of sakilaTableNames) {
     try {
-      await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
-    } catch(e){}
+      if (TestDbMngr.isPg()) {
+        await TestDbMngr.sakilaKnex.raw(`DROP TABLE "${tableName}" CASCADE`);
+      } else {
+        await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
+      }
+    } catch (e) {}
   }
   await TestDbMngr.enableForeignKeyChecks(TestDbMngr.sakilaKnex);
-}
+};
 
 const resetAndSeedSakila = async () => {
   try {
@@ -20,28 +24,37 @@ const resetAndSeedSakila = async () => {
     await TestDbMngr.seedSakila();
   } catch (e) {
     console.error('resetSakila', e);
-    throw e
+    throw e;
   }
-}
+};
 
 const cleanUpSakila = async () => {
   try {
     const sakilaProject = await Project.getByTitle('sakila');
 
-    const audits = sakilaProject && await Audit.projectAuditList(sakilaProject.id, {});
+    const audits =
+      sakilaProject && (await Audit.projectAuditList(sakilaProject.id, {}));
 
-    if(audits?.length > 0) {
+    if (audits?.length > 0) {
       return await resetAndSeedSakila();
     }
 
-    const tablesInSakila = await TestDbMngr.showAllTables(TestDbMngr.sakilaKnex);
+    const tablesInSakila = await TestDbMngr.showAllTables(
+      TestDbMngr.sakilaKnex
+    );
 
     await Promise.all(
       tablesInSakila
         .filter((tableName) => !sakilaTableNames.includes(tableName))
         .map(async (tableName) => {
           try {
-            await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
+            if (TestDbMngr.isPg()) {
+              await TestDbMngr.sakilaKnex.raw(
+                `DROP TABLE "${tableName}" CASCADE`
+              );
+            } else {
+              await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
+            }
           } catch (e) {
             console.error(e);
           }
@@ -62,10 +75,15 @@ const sakilaTableNames = [
   'film',
   'film_actor',
   'film_category',
-  'film_text',
   'inventory',
   'language',
   'payment',
+  'payment_p2007_01',
+  'payment_p2007_02',
+  'payment_p2007_03',
+  'payment_p2007_04',
+  'payment_p2007_05',
+  'payment_p2007_06',
   'rental',
   'staff',
   'store',

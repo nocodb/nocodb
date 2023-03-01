@@ -33,7 +33,7 @@ import modelVisibilityApis from '../../services/modelVisibilityService';
 import metaDiffApis from '../../services/metaDiffService';
 import cacheApis from './cacheApis';
 import apiTokenApis from './apiTokenApis';
-import hookFilterApis from './hookFilterApis';
+import hookFilterApis from '../../services/hookFilterService';
 import testApis from './testApis';
 import {
   bulkDataAliasApis,

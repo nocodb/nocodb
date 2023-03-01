@@ -1,23 +1,16 @@
-// @ts-ignore
 import { Request, Response, Router } from 'express';
 import multer from 'multer';
-import { nanoid } from 'nanoid';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import path from 'path';
-import slash from 'slash';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
-import mimetypes, { mimeIcons } from '../utils/mimeTypes';
-import { Tele } from 'nc-help';
 import extractProjectIdAndAuthenticate from '../meta/helpers/extractProjectIdAndAuthenticate';
 import catchError, { NcError } from '../meta/helpers/catchError';
-import NcPluginMgrv2 from '../meta/helpers/NcPluginMgrv2';
-import Local from '../v1-legacy/plugins/adapters/storage/Local';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 import { getCacheMiddleware } from '../meta/api/helpers';
 import { attachmentService } from '../services';
 
-const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
+const isUploadAllowedMw = async (req: Request, _res: Response, next: any) => {
   if (!req['user']?.id) {
     if (!req['user']?.isPublicBase) {
       NcError.unauthorized('Unauthorized');
@@ -67,16 +60,9 @@ export async function uploadViaURL(req: Request, res: Response) {
 
 export async function fileRead(req, res) {
   try {
-    const {
-      img,
-      type,
-    } = await attachmentService.fileRead({
-      path: path.join(
-        'nc',
-        'uploads',
-        req.params?.[0]
-      ),
-    })
+    const { img, type } = await attachmentService.fileRead({
+      path: path.join('nc', 'uploads', req.params?.[0]),
+    });
 
     res.writeHead(200, { 'Content-Type': type });
     res.end(img, 'binary');
@@ -93,18 +79,15 @@ router.get(
   getCacheMiddleware(),
   async (req, res) => {
     try {
-      const {
-        img,
-        type,
-      } = await attachmentService.fileRead({
-        path:    path.join(
+      const { img, type } = await attachmentService.fileRead({
+        path: path.join(
           'nc',
           req.params[0],
           req.params[1],
           'uploads',
           ...req.params[2].split('/')
         ),
-      })
+      });
 
       res.writeHead(200, { 'Content-Type': type });
       res.end(img, 'binary');
@@ -113,7 +96,6 @@ router.get(
     }
   }
 );
-
 
 router.post(
   '/api/v1/db/storage/upload',
@@ -125,7 +107,7 @@ router.post(
   }).any(),
   [
     extractProjectIdAndAuthenticate,
-    catchError(isUploadAllowed),
+    catchError(isUploadAllowedMw),
     catchError(upload),
   ]
 );
@@ -135,7 +117,7 @@ router.post(
 
   [
     extractProjectIdAndAuthenticate,
-    catchError(isUploadAllowed),
+    catchError(isUploadAllowedMw),
     catchError(uploadViaURL),
   ]
 );

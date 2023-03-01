@@ -25,3 +25,4 @@ export * as orgTokenService from './orgTokenService';
 export * as orgLicenseService from './orgLicenseService';
 export * as projectUserService from './projectUserService';
 export * as attachmentService from './attachmentService';
+export * as hookFilterService from './hookFilterService';

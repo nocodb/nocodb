@@ -98,6 +98,16 @@ async function baseCreate(req: Request<any, any>, res) {
   res.json(base);
 }
 
+async function baseShareErd(req: Request<any, any>, res) {
+  const base = await Base.get(req.params.baseId);
+  res.json(await base.shareErd());
+}
+
+async function baseDisableShareErd(req: Request<any, any>, res) {
+  const base = await Base.get(req.params.baseId);
+  res.json(await base.disableShareErd());
+}
+
 export default (router) => {
   router.get(
     '/api/v1/db/meta/projects/:projectId/bases/:baseId',
@@ -123,5 +133,15 @@ export default (router) => {
     '/api/v1/db/meta/projects/:projectId/bases',
     metaApiMetrics,
     ncMetaAclMw(baseList, 'baseList')
+  );
+  router.post(
+    '/api/v1/db/meta/projects/:projectId/bases/:baseId/share/erd',
+    metaApiMetrics,
+    ncMetaAclMw(baseShareErd, 'baseShareErd')
+  );
+  router.delete(
+    '/api/v1/db/meta/projects/:projectId/bases/:baseId/share/erd',
+    metaApiMetrics,
+    ncMetaAclMw(baseDisableShareErd, 'baseDisableShareErd')
   );
 };

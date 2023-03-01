@@ -141,6 +141,7 @@ export interface BaseType {
   inflection_table?: string;
   order?: number;
   enabled?: boolean;
+  erd_uuid?: string;
 }
 
 export interface BaseReqType {
@@ -2825,6 +2826,42 @@ export class Api<
      * No description
      *
      * @tags Base
+     * @name ShareErd
+     * @summary share ERD view
+     * @request POST:/api/v1/db/meta/projects/{projectId}/bases/{baseId}/share/erd
+     * @response `200` `BaseType` OK
+     */
+    shareErd: (projectId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<BaseType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}/share/erd`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name DisableShareErd
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}/share/erd
+     * @response `200` `void` OK
+     */
+    disableShareErd: (
+      projectId: string,
+      baseId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}/share/erd`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
      * @name TableList
      * @request GET:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
      * @response `200` `TableListType`
@@ -4961,6 +4998,20 @@ export class Api<
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
         method: 'GET',
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name SharedErdMetaGet
+     * @request GET:/api/v1/db/public/shared-erd/{sharedErdUuid}/meta
+     */
+    sharedErdMetaGet: (sharedErdUuid: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/shared-erd/${sharedErdUuid}/meta`,
+        method: 'GET',
         ...params,
       }),
   };

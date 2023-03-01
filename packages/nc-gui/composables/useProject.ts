@@ -99,6 +99,8 @@ export const useProject = createSharedComposable(() => {
 
   const isSharedBase = computed(() => projectType === 'base')
 
+  const isSharedErd = computed(() => projectType === 'ERD')
+
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
       projectMetaInfo.value = await api.project.metaGet(project.value.id!, {}, {})
@@ -149,7 +151,19 @@ export const useProject = createSharedComposable(() => {
       return
     }
 
-    await loadProjectRoles(project.value.id || projectId.value, isSharedBase.value, projectId.value)
+    if (isSharedBase.value) {
+      await loadProjectRoles(project.value.id || projectId.value, {
+        isSharedBase: isSharedBase.value,
+        sharedBaseId: projectId.value,
+      })
+    } else if (isSharedErd.value) {
+      await loadProjectRoles(project.value.id || projectId.value, {
+        isSharedErd: isSharedErd.value,
+        sharedErdId: route.params.erdUuid as string,
+      })
+    } else {
+      await loadProjectRoles(project.value.id || projectId.value)
+    }
 
     await loadTables()
 
@@ -224,6 +238,7 @@ export const useProject = createSharedComposable(() => {
     isPg,
     sqlUis,
     isSharedBase,
+    isSharedErd,
     loadProjectMetaInfo,
     projectMetaInfo,
     projectMeta,

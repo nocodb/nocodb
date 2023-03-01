@@ -2547,6 +2547,57 @@
         ]
       }
     },
+    "/api/v1/db/meta/projects/{projectId}/bases/{baseId}/share/erd": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "share ERD view",
+        "operationId": "base-share-erd",
+        "tags": [
+          "Base"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "base-disable-share-erd",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/shared": {
       "parameters": [
         {
@@ -6935,6 +6986,27 @@
         "parameters": []
       }
     },
+    "/api/v1/db/public/shared-erd/{sharedErdUuid}/meta": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedErdUuid",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-shared-erd-meta-get",
+        "tags": [
+          "Public"
+        ],
+        "description": "",
+        "parameters": []
+      }
+    },
     "/api/v1/db/meta/audits/comments": {
       "parameters": [],
       "get": {
@@ -9438,6 +9510,9 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "erd_uuid": {
+            "type": "string"
           }
         }
       },
@@ -12339,6 +12414,12 @@
         "type": "apiKey",
         "in": "header",
         "description": "Shared base uuid"
+      },
+      "xc-shared-erd-id": {
+        "name": "API Key",
+        "type": "apiKey",
+        "in": "header",
+        "description": "Shared ERD uuid"
       }
     }
   }

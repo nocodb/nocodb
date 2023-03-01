@@ -18,8 +18,11 @@ export function addAxiosInterceptors(api: Api<any>) {
     }
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
-      if (route && route.params && route.params.projectType === 'base')
+      if (route && route.params && route.params.projectType === 'base') {
         config.headers['xc-shared-base-id'] = route.params.projectId
+      } else if (route && route.params && route.params.projectType === 'ERD') {
+        config.headers['xc-shared-erd-id'] = route.params.erdUuid
+      }
     }
 
     return config

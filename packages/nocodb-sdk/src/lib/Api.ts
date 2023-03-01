@@ -10,7 +10,7 @@
  */
 
 /**
- * User Model
+ * Model for User
  */
 export interface UserType {
   /**
@@ -56,7 +56,7 @@ export interface UserType {
 }
 
 /**
- * List of User Models
+ * Model for User List
  */
 export interface UserListType {
   /** users includes `list` and `pageInfo` */
@@ -68,52 +68,163 @@ export interface UserListType {
   };
 }
 
+/**
+ * Model for Project Request
+ */
 export interface ProjectReqType {
+  /**
+   * Project Title
+   * @example My Project
+   */
   title: string;
+  /**
+   * Project Description
+   * @example This is my project description
+   */
   description?: string;
+  /**
+   * Primary Theme Color
+   * @example #24716E
+   */
   color?: string;
+  /** Array of Bases */
   bases?: BaseReqType[];
 }
 
+/**
+ * Model for Project
+ */
 export interface ProjectType {
+  /**
+   * Unique Project ID
+   * @example p_124hhlkbeasewh
+   */
   id?: string;
+  /**
+   * Project Title
+   * @example my-project
+   */
   title?: string;
   status?: string;
+  /**
+   * Project Description
+   * @example This is my project description
+   */
   description?: string;
+  /** Meta Info such as theme colors */
   meta?: MetaType;
+  /**
+   * Primary Theme Color
+   * @example #24716E
+   */
   color?: string;
+  /** Is the project deleted */
   deleted?: BoolType;
+  /** The order in project list */
   order?: number;
+  /** List of base models */
   bases?: BaseType[];
+  /** Model for Bool */
   is_meta?: BoolType;
+  /**
+   * Project prefix. Used in XCDB only.
+   * @example nc_vm5q__
+   */
   prefix?: string;
-  created_at?: any;
-  updated_at?: any;
-  slug?: string;
+  /**
+   * The created time of the record
+   * @format date-time
+   * @example 2023-03-01 14:27:36
+   */
+  created_at?: string;
+  /**
+   * The updated time of the record
+   * @format date-time
+   * @example 2023-03-01 14:27:36
+   */
+  updated_at?: string;
 }
 
+/**
+ * Model for Project List
+ */
 export interface ProjectListType {
+  /** List of Project Models */
   list?: ProjectType[];
+  /** Pagination Info */
   pageInfo?: PaginatedType;
 }
 
+/**
+ * Model for Base
+ */
 export interface BaseType {
+  /** Unique Base ID */
   id?: string;
+  /** The project ID that this base belongs to */
   project_id?: string;
+  /**
+   * Base Name - Default BASE will be null by default
+   * @example My Base
+   */
   alias?: string;
-  type?: string;
+  /**
+   * DB Type
+   * @example mysql2
+   */
+  type?:
+    | 'mysql2'
+    | 'sqlite'
+    | 'mysql'
+    | 'mssql'
+    | 'snowflake'
+    | 'oracledb'
+    | 'pg';
+  /** Is the data source connected externally */
   is_meta?: BoolType;
+  /** Base Configuration */
   config?: any;
-  created_at?: any;
-  updated_at?: any;
+  /**
+   * The datatime this base is created at
+   * @format date-time
+   * @example 2023-03-01 14:27:36
+   */
+  created_at?: string;
+  /**
+   * The datatime this base is updated at
+   * @format date-time
+   * @example 2023-03-01 14:27:36
+   */
+  updated_at?: string;
+  /**
+   * Inflection for columns
+   * @example camelize
+   */
   inflection_column?: string;
+  /**
+   * Inflection for tables
+   * @example camelize
+   */
   inflection_table?: string;
+  /**
+   * The order of the list of bases
+   * @example 1
+   */
   order?: number;
+  /** Is this base enabled */
   enabled?: BoolType;
 }
 
+/**
+ * Model for Base Request
+ */
 export interface BaseReqType {
+  /**
+   * Base Name - Default BASE will be null by default
+   * @example My Base
+   */
   alias?: string;
+  /** DB Type */
   type?:
     | 'mysql'
     | 'mysql2'
@@ -122,19 +233,36 @@ export interface BaseReqType {
     | 'mssql'
     | 'oracledb'
     | 'snowflake';
+  /** Is the data source connected externally */
   is_meta?: boolean;
+  /** Base Configuration */
   config?: any;
+  /**
+   * Inflection for columns
+   * @example camelize
+   */
   inflection_column?: string;
+  /**
+   * Inflection for tables
+   * @example camelize
+   */
   inflection_table?: string;
 }
 
+/**
+ * Model for Base List
+ */
 export interface BaseListType {
   bases: {
     list: BaseType[];
+    /** Model for Paginated */
     pageInfo: PaginatedType;
   };
 }
 
+/**
+ * Model for Table
+ */
 export interface TableType {
   id?: string;
   project_id?: string;
@@ -142,29 +270,41 @@ export interface TableType {
   table_name: string;
   title: string;
   type?: string;
+  /** Model for Bool */
   enabled?: BoolType;
   parent_id?: string;
   show_as?: string;
   tags?: string;
+  /** Model for Bool */
   pinned?: BoolType;
+  /** Model for Bool */
   deleted?: BoolType;
   order?: number;
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
+  /** Model for Bool */
   mm?: BoolType;
+  /** Model for Meta */
   meta?: MetaType;
 }
 
+/**
+ * Model for View
+ */
 export interface ViewType {
   id?: string;
   title: string;
+  /** Model for Bool */
   deleted?: BoolType;
   order?: number;
+  /** Model for ID */
   fk_model_id?: IdType;
   slug?: string;
   uuid?: string;
+  /** Model for Meta */
   meta?: MetaType;
+  /** Model for Bool */
   show_system_fields?: BoolType;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
@@ -177,9 +317,14 @@ export interface ViewType {
     | (FormType & GridType & GalleryType & KanbanType & MapType);
 }
 
+/**
+ * Model for Table Info
+ */
 export interface TableInfoType {
   id?: string;
+  /** Model for ID */
   fk_project_id?: IdType;
+  /** Model for ID */
   fk_base_id?: IdType;
   title: string;
   table_name: string;
@@ -188,7 +333,9 @@ export interface TableInfoType {
   parent_id?: string;
   show_as?: string;
   tags?: string;
+  /** Model for Bool */
   pinned?: BoolType;
+  /** Model for Bool */
   deleted?: BoolType;
   order?: number;
   column?: ColumnType[];
@@ -196,30 +343,48 @@ export interface TableInfoType {
   sort?: SortType[];
 }
 
+/**
+ * Model for Table Request
+ */
 export interface TableReqType {
   /**
    * Table name
-   * @example table_name
+   * @example my_table
    */
   table_name: string;
   /**
    * Table title
-   * @example Table title
+   * @example My Table
    */
   title: string;
+  /**
+   * The order of table list
+   * @example 1
+   */
   order?: number;
+  /** The column models in this table */
   columns: NormalColumnRequestType[];
+  /** the meta data for this table */
   meta?: MetaType;
 }
 
+/**
+ * Model for Table List
+ */
 export interface TableListType {
   list?: TableType[];
+  /** Model for Paginated */
   pageInfo?: PaginatedType;
 }
 
+/**
+ * Model for Filter
+ */
 export interface FilterType {
   id?: string;
+  /** Model for ID */
   fk_model_id?: IdType;
+  /** Model for ID */
   fk_column_id?: IdType;
   logical_op?: string;
   comparison_op?: string;
@@ -228,25 +393,37 @@ export interface FilterType {
   children?: FilterType[];
   project_id?: string;
   base_id?: string;
+  /** Model for ID */
   fk_parent_id?: IdType;
+  /** Model for StringOrNull */
   fk_view_id?: StringOrNullType;
+  /** Model for StringOrNull */
   fk_hook_id?: StringOrNullType;
 }
 
+/**
+ * Model for Filter Request
+ */
 export interface FilterReqType {
+  /** Foreign Key to Column */
   fk_column_id?: IdType;
+  /** Logical Operator */
   logical_op?: 'and' | 'or' | 'not';
+  /** Comparison Operator */
   comparison_op?:
-    | 'checked'
-    | 'notchecked'
     | 'eq'
     | 'neq'
+    | 'not'
     | 'like'
     | 'nlike'
     | 'empty'
     | 'notempty'
     | 'null'
     | 'notnull'
+    | 'checked'
+    | 'notchecked'
+    | 'blank'
+    | 'notblank'
     | 'allof'
     | 'anyof'
     | 'nallof'
@@ -255,22 +432,48 @@ export interface FilterReqType {
     | 'lt'
     | 'gte'
     | 'lte'
-    | 'blank'
-    | 'notblank';
+    | 'ge'
+    | 'le'
+    | 'in'
+    | 'isnot'
+    | 'is'
+    | 'isWithin'
+    | 'btw'
+    | 'nbtw';
+  /** Comparison Sub-Operator */
+  comparison_sub_op?:
+    | 'pastWeek'
+    | 'pastMonth'
+    | 'pastYear'
+    | 'nextWeek'
+    | 'nextYear'
+    | 'pastNumberOfDays'
+    | 'nextNumberOfDays';
+  /** The filter value. Can be NULL for some operators. */
   value?: any;
+  /** Is this filter grouped? */
   is_group?: BoolType;
+  /** Belong to which filter ID */
   fk_parent_id?: IdType;
 }
 
+/**
+ * Model for Filter List
+ */
 export interface FilterListType {
   filters: {
     list: FilterType[];
   };
 }
 
+/**
+ * Model for Sort
+ */
 export interface SortType {
   id?: string;
+  /** Model for ID */
   fk_model_id?: IdType;
+  /** Model for ID */
   fk_column_id?: IdType;
   direction?: string;
   order?: number;
@@ -278,17 +481,28 @@ export interface SortType {
   base_id?: string;
 }
 
+/**
+ * Model for Sort Request
+ */
 export interface SortReqType {
+  /** Foreign Key to Column */
   fk_column_id?: IdType;
+  /** Sort direction */
   direction?: 'asc' | 'desc';
 }
 
+/**
+ * Model for Sort List
+ */
 export interface SortListType {
   sorts: {
     list: SharedViewType[];
   };
 }
 
+/**
+ * Model for Column
+ */
 export interface ColumnType {
   id?: string;
   base_id?: string;
@@ -300,13 +514,19 @@ export interface ColumnType {
   ns?: string | number | null;
   clen?: string | number | null;
   cop?: string;
+  /** Model for Bool */
   pk?: BoolType;
+  /** Model for Bool */
   pv?: BoolType;
+  /** Model for Bool */
   rqd?: BoolType;
   column_name?: string;
+  /** Model for Bool */
   un?: BoolType;
   ct?: string;
+  /** Model for Bool */
   ai?: BoolType;
+  /** Model for Bool */
   unique?: BoolType;
   cdf?: string;
   cc?: string;
@@ -314,11 +534,16 @@ export interface ColumnType {
   dtx?: string;
   dtxp?: string | number | null;
   dtxs?: string | number | null;
+  /** Model for Bool */
   au?: BoolType;
+  /** Model for Bool */
   deleted?: BoolType;
+  /** Model for Bool */
   visible?: BoolType;
   order?: number;
+  /** Model for Bool */
   system?: BoolType;
+  /** Model for Meta */
   meta?: MetaType;
   colOptions?:
     | LinkToAnotherRecordType
@@ -335,17 +560,25 @@ export interface ColumnType {
         object);
 }
 
+/**
+ * Model for Column List
+ */
 export interface ColumnListType {
   columns: {
     list: ColumnType[];
   };
 }
 
+/**
+ * Model for LinkToAnotherRecord
+ */
 export interface LinkToAnotherRecordType {
   id?: string;
   type?: string;
+  /** Model for Bool */
   virtual?: BoolType;
-  fk_column_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   fk_child_column_id?: string;
   fk_parent_column_id?: string;
   fk_mm_model_id?: string;
@@ -359,22 +592,32 @@ export interface LinkToAnotherRecordType {
   order?: string;
 }
 
+/**
+ * Model for Lookup
+ */
 export interface LookupType {
   id?: string;
   type?: string;
+  /** Model for Bool */
   virtual?: BoolType;
-  fk_column_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   fk_relation_column_id?: string;
   fk_lookup_column_id?: string;
   deleted?: string;
   order?: string;
 }
 
+/**
+ * Model for Rollup
+ */
 export interface RollupType {
   id?: string;
   type?: string;
+  /** Model for Bool */
   virtual?: BoolType;
-  fk_column_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   fk_relation_column_id?: string;
   fk_rollup_column_id?: string;
   rollup_function?: string;
@@ -382,39 +625,58 @@ export interface RollupType {
   order?: string;
 }
 
+/**
+ * Model for Formula
+ */
 export interface FormulaType {
   id?: string;
   type?: string;
+  /** Model for Bool */
   virtual?: BoolType;
-  fk_column_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   formula?: string;
   formula_raw?: string;
   deleted?: string;
   order?: string;
 }
 
+/**
+ * Model for SelectOptions
+ */
 export interface SelectOptionsType {
   options: SelectOptionType[];
 }
 
+/**
+ * Model for SelectOption
+ */
 export interface SelectOptionType {
   id?: string;
-  fk_column_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   title?: string;
   color?: string;
   order?: number;
 }
 
+/**
+ * Model for Grid
+ */
 export interface GridType {
   id?: string;
   title?: string;
   alias?: string;
+  /** Model for Bool */
   deleted?: BoolType;
   order?: number;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   row_height?: number;
 }
 
+/**
+ * Model for Grid Request
+ */
 export interface GridReqType {
   /**
    * The title of the grid
@@ -426,6 +688,7 @@ export interface GridReqType {
    * @example 1
    */
   order?: number;
+  /** The lock type of the grid */
   lock_type?: 'collaborative' | 'locked' | 'personal';
   /**
    * The height of the grid rows
@@ -435,13 +698,19 @@ export interface GridReqType {
   row_height?: number;
 }
 
+/**
+ * Model for Gallery
+ */
 export interface GalleryType {
   fk_view_id?: string;
   title?: string;
   alias?: string;
+  /** Model for Bool */
   deleted?: BoolType;
   order?: number;
+  /** Model for Bool */
   next_enabled?: BoolType;
+  /** Model for Bool */
   prev_enabled?: BoolType;
   cover_image_idx?: number;
   cover_image?: string;
@@ -454,13 +723,18 @@ export interface GalleryType {
   lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
+/**
+ * Model for Gallery Request
+ */
 export interface GalleryReqType {
   /**
    * The title of the gallery
    * @example My Gallery
    */
   title: string;
+  /** Model for Bool */
   next_enabled?: BoolType;
+  /** Model for Bool */
   prev_enabled?: BoolType;
   /** @min 0 */
   cover_image_idx?: number;
@@ -470,9 +744,13 @@ export interface GalleryReqType {
   restrict_number?: string;
   /** The id of the column that contains the cover image */
   fk_cover_image_col_id?: string;
+  /** The lock type of gallery */
   lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
+/**
+ * Model for Gallery Column
+ */
 export interface GalleryColumnType {
   id?: string;
   label?: string;
@@ -481,6 +759,9 @@ export interface GalleryColumnType {
   fk_gallery_id?: string;
 }
 
+/**
+ * Model for Grid Column Request
+ */
 export interface GridColumnReqType {
   /**
    * The label of the column
@@ -488,8 +769,8 @@ export interface GridColumnReqType {
    */
   label?: string;
   help?: string;
-  fk_column_id?: string;
-  fk_gallery_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   /**
    * The width of the column
    * @pattern ^[0-9]+(px|%)$
@@ -498,61 +779,148 @@ export interface GridColumnReqType {
   width?: string;
 }
 
+/**
+ * Model for Grid Column
+ */
 export interface GridColumnType {
+  /** Unique ID of Grid Column */
   id?: string;
   label?: string;
   help?: string;
-  fk_column_id?: string;
-  fk_gallery_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   width?: string;
 }
 
+/**
+ * Model for Kanban Column
+ */
 export interface KanbanColumnType {
   id?: string;
   label?: string;
   help?: string;
-  fk_column_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   fk_kanban_id?: string;
 }
 
+/**
+ * Model for Kanban
+ */
 export interface KanbanType {
   id?: string;
   title?: string;
   alias?: string;
   columns?: KanbanColumnType[];
   fk_model_id?: string;
+  /** Model for StringOrNull */
   fk_grp_col_id?: StringOrNullType;
   fk_cover_image_col_id?: string;
+  /** Model for Meta */
   meta?: MetaType;
 }
 
+/**
+ * Model for Geo Location
+ */
 export interface GeoLocationType {
-  /** @format double */
+  /**
+   * The latitude of the location
+   * @format double
+   * @example 18.52139
+   */
   latitude?: number;
-  /** @format double */
+  /**
+   * The longitude of the location
+   * @format double
+   * @example 179.87295
+   */
   longitude?: number;
 }
 
+/**
+ * Model for Map
+ */
 export interface MapType {
-  id?: string;
-  title?: string;
-  alias?: string;
-  initial_geo_position?: GeoLocationType;
-  fk_model_id?: string;
+  /**
+   * Unique ID for Map
+   * @example vw_qjt7klod1p9kyv
+   */
   fk_view_id?: string;
-  fk_geo_data_col_id?: StringOrNullType;
+  /**
+   * Title of Map View
+   * @example My Map
+   */
+  title?: string;
+  /**
+   * The ID of the project that this view belongs to
+   * @example p_xm3thidrblw4n7
+   */
+  project_id?: string;
+  /**
+   * The ID of the base that this view belongs to
+   * @example ds_g4ccx6e77h1dmi
+   */
+  base_id?: string;
+  /**
+   * Foreign Key to GeoData Column
+   * @example cl_8iw2o4ejzvdyna
+   */
+  fk_geo_data_col_id?: string;
+  /** Columns in this view */
   columns?: MapColumnType[];
+  /** Meta data for this view */
   meta?: MetaType;
+  /** To show this Map or not */
+  show?: boolean;
+  /** The order of the map list */
+  order?: number;
 }
 
+/**
+ * Model for Map Column
+ */
 export interface MapColumnType {
+  /**
+   * Unique ID of Map Column
+   * @example nc_46xcacqn4rc9xf
+   */
   id?: string;
-  label?: string;
-  help?: string;
-  fk_col_id?: string;
-  fk_gallery_id?: string;
+  /**
+   * Whether to show this column or not
+   * @example 1
+   */
+  show?: number;
+  /**
+   * the order in the list of map columns
+   * @example 1
+   */
+  order?: number;
+  /**
+   * Foreign Key to View
+   * @example vw_qjt7klod1p9kyv
+   */
+  fk_view_id?: string;
+  /**
+   * Foreign Key to Column
+   * @example cl_8iw2o4ejzvdyna
+   */
+  fk_column_id?: string;
+  /**
+   * The ID of the project that this map column belongs to
+   * @example p_xm3thidrblw4n7
+   */
+  project_id?: string;
+  /**
+   * The ID of the base that this map column belongs to
+   * @example ds_g4ccx6e77h1dmi
+   */
+  base_id?: string;
 }
 
+/**
+ * Model for Kanban Request
+ */
 export interface LicenseReqType {
   /**
    * The license key
@@ -561,38 +929,60 @@ export interface LicenseReqType {
   key?: string;
 }
 
+/**
+ * Model for Kanban Request
+ */
 export interface KanbanReqType {
   /**
    * The title of the kanban
    * @example My Kanban
    */
   title: string;
+  /** Model for StringOrNull */
   fk_grp_col_id?: StringOrNullType;
 }
 
+/**
+ * Model for Kanban Update Request
+ */
 export interface KanbanUpdateReqType {
+  /** Model for StringOrNull */
   fk_grp_col_id?: StringOrNullType;
 }
 
+/**
+ * Model for Form
+ */
 export interface FormType {
   id?: string;
   title?: string;
   heading?: string;
   subheading?: string;
   success_msg?: string;
+  /** Model for StringOrNull */
   redirect_url?: StringOrNullType;
+  /** Model for StringOrNull */
   redirect_after_secs?: StringOrNullType;
+  /** Model for StringOrNull */
   email?: StringOrNullType;
+  /** Model for StringOrNull */
   banner_image_url?: StringOrNullType;
+  /** Model for StringOrNull */
   logo_url?: StringOrNullType;
+  /** Model for Bool */
   submit_another_form?: BoolType;
+  /** Model for Bool */
   show_blank_form?: BoolType;
   columns?: FormColumnType[];
   fk_model_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
+  /** Model for Meta */
   meta?: MetaType;
 }
 
+/**
+ * Model for Form Request
+ */
 export interface FormReqType {
   /**
    * The title of the form
@@ -613,42 +1003,66 @@ export interface FormReqType {
   redirect_url?: string | null;
   redirect_after_secs?: string | null;
   email?: string | null;
+  /** Model for StringOrNull */
   banner_image_url?: StringOrNullType;
+  /** Model for StringOrNull */
   logo_url?: StringOrNullType;
+  /** Model for Bool */
   submit_another_form?: BoolType;
+  /** Model for Bool */
   show_blank_form?: BoolType;
   lock_type?: 'collaborative' | 'locked' | 'personal';
+  /** Model for Meta */
   meta?: MetaType;
 }
 
+/**
+ * Model for Form Create
+ */
 export type FormCreateReqType = FormReqType;
 
+/**
+ * Model for Form Column
+ */
 export interface FormColumnType {
-  fk_column_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   id?: string;
   fk_view_id?: string;
   uuid?: any;
   label?: string;
   help?: any;
+  /** Model for Bool */
   required?: BoolType;
+  /** Model for Bool */
   show?: BoolType;
   order?: number;
   created_at?: string;
   updated_at?: string;
   description?: string;
+  /** Model for Meta */
   meta?: MetaType;
 }
 
+/**
+ * Model for Form Column Request
+ */
 export interface FormColumnReqType {
   label?: string;
   help?: any;
+  /** Model for Bool */
   required?: BoolType;
+  /** Model for Bool */
   show?: BoolType;
   order?: number;
   description?: string;
+  /** Model for Meta */
   meta?: MetaType;
 }
 
+/**
+ * Model for Paginated
+ */
 export interface PaginatedType {
   pageSize?: number;
   totalRows?: number;
@@ -658,11 +1072,18 @@ export interface PaginatedType {
   page?: number;
 }
 
+/**
+ * Model for Hook List
+ */
 export interface HookListType {
   list?: object[];
+  /** Model for Paginated */
   pageInfo?: PaginatedType;
 }
 
+/**
+ * Model for Shared View
+ */
 export interface SharedViewType {
   id?: string;
   fk_view_id?: string;
@@ -670,16 +1091,27 @@ export interface SharedViewType {
   deleted?: string;
 }
 
+/**
+ * Model for Shared View List
+ */
 export interface SharedViewListType {
   list?: SharedViewType[];
+  /** Model for Paginated */
   pageInfo?: PaginatedType;
 }
 
+/**
+ * Model for View List
+ */
 export interface ViewListType {
   list?: ViewType[];
+  /** Model for Paginated */
   pageInfo?: PaginatedType;
 }
 
+/**
+ * Model for Attachment
+ */
 export interface AttachmentType {
   url?: string;
   title?: string;
@@ -690,12 +1122,18 @@ export interface AttachmentType {
   data?: any;
 }
 
+/**
+ * Model for Webhook
+ */
 export interface WebhookType {
   id?: string;
   title?: string;
   type?: string;
 }
 
+/**
+ * Model for Audit
+ */
 export interface AuditType {
   id?: string;
   user?: string;
@@ -711,6 +1149,9 @@ export interface AuditType {
   details?: string;
 }
 
+/**
+ * Model for Hook
+ */
 export interface HookType {
   id?: string;
   fk_model_id?: string;
@@ -720,44 +1161,66 @@ export interface HookType {
   type?: string;
   event?: 'after' | 'before';
   operation?: 'insert' | 'delete' | 'update';
+  /** Model for Bool */
   async?: BoolType;
   notification?: string;
   retries?: number;
   retry_interval?: number;
   timeout?: number;
+  /** Model for Bool */
   active?: BoolType;
 }
 
+/**
+ * Model for Hook Request
+ */
 export interface HookReqType {
   fk_model_id?: string;
   title: string;
+  /** Model for StringOrNull */
   description?: StringOrNullType;
   env?: string;
   event: 'after' | 'before';
   operation: 'insert' | 'delete' | 'update';
+  /** Model for Bool */
   async?: BoolType;
   notification: any;
   retries?: number | null;
   retry_interval?: number | null;
   timeout?: number | null;
+  /** Model for Bool */
   active?: BoolType;
 }
 
+/**
+ * Model for Hook Test Request
+ */
 export interface HookTestReqType {
   payload: any;
+  /** Model for Hook Request */
   hook: HookReqType;
 }
 
+/**
+ * Model for Signup Request
+ */
 export interface SignUpReqType {
   /**
    * Email address of the user
    * @format email
+   * @example user@example.com
    */
   email: string;
-  /** Password of the user */
+  /**
+   * Password of the user
+   * @example password123456789
+   */
   password: string;
 }
 
+/**
+ * Model for Signin Request
+ */
 export interface SignInReqType {
   /**
    * Email address of the user
@@ -768,6 +1231,9 @@ export interface SignInReqType {
   password: string;
 }
 
+/**
+ * Model for Password Forgot Request
+ */
 export interface PasswordForgotReqType {
   /**
    * Email address of the user
@@ -776,6 +1242,9 @@ export interface PasswordForgotReqType {
   email: string;
 }
 
+/**
+ * Model for Password Reset Request
+ */
 export interface PasswordResetReqType {
   /**
    * New password
@@ -784,20 +1253,30 @@ export interface PasswordResetReqType {
   password: string;
 }
 
+/**
+ * Model for Password Change Request
+ */
 export interface PasswordChangeReqType {
   currentPassword: string;
   newPassword: string;
 }
 
+/**
+ * Model for API Token Request
+ */
 export interface ApiTokenReqType {
   /** Description of the API token */
   description?: string;
 }
 
+/**
+ * Model for Plugin
+ */
 export interface PluginType {
   id?: string;
   title?: string;
   description?: string;
+  /** Model for Bool */
   active?: BoolType;
   rating?: number;
   version?: string;
@@ -815,6 +1294,9 @@ export interface PluginType {
   price?: string;
 }
 
+/**
+ * Model for ModelRoleVisibility
+ */
 export interface ModelRoleVisibilityType {
   id?: string;
   project_id?: string;
@@ -822,9 +1304,13 @@ export interface ModelRoleVisibilityType {
   fk_model_id?: string;
   fk_view_id?: string;
   role?: string;
+  /** Model for Bool */
   disabled?: BoolType;
 }
 
+/**
+ * Model for API Token
+ */
 export interface ApiTokenType {
   id?: string;
   token?: string;
@@ -834,14 +1320,19 @@ export interface ApiTokenType {
   updated_at?: any;
 }
 
+/**
+ * Model for Hook Log
+ */
 export interface HookLogType {
   id?: string;
   base_id?: string;
   project_id?: string;
+  /** Model for StringOrNull */
   fk_hook_id?: StringOrNullType;
   type?: string;
   event?: string;
   operation?: string;
+  /** Model for Bool */
   test_call?: BoolType;
   payload?: any;
   conditions?: string;
@@ -856,6 +1347,9 @@ export interface HookLogType {
   updated_at?: string;
 }
 
+/**
+ * Model for Normal Column Request
+ */
 export interface NormalColumnRequestType {
   uidt?:
     | 'ID'
@@ -893,35 +1387,57 @@ export interface NormalColumnRequestType {
   dt?: string;
   np?: number | StringOrNullType;
   ns?: number | StringOrNullType;
+  /** Model for Bool */
   pk?: BoolType;
+  /** Model for Bool */
   pv?: BoolType;
+  /** Model for Bool */
   rqd?: BoolType;
   column_name?: string;
+  /** Model for Bool */
   un?: BoolType;
+  /** Model for Bool */
   ai?: BoolType;
+  /** Model for Bool */
   unique?: BoolType;
+  /** Model for StringOrNull */
   cdf?: StringOrNullType;
+  /** Model for StringOrNull */
   cc?: StringOrNullType;
+  /** Model for StringOrNull */
   csn?: StringOrNullType;
+  /** Model for StringOrNull */
   dtx?: StringOrNullType;
   dtxp?: number | StringOrNullType;
   dtxs?: number | StringOrNullType;
+  /** Model for Bool */
   au?: BoolType;
 }
 
+/**
+ * Model for LinkToAnotherColumn Request
+ */
 export interface LinkToAnotherColumnReqType {
   uidt: 'LinkToAnotherRecord';
   title: string;
+  /** Model for Bool */
   virtual?: BoolType;
+  /** Model for ID */
   parentId: IdType;
+  /** Model for ID */
   childId: IdType;
   type: 'hm' | 'bt' | 'mm';
 }
 
+/**
+ * Model for Rollup Column Request
+ */
 export interface RollupColumnReqType {
   uidt: 'Rollup';
   title: string;
+  /** Model for ID */
   fk_relation_column_id: IdType;
+  /** Model for ID */
   fk_rollup_column_id: IdType;
   rollup_function:
     | 'count'
@@ -934,13 +1450,21 @@ export interface RollupColumnReqType {
     | 'avgDistinct';
 }
 
+/**
+ * Model for Lookup Column Request
+ */
 export interface LookupColumnReqType {
   uidt: 'Lookup';
   title: string;
+  /** Model for ID */
   fk_relation_column_id: IdType;
+  /** Model for ID */
   fk_lookup_column_id: IdType;
 }
 
+/**
+ * Model for Formula Column Request
+ */
 export interface FormulaColumnReqType {
   uidt?: 'Formula';
   formula_raw?: string;
@@ -948,6 +1472,9 @@ export interface FormulaColumnReqType {
   title?: string;
 }
 
+/**
+ * Model for Column Request
+ */
 export type ColumnReqType = (
   | LinkToAnotherColumnReqType
   | RollupColumnReqType
@@ -970,7 +1497,7 @@ export type ColumnReqType = (
 };
 
 /**
- * User Info Model
+ * Model for User Info
  */
 export interface UserInfoType {
   /** User ID */
@@ -990,33 +1517,64 @@ export interface UserInfoType {
   roles?: any;
 }
 
+/**
+ * Model for Visibility Rule Request
+ */
 export type VisibilityRuleReqType = {
   disabled?: {
+    /** Model for Bool */
     commenter?: BoolType;
+    /** Model for Bool */
     creator?: BoolType;
+    /** Model for Bool */
     editor?: BoolType;
+    /** Model for Bool */
     guest?: BoolType;
+    /** Model for Bool */
     owner?: BoolType;
+    /** Model for Bool */
     viewer?: BoolType;
   };
 }[];
 
+/**
+ * Model for Bool
+ */
 export type BoolType = boolean | number | null;
 
+/**
+ * Model for ID
+ */
 export type IdType = string;
 
+/**
+ * Model for Password
+ * @example password123456789
+ */
 export type PasswordType = string;
 
+/**
+ * Model for StringOrNull
+ */
 export type StringOrNullType = string | null;
 
+/**
+ * Model for Meta
+ */
 export type MetaType = object | string | null;
 
+/**
+ * Model for Comment Request
+ */
 export interface CommentReqType {
   row_id: string;
   fk_model_id: string;
   description?: string;
 }
 
+/**
+ * Model for Audit Row Update Request
+ */
 export interface AuditRowUpdateReqType {
   fk_model_id?: string;
   column_name?: string;
@@ -1025,44 +1583,73 @@ export interface AuditRowUpdateReqType {
   prev_value?: any;
 }
 
+/**
+ * Model for Organisation User Update Request
+ */
 export interface OrgUserReqType {
   /** @format email */
   email?: string;
   roles?: 'org-level-creator' | 'org-level-viewer';
 }
 
+/**
+ * Model for Project User Request
+ */
 export interface ProjectUserReqType {
   /** @format email */
   email: string;
   roles: 'owner' | 'editor' | 'viewer' | 'commenter' | 'guest';
 }
 
+/**
+ * Model for Shared Base Request
+ */
 export interface SharedBaseReqType {
   roles?: 'editor' | 'viewer' | 'commenter';
   password?: string;
 }
 
+/**
+ * Model for Plugin Test Request
+ */
 export interface PluginTestReqType {
   title: string;
   input: any;
 }
 
+/**
+ * Model for Plugin Request
+ */
 export interface PluginReqType {
+  /** Model for Bool */
   active?: BoolType;
   input?: any;
 }
 
+/**
+ * Model for View Request
+ */
 export interface ViewReqType {
   /** @min 0 */
   order?: number;
+  /** Model for Meta */
   meta?: MetaType;
   title?: string;
+  /** Model for Bool */
   show_system_fields?: BoolType;
   lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
+/**
+ * Model for Shared View Request
+ */
 export interface SharedViewReqType {
+  /**
+   * Password to restrict access
+   * @example 123456789
+   */
   password?: string;
+  /** Meta data passing to Shared View such as if download is allowed or not. */
   meta?: MetaType;
 }
 
@@ -1497,6 +2084,7 @@ export class Api<
  * @response `200` `{
   users?: {
   list: (UserType)[],
+  \** Model for Paginated *\
   pageInfo: PaginatedType,
 
 },
@@ -1508,6 +2096,7 @@ export class Api<
         {
           users?: {
             list: UserType[];
+            /** Model for Paginated */
             pageInfo: PaginatedType;
           };
         },
@@ -1622,6 +2211,7 @@ export class Api<
   created_by?: string,
 
 }))[],
+  \** Model for Paginated *\
   pageInfo: PaginatedType,
 
 },
@@ -1635,6 +2225,7 @@ export class Api<
             list: (ApiTokenType & {
               created_by?: string;
             })[];
+            /** Model for Paginated */
             pageInfo: PaginatedType;
           };
         },
@@ -1784,6 +2375,7 @@ export class Api<
  * @response `200` `{
   users?: {
   list: (UserType)[],
+  \** Model for Paginated *\
   pageInfo: PaginatedType,
 
 },
@@ -1795,6 +2387,7 @@ export class Api<
         {
           users?: {
             list: UserType[];
+            /** Model for Paginated */
             pageInfo: PaginatedType;
           };
         },
@@ -2148,7 +2741,9 @@ export class Api<
  * @summary Create Project Shared Base
  * @request POST:/api/v1/db/meta/projects/{projectId}/shared
  * @response `200` `{
+  \** Model for StringOrNull *\
   uuid?: StringOrNullType,
+  \** Model for StringOrNull *\
   roles?: StringOrNullType,
 
 }` OK
@@ -2160,7 +2755,9 @@ export class Api<
     ) =>
       this.request<
         {
+          /** Model for StringOrNull */
           uuid?: StringOrNullType;
+          /** Model for StringOrNull */
           roles?: StringOrNullType;
         },
         any
@@ -2285,6 +2882,7 @@ export class Api<
  * @request GET:/api/v1/db/meta/projects/{projectId}/audits
  * @response `200` `{
   list: (AuditType)[],
+  \** Model for Paginated *\
   pageInfo: PaginatedType,
 
 }` OK
@@ -2302,6 +2900,7 @@ export class Api<
       this.request<
         {
           list: AuditType[];
+          /** Model for Paginated */
           pageInfo: PaginatedType;
         },
         any
@@ -2377,10 +2976,10 @@ export class Api<
      * @name List
      * @summary List Bases
      * @request GET:/api/v1/db/meta/projects/{projectId}/bases/
-     * @response `200` `object` OK
+     * @response `200` `BaseListType` OK
      */
     list: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<BaseListType, any>({
         path: `/api/v1/db/meta/projects/${projectId}/bases/`,
         method: 'GET',
         format: 'json',
@@ -2587,6 +3186,7 @@ export class Api<
         table_name?: string;
         title?: string;
         project_id?: string;
+        /** Model for Meta */
         meta?: MetaType;
       },
       params: RequestParams = {}
@@ -4600,6 +5200,7 @@ export class Api<
   client?: string,
   base_id?: string,
   columns?: ((GridColumnType | FormColumnType | GalleryColumnType | (GridColumnType & FormColumnType & GalleryColumnType)) & ColumnType),
+  \** Model for Table *\
   model?: TableType,
 
 } & {
@@ -4620,6 +5221,7 @@ export class Api<
             | (GridColumnType & FormColumnType & GalleryColumnType)
           ) &
             ColumnType;
+          /** Model for Table */
           model?: TableType;
         } & {
           view?:
@@ -4649,6 +5251,7 @@ export class Api<
     commentList: (
       query: {
         row_id: string;
+        /** Model for ID */
         fk_model_id: IdType;
         comments_only?: boolean;
       },
@@ -4691,6 +5294,7 @@ export class Api<
     commentCount: (
       query: {
         ids: any;
+        /** Model for ID */
         fk_model_id: IdType;
       },
       params: RequestParams = {}
@@ -4969,6 +5573,7 @@ export class Api<
  * @request GET:/api/v1/db/meta/tables/{tableId}/hooks
  * @response `200` `{
   list: (HookType)[],
+  \** Model for Paginated *\
   pageInfo: PaginatedType,
 
 }` OK
@@ -4977,6 +5582,7 @@ export class Api<
       this.request<
         {
           list: HookType[];
+          /** Model for Paginated */
           pageInfo: PaginatedType;
         },
         any
@@ -5039,6 +5645,7 @@ export class Api<
  * @response `200` `{
   plugins?: {
   list: (PluginType)[],
+  \** Model for Paginated *\
   pageInfo: PaginatedType,
 
 },
@@ -5054,6 +5661,7 @@ export class Api<
         {
           plugins?: {
             list: PluginType[];
+            /** Model for Paginated */
             pageInfo: PaginatedType;
           };
         },
@@ -5110,6 +5718,7 @@ export class Api<
  * @request GET:/api/v1/db/meta/plugins
  * @response `200` `{
   list?: (PluginType)[],
+  \** Model for Paginated *\
   pageInfo?: PaginatedType,
 
 }` OK
@@ -5118,6 +5727,7 @@ export class Api<
       this.request<
         {
           list?: PluginType[];
+          /** Model for Paginated */
           pageInfo?: PaginatedType;
         },
         any
@@ -5208,16 +5818,30 @@ export class Api<
   };
   apiToken = {
     /**
-     * @description List API Tokens in the given project
-     *
-     * @tags API Token
-     * @name List
-     * @summary List API Tokens in Project
-     * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
-     * @response `200` `(ApiTokenType)[]` OK
-     */
+ * @description List API Tokens in the given project
+ * 
+ * @tags API Token
+ * @name List
+ * @summary List API Tokens in Project
+ * @request GET:/api/v1/db/meta/projects/{projectId}/api-tokens
+ * @response `200` `{
+  \** List of API Token Models *\
+  list: (ApiTokenType)[],
+  \** Pagination Info *\
+  pageInfo: PaginatedType,
+
+}` OK
+ */
     list: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<ApiTokenType[], any>({
+      this.request<
+        {
+          /** List of API Token Models */
+          list: ApiTokenType[];
+          /** Pagination Info */
+          pageInfo: PaginatedType;
+        },
+        any
+      >({
         path: `/api/v1/db/meta/projects/${projectId}/api-tokens`,
         method: 'GET',
         format: 'json',

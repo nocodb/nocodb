@@ -2,7 +2,7 @@ import { Tele } from 'nc-help';
 import tableController from '../../controllers/tableController'
 import orgLicenseApis from './orgLicenseApis';
 import orgTokenApis from './orgTokenApis';
-import orgUserApis from './orgUserApis';
+import orgUserApis from '../../services/orgUserService';
 import projectApis from './projectApis';
 import baseApis from './baseApis';
 // import tableApis from './tableApis';

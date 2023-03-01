@@ -1,7 +1,7 @@
 import { Tele } from 'nc-help';
 import tableController from '../../controllers/tableController'
-import orgLicenseApis from './orgLicenseApis';
-import orgTokenApis from './orgTokenApis';
+import orgLicenseApis from '../../services/orgLicenseService';
+import orgTokenApis from '../../services/orgTokenService';
 import orgUserApis from '../../services/orgUserService';
 import projectApis from './projectApis';
 import baseApis from './baseApis';
@@ -16,7 +16,7 @@ import viewApis from './viewApis';
 import galleryViewApis from '../../services/galleryViewApis';
 import formViewApis from './formViewApis';
 import formViewColumnApis from './formViewColumnApis';
-import attachmentApis from './attachmentApis';
+import attachmentApis from '../../services/attachmentService';
 import exportApis from './exportApis';
 import auditApis from './auditApis';
 import hookApis from './hookApis';
@@ -26,7 +26,7 @@ import kanbanViewApis from '../../services/kanbanViewService';
 import { userApis } from './userApi';
 // import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
 import utilApis from './utilApis';
-import projectUserApis from './projectUserApis';
+import projectUserApis from '../../services/projectUserService';
 import sharedBaseApis from '../../services/sharedBaseService';
 import { initStrategies } from './userApi/initStrategies';
 import modelVisibilityApis from '../../services/modelVisibilityService';

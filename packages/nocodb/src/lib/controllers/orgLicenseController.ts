@@ -1,21 +1,16 @@
 import { Router } from 'express';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { NC_LICENSE_KEY } from '../../constants';
-import Store from '../../models/Store';
-import Noco from '../../Noco';
-import { metaApiMetrics } from '../helpers/apiMetrics';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { getAjvValidatorMw } from './helpers';
+import { metaApiMetrics } from '../meta/helpers/apiMetrics';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { getAjvValidatorMw } from '../meta/api/helpers';
+import { orgLicenseService } from '../services';
 
 async function licenseGet(_req, res) {
-  const license = await Store.get(NC_LICENSE_KEY);
-
-  res.json({ key: license?.value });
+  res.json(await orgLicenseService.licenseGet());
 }
 
 async function licenseSet(req, res) {
-  await Store.saveOrUpdate({ value: req.body.key, key: NC_LICENSE_KEY });
-  await Noco.loadEEState();
+  await orgLicenseService.licenseSet({ key: req.body.key })
   res.json({ msg: 'License key saved' });
 }
 

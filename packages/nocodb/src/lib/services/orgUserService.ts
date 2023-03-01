@@ -16,7 +16,7 @@ import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { randomTokenString } from '../meta/helpers/stringHelpers';
-import { sendInviteEmail } from '../meta/api/projectUserApis';
+import { sendInviteEmail } from './projectUserService';
 
 export async function userList(param: {
   // todo: add better typing

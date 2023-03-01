@@ -15,7 +15,7 @@ import path from 'path';
 import { nanoid } from 'nanoid';
 import { mimeIcons } from '../../../utils/mimeTypes';
 import slash from 'slash';
-import { sanitizeUrlPath } from '../attachmentApis';
+import { sanitizeUrlPath } from '../../../services/attachmentService';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { getColumnByIdOrName } from '../dataApis/helpers';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../../constants';

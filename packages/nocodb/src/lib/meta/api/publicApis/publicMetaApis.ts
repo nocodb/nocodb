@@ -93,6 +93,21 @@ async function publicSharedBaseGet(req, res): Promise<any> {
   res.json({ project_id: project.id });
 }
 
+async function getPublicProject(req, res): Promise<any> {
+  const project = await Project.get(req.params.id);
+  if (!project) {
+    NcError.notFound();
+  }
+
+  if (project.type !== 'documentation') {
+    NcError.forbidden('Not allowed');
+  }
+
+  const projectMeta = project?.meta ? JSON.parse(project.meta) : {};
+
+  res.json({ title: project.title, id: project.id, meta: projectMeta });
+}
+
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/public/shared-view/:sharedViewUuid/meta',
@@ -103,4 +118,7 @@ router.get(
   '/api/v1/db/public/shared-base/:sharedBaseUuid/meta',
   catchError(publicSharedBaseGet)
 );
+
+router.get('/api/v1/db/public/project/:id', catchError(getPublicProject));
+
 export default router;

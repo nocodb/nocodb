@@ -7,7 +7,7 @@ definePageMeta({
 
 const route = useRoute()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
-const { project, loadBookProject, isLoading: isProjectLoading } = useProject()
+const { project, loadBookProject, isLoading: isProjectLoading, loadBookPublicProject } = useProject()
 const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, isPublic, nestedPublicParentPage } = useDocs()
 
 const isLoading = ref(true)
@@ -15,8 +15,11 @@ const isLoading = ref(true)
 onMounted(async () => {
   isLoading.value = true
   if (!project.value.id && !isProjectLoading.value) {
-    console.log('loadBookProject', isPublic.value)
-    if (!isPublic.value) await loadBookProject()
+    if (isPublic.value) {
+      await loadBookPublicProject()
+    } else {
+      await loadBookProject()
+    }
 
     await fetchNestedPages()
 
@@ -38,10 +41,17 @@ const toggleSidebar = (isOpen: boolean) => {
 watch(
   [isErrored, isLoading, nestedPublicParentPage.value?.is_nested_published],
   () => {
+    let projectMeta
+    if (typeof project.value.meta === 'string') {
+      projectMeta = JSON.parse(project.value.meta)
+    } else {
+      projectMeta = project.value.meta
+    }
+
     if (isErrored.value && !isLoading.value) {
       toggleSidebar(false)
     } else {
-      if (isPublic.value && !nestedPublicParentPage.value?.is_nested_published && !isLoading.value) {
+      if (isPublic.value && !nestedPublicParentPage.value?.is_nested_published && !isLoading.value && !projectMeta?.isPublic) {
         toggleSidebar(false)
         return
       }
@@ -69,7 +79,7 @@ watch(
 </script>
 
 <template>
-  <NuxtLayout id="content" class="flex">
+  <NuxtLayout id="content" :key="route.params.projectId as string" class="flex">
     <template v-if="isSidebarOpen" #sidebar>
       <DocsSideBar :key="isPublic.toString()" />
     </template>

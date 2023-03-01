@@ -4886,6 +4886,23 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Public
+     * @name GetProject
+     * @summary get public project
+     * @request GET:/api/v1/db/public/project/{id}
+     * @response `200` `void` OK
+     */
+    getProject: (id: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/public/project/${id}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Read project details
  * 
  * @tags Public

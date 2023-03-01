@@ -24,7 +24,8 @@
                   "type": "object",
                   "properties": {
                     "token": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "The signed JWT token for information exchange"
                     }
                   }
                 },
@@ -109,7 +110,8 @@
                   "type": "object",
                   "properties": {
                     "msg": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Success Message"
                     }
                   }
                 }
@@ -201,14 +203,12 @@
                 "examples": {
                   "example-1": {
                     "value": {
-                      "id": "string",
-                      "email": "string",
-                      "email_verified": "string",
-                      "firstname": "string",
-                      "lastname": "string",
-                      "roles": {
-                        "editor": true
-                      }
+                      "id": "us_8kugj628ebjngs",
+                      "email": "user@nocodb.com",
+                      "email_verified": true,
+                      "firstname": "Alice",
+                      "lastname": "Smith",
+                      "roles": "org-level-viewer"
                     }
                   }
                 }
@@ -7181,59 +7181,64 @@
       "User": {
         "title": "User",
         "type": "object",
-        "description": "",
         "examples": [
           {
-            "id": "142",
+            "id": "us_8kugj628ebjngs",
             "firstName": "Alice",
             "lastName": "Smith",
-            "email": "alice.smith@gmail.com",
-            "dateOfBirth": "1997-10-31",
-            "emailVerified": true,
-            "signUpDate": "2019-08-24"
+            "email": "alice.smith@nocodb.com",
+            "roles": "org-level-viewer",
+            "email_verified": true,
+            "created_at": "2023-03-01 11:36:49",
+            "updated_at": "2023-03-01 11:36:49"
           }
         ],
         "x-internal": false,
+        "description": "User Model Response",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique identifier for the given user."
+            "description": "Unique identifier for the given user.",
+            "example": "us_8kugj628ebjngs"
           },
           "firstname": {
-            "type": "string"
+            "type": "string",
+            "description": "The first name of the user",
+            "example": "Alice"
           },
           "lastname": {
-            "type": "string"
+            "type": "string",
+            "description": "The last name of the user",
+            "example": "Smith"
           },
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "description": "The email of the user",
+            "example": "alice.smith@nocodb.com"
           },
           "roles": {
-            "type": "string"
-          },
-          "date_of_birth": {
             "type": "string",
-            "format": "date",
-            "example": "1997-10-31"
+            "description": "The roles of the user",
+            "example": "org-level-viewer"
           },
           "email_verified": {
             "type": "boolean",
             "description": "Set to true if the user's email has been verified."
           },
-          "createDate": {
+          "created_at": {
             "type": "string",
-            "format": "date",
-            "description": "The date that the user was created."
+            "format": "date-time",
+            "description": "The date that the user was created.",
+            "example": "2023-03-01 11:36:49"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date that the user was created.",
+            "example": "2023-03-01 11:36:49"
           }
-        },
-        "required": [
-          "id",
-          "firstname",
-          "lastname",
-          "email",
-          "email_verified"
-        ]
+        }
       },
       "UserList": {
         "description": "",
@@ -10445,23 +10450,32 @@
       "UserInfo": {
         "title": "UserInfo",
         "type": "object",
+        "description": "User Info Model",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "User ID"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "description": "User Email",
+            "format": "email"
           },
           "email_verified": {
-            "type": "string"
+            "type": "boolean",
+            "description": "Set to true if the user's email has been verified."
           },
           "firstname": {
-            "type": "string"
+            "type": "string",
+            "description": "The firstname of the user"
           },
           "lastname": {
-            "type": "string"
+            "type": "string",
+            "description": "The lastname of the user"
           },
-          "roles": {}
+          "roles": {
+            "description": "The roles of the user"
+          }
         }
       },
       "VisibilityRuleReq": {

@@ -22,7 +22,7 @@ npx playwright install chromium --with-deps
 Start the backend test server (in `packages/nocodb` folder):
 
 ```bash
-npm run watch:run:playwright
+npm run watch:run:playwright:pg
 ```
 
 Start the frontend test server (in `packages/nc-gui` folder):

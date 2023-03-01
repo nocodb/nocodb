@@ -12,8 +12,20 @@ const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, isPublic, nes
 
 const isLoading = ref(true)
 
+const toggleSidebar = (isOpen: boolean) => {
+  if (isOpen) {
+    toggleHasSidebar(true)
+    toggle(true)
+  } else {
+    toggleHasSidebar(false)
+    toggle(false)
+  }
+}
+
 onMounted(async () => {
   isLoading.value = true
+  if (isPublic.value) toggleSidebar(false)
+
   if (!project.value.id && !isProjectLoading.value) {
     if (isPublic.value) {
       await loadBookPublicProject()
@@ -27,16 +39,6 @@ onMounted(async () => {
   }
   isLoading.value = false
 })
-
-const toggleSidebar = (isOpen: boolean) => {
-  if (isOpen) {
-    toggleHasSidebar(true)
-    toggle(true)
-  } else {
-    toggleHasSidebar(false)
-    toggle(false)
-  }
-}
 
 watch(
   [isErrored, isLoading, nestedPublicParentPage.value?.is_nested_published],

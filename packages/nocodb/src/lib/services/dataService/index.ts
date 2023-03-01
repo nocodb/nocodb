@@ -1,4 +1,4 @@
-import { nocoExecute } from 'nc-help/dist/module/NocoExecute';
+import { nocoExecute } from 'nc-help';
 import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { NcError } from '../../meta/helpers/catchError';
 import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';

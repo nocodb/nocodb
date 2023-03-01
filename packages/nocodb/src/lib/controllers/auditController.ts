@@ -7,33 +7,25 @@ import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 
 import DOMPurify from 'isomorphic-dompurify';
 import { getAjvValidatorMw } from '../meta/api/helpers';
+import { auditService } from '../services';
 
 export async function commentRow(req: Request<any, any>, res) {
   res.json(
     await Audit.insert({
       ...req.body,
-      user: (req as any).user?.email,
+      user: (req as any).user,
       op_type: AuditOperationTypes.COMMENT,
     })
   );
 }
 
 export async function auditRowUpdate(req: Request<any, any>, res) {
-  const model = await Model.getByIdOrName({ id: req.body.fk_model_id });
   res.json(
-    await Audit.insert({
-      fk_model_id: req.body.fk_model_id,
-      row_id: req.params.rowId,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.UPDATE,
-      description: DOMPurify.sanitize(
-        `Table ${model.table_name} : field ${req.body.column_name} got changed from  ${req.body.prev_value} to ${req.body.value}`
-      ),
-      details: DOMPurify.sanitize(`<span class="">${req.body.column_name}</span>
-  : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${req.body.prev_value}</span>
-  <span class="black--text green lighten-4 px-2">${req.body.value}</span>`),
-      ip: (req as any).clientIp,
-      user: (req as any).user?.email,
+    await auditService.auditRowUpdate({
+      rowId: req.params.rowId,
+      body: {
+        ...req.body,
+      },
     })
   );
 }

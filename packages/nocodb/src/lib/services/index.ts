@@ -28,3 +28,5 @@ export * as attachmentService from './attachmentService';
 export * as hookFilterService from './hookFilterService';
 export * as dataService from './dataService';
 export * as bulkDataService from './dataService/bulkData';
+export * as cacheService from './cacheService';
+export * as auditService from './auditService';

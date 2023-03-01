@@ -14,19 +14,22 @@ import { extractProps } from '../meta/helpers/extractProps';
 import { NcError } from '../meta/helpers/catchError';
 import SyncSource from './SyncSource';
 
+export const DB_TYPES = <const>[
+  'mysql2',
+  'sqlite',
+  'mysql',
+  'mssql',
+  'snowflake',
+  'oracledb',
+  'pg',
+];
+
 // todo: hide credentials
 export default class Base implements BaseType {
   id?: string;
   project_id?: string;
   alias?: string;
-  type?:
-    | 'mysql2'
-    | 'sqlite'
-    | 'mysql'
-    | 'mssql'
-    | 'snowflake'
-    | 'oracledb'
-    | 'pg';
+  type?: typeof DB_TYPES[number];
   is_meta?: BoolType;
   config?: string;
   created_at?: string;

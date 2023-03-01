@@ -10667,10 +10667,13 @@
       "Bool": {
         "oneOf": [
           {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "true or false"
           },
           {
-            "type": "integer"
+            "type": "integer",
+            "description": "0 or 1",
+            "example": 0
           },
           {
             "type": "null"
@@ -10690,7 +10693,8 @@
         "type": "string",
         "minLength": 8,
         "title": "Password Model",
-        "description": "Model for Password"
+        "description": "Model for Password",
+        "example": "password123456789"
       },
       "StringOrNull": {
         "oneOf": [

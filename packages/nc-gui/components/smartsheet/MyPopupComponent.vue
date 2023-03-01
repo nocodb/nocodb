@@ -1,7 +1,14 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
-import type { Row } from '~/lib'
+import type { Ref } from 'vue'
+// import type { Row } from '~/lib'
+// const props =
+const props = defineProps<{
+  fields: ColumnType[]
+  row: Row
+}>()
+
 // defineProps({
 // //   popupIsOpen: {
 // //     type: Boolean,
@@ -21,10 +28,15 @@ import type { Row } from '~/lib'
 // //   },
 // })
 
-const props = defineProps<{
-  fields: ColumnType[]
-  row: RowType
-}>()
+const currentRow = toRef(props, 'row')
+
+const { meta } = useSmartsheetStoreOrThrow()
+
+// const rowStore = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
+const { row } = useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
+
+console.log('rowStore', row.value.row)
+// const { currentRow: row } = useSmartsheetRowStoreOrThrow()
 
 // const cellValueByColum = (column: ColumnType) => {
 //   return {
@@ -37,20 +49,36 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div>Test</div>
   <!-- <div v-if="popupIsOpen" ref="popupContainer"> -->
   <div ref="popupContainer">
-    FOO
-    <div v-for="column in props.fields" :key="column.id">
-      {{ JSON.stringify(column) }}
-      {{ JSON.stringify(props.fields) }}
-      <!-- <LazyCellTextArea v-if="isTextArea(column)" v-model="cellValueByColum(column)" /> -->
+    <!-- FOO: {{ JSON.stringify(rowStore.row._object.fields) }} -->
+    <!-- currenetRow: {{ JSON.stringify(currentRow) }} <br />
+    meta: {{ JSON.stringify(meta) }} <br /> -->
+    <!-- rowStore: {{ JSON.stringify(rowStore.row) }} -->
+    <!-- FOO
+      {{ JSON.stringify(row) }} -->
+    <div v-for="col in fields" :key="col.id">
+      <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :column="col" :row="row" />
+      <LazySmartsheetCell v-else v-model="row.row[col.title]" :column="col" :edit-enabled="false" :read-only="true" />
+
+      <!-- {{ JSON.stringify(column) }} -->
+      <!-- <LazySmartsheetCell v-else v-model="row.row[column.title]" :column="column" :edit-enabled="false" :read-only="true" /> -->
+
       <!-- <LazySmartsheetVirtualCell
         v-if="isVirtualCol(column)"
-        v-model="props.row.row[col.title]"
+        v-model="rowStore.row[column.title]"
         :column="column"
         :row="props.row"
+      />
+      <LazySmartsheetCell
+        v-if="!isVirtualCol(column)"
+        v-model="rowStore.row[column.title]"
+        :column="column"
+        :edit-enabled="false"
+        :read-only="true"
       /> -->
+
+      <!-- <LazyCellTextArea v-if="isTextArea(column)" v-model="cellValueByColum(column)" /> -->
     </div>
     <!-- <div>{{ popUpRow?.row.Title }}</div> -->
   </div>

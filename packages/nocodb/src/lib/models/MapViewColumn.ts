@@ -5,7 +5,6 @@ import NocoCache from '../cache/NocoCache';
 
 export default class MapViewColumn {
   id: string;
-  title?: string;
   show?: boolean;
   order?: number;
 

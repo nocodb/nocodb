@@ -7305,23 +7305,30 @@
         ]
       },
       "ProjectReq": {
-        "title": "Project",
+        "title": "ProjectReq",
         "type": "object",
         "properties": {
           "title": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 128
+            "maxLength": 128,
+            "description": "Project Title",
+            "example": "My Project"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Project Description",
+            "example": "This is my project description"
           },
           "color": {
             "type": "string",
-            "maxLength": 50
+            "maxLength": 50,
+            "example": "#24716E",
+            "description": "Primary Theme Color"
           },
           "bases": {
             "type": "array",
+            "description": "Array of Bases",
             "items": {
               "$ref": "#/components/schemas/BaseReq"
             }
@@ -7336,31 +7343,43 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "example": "p_124hhlkbeasewh",
+            "description": "Unique Project ID"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "Project Title",
+            "example": "my-project"
           },
           "status": {
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Project Description",
+            "example": "This is my project description"
           },
           "meta": {
-            "$ref": "#/components/schemas/Meta"
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info such as theme colors"
           },
           "color": {
-            "type": "string"
+            "type": "string",
+            "description": "Primary Theme Color",
+            "example": "#24716E"
           },
           "deleted": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the project deleted"
           },
           "order": {
-            "type": "number"
+            "type": "number",
+            "description": "The order in project list"
           },
           "bases": {
             "type": "array",
+            "description": "List of base models",
             "items": {
               "$ref": "#/components/schemas/Base"
             }
@@ -7369,17 +7388,25 @@
             "$ref": "#/components/schemas/Bool"
           },
           "prefix": {
-            "type": "string"
+            "type": "string",
+            "description": "Project prefix. Used in XCDB only.",
+            "example": "nc_vm5q__"
           },
-          "created_at": {},
-          "updated_at": {},
-          "slug": {
-            "type": "string"
+          "created_at": {
+            "description": "The created time of the record",
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-03-01 14:27:36"
+          },
+          "updated_at": {
+            "description": "The updated time of the record",
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-03-01 14:27:36"
           }
         }
       },
       "ProjectList": {
-        "description": "",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -7415,12 +7442,14 @@
             "type": "array",
             "uniqueItems": true,
             "minItems": 1,
+            "description": "List of Project Models",
             "items": {
               "$ref": "#/components/schemas/Project"
             }
           },
           "pageInfo": {
-            "$ref": "#/components/schemas/Paginated"
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Pagination Info"
           }
         }
       },
@@ -7461,12 +7490,14 @@
         }
       },
       "BaseReq": {
-        "title": "Base",
+        "title": "BaseReq",
         "type": "object",
         "properties": {
           "alias": {
             "type": "string",
-            "maxLength": 128
+            "maxLength": 128,
+            "description": "Base Name - Default BASE will be null by default",
+            "example": "My Base"
           },
           "type": {
             "type": "string",
@@ -7478,17 +7509,26 @@
               "mssql",
               "oracledb",
               "snowflake"
-            ]
+            ],
+            "description": "DB Type"
           },
           "is_meta": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Is the data source connected externally"
           },
-          "config": {},
-          "inflection_column": {
+          "config": {
+            "description": "Encrypted Base Configuration",
             "type": "string"
+          },
+          "inflection_column": {
+            "type": "string",
+            "description": "Inflection for columns",
+            "example": "camelize"
           },
           "inflection_table": {
-            "type": "string"
+            "type": "string",
+            "description": "Inflection for tables",
+            "example": "camelize"
           }
         }
       },

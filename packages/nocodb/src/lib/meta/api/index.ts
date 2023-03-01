@@ -27,7 +27,7 @@ import { userApis } from './userApi';
 // import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
 import utilApis from './utilApis';
 import projectUserApis from './projectUserApis';
-import sharedBaseApis from './sharedBaseApis';
+import sharedBaseApis from '../../services/sharedBaseService';
 import { initStrategies } from './userApi/initStrategies';
 import modelVisibilityApis from '../../services/modelVisibilityService';
 import metaDiffApis from '../../services/metaDiffService';

@@ -227,7 +227,7 @@ export async function dataRead(
   const row = await baseModel.readByPk(param.rowId);
 
   if (!row) {
-    NcError.notFound();
+    NcError.notFound('Row not found');
   }
 
   return await nocoExecute(
@@ -347,4 +347,477 @@ export async function getViewAndModelByAliasOrId(param: {
     }));
   if (!model) NcError.notFound('Table not found');
   return { model, view };
+}
+
+export async function dataListByViewId(param: { viewId: string; query: any }) {
+  const view = await View.get(param.viewId);
+
+  const model = await Model.getByIdOrName({
+    id: view?.fk_model_id || param.viewId,
+  });
+
+  if (!model) NcError.notFound('Table not found');
+
+  return await getDataList({ model, view, query: param.query });
+}
+
+export async function mmList(param: {
+  viewId: string;
+  colId: string;
+  query: any;
+  rowId: string;
+}) {
+  const view = await View.get(param.viewId);
+
+  const model = await Model.getByIdOrName({
+    id: view?.fk_model_id || param.viewId,
+  });
+
+  if (!model) NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  const key = `${model.title}List`;
+  const requestObj: any = {
+    [key]: 1,
+  };
+
+  const data = (
+    await nocoExecute(
+      requestObj,
+      {
+        [key]: async (args) => {
+          return await baseModel.mmList(
+            {
+              colId: param.colId,
+              parentId: param.rowId,
+            },
+            args
+          );
+        },
+      },
+      {},
+
+      { nested: { [key]: param.query } }
+    )
+  )?.[key];
+
+  const count: any = await baseModel.mmListCount({
+    colId: param.colId,
+    parentId: param.rowId,
+  });
+
+  return new PagedResponseImpl(data, {
+    count,
+    ...param.query,
+  });
+}
+
+export async function mmExcludedList(param: {
+  viewId: string;
+  colId: string;
+  query: any;
+  rowId: string;
+}) {
+  const view = await View.get(param.viewId);
+
+  const model = await Model.getByIdOrName({
+    id: view?.fk_model_id || param.viewId,
+  });
+
+  if (!model) NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  const key = 'List';
+  const requestObj: any = {
+    [key]: 1,
+  };
+
+  const data = (
+    await nocoExecute(
+      requestObj,
+      {
+        [key]: async (args) => {
+          return await baseModel.getMmChildrenExcludedList(
+            {
+              colId: param.colId,
+              pid: param.rowId,
+            },
+            args
+          );
+        },
+      },
+      {},
+
+      { nested: { [key]: param.query } }
+    )
+  )?.[key];
+
+  const count = await baseModel.getMmChildrenExcludedListCount(
+    {
+      colId: param.colId,
+      pid: param.rowId,
+    },
+    param.query
+  );
+
+  return new PagedResponseImpl(data, {
+    count,
+    ...param.query,
+  });
+}
+
+export async function hmExcludedList(param: {
+  viewId: string;
+  colId: string;
+  query: any;
+  rowId: string;
+}) {
+  const view = await View.get(param.viewId);
+
+  const model = await Model.getByIdOrName({
+    id: view?.fk_model_id || param.viewId,
+  });
+
+  if (!model) NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  const key = 'List';
+  const requestObj: any = {
+    [key]: 1,
+  };
+
+  const data = (
+    await nocoExecute(
+      requestObj,
+      {
+        [key]: async (args) => {
+          return await baseModel.getHmChildrenExcludedList(
+            {
+              colId: param.colId,
+              pid: param.rowId,
+            },
+            args
+          );
+        },
+      },
+      {},
+
+      { nested: { [key]: param.query } }
+    )
+  )?.[key];
+
+  const count = await baseModel.getHmChildrenExcludedListCount(
+    {
+      colId: param.colId,
+      pid: param.rowId,
+    },
+    param.query
+  );
+
+  new PagedResponseImpl(data, {
+    count,
+    ...param.query,
+  });
+}
+
+export async function btExcludedList(param: {
+  viewId: string;
+  colId: string;
+  query: any;
+  rowId: string;
+}) {
+  const view = await View.get(param.viewId);
+
+  const model = await Model.getByIdOrName({
+    id: view?.fk_model_id || param.viewId,
+  });
+
+  if (!model) return NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  const key = 'List';
+  const requestObj: any = {
+    [key]: 1,
+  };
+
+  const data = (
+    await nocoExecute(
+      requestObj,
+      {
+        [key]: async (args) => {
+          return await baseModel.getBtChildrenExcludedList(
+            {
+              colId: param.colId,
+              cid: param.rowId,
+            },
+            args
+          );
+        },
+      },
+      {},
+
+      { nested: { [key]: param.query } }
+    )
+  )?.[key];
+
+  const count = await baseModel.getBtChildrenExcludedListCount(
+    {
+      colId: param.colId,
+      cid: param.rowId,
+    },
+    param.query
+  );
+
+  return new PagedResponseImpl(data, {
+    count,
+    ...param.query,
+  });
+}
+
+export async function hmList(param: {
+  viewId: string;
+  colId: string;
+  query: any;
+  rowId: string;
+}) {
+  const view = await View.get(param.viewId);
+
+  const model = await Model.getByIdOrName({
+    id: view?.fk_model_id || param.viewId,
+  });
+
+  if (!model) NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  const key = `${model.title}List`;
+  const requestObj: any = {
+    [key]: 1,
+  };
+
+  const data = (
+    await nocoExecute(
+      requestObj,
+      {
+        [key]: async (args) => {
+          return await baseModel.hmList(
+            {
+              colId: param.colId,
+              id: param.rowId,
+            },
+            args
+          );
+        },
+      },
+      {},
+      { nested: { [key]: param.query } }
+    )
+  )?.[key];
+
+  const count = await baseModel.hmListCount({
+    colId: param.colId,
+    id: param.rowId,
+  });
+
+  return new PagedResponseImpl(data, {
+    totalRows: count,
+  } as any);
+}
+
+export async function dataReadByViewId(param: {
+  viewId: string;
+  rowId: string;
+  query: any;
+}) {
+  try {
+    const model = await Model.getByIdOrName({
+      id: param.viewId,
+    });
+    if (!model) NcError.notFound('Table not found');
+
+    const base = await Base.get(model.base_id);
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: model.id,
+      dbDriver: NcConnectionMgrv2.get(base),
+    });
+
+    return await nocoExecute(
+      await getAst({ model, query: param.query }),
+      await baseModel.readByPk(param.rowId),
+      {},
+      {}
+    );
+  } catch (e) {
+    console.log(e);
+    NcError.internalServerError(
+      'Internal Server Error, check server log for more details'
+    );
+  }
+}
+
+export async function dataInsertByViewId(param: {
+  viewId: string;
+  body: any;
+  cookie: any;
+}) {
+  const model = await Model.getByIdOrName({
+    id: param.viewId,
+  });
+  if (!model) return NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  return await baseModel.insert(param.body, null, param.cookie);
+}
+
+export async function dataUpdateByViewId(param: {
+  viewId: string;
+  rowId: string;
+  body: any;
+  cookie: any;
+}) {
+  const model = await Model.getByIdOrName({
+    id: param.viewId,
+  });
+  if (!model) NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  return await baseModel.updateByPk(
+    param.rowId,
+    param.body,
+    null,
+    param.cookie
+  );
+}
+
+export async function dataDeleteByViewId(param: {
+  viewId: string;
+  rowId: string;
+  cookie: any;
+}) {
+  const model = await Model.getByIdOrName({
+    id: param.viewId,
+  });
+  if (!model) NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  return await baseModel.delByPk(param.rowId, null, param.cookie);
+}
+
+export async function relationDataDelete(param: {
+  viewId: string;
+  colId: string;
+  childId: string;
+  rowId: string;
+  cookie: any;
+}) {
+  const view = await View.get(param.viewId);
+
+  const model = await Model.getByIdOrName({
+    id: view?.fk_model_id || param.viewId,
+  });
+
+  if (!model) NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  await baseModel.removeChild({
+    colId: param.colId,
+    childId: param.childId,
+    rowId: param.rowId,
+    cookie: param.cookie,
+  });
+
+  return true;
+}
+
+export async function relationDataAdd(param: {
+  viewId: string;
+  colId: string;
+  childId: string;
+  rowId: string;
+  cookie: any;
+}) {
+  const view = await View.get(param.viewId);
+
+  const model = await Model.getByIdOrName({
+    id: view?.fk_model_id || param.viewId,
+  });
+
+  if (!model) NcError.notFound('Table not found');
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  await baseModel.addChild({
+    colId: param.colId,
+    childId: param.childId,
+    rowId: param.rowId,
+    cookie: param.cookie,
+  });
+
+  return true;
 }

@@ -6,6 +6,8 @@ import { ViewTypes } from 'nocodb-sdk'
 import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
 import type { Row as RowType } from '~/lib'
 
+import Vue from 'vue'
+
 const route = useRoute()
 
 const router = useRouter()
@@ -206,9 +208,30 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
       })
       .join('')
 
-    const popupContent = `<ul class="popup-content">${listItems}</ul>`
+    // const popupContent = `<ul class="popup-content">${listItems}</ul>`
 
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
+
+    const popupContent = Vue.extend(MarkerPopupContent)
+      .extend({
+        props: {
+          title: {
+            type: String,
+            default: ‘No title’,
+          },
+          description: {
+            type: String,
+            default: ‘No description’,
+          },
+        },
+      })
+      .create({
+        propsData: {
+          title: row.row[‘Title’],
+          description: row.row[‘Description’],
+        },
+      }).$mount().$el
+
 
     addMarker(lat, long, row, popupContent)
   })

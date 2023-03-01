@@ -10328,6 +10328,16 @@
         "items": {
           "type": "object",
           "properties": {
+            "id": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "disabled": {
               "type": "object",
               "properties": {

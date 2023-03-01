@@ -18,3 +18,4 @@ export * as gridViewColumnService from './gridViewColumnService';
 export * as viewColumnService from './viewColumnService';
 export * as metaDiffService from './metaDiffService';
 export * as mapViewService from './mapViewService';
+export * as modelVisibilityService from './modelVisibilityService';

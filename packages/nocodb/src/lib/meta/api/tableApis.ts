@@ -19,7 +19,7 @@ import Project from '../../models/Project'
 import Audit from '../../models/Audit'
 import ncMetaAclMw from '../helpers/ncMetaAclMw'
 import { getAjvValidatorMw } from './helpers';
-import { xcVisibilityMetaGet } from './modelVisibilityApis'
+import { xcVisibilityMetaGet } from '../../services/modelVisibilityService'
 import View from '../../models/View'
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT'
 import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue'

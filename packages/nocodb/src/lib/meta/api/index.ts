@@ -29,7 +29,7 @@ import utilApis from './utilApis';
 import projectUserApis from './projectUserApis';
 import sharedBaseApis from './sharedBaseApis';
 import { initStrategies } from './userApi/initStrategies';
-import modelVisibilityApis from './modelVisibilityApis';
+import modelVisibilityApis from '../../services/modelVisibilityService';
 import metaDiffApis from '../../services/metaDiffService';
 import cacheApis from './cacheApis';
 import apiTokenApis from './apiTokenApis';

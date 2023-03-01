@@ -1,7 +1,7 @@
 import { Model, View } from '../models';
 import { Tele } from 'nc-help';
 import { SharedViewReqType, ViewReqType } from 'nocodb-sdk';
-import { xcVisibilityMetaGet } from '../meta/api/modelVisibilityApis';
+import { xcVisibilityMetaGet } from './modelVisibilityService';
 
 export async function viewList(param: {
   tableId: string;

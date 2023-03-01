@@ -1,17 +1,24 @@
-import Model from '../../models/Model';
-import ModelRoleVisibility from '../../models/ModelRoleVisibility';
-import { Router } from 'express';
+import { VisibilityRuleReqType } from 'nocodb-sdk';
+import { NcError } from '../meta/helpers/catchError';
+import Model from '../models/Model';
+import ModelRoleVisibility from '../models/ModelRoleVisibility';
 import { Tele } from 'nc-help';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../helpers/apiMetrics';
-import { getAjvValidatorMw } from './helpers';
-async function xcVisibilityMetaSetAll(req, res) {
+
+export async function xcVisibilityMetaSetAll(param: {
+  visibilityRule: VisibilityRuleReqType;
+  projectId: string;
+}) {
   Tele.emit('evt', { evt_type: 'uiAcl:updated' });
-  for (const d of req.body) {
+  for (const d of param.visibilityRule) {
     for (const role of Object.keys(d.disabled)) {
+      const view = await Model.get(d.id);
+
+      if (view.project_id !== param.projectId) {
+        NcError.badRequest('View does not belong to the project');
+      }
+
       const dataInDb = await ModelRoleVisibility.get({
         role,
-        // fk_model_id: d.fk_model_id,
         fk_view_id: d.id,
       });
       if (dataInDb) {
@@ -35,16 +42,16 @@ async function xcVisibilityMetaSetAll(req, res) {
   }
   Tele.emit('evt', { evt_type: 'uiAcl:updated' });
 
-  res.json({ msg: 'success' });
+  return true;
 }
 
-// @ts-ignore
-export async function xcVisibilityMetaGet(
-  projectId,
-  _models: Model[] = null,
-  includeM2M = true
-  // type: 'table' | 'tableAndViews' | 'views' = 'table'
-) {
+export async function xcVisibilityMetaGet(param: {
+  projectId: string;
+  includeM2M?: boolean;
+  models?: Model[];
+}) {
+  const { includeM2M = true, projectId, models: _models } = param ?? {};
+
   // todo: move to
   const roles = ['owner', 'creator', 'viewer', 'editor', 'commenter', 'guest'];
 
@@ -61,16 +68,7 @@ export async function xcVisibilityMetaGet(
 
   const result = await models.reduce(async (_obj, model) => {
     const obj = await _obj;
-    // obj[model.id] = {
-    //   tn: model.tn,
-    //   _tn: model._tn,
-    //   order: model.order,
-    //   fk_model_id: model.id,
-    //   id: model.id,
-    //   type: model.type,
-    //   disabled: { ...defaultDisabled }
-    // };
-    // if (type === 'tableAndViews') {
+
     const views = await model.getViews();
     for (const view of views) {
       obj[view.id] = {
@@ -83,7 +81,6 @@ export async function xcVisibilityMetaGet(
         ...view,
         disabled: { ...defaultDisabled },
       };
-      // }
     }
 
     return obj;
@@ -92,38 +89,9 @@ export async function xcVisibilityMetaGet(
   const disabledList = await ModelRoleVisibility.list(projectId);
 
   for (const d of disabledList) {
-    // if (d.fk_model_id) result[d.fk_model_id].disabled[d.role] = !!d.disabled;
-    // else if (type === 'tableAndViews' && d.fk_view_id)
     if (result[d.fk_view_id])
       result[d.fk_view_id].disabled[d.role] = !!d.disabled;
   }
 
   return Object.values(result);
-  // ?.sort(
-  // (a: any, b: any) =>
-  //   (a.order || 0) - (b.order || 0) ||
-  //   (a?._tn || a?.tn)?.localeCompare(b?._tn || b?.tn)
-  // );
 }
-
-const router = Router({ mergeParams: true });
-router.get(
-  '/api/v1/db/meta/projects/:projectId/visibility-rules',
-  metaApiMetrics,
-  ncMetaAclMw(async (req, res) => {
-    res.json(
-      await xcVisibilityMetaGet(
-        req.params.projectId,
-        null,
-        req.query.includeM2M === true || req.query.includeM2M === 'true'
-      )
-    );
-  }, 'modelVisibilityList')
-);
-router.post(
-  '/api/v1/db/meta/projects/:projectId/visibility-rules',
-  metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/VisibilityRuleReq'),
-  ncMetaAclMw(xcVisibilityMetaSetAll, 'modelVisibilitySet')
-);
-export default router;

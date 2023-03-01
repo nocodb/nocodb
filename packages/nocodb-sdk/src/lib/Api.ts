@@ -9,31 +9,61 @@
  * ---------------------------------------------------------------
  */
 
+/**
+ * User Model
+ */
 export interface UserType {
-  /** Unique identifier for the given user. */
-  id: string;
-  firstname: string;
-  lastname: string;
-  /** @format email */
-  email: string;
-  roles?: string;
   /**
-   * @format date
-   * @example 1997-10-31
+   * Unique identifier for the given user.
+   * @example us_8kugj628ebjngs
    */
-  date_of_birth?: string;
+  id: string;
+  /**
+   * The first name of the user
+   * @example Alice
+   */
+  firstname: string;
+  /**
+   * The last name of the user
+   * @example Smith
+   */
+  lastname: string;
+  /**
+   * The email of the user
+   * @format email
+   * @example alice.smith@nocodb.com
+   */
+  email: string;
+  /**
+   * The roles of the user
+   * @example org-level-viewer
+   */
+  roles?: string;
   /** Set to true if the user's email has been verified. */
   email_verified: boolean;
   /**
    * The date that the user was created.
-   * @format date
+   * @format date-time
+   * @example 2023-03-01 11:36:49
    */
-  createDate?: string;
+  created_at?: string;
+  /**
+   * The date that the user was created.
+   * @format date-time
+   * @example 2023-03-01 11:36:49
+   */
+  updated_at?: string;
 }
 
+/**
+ * List of User Models
+ */
 export interface UserListType {
+  /** users includes `list` and `pageInfo` */
   users: {
+    /** List of User objects */
     list: UserType;
+    /** Pagination info */
     pageInfo: PaginatedType;
   };
 }
@@ -939,12 +969,24 @@ export type ColumnReqType = (
   };
 };
 
+/**
+ * User Info Model
+ */
 export interface UserInfoType {
+  /** User ID */
   id?: string;
+  /**
+   * User Email
+   * @format email
+   */
   email?: string;
-  email_verified?: string;
+  /** Set to true if the user's email has been verified. */
+  email_verified?: boolean;
+  /** The firstname of the user */
   firstname?: string;
+  /** The lastname of the user */
   lastname?: string;
+  /** The roles of the user */
   roles?: any;
 }
 
@@ -1201,6 +1243,7 @@ export class Api<
  * @summary Signup
  * @request POST:/api/v1/auth/user/signup
  * @response `200` `{
+  \** The signed JWT token for information exchange *\
   token?: string,
 
 }` OK
@@ -1212,6 +1255,7 @@ export class Api<
     signup: (data: SignUpReqType, params: RequestParams = {}) =>
       this.request<
         {
+          /** The signed JWT token for information exchange */
           token?: string;
         },
         {
@@ -1234,6 +1278,7 @@ export class Api<
  * @summary Signout
  * @request POST:/api/v1/auth/user/signout
  * @response `200` `{
+  \** Success Message *\
   msg?: string,
 
 }` OK
@@ -1241,6 +1286,7 @@ export class Api<
     signout: (params: RequestParams = {}) =>
       this.request<
         {
+          /** Success Message */
           msg?: string;
         },
         any

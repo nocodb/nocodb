@@ -3,14 +3,8 @@ import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { NcError } from '../../meta/helpers/catchError';
 import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
 import { Base, Model, View } from '../../models';
-import Project from '../../models/Project';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-
-interface PathParams {
-  projectName: string;
-  tableName: string;
-  viewName: string;
-}
+import { getViewAndModelByAliasOrId, PathParams } from './helpers'
 
 export async function dataList(param: PathParams & { query: any }) {
   const { model, view } = await getViewAndModelByAliasOrId(param);
@@ -328,26 +322,6 @@ export async function getGroupedDataList(param: {
   return data;
 }
 
-export async function getViewAndModelByAliasOrId(param: {
-  projectName: string;
-  tableName: string;
-  viewName?: string;
-}) {
-  const project = await Project.getWithInfoByTitleOrId(param.projectName);
-
-  const model = await Model.getByAliasOrId({
-    project_id: project.id,
-    aliasOrId: param.tableName,
-  });
-  const view =
-    param.viewName &&
-    (await View.getByTitleOrId({
-      titleOrId: param.viewName,
-      fk_model_id: model.id,
-    }));
-  if (!model) NcError.notFound('Table not found');
-  return { model, view };
-}
 
 export async function dataListByViewId(param: { viewId: string; query: any }) {
   const view = await View.get(param.viewId);

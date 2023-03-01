@@ -5,6 +5,8 @@ import { TextSelection } from 'prosemirror-state'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import type { PageSidebarNode } from '~~/lib'
 
+const { project } = useProject()
+
 const {
   openedPage: openedPageInternal,
   updateContent,
@@ -14,6 +16,7 @@ const {
   openPage,
   openedPageId,
   isPublic,
+  nestedPublicParentPage,
 } = useDocs()
 
 // Page opened in the Page component, which is updated to the server debounce-ly
@@ -147,30 +150,32 @@ watch(
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
-            <div v-for="({ href, title, icon }, index) of breadCrumbs" :key="href" class="flex">
-              <NuxtLink
-                class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
-                :to="href"
-                :class="{
-                  '!text-gray-600 ': index === breadCrumbs.length - 1,
-                  '!text-gray-400 ': index !== breadCrumbs.length - 1,
-                }"
-              >
-                <div class="flex flex-row items-center gap-x-1.5">
-                  <IconifyIcon
-                    v-if="icon"
-                    :key="icon"
-                    :data-testid="`nc-doc-page-icon-${icon}`"
-                    class="text-sm"
-                    :icon="icon"
-                  ></IconifyIcon>
-                  <div>
-                    {{ title }}
+            <template v-if="!isPublic || project.meta?.isPublic || nestedPublicParentPage?.is_nested_published">
+              <div v-for="({ href, title, icon }, index) of breadCrumbs" :key="href" class="flex">
+                <NuxtLink
+                  class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
+                  :to="href"
+                  :class="{
+                    '!text-gray-600 ': index === breadCrumbs.length - 1,
+                    '!text-gray-400 ': index !== breadCrumbs.length - 1,
+                  }"
+                >
+                  <div class="flex flex-row items-center gap-x-1.5">
+                    <IconifyIcon
+                      v-if="icon"
+                      :key="icon"
+                      :data-testid="`nc-doc-page-icon-${icon}`"
+                      class="text-sm"
+                      :icon="icon"
+                    ></IconifyIcon>
+                    <div>
+                      {{ title }}
+                    </div>
                   </div>
-                </div>
-              </NuxtLink>
-              <div v-if="index !== breadCrumbs.length - 1" class="flex text-gray-400 text-sm px-2">/</div>
-            </div>
+                </NuxtLink>
+                <div v-if="index !== breadCrumbs.length - 1" class="flex text-gray-400 text-sm px-2">/</div>
+              </div>
+            </template>
           </div>
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>

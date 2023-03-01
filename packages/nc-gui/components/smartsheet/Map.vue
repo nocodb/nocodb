@@ -263,7 +263,7 @@ const count = computed(() => paginationData.value.totalRows)
 </script>
 
 <template>
-  <div ref="popupContainer">Hi<LazySmartsheetMyPopupComponent></LazySmartsheetMyPopupComponent></div>
+  <!-- <div ref="popupContainer" v-if="popupIsOpen"><LazySmartsheetMyPopupComponent :fields="fields" :row="{}"></LazySmartsheetMyPopupComponent></div> -->
 
   <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
     <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">

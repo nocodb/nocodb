@@ -1,13 +1,57 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import type { ColumnType } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
+import type { Row } from '~/lib'
+// defineProps({
+// //   popupIsOpen: {
+// //     type: Boolean,
+// //     required: true,
+// //   },
+//   popUpRow: {
+//     type: Object,
+//     required: true,
+//   },
+//   fields: {
+//     type: Array,
+//     required: true,
+//   },
+// //   abstractType: {
+// //     type: String,
+// //     required: true,
+// //   },
+// })
+
+const props = defineProps<{
+  fields: ColumnType[]
+  row: Row
+}>()
+
+// const cellValueByColum = (column: ColumnType) => {
+//   return {
+//     get() {
+//       return props.row?.row[column.id!]
+//     },
+//     set() {},
+//   }
+// }
+</script>
 
 <template>
   <div>Test</div>
-  <!-- <div v-if="popupIsOpen" ref="popupContainer">
-    <div v-for="column in fields" :key="column.id">
-      <LazyCellTextArea v-if="isTextArea(column)" v-model="popUpRow?.row[column.title]" />
-      <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
+  <!-- <div v-if="popupIsOpen" ref="popupContainer"> -->
+  <div ref="popupContainer">
+    FOO
+    <div v-for="column in props.fields" :key="column.id">
+      {{ JSON.stringify(column) }}
+      {{ JSON.stringify(props.fields) }}
+      <!-- <LazyCellTextArea v-if="isTextArea(column)" v-model="cellValueByColum(column)" /> -->
+      <!-- <LazySmartsheetVirtualCell
+        v-if="isVirtualCol(column)"
+        v-model="props.row.row[col.title]"
+        :column="column"
+        :row="props.row"
+      /> -->
     </div>
-    FOOBAR
-    <div>{{ popUpRow?.row.Title }}</div>
-  </div> -->
+    <!-- <div>{{ popUpRow?.row.Title }}</div> -->
+  </div>
 </template>

@@ -8,7 +8,7 @@ import { ViewTypes } from 'nocodb-sdk'
 // import { defineComponent, ref } from 'vue'
 // import Vue from 'vue'
 import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
-import type { Row as RowType } from '~/lib'
+import type { Row, Row as RowType } from '~/lib'
 // import { LazySmartsheetMyPopupComponent } from '~~/.nuxt/components'
 
 // Vue.config.ignoredElements.push('my-popup-component')
@@ -16,9 +16,9 @@ import type { Row as RowType } from '~/lib'
 const route = useRoute()
 
 // const popupIsOpen = ref(false)
-const popupIsOpen = ref(true)
+const popupIsOpen = ref(false)
 const popupContainer = ref()
-const popUpRow = ref<RowType>()
+const popUpRow = ref<Row>()
 const fields = inject(FieldsInj, ref([]))
 console.log('FOO fields', fields)
 
@@ -97,7 +97,8 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-const addMarker = (lat: number, long: number, row: RowType, popupContent: string) => {
+// const addMarker = (lat: number, long: number, row: RowType, popupContent: string) => {
+const addMarker = (lat: number, long: number, row: RowType) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Marker cluster is null')
   }
@@ -127,13 +128,15 @@ const addMarker = (lat: number, long: number, row: RowType, popupContent: string
 
     // newMarker.bindPopup(vm.$el, { maxWidth: 300 })
 
-    // newMarker.on('popupopen', () => {
-    //   vm.$mount()
-    // })
+    newMarker.on('popupopen', () => {
+      popupIsOpen.value = true
+      // vm.$mount()
+    })
 
-    // newMarker.on('popupclose', () => {
-    //   vm.$destroy()
-    // })
+    newMarker.on('popupclose', () => {
+      popupIsOpen.value = false
+      // vm.$destroy()
+    })
   }
 }
 
@@ -231,24 +234,25 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
       return
     }
 
-    const listItems = Object.entries(row.row)
-      .filter(([key, val]) => val !== null && key !== 'Id')
-      .map(([key, val]) => {
-        let prettyVal = val
-        if (val !== null && (typeof val === 'object' || Array.isArray(val))) {
-          prettyVal = JSON.stringify(val)
-        } else if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
-          prettyVal = `<a href="${val}" target="_blank">${val}</a>`
-        }
-        return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
-      })
-      .join('')
+    // const listItems = Object.entries(row.row)
+    //   .filter(([key, val]) => val !== null && key !== 'Id')
+    //   .map(([key, val]) => {
+    //     let prettyVal = val
+    //     if (val !== null && (typeof val === 'object' || Array.isArray(val))) {
+    //       prettyVal = JSON.stringify(val)
+    //     } else if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
+    //       prettyVal = `<a href="${val}" target="_blank">${val}</a>`
+    //     }
+    //     return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
+    //   })
+    //   .join('')
 
-    const popupContent = `<ul class="popup-content">${listItems}</ul>`
+    // const popupContent = `<ul class="popup-content">${listItems}</ul>`
 
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
 
-    addMarker(lat, long, row, popupContent)
+    // addMarker(lat, long, row, popupContent)
+    addMarker(lat, long, row)
   })
 })
 
@@ -263,7 +267,10 @@ const count = computed(() => paginationData.value.totalRows)
 </script>
 
 <template>
-  <!-- <div ref="popupContainer" v-if="popupIsOpen"><LazySmartsheetMyPopupComponent :fields="fields" :row="{}"></LazySmartsheetMyPopupComponent></div> -->
+  <div v-if="popupIsOpen" ref="popupContainer">
+    <LazySmartsheetMyPopupComponent :fields="fields" :row="popUpRow"></LazySmartsheetMyPopupComponent>
+  </div>
+  <!-- <div ref="popupContainer" v-if="popupIsOpen">FOO-Hi<LazySmartsheetMyPopupComponent></LazySmartsheetMyPopupComponent></div> -->
 
   <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
     <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">

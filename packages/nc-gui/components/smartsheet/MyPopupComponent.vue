@@ -23,7 +23,7 @@ import type { Row } from '~/lib'
 
 const props = defineProps<{
   fields: ColumnType[]
-  row: Row
+  row: RowType
 }>()
 
 // const cellValueByColum = (column: ColumnType) => {

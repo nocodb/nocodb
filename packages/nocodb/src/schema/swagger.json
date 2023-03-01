@@ -7194,7 +7194,7 @@
           }
         ],
         "x-internal": false,
-        "description": "User Model Response",
+        "description": "User Model",
         "properties": {
           "id": {
             "type": "string",
@@ -7238,10 +7238,16 @@
             "description": "The date that the user was created.",
             "example": "2023-03-01 11:36:49"
           }
-        }
+        },
+        "required": [
+          "id",
+          "firstname",
+          "lastname",
+          "email",
+          "email_verified"
+        ]
       },
       "UserList": {
-        "description": "",
         "type": "object",
         "x-examples": {
           "example-1": {
@@ -7272,6 +7278,8 @@
             }
           }
         },
+        "title": "UserList",
+        "description": "List of User Models",
         "properties": {
           "users": {
             "type": "object",
@@ -7279,12 +7287,15 @@
               "list",
               "pageInfo"
             ],
+            "description": "users includes `list` and `pageInfo`",
             "properties": {
               "list": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/User",
+                "description": "List of User objects"
               },
               "pageInfo": {
-                "$ref": "#/components/schemas/Paginated"
+                "$ref": "#/components/schemas/Paginated",
+                "description": "Pagination info"
               }
             }
           }

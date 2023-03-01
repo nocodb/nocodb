@@ -3,10 +3,24 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
+// import * as Vue from 'vue'
+// import MyPopupComponent from './MyPopupComponent'
+// import { defineComponent, ref } from 'vue'
+// import Vue from 'vue'
 import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
 import type { Row as RowType } from '~/lib'
+// import { LazySmartsheetMyPopupComponent } from '~~/.nuxt/components'
+
+// Vue.config.ignoredElements.push('my-popup-component')
 
 const route = useRoute()
+
+// const popupIsOpen = ref(false)
+const popupIsOpen = ref(true)
+const popupContainer = ref()
+const popUpRow = ref<RowType>()
+const fields = inject(FieldsInj, ref([]))
+console.log('FOO fields', fields)
 
 const router = useRouter()
 
@@ -95,7 +109,31 @@ const addMarker = (lat: number, long: number, row: RowType, popupContent: string
   markersClusterGroupRef.value?.addLayer(newMarker)
 
   if (newMarker && isPublic.value) {
-    newMarker.bindPopup(popupContent)
+    // newMarker.setPopupContent(popupContainer.value!)
+
+    popUpRow.value = row
+
+    newMarker.bindPopup(popupContainer.value!)
+    // newMarker.bindPopup(popupContent)
+    // const vm = new Vue({
+    //   render: (h: any) =>
+    //     h(LazySmartsheetMyPopupComponent, {
+    //       props: {
+    //         title: 'Marker Title',
+    //         description: 'Marker Description',
+    //       },
+    //     }),
+    // })
+
+    // newMarker.bindPopup(vm.$el, { maxWidth: 300 })
+
+    // newMarker.on('popupopen', () => {
+    //   vm.$mount()
+    // })
+
+    // newMarker.on('popupclose', () => {
+    //   vm.$destroy()
+    // })
   }
 }
 
@@ -225,6 +263,8 @@ const count = computed(() => paginationData.value.totalRows)
 </script>
 
 <template>
+  <div ref="popupContainer">Hi<LazySmartsheetMyPopupComponent></LazySmartsheetMyPopupComponent></div>
+
   <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
     <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">
       <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-3 right-3 p-2 z-500 cursor-default">
@@ -278,10 +318,12 @@ const count = computed(() => paginationData.value.totalRows)
 .no-underline a {
   text-decoration: none !important;
 }
+
 .leaflet-popup-content-wrapper {
   max-height: 255px;
   overflow: scroll;
 }
+
 .popup-content {
   user-select: text;
   display: flex;

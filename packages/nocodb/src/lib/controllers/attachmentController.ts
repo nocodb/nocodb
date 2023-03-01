@@ -1,22 +1,16 @@
-// @ts-ignore
 import { Request, Response, Router } from 'express';
 import multer from 'multer';
-import { nanoid } from 'nanoid';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import path from 'path';
-import slash from 'slash';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
-import mimetypes, { mimeIcons } from '../utils/mimeTypes';
-import { Tele } from 'nc-help';
 import extractProjectIdAndAuthenticate from '../meta/helpers/extractProjectIdAndAuthenticate';
 import catchError, { NcError } from '../meta/helpers/catchError';
-import NcPluginMgrv2 from '../meta/helpers/NcPluginMgrv2';
-import Local from '../v1-legacy/plugins/adapters/storage/Local';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 import { getCacheMiddleware } from '../meta/api/helpers';
+import { attachmentService } from '../services';
 
-const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
+const isUploadAllowedMw = async (req: Request, _res: Response, next: any) => {
   if (!req['user']?.id) {
     if (!req['user']?.isPublicBase) {
       NcError.unauthorized('Unauthorized');
@@ -47,111 +41,29 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
 };
 
 export async function upload(req: Request, res: Response) {
-  const filePath = sanitizeUrlPath(
-    req.query?.path?.toString()?.split('/') || ['']
-  );
-  const destPath = path.join('nc', 'uploads', ...filePath);
-
-  const storageAdapter = await NcPluginMgrv2.storageAdapter();
-
-  const attachments = await Promise.all(
-    (req as any).files?.map(async (file) => {
-      const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
-
-      const url = await storageAdapter.fileCreate(
-        slash(path.join(destPath, fileName)),
-        file
-      );
-
-      let attachmentPath;
-
-      // if `url` is null, then it is local attachment
-      if (!url) {
-        // then store the attachement path only
-        // url will be constructued in `useAttachmentCell`
-        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
-      }
-
-      return {
-        ...(url ? { url } : {}),
-        ...(attachmentPath ? { path: attachmentPath } : {}),
-        title: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
-        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
-      };
-    })
-  );
-
-  Tele.emit('evt', { evt_type: 'image:uploaded' });
+  const attachments = await attachmentService.upload({
+    files: (req as any).files,
+    path: req.query?.path as string,
+  });
 
   res.json(attachments);
 }
 
 export async function uploadViaURL(req: Request, res: Response) {
-  const filePath = sanitizeUrlPath(
-    req.query?.path?.toString()?.split('/') || ['']
-  );
-  const destPath = path.join('nc', 'uploads', ...filePath);
-
-  const storageAdapter = await NcPluginMgrv2.storageAdapter();
-
-  const attachments = await Promise.all(
-    req.body?.map?.(async (urlMeta) => {
-      const { url, fileName: _fileName } = urlMeta;
-
-      const fileName = `${nanoid(18)}${_fileName || url.split('/').pop()}`;
-
-      const attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
-        slash(path.join(destPath, fileName)),
-        url
-      );
-
-      let attachmentPath;
-
-      // if `attachmentUrl` is null, then it is local attachment
-      if (!attachmentUrl) {
-        // then store the attachement path only
-        // url will be constructued in `useAttachmentCell`
-        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
-      }
-
-      return {
-        ...(attachmentUrl ? { url: attachmentUrl } : {}),
-        ...(attachmentPath ? { path: attachmentPath } : {}),
-        title: fileName,
-        mimetype: urlMeta.mimetype,
-        size: urlMeta.size,
-        icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
-      };
-    })
-  );
-
-  Tele.emit('evt', { evt_type: 'image:uploaded' });
+  const attachments = await attachmentService.uploadViaURL({
+    urls: req.body,
+    path: req.query?.path as string,
+  });
 
   res.json(attachments);
 }
 
 export async function fileRead(req, res) {
   try {
-    // get the local storage adapter to display local attachments
-    const storageAdapter = new Local();
-    const type =
-      mimetypes[path.extname(req.params?.[0]).split('/').pop().slice(1)] ||
-      'text/plain';
+    const { img, type } = await attachmentService.fileRead({
+      path: path.join('nc', 'uploads', req.params?.[0]),
+    });
 
-    const img = await storageAdapter.fileRead(
-      slash(
-        path.join(
-          'nc',
-          'uploads',
-          req.params?.[0]
-            ?.split('/')
-            .filter((p) => p !== '..')
-            .join('/')
-        )
-      )
-    );
     res.writeHead(200, { 'Content-Type': type });
     res.end(img, 'binary');
   } catch (e) {
@@ -167,24 +79,16 @@ router.get(
   getCacheMiddleware(),
   async (req, res) => {
     try {
-      // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
-      const type =
-        mimetypes[path.extname(req.params[2]).split('/').pop().slice(1)] ||
-        'text/plain';
+      const { img, type } = await attachmentService.fileRead({
+        path: path.join(
+          'nc',
+          req.params[0],
+          req.params[1],
+          'uploads',
+          ...req.params[2].split('/')
+        ),
+      });
 
-      const storageAdapter = await NcPluginMgrv2.storageAdapter();
-      // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
-      const img = await storageAdapter.fileRead(
-        slash(
-          path.join(
-            'nc',
-            req.params[0],
-            req.params[1],
-            'uploads',
-            ...req.params[2].split('/')
-          )
-        )
-      );
       res.writeHead(200, { 'Content-Type': type });
       res.end(img, 'binary');
     } catch (e) {
@@ -192,10 +96,6 @@ router.get(
     }
   }
 );
-
-export function sanitizeUrlPath(paths) {
-  return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
-}
 
 router.post(
   '/api/v1/db/storage/upload',
@@ -207,7 +107,7 @@ router.post(
   }).any(),
   [
     extractProjectIdAndAuthenticate,
-    catchError(isUploadAllowed),
+    catchError(isUploadAllowedMw),
     catchError(upload),
   ]
 );
@@ -217,7 +117,7 @@ router.post(
 
   [
     extractProjectIdAndAuthenticate,
-    catchError(isUploadAllowed),
+    catchError(isUploadAllowedMw),
     catchError(uploadViaURL),
   ]
 );

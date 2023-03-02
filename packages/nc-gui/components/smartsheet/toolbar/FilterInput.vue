@@ -193,6 +193,7 @@ const hasExtraPadding = $computed(() => {
       :column="column"
       class="flex"
       v-bind="componentProps"
+      location="filter"
     />
   </div>
 </template>

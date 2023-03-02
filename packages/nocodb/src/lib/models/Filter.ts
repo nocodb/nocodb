@@ -71,7 +71,7 @@ export const COMPARISON_SUB_OPS = <const>[
   ...IS_WITHIN_COMPARISON_SUB_OPS,
 ];
 
-export default class Filter {
+export default class Filter implements FilterType {
   id: string;
 
   fk_model_id?: string;
@@ -85,14 +85,14 @@ export default class Filter {
 
   value?: string;
 
-  logical_op?: string;
+  logical_op?: 'and' | 'or' | 'not';
   is_group?: BoolType;
   children?: Filter[];
   project_id?: string;
   base_id?: string;
   column?: Column;
 
-  constructor(data: Filter | FilterType) {
+  constructor(data: Filter) {
     Object.assign(this, data);
   }
 

@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import Model from '../../models/Model'
-import { Tele } from 'nc-help'
+import { T } from 'nc-help'
 import { PagedResponseImpl } from '../helpers/PagedResponse'
 import DOMPurify from 'isomorphic-dompurify'
 import {
@@ -18,7 +18,7 @@ import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2'
 import Project from '../../models/Project'
 import Audit from '../../models/Audit'
 import ncMetaAclMw from '../helpers/ncMetaAclMw'
-import { getAjvValidatorMw } from './helpers';
+import { getAjvValidatorMw } from './helpers'
 import { xcVisibilityMetaGet } from '../../services/modelVisibilityService'
 import View from '../../models/View'
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT'
@@ -39,7 +39,7 @@ export async function tableGet(req: Request, res: Response<TableType>) {
   })
 
   // todo: optimise
-  const viewList = <View[]>await xcVisibilityMetaGet(table.project_id, [table])
+  const viewList = <View[]> await xcVisibilityMetaGet({ projectId: table.project_id, models: [table] })
 
   //await View.list(req.params.tableId)
   table.views = viewList.filter((table: any) => {
@@ -211,15 +211,15 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 
   mapDefaultDisplayValue(req.body.columns)
 
-  Tele.emit('evt', { evt_type: 'table:created' })
+  T.emit('evt', { evt_type: 'table:created' })
 
   res.json(
     await Model.insert(project.id, base.id, {
       ...req.body,
       columns: columns.map((c, i) => {
         const colMetaFromReq = req.body?.columns?.find(
-          (c1) => c.cn === c1.column_name
-        ) as NormalColumnRequestType;
+          (c1) => c.cn === c1.column_name,
+        ) as NormalColumnRequestType
         return {
           ...colMetaFromReq,
           uidt:
@@ -235,10 +235,11 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
           title: colMetaFromReq?.title || getColumnNameAlias(c.cn, base),
           column_name: c.cn,
           order: i + 1,
-        } as NormalColumnRequestType;
+        } as NormalColumnRequestType
       }),
       order: +(tables?.pop()?.order ?? 0) + 1,
-    }),
+      // todo: remove as aan
+    } as any),
   )
 }
 
@@ -340,7 +341,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
     tn_old: model.table_name,
   })
 
-  Tele.emit('evt', { evt_type: 'table:updated' })
+  T.emit('evt', { evt_type: 'table:updated' })
 
   res.json({ msg: 'success' })
 }
@@ -398,7 +399,7 @@ export async function tableDelete(req: Request, res: Response) {
   }).then(() => {
   })
 
-  Tele.emit('evt', { evt_type: 'table:deleted' })
+  T.emit('evt', { evt_type: 'table:deleted' })
 
   res.json(await table.delete())
 }

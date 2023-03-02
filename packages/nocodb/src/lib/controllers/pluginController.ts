@@ -6,8 +6,6 @@ import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { getAjvValidatorMw } from '../meta/api/helpers';
 import { pluginService } from '../services';
 
-
-
 export async function pluginList(_req: Request, res: Response) {
   res.json(new PagedResponseImpl(await pluginService.pluginList()));
 }
@@ -23,11 +21,16 @@ export async function pluginUpdate(
   req: Request<any, any, PluginType>,
   res: Response
 ) {
-  const plugin = await pluginService.pluginUpdate({ pluginId: req.params.pluginId, plugin:req.body });
+  const plugin = await pluginService.pluginUpdate({
+    pluginId: req.params.pluginId,
+    plugin: req.body,
+  });
   res.json(plugin);
 }
 export async function isPluginActive(req: Request, res: Response) {
-  res.json(await pluginService.isPluginActive({ pluginTitle: req.params.pluginTitle }));
+  res.json(
+    await pluginService.isPluginActive({ pluginTitle: req.params.pluginTitle })
+  );
 }
 
 const router = Router({ mergeParams: true });

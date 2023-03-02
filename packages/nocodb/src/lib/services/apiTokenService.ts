@@ -1,5 +1,5 @@
 import { ApiTokenReqType, OrgUserRoles } from 'nocodb-sdk';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { NcError } from '../meta/helpers/catchError';
 import ApiToken from '../models/ApiToken';
 import User from '../models/User';
@@ -11,7 +11,7 @@ export async function apiTokenCreate(param: {
   userId: string;
   tokenBody: ApiTokenReqType;
 }) {
-  Tele.emit('evt', { evt_type: 'apiToken:created' });
+  T.emit('evt', { evt_type: 'apiToken:created' });
   return ApiToken.insert({ ...param.tokenBody, fk_user_id: param.userId });
 }
 
@@ -23,7 +23,7 @@ export async function apiTokenDelete(param: { token; user: User }) {
   ) {
     NcError.notFound('Token not found');
   }
-  Tele.emit('evt', { evt_type: 'apiToken:deleted' });
+  T.emit('evt', { evt_type: 'apiToken:deleted' });
 
   // todo: verify token belongs to the user
   return await ApiToken.delete(param.token);

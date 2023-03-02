@@ -2,13 +2,13 @@ import { VisibilityRuleReqType } from 'nocodb-sdk';
 import { NcError } from '../meta/helpers/catchError';
 import Model from '../models/Model';
 import ModelRoleVisibility from '../models/ModelRoleVisibility';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 
 export async function xcVisibilityMetaSetAll(param: {
   visibilityRule: VisibilityRuleReqType;
   projectId: string;
 }) {
-  Tele.emit('evt', { evt_type: 'uiAcl:updated' });
+  T.emit('evt', { evt_type: 'uiAcl:updated' });
   for (const d of param.visibilityRule) {
     for (const role of Object.keys(d.disabled)) {
       const view = await Model.get(d.id);
@@ -40,7 +40,7 @@ export async function xcVisibilityMetaSetAll(param: {
       }
     }
   }
-  Tele.emit('evt', { evt_type: 'uiAcl:updated' });
+  T.emit('evt', { evt_type: 'uiAcl:updated' });
 
   return true;
 }

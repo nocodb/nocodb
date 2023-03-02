@@ -21,7 +21,7 @@ import NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
 import Noco from '../../Noco';
 import NcMetaIO from '../../meta/NcMetaIO';
 import XcCache from '../../v1-legacy/plugins/adapters/cache/XcCache';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 
 import BaseModel from './BaseModel';
 import { XcCron } from './XcCron';
@@ -324,7 +324,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         }
       );
     }
-    Tele.emit('evt', { evt_type: 'relation:created' });
+    T.emit('evt', { evt_type: 'relation:created' });
   }
 
   public async onRelationDelete(
@@ -2979,7 +2979,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   public async onTableCreate(_tn: string, _args?: any) {
-    Tele.emit('evt', { evt_type: 'table:created' });
+    T.emit('evt', { evt_type: 'table:created' });
   }
 
   public onVirtualTableUpdate(args: any) {

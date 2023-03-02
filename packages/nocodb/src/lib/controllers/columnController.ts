@@ -1,8 +1,8 @@
-import { Request, Response, Router } from 'express'
+import { Request, Response, Router } from 'express';
 import { ColumnReqType, TableType, UITypes } from 'nocodb-sdk';
-import { getAjvValidatorMw } from '../meta/api/helpers'
-import { metaApiMetrics } from '../meta/helpers/apiMetrics'
-import ncMetaAclMw from '../meta/helpers/ncMetaAclMw'
+import { getAjvValidatorMw } from '../meta/api/helpers';
+import { metaApiMetrics } from '../meta/helpers/apiMetrics';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { columnService } from '../services';
 
 export async function columnGet(req: Request, res: Response) {
@@ -27,19 +27,18 @@ export async function columnSetAsPrimary(req: Request, res: Response) {
   );
 }
 
-
-
-export async function columnUpdate(req: Request, res: Response<TableType>){
-  res.json(await columnService.columnUpdate({
-    columnId: req.params.columnId,
-    column: req.body
-  })
+export async function columnUpdate(req: Request, res: Response<TableType>) {
+  res.json(
+    await columnService.columnUpdate({
+      columnId: req.params.columnId,
+      column: req.body,
+    })
+  );
 }
 
 export async function columnDelete(req: Request, res: Response<TableType>) {
- res.json(await columnService.columnDelete({ columnId: req.params.columnId }));
+  res.json(await columnService.columnDelete({ columnId: req.params.columnId }));
 }
-
 
 const router = Router({ mergeParams: true });
 

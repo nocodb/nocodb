@@ -3,7 +3,7 @@ import { ProjectType } from 'nocodb-sdk';
 import Project from '../models/Project';
 import { ProjectListType } from 'nocodb-sdk';
 import { packageVersion } from '../utils/packageVersion';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
@@ -60,17 +60,13 @@ export async function projectList(
   );
 }
 
-export async function projectDelete(
-  req: Request<any>,
-  res: Response<boolean>
-) {
+export async function projectDelete(req: Request<any>, res: Response<boolean>) {
   const deleted = await projectService.projectSoftDelete({
     projectId: req.params.projectId,
   });
 
   res.json(deleted);
 }
-
 
 async function projectCreate(req: Request<any, any>, res) {
   const project = await projectService.projectCreate({
@@ -116,7 +112,7 @@ export async function projectCost(req, res) {
     }
   }
 
-  Tele.event({
+  T.event({
     event: 'a:project:cost',
     data: {
       cost,

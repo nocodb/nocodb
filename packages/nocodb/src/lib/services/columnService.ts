@@ -6,20 +6,21 @@ import {
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
   RelationTypes,
-  substituteColumnAliasWithIdInFormula, substituteColumnIdWithAliasInFormula,
+  substituteColumnAliasWithIdInFormula,
+  substituteColumnIdWithAliasInFormula,
   UITypes,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import formulaQueryBuilderv2 from '../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
-import { Altered } from '../meta/api/columnApis';
 import {
   createHmAndBtColumn,
   generateFkName,
   randomID,
-  validateLookupPayload, validateRequiredField,
+  validateLookupPayload,
+  validateRequiredField,
   validateRollupPayload,
-} from '../meta/api/helpers'
+} from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
 import getColumnPropsFromUIDT from '../meta/helpers/getColumnPropsFromUIDT';
 import {
@@ -32,7 +33,7 @@ import NcMetaIO from '../meta/NcMetaIO';
 import Audit from '../models/Audit';
 import Base from '../models/Base';
 import Column from '../models/Column';
-import FormulaColumn from '../models/FormulaColumn'
+import FormulaColumn from '../models/FormulaColumn';
 import KanbanView from '../models/KanbanView';
 import LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import Model from '../models/Model';
@@ -40,14 +41,21 @@ import Project from '../models/Project';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 
-import { Tele } from 'nc-help';
-import { MetaTable } from '../utils/globals'
+import { T } from 'nc-help';
+import { MetaTable } from '../utils/globals';
+
+export enum Altered {
+  NEW_COLUMN = 1,
+  DELETE_COLUMN = 4,
+  UPDATE_COLUMN = 8,
+}
 
 export async function columnUpdate(param: {
   columnId: string;
-  column: ColumnReqType & {colOptions?: any},
-  cookie?: any,
+  column: ColumnReqType & { colOptions?: any };
+  cookie?: any;
 }) {
+  const { cookie } = param;
   const column = await Column.get({ colId: param.columnId });
 
   const table = await Model.getWithInfo({
@@ -88,7 +96,10 @@ export async function columnUpdate(param: {
     NcError.badRequest('Duplicate column alias');
   }
 
-  let colBody = { ...param.column } as Column & { formula?: string; formula_raw?: string };
+  let colBody = { ...param.column } as Column & {
+    formula?: string;
+    formula_raw?: string;
+  };
   if (
     [
       UITypes.Lookup,
@@ -606,7 +617,7 @@ export async function columnUpdate(param: {
             await baseModel.bulkUpdateAll(
               { where: `(${column.title},eq,${ch.temp_title})` },
               { [column.column_name]: newOp.title },
-              { cookie: req }
+              { cookie }
             );
           }
         } else if (column.uidt === UITypes.MultiSelect) {
@@ -806,9 +817,9 @@ export async function columnUpdate(param: {
   }).then(() => {});
 
   await table.getColumns();
-  Tele.emit('evt', { evt_type: 'column:updated' });
+  T.emit('evt', { evt_type: 'column:updated' });
 
-  return table
+  return table;
 }
 
 export async function columnGet(param: { columnId: string }) {
@@ -893,7 +904,7 @@ export async function columnAdd(param: {
 
     case UITypes.LinkToAnotherRecord:
       await createLTARColumn({ ...param, base, project });
-      Tele.emit('evt', { evt_type: 'relation:created' });
+      T.emit('evt', { evt_type: 'relation:created' });
       break;
 
     case UITypes.QrCode:
@@ -1098,10 +1109,9 @@ export async function columnAdd(param: {
     // ip: (req as any).clientIp,
   }).then(() => {});
 
-  Tele.emit('evt', { evt_type: 'column:created' });
+  T.emit('evt', { evt_type: 'column:created' });
 
-  return table
-
+  return table;
 }
 
 export async function columnDelete(param: { columnId: string }) {
@@ -1255,7 +1265,7 @@ export async function columnDelete(param: { columnId: string }) {
             break;
         }
       }
-      Tele.emit('evt', { evt_type: 'raltion:deleted' });
+      T.emit('evt', { evt_type: 'raltion:deleted' });
       break;
     case UITypes.ForeignKey: {
       NcError.notImplemented();
@@ -1321,7 +1331,7 @@ export async function columnDelete(param: { columnId: string }) {
     );
   }
 
-  Tele.emit('evt', { evt_type: 'column:deleted' });
+  T.emit('evt', { evt_type: 'column:deleted' });
 
   return table;
 }

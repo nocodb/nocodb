@@ -1,9 +1,12 @@
-import { NcError } from '../../meta/helpers/catchError'
-import Model from '../../models/Model'
-import Project from '../../models/Project'
-import getSwaggerJSON from './getSwaggerJSON'
+import { NcError } from '../../meta/helpers/catchError';
+import Model from '../../models/Model';
+import Project from '../../models/Project';
+import getSwaggerJSON from './getSwaggerJSON';
 
-export async function swaggerJson(param:{projectId:string; siteUrl:string}){
+export async function swaggerJson(param: {
+  projectId: string;
+  siteUrl: string;
+}) {
   const project = await Project.get(param.projectId);
 
   if (!project) NcError.notFound();

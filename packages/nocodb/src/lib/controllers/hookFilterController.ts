@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { getAjvValidatorMw } from '../meta/api/helpers';
@@ -49,11 +49,11 @@ export async function filterUpdate(req, res) {
   res.json(filter);
 }
 
-export async function filterDelete(req: Request, res: Response, next) {
+export async function filterDelete(req: Request, res: Response) {
   const filter = await hookFilterService.filterDelete({
     filterId: req.params.filterId,
   });
-  Tele.emit('evt', { evt_type: 'hookFilter:deleted' });
+  T.emit('evt', { evt_type: 'hookFilter:deleted' });
   res.json(filter);
 }
 

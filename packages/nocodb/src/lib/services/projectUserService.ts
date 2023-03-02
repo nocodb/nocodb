@@ -1,5 +1,5 @@
 import { OrgUserRoles, ProjectUserReqType } from 'nocodb-sdk';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ProjectUser from '../models/ProjectUser';
 import validator from 'validator';
@@ -109,7 +109,7 @@ export async function userInvite(param: {
         });
 
         const count = await User.count();
-        Tele.emit('evt', { evt_type: 'project:invite', count });
+        T.emit('evt', { evt_type: 'project:invite', count });
 
         await Audit.insert({
           project_id: param.projectId,

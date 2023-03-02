@@ -1,51 +1,54 @@
-import {createHash} from 'crypto'
-import { Router } from 'express'
-import { Tele } from 'nc-help';
-import { Server, Socket } from 'socket.io'
-import passport from 'passport'
-import apiTokenController from '../../controllers/apiTokenController'
-import attachmentController from '../../controllers/attachmentController'
-import auditController from '../../controllers/auditController'
-import cacheController from '../../controllers/cacheController'
-import columnController from '../../controllers/columnController'
-import filterController from '../../controllers/filterController'
-import formViewColumnController from '../../controllers/formViewColumnController'
-import formViewController from '../../controllers/formViewController'
-import galleryViewController from '../../controllers/galleryViewController'
-import gridViewColumnController from '../../controllers/gridViewColumnController'
-import gridViewController from '../../controllers/gridViewController'
-import hookController from '../../controllers/hookController'
-import hookFilterController from '../../controllers/hookFilterController'
-import mapViewController from '../../controllers/mapViewController'
-import metaDiffController from '../../controllers/metaDiffController'
-import modelVisibilityController from '../../controllers/modelVisibilityController'
-import orgLicenseController from '../../controllers/orgLicenseController'
-import orgTokenController from '../../controllers/orgTokenController'
-import orgUserController from '../../controllers/orgUserController'
-import pluginController from '../../controllers/pluginController'
-import projectUserController from '../../controllers/projectUserController'
-import { publicDataController, publicDataExportController, publicMetaController } from '../../controllers/public'
-import sharedBaseController from '../../controllers/sharedBaseController'
-import sortController from '../../controllers/sortController'
-import importApis from '../../controllers/syncController/importApis'
-import tableController from '../../controllers/tableController'
-import { initStrategies } from '../../controllers/userController/initStrategies'
-import projectController from '../../controllers/projectController'
-import baseController from '../../controllers/baseController'
-import utilController from '../../controllers/utilController'
-import dataController from '../../controllers/dataController'
-import bulkDataController from '../../controllers/dataController/bulkData'
-import dataExportController from '../../controllers/dataController/export'
-import viewColumnController from '../../controllers/viewColumnController'
-import viewController from '../../controllers/viewController'
-import swaggerController from '../../controllers/swaggerController'
-import syncController from '../../controllers/syncController'
-import kanbanViewController from '../../controllers/kanbanViewController'
-import { userController } from '../../controllers/userController'
-import { oldDataApis } from './dataApis'
-import exportApis from './exportApis'
-import testApis from './testApis'
-
+import { createHash } from 'crypto';
+import { Router } from 'express';
+import { T } from 'nc-help';
+import { Server, Socket } from 'socket.io';
+import passport from 'passport';
+import apiTokenController from '../../controllers/apiTokenController';
+import attachmentController from '../../controllers/attachmentController';
+import auditController from '../../controllers/auditController';
+import cacheController from '../../controllers/cacheController';
+import columnController from '../../controllers/columnController';
+import filterController from '../../controllers/filterController';
+import formViewColumnController from '../../controllers/formViewColumnController';
+import formViewController from '../../controllers/formViewController';
+import galleryViewController from '../../controllers/galleryViewController';
+import gridViewColumnController from '../../controllers/gridViewColumnController';
+import gridViewController from '../../controllers/gridViewController';
+import hookController from '../../controllers/hookController';
+import hookFilterController from '../../controllers/hookFilterController';
+import mapViewController from '../../controllers/mapViewController';
+import metaDiffController from '../../controllers/metaDiffController';
+import modelVisibilityController from '../../controllers/modelVisibilityController';
+import orgLicenseController from '../../controllers/orgLicenseController';
+import orgTokenController from '../../controllers/orgTokenController';
+import orgUserController from '../../controllers/orgUserController';
+import pluginController from '../../controllers/pluginController';
+import projectUserController from '../../controllers/projectUserController';
+import {
+  publicDataController,
+  publicDataExportController,
+  publicMetaController,
+} from '../../controllers/public';
+import sharedBaseController from '../../controllers/sharedBaseController';
+import sortController from '../../controllers/sortController';
+import importApis from '../../controllers/syncController/importApis';
+import tableController from '../../controllers/tableController';
+import { initStrategies } from '../../controllers/userController/initStrategies';
+import projectController from '../../controllers/projectController';
+import baseController from '../../controllers/baseController';
+import utilController from '../../controllers/utilController';
+import dataController from '../../controllers/dataController';
+import bulkDataController from '../../controllers/dataController/bulkData';
+import dataExportController from '../../controllers/dataController/export';
+import viewColumnController from '../../controllers/viewColumnController';
+import viewController from '../../controllers/viewController';
+import swaggerController from '../../controllers/swaggerController';
+import syncController from '../../controllers/syncController';
+import kanbanViewController from '../../controllers/kanbanViewController';
+import { userController } from '../../controllers/userController';
+import { oldDataApis } from './dataApis';
+import exportApis from './exportApis';
+import testApis from './testApis';
 
 const clients: { [id: string]: Socket } = {};
 const jobs: { [id: string]: { last_message: any } } = {};
@@ -125,15 +128,15 @@ export default function (router: Router, server) {
   }).on('connection', (socket) => {
     clients[socket.id] = socket;
     const id = getHash(
-      (process.env.NC_SERVER_UUID || Tele.id) +
+      (process.env.NC_SERVER_UUID || T.id) +
         (socket?.handshake as any)?.user?.id
     );
 
     socket.on('page', (args) => {
-      Tele.page({ ...args, id });
+      T.page({ ...args, id });
     });
     socket.on('event', (args) => {
-      Tele.event({ ...args, id });
+      T.event({ ...args, id });
     });
     socket.on('subscribe', (room) => {
       if (room in jobs) {

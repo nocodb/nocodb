@@ -20,9 +20,7 @@ const versionCache = {
   lastFetched: null,
 };
 
-
-
-export async function testConnection(param:{body: any}) {
+export async function testConnection(param: { body: any }) {
   return await SqlMgrv2.testConnection(param.body);
 }
 

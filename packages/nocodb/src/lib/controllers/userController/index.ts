@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { TableType, validatePassword } from 'nocodb-sdk';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';
@@ -64,7 +64,7 @@ export async function signup(req: Request, res: Response<TableType>) {
   const email_verification_token = uuidv4();
 
   if (!ignore_subscribe) {
-    Tele.emit('evt_subscribe', email);
+    T.emit('evt_subscribe', email);
   }
 
   if (user) {

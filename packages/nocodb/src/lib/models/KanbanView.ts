@@ -1,5 +1,5 @@
 import Noco from '../Noco';
-import { KanbanType, UITypes } from 'nocodb-sdk';
+import { BoolType, KanbanType, UITypes } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
@@ -16,12 +16,12 @@ export default class KanbanView implements KanbanType {
 
   // below fields are not in use at this moment
   // keep them for time being
-  show?: boolean;
+  show?: BoolType;
   order?: number;
   uuid?: string;
-  public?: boolean;
+  public?: BoolType;
   password?: string;
-  show_all_fields?: boolean;
+  show_all_fields?: BoolType;
 
   constructor(data: KanbanView) {
     Object.assign(this, data);

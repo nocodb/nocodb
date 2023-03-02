@@ -4,7 +4,7 @@ import Project from '../../models/Project';
 import { ProjectListType } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
 import { packageVersion } from '../../utils/packageVersion';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import syncMigration from '../helpers/syncMigration';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
@@ -60,7 +60,7 @@ export async function projectUpdate(
   }
 
   const result = await Project.update(req.params.projectId, data);
-  Tele.emit('evt', { evt_type: 'project:update' });
+  T.emit('evt', { evt_type: 'project:update' });
   res.json(result);
 }
 
@@ -92,7 +92,7 @@ export async function projectDelete(
   res: Response<ProjectListType>
 ) {
   const result = await Project.softDelete(req.params.projectId);
-  Tele.emit('evt', { evt_type: 'project:deleted' });
+  T.emit('evt', { evt_type: 'project:deleted' });
   res.json(result);
 }
 
@@ -180,16 +180,16 @@ async function projectCreate(req: Request<any, any>, res) {
   for (const base of await project.getBases()) {
     const info = await populateMeta(base, project);
 
-    Tele.emit('evt_api_created', info);
+    T.emit('evt_api_created', info);
     delete base.config;
   }
 
-  Tele.emit('evt', {
+  T.emit('evt', {
     evt_type: 'project:created',
     xcdb: !projectBody.external,
   });
 
-  Tele.emit('evt', { evt_type: 'project:rest' });
+  T.emit('evt', { evt_type: 'project:rest' });
 
   res.json(project);
 }
@@ -229,7 +229,7 @@ export async function projectCost(req, res) {
     }
   }
 
-  Tele.event({
+  T.event({
     event: 'a:project:cost',
     data: {
       cost,

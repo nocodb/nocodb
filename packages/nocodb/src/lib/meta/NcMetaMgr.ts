@@ -40,7 +40,7 @@ import NcTemplateParser from '../v1-legacy/templates/NcTemplateParser';
 import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
 import { UITypes } from 'nocodb-sdk';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
@@ -953,7 +953,7 @@ export default class NcMetaMgr {
         ip: req.clientIp,
       });
 
-      Tele.emit('evt', { evt_type: 'webhooks:deleted' });
+      T.emit('evt', { evt_type: 'webhooks:deleted' });
     } catch (e) {
       throw e;
     }
@@ -988,7 +988,7 @@ export default class NcMetaMgr {
           ip: req.clientIp,
         });
 
-        Tele.emit('evt', { evt_type: 'webhooks:updated' });
+        T.emit('evt', { evt_type: 'webhooks:updated' });
       } else {
         const res = await this.xcMeta.metaInsert(
           projectId,
@@ -1009,7 +1009,7 @@ export default class NcMetaMgr {
           description: `created webhook ${args.args.data.title} - ${args.args.data.event} ${args.args.data.operation} - ${args.args.data.notification?.type} - of table ${args.args.tn} `,
           ip: req.clientIp,
         });
-        Tele.emit('evt', { evt_type: 'webhooks:created' });
+        T.emit('evt', { evt_type: 'webhooks:created' });
         return res;
       }
 
@@ -1269,7 +1269,7 @@ export default class NcMetaMgr {
     } catch (e) {
       throw e;
     } finally {
-      Tele.emit('evt', { evt_type: 'image:uploaded' });
+      T.emit('evt', { evt_type: 'image:uploaded' });
     }
   }
 
@@ -1595,7 +1595,7 @@ export default class NcMetaMgr {
             ip: req.clientIp,
           });
 
-          Tele.emit('evt', { evt_type: 'project:created' });
+          T.emit('evt', { evt_type: 'project:created' });
           break;
 
         case 'projectUpdateByWeb':
@@ -1603,7 +1603,7 @@ export default class NcMetaMgr {
             this.getProjectId(args),
             args.args.projectJson
           );
-          Tele.emit('evt', { evt_type: 'project:updated' });
+          T.emit('evt', { evt_type: 'project:updated' });
           break;
         case 'projectCreateByOneClick':
           {
@@ -1635,7 +1635,7 @@ export default class NcMetaMgr {
               description: `created project ${config.title}(${result.id}) `,
               ip: req.clientIp,
             });
-            Tele.emit('evt', { evt_type: 'project:created', oneClick: true });
+            T.emit('evt', { evt_type: 'project:created', oneClick: true });
           }
           break;
         case 'projectCreateByWebWithXCDB': {
@@ -1689,10 +1689,10 @@ export default class NcMetaMgr {
             ip: req.clientIp,
           });
 
-          Tele.emit('evt', { evt_type: 'project:created', xcdb: true });
+          T.emit('evt', { evt_type: 'project:created', xcdb: true });
           postListenerCb = async () => {
             if (args?.args?.template) {
-              Tele.emit('evt', {
+              T.emit('evt', {
                 evt_type: args.args?.quickImport
                   ? 'project:created:fromExcel'
                   : 'project:created:fromTemplate',
@@ -1730,7 +1730,7 @@ export default class NcMetaMgr {
         case 'projectDelete':
         case 'projectRestart':
         case 'projectStart':
-          Tele.emit('evt', { evt_type: 'project:' + args.api });
+          T.emit('evt', { evt_type: 'project:' + args.api });
           result = null;
           break;
 
@@ -2145,7 +2145,7 @@ export default class NcMetaMgr {
         ip: req.clientIp,
       });
 
-      Tele.emit('evt', { evt_type: 'acl:updated' });
+      T.emit('evt', { evt_type: 'acl:updated' });
 
       return res;
     } catch (e) {
@@ -3485,7 +3485,7 @@ export default class NcMetaMgr {
         ['id', 'view_id', 'view_type']
       );
       res.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/view/${res.view_id}`;
-      Tele.emit('evt', { evt_type: 'sharedView:generated-link' });
+      T.emit('evt', { evt_type: 'sharedView:generated-link' });
       return res;
     } catch (e) {
       console.log(e);
@@ -3549,7 +3549,7 @@ export default class NcMetaMgr {
 
       sharedBase.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/base/${sharedBase.shared_base_id}`;
 
-      Tele.emit('evt', { evt_type: 'sharedBase:generated-link' });
+      T.emit('evt', { evt_type: 'sharedBase:generated-link' });
       return sharedBase;
     } catch (e) {
       console.log(e);
@@ -3606,7 +3606,7 @@ export default class NcMetaMgr {
     //   await this.xcMeta.metaUpdate(this.getProjectId(args), this.getDbAlias(args), 'nc_shared_views', {
     //     password: args.args?.password
     //   }, args.args.id);
-    //   Tele.emit('evt', {evt_type: 'sharedView:password-updated'})
+    //   T.emit('evt', {evt_type: 'sharedView:password-updated'})
     //   return {msg: 'Success'};
     // } catch (e) {
     //   console.log(e)
@@ -3623,7 +3623,7 @@ export default class NcMetaMgr {
         'nc_shared_views',
         args.args.id
       );
-      Tele.emit('evt', { evt_type: 'sharedView:deleted' });
+      T.emit('evt', { evt_type: 'sharedView:deleted' });
       return { msg: 'Success' };
     } catch (e) {
       console.log(e);
@@ -4477,7 +4477,7 @@ export default class NcMetaMgr {
       });
     }
 
-    Tele.emit('evt', { evt_type: 'template:imported' });
+    T.emit('evt', { evt_type: 'template:imported' });
 
     return result;
   }
@@ -5071,7 +5071,7 @@ export default class NcMetaMgr {
     } catch (e) {
       throw e;
     } finally {
-      Tele.emit('evt', {
+      T.emit('evt', {
         evt_type: 'plugin:installed',
         title: args.args.title,
       });
@@ -5153,7 +5153,7 @@ export default class NcMetaMgr {
       ip: req.clientIp,
     });
 
-    Tele.emit('evt', {
+    T.emit('evt', {
       evt_type: 'vtable:created',
       show_as: args.args.show_as,
     });
@@ -5270,7 +5270,7 @@ export default class NcMetaMgr {
     });
     await RestAuthCtrl.instance.loadLatestApiTokens();
 
-    Tele.emit('evt', { evt_type: 'apiToken:created' });
+    T.emit('evt', { evt_type: 'apiToken:created' });
     return {
       description: args.args.description,
       token,
@@ -5282,7 +5282,7 @@ export default class NcMetaMgr {
   }
 
   protected async xcApiTokenDelete(args): Promise<any> {
-    Tele.emit('evt', { evt_type: 'apiToken:deleted' });
+    T.emit('evt', { evt_type: 'apiToken:deleted' });
     const res = await this.xcMeta.metaDelete(
       null,
       null,
@@ -5327,7 +5327,7 @@ export default class NcMetaMgr {
       ip: req.clientIp,
     });
 
-    Tele.emit('evt', {
+    T.emit('evt', {
       evt_type: 'vtable:renamed',
       show_as: args.args.show_as,
     });
@@ -5335,7 +5335,7 @@ export default class NcMetaMgr {
   }
 
   protected async xcVirtualTableUpdate(args): Promise<any> {
-    // Tele.emit('evt', {evt_type: 'vtable:updated',show_as: args.args.show_as})
+    // T.emit('evt', {evt_type: 'vtable:updated',show_as: args.args.show_as})
     return this.xcMeta.metaUpdate(
       this.getProjectId(args),
       this.getDbAlias(args),
@@ -5482,7 +5482,7 @@ export default class NcMetaMgr {
       ip: req.clientIp,
     });
 
-    Tele.emit('evt', { evt_type: 'vtable:deleted' });
+    T.emit('evt', { evt_type: 'vtable:deleted' });
     return res;
   }
 

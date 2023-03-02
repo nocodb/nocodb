@@ -1,6 +1,6 @@
 // // Project CRUD
 
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
 import {
@@ -576,9 +576,7 @@ export async function baseMetaDiff(param: {
   return changes;
 }
 
-export async function metaDiffSync(param: {
-  projectId: string;
-}) {
+export async function metaDiffSync(param: { projectId: string }) {
   const project = await Project.getWithInfo(param.projectId);
   for (const base of project.bases) {
     const virtualColumnInsert: Array<() => Promise<void>> = [];
@@ -777,7 +775,7 @@ export async function metaDiffSync(param: {
     await extractAndGenerateManyToManyRelations(await base.getModels());
   }
 
-  Tele.emit('evt', { evt_type: 'metaDiff:synced' });
+  T.emit('evt', { evt_type: 'metaDiff:synced' });
 
   return true;
 }
@@ -969,7 +967,7 @@ export async function baseMetaDiffSync(param: {
   // populate m2m relations
   await extractAndGenerateManyToManyRelations(await base.getModels());
 
-  Tele.emit('evt', { evt_type: 'baseMetaDiff:synced' });
+  T.emit('evt', { evt_type: 'baseMetaDiff:synced' });
 
   return true;
 }

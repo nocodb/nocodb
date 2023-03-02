@@ -3,7 +3,7 @@ import { TableType, validatePassword } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '../../../constants';
 import Store from '../../../models/Store';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import catchError, { NcError } from '../../helpers/catchError';
 
 const { isEmail } = require('validator');
@@ -47,7 +47,7 @@ export async function registerNewUserIfAllowed({
     roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
     // todo: update in nc_store
     // roles = 'owner,creator,editor'
-    Tele.emit('evt', {
+    T.emit('evt', {
       evt_type: 'project:invite',
       count: 1,
     });
@@ -122,7 +122,7 @@ export async function signup(req: Request, res: Response<TableType>) {
   const email_verification_token = uuidv4();
 
   if (!ignore_subscribe) {
-    Tele.emit('evt_subscribe', email);
+    T.emit('evt_subscribe', email);
   }
 
   if (user) {

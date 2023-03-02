@@ -26,7 +26,7 @@ import Project from '../models/Project';
 import User from '../models/User';
 import View from '../models/View';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 
 export function reorderTable(param: { tableId: string; order: any }) {
   return Model.updateOrder(param.tableId, param.order);
@@ -84,7 +84,7 @@ export async function tableDelete(param: { tableId: string; user: User }) {
     // ip: (req as any).clientIp,
   }).then(() => {});
 
-  Tele.emit('evt', { evt_type: 'table:deleted' });
+  T.emit('evt', { evt_type: 'table:deleted' });
 
   return table.delete();
 }
@@ -319,8 +319,9 @@ export async function tableCreate(args: {
 
   mapDefaultDisplayValue(args.table.columns);
 
-  Tele.emit('evt', { evt_type: 'table:created' });
+  T.emit('evt', { evt_type: 'table:created' });
 
+  // todo: type correction
   const result = await Model.insert(project.id, base.id, {
     ...args.table,
     columns: columns.map((c, i) => {
@@ -342,7 +343,7 @@ export async function tableCreate(args: {
       } as NormalColumnRequestType;
     }),
     order: +(tables?.pop()?.order ?? 0) + 1,
-  });
+  } as any);
 
   return result;
 }

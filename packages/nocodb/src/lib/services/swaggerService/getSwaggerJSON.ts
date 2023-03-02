@@ -1,4 +1,4 @@
-import { Model, Project, View } from '../../models'
+import { Model, Project, View } from '../../models';
 import FormViewColumn from '../../models/FormViewColumn';
 import GalleryViewColumn from '../../models/GalleryViewColumn';
 import Noco from '../../Noco';

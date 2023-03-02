@@ -1,4 +1,4 @@
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import FetchAT from './fetchAT';
 import { UITypes } from 'nocodb-sdk';
 // import * as sMap from './syncMap';
@@ -1924,7 +1924,7 @@ export default async (
       });
     }
 
-    Tele.event({
+    T.event({
       event: 'a:airtable-import:success',
       data: {
         stats: {
@@ -2391,7 +2391,7 @@ export default async (
     }
   } catch (e) {
     if (e.response?.data?.msg) {
-      Tele.event({
+      T.event({
         event: 'a:airtable-import:error',
         data: { error: e.response.data.msg },
       });

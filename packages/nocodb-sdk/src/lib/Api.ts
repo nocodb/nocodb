@@ -163,11 +163,8 @@ export interface BaseType {
   id?: string;
   /** The project ID that this base belongs to */
   project_id?: string;
-  /**
-   * Base Name - Default BASE will be null by default
-   * @example My Base
-   */
-  alias?: string;
+  /** Base Name - Default BASE will be null by default */
+  alias?: StringOrNullType;
   /**
    * DB Type
    * @example mysql2
@@ -261,53 +258,36 @@ export interface BaseListType {
 }
 
 /**
- * Model for Table
- */
-export interface TableType {
-  id?: string;
-  project_id?: string;
-  base_id?: string;
-  table_name: string;
-  title: string;
-  type?: string;
-  /** Model for Bool */
-  enabled?: BoolType;
-  parent_id?: string;
-  show_as?: string;
-  tags?: string;
-  /** Model for Bool */
-  pinned?: BoolType;
-  /** Model for Bool */
-  deleted?: BoolType;
-  order?: number;
-  columns?: ColumnType[];
-  columnsById?: object;
-  slug?: string;
-  /** Model for Bool */
-  mm?: BoolType;
-  /** Model for Meta */
-  meta?: MetaType;
-}
-
-/**
  * Model for View
  */
 export interface ViewType {
-  id?: string;
+  /** Unique ID for View */
+  id: IdType;
+  /** Unique Base ID */
+  base_id: IdType;
+  /** Unique Project ID */
+  project_id: IdType;
+  /** Unique Model ID */
+  fk_model_id: IdType;
+  /** View Title */
   title: string;
-  /** Model for Bool */
-  deleted?: BoolType;
-  order?: number;
-  /** Model for ID */
-  fk_model_id?: IdType;
-  slug?: string;
-  uuid?: string;
-  /** Model for Meta */
-  meta?: MetaType;
-  /** Model for Bool */
-  show_system_fields?: BoolType;
-  lock_type?: 'collaborative' | 'locked' | 'personal';
+  /** View Type */
   type?: number;
+  /** If this view is shown? */
+  show?: BoolType;
+  /** The rder of the list of views */
+  order?: number;
+  /** UUID of the view */
+  uuid?: string;
+  /** Password for protecting the view */
+  password?: string;
+  /** Meta data for this view */
+  meta?: MetaType;
+  /** Should show system fields in this view? */
+  show_system_fields?: BoolType;
+  /** Lock Type of the view */
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  /** Associated View Model */
   view?:
     | FormType
     | GridType
@@ -318,29 +298,39 @@ export interface ViewType {
 }
 
 /**
- * Model for Table Info
+ * Model for Table
  */
-export interface TableInfoType {
+export interface TableType {
+  /** Unique Table ID */
   id?: string;
-  /** Model for ID */
-  fk_project_id?: IdType;
-  /** Model for ID */
-  fk_base_id?: IdType;
-  title: string;
+  /** Unique Project ID */
+  project_id?: string;
+  /** Unique Base ID */
+  base_id?: string;
+  /** Table Name. Prefix will be added for XCDB projects. */
   table_name: string;
+  /** Table Title */
+  title: string;
+  /** Table Type */
   type?: string;
-  enabled?: string;
-  parent_id?: string;
-  show_as?: string;
+  /** Is this table enabled? */
+  enabled?: BoolType;
+  /** Currently not in use */
   tags?: string;
-  /** Model for Bool */
+  /** Currently not in use */
   pinned?: BoolType;
   /** Model for Bool */
   deleted?: BoolType;
+  /** The order of the list of tables */
   order?: number;
-  column?: ColumnType[];
-  filters?: FilterType[];
-  sort?: SortType[];
+  /** The columns included in this table */
+  columns?: ColumnType[];
+  /** Column Models grouped by IDs */
+  columnsById?: object;
+  /** Is this table used for M2M */
+  mm?: BoolType;
+  /** Meta Data */
+  meta?: MetaType;
 }
 
 /**
@@ -381,25 +371,99 @@ export interface TableListType {
  * Model for Filter
  */
 export interface FilterType {
-  id?: string;
-  /** Model for ID */
+  /** Unique ID */
+  id?: IdType;
+  /** Foreign Key to Model */
   fk_model_id?: IdType;
-  /** Model for ID */
+  /** Foreign Key to Column */
   fk_column_id?: IdType;
-  logical_op?: string;
-  comparison_op?: string;
-  /** Model for StringOrNull */
-  comparison_sub_op?: StringOrNullType;
+  /** Logical Operator */
+  logical_op?: 'and' | 'or' | 'not';
+  /** Comparison Operator */
+  comparison_op?:
+    | 'eq'
+    | 'neq'
+    | 'not'
+    | 'like'
+    | 'nlike'
+    | 'empty'
+    | 'notempty'
+    | 'null'
+    | 'notnull'
+    | 'checked'
+    | 'notchecked'
+    | 'blank'
+    | 'notblank'
+    | 'allof'
+    | 'anyof'
+    | 'nallof'
+    | 'nanyof'
+    | 'gt'
+    | 'lt'
+    | 'gte'
+    | 'lte'
+    | 'ge'
+    | 'le'
+    | 'in'
+    | 'isnot'
+    | 'is'
+    | 'isWithin'
+    | 'btw'
+    | 'nbtw';
+  /** Comparison Sub-Operator */
+  comparison_sub_op?:
+    | 'pastWeek'
+    | 'pastMonth'
+    | 'pastYear'
+    | 'nextWeek'
+    | 'nextYear'
+    | 'pastNumberOfDays'
+    | 'nextNumberOfDays'
+    | 'today'
+    | 'tomorrow'
+    | 'yesterday'
+    | 'oneWeekAgo'
+    | 'oneWeekFromNow'
+    | 'oneMonthAgo'
+    | 'oneMonthFromNow'
+    | 'daysAgo'
+    | 'daysFromNow'
+    | 'exactDate'
+    | null
+    | (
+        | 'pastWeek'
+        | 'pastMonth'
+        | 'pastYear'
+        | 'nextWeek'
+        | 'nextYear'
+        | 'pastNumberOfDays'
+        | 'nextNumberOfDays'
+        | 'today'
+        | 'tomorrow'
+        | 'yesterday'
+        | 'oneWeekAgo'
+        | 'oneWeekFromNow'
+        | 'oneMonthAgo'
+        | 'oneMonthFromNow'
+        | 'daysAgo'
+        | 'daysFromNow'
+        | ('exactDate' & null)
+      );
+  /** The filter value. Can be NULL for some operators. */
   value?: any;
+  /** Is this filter grouped? */
   is_group?: boolean | number | null;
+  /** Children filters. Available when the filter is grouped. */
   children?: FilterType[];
+  /** Unique Project ID */
   project_id?: string;
+  /** Unqiue Base ID */
   base_id?: string;
-  /** Model for ID */
-  fk_parent_id?: IdType;
-  /** Model for StringOrNull */
+  /** Foreign Key to parent group. */
+  fk_parent_id?: StringOrNullType;
+  /** Foreign Key to View */
   fk_view_id?: StringOrNullType;
-  /** Model for StringOrNull */
+  /** Foreign Key to Hook */
   fk_hook_id?: StringOrNullType;
 }
 
@@ -502,7 +566,8 @@ export interface FilterListType {
  * Model for Sort
  */
 export interface SortType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   /** Model for ID */
   fk_model_id?: IdType;
   /** Model for ID */
@@ -536,7 +601,8 @@ export interface SortListType {
  * Model for Column
  */
 export interface ColumnType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   base_id?: string;
   fk_model_id?: string;
   title?: string;
@@ -605,7 +671,8 @@ export interface ColumnListType {
  * Model for LinkToAnotherRecord
  */
 export interface LinkToAnotherRecordType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   type?: string;
   /** Model for Bool */
   virtual?: BoolType;
@@ -628,7 +695,8 @@ export interface LinkToAnotherRecordType {
  * Model for Lookup
  */
 export interface LookupType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   type?: string;
   /** Model for Bool */
   virtual?: BoolType;
@@ -644,7 +712,8 @@ export interface LookupType {
  * Model for Rollup
  */
 export interface RollupType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   type?: string;
   /** Model for Bool */
   virtual?: BoolType;
@@ -661,7 +730,8 @@ export interface RollupType {
  * Model for Formula
  */
 export interface FormulaType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   type?: string;
   /** Model for Bool */
   virtual?: BoolType;
@@ -684,7 +754,8 @@ export interface SelectOptionsType {
  * Model for SelectOption
  */
 export interface SelectOptionType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   title?: string;
@@ -696,7 +767,8 @@ export interface SelectOptionType {
  * Model for Grid
  */
 export interface GridType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   title?: string;
   alias?: string;
   /** Model for Bool */
@@ -784,7 +856,8 @@ export interface GalleryReqType {
  * Model for Gallery Column
  */
 export interface GalleryColumnType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   label?: string;
   help?: string;
   fk_col_id?: string;
@@ -828,7 +901,8 @@ export interface GridColumnType {
  * Model for Kanban Column
  */
 export interface KanbanColumnType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   label?: string;
   help?: string;
   /** Foreign Key to Column */
@@ -840,7 +914,8 @@ export interface KanbanColumnType {
  * Model for Kanban
  */
 export interface KanbanType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   title?: string;
   alias?: string;
   columns?: KanbanColumnType[];
@@ -986,7 +1061,8 @@ export interface KanbanUpdateReqType {
  * Model for Form
  */
 export interface FormType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   title?: string;
   heading?: string;
   subheading?: string;
@@ -1100,11 +1176,24 @@ export interface FormColumnReqType {
  * Model for Paginated
  */
 export interface PaginatedType {
+  /**
+   * The number of pages
+   * @example 10
+   */
   pageSize?: number;
+  /**
+   * The number of rows in the given result
+   * @example 1
+   */
   totalRows?: number;
-  sort?: string | SortType[];
+  /** Is the current page the first page */
   isFirstPage?: boolean;
+  /** Is the current page the last page */
   isLastPage?: boolean;
+  /**
+   * The current page
+   * @example 1
+   */
   page?: number;
 }
 
@@ -1121,7 +1210,8 @@ export interface HookListType {
  * Model for Shared View
  */
 export interface SharedViewType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   fk_view_id?: string;
   password?: string;
   deleted?: string;
@@ -1162,7 +1252,8 @@ export interface AttachmentType {
  * Model for Webhook
  */
 export interface WebhookType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   title?: string;
   type?: string;
 }
@@ -1171,7 +1262,8 @@ export interface WebhookType {
  * Model for Audit
  */
 export interface AuditType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   user?: string;
   ip?: string;
   base_id?: string;
@@ -1189,7 +1281,8 @@ export interface AuditType {
  * Model for Hook
  */
 export interface HookType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   fk_model_id?: string;
   title?: string;
   description?: string;
@@ -1309,7 +1402,8 @@ export interface ApiTokenReqType {
  * Model for Plugin
  */
 export interface PluginType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   title?: string;
   description?: string;
   /** Model for Bool */
@@ -1334,7 +1428,8 @@ export interface PluginType {
  * Model for ModelRoleVisibility
  */
 export interface ModelRoleVisibilityType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   project_id?: string;
   base_id?: string;
   fk_model_id?: string;
@@ -1348,7 +1443,8 @@ export interface ModelRoleVisibilityType {
  * Model for API Token
  */
 export interface ApiTokenType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   token?: string;
   description?: string;
   fk_user_id?: string;
@@ -1360,7 +1456,8 @@ export interface ApiTokenType {
  * Model for Hook Log
  */
 export interface HookLogType {
-  id?: string;
+  /** Unique ID */
+  id?: IdType;
   base_id?: string;
   project_id?: string;
   /** Model for StringOrNull */
@@ -3197,10 +3294,10 @@ export class Api<
      * @name Read
      * @summary Read Table
      * @request GET:/api/v1/db/meta/tables/{tableId}
-     * @response `200` `TableInfoType` OK
+     * @response `200` `TableType` OK
      */
     read: (tableId: IdType, params: RequestParams = {}) =>
-      this.request<TableInfoType, any>({
+      this.request<TableType, any>({
         path: `/api/v1/db/meta/tables/${tableId}`,
         method: 'GET',
         format: 'json',
@@ -3237,7 +3334,7 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description Delete the table meta data by the given table ID
      *
      * @tags DB Table
      * @name Delete

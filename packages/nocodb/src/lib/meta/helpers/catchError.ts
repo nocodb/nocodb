@@ -1,3 +1,5 @@
+import { ErrorObject } from 'ajv';
+
 enum DBError {
   TABLE_EXIST = 'TABLE_EXIST',
   TABLE_NOT_EXIST = 'TABLE_NOT_EXIST',
@@ -409,6 +411,8 @@ export default function (
         return res.status(500).json({ msg: e.message });
       } else if (e instanceof NotImplemented) {
         return res.status(501).json({ msg: e.message });
+      } else if (e instanceof AjvError) {
+        return res.status(501).json({ msg: e.message, errors: e.errors });
       }
       next(e);
     }
@@ -426,6 +430,15 @@ class NotFound extends Error {}
 class InternalServerError extends Error {}
 
 class NotImplemented extends Error {}
+
+class AjvError extends Error {
+  constructor(param: { message: string; errors: ErrorObject[] }) {
+    super(param.message);
+    this.errors = param.errors;
+  }
+
+  errors: ErrorObject[];
+}
 
 export class NcError {
   static notFound(message = 'Not found') {
@@ -450,5 +463,9 @@ export class NcError {
 
   static notImplemented(message = 'Not implemented') {
     throw new NotImplemented(message);
+  }
+
+  static ajvValidationError(param: { message: string; errors: ErrorObject[] }) {
+    throw new AjvError(param);
   }
 }

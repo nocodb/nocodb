@@ -1697,94 +1697,363 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TableInfo"
+                  "$ref": "#/components/schemas/Table"
                 },
                 "examples": {
-                  "example-1": {
+                  "Example 1": {
                     "value": {
-                      "id": "string",
-                      "fk_project_id": "string",
-                      "fk_base_id": "string",
-                      "title": "string",
-                      "alias": "string",
-                      "type": "string",
-                      "enabled": "string",
-                      "parent_id": "string",
-                      "show_as": "string",
-                      "tags": "string",
-                      "pinned": true,
-                      "deleted": true,
-                      "order": 0,
-                      "column": [
+                      "id": "md_rsu68aqjsbyqtl",
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "project_id": "p_xm3thidrblw4n7",
+                      "table_name": "nc_vm5q___Table1",
+                      "title": "Table1",
+                      "type": "table",
+                      "meta": null,
+                      "schema": null,
+                      "enabled": 1,
+                      "mm": 0,
+                      "tags": null,
+                      "pinned": null,
+                      "deleted": null,
+                      "order": 1,
+                      "created_at": "2023-03-02 17:04:06",
+                      "updated_at": "2023-03-02 17:04:08",
+                      "columns": [
                         {
-                          "id": "string",
-                          "base_id": "string",
-                          "fk_model_id": "string",
-                          "title": "string",
-                          "alias": "string",
-                          "ui_data_type": "string",
-                          "data_type": "string",
-                          "numeric_precision": "string",
-                          "numeric_scale": "string",
-                          "character_maximum_length": "string",
-                          "column_ordinal_position": "string",
-                          "primary_key": "string",
-                          "primary_value": "string",
-                          "rqd": "string",
-                          "un": "string",
-                          "column_type": "string",
-                          "auto_increment": "string",
-                          "unique": "string",
-                          "column_default": "string",
-                          "column_comment": "string",
-                          "character_set_name": "string",
-                          "data_type_x": "string",
-                          "data_type_x_precision": "string",
-                          "data_type_x_scale": "string",
-                          "auto_update_timestamp": true,
-                          "deleted": true,
-                          "visible": true,
-                          "order": 0,
-                          "colOptions": {
-                            "id": "string",
-                            "type": "string",
-                            "virtual": true,
-                            "fk_column_id": "string",
-                            "fk_child_column_id": "string",
-                            "fk_parent_column_id": "string",
-                            "fk_mm_model_id": "string",
-                            "fk_mm_child_column_id": "string",
-                            "fk_mm_parent_column_id": "string",
-                            "ur": "string",
-                            "dr": "string",
-                            "fk_index_name": "string",
-                            "deleted": "string",
-                            "order": "string"
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Id",
+                          "column_name": "id",
+                          "uidt": "ID",
+                          "dt": "int",
+                          "np": "10",
+                          "ns": "0",
+                          "clen": null,
+                          "cop": "1",
+                          "pk": 1,
+                          "pv": null,
+                          "rqd": 1,
+                          "un": 1,
+                          "ct": "int unsigned",
+                          "ai": 1,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Title",
+                          "column_name": "title",
+                          "uidt": "SingleLineText",
+                          "dt": "varchar",
+                          "np": null,
+                          "ns": null,
+                          "clen": "45",
+                          "cop": "2",
+                          "pk": 0,
+                          "pv": 1,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "varchar(45)",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": "utf8mb4",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 2,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "CreatedAt",
+                          "column_name": "created_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "3",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 3,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "UpdatedAt",
+                          "column_name": "updated_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "4",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 4,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        }
+                      ],
+                      "views": [
+                        {
+                          "ptn": "nc_vm5q___Table1",
+                          "_ptn": "Table1",
+                          "ptype": "table",
+                          "tn": "Table1",
+                          "_tn": "Table1",
+                          "table_meta": null,
+                          "id": "vw_p2jcatxz4mvcfw",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Table1",
+                          "type": 3,
+                          "is_default": 1,
+                          "show_system_fields": null,
+                          "lock_type": "collaborative",
+                          "uuid": null,
+                          "password": null,
+                          "show": 1,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": {},
+                          "view": {
+                            "fk_view_id": "vw_p2jcatxz4mvcfw",
+                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "project_id": "p_xm3thidrblw4n7",
+                            "uuid": null,
+                            "created_at": "2023-03-02 17:04:06",
+                            "updated_at": "2023-03-02 17:04:06",
+                            "meta": null,
+                            "row_height": null
+                          },
+                          "disabled": {
+                            "owner": false,
+                            "creator": false,
+                            "viewer": false,
+                            "editor": false,
+                            "commenter": false,
+                            "guest": false
                           }
                         }
                       ],
-                      "filters": [
-                        {
-                          "id": "string",
-                          "fk_model_id": "string",
-                          "fk_column_id": "string",
-                          "logical_op": "string",
-                          "comparison_op": "string",
-                          "comparison_sub_op": "string",
-                          "value": "string",
-                          "is_group": true,
-                          "children": [{}]
+                      "columnsById": {
+                        "cl_phvuuwjrzcdo0g": {
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Id",
+                          "column_name": "id",
+                          "uidt": "ID",
+                          "dt": "int",
+                          "np": "10",
+                          "ns": "0",
+                          "clen": null,
+                          "cop": "1",
+                          "pk": 1,
+                          "pv": null,
+                          "rqd": 1,
+                          "un": 1,
+                          "ct": "int unsigned",
+                          "ai": 1,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        "cl_c5knoi4xs4sfpt": {
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Title",
+                          "column_name": "title",
+                          "uidt": "SingleLineText",
+                          "dt": "varchar",
+                          "np": null,
+                          "ns": null,
+                          "clen": "45",
+                          "cop": "2",
+                          "pk": 0,
+                          "pv": 1,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "varchar(45)",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": "utf8mb4",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 2,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        "cl_jpl0qu4gj4rexq": {
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "CreatedAt",
+                          "column_name": "created_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "3",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 3,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        "cl_m4wkaqgqqjzoeh": {
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "UpdatedAt",
+                          "column_name": "updated_at",
+                          "uidt": "DateTime",
+                          "dt": "timestamp",
+                          "np": null,
+                          "ns": null,
+                          "clen": null,
+                          "cop": "4",
+                          "pk": 0,
+                          "pv": null,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "timestamp",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 4,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
                         }
-                      ],
-                      "sort": [
-                        {
-                          "id": "string",
-                          "fk_model_id": "string",
-                          "fk_column_id": "string",
-                          "direction": "string",
-                          "order": 0
-                        }
-                      ]
+                      }
                     }
                   }
                 }
@@ -1843,7 +2112,7 @@
           }
         },
         "tags": ["DB Table"],
-        "description": ""
+        "description": "Delete the table meta data by the given table ID"
       }
     },
     "/api/v1/db/meta/projects/{projectId}/{baseId}/tables": {
@@ -7417,18 +7686,19 @@
         },
         "examples": [
           {
-            "id": "string",
-            "project_id": "string",
-            "alias": "string",
+            "id": "ds_krsappzu9f8vmo",
+            "project_id": "p_01clqvzik3izk6",
+            "alias": null,
+            "config": "<ENCRYPTED>",
+            "meta": null,
+            "is_meta": 1,
             "type": "mysql2",
-            "is_meta": true,
-            "config": null,
-            "created_at": "2023-03-01 14:27:36",
-            "updated_at": "2023-03-01 14:27:36",
             "inflection_column": "camelize",
             "inflection_table": "camelize",
-            "order": 1,
-            "enabled": true
+            "created_at": "2023-03-01 16:31:49",
+            "updated_at": "2023-03-02 11:28:17",
+            "enabled": 1,
+            "order": 1
           }
         ]
       },
@@ -7473,7 +7743,17 @@
             "description": "Inflection for tables",
             "example": "camelize"
           }
-        }
+        },
+        "examples": [
+          {
+            "alias": "My Base",
+            "type": "mysql",
+            "is_meta": true,
+            "config": null,
+            "inflection_column": "camelize",
+            "inflection_table": "camelize"
+          }
+        ]
       },
       "BaseList": {
         "description": "Model for Base List",
@@ -7574,240 +7854,93 @@
           }
         ]
       },
-      "Table": {
-        "title": "Table Model",
-        "type": "object",
-        "examples": [
-          {
-            "id": "string",
-            "project_id": "string",
-            "base_id": "string",
-            "title": "string",
-            "alias": "string",
-            "type": "string",
-            "enabled": true,
-            "parent_id": "string",
-            "show_as": "string",
-            "tags": "string",
-            "pinned": true,
-            "deleted": true,
-            "order": 0,
-            "column": [
-              {
-                "id": "string",
-                "base_id": "string",
-                "fk_model_id": "string",
-                "title": "string",
-                "alias": "string",
-                "ui_data_type": "string",
-                "data_type": "string",
-                "numeric_precision": "string",
-                "numeric_scale": "string",
-                "character_maximum_length": "string",
-                "column_ordinal_position": "string",
-                "primary_key": true,
-                "primary_value": true,
-                "rqd": "string",
-                "un": "string",
-                "column_type": "string",
-                "auto_increment": true,
-                "unique": true,
-                "column_default": "string",
-                "column_comment": "string",
-                "character_set_name": "string",
-                "data_type_x": "string",
-                "data_type_x_precision": "string",
-                "data_type_x_scale": "string",
-                "auto_update_timestamp": true,
-                "deleted": true,
-                "visible": true,
-                "order": 0,
-                "colOptions": {
-                  "id": "string",
-                  "type": "string",
-                  "virtual": true,
-                  "fk_column_id": "string",
-                  "fk_child_column_id": "string",
-                  "fk_parent_column_id": "string",
-                  "fk_mm_model_id": "string",
-                  "fk_mm_child_column_id": "string",
-                  "fk_mm_parent_column_id": "string",
-                  "ur": "string",
-                  "dr": "string",
-                  "fk_index_name": "string",
-                  "deleted": "string",
-                  "order": "string"
-                }
-              }
-            ],
-            "columnByIds": {}
-          }
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "project_id": {
-            "type": "string"
-          },
-          "base_id": {
-            "type": "string"
-          },
-          "table_name": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "enabled": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "parent_id": {
-            "type": "string"
-          },
-          "show_as": {
-            "type": "string"
-          },
-          "tags": {
-            "type": "string"
-          },
-          "pinned": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "deleted": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "order": {
-            "type": "number"
-          },
-          "columns": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Column"
-            }
-          },
-          "columnsById": {
-            "type": "object"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "mm": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta"
-          }
-        },
-        "required": ["table_name", "title"],
-        "description": "Model for Table"
-      },
       "View": {
         "title": "View Model",
         "type": "object",
         "examples": [
           {
-            "id": "string",
-            "fk_project_id": "string",
-            "fk_base_id": "string",
-            "title": "string",
-            "alias": "string",
-            "type": "string",
-            "enabled": true,
-            "parent_id": "string",
-            "show_as": "string",
-            "tags": "string",
-            "pinned": true,
-            "deleted": true,
-            "order": 0,
-            "column": [
-              {
-                "id": "string",
-                "base_id": "string",
-                "fk_model_id": "string",
-                "title": "string",
-                "alias": "string",
-                "ui_data_type": "string",
-                "data_type": "string",
-                "numeric_precision": "string",
-                "numeric_scale": "string",
-                "character_maximum_length": "string",
-                "column_ordinal_position": "string",
-                "primary_key": true,
-                "primary_value": true,
-                "rqd": "string",
-                "un": "string",
-                "column_type": "string",
-                "auto_increment": true,
-                "unique": true,
-                "column_default": "string",
-                "column_comment": "string",
-                "character_set_name": "string",
-                "data_type_x": "string",
-                "data_type_x_precision": "string",
-                "data_type_x_scale": "string",
-                "auto_update_timestamp": true,
-                "deleted": true,
-                "visible": true,
-                "order": 0,
-                "colOptions": {
-                  "id": "string",
-                  "type": "string",
-                  "virtual": true,
-                  "fk_column_id": "string",
-                  "fk_child_column_id": "string",
-                  "fk_parent_column_id": "string",
-                  "fk_mm_model_id": "string",
-                  "fk_mm_child_column_id": "string",
-                  "fk_mm_parent_column_id": "string",
-                  "ur": "string",
-                  "dr": "string",
-                  "fk_index_name": "string",
-                  "deleted": "string",
-                  "order": "string"
-                }
-              }
-            ],
-            "columnByIds": {}
+            "id": "vw_lg052cnc1c26kf",
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "project_id": "p_xm3thidrblw4n7",
+            "fk_model_id": "md_mhs9z4r2ak98x0",
+            "title": "Sheet-1",
+            "type": 3,
+            "is_default": 1,
+            "show_system_fields": null,
+            "lock_type": "collaborative",
+            "uuid": null,
+            "password": null,
+            "show": 1,
+            "order": 1,
+            "created_at": "2023-03-02 17:46:31",
+            "updated_at": "2023-03-02 17:46:31",
+            "meta": {},
+            "view": {
+              "fk_view_id": "vw_lg052cnc1c26kf",
+              "base_id": "ds_g4ccx6e77h1dmi",
+              "project_id": "p_xm3thidrblw4n7",
+              "uuid": null,
+              "created_at": "2023-03-02 17:46:31",
+              "updated_at": "2023-03-02 17:46:31",
+              "meta": null,
+              "row_height": null
+            }
           }
         ],
+        "description": "Model for View",
         "properties": {
           "id": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID for View"
           },
-          "title": {
-            "type": "string"
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Base ID"
           },
-          "deleted": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "order": {
-            "type": "number"
+          "project_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Project ID"
           },
           "fk_model_id": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Model ID"
           },
-          "slug": {
-            "type": "string"
+          "title": {
+            "type": "string",
+            "description": "View Title"
+          },
+          "type": {
+            "type": "number",
+            "description": "View Type"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "If this view is shown?"
+          },
+          "order": {
+            "type": "number",
+            "description": "The rder of the list of views"
           },
           "uuid": {
-            "type": "string"
+            "type": "string",
+            "description": "UUID of the view"
+          },
+          "password": {
+            "type": "string",
+            "description": "Password for protecting the view"
           },
           "meta": {
-            "$ref": "#/components/schemas/Meta"
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for this view"
           },
           "show_system_fields": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Should show system fields in this view?"
           },
           "lock_type": {
             "type": "string",
-            "enum": ["collaborative", "locked", "personal"]
-          },
-          "type": {
-            "type": "number"
+            "enum": ["collaborative", "locked", "personal"],
+            "description": "Lock Type of the view"
           },
           "view": {
             "anyOf": [
@@ -7826,163 +7959,437 @@
               {
                 "$ref": "#/components/schemas/Map"
               }
-            ]
+            ],
+            "description": "Associated View Model"
           }
         },
-        "required": ["title"],
-        "description": "Model for View"
+        "required": ["id", "base_id", "project_id", "fk_model_id", "title"]
       },
-      "TableInfo": {
-        "title": "TableInfo Model",
+      "Table": {
+        "title": "Table Model",
         "type": "object",
         "examples": [
           {
-            "id": "string",
-            "fk_project_id": "string",
-            "fk_base_id": "string",
-            "title": "string",
-            "alias": "string",
-            "type": "string",
-            "enabled": "string",
-            "parent_id": "string",
-            "show_as": "string",
-            "tags": "string",
-            "pinned": true,
-            "deleted": true,
-            "order": 0,
-            "column": [
+            "id": "md_rsu68aqjsbyqtl",
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "project_id": "p_xm3thidrblw4n7",
+            "table_name": "nc_vm5q___Table1",
+            "title": "Table1",
+            "type": "table",
+            "meta": null,
+            "schema": null,
+            "enabled": 1,
+            "mm": 0,
+            "tags": null,
+            "pinned": null,
+            "deleted": null,
+            "order": 1,
+            "created_at": "2023-03-02 17:04:06",
+            "updated_at": "2023-03-02 17:04:08",
+            "columns": [
               {
-                "id": "string",
-                "base_id": "string",
-                "fk_model_id": "string",
-                "title": "string",
-                "alias": "string",
-                "ui_data_type": "string",
-                "data_type": "string",
-                "numeric_precision": "string",
-                "numeric_scale": "string",
-                "character_maximum_length": "string",
-                "column_ordinal_position": "string",
-                "primary_key": "string",
-                "primary_value": "string",
-                "rqd": "string",
-                "un": "string",
-                "column_type": "string",
-                "auto_increment": "string",
-                "unique": "string",
-                "column_default": "string",
-                "column_comment": "string",
-                "character_set_name": "string",
-                "data_type_x": "string",
-                "data_type_x_precision": "string",
-                "data_type_x_scale": "string",
-                "auto_update_timestamp": true,
-                "deleted": true,
-                "visible": true,
-                "order": 0,
-                "colOptions": {
-                  "id": "string",
-                  "type": "string",
-                  "virtual": true,
-                  "fk_column_id": "string",
-                  "fk_child_column_id": "string",
-                  "fk_parent_column_id": "string",
-                  "fk_mm_model_id": "string",
-                  "fk_mm_child_column_id": "string",
-                  "fk_mm_parent_column_id": "string",
-                  "ur": "string",
-                  "dr": "string",
-                  "fk_index_name": "string",
-                  "deleted": "string",
-                  "order": "string"
+                "id": "cl_phvuuwjrzcdo0g",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "Id",
+                "column_name": "id",
+                "uidt": "ID",
+                "dt": "int",
+                "np": "10",
+                "ns": "0",
+                "clen": null,
+                "cop": "1",
+                "pk": 1,
+                "pv": null,
+                "rqd": 1,
+                "un": 1,
+                "ct": "int unsigned",
+                "ai": 1,
+                "unique": 0,
+                "cdf": null,
+                "cc": "",
+                "csn": null,
+                "dtx": "specificType",
+                "dtxp": "",
+                "dtxs": "0",
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 1,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
+              },
+              {
+                "id": "cl_c5knoi4xs4sfpt",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "Title",
+                "column_name": "title",
+                "uidt": "SingleLineText",
+                "dt": "varchar",
+                "np": null,
+                "ns": null,
+                "clen": "45",
+                "cop": "2",
+                "pk": 0,
+                "pv": 1,
+                "rqd": 0,
+                "un": 0,
+                "ct": "varchar(45)",
+                "ai": 0,
+                "unique": 0,
+                "cdf": null,
+                "cc": "",
+                "csn": "utf8mb4",
+                "dtx": "specificType",
+                "dtxp": "45",
+                "dtxs": null,
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 2,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
+              },
+              {
+                "id": "cl_jpl0qu4gj4rexq",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "CreatedAt",
+                "column_name": "created_at",
+                "uidt": "DateTime",
+                "dt": "timestamp",
+                "np": null,
+                "ns": null,
+                "clen": null,
+                "cop": "3",
+                "pk": 0,
+                "pv": null,
+                "rqd": 0,
+                "un": 0,
+                "ct": "timestamp",
+                "ai": 0,
+                "unique": 0,
+                "cdf": "CURRENT_TIMESTAMP",
+                "cc": "",
+                "csn": null,
+                "dtx": "specificType",
+                "dtxp": "0",
+                "dtxs": null,
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 3,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
+              },
+              {
+                "id": "cl_m4wkaqgqqjzoeh",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "UpdatedAt",
+                "column_name": "updated_at",
+                "uidt": "DateTime",
+                "dt": "timestamp",
+                "np": null,
+                "ns": null,
+                "clen": null,
+                "cop": "4",
+                "pk": 0,
+                "pv": null,
+                "rqd": 0,
+                "un": 0,
+                "ct": "timestamp",
+                "ai": 0,
+                "unique": 0,
+                "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                "cc": "",
+                "csn": null,
+                "dtx": "specificType",
+                "dtxp": "0",
+                "dtxs": null,
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 4,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
+              }
+            ],
+            "views": [
+              {
+                "ptn": "nc_vm5q___Table1",
+                "_ptn": "Table1",
+                "ptype": "table",
+                "tn": "Table1",
+                "_tn": "Table1",
+                "table_meta": null,
+                "id": "vw_p2jcatxz4mvcfw",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "Table1",
+                "type": 3,
+                "is_default": 1,
+                "show_system_fields": null,
+                "lock_type": "collaborative",
+                "uuid": null,
+                "password": null,
+                "show": 1,
+                "order": 1,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": {},
+                "view": {
+                  "fk_view_id": "vw_p2jcatxz4mvcfw",
+                  "base_id": "ds_g4ccx6e77h1dmi",
+                  "project_id": "p_xm3thidrblw4n7",
+                  "uuid": null,
+                  "created_at": "2023-03-02 17:04:06",
+                  "updated_at": "2023-03-02 17:04:06",
+                  "meta": null,
+                  "row_height": null
+                },
+                "disabled": {
+                  "owner": false,
+                  "creator": false,
+                  "viewer": false,
+                  "editor": false,
+                  "commenter": false,
+                  "guest": false
                 }
               }
             ],
-            "filters": [
-              {
-                "id": "string",
-                "fk_model_id": "string",
-                "fk_column_id": "string",
-                "logical_op": "string",
-                "comparison_op": "string",
-                "comparison_sub_op": "string",
-                "value": "string",
-                "is_group": true,
-                "children": [{}]
+            "columnsById": {
+              "cl_phvuuwjrzcdo0g": {
+                "id": "cl_phvuuwjrzcdo0g",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "Id",
+                "column_name": "id",
+                "uidt": "ID",
+                "dt": "int",
+                "np": "10",
+                "ns": "0",
+                "clen": null,
+                "cop": "1",
+                "pk": 1,
+                "pv": null,
+                "rqd": 1,
+                "un": 1,
+                "ct": "int unsigned",
+                "ai": 1,
+                "unique": 0,
+                "cdf": null,
+                "cc": "",
+                "csn": null,
+                "dtx": "specificType",
+                "dtxp": "",
+                "dtxs": "0",
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 1,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
+              },
+              "cl_c5knoi4xs4sfpt": {
+                "id": "cl_c5knoi4xs4sfpt",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "Title",
+                "column_name": "title",
+                "uidt": "SingleLineText",
+                "dt": "varchar",
+                "np": null,
+                "ns": null,
+                "clen": "45",
+                "cop": "2",
+                "pk": 0,
+                "pv": 1,
+                "rqd": 0,
+                "un": 0,
+                "ct": "varchar(45)",
+                "ai": 0,
+                "unique": 0,
+                "cdf": null,
+                "cc": "",
+                "csn": "utf8mb4",
+                "dtx": "specificType",
+                "dtxp": "45",
+                "dtxs": null,
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 2,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
+              },
+              "cl_jpl0qu4gj4rexq": {
+                "id": "cl_jpl0qu4gj4rexq",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "CreatedAt",
+                "column_name": "created_at",
+                "uidt": "DateTime",
+                "dt": "timestamp",
+                "np": null,
+                "ns": null,
+                "clen": null,
+                "cop": "3",
+                "pk": 0,
+                "pv": null,
+                "rqd": 0,
+                "un": 0,
+                "ct": "timestamp",
+                "ai": 0,
+                "unique": 0,
+                "cdf": "CURRENT_TIMESTAMP",
+                "cc": "",
+                "csn": null,
+                "dtx": "specificType",
+                "dtxp": "0",
+                "dtxs": null,
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 3,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
+              },
+              "cl_m4wkaqgqqjzoeh": {
+                "id": "cl_m4wkaqgqqjzoeh",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "UpdatedAt",
+                "column_name": "updated_at",
+                "uidt": "DateTime",
+                "dt": "timestamp",
+                "np": null,
+                "ns": null,
+                "clen": null,
+                "cop": "4",
+                "pk": 0,
+                "pv": null,
+                "rqd": 0,
+                "un": 0,
+                "ct": "timestamp",
+                "ai": 0,
+                "unique": 0,
+                "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                "cc": "",
+                "csn": null,
+                "dtx": "specificType",
+                "dtxp": "0",
+                "dtxs": null,
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 4,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
               }
-            ],
-            "sort": [
-              {
-                "id": "string",
-                "fk_model_id": "string",
-                "fk_column_id": "string",
-                "direction": "string",
-                "order": 0
-              }
-            ]
+            }
           }
         ],
+        "description": "Model for Table",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique Table ID"
           },
-          "fk_project_id": {
-            "$ref": "#/components/schemas/Id"
+          "project_id": {
+            "type": "string",
+            "description": "Unique Project ID"
           },
-          "fk_base_id": {
-            "$ref": "#/components/schemas/Id"
-          },
-          "title": {
-            "type": "string"
+          "base_id": {
+            "type": "string",
+            "description": "Unique Base ID"
           },
           "table_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Table Name. Prefix will be added for XCDB projects."
+          },
+          "title": {
+            "type": "string",
+            "description": "Table Title"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "description": "Table Type"
           },
           "enabled": {
-            "type": "string"
-          },
-          "parent_id": {
-            "type": "string"
-          },
-          "show_as": {
-            "type": "string"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this table enabled?"
           },
           "tags": {
-            "type": "string"
+            "type": "string",
+            "description": "Currently not in use"
           },
           "pinned": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Currently not in use"
           },
           "deleted": {
             "$ref": "#/components/schemas/Bool"
           },
           "order": {
-            "type": "number"
+            "type": "number",
+            "description": "The order of the list of tables"
           },
-          "column": {
+          "columns": {
             "type": "array",
+            "description": "The columns included in this table",
             "items": {
               "$ref": "#/components/schemas/Column"
             }
           },
-          "filters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Filter"
-            }
+          "columnsById": {
+            "type": "object",
+            "description": "Column Models grouped by IDs"
           },
-          "sort": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Sort"
-            }
+          "mm": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this table used for M2M"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Data"
           }
         },
-        "required": ["title", "table_name"],
-        "description": "Model for Table Info"
+        "required": ["table_name", "title"]
       },
       "TableReq": {
         "title": "Table Request Model",
@@ -8023,33 +8430,102 @@
         "required": ["table_name", "title", "columns"],
         "examples": [
           {
-            "table_name": "my_table",
-            "title": "My Table",
-            "order": 1,
+            "title": "Sheet-1",
+            "table_name": "Sheet-1",
             "columns": [
               {
-                "uidt": "ID",
-                "title": "string",
-                "dt": "string",
-                "np": 0,
-                "ns": 0,
-                "pk": true,
-                "pv": true,
+                "column_name": "id",
+                "title": "Id",
+                "dt": "int",
+                "dtx": "integer",
+                "ct": "int(11)",
+                "nrqd": false,
                 "rqd": true,
-                "column_name": "string",
+                "ck": false,
+                "pk": true,
                 "un": true,
                 "ai": true,
-                "unique": true,
-                "cdf": "string",
-                "cc": "string",
-                "csn": "string",
-                "dtx": "string",
-                "dtxp": 0,
-                "dtxs": 0,
-                "au": true
+                "cdf": null,
+                "clen": null,
+                "np": 11,
+                "ns": 0,
+                "dtxp": "11",
+                "dtxs": "",
+                "altered": 1,
+                "uidt": "ID",
+                "uip": "",
+                "uicn": ""
+              },
+              {
+                "column_name": "title",
+                "title": "Title",
+                "dt": "varchar",
+                "dtx": "specificType",
+                "ct": "varchar(45)",
+                "nrqd": true,
+                "rqd": false,
+                "ck": false,
+                "pk": false,
+                "un": false,
+                "ai": false,
+                "cdf": null,
+                "clen": 45,
+                "np": null,
+                "ns": null,
+                "dtxp": "45",
+                "dtxs": "",
+                "altered": 1,
+                "uidt": "SingleLineText",
+                "uip": "",
+                "uicn": ""
+              },
+              {
+                "column_name": "created_at",
+                "title": "CreatedAt",
+                "dt": "timestamp",
+                "dtx": "specificType",
+                "ct": "varchar(45)",
+                "nrqd": true,
+                "rqd": false,
+                "ck": false,
+                "pk": false,
+                "un": false,
+                "ai": false,
+                "cdf": "CURRENT_TIMESTAMP",
+                "clen": 45,
+                "np": null,
+                "ns": null,
+                "dtxp": "",
+                "dtxs": "",
+                "altered": 1,
+                "uidt": "DateTime",
+                "uip": "",
+                "uicn": ""
+              },
+              {
+                "column_name": "updated_at",
+                "title": "UpdatedAt",
+                "dt": "timestamp",
+                "dtx": "specificType",
+                "ct": "varchar(45)",
+                "nrqd": true,
+                "rqd": false,
+                "ck": false,
+                "pk": false,
+                "un": false,
+                "ai": false,
+                "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                "clen": 45,
+                "np": null,
+                "ns": null,
+                "dtxp": "",
+                "dtxs": "",
+                "altered": 1,
+                "uidt": "DateTime",
+                "uip": "",
+                "uicn": ""
               }
-            ],
-            "meta": {}
+            ]
           }
         ]
       },

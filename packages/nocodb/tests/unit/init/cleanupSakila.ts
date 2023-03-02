@@ -9,13 +9,26 @@ const dropTablesOfSakila = async () => {
   for (const tableName of sakilaTableNames) {
     try {
       if (TestDbMngr.isPg()) {
-        await TestDbMngr.sakilaKnex.raw(`DROP TABLE "${tableName}" CASCADE`);
+        await TestDbMngr.sakilaKnex.raw(
+          `DROP TABLE IF EXISTS "${tableName}" CASCADE`
+        );
       } else {
         await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
       }
     } catch (e) {}
   }
   await TestDbMngr.enableForeignKeyChecks(TestDbMngr.sakilaKnex);
+};
+
+const dropSchemaAndSeedSakila = async () => {
+  try {
+    await TestDbMngr.sakilaKnex.raw(`DROP SCHEMA "public" CASCADE`);
+    await TestDbMngr.sakilaKnex.raw(`CREATE SCHEMA "public"`);
+    await TestDbMngr.seedSakila();
+  } catch (e) {
+    console.error('dropSchemaAndSeedSakila', e);
+    throw e;
+  }
 };
 
 const resetAndSeedSakila = async () => {
@@ -36,6 +49,11 @@ const cleanUpSakila = async () => {
       sakilaProject && (await Audit.projectAuditList(sakilaProject.id, {}));
 
     if (audits?.length > 0) {
+      // if PG, drop schema
+      if (TestDbMngr.isPg()) {
+        return await dropSchemaAndSeedSakila();
+      }
+      // if mysql, drop tables
       return await resetAndSeedSakila();
     }
 

@@ -22,6 +22,8 @@ import {
   getRow,
 } from '../../factory/row';
 import { expect } from 'chai';
+import { isPg } from '../../init/db';
+import { isString } from 'util';
 
 // Test case list
 // 1. Get view row list g
@@ -696,7 +698,7 @@ function viewRowTests() {
 
     expect(ascResponse.body.pageInfo.totalRows).equal(594);
 
-    if (ascResponse.body.list[0][rollupColumn.title] !== 12) {
+    if (parseInt(ascResponse.body.list[0][rollupColumn.title]) !== 12) {
       throw new Error('Wrong filter');
     }
 
@@ -958,7 +960,7 @@ function viewRowTests() {
       })
       .expect(200);
 
-    if (ascResponse.body[rollupColumn.title] !== 12) {
+    if (parseInt(ascResponse.body[rollupColumn.title]) !== 12) {
       console.log('response.body', ascResponse.body);
       throw new Error('Wrong filter');
     }
@@ -1022,7 +1024,7 @@ function viewRowTests() {
 
     if (
       response.body.list[4]['first_name'] !== 'WILLIE' ||
-      response.body.list[4]['count'] !== 2
+      parseInt(response.body.list[4]['count']) !== 2
     )
       throw new Error('Wrong groupby');
   };
@@ -1077,7 +1079,7 @@ function viewRowTests() {
 
     if (
       response.body.list[0]['first_name'] !== 'WILLIE' ||
-      response.body.list[0]['count'] !== 2
+      parseInt(response.body.list[0]['count']) !== 2
     )
       throw new Error('Wrong groupby');
   };
@@ -1108,7 +1110,7 @@ function viewRowTests() {
       .set('xc-auth', context.token)
       .expect(200);
 
-    if (response.body.count !== 599) {
+    if (parseInt(response.body.count) !== 599) {
       throw new Error('Wrong count');
     }
   };
@@ -1443,7 +1445,7 @@ function viewRowTests() {
     });
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/invalid-id/exist`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/999999/exist`
       )
       .set('xc-auth', context.token)
       .expect(200);

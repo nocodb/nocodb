@@ -7077,7 +7077,30 @@
             }
           }
         },
-        "required": ["users"]
+        "required": ["users"],
+        "examples": [
+          {
+            "users": {
+              "list": {
+                "id": "us_8kugj628ebjngs",
+                "firstName": "Alice",
+                "lastName": "Smith",
+                "email": "alice.smith@nocodb.com",
+                "roles": "org-level-viewer",
+                "email_verified": true,
+                "created_at": "2023-03-01 11:36:49",
+                "updated_at": "2023-03-01 11:36:49"
+              },
+              "pageInfo": {
+                "pageSize": 10,
+                "totalRows": 1,
+                "isFirstPage": true,
+                "isLastPage": true,
+                "page": 1
+              }
+            }
+          }
+        ]
       },
       "ProjectReq": {
         "title": "Project Request Model",
@@ -7110,7 +7133,24 @@
           }
         },
         "required": ["title"],
-        "description": "Model for Project Request"
+        "description": "Model for Project Request",
+        "examples": [
+          {
+            "title": "My Project",
+            "description": "This is my project description",
+            "color": "#24716E",
+            "bases": [
+              {
+                "alias": "My Base",
+                "type": "mysql",
+                "is_meta": true,
+                "config": null,
+                "inflection_column": "camelize",
+                "inflection_table": "camelize"
+              }
+            ]
+          }
+        ]
       },
       "Project": {
         "title": "Project Model",
@@ -7179,7 +7219,39 @@
             "example": "2023-03-01 14:27:36"
           }
         },
-        "description": "Model for Project"
+        "description": "Model for Project",
+        "examples": [
+          {
+            "id": "p_124hhlkbeasewh",
+            "title": "my-project",
+            "status": "string",
+            "description": "This is my project description",
+            "meta": {},
+            "color": "#24716E",
+            "deleted": true,
+            "order": 0,
+            "bases": [
+              {
+                "id": "string",
+                "project_id": "string",
+                "alias": "string",
+                "type": "mysql2",
+                "is_meta": true,
+                "config": null,
+                "created_at": "2023-03-01 14:27:36",
+                "updated_at": "2023-03-01 14:27:36",
+                "inflection_column": "camelize",
+                "inflection_table": "camelize",
+                "order": 1,
+                "enabled": true
+              }
+            ],
+            "is_meta": true,
+            "prefix": "nc_vm5q__",
+            "created_at": "2023-03-01 14:27:36",
+            "updated_at": "2023-03-01 14:27:36"
+          }
+        ]
       },
       "ProjectList": {
         "type": "object",
@@ -7228,7 +7300,50 @@
           }
         },
         "title": "Project List Model",
-        "description": "Model for Project List"
+        "description": "Model for Project List",
+        "examples": [
+          {
+            "list": [
+              {
+                "id": "p_124hhlkbeasewh",
+                "title": "my-project",
+                "status": "string",
+                "description": "This is my project description",
+                "meta": {},
+                "color": "#24716E",
+                "deleted": true,
+                "order": 0,
+                "bases": [
+                  {
+                    "id": "string",
+                    "project_id": "string",
+                    "alias": "string",
+                    "type": "mysql2",
+                    "is_meta": true,
+                    "config": null,
+                    "created_at": "2023-03-01 14:27:36",
+                    "updated_at": "2023-03-01 14:27:36",
+                    "inflection_column": "camelize",
+                    "inflection_table": "camelize",
+                    "order": 1,
+                    "enabled": true
+                  }
+                ],
+                "is_meta": true,
+                "prefix": "nc_vm5q__",
+                "created_at": "2023-03-01 14:27:36",
+                "updated_at": "2023-03-01 14:27:36"
+              }
+            ],
+            "pageInfo": {
+              "pageSize": 10,
+              "totalRows": 1,
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1
+            }
+          }
+        ]
       },
       "Base": {
         "title": "Base Model",
@@ -7299,7 +7414,23 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is this base enabled"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": "string",
+            "project_id": "string",
+            "alias": "string",
+            "type": "mysql2",
+            "is_meta": true,
+            "config": null,
+            "created_at": "2023-03-01 14:27:36",
+            "updated_at": "2023-03-01 14:27:36",
+            "inflection_column": "camelize",
+            "inflection_table": "camelize",
+            "order": 1,
+            "enabled": true
+          }
+        ]
       },
       "BaseReq": {
         "title": "Base Request",
@@ -7412,7 +7543,36 @@
           }
         },
         "required": ["bases"],
-        "title": "Base List Model"
+        "title": "Base List Model",
+        "examples": [
+          {
+            "bases": {
+              "list": [
+                {
+                  "id": "string",
+                  "project_id": "string",
+                  "alias": "string",
+                  "type": "mysql2",
+                  "is_meta": true,
+                  "config": null,
+                  "created_at": "2023-03-01 14:27:36",
+                  "updated_at": "2023-03-01 14:27:36",
+                  "inflection_column": "camelize",
+                  "inflection_table": "camelize",
+                  "order": 1,
+                  "enabled": true
+                }
+              ],
+              "pageInfo": {
+                "pageSize": 10,
+                "totalRows": 1,
+                "isFirstPage": true,
+                "isLastPage": true,
+                "page": 1
+              }
+            }
+          }
+        ]
       },
       "Table": {
         "title": "Table Model",
@@ -7860,7 +8020,38 @@
             "description": "the meta data for this table"
           }
         },
-        "required": ["table_name", "title", "columns"]
+        "required": ["table_name", "title", "columns"],
+        "examples": [
+          {
+            "table_name": "my_table",
+            "title": "My Table",
+            "order": 1,
+            "columns": [
+              {
+                "uidt": "ID",
+                "title": "string",
+                "dt": "string",
+                "np": 0,
+                "ns": 0,
+                "pk": true,
+                "pv": true,
+                "rqd": true,
+                "column_name": "string",
+                "un": true,
+                "ai": true,
+                "unique": true,
+                "cdf": "string",
+                "cc": "string",
+                "csn": "string",
+                "dtx": "string",
+                "dtxp": 0,
+                "dtxs": 0,
+                "au": true
+              }
+            ],
+            "meta": {}
+          }
+        ]
       },
       "TableList": {
         "description": "Model for Table List",
@@ -7908,7 +8099,84 @@
           }
         },
         "required": ["tables"],
-        "title": "Table List Model"
+        "title": "Table List Model",
+        "examples": [
+          {
+            "list": [
+              {
+                "id": "string",
+                "project_id": "string",
+                "base_id": "string",
+                "title": "string",
+                "alias": "string",
+                "type": "string",
+                "enabled": true,
+                "parent_id": "string",
+                "show_as": "string",
+                "tags": "string",
+                "pinned": true,
+                "deleted": true,
+                "order": 0,
+                "column": [
+                  {
+                    "id": "string",
+                    "base_id": "string",
+                    "fk_model_id": "string",
+                    "title": "string",
+                    "alias": "string",
+                    "ui_data_type": "string",
+                    "data_type": "string",
+                    "numeric_precision": "string",
+                    "numeric_scale": "string",
+                    "character_maximum_length": "string",
+                    "column_ordinal_position": "string",
+                    "primary_key": true,
+                    "primary_value": true,
+                    "rqd": "string",
+                    "un": "string",
+                    "column_type": "string",
+                    "auto_increment": true,
+                    "unique": true,
+                    "column_default": "string",
+                    "column_comment": "string",
+                    "character_set_name": "string",
+                    "data_type_x": "string",
+                    "data_type_x_precision": "string",
+                    "data_type_x_scale": "string",
+                    "auto_update_timestamp": true,
+                    "deleted": true,
+                    "visible": true,
+                    "order": 0,
+                    "colOptions": {
+                      "id": "string",
+                      "type": "string",
+                      "virtual": true,
+                      "fk_column_id": "string",
+                      "fk_child_column_id": "string",
+                      "fk_parent_column_id": "string",
+                      "fk_mm_model_id": "string",
+                      "fk_mm_child_column_id": "string",
+                      "fk_mm_parent_column_id": "string",
+                      "ur": "string",
+                      "dr": "string",
+                      "fk_index_name": "string",
+                      "deleted": "string",
+                      "order": "string"
+                    }
+                  }
+                ],
+                "columnByIds": {}
+              }
+            ],
+            "pageInfo": {
+              "pageSize": 10,
+              "totalRows": 1,
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1
+            }
+          }
+        ]
       },
       "Filter": {
         "type": "object",
@@ -7971,7 +8239,25 @@
             "$ref": "#/components/schemas/StringOrNull"
           }
         },
-        "readOnly": true
+        "readOnly": true,
+        "examples": [
+          {
+            "id": "string",
+            "fk_model_id": "string",
+            "fk_column_id": "string",
+            "logical_op": "string",
+            "comparison_op": "string",
+            "comparison_sub_op": "string",
+            "value": null,
+            "is_group": true,
+            "children": [{}],
+            "project_id": "string",
+            "base_id": "string",
+            "fk_parent_id": "string",
+            "fk_view_id": "string",
+            "fk_hook_id": "string"
+          }
+        ]
       },
       "FilterReq": {
         "type": "object",
@@ -8064,7 +8350,18 @@
             "description": "Belong to which filter ID"
           }
         },
-        "readOnly": true
+        "readOnly": true,
+        "examples": [
+          {
+            "fk_column_id": "string",
+            "logical_op": "and",
+            "comparison_op": "eq",
+            "comparison_sub_op": "pastWeek",
+            "value": null,
+            "is_group": true,
+            "fk_parent_id": "string"
+          }
+        ]
       },
       "FilterList": {
         "description": "Model for Filter List",
@@ -8115,7 +8412,31 @@
           }
         },
         "required": ["filters"],
-        "title": "Filter List Model"
+        "title": "Filter List Model",
+        "examples": [
+          {
+            "filters": {
+              "list": [
+                {
+                  "id": "string",
+                  "fk_model_id": "string",
+                  "fk_column_id": "string",
+                  "logical_op": "string",
+                  "comparison_op": "string",
+                  "comparison_sub_op": "string",
+                  "value": null,
+                  "is_group": true,
+                  "children": [{}],
+                  "project_id": "string",
+                  "base_id": "string",
+                  "fk_parent_id": "string",
+                  "fk_view_id": "string",
+                  "fk_hook_id": "string"
+                }
+              ]
+            }
+          }
+        ]
       },
       "Sort": {
         "title": "Sort Model",
@@ -8145,7 +8466,18 @@
             "readOnly": true
           }
         },
-        "description": "Model for Sort"
+        "description": "Model for Sort",
+        "examples": [
+          {
+            "id": "string",
+            "fk_model_id": "string",
+            "fk_column_id": "string",
+            "direction": "string",
+            "order": 0,
+            "project_id": "string",
+            "base_id": "string"
+          }
+        ]
       },
       "SortReq": {
         "title": "Sort Request Model",
@@ -8162,7 +8494,13 @@
             "enum": ["asc", "desc"],
             "description": "Sort direction"
           }
-        }
+        },
+        "examples": [
+          {
+            "fk_column_id": "string",
+            "direction": "asc"
+          }
+        ]
       },
       "SortList": {
         "description": "Model for Sort List",
@@ -8213,7 +8551,21 @@
           }
         },
         "required": ["sorts"],
-        "title": "Sort List Model"
+        "title": "Sort List Model",
+        "examples": [
+          {
+            "sorts": {
+              "list": [
+                {
+                  "id": "string",
+                  "fk_view_id": "string",
+                  "password": "string",
+                  "deleted": "string"
+                }
+              ]
+            }
+          }
+        ]
       },
       "Column": {
         "title": "Column Model",
@@ -8382,7 +8734,58 @@
             ]
           }
         },
-        "description": "Model for Column"
+        "description": "Model for Column",
+        "examples": [
+          {
+            "id": "string",
+            "base_id": "string",
+            "fk_model_id": "string",
+            "title": "string",
+            "uidt": "string",
+            "dt": "string",
+            "np": "string",
+            "ns": "string",
+            "clen": "string",
+            "cop": "string",
+            "pk": true,
+            "pv": true,
+            "rqd": true,
+            "column_name": "string",
+            "un": true,
+            "ct": "string",
+            "ai": true,
+            "unique": true,
+            "cdf": "string",
+            "cc": "string",
+            "csn": "string",
+            "dtx": "string",
+            "dtxp": "string",
+            "dtxs": "string",
+            "au": true,
+            "deleted": true,
+            "visible": true,
+            "order": 0,
+            "system": true,
+            "meta": {},
+            "colOptions": {
+              "id": "string",
+              "type": "string",
+              "virtual": true,
+              "fk_column_id": "string",
+              "fk_child_column_id": "string",
+              "fk_parent_column_id": "string",
+              "fk_mm_model_id": "string",
+              "fk_related_model_id": "string",
+              "fk_mm_child_column_id": "string",
+              "fk_mm_parent_column_id": "string",
+              "ur": "string",
+              "dr": "string",
+              "fk_index_name": "string",
+              "deleted": "string",
+              "order": "string"
+            }
+          }
+        ]
       },
       "ColumnList": {
         "description": "Model for Column List",
@@ -8433,7 +8836,64 @@
           }
         },
         "required": ["columns"],
-        "title": "Column List Model"
+        "title": "Column List Model",
+        "examples": [
+          {
+            "columns": {
+              "list": [
+                {
+                  "id": "string",
+                  "base_id": "string",
+                  "fk_model_id": "string",
+                  "title": "string",
+                  "uidt": "string",
+                  "dt": "string",
+                  "np": "string",
+                  "ns": "string",
+                  "clen": "string",
+                  "cop": "string",
+                  "pk": true,
+                  "pv": true,
+                  "rqd": true,
+                  "column_name": "string",
+                  "un": true,
+                  "ct": "string",
+                  "ai": true,
+                  "unique": true,
+                  "cdf": "string",
+                  "cc": "string",
+                  "csn": "string",
+                  "dtx": "string",
+                  "dtxp": "string",
+                  "dtxs": "string",
+                  "au": true,
+                  "deleted": true,
+                  "visible": true,
+                  "order": 0,
+                  "system": true,
+                  "meta": {},
+                  "colOptions": {
+                    "id": "string",
+                    "type": "string",
+                    "virtual": true,
+                    "fk_column_id": "string",
+                    "fk_child_column_id": "string",
+                    "fk_parent_column_id": "string",
+                    "fk_mm_model_id": "string",
+                    "fk_related_model_id": "string",
+                    "fk_mm_child_column_id": "string",
+                    "fk_mm_parent_column_id": "string",
+                    "ur": "string",
+                    "dr": "string",
+                    "fk_index_name": "string",
+                    "deleted": "string",
+                    "order": "string"
+                  }
+                }
+              ]
+            }
+          }
+        ]
       },
       "LinkToAnotherRecord": {
         "title": "LinkToAnotherRecord Model",
@@ -8486,7 +8946,26 @@
             "type": "string"
           }
         },
-        "description": "Model for LinkToAnotherRecord"
+        "description": "Model for LinkToAnotherRecord",
+        "examples": [
+          {
+            "id": "string",
+            "type": "string",
+            "virtual": true,
+            "fk_column_id": "string",
+            "fk_child_column_id": "string",
+            "fk_parent_column_id": "string",
+            "fk_mm_model_id": "string",
+            "fk_related_model_id": "string",
+            "fk_mm_child_column_id": "string",
+            "fk_mm_parent_column_id": "string",
+            "ur": "string",
+            "dr": "string",
+            "fk_index_name": "string",
+            "deleted": "string",
+            "order": "string"
+          }
+        ]
       },
       "Lookup": {
         "title": "Lookup Model",
@@ -8518,7 +8997,19 @@
             "type": "string"
           }
         },
-        "description": "Model for Lookup"
+        "description": "Model for Lookup",
+        "examples": [
+          {
+            "id": "string",
+            "type": "string",
+            "virtual": true,
+            "fk_column_id": "string",
+            "fk_relation_column_id": "string",
+            "fk_lookup_column_id": "string",
+            "deleted": "string",
+            "order": "string"
+          }
+        ]
       },
       "Rollup": {
         "title": "Rollup Model",
@@ -8553,7 +9044,20 @@
             "type": "string"
           }
         },
-        "description": "Model for Rollup"
+        "description": "Model for Rollup",
+        "examples": [
+          {
+            "id": "string",
+            "type": "string",
+            "virtual": true,
+            "fk_column_id": "string",
+            "fk_relation_column_id": "string",
+            "fk_rollup_column_id": "string",
+            "rollup_function": "string",
+            "deleted": "string",
+            "order": "string"
+          }
+        ]
       },
       "Formula": {
         "title": "Formula Model",
@@ -8585,7 +9089,19 @@
             "type": "string"
           }
         },
-        "description": "Model for Formula"
+        "description": "Model for Formula",
+        "examples": [
+          {
+            "id": "string",
+            "type": "string",
+            "virtual": true,
+            "fk_column_id": "string",
+            "formula": "string",
+            "formula_raw": "string",
+            "deleted": "string",
+            "order": "string"
+          }
+        ]
       },
       "SelectOptions": {
         "title": "SelectOptions Model",
@@ -8673,7 +9189,18 @@
             "type": "number"
           }
         },
-        "description": "Model for Grid"
+        "description": "Model for Grid",
+        "examples": [
+          {
+            "id": "string",
+            "title": "string",
+            "alias": "string",
+            "deleted": true,
+            "order": 0,
+            "lock_type": "collaborative",
+            "row_height": 0
+          }
+        ]
       },
       "GridReq": {
         "title": "Grid Request Model",
@@ -8704,7 +9231,15 @@
             "minimum": 1
           }
         },
-        "required": ["title"]
+        "required": ["title"],
+        "examples": [
+          {
+            "title": "My Grid",
+            "order": 1,
+            "lock_type": "collaborative",
+            "row_height": 1
+          }
+        ]
       },
       "Gallery": {
         "title": "Gallery Model",
@@ -8763,7 +9298,35 @@
             "type": "string",
             "enum": ["collaborative", "locked", "personal"]
           }
-        }
+        },
+        "examples": [
+          {
+            "fk_view_id": "string",
+            "title": "string",
+            "alias": "string",
+            "deleted": true,
+            "order": 0,
+            "next_enabled": true,
+            "prev_enabled": true,
+            "cover_image_idx": 0,
+            "cover_image": "string",
+            "restrict_types": "string",
+            "restrict_size": "string",
+            "restrict_number": "string",
+            "columns": [
+              {
+                "id": "string",
+                "label": "string",
+                "help": "string",
+                "fk_col_id": "string",
+                "fk_gallery_id": "string"
+              }
+            ],
+            "fk_model_id": "string",
+            "fk_cover_image_col_id": "string",
+            "lock_type": "collaborative"
+          }
+        ]
       },
       "GalleryReq": {
         "title": "Gallery Request Model",
@@ -8810,7 +9373,21 @@
             "description": "The lock type of gallery"
           }
         },
-        "required": ["title"]
+        "required": ["title"],
+        "examples": [
+          {
+            "title": "My Gallery",
+            "next_enabled": true,
+            "prev_enabled": true,
+            "cover_image_idx": 0,
+            "cover_image": "string",
+            "restrict_types": "string",
+            "restrict_size": "string",
+            "restrict_number": "string",
+            "fk_cover_image_col_id": "string",
+            "lock_type": "collaborative"
+          }
+        ]
       },
       "GalleryColumn": {
         "title": "Gallery Column Model",
@@ -8832,7 +9409,16 @@
           "fk_gallery_id": {
             "type": "string"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": "string",
+            "label": "string",
+            "help": "string",
+            "fk_col_id": "string",
+            "fk_gallery_id": "string"
+          }
+        ]
       },
       "GridColumnReq": {
         "title": "Grid Column Request Model",
@@ -8860,7 +9446,15 @@
             "maxLength": 255,
             "pattern": "^[0-9]+(px|%)$"
           }
-        }
+        },
+        "examples": [
+          {
+            "label": "My Column",
+            "help": "string",
+            "fk_column_id": "string",
+            "width": "200px"
+          }
+        ]
       },
       "GridColumn": {
         "title": "Grid Column Model",
@@ -8884,7 +9478,16 @@
           "width": {
             "type": "string"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": "string",
+            "label": "string",
+            "help": "string",
+            "fk_column_id": "string",
+            "width": "string"
+          }
+        ]
       },
       "KanbanColumn": {
         "title": "Kanban Column Model",
@@ -8907,7 +9510,16 @@
           "fk_kanban_id": {
             "type": "string"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": "string",
+            "label": "string",
+            "help": "string",
+            "fk_column_id": "string",
+            "fk_kanban_id": "string"
+          }
+        ]
       },
       "Kanban": {
         "title": "Kanban Model",
@@ -8941,7 +9553,27 @@
           "meta": {
             "$ref": "#/components/schemas/Meta"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": "string",
+            "title": "string",
+            "alias": "string",
+            "columns": [
+              {
+                "id": "string",
+                "label": "string",
+                "help": "string",
+                "fk_column_id": "string",
+                "fk_kanban_id": "string"
+              }
+            ],
+            "fk_model_id": "string",
+            "fk_grp_col_id": "string",
+            "fk_cover_image_col_id": "string",
+            "meta": {}
+          }
+        ]
       },
       "GeoLocation": {
         "title": "Geo Location Model",
@@ -8964,7 +9596,13 @@
             "exclusiveMinimum": -180,
             "exclusiveMaximum": 180
           }
-        }
+        },
+        "examples": [
+          {
+            "latitude": 18.52139,
+            "longitude": 179.87295
+          }
+        ]
       },
       "Map": {
         "title": "Map Model",
@@ -9015,7 +9653,30 @@
             "description": "The order of the map list",
             "type": "number"
           }
-        }
+        },
+        "examples": [
+          {
+            "fk_view_id": "vw_qjt7klod1p9kyv",
+            "title": "My Map",
+            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "fk_geo_data_col_id": "cl_8iw2o4ejzvdyna",
+            "columns": [
+              {
+                "id": "nc_46xcacqn4rc9xf",
+                "show": 1,
+                "order": 1,
+                "fk_view_id": "vw_qjt7klod1p9kyv",
+                "fk_column_id": "cl_8iw2o4ejzvdyna",
+                "project_id": "p_xm3thidrblw4n7",
+                "base_id": "ds_g4ccx6e77h1dmi"
+              }
+            ],
+            "meta": {},
+            "show": true,
+            "order": 0
+          }
+        ]
       },
       "MapColumn": {
         "title": "Map Column Model",
@@ -9057,7 +9718,18 @@
             "description": "The ID of the base that this map column belongs to",
             "example": "ds_g4ccx6e77h1dmi"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": "nc_46xcacqn4rc9xf",
+            "show": 1,
+            "order": 1,
+            "fk_view_id": "vw_qjt7klod1p9kyv",
+            "fk_column_id": "cl_8iw2o4ejzvdyna",
+            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "ds_g4ccx6e77h1dmi"
+          }
+        ]
       },
       "LicenseReq": {
         "title": "License Key Request Model",
@@ -9071,7 +9743,12 @@
             "minLength": 10,
             "maxLength": 255
           }
-        }
+        },
+        "examples": [
+          {
+            "key": "1234567890"
+          }
+        ]
       },
       "KanbanReq": {
         "title": "Kanban Request Model",
@@ -9089,7 +9766,13 @@
             "$ref": "#/components/schemas/StringOrNull"
           }
         },
-        "required": ["title"]
+        "required": ["title"],
+        "examples": [
+          {
+            "title": "My Kanban",
+            "fk_grp_col_id": "string"
+          }
+        ]
       },
       "KanbanUpdateReq": {
         "title": "Kanban Update Request Model",
@@ -9099,7 +9782,12 @@
           "fk_grp_col_id": {
             "$ref": "#/components/schemas/StringOrNull"
           }
-        }
+        },
+        "examples": [
+          {
+            "fk_grp_col_id": "string"
+          }
+        ]
       },
       "Form": {
         "title": "Form Model",
@@ -9158,7 +9846,43 @@
           "meta": {
             "$ref": "#/components/schemas/Meta"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": "string",
+            "title": "string",
+            "heading": "string",
+            "subheading": "string",
+            "success_msg": "string",
+            "redirect_url": "string",
+            "redirect_after_secs": "string",
+            "email": "string",
+            "banner_image_url": "string",
+            "logo_url": "string",
+            "submit_another_form": true,
+            "show_blank_form": true,
+            "columns": [
+              {
+                "fk_column_id": "string",
+                "id": "string",
+                "fk_view_id": "string",
+                "uuid": null,
+                "label": "string",
+                "help": null,
+                "required": true,
+                "show": true,
+                "order": 0,
+                "created_at": "string",
+                "updated_at": "string",
+                "description": "string",
+                "meta": {}
+              }
+            ],
+            "fk_model_id": "string",
+            "lock_type": "collaborative",
+            "meta": {}
+          }
+        ]
       },
       "FormReq": {
         "title": "Form Request Model",
@@ -9223,7 +9947,24 @@
             "$ref": "#/components/schemas/Meta",
             "description": "Meta Info for this view"
           }
-        }
+        },
+        "examples": [
+          {
+            "title": "My Form",
+            "heading": "My Form",
+            "subheading": "My Form Subheading",
+            "success_msg": "string",
+            "redirect_url": "string",
+            "redirect_after_secs": "string",
+            "email": "string",
+            "banner_image_url": "string",
+            "logo_url": "string",
+            "submit_another_form": true,
+            "show_blank_form": true,
+            "lock_type": "collaborative",
+            "meta": {}
+          }
+        ]
       },
       "FormCreateReq": {
         "allOf": [
@@ -9235,7 +9976,24 @@
           }
         ],
         "title": "Form Create Model",
-        "description": "Model for Form Create"
+        "description": "Model for Form Create",
+        "examples": [
+          {
+            "title": "My Form",
+            "heading": "My Form",
+            "subheading": "My Form Subheading",
+            "success_msg": "string",
+            "redirect_url": "string",
+            "redirect_after_secs": "string",
+            "email": "string",
+            "banner_image_url": "string",
+            "logo_url": "string",
+            "submit_another_form": true,
+            "show_blank_form": true,
+            "lock_type": "collaborative",
+            "meta": {}
+          }
+        ]
       },
       "FormColumn": {
         "description": "Model for Form Column",
@@ -9303,7 +10061,24 @@
             "$ref": "#/components/schemas/Meta"
           }
         },
-        "title": "Form Column Model"
+        "title": "Form Column Model",
+        "examples": [
+          {
+            "fk_column_id": "string",
+            "id": "string",
+            "fk_view_id": "string",
+            "uuid": null,
+            "label": "string",
+            "help": null,
+            "required": true,
+            "show": true,
+            "order": 0,
+            "created_at": "string",
+            "updated_at": "string",
+            "description": "string",
+            "meta": {}
+          }
+        ]
       },
       "FormColumnReq": {
         "description": "Model for Form Column Request",
@@ -9352,7 +10127,18 @@
             "$ref": "#/components/schemas/Meta"
           }
         },
-        "title": "Form Column Request Model"
+        "title": "Form Column Request Model",
+        "examples": [
+          {
+            "label": "string",
+            "help": "string",
+            "required": true,
+            "show": true,
+            "order": 0,
+            "description": "string",
+            "meta": {}
+          }
+        ]
       },
       "Paginated": {
         "title": "Paginated Model",
@@ -9382,7 +10168,16 @@
             "description": "The current page",
             "example": 1
           }
-        }
+        },
+        "examples": [
+          {
+            "pageSize": 10,
+            "totalRows": 1,
+            "isFirstPage": true,
+            "isLastPage": true,
+            "page": 1
+          }
+        ]
       },
       "HookList": {
         "description": "Model for Hook List",
@@ -9429,7 +10224,19 @@
             "$ref": "#/components/schemas/Paginated"
           }
         },
-        "title": "Hook List Model"
+        "title": "Hook List Model",
+        "examples": [
+          {
+            "list": [{}],
+            "pageInfo": {
+              "pageSize": 10,
+              "totalRows": 1,
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1
+            }
+          }
+        ]
       },
       "SharedView": {
         "title": "Shared View Model",
@@ -9448,7 +10255,15 @@
             "type": "string"
           }
         },
-        "description": "Model for Shared View"
+        "description": "Model for Shared View",
+        "examples": [
+          {
+            "id": "string",
+            "fk_view_id": "string",
+            "password": "string",
+            "deleted": "string"
+          }
+        ]
       },
       "SharedViewList": {
         "description": "Model for Shared View List",
@@ -9495,7 +10310,26 @@
             "$ref": "#/components/schemas/Paginated"
           }
         },
-        "title": "Shared View List Model"
+        "title": "Shared View List Model",
+        "examples": [
+          {
+            "list": [
+              {
+                "id": "string",
+                "fk_view_id": "string",
+                "password": "string",
+                "deleted": "string"
+              }
+            ],
+            "pageInfo": {
+              "pageSize": 10,
+              "totalRows": 1,
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1
+            }
+          }
+        ]
       },
       "ViewList": {
         "description": "Model for View List",
@@ -9541,7 +10375,84 @@
           }
         },
         "required": ["views"],
-        "title": "View List Model"
+        "title": "View List Model",
+        "examples": [
+          {
+            "list": [
+              {
+                "id": "string",
+                "fk_project_id": "string",
+                "fk_base_id": "string",
+                "title": "string",
+                "alias": "string",
+                "type": "string",
+                "enabled": true,
+                "parent_id": "string",
+                "show_as": "string",
+                "tags": "string",
+                "pinned": true,
+                "deleted": true,
+                "order": 0,
+                "column": [
+                  {
+                    "id": "string",
+                    "base_id": "string",
+                    "fk_model_id": "string",
+                    "title": "string",
+                    "alias": "string",
+                    "ui_data_type": "string",
+                    "data_type": "string",
+                    "numeric_precision": "string",
+                    "numeric_scale": "string",
+                    "character_maximum_length": "string",
+                    "column_ordinal_position": "string",
+                    "primary_key": true,
+                    "primary_value": true,
+                    "rqd": "string",
+                    "un": "string",
+                    "column_type": "string",
+                    "auto_increment": true,
+                    "unique": true,
+                    "column_default": "string",
+                    "column_comment": "string",
+                    "character_set_name": "string",
+                    "data_type_x": "string",
+                    "data_type_x_precision": "string",
+                    "data_type_x_scale": "string",
+                    "auto_update_timestamp": true,
+                    "deleted": true,
+                    "visible": true,
+                    "order": 0,
+                    "colOptions": {
+                      "id": "string",
+                      "type": "string",
+                      "virtual": true,
+                      "fk_column_id": "string",
+                      "fk_child_column_id": "string",
+                      "fk_parent_column_id": "string",
+                      "fk_mm_model_id": "string",
+                      "fk_mm_child_column_id": "string",
+                      "fk_mm_parent_column_id": "string",
+                      "ur": "string",
+                      "dr": "string",
+                      "fk_index_name": "string",
+                      "deleted": "string",
+                      "order": "string"
+                    }
+                  }
+                ],
+                "columnByIds": {}
+              }
+            ],
+            "pageInfo": {
+              "pageSize": 10,
+              "totalRows": 1,
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1
+            }
+          }
+        ]
       },
       "Attachment": {
         "title": "Attachment Model",
@@ -9567,7 +10478,18 @@
           },
           "data": {}
         },
-        "description": "Model for Attachment"
+        "description": "Model for Attachment",
+        "examples": [
+          {
+            "url": "string",
+            "title": "string",
+            "mimetype": "string",
+            "size": "string",
+            "icon": "string",
+            "path": "string",
+            "data": null
+          }
+        ]
       },
       "Webhook": {
         "title": "Webhook Model",
@@ -9583,7 +10505,14 @@
             "type": "string"
           }
         },
-        "description": "Model for Webhook"
+        "description": "Model for Webhook",
+        "examples": [
+          {
+            "id": "string",
+            "title": "string",
+            "type": "string"
+          }
+        ]
       },
       "Audit": {
         "title": "Audit Model",
@@ -9626,7 +10555,23 @@
             "type": "string"
           }
         },
-        "description": "Model for Audit"
+        "description": "Model for Audit",
+        "examples": [
+          {
+            "id": "string",
+            "user": "string",
+            "ip": "string",
+            "base_id": "string",
+            "project_id": "string",
+            "fk_model_id": "string",
+            "row_id": "string",
+            "op_type": "string",
+            "op_sub_type": "string",
+            "status": "string",
+            "description": "string",
+            "details": "string"
+          }
+        ]
       },
       "Hook": {
         "title": "Hook Model",
@@ -9677,7 +10622,25 @@
             "$ref": "#/components/schemas/Bool"
           }
         },
-        "description": "Model for Hook"
+        "description": "Model for Hook",
+        "examples": [
+          {
+            "id": "string",
+            "fk_model_id": "string",
+            "title": "string",
+            "description": "string",
+            "env": "string",
+            "type": "string",
+            "event": "after",
+            "operation": "insert",
+            "async": true,
+            "notification": "string",
+            "retries": 0,
+            "retry_interval": 0,
+            "timeout": 0,
+            "active": true
+          }
+        ]
       },
       "HookReq": {
         "title": "Hook Request Model",
@@ -9748,7 +10711,23 @@
           }
         },
         "required": ["title", "event", "notification", "operation"],
-        "description": "Model for Hook Request"
+        "description": "Model for Hook Request",
+        "examples": [
+          {
+            "fk_model_id": "string",
+            "title": "string",
+            "description": "string",
+            "env": "string",
+            "event": "after",
+            "operation": "insert",
+            "async": true,
+            "notification": null,
+            "retries": 0,
+            "retry_interval": 0,
+            "timeout": 1,
+            "active": true
+          }
+        ]
       },
       "HookTestReq": {
         "title": "Hook Test Request Model",
@@ -9760,7 +10739,26 @@
           }
         },
         "required": ["payload", "hook"],
-        "description": "Model for Hook Test Request"
+        "description": "Model for Hook Test Request",
+        "examples": [
+          {
+            "payload": null,
+            "hook": {
+              "fk_model_id": "string",
+              "title": "string",
+              "description": "string",
+              "env": "string",
+              "event": "after",
+              "operation": "insert",
+              "async": true,
+              "notification": null,
+              "retries": 0,
+              "retry_interval": 0,
+              "timeout": 1,
+              "active": true
+            }
+          }
+        ]
       },
       "SignUpReq": {
         "type": "object",
@@ -9780,7 +10778,13 @@
             "example": "password123456789"
           }
         },
-        "required": ["email", "password"]
+        "required": ["email", "password"],
+        "examples": [
+          {
+            "email": "user@example.com",
+            "password": "password123456789"
+          }
+        ]
       },
       "SignInReq": {
         "type": "object",
@@ -9797,7 +10801,13 @@
         },
         "required": ["email", "password"],
         "title": "Signin Request Model",
-        "description": "Model for Signin Request"
+        "description": "Model for Signin Request",
+        "examples": [
+          {
+            "email": "user@example.com",
+            "password": "string"
+          }
+        ]
       },
       "PasswordForgotReq": {
         "type": "object",
@@ -9810,7 +10820,12 @@
         },
         "required": ["email"],
         "title": "Password Forgot Request Model",
-        "description": "Model for Password Forgot Request"
+        "description": "Model for Password Forgot Request",
+        "examples": [
+          {
+            "email": "user@example.com"
+          }
+        ]
       },
       "PasswordResetReq": {
         "type": "object",
@@ -9824,7 +10839,12 @@
         },
         "required": ["password"],
         "title": "Password Reset Request Model",
-        "description": "Model for Password Reset Request"
+        "description": "Model for Password Reset Request",
+        "examples": [
+          {
+            "password": "newpassword"
+          }
+        ]
       },
       "PasswordChangeReq": {
         "type": "object",
@@ -9839,7 +10859,13 @@
         },
         "required": ["currentPassword", "newPassword"],
         "title": "Password Change Request Model",
-        "description": "Model for Password Change Request"
+        "description": "Model for Password Change Request",
+        "examples": [
+          {
+            "currentPassword": "string",
+            "newPassword": "stringst"
+          }
+        ]
       },
       "ApiTokenReq": {
         "title": "API Token Request Model",
@@ -9851,7 +10877,12 @@
             "description": "Description of the API token"
           }
         },
-        "description": "Model for API Token Request"
+        "description": "Model for API Token Request",
+        "examples": [
+          {
+            "description": "string"
+          }
+        ]
       },
       "Plugin": {
         "title": "Plugin Model",
@@ -9919,7 +10950,29 @@
             "type": "string"
           }
         },
-        "description": "Model for Plugin"
+        "description": "Model for Plugin",
+        "examples": [
+          {
+            "id": "string",
+            "title": "string",
+            "description": "string",
+            "active": true,
+            "rating": 0,
+            "version": "string",
+            "docs": "string",
+            "status": "string",
+            "status_details": "string",
+            "logo": "string",
+            "icon": "string",
+            "tags": "string",
+            "category": "string",
+            "input_schema": "string",
+            "input": 0,
+            "creator": "string",
+            "creator_website": "string",
+            "price": "string"
+          }
+        ]
       },
       "ModelRoleVisibility": {
         "title": "ModelRoleVisibility Model",
@@ -9947,7 +11000,18 @@
             "$ref": "#/components/schemas/Bool"
           }
         },
-        "description": "Model for ModelRoleVisibility"
+        "description": "Model for ModelRoleVisibility",
+        "examples": [
+          {
+            "id": "string",
+            "project_id": "string",
+            "base_id": "string",
+            "fk_model_id": "string",
+            "fk_view_id": "string",
+            "role": "string",
+            "disabled": true
+          }
+        ]
       },
       "ApiToken": {
         "title": "API Token Model",
@@ -9968,7 +11032,17 @@
           "created_at": {},
           "updated_at": {}
         },
-        "description": "Model for API Token"
+        "description": "Model for API Token",
+        "examples": [
+          {
+            "id": "string",
+            "token": "string",
+            "description": "string",
+            "fk_user_id": "string",
+            "created_at": null,
+            "updated_at": null
+          }
+        ]
       },
       "HookLog": {
         "title": "Hook Log Model",
@@ -10030,7 +11104,30 @@
             "type": "string"
           }
         },
-        "description": "Model for Hook Log"
+        "description": "Model for Hook Log",
+        "examples": [
+          {
+            "id": "string",
+            "base_id": "string",
+            "project_id": "string",
+            "fk_hook_id": "string",
+            "type": "string",
+            "event": "string",
+            "operation": "string",
+            "test_call": true,
+            "payload": null,
+            "conditions": "string",
+            "notifications": "string",
+            "error_code": "string",
+            "error_message": "string",
+            "error": "string",
+            "execution_time": "string",
+            "response": "string",
+            "triggered_by": "string",
+            "created_at": "string",
+            "updated_at": "string"
+          }
+        ]
       },
       "NormalColumnRequest": {
         "properties": {
@@ -10157,7 +11254,30 @@
           }
         },
         "description": "Model for Normal Column Request",
-        "title": "Normal Column Request Model"
+        "title": "Normal Column Request Model",
+        "examples": [
+          {
+            "uidt": "ID",
+            "title": "string",
+            "dt": "string",
+            "np": 0,
+            "ns": 0,
+            "pk": true,
+            "pv": true,
+            "rqd": true,
+            "column_name": "string",
+            "un": true,
+            "ai": true,
+            "unique": true,
+            "cdf": "string",
+            "cc": "string",
+            "csn": "string",
+            "dtx": "string",
+            "dtxp": 0,
+            "dtxs": 0,
+            "au": true
+          }
+        ]
       },
       "LinkToAnotherColumnReq": {
         "type": "object",
@@ -10187,7 +11307,17 @@
         },
         "required": ["uidt", "title", "parentId", "childId", "type"],
         "title": "LinkToAnotherColumn Request Model",
-        "description": "Model for LinkToAnotherColumn Request"
+        "description": "Model for LinkToAnotherColumn Request",
+        "examples": [
+          {
+            "uidt": "LinkToAnotherRecord",
+            "title": "string",
+            "virtual": true,
+            "parentId": "string",
+            "childId": "string",
+            "type": "hm"
+          }
+        ]
       },
       "RollupColumnReq": {
         "type": "object",
@@ -10228,7 +11358,16 @@
           "rollup_function"
         ],
         "title": "Rollup Column Request Model",
-        "description": "Model for Rollup Column Request"
+        "description": "Model for Rollup Column Request",
+        "examples": [
+          {
+            "uidt": "Rollup",
+            "title": "string",
+            "fk_relation_column_id": "string",
+            "fk_rollup_column_id": "string",
+            "rollup_function": "count"
+          }
+        ]
       },
       "LookupColumnReq": {
         "properties": {
@@ -10254,7 +11393,15 @@
           "fk_lookup_column_id"
         ],
         "title": "Lookup Column Request Model",
-        "description": "Model for Lookup Column Request"
+        "description": "Model for Lookup Column Request",
+        "examples": [
+          {
+            "uidt": "Lookup",
+            "title": "string",
+            "fk_relation_column_id": "string",
+            "fk_lookup_column_id": "string"
+          }
+        ]
       },
       "FormulaColumnReq": {
         "properties": {
@@ -10275,7 +11422,15 @@
           }
         },
         "title": "Formula Column Request Model",
-        "description": "Model for Formula Column Request"
+        "description": "Model for Formula Column Request",
+        "examples": [
+          {
+            "uidt": "Formula",
+            "formula_raw": "string",
+            "formula": "string",
+            "title": "string"
+          }
+        ]
       },
       "ColumnReq": {
         "allOf": [
@@ -10327,7 +11482,22 @@
         ],
         "description": "Model for Column Request",
         "type": "object",
-        "title": "Column Request Model"
+        "title": "Column Request Model",
+        "examples": [
+          {
+            "uidt": "LinkToAnotherRecord",
+            "title": "string",
+            "virtual": true,
+            "parentId": "string",
+            "childId": "string",
+            "type": "hm",
+            "column_name": "string",
+            "column_order": {
+              "view_id": "string",
+              "order": 0
+            }
+          }
+        ]
       },
       "UserInfo": {
         "title": "User Info Model",
@@ -10358,7 +11528,17 @@
           "roles": {
             "description": "The roles of the user"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": "string",
+            "email": "user@example.com",
+            "email_verified": true,
+            "firstname": "string",
+            "lastname": "string",
+            "roles": null
+          }
+        ]
       },
       "VisibilityRuleReq": {
         "title": "Visibility Rule Request Model",
@@ -10391,7 +11571,21 @@
             }
           }
         },
-        "description": "Model for Visibility Rule Request"
+        "description": "Model for Visibility Rule Request",
+        "examples": [
+          [
+            {
+              "disabled": {
+                "commenter": true,
+                "creator": true,
+                "editor": true,
+                "guest": true,
+                "owner": true,
+                "viewer": true
+              }
+            }
+          ]
+        ]
       },
       "Bool": {
         "oneOf": [
@@ -10409,21 +11603,24 @@
           }
         ],
         "title": "Bool Model",
-        "description": "Model for Bool"
+        "description": "Model for Bool",
+        "examples": [true]
       },
       "Id": {
         "type": "string",
         "minLength": 1,
         "maxLength": 20,
         "title": "ID Model",
-        "description": "Model for ID"
+        "description": "Model for ID",
+        "examples": ["string"]
       },
       "Password": {
         "type": "string",
         "minLength": 8,
         "title": "Password Model",
         "description": "Model for Password",
-        "example": "password123456789"
+        "example": "password123456789",
+        "examples": ["password123456789"]
       },
       "StringOrNull": {
         "oneOf": [
@@ -10436,7 +11633,8 @@
           }
         ],
         "title": "StringOrNull Model",
-        "description": "Model for StringOrNull"
+        "description": "Model for StringOrNull",
+        "examples": ["string"]
       },
       "Meta": {
         "oneOf": [
@@ -10451,7 +11649,8 @@
           }
         ],
         "title": "Meta Model",
-        "description": "Model for Meta"
+        "description": "Model for Meta",
+        "examples": [{}]
       },
       "CommentReq": {
         "type": "object",
@@ -10468,7 +11667,14 @@
         },
         "required": ["row_id", "fk_model_id", "comment"],
         "title": "Comment Request Model",
-        "description": "Model for Comment Request"
+        "description": "Model for Comment Request",
+        "examples": [
+          {
+            "row_id": "string",
+            "fk_model_id": "string",
+            "description": "string"
+          }
+        ]
       },
       "AuditRowUpdateReq": {
         "type": "object",
@@ -10486,7 +11692,16 @@
           "prev_value": {}
         },
         "title": "Audit Row Update Request Model",
-        "description": "Model for Audit Row Update Request"
+        "description": "Model for Audit Row Update Request",
+        "examples": [
+          {
+            "fk_model_id": "string",
+            "column_name": "string",
+            "row_id": "string",
+            "value": null,
+            "prev_value": null
+          }
+        ]
       },
       "OrgUserReq": {
         "type": "object",
@@ -10501,7 +11716,13 @@
           }
         },
         "title": "Organisation User Request Model",
-        "description": "Model for Organisation User Update Request"
+        "description": "Model for Organisation User Update Request",
+        "examples": [
+          {
+            "email": "user@example.com",
+            "roles": "org-level-creator"
+          }
+        ]
       },
       "ProjectUserReq": {
         "type": "object",
@@ -10517,7 +11738,13 @@
         },
         "required": ["email", "roles"],
         "title": "Project User Request Model",
-        "description": "Model for Project User Request"
+        "description": "Model for Project User Request",
+        "examples": [
+          {
+            "email": "user@example.com",
+            "roles": "owner"
+          }
+        ]
       },
       "SharedBaseReq": {
         "type": "object",
@@ -10532,7 +11759,13 @@
           }
         },
         "title": "Shared Base Request Model",
-        "description": "Model for Shared Base Request"
+        "description": "Model for Shared Base Request",
+        "examples": [
+          {
+            "roles": "editor",
+            "password": "stringst"
+          }
+        ]
       },
       "PluginTestReq": {
         "type": "object",
@@ -10545,7 +11778,13 @@
         },
         "required": ["title", "input"],
         "title": "Plugin Test Request Model",
-        "description": "Model for Plugin Test Request"
+        "description": "Model for Plugin Test Request",
+        "examples": [
+          {
+            "title": "string",
+            "input": null
+          }
+        ]
       },
       "PluginReq": {
         "type": "object",
@@ -10556,7 +11795,13 @@
           "input": {}
         },
         "title": "Plugin Reqeust",
-        "description": "Model for Plugin Request"
+        "description": "Model for Plugin Request",
+        "examples": [
+          {
+            "active": true,
+            "input": null
+          }
+        ]
       },
       "ViewReq": {
         "type": "object",
@@ -10582,7 +11827,16 @@
           }
         },
         "title": "View Request Model",
-        "description": "Model for View Request"
+        "description": "Model for View Request",
+        "examples": [
+          {
+            "order": 0,
+            "meta": {},
+            "title": "string",
+            "show_system_fields": true,
+            "lock_type": "collaborative"
+          }
+        ]
       },
       "SharedViewReq": {
         "type": "object",
@@ -10599,7 +11853,13 @@
             "$ref": "#/components/schemas/Meta",
             "description": "Meta data passing to Shared View such as if download is allowed or not."
           }
-        }
+        },
+        "examples": [
+          {
+            "password": "123456789",
+            "meta": {}
+          }
+        ]
       }
     },
     "responses": {

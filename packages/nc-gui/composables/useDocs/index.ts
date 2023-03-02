@@ -21,10 +21,6 @@ const [setup, use] = useInjectionState(() => {
     page: true,
   })
 
-  const nestedPages = ref<PageSidebarNode[]>([])
-
-  const openedTabs = ref<string[]>([])
-
   const isErrored = computed<boolean>(() => {
     return isPageErrored.value
   })
@@ -41,6 +37,29 @@ const [setup, use] = useInjectionState(() => {
 
   const isNoPageOpen = computed<boolean>(() => {
     return routePageSlugs.value.length === 0
+  })
+
+  const openedTabs = ref<string[]>([])
+
+  const openedPage = ref<PageSidebarNode | undefined>(undefined)
+
+  const nestedPublicParentPage = ref<PageSidebarNode | undefined>(undefined)
+  const isNestedPublicPage = computed<boolean>(() => isPublic.value && !!nestedPublicParentPage.value)
+
+  // Pages tree used in sidebar
+  const nestedPages = ref<PageSidebarNode[]>([])
+
+  // Opened page in `nestedPages` tree used in sidebar
+  const openedPageInSidebar = computed(() => {
+    if (routePageSlugs.value.length === 0) return undefined
+    if (isFetching.value.nestedPages) return undefined
+
+    if (isNestedPublicPage.value) {
+      if (routePageSlugs.value.length < 3) return findPage(nestedPages.value, routePageSlugs.value[0])
+      return findPage(nestedPages.value, routePageSlugs.value[2])
+    }
+
+    return findPage(nestedPages.value, isNestedPublicPage.value ? routePageSlugs.value[2] : routePageSlugs.value[0])
   })
 
   const flattenedNestedPages = computed(() => {
@@ -63,17 +82,6 @@ const [setup, use] = useInjectionState(() => {
     return flatten(nestedPages.value)
   })
 
-  const isNestedPublicPage = computed<boolean>(
-    () =>
-      isPublic.value &&
-      routePageSlugs.value.length > 1 &&
-      !!findPage(nestedPages.value, routePageSlugs.value[0])?.is_nested_published,
-  )
-
-  const nestedPublicParentPage = computed(() =>
-    isNestedPublicPage.value ? findPage(nestedPages.value, routePageSlugs.value[0]) : undefined,
-  )
-
   const openedPageId = computed(() => {
     if (routePageSlugs.value.length === 0) return undefined
 
@@ -85,19 +93,7 @@ const [setup, use] = useInjectionState(() => {
     return routePageSlugs.value[0]
   })
 
-  const openedPage = computed(() => {
-    if (routePageSlugs.value.length === 0) return undefined
-    if (isFetching.value.nestedPages) return undefined
-
-    if (isNestedPublicPage.value) {
-      if (routePageSlugs.value.length < 3) return findPage(nestedPages.value, routePageSlugs.value[0])
-      return findPage(nestedPages.value, routePageSlugs.value[2])
-    }
-
-    return findPage(nestedPages.value, isNestedPublicPage.value ? routePageSlugs.value[2] : routePageSlugs.value[0])
-  })
-
-  const openedNestedPages = computed(() => (openedPage.value ? getPageWithParents(openedPage.value) : []))
+  const openedPageWithParents = computed(() => (openedPageInSidebar.value ? getPageWithParents(openedPageInSidebar.value) : []))
 
   async function fetchNestedPages() {
     isFetching.value.nestedPages = true
@@ -268,7 +264,7 @@ const [setup, use] = useInjectionState(() => {
     const publicMode = isPublic.value || publicUrl
     // We use nestedPublicParentPage when we are actually rendering the nested public page
     // And we use openedPage when we are generating the url for the nested public page
-    const isNestedPublicMode = nestedPublicParentPage.value?.is_nested_published || openedPage.value?.is_nested_published
+    const isNestedPublicMode = isNestedPublicPage.value || openedPage.value?.is_nested_published
     let url: string
     if (publicMode && isNestedPublicMode) {
       url = `/nc/doc/${projectId!}/s/${nestedPublicParentPage.value?.id ?? id}/${nestedSlugs[0]}/${id}/${nestedSlugs
@@ -418,9 +414,9 @@ const [setup, use] = useInjectionState(() => {
   }
 
   const expandTabOfOpenedPage = () => {
-    if (!openedPage.value) throw new Error('openedPage is not defined')
+    if (!openedPageInSidebar.value) throw new Error('openedPage is not defined')
 
-    const pagesWithParents = getPageWithParents(openedPage.value)
+    const pagesWithParents = getPageWithParents(openedPageInSidebar.value)
     for (const page of pagesWithParents) {
       if (!openedTabs.value.includes(page.id!)) {
         openedTabs.value.push(page.id!)
@@ -457,7 +453,7 @@ const [setup, use] = useInjectionState(() => {
   }
 
   const magicExpand = async (text: string, pageId?: string) => {
-    const id = pageId || openedPage.value!.id!
+    const id = pageId || openedPageInSidebar.value!.id!
     const response = await $api.nocoDocs.magicExpandText({
       projectId: projectId!,
       pageId: id,
@@ -467,7 +463,7 @@ const [setup, use] = useInjectionState(() => {
   }
 
   const magicOutline = async (pageId?: string) => {
-    const id = pageId || openedPage.value!.id!
+    const id = pageId || openedPageInSidebar.value!.id!
     const response = await $api.nocoDocs.magicOutlinePage({
       projectId: projectId!,
       pageId: id,
@@ -510,6 +506,7 @@ const [setup, use] = useInjectionState(() => {
     isErrored,
     routePageSlugs,
     flattenedNestedPages,
+    openedPageInSidebar,
     openedPage,
     isNoPageOpen,
     openedPageId,
@@ -535,7 +532,7 @@ const [setup, use] = useInjectionState(() => {
     nestedSlugsFromPageId,
     projectUrl,
     expandTabOfOpenedPage,
-    openedNestedPages,
+    openedPageWithParents,
     isPublic,
     getPageWithParents,
     nestedPublicParentPage,

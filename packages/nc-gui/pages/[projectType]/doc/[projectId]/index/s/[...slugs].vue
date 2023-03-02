@@ -7,7 +7,7 @@ definePageMeta({
   layout: 'docs',
 })
 
-const { nestedPages, navigateToFirstPage } = useDocs()
+const { nestedPages, navigateToFirstPage, routePageSlugs, nestedPublicParentPage, openedPage } = useDocs()
 
 const route = useRoute()
 
@@ -20,6 +20,24 @@ watch(
   },
   {
     deep: true,
+  },
+)
+
+watch(
+  () => openedPage.value?.id,
+  (oldId, newId) => {
+    if (!openedPage.value) return
+    if (oldId === newId) return
+
+    if (!nestedPublicParentPage.value && !!openedPage.value?.is_nested_published) {
+      nestedPublicParentPage.value = JSON.parse(JSON.stringify(openedPage.value))
+    } else if (routePageSlugs.value[0] !== nestedPublicParentPage.value?.id) {
+      nestedPublicParentPage.value = undefined
+    }
+  },
+  {
+    deep: true,
+    immediate: true,
   },
 )
 </script>

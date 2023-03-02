@@ -13,42 +13,6 @@
     }
   ],
   "paths": {
-    "/api/v1/docs/page-drafts": {
-      "get": {
-        "summary": "list draft pages",
-        "operationId": "list-draft-pages",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DocsPage"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "description": ""
-      }
-    },
     "/api/v1/public/docs/pages": {
       "get": {
         "summary": "list public pages",
@@ -564,48 +528,6 @@
       },
       "parameters": []
     },
-    "/api/v1/docs/page-slug": {
-      "get": {
-        "summary": "Get page by slug",
-        "operationId": "get-page-by-slug",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocsPage"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "description": "Project id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "nestedSlug",
-            "in": "query",
-            "description": "Nested Slug",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "description": "Get page by nested slug"
-      }
-    },
     "/api/v1/docs/page/{id}": {
       "get": {
         "summary": "Get page",
@@ -702,46 +624,6 @@
         },
         "description": "Update page"
       }
-    },
-    "/api/v1/docs/page/batch-publish": {
-      "post": {
-        "summary": "Batch publish pages",
-        "operationId": "batch-publish-pages",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {}
-          }
-        },
-        "tags": [
-          "Noco docs"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "pageIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "projectId": {
-                    "type": "string",
-                    "description": "Project id",
-                    "required": true
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "description": "Batch publish pages"
-      },
-      "parameters": []
     },
     "/api/v1/docs/page": {
       "post": {

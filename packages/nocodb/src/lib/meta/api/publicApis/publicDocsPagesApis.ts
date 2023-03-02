@@ -21,7 +21,7 @@ async function get(
     if (!page) throw new Error('Page not found');
 
     // if page and project is not public, check if the given parent page is published with nested pages
-    if (!projectMeta.isPublic && !page.is_published) {
+    if (!projectMeta?.isPublic && !page.is_published) {
       const parentPage = await Page.get({
         id: req.query?.nestedPageId as string,
         projectId: req.query?.projectId as string,
@@ -57,10 +57,10 @@ async function list(
     const project = await Project.getWithInfo(req.query?.projectId as string);
     const projectMeta = JSON.parse(project.meta);
 
-    if (!projectMeta.isPublic && !req.query?.parent_page_id)
+    if (!projectMeta?.isPublic && !req.query?.parent_page_id)
       throw new Error('Project is not found');
 
-    if (projectMeta.isPublic) {
+    if (projectMeta?.isPublic) {
       res.json(
         await Page.nestedList({
           projectId: req.query?.projectId as string,

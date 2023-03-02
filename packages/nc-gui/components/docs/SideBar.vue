@@ -7,7 +7,7 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 const { project } = useProject()
 const {
   nestedPages,
-  openedPage,
+  openedPageInSidebar,
   openedTabs,
   nestedUrl,
   deletePage,
@@ -33,7 +33,7 @@ const onLoadData: TreeProps['loadData'] = async (treeNode) => {
 }
 
 const openPageTabKeys = computed({
-  get: () => [openedPage.value?.id],
+  get: () => [openedPageInSidebar.value?.id],
   set: () => {},
 })
 
@@ -111,9 +111,9 @@ const navigateToHome = () => {
 }
 
 watch(
-  openedPage,
+  openedPageInSidebar,
   () => {
-    if (!openedPage.value) return
+    if (!openedPageInSidebar.value) return
 
     expandTabOfOpenedPage()
   },

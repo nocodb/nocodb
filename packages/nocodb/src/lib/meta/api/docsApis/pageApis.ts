@@ -22,28 +22,17 @@ async function get(
   next
 ) {
   try {
+    let fields: any = req.query?.fields;
+    if (fields) {
+      fields = Array.isArray(fields) ? fields : [fields];
+    }
     const page = await Page.get({
       id: req.params.id,
       projectId: req.query?.projectId as string,
+      fields: fields as string[],
     });
 
-    res.json(page);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
-}
-
-async function getBySlug(
-  req: Request<any> & { user: { id: string; roles: string } },
-  res: Response,
-  next
-) {
-  try {
-    const page = await Page.getBySlug({
-      nestedSlug: req.query?.nestedSlug as string,
-      projectId: req.query?.projectId as string,
-    });
+    if (!page) throw NcError.notFound('Page not found');
 
     res.json(page);
   } catch (e) {
@@ -145,53 +134,6 @@ async function deletePage(
       projectId: req.query?.projectId as string,
     });
 
-    res.json({});
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
-}
-
-async function drafts(
-  req: Request<any> & { user: { id: string; roles: string } },
-  res: Response,
-  next
-) {
-  try {
-    const drafts = await Page.drafts({
-      projectId: req.query?.projectId as string,
-    });
-
-    res // todo: pagination
-      .json(drafts);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
-}
-
-async function batchPublish(
-  req: Request<any> & { user: { id: string; roles: string } },
-  res: Response,
-  next
-) {
-  try {
-    if (!req.body?.pageIds) throw new Error('pageIds is required');
-    // verify pageIds are an array
-    if (!Array.isArray(req.body.pageIds)) {
-      throw new Error('pageIds must be an array');
-    }
-
-    const user = (req as any)?.session?.passport?.user as UserType;
-    const { projectId } = req.body;
-
-    for (const pageId of req.body.pageIds) {
-      await Page.publish({
-        pageId,
-        projectId,
-        userId: user.id,
-      });
-    }
     res.json({});
   } catch (e) {
     console.log(e);
@@ -491,11 +433,6 @@ const router = Router({ mergeParams: true });
 // table data crud apis
 router.get('/api/v1/docs/page/:id', apiMetrics, ncMetaAclMw(get, 'pageGet'));
 router.get(
-  '/api/v1/docs/page-slug',
-  apiMetrics,
-  ncMetaAclMw(getBySlug, 'pageListBySlug')
-);
-router.get(
   '/api/v1/docs/pages/search',
   apiMetrics,
   ncMetaAclMw(search, 'pageSearch')
@@ -506,11 +443,6 @@ router.get(
   ncMetaAclMw(pageParents, 'pageParents')
 );
 router.get('/api/v1/docs/pages', apiMetrics, ncMetaAclMw(list, 'pageList'));
-router.get(
-  '/api/v1/docs/page-drafts',
-  apiMetrics,
-  ncMetaAclMw(drafts, 'pageDraftsList')
-);
 
 router.post('/api/v1/docs/page', apiMetrics, ncMetaAclMw(create, 'pageCreate'));
 router.put(
@@ -522,11 +454,6 @@ router.delete(
   '/api/v1/docs/page/:id',
   apiMetrics,
   ncMetaAclMw(deletePage, 'pageDelete')
-);
-router.post(
-  '/api/v1/docs/page/batch-publish',
-  apiMetrics,
-  ncMetaAclMw(batchPublish, 'pageBatchPublish')
 );
 router.post(
   '/api/v1/docs/page/magic-expand',

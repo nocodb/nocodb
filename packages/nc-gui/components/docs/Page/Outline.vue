@@ -8,10 +8,14 @@ const { wrapperRef } = defineProps<{
   wrapperRef: HTMLDivElement | undefined
 }>()
 
-const localPage = inject(DocsLocalPageInj)!
+const { openedPage, isPublic } = useDocs()
 
-const showPageSubHeadings = ref(false)
+const showPageSubHeadings = ref(isPublic.value)
 const pageSubHeadings = ref<Array<{ type: string; text: string; active: boolean }>>([])
+// As there is a delay in the page content being rendered, we need to not show 'no content' message
+// when the page is being populated for the first time
+const isFirstTimePopulatingSubHeadings = ref(true)
+
 let lastPageScrollTime = 0
 let topHeaderHeight = 60
 
@@ -81,7 +85,9 @@ const pollPageRendered = async () => {
     await _pollWithDelay()
   }
 
+  isFirstTimePopulatingSubHeadings.value = true
   populatedPageSubheadings()
+  isFirstTimePopulatingSubHeadings.value = false
 }
 
 // Select the active subheading when the page/parent wrapper is scrolled
@@ -95,7 +101,7 @@ watch(
 )
 
 watch(
-  () => localPage.value?.content,
+  () => openedPage.value?.content,
   () => {
     populatedPageSubheadings()
     selectActiveSubHeading()
@@ -123,7 +129,7 @@ onMounted(() => {
   </div>
   <div v-if="showPageSubHeadings" class="pt-20 mr-24 flex flex-col w-full w-54">
     <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
-    <div v-if="pageSubHeadings.length === 0">No content</div>
+    <div v-if="!isFirstTimePopulatingSubHeadings && pageSubHeadings.length === 0">No content</div>
     <a
       v-for="(subHeading, index) in pageSubHeadings"
       :key="index"

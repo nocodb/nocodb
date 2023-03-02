@@ -80,4 +80,14 @@ const createProject = async (context, args: Partial<ProjectType> = {}) => {
   return (await Project.getByTitleOrId(response.body.id)) as Project;
 };
 
-export { createProject, createSharedBase, createSakilaProject };
+const updateProject = async (context, projectId, args: Partial<ProjectType> = {}) => {
+  if(args.meta) {
+    args.meta = JSON.stringify(args.meta);
+  }
+
+  await Project.update(projectId, args as any);
+
+  return (await Project.getByTitleOrId(projectId)) as Project;
+};
+
+export { createProject, createSharedBase, createSakilaProject, updateProject };

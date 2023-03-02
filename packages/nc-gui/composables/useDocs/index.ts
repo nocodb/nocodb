@@ -95,6 +95,14 @@ const [setup, use] = useInjectionState(() => {
 
   const openedPageWithParents = computed(() => (openedPageInSidebar.value ? getPageWithParents(openedPageInSidebar.value) : []))
 
+  // Is any of the parent pages of the opened page nested published
+  const parentWhichIsNestedPublished = computed(() => {
+    if (!openedPage.value) return false
+
+    const pageWithParents = getPageWithParents(openedPage.value!)
+    return pageWithParents?.find((page) => page.is_nested_published)
+  })
+
   async function fetchNestedPages() {
     isFetching.value.nestedPages = true
     try {
@@ -536,6 +544,7 @@ const [setup, use] = useInjectionState(() => {
     isPublic,
     getPageWithParents,
     nestedPublicParentPage,
+    parentWhichIsNestedPublished,
   }
 }, 'useDocs')
 

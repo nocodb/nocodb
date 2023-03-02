@@ -1,9 +1,9 @@
 const [setup, use] = useInjectionState(() => {
   const visibility = ref<'public' | 'private'>('private')
   const { project } = useProject()
-  const { openedPage, getPageWithParents } = useDocs()
+  const { openedPage, parentWhichIsNestedPublished } = useDocs()
 
-  const isPublic = () => {
+  const isPublic = computed(() => {
     const projectMeta = project.value?.meta as any
     let projectMetaObj
     if (typeof projectMeta === 'string') {
@@ -12,30 +12,15 @@ const [setup, use] = useInjectionState(() => {
       projectMetaObj = projectMeta
     }
 
-    const isParentPageNestedPublished = () => {
-      if (!openedPage.value) return false
-
-      const pageWithParents = getPageWithParents(openedPage.value!)
-      return !!pageWithParents?.find((page) => page.is_nested_published)
-    }
-
-    return !!projectMetaObj?.isPublic || openedPage.value?.is_published || isParentPageNestedPublished()
-  }
+    return !!projectMetaObj?.isPublic || openedPage.value?.is_published || !!parentWhichIsNestedPublished.value
+  })
 
   watch(
-    project,
+    isPublic,
     () => {
-      visibility.value = isPublic() ? 'public' : 'private'
+      visibility.value = isPublic.value ? 'public' : 'private'
     },
-    { immediate: true, deep: true },
-  )
-
-  watch(
-    () => [openedPage.value?.is_published, openedPage.value?.is_nested_published],
-    () => {
-      visibility.value = isPublic() ? 'public' : 'private'
-    },
-    { immediate: true, deep: true },
+    { immediate: true },
   )
 
   return {

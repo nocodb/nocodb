@@ -23,7 +23,7 @@ import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { randomTokenString } from '../meta/helpers/stringHelpers';
 import { getAjvValidatorMw } from '../meta/api/helpers';
-import { sendInviteEmail } from './projectUserApis';
+import { sendInviteEmail } from './projectUserController';
 
 async function userList(req, res) {
   res.json(

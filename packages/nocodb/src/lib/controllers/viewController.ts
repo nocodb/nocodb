@@ -12,7 +12,7 @@ import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import Project from '../models/Project';
 import View from '../models/View';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { xcVisibilityMetaGet } from './modelVisibilityApis';
+import { xcVisibilityMetaGet } from './modelVisibilityController';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 // @ts-ignore
 export async function viewGet(req: Request, res: Response<Table>) {}

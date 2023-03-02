@@ -121,8 +121,8 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Meta | Delete| dbView | delete | /api/v1/db/meta/tables/{tableId} |
 | Meta | Post | dbView | reorder | /api/v1/db/meta/tables/{tableId}/reorder |
 | Meta | Post | dbView | formCreate | /api/v1/db/meta/forms |
-| Meta | Patch | dbView | formUpdate | /api/v1/db/meta/forms/{formId} |
-| Meta | Get | dbView | formRead | /api/v1/db/meta/forms/{formId} |
+| Meta | Patch | dbView | formUpdate | /api/v1/db/meta/forms/{formViewId} |
+| Meta | Get | dbView | formRead | /api/v1/db/meta/forms/{formViewId} |
 | Meta | Patch | dbView | formColumnUpdate | /api/v1/db/meta/form-columns/{formViewColumnId} |
 | Meta | Post | dbView | galleryCreate | /api/v1/db/meta/galleries |
 | Meta | Patch | dbView | galleryUpdate | /api/v1/db/meta/galleries/{galleriesId} |

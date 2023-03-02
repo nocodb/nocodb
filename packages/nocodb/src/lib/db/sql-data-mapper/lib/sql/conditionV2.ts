@@ -91,6 +91,19 @@ const parseConditionV2 = async (
       await parentModel.getColumns();
       if (colOptions.type === RelationTypes.HAS_MANY) {
         if (['blank', 'notblank'].includes(filter.comparison_op)) {
+          // handle self reference
+          if (parentModel.id === childModel.id) {
+            if (filter.comparison_op === 'blank') {
+              return (qb) => {
+                qb.whereNull(childColumn.column_name);
+              };
+            } else {
+              return (qb) => {
+                qb.whereNotNull(childColumn.column_name);
+              };
+            }
+          }
+
           const selectHmCount = knex(childModel.table_name)
             .count(childColumn.column_name)
             .where(
@@ -134,6 +147,19 @@ const parseConditionV2 = async (
         };
       } else if (colOptions.type === RelationTypes.BELONGS_TO) {
         if (['blank', 'notblank'].includes(filter.comparison_op)) {
+          // handle self reference
+          if (parentModel.id === childModel.id) {
+            if (filter.comparison_op === 'blank') {
+              return (qb) => {
+                qb.whereNull(childColumn.column_name);
+              };
+            } else {
+              return (qb) => {
+                qb.whereNotNull(childColumn.column_name);
+              };
+            }
+          }
+
           const selectBtCount = knex(parentModel.table_name)
             .count(parentColumn.column_name)
             .where(
@@ -182,6 +208,19 @@ const parseConditionV2 = async (
         const mmChildColumn = await colOptions.getMMChildColumn();
 
         if (['blank', 'notblank'].includes(filter.comparison_op)) {
+          // handle self reference
+          if (mmModel.id === childModel.id) {
+            if (filter.comparison_op === 'blank') {
+              return (qb) => {
+                qb.whereNull(childColumn.column_name);
+              };
+            } else {
+              return (qb) => {
+                qb.whereNotNull(childColumn.column_name);
+              };
+            }
+          }
+
           const selectMmCount = knex(mmModel.table_name)
             .count(mmChildColumn.column_name)
             .where(

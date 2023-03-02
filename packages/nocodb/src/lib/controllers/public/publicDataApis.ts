@@ -5,7 +5,7 @@ import catchError from '../../meta/helpers/catchError';
 import { publicDataService } from '../../services';
 
 export async function dataList(req: Request, res: Response) {
-  const pagedResponse = publicDataService.dataList({
+  const pagedResponse = await publicDataService.dataList({
     query: req.query,
     password: req.headers?.['xc-password'] as string,
     sharedViewUuid: req.params.sharedViewUuid,
@@ -36,7 +36,7 @@ async function dataInsert(req: Request & { files: any[] }, res: Response) {
 }
 
 async function relDataList(req, res) {
-  const pagedResponse = publicDataService.relDataList({
+  const pagedResponse = await publicDataService.relDataList({
     query: req.query,
     password: req.headers?.['xc-password'] as string,
     sharedViewUuid: req.params.sharedViewUuid,

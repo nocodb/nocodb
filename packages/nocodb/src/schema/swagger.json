@@ -8669,13 +8669,74 @@
             "$ref": "#/components/schemas/Id"
           },
           "logical_op": {
-            "type": "string"
+            "type": "string",
+            "enum": ["and", "or", "not"],
+            "description": "Logical Operator"
           },
           "comparison_op": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "eq",
+              "neq",
+              "not",
+              "like",
+              "nlike",
+              "empty",
+              "notempty",
+              "null",
+              "notnull",
+              "checked",
+              "notchecked",
+              "blank",
+              "notblank",
+              "allof",
+              "anyof",
+              "nallof",
+              "nanyof",
+              "gt",
+              "lt",
+              "gte",
+              "lte",
+              "ge",
+              "le",
+              "in",
+              "isnot",
+              "is",
+              "isWithin",
+              "btw",
+              "nbtw"
+            ],
+            "description": "Comparison Operator"
           },
           "comparison_sub_op": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "description": "Comparison Sub-Operator",
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pastWeek",
+                  "pastMonth",
+                  "pastYear",
+                  "nextWeek",
+                  "nextYear",
+                  "pastNumberOfDays",
+                  "nextNumberOfDays",
+                  "today",
+                  "tomorrow",
+                  "yesterday",
+                  "oneWeekAgo",
+                  "oneWeekFromNow",
+                  "oneMonthAgo",
+                  "oneMonthFromNow",
+                  "daysAgo",
+                  "daysFromNow",
+                  "exactDate"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "value": {},
           "is_group": {
@@ -8718,20 +8779,21 @@
         "readOnly": true,
         "examples": [
           {
-            "id": "string",
-            "fk_model_id": "string",
-            "fk_column_id": "string",
-            "logical_op": "string",
-            "comparison_op": "string",
-            "comparison_sub_op": "string",
-            "value": null,
-            "is_group": true,
-            "children": [{}],
-            "project_id": "string",
-            "base_id": "string",
-            "fk_parent_id": "string",
-            "fk_view_id": "string",
-            "fk_hook_id": "string"
+            "id": "fi_xn647tpmdq8fu8",
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "project_id": "p_xm3thidrblw4n7",
+            "fk_view_id": "vw_b739e29vqmrxnf",
+            "fk_hook_id": null,
+            "fk_column_id": "cl_d7ah9n2qfupgys",
+            "fk_parent_id": null,
+            "logical_op": "and",
+            "comparison_op": "eq",
+            "value": "foo",
+            "is_group": null,
+            "order": 1,
+            "created_at": "2023-03-02 18:18:05",
+            "updated_at": "2023-03-02 18:18:05",
+            "comparison_sub_op": null
           }
         ]
       },
@@ -8829,13 +8891,12 @@
         "readOnly": true,
         "examples": [
           {
-            "fk_column_id": "string",
+            "fk_column_id": "cl_d7ah9n2qfupgys",
             "logical_op": "and",
             "comparison_op": "eq",
-            "comparison_sub_op": "pastWeek",
-            "value": null,
-            "is_group": true,
-            "fk_parent_id": "string"
+            "comparison_sub_op": null,
+            "value": "foo",
+            "is_group": false
           }
         ]
       },
@@ -8894,20 +8955,38 @@
             "filters": {
               "list": [
                 {
-                  "id": "string",
-                  "fk_model_id": "string",
-                  "fk_column_id": "string",
-                  "logical_op": "string",
-                  "comparison_op": "string",
-                  "comparison_sub_op": "string",
-                  "value": null,
-                  "is_group": true,
-                  "children": [{}],
-                  "project_id": "string",
-                  "base_id": "string",
-                  "fk_parent_id": "string",
-                  "fk_view_id": "string",
-                  "fk_hook_id": "string"
+                  "id": "fi_wl91o3rf6rs0fq",
+                  "base_id": "ds_g4ccx6e77h1dmi",
+                  "project_id": "p_xm3thidrblw4n7",
+                  "fk_view_id": "vw_b739e29vqmrxnf",
+                  "fk_hook_id": null,
+                  "fk_column_id": "cl_d7ah9n2qfupgys",
+                  "fk_parent_id": null,
+                  "logical_op": "and",
+                  "comparison_op": "nlike",
+                  "value": "bar",
+                  "is_group": null,
+                  "order": 2,
+                  "created_at": "2023-03-02 18:21:52",
+                  "updated_at": "2023-03-02 18:21:52",
+                  "comparison_sub_op": null
+                },
+                {
+                  "id": "fi_xn647tpmdq8fu8",
+                  "base_id": "ds_g4ccx6e77h1dmi",
+                  "project_id": "p_xm3thidrblw4n7",
+                  "fk_view_id": "vw_b739e29vqmrxnf",
+                  "fk_hook_id": null,
+                  "fk_column_id": "cl_d7ah9n2qfupgys",
+                  "fk_parent_id": null,
+                  "logical_op": "and",
+                  "comparison_op": "eq",
+                  "value": "foo",
+                  "is_group": null,
+                  "order": 1,
+                  "created_at": "2023-03-02 18:18:05",
+                  "updated_at": "2023-03-02 18:18:05",
+                  "comparison_sub_op": null
                 }
               ]
             }

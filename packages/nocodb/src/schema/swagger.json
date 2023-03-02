@@ -9342,37 +9342,32 @@
       "Paginated": {
         "title": "Paginated Model",
         "type": "object",
+        "description": "Model for Paginated",
         "properties": {
           "pageSize": {
-            "type": "integer"
+            "type": "number",
+            "description": "The number of pages",
+            "example": 10
           },
           "totalRows": {
-            "type": "integer"
-          },
-          "sort": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Sort"
-                }
-              }
-            ]
+            "type": "number",
+            "description": "The number of rows in the given result",
+            "example": 1
           },
           "isFirstPage": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Is the current page the first page"
           },
           "isLastPage": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Is the current page the last page"
           },
           "page": {
-            "type": "number"
+            "type": "number",
+            "description": "The current page",
+            "example": 1
           }
-        },
-        "description": "Model for Paginated"
+        }
       },
       "HookList": {
         "description": "Model for Hook List",

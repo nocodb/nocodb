@@ -85,17 +85,17 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
   ) {
     // anyof and nanyof can allow multiple selections,
     // while `eq` and `neq` only allow one selection
-    filter.value = ''
+    filter.value = null
   } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
     // since `blank`, `empty`, `null` doesn't require value,
     // hence remove the previous value
-    filter.value = ''
+    filter.value = null
     filter.comparison_sub_op = null
   } else if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
-    filter.value = ''
+    filter.value = null
     if (
       !comparisonSubOpList(filter.comparison_op!)
         .map((op) => op.value)
@@ -181,7 +181,7 @@ const selectFilterField = (filter: Filter, index: number) => {
   }
 
   // reset filter value as well
-  filter.value = ''
+  filter.value = null
   saveOrUpdate(filter, index)
 }
 

@@ -235,6 +235,7 @@
     "action": "アクション",
     "actions": "アクション",
     "operation": "操作",
+    "operationSub": "Sub Operation",
     "operationType": "操作タイプ",
     "operationSubType": "操作サブタイプ",
     "description": "説明",

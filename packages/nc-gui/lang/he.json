@@ -235,6 +235,7 @@
     "action": "פעולה",
     "actions": "פעולות",
     "operation": "מבצע",
+    "operationSub": "Sub Operation",
     "operationType": "סוג הפעולה",
     "operationSubType": "מבצע תת-סוג",
     "description": "תיאור",

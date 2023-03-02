@@ -307,7 +307,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         }
       }
 
-      setTimeout(resolve, 200)
+      resolve()
     })
   }
 

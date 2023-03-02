@@ -23,9 +23,9 @@ const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
 async function init() {
   await layout(showSkeleton.value).then(() => {
-    if (!showSkeleton.value) {
-      zoomIn()
-    }
+    setTimeout(() => {
+      fitView({ duration: 0, minZoom: 0.2 })
+    }, 250)
   })
 }
 

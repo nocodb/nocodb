@@ -578,8 +578,385 @@ function filterSelectBased() {
   });
 }
 
+async function applyDateFilter(filterParams, expectedRecords) {
+  const response = await request(context.app)
+    .get(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+    .set('xc-auth', context.token)
+    .query({
+      filterArrJson: JSON.stringify([filterParams]),
+    })
+    .expect(200);
+  // expect(response.body.pageInfo.totalRows).to.equal(expectedRecords);
+  if (response.body.pageInfo.totalRows !== expectedRecords) {
+    console.log('filterParams', filterParams);
+    console.log(
+      'response.body.pageInfo.totalRows',
+      response.body.pageInfo.totalRows
+    );
+    console.log('expectedRecords', expectedRecords);
+  }
+  return response.body.list;
+}
+
+function filterDateBased() {
+  // prepare data for test cases
+  beforeEach(async function () {
+    context = await init();
+    project = await createProject(context);
+    table = await createTable(context, project, {
+      table_name: 'dateBased',
+      title: 'dateBased',
+      columns: [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+        },
+        {
+          column_name: 'Date',
+          title: 'Date',
+          uidt: UITypes.Date,
+        },
+      ],
+    });
+
+    columns = await table.getColumns();
+
+    let rowAttributes = [];
+    for (let i = 0; i < 800; i++) {
+      let row = {
+        Date: rowMixedValue(columns[1], i),
+      };
+      rowAttributes.push(row);
+    }
+
+    await createBulkRows(context, {
+      project,
+      table,
+      values: rowAttributes,
+    });
+    unfilteredRecords = await listRow({ project, table });
+
+    // verify length of unfiltered records to be 800
+    expect(unfilteredRecords.length).to.equal(800);
+  });
+
+  it('Type: Date ', async () => {
+    const today = new Date().setHours(0, 0, 0, 0);
+    const tomorrow = new Date(
+      new Date().setDate(new Date().getDate() + 1)
+    ).setHours(0, 0, 0, 0);
+    const yesterday = new Date(
+      new Date().setDate(new Date().getDate() - 1)
+    ).setHours(0, 0, 0, 0);
+    const oneWeekAgo = new Date(
+      new Date().setDate(new Date().getDate() - 7)
+    ).setHours(0, 0, 0, 0);
+    const oneWeekFromNow = new Date(
+      new Date().setDate(new Date().getDate() + 7)
+    ).setHours(0, 0, 0, 0);
+    const oneMonthAgo = new Date(
+      new Date().setMonth(new Date().getMonth() - 1)
+    ).setHours(0, 0, 0, 0);
+    const oneMonthFromNow = new Date(
+      new Date().setMonth(new Date().getMonth() + 1)
+    ).setHours(0, 0, 0, 0);
+    const daysAgo45 = new Date(
+      new Date().setDate(new Date().getDate() - 45)
+    ).setHours(0, 0, 0, 0);
+    const daysFromNow45 = new Date(
+      new Date().setDate(new Date().getDate() + 45)
+    ).setHours(0, 0, 0, 0);
+    const thisMonth15 = new Date(new Date().setDate(15)).setHours(0, 0, 0, 0);
+    const oneYearAgo = new Date(
+      new Date().setFullYear(new Date().getFullYear() - 1)
+    ).setHours(0, 0, 0, 0);
+    const oneYearFromNow = new Date(
+      new Date().setFullYear(new Date().getFullYear() + 1)
+    ).setHours(0, 0, 0, 0);
+
+    // records array with time set to 00:00:00; store time in unix epoch
+    const recordsTimeSetToZero = unfilteredRecords.map((r) => {
+      const date = new Date(r['Date']);
+      date.setHours(0, 0, 0, 0);
+      return date.getTime();
+    });
+
+    const isFilterList = [
+      {
+        opSub: 'today',
+        rowCount: recordsTimeSetToZero.filter((r) => r === today).length,
+      },
+      {
+        opSub: 'tomorrow',
+        rowCount: recordsTimeSetToZero.filter((r) => r === tomorrow).length,
+      },
+      {
+        opSub: 'yesterday',
+        rowCount: recordsTimeSetToZero.filter((r) => r === yesterday).length,
+      },
+      {
+        opSub: 'oneWeekAgo',
+        rowCount: recordsTimeSetToZero.filter((r) => r === oneWeekAgo).length,
+      },
+      {
+        opSub: 'oneWeekFromNow',
+        rowCount: recordsTimeSetToZero.filter((r) => r === oneWeekFromNow)
+          .length,
+      },
+      {
+        opSub: 'oneMonthAgo',
+        rowCount: recordsTimeSetToZero.filter((r) => r === oneMonthAgo).length,
+      },
+      {
+        opSub: 'oneMonthFromNow',
+        rowCount: recordsTimeSetToZero.filter((r) => r === oneMonthFromNow)
+          .length,
+      },
+      {
+        opSub: 'daysAgo',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter((r) => r === daysAgo45).length,
+      },
+      {
+        opSub: 'daysFromNow',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter((r) => r === daysFromNow45)
+          .length,
+      },
+      {
+        opSub: 'exactDate',
+        value: new Date(thisMonth15).toISOString().split('T')[0],
+        rowCount: recordsTimeSetToZero.filter((r) => r === thisMonth15).length,
+      },
+    ];
+
+    // "is after" filter list
+    const isAfterFilterList = [
+      {
+        opSub: 'today',
+        rowCount: recordsTimeSetToZero.filter((r) => r > today).length,
+      },
+      {
+        opSub: 'tomorrow',
+        rowCount: recordsTimeSetToZero.filter((r) => r > tomorrow).length,
+      },
+      {
+        opSub: 'yesterday',
+        rowCount: recordsTimeSetToZero.filter((r) => r > yesterday).length,
+      },
+      {
+        opSub: 'oneWeekAgo',
+        rowCount: recordsTimeSetToZero.filter((r) => r > oneWeekAgo).length,
+      },
+      {
+        opSub: 'oneWeekFromNow',
+        rowCount: recordsTimeSetToZero.filter((r) => r > oneWeekFromNow).length,
+      },
+      {
+        opSub: 'oneMonthAgo',
+        rowCount: recordsTimeSetToZero.filter((r) => r > oneMonthAgo).length,
+      },
+      {
+        opSub: 'oneMonthFromNow',
+        rowCount: recordsTimeSetToZero.filter((r) => r > oneMonthFromNow)
+          .length,
+      },
+      {
+        opSub: 'daysAgo',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter((r) => r > daysAgo45).length,
+      },
+      {
+        opSub: 'daysFromNow',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter((r) => r > daysFromNow45).length,
+      },
+      {
+        opSub: 'exactDate',
+        value: new Date().toISOString().split('T')[0],
+        rowCount: recordsTimeSetToZero.filter((r) => r > today).length,
+      },
+    ];
+
+    // "is within" filter list
+    const isWithinFilterList = [
+      {
+        opSub: 'pastWeek',
+        rowCount: recordsTimeSetToZero.filter(
+          (r) => r >= oneWeekAgo && r <= today
+        ).length,
+      },
+      {
+        opSub: 'pastMonth',
+        rowCount: recordsTimeSetToZero.filter(
+          (r) => r >= oneMonthAgo && r <= today
+        ).length,
+      },
+      {
+        opSub: 'pastYear',
+        rowCount: recordsTimeSetToZero.filter(
+          (r) => r >= oneYearAgo && r <= today
+        ).length,
+      },
+      {
+        opSub: 'nextWeek',
+        rowCount: recordsTimeSetToZero.filter(
+          (r) => r >= today && r <= oneWeekFromNow
+        ).length,
+      },
+      {
+        opSub: 'nextMonth',
+        rowCount: recordsTimeSetToZero.filter(
+          (r) => r >= today && r <= oneMonthFromNow
+        ).length,
+      },
+      {
+        opSub: 'nextYear',
+        rowCount: recordsTimeSetToZero.filter(
+          (r) => r >= today && r <= oneYearFromNow
+        ).length,
+      },
+      {
+        opSub: 'nextNumberOfDays',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(
+          (r) => r >= today && r <= daysFromNow45
+        ).length,
+      },
+      {
+        opSub: 'pastNumberOfDays',
+        value: 45,
+        rowCount: recordsTimeSetToZero.filter(
+          (r) => r >= daysAgo45 && r <= today
+        ).length,
+      },
+    ];
+
+    // rest of the filters (without subop type)
+    const filterList = [
+      {
+        opType: 'blank',
+        rowCount: unfilteredRecords.filter(
+          (r) => r['Date'] === null || r['Date'] === ''
+        ).length,
+      },
+      {
+        opType: 'notblank',
+        rowCount: unfilteredRecords.filter(
+          (r) => r['Date'] !== null && r['Date'] !== ''
+        ).length,
+      },
+    ];
+
+    // is
+    for (let i = 0; i < isFilterList.length; i++) {
+      const filter = {
+        fk_column_id: columns[1].id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'eq',
+        comparison_sub_op: isFilterList[i].opSub,
+        value: isFilterList[i].value,
+      };
+      await applyDateFilter(filter, isFilterList[i].rowCount);
+    }
+
+    // is not
+    for (let i = 0; i < isFilterList.length; i++) {
+      const filter = {
+        fk_column_id: columns[1].id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'neq',
+        comparison_sub_op: isFilterList[i].opSub,
+        value: isFilterList[i].value,
+      };
+      await applyDateFilter(filter, 800 - isFilterList[i].rowCount);
+    }
+
+    // is before
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      const filter = {
+        fk_column_id: columns[1].id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'gt',
+        comparison_sub_op: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i].value,
+      };
+      await applyDateFilter(filter, isAfterFilterList[i].rowCount);
+    }
+
+    // is before or on
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      const filter = {
+        fk_column_id: columns[1].id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'gte',
+        comparison_sub_op: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i].value,
+      };
+      await applyDateFilter(filter, isAfterFilterList[i].rowCount + 1);
+    }
+
+    // is after
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      const filter = {
+        fk_column_id: columns[1].id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'lt',
+        comparison_sub_op: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i].value,
+      };
+      await applyDateFilter(filter, 800 - isAfterFilterList[i].rowCount - 1);
+    }
+
+    // is after or on
+    for (let i = 0; i < isAfterFilterList.length; i++) {
+      const filter = {
+        fk_column_id: columns[1].id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'lte',
+        comparison_sub_op: isAfterFilterList[i].opSub,
+        value: isAfterFilterList[i].value,
+      };
+      await applyDateFilter(filter, 800 - isAfterFilterList[i].rowCount);
+    }
+
+    // is within
+    for (let i = 0; i < isWithinFilterList.length; i++) {
+      const filter = {
+        fk_column_id: columns[1].id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'isWithin',
+        comparison_sub_op: isWithinFilterList[i].opSub,
+        value: isWithinFilterList[i].value,
+      };
+      await applyDateFilter(filter, isWithinFilterList[i].rowCount);
+    }
+
+    // rest of the filters (without subop type)
+    for (let i = 0; i < filterList.length; i++) {
+      const filter = {
+        fk_column_id: columns[1].id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: filterList[i].opType,
+        value: '',
+      };
+      await applyDateFilter(filter, filterList[i].rowCount);
+    }
+  });
+}
+
 export default function () {
   describe('Filter: Text based', filterTextBased);
   describe('Filter: Numerical', filterNumberBased);
   describe('Filter: Select based', filterSelectBased);
+  describe('Filter: Date based', filterDateBased);
 }

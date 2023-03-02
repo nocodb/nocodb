@@ -90,10 +90,7 @@ const parseConditionV2 = async (
       const parentModel = await parentColumn.getModel();
       await parentModel.getColumns();
       if (colOptions.type === RelationTypes.HAS_MANY) {
-        if (
-          filter.comparison_op === 'empty' ||
-          filter.comparison_op === 'notempty'
-        ) {
+        if (['blank', 'notblank'].includes(filter.comparison_op)) {
           const selectHmCount = knex(childModel.table_name)
             .count(childColumn.column_name)
             .where(
@@ -105,7 +102,7 @@ const parseConditionV2 = async (
             );
 
           return (qb) => {
-            if (filter.comparison_op === 'empty') {
+            if (filter.comparison_op === 'blank') {
               qb.where(knex.raw('0'), selectHmCount);
             } else {
               qb.whereNot(knex.raw('0'), selectHmCount);
@@ -136,14 +133,23 @@ const parseConditionV2 = async (
           else qbP.whereIn(parentColumn.column_name, selectQb);
         };
       } else if (colOptions.type === RelationTypes.BELONGS_TO) {
-        if (filter.comparison_op === 'null') {
+        if (['blank', 'notblank'].includes(filter.comparison_op)) {
+          const selectBtCount = knex(parentModel.table_name)
+            .count(parentColumn.column_name)
+            .where(
+              parentColumn.column_name,
+              knex.raw('??.??', [
+                alias || childModel.table_name,
+                childColumn.column_name,
+              ])
+            );
+
           return (qb) => {
-            qb.whereNull(childColumn.column_name);
-          };
-        }
-        if (filter.comparison_op === 'notnull') {
-          return (qb) => {
-            qb.whereNotNull(childColumn.column_name);
+            if (filter.comparison_op === 'blank') {
+              qb.where(knex.raw('0'), selectBtCount);
+            } else {
+              qb.whereNot(knex.raw('0'), selectBtCount);
+            }
           };
         }
 
@@ -175,10 +181,7 @@ const parseConditionV2 = async (
         const mmParentColumn = await colOptions.getMMParentColumn();
         const mmChildColumn = await colOptions.getMMChildColumn();
 
-        if (
-          filter.comparison_op === 'empty' ||
-          filter.comparison_op === 'notempty'
-        ) {
+        if (['blank', 'notblank'].includes(filter.comparison_op)) {
           const selectMmCount = knex(mmModel.table_name)
             .count(mmChildColumn.column_name)
             .where(
@@ -190,7 +193,7 @@ const parseConditionV2 = async (
             );
 
           return (qb) => {
-            if (filter.comparison_op === 'empty') {
+            if (filter.comparison_op === 'blank') {
               qb.where(knex.raw('0'), selectMmCount);
             } else {
               qb.whereNot(knex.raw('0'), selectMmCount);
@@ -205,6 +208,7 @@ const parseConditionV2 = async (
             `${mmModel.table_name}.${mmParentColumn.column_name}`,
             `${parentModel.table_name}.${parentColumn.column_name}`
           );
+
         (
           await parseConditionV2(
             new Filter({

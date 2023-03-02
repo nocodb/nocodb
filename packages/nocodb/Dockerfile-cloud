@@ -13,6 +13,7 @@ RUN apk add --no-cache python3 make g++
 COPY ./package*.json ./
 COPY ./docker/nc-gui/ ./docker/nc-gui/
 COPY ./docker/main.js ./docker/index.js
+COPY ./docker/configure.sh /usr/src/appEntry/configure.sh
 # COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-cloud.sh /usr/src/appEntry/start.sh
 COPY ./src/lib/public/css/*.css ./docker/public/css/
@@ -42,7 +43,9 @@ ENV NC_TOOL_DIR=/usr/app/data/
 RUN apk --update --no-cache add \
     nodejs \
     tar \
-    dumb-init
+    dumb-init \
+    curl \
+    jq 
 
 # Copy packaged production code & main entry file
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [[ -f /usr/src/appEntry/configure.sh ]]; then
+  /usr/src/appEntry/configure.sh
+fi
+
 FILE="/usr/src/app/package.json"
 #sleep 5
 

@@ -696,11 +696,13 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
           },
           "name": "userId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique User ID"
         }
       ],
       "patch": {
@@ -740,11 +742,13 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
           },
           "name": "userId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique User ID"
         }
       ],
       "post": {
@@ -763,11 +767,13 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
           },
           "name": "userId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique User ID"
         }
       ],
       "post": {
@@ -948,11 +954,13 @@
         },
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
           },
           "name": "userId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique User ID"
         }
       ],
       "patch": {
@@ -2393,11 +2401,14 @@
         },
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
           },
           "name": "columnId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Column ID"
         }
       ],
       "patch": {
@@ -2623,11 +2634,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "hk_0063k4o1frnxbr"
           },
           "name": "hookId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Hook ID"
         }
       ],
       "get": {
@@ -2666,11 +2679,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "pattern": "fi_pgfuo11uhn2xeo"
           },
           "name": "filterId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Filter ID"
         }
       ],
       "get": {
@@ -3005,11 +3020,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
           },
           "name": "columnId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Column ID"
         }
       ],
       "patch": {
@@ -3760,11 +3778,14 @@
         },
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
           },
           "name": "columnId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Column ID"
         }
       ],
       "get": {
@@ -3841,11 +3862,14 @@
         },
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
           },
           "name": "columnId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Column ID"
         }
       ],
       "get": {
@@ -4281,11 +4305,12 @@
         },
         {
           "schema": {
-            "type": "string"
+            "example": "1"
           },
           "name": "rowId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Row ID"
         }
       ],
       "get": {
@@ -4375,11 +4400,12 @@
         },
         {
           "schema": {
-            "type": "string"
+            "example": "1"
           },
           "name": "rowId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Row ID"
         }
       ],
       "get": {
@@ -4427,11 +4453,12 @@
         },
         {
           "schema": {
-            "type": "string"
+            "example": "1"
           },
           "name": "rowId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Row ID"
         }
       ],
       "get": {
@@ -4518,11 +4545,12 @@
         },
         {
           "schema": {
-            "type": "string"
+            "example": "1"
           },
           "name": "rowId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Row ID"
         }
       ],
       "get": {
@@ -4877,11 +4905,12 @@
         },
         {
           "schema": {
-            "type": "string"
+            "example": "1"
           },
           "name": "rowId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Row ID"
         },
         {
           "schema": {
@@ -4971,11 +5000,12 @@
         },
         {
           "schema": {
-            "type": "string"
+            "example": "1"
           },
           "name": "rowId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Row ID"
         },
         {
           "schema": {
@@ -5082,11 +5112,12 @@
         },
         {
           "schema": {
-            "type": "string"
+            "example": "1"
           },
           "name": "rowId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Row ID"
         },
         {
           "schema": {
@@ -5160,11 +5191,14 @@
         },
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
           },
           "name": "columnId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Column ID"
         },
         {
           "schema": {
@@ -5310,11 +5344,12 @@
         },
         {
           "schema": {
-            "type": "string"
+            "example": "1"
           },
           "name": "rowId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Row ID"
         },
         {
           "schema": {
@@ -5777,11 +5812,12 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "example": "1"
           },
           "name": "rowId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Row ID"
         }
       ],
       "post": {
@@ -5986,11 +6022,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "hk_0063k4o1frnxbr"
           },
           "name": "hookId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Hook ID"
         }
       ],
       "patch": {
@@ -6880,11 +6918,13 @@
         },
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
           },
           "name": "userId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique User ID"
         }
       ],
       "post": {

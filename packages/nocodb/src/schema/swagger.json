@@ -7963,7 +7963,7 @@
             "description": "Associated View Model"
           }
         },
-        "required": ["id", "base_id", "project_id", "fk_model_id", "title"]
+        "required": ["fk_model_id", "title", "type", "show"]
       },
       "Table": {
         "title": "Table Model",

@@ -15,30 +15,23 @@ const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, onPaneReady, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
+const { $destroy, fitView, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
 
 const { layout, elements } = useErdElements(tables, config)
 
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
-function init() {
-  layout(showSkeleton.value)
-  if (!showSkeleton.value) {
-    setTimeout(zoomIn, 100)
-  }
+async function init() {
+  await layout(showSkeleton.value).then(() => {
+    if (!showSkeleton.value) {
+      zoomIn()
+    }
+  })
 }
 
 function zoomIn(nodeId?: string) {
-  fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.2 })
+  fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 200, minZoom: 0.2 })
 }
-
-onPaneReady(() => {
-  layout(showSkeleton.value)
-
-  setTimeout(() => {
-    fitView({ duration: 250, minZoom: 0.16 })
-  }, 100)
-})
 
 onNodeDoubleClick(({ node }) => {
   if (showSkeleton.value) zoomIn()
@@ -49,15 +42,14 @@ onNodeDoubleClick(({ node }) => {
 })
 
 watch(tables, init)
-watch(showSkeleton, (isSkeleton) => {
-  layout(isSkeleton)
-  setTimeout(() => {
+watch(showSkeleton, async (isSkeleton) => {
+  await layout(isSkeleton).then(() => {
     fitView({
       duration: 300,
       minZoom: isSkeleton ? undefined : viewport.value.zoom,
       maxZoom: isSkeleton ? viewport.value.zoom : undefined,
     })
-  }, 100)
+  })
 })
 
 onScopeDispose($destroy)

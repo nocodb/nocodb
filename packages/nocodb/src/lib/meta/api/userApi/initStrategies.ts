@@ -19,6 +19,7 @@ const jwtOptions = {
 
 import bcrypt from 'bcryptjs';
 import Project from '../../../models/Project';
+import Base from '../../../models/Base';
 // import NocoCache from '../../../cache/NocoCache';
 // import { CacheScope } from '../../../utils/globals';
 import ApiToken from '../../../models/ApiToken';
@@ -284,6 +285,26 @@ export function initStrategies(router): void {
         }
         user = {
           roles: sharedProject?.roles,
+        };
+      }
+
+      callback(null, user);
+    })
+  );
+
+  passport.use(
+    'erdView',
+    new CustomStrategy(async (req: any, callback) => {
+      let user;
+      if (req.headers['xc-shared-erd-id']) {
+        let sharedProject = null;
+
+        if (!sharedProject) {
+          const sharedBase = await Base.getByUUID(req.headers['xc-shared-erd-id']);
+          sharedProject = await Project.getByTitleOrId(sharedBase?.project_id);
+        }
+        user = {
+          roles: 'viewer',
         };
       }
 

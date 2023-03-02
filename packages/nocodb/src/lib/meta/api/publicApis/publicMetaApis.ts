@@ -92,6 +92,15 @@ async function publicSharedBaseGet(req, res): Promise<any> {
 
   res.json({ project_id: project.id });
 }
+async function publicSharedErdGet(req, res): Promise<any> {
+  const base = await Base.getByUUID(req.params.sharedErdUuid);
+
+  if (!base) {
+    NcError.notFound();
+  }
+
+  res.json(base);
+}
 
 async function getPublicProject(req, res): Promise<any> {
   const project = await Project.get(req.params.id);
@@ -121,4 +130,8 @@ router.get(
 
 router.get('/api/v1/db/public/project/:id', catchError(getPublicProject));
 
+router.get(
+  '/api/v1/db/public/shared-erd/:sharedErdUuid/meta',
+  catchError(publicSharedErdGet)
+);
 export default router;

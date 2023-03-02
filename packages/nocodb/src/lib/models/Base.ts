@@ -15,6 +15,8 @@ import { NcError } from '../meta/helpers/catchError';
 import SyncSource from './SyncSource';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 
+const { v4: uuidv4 } = require('uuid');
+
 // todo: hide credentials
 export default class Base implements BaseType {
   id?: string;
@@ -29,6 +31,7 @@ export default class Base implements BaseType {
   inflection_table?: string;
   order?: number;
   enabled?: boolean;
+  erd_uuid?: string;
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
@@ -184,6 +187,18 @@ export default class Base implements BaseType {
       await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
     }
     return baseData && new Base(baseData);
+  }
+
+  static async getByUUID(uuid: string, ncMeta = Noco.ncMeta) {
+    const base = await ncMeta.metaGet2(null, null, MetaTable.BASES, {
+      erd_uuid: uuid,
+    });
+
+    if (!base) return null;
+
+    delete base.config;
+
+    return base && new Base(base);
   }
 
   static async reorderBases(
@@ -349,5 +364,58 @@ export default class Base implements BaseType {
       { project_id: this.project_id, base_id: this.id },
       ncMeta
     );
+  }
+
+  async shareErd(ncMeta = Noco.ncMeta) {
+    if (!this.erd_uuid) {
+      const uuid = uuidv4();
+      this.erd_uuid = uuid;
+      // get existing cache
+      const key = `${CacheScope.BASE}:${this.id}`;
+      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        // update data
+        o.erd_uuid = uuid;
+        // set cache
+        await NocoCache.set(key, o);
+      }
+      // set meta
+      await ncMeta.metaUpdate(
+        null,
+        null,
+        MetaTable.BASES,
+        {
+          erd_uuid: this.erd_uuid,
+        },
+        this.id
+      );
+    }
+    return this;
+  }
+
+  async disableShareErd(ncMeta = Noco.ncMeta) {
+    if (this.erd_uuid) {
+      this.erd_uuid = null;
+      // get existing cache
+      const key = `${CacheScope.BASE}:${this.id}`;
+      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        // update data
+        o.erd_uuid = null;
+        // set cache
+        await NocoCache.set(key, o);
+      }
+      // set meta
+      await ncMeta.metaUpdate(
+        null,
+        null,
+        MetaTable.BASES,
+        {
+          erd_uuid: this.erd_uuid,
+        },
+        this.id
+      );
+    }
+    return this;
   }
 }

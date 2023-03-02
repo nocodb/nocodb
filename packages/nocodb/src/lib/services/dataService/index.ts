@@ -19,7 +19,7 @@ export async function dataFindOne(param: PathParams & { query: any }) {
 
 export async function dataGroupBy(param: PathParams & { query: any }) {
   const { model, view } = await getViewAndModelByAliasOrId(param);
-  await getDataGroupBy({ model, view, query: param.query });
+  return await getDataGroupBy({ model, view, query: param.query });
 }
 
 export async function dataCount(param: PathParams & { query: any }) {
@@ -245,7 +245,7 @@ export async function dataExist(
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
-  await baseModel.exist(param.rowId);
+  return await baseModel.exist(param.rowId);
 }
 
 // todo: Handle the error case where view doesnt belong to model
@@ -508,7 +508,7 @@ export async function hmExcludedList(param: {
     param.query
   );
 
-  new PagedResponseImpl(data, {
+  return new PagedResponseImpl(data, {
     count,
     ...param.query,
   });

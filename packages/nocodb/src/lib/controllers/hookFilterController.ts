@@ -1,112 +1,60 @@
 import { Request, Response, Router } from 'express';
-// @ts-ignore
-import Model from '../models/Model';
-import { Tele } from 'nc-help';
-// @ts-ignore
-import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-// @ts-ignore
-import { Table, TableList, TableListParams, TableReq } from 'nocodb-sdk';
-// @ts-ignore
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
-// @ts-ignore
-import Project from '../models/Project';
-import Filter from '../models/Filter';
+import { T } from 'nc-help';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { getAjvValidatorMw } from '../meta/api/helpers';
+import { hookFilterService } from '../services';
 
-// @ts-ignore
-export async function filterGet(req: Request, res: Response, next) {
-  try {
-    const filter = await Filter.getFilterObject({ hookId: req.params.hookId });
+export async function filterGet(req: Request, res: Response) {
+  const filter = await hookFilterService.filterGet({
+    hookId: req.params.hookId,
+  });
 
-    res.json(filter);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
+  res.json(filter);
 }
 
-// @ts-ignore
-export async function filterList(
-  req: Request<any, any, any, TableListParams>,
-  res: Response,
-  next
-) {
-  try {
-    const filter = await Filter.rootFilterListByHook({
-      hookId: req.params.hookId,
-    });
+export async function filterList(req: Request, res: Response) {
+  const filter = await hookFilterService.filterList({
+    hookId: req.params.hookId,
+  });
 
-    res.json(filter);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
-}
-// @ts-ignore
-export async function filterChildrenRead(
-  req: Request<any, any, any, TableListParams>,
-  res: Response,
-  next
-) {
-  try {
-    const filter = await Filter.parentFilterListByHook({
-      hookId: req.params.hookId,
-      parentId: req.params.filterParentId,
-    });
-
-    res.json(filter);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
+  res.json(filter);
 }
 
-export async function filterCreate(
-  req: Request<any, any, TableReq>,
-  res,
-  next
-) {
-  try {
-    const filter = await Filter.insert({
-      ...req.body,
-      fk_hook_id: req.params.hookId,
-    });
+export async function filterChildrenRead(req: Request, res: Response) {
+  const filter = await hookFilterService.filterChildrenRead({
+    hookId: req.params.hookId,
+    filterParentId: req.params.filterParentId,
+  });
 
-    Tele.emit('evt', { evt_type: 'hookFilter:created' });
-    res.json(filter);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
+  res.json(filter);
 }
 
-// @ts-ignore
-export async function filterUpdate(req, res, next) {
-  try {
-    const filter = await Filter.update(req.params.filterId, {
-      ...req.body,
-      fk_hook_id: req.params.hookId,
-    });
-    Tele.emit('evt', { evt_type: 'hookFilter:updated' });
-    res.json(filter);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
+export async function filterCreate(req: Request<any, any>, res) {
+  const filter = await hookFilterService.filterCreate({
+    filter: req.body,
+    hookId: req.params.hookId,
+  });
+
+  res.json(filter);
 }
 
-// @ts-ignore
-export async function filterDelete(req: Request, res: Response, next) {
-  try {
-    const filter = await Filter.delete(req.params.filterId);
-    Tele.emit('evt', { evt_type: 'hookFilter:deleted' });
-    res.json(filter);
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
+export async function filterUpdate(req, res) {
+  const filter = await hookFilterService.filterUpdate({
+    filterId: req.params.filterId,
+    filter: req.body,
+    hookId: req.params.hookId,
+  });
+
+  res.json(filter);
+}
+
+export async function filterDelete(req: Request, res: Response) {
+  const filter = await hookFilterService.filterDelete({
+    filterId: req.params.filterId,
+  });
+  T.emit('evt', { evt_type: 'hookFilter:deleted' });
+  res.json(filter);
 }
 
 const router = Router({ mergeParams: true });

@@ -1,20 +1,19 @@
-import Project from '../../models/Project';
-import Model from '../../models/Model';
-import View from '../../models/View';
-import { NcError } from '../../meta/helpers/catchError';
+import Project from '../../../models/Project';
+import Model from '../../../models/Model';
+import View from '../../../models/View';
+import { NcError } from '../../helpers/catchError';
 import { Request } from 'express';
-import Base from '../../models/Base';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import Base from '../../../models/Base';
+import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 
-import { nocoExecute } from 'nc-help';
 import * as XLSX from 'xlsx';
-import Column from '../../models/Column';
-import LookupColumn from '../../models/LookupColumn';
-import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
+import Column from '../../../models/Column';
+import LookupColumn from '../../../models/LookupColumn';
+import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 
 import papaparse from 'papaparse';
-import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
+import { dataService } from '../../../services';
 export async function getViewAndModelFromRequestByAliasOrId(
   req:
     | Request<{ projectName: string; tableName: string; viewName?: string }>
@@ -36,8 +35,12 @@ export async function getViewAndModelFromRequestByAliasOrId(
   return { model, view };
 }
 
-export async function extractXlsxData(param: {view: View, query:any}) {
-  const { view, query } = param;
+export async function extractXlsxData(param: {
+  view: View;
+  query: any;
+  siteUrl: string;
+}) {
+  const { view, query, siteUrl } = param;
   const base = await Base.get(view.base_id);
 
   await view.getModelWithInfo();
@@ -57,9 +60,14 @@ export async function extractXlsxData(param: {view: View, query:any}) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
-  const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
+  const { offset, dbRows, elapsed } = await dataService.getDbRows({
+    baseModel,
+    view,
+    query,
+    siteUrl,
+  });
 
-  const fields = req.query.fields as string[];
+  const fields = query.fields as string[];
 
   const data = XLSX.utils.json_to_sheet(dbRows, { header: fields });
 
@@ -87,7 +95,12 @@ export async function extractCsvData(view: View, req: Request) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
-  const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
+  const { offset, dbRows, elapsed } = await dataService.getDbRows({
+    baseModel,
+    view,
+    query: req.query,
+    siteUrl: (req as any).ncSiteUrl,
+  });
 
   const data = papaparse.unparse(
     {
@@ -111,64 +124,64 @@ export async function extractCsvData(view: View, req: Request) {
 
   return { offset, dbRows, elapsed, data };
 }
-
-async function getDbRows(baseModel, view: View, req: Request) {
-  let offset = +req.query.offset || 0;
-  const limit = 100;
-  // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
-  const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 5000;
-  const dbRows = [];
-  const startTime = process.hrtime();
-  let elapsed, temp;
-
-  const listArgs: any = { ...req.query };
-  try {
-    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-  } catch (e) {}
-  try {
-    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-  } catch (e) {}
-
-  for (
-    elapsed = 0;
-    elapsed < timeout;
-    offset += limit,
-      temp = process.hrtime(startTime),
-      elapsed = temp[0] * 1000 + temp[1] / 1000000
-  ) {
-    const rows = await nocoExecute(
-      await getAst({
-        query: req.query,
-        includePkByDefault: false,
-        model: view.model,
-        view,
-      }),
-      await baseModel.list({ ...listArgs, offset, limit }),
-      {},
-      req.query
-    );
-
-    if (!rows?.length) {
-      offset = -1;
-      break;
-    }
-
-    for (const row of rows) {
-      const dbRow = { ...row };
-
-      for (const column of view.model.columns) {
-        if (isSystemColumn(column) && !view.show_system_fields) continue;
-        dbRow[column.title] = await serializeCellValue({
-          value: row[column.title],
-          column,
-          siteUrl: req['ncSiteUrl'],
-        });
-      }
-      dbRows.push(dbRow);
-    }
-  }
-  return { offset, dbRows, elapsed };
-}
+//
+// async function getDbRows(baseModel, view: View, req: Request) {
+//   let offset = +req.query.offset || 0;
+//   const limit = 100;
+//   // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
+//   const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 5000;
+//   const dbRows = [];
+//   const startTime = process.hrtime();
+//   let elapsed, temp;
+//
+//   const listArgs: any = { ...req.query };
+//   try {
+//     listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+//   } catch (e) {}
+//   try {
+//     listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+//   } catch (e) {}
+//
+//   for (
+//     elapsed = 0;
+//     elapsed < timeout;
+//     offset += limit,
+//       temp = process.hrtime(startTime),
+//       elapsed = temp[0] * 1000 + temp[1] / 1000000
+//   ) {
+//     const rows = await nocoExecute(
+//       await getAst({
+//         query: req.query,
+//         includePkByDefault: false,
+//         model: view.model,
+//         view,
+//       }),
+//       await baseModel.list({ ...listArgs, offset, limit }),
+//       {},
+//       req.query
+//     );
+//
+//     if (!rows?.length) {
+//       offset = -1;
+//       break;
+//     }
+//
+//     for (const row of rows) {
+//       const dbRow = { ...row };
+//
+//       for (const column of view.model.columns) {
+//         if (isSystemColumn(column) && !view.show_system_fields) continue;
+//         dbRow[column.title] = await serializeCellValue({
+//           value: row[column.title],
+//           column,
+//           siteUrl: req['ncSiteUrl'],
+//         });
+//       }
+//       dbRows.push(dbRow);
+//     }
+//   }
+//   return { offset, dbRows, elapsed };
+// }
 
 export async function serializeCellValue({
   value,

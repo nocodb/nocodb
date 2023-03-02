@@ -1,18 +1,18 @@
-import { Request } from 'express'
-import { nocoExecute } from 'nc-help'
-import { isSystemColumn, UITypes } from 'nocodb-sdk'
-import * as XLSX from 'xlsx'
-import { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2'
-import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst'
-import { NcError } from '../../meta/helpers/catchError'
-import { Model, View } from '../../models'
-import Base from '../../models/Base'
-import Column from '../../models/Column'
-import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn'
-import LookupColumn from '../../models/LookupColumn'
-import Project from '../../models/Project'
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2'
-
+import { Request } from 'express';
+import { nocoExecute } from 'nc-help';
+import { isSystemColumn, UITypes } from 'nocodb-sdk';
+import * as XLSX from 'xlsx';
+import { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
+import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
+import { NcError } from '../../meta/helpers/catchError';
+import { Model, View } from '../../models';
+import Base from '../../models/Base';
+import Column from '../../models/Column';
+import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
+import LookupColumn from '../../models/LookupColumn';
+import Project from '../../models/Project';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import papaparse from 'papaparse';
 
 export interface PathParams {
   projectName: string;
@@ -41,8 +41,6 @@ export async function getViewAndModelByAliasOrId(param: {
   return { model, view };
 }
 
-
-
 export async function extractXlsxData(view: View, req: Request) {
   const base = await Base.get(view.base_id);
 
@@ -63,7 +61,12 @@ export async function extractXlsxData(view: View, req: Request) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
-  const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
+  const { offset, dbRows, elapsed } = await getDbRows({
+    baseModel,
+    view,
+    siteUrl: (req as any).ncSiteUrl,
+    query: req.query,
+  });
 
   const fields = req.query.fields as string[];
 
@@ -93,7 +96,12 @@ export async function extractCsvData(view: View, req: Request) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
-  const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
+  const { offset, dbRows, elapsed } = await getDbRows({
+    baseModel,
+    view,
+    query: req.query,
+    siteUrl: (req as any).ncSiteUrl,
+  });
 
   const data = papaparse.unparse(
     {
@@ -118,70 +126,11 @@ export async function extractCsvData(view: View, req: Request) {
   return { offset, dbRows, elapsed, data };
 }
 
-
-async function getDbRows(baseModel, view: View, req: Request) {
-  let offset = +req.query.offset || 0;
-  const limit = 100;
-  // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
-  const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 5000;
-  const dbRows = [];
-  const startTime = process.hrtime();
-  let elapsed, temp;
-
-  const listArgs: any = { ...req.query };
-  try {
-    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-  } catch (e) {}
-  try {
-    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-  } catch (e) {}
-
-  for (
-    elapsed = 0;
-    elapsed < timeout;
-    offset += limit,
-      temp = process.hrtime(startTime),
-      elapsed = temp[0] * 1000 + temp[1] / 1000000
-  ) {
-    const rows = await nocoExecute(
-      await getAst({
-        query: req.query,
-        includePkByDefault: false,
-        model: view.model,
-        view,
-      }),
-      await baseModel.list({ ...listArgs, offset, limit }),
-      {},
-      req.query
-    );
-
-    if (!rows?.length) {
-      offset = -1;
-      break;
-    }
-
-    for (const row of rows) {
-      const dbRow = { ...row };
-
-      for (const column of view.model.columns) {
-        if (isSystemColumn(column) && !view.show_system_fields) continue;
-        dbRow[column.title] = await serializeCellValue({
-          value: row[column.title],
-          column,
-          siteUrl: req['ncSiteUrl'],
-        });
-      }
-      dbRows.push(dbRow);
-    }
-  }
-  return { offset, dbRows, elapsed };
-}
-
 export async function serializeCellValue({
-                                           value,
-                                           column,
-                                           siteUrl,
-                                         }: {
+  value,
+  column,
+  siteUrl,
+}: {
   column?: Column;
   value: any;
   siteUrl: string;
@@ -209,34 +158,34 @@ export async function serializeCellValue({
       );
     }
     case UITypes.Lookup:
-    {
-      const colOptions = await column.getColOptions<LookupColumn>();
-      const lookupColumn = await colOptions.getLookupColumn();
-      return (
-        await Promise.all(
-          [...(Array.isArray(value) ? value : [value])].map(async (v) =>
-            serializeCellValue({
-              value: v,
-              column: lookupColumn,
-              siteUrl,
-            })
+      {
+        const colOptions = await column.getColOptions<LookupColumn>();
+        const lookupColumn = await colOptions.getLookupColumn();
+        return (
+          await Promise.all(
+            [...(Array.isArray(value) ? value : [value])].map(async (v) =>
+              serializeCellValue({
+                value: v,
+                column: lookupColumn,
+                siteUrl,
+              })
+            )
           )
-        )
-      ).join(', ');
-    }
+        ).join(', ');
+      }
       break;
     case UITypes.LinkToAnotherRecord:
-    {
-      const colOptions =
-        await column.getColOptions<LinkToAnotherRecordColumn>();
-      const relatedModel = await colOptions.getRelatedTable();
-      await relatedModel.getColumns();
-      return [...(Array.isArray(value) ? value : [value])]
-        .map((v) => {
-          return v[relatedModel.displayValue?.title];
-        })
-        .join(', ');
-    }
+      {
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+        const relatedModel = await colOptions.getRelatedTable();
+        await relatedModel.getColumns();
+        return [...(Array.isArray(value) ? value : [value])]
+          .map((v) => {
+            return v[relatedModel.displayValue?.title];
+          })
+          .join(', ');
+      }
       break;
     default:
       if (value && typeof value === 'object') {
@@ -263,9 +212,12 @@ export async function getColumnByIdOrName(
   return column;
 }
 
-
-
-async function getDbRows(param: { baseModel:BaseModelSqlv2, view: View, query: any; siteUrl: string; }) {
+export async function getDbRows(param: {
+  baseModel: BaseModelSqlv2;
+  view: View;
+  query: any;
+  siteUrl: string;
+}) {
   const { baseModel, view, query = {}, siteUrl } = param;
   let offset = +query.offset || 0;
   const limit = 100;

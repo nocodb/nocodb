@@ -1,6 +1,6 @@
-import { Tele } from 'nc-help';
-import { PagedResponseImpl } from '../../meta/helpers/PagedResponse'
-import { Project, SyncSource } from '../../models'
+import { T } from 'nc-help';
+import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
+import { Project, SyncSource } from '../../models';
 
 export async function syncSourceList(param: {
   projectId: string;
@@ -18,7 +18,7 @@ export async function syncCreate(param: {
   // todo: define type
   syncPayload: Partial<SyncSource>;
 }) {
-  Tele.emit('evt', { evt_type: 'webhooks:created' });
+  T.emit('evt', { evt_type: 'webhooks:created' });
   const project = await Project.getWithInfo(param.projectId);
 
   const sync = await SyncSource.insert({
@@ -31,17 +31,17 @@ export async function syncCreate(param: {
 }
 
 export async function syncDelete(param: { syncId: string }) {
-  Tele.emit('evt', { evt_type: 'webhooks:deleted' });
-  return await SyncSource.delete(param.syncId)
+  T.emit('evt', { evt_type: 'webhooks:deleted' });
+  return await SyncSource.delete(param.syncId);
 }
 
-export async function syncUpdate(param:{
+export async function syncUpdate(param: {
   syncId: string;
   syncPayload: Partial<SyncSource>;
 }) {
-  Tele.emit('evt', { evt_type: 'webhooks:updated' });
+  T.emit('evt', { evt_type: 'webhooks:updated' });
 
-  return await SyncSource.update(param.syncId, param.syncPayload)
+  return await SyncSource.update(param.syncId, param.syncPayload);
 }
 
 export { default as airtableImportJob } from './helpers/job';

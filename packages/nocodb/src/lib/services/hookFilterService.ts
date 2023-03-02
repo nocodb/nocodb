@@ -1,4 +1,4 @@
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { FilterReqType } from 'nocodb-sdk';
 import Filter from '../models/Filter';
 
@@ -37,7 +37,7 @@ export async function filterCreate(param: {
     fk_hook_id: param.hookId,
   });
 
-  Tele.emit('evt', { evt_type: 'hookFilter:created' });
+  T.emit('evt', { evt_type: 'hookFilter:created' });
   return filter;
 }
 
@@ -50,12 +50,12 @@ export async function filterUpdate(param: {
     ...param.filter,
     fk_hook_id: param.hookId,
   } as Filter);
-  Tele.emit('evt', { evt_type: 'hookFilter:updated' });
+  T.emit('evt', { evt_type: 'hookFilter:updated' });
   return filter;
 }
 
 export async function filterDelete(param: { filterId: string }) {
   await Filter.delete(param.filterId);
-  Tele.emit('evt', { evt_type: 'hookFilter:deleted' });
+  T.emit('evt', { evt_type: 'hookFilter:deleted' });
   return true;
 }

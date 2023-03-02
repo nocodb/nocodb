@@ -9,10 +9,7 @@ import { viewService } from '../services';
 export async function viewGet(req: Request, res: Response) {}
 
 // @ts-ignore
-export async function viewList(
-  req: Request<any, any, any>,
-  res: Response
-) {
+export async function viewList(req: Request<any, any, any>, res: Response) {
   const filteredViewList = await viewService.viewList({
     tableId: req.params.tableId,
     user: (req as any).session?.passport?.user,

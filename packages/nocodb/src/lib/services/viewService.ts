@@ -1,6 +1,6 @@
+import { SharedViewType, ViewType } from 'nocodb-sdk';
 import { Model, View } from '../models';
-import { Tele } from 'nc-help';
-import { SharedViewReqType, ViewReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { xcVisibilityMetaGet } from './modelVisibilityService';
 
 export async function viewList(param: {
@@ -11,12 +11,10 @@ export async function viewList(param: {
 }) {
   const model = await Model.get(param.tableId);
 
-  const viewList = await xcVisibilityMetaGet(
-    // param.projectId,
-    // param.baseId,
-    model.project_id,
-    [model]
-  );
+  const viewList = await xcVisibilityMetaGet({
+    projectId: model.project_id,
+    models: [model],
+  });
 
   // todo: user roles
   //await View.list(param.tableId)
@@ -31,34 +29,34 @@ export async function viewList(param: {
 
 // @ts-ignore
 export async function shareView(param: { viewId: string }) {
-  Tele.emit('evt', { evt_type: 'sharedView:generated-link' });
+  T.emit('evt', { evt_type: 'sharedView:generated-link' });
   return await View.share(param.viewId);
 }
 
-// @ts-ignore
-export async function viewUpdate(param: { viewId: string; view: ViewReqType }) {
+// todo: type correctly
+export async function viewUpdate(param: { viewId: string; view: ViewType }) {
   const result = await View.update(param.viewId, param.view);
-  Tele.emit('evt', { evt_type: 'vtable:updated', show_as: result.type });
+  T.emit('evt', { evt_type: 'vtable:updated', show_as: result.type });
   return result;
 }
 
-// @ts-ignore
 export async function viewDelete(param: { viewId: string }) {
   await View.delete(param.viewId);
-  Tele.emit('evt', { evt_type: 'vtable:deleted' });
+  T.emit('evt', { evt_type: 'vtable:deleted' });
   return true;
 }
 
 export async function shareViewUpdate(param: {
   viewId: string;
-  sharedView: SharedViewReqType;
+  // todo: type correctly
+  sharedView: SharedViewType;
 }) {
-  Tele.emit('evt', { evt_type: 'sharedView:updated' });
+  T.emit('evt', { evt_type: 'sharedView:updated' });
   return await View.update(param.viewId, param.sharedView);
 }
 
 export async function shareViewDelete(param: { viewId: string }) {
-  Tele.emit('evt', { evt_type: 'sharedView:deleted' });
+  T.emit('evt', { evt_type: 'sharedView:deleted' });
   await View.sharedViewDelete(param.viewId);
   return true;
 }

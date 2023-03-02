@@ -1,4 +1,4 @@
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { Hook, Model } from '../models';
 import { HookReqType, HookTestReqType } from 'nocodb-sdk';
 
@@ -14,24 +14,26 @@ export async function hookCreate(param: {
   tableId: string;
   hook: HookReqType;
 }) {
-  Tele.emit('evt', { evt_type: 'webhooks:created' });
+  T.emit('evt', { evt_type: 'webhooks:created' });
+  // todo: type correction
   const hook = await Hook.insert({
     ...param.hook,
     fk_model_id: param.tableId,
-  });
+  } as any);
   return hook;
 }
 
 export async function hookDelete(param: { hookId: string }) {
-  Tele.emit('evt', { evt_type: 'webhooks:deleted' });
+  T.emit('evt', { evt_type: 'webhooks:deleted' });
   await Hook.delete(param.hookId);
   return true;
 }
 
 export async function hookUpdate(param: { hookId: string; hook: HookReqType }) {
-  Tele.emit('evt', { evt_type: 'webhooks:updated' });
+  T.emit('evt', { evt_type: 'webhooks:updated' });
 
-  return await Hook.update(param.hookId, param.hook);
+  // todo: correction in swagger
+  return await Hook.update(param.hookId, param.hook as any);
 }
 
 export async function hookTest(param: {
@@ -53,7 +55,7 @@ export async function hookTest(param: {
     true
   );
 
-  Tele.emit('evt', { evt_type: 'webhooks:tested' });
+  T.emit('evt', { evt_type: 'webhooks:tested' });
 
   return true;
 }

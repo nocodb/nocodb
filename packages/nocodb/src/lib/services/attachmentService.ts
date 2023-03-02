@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid';
 import path from 'path';
 import slash from 'slash';
 import mimetypes, { mimeIcons } from '../utils/mimeTypes';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import NcPluginMgrv2 from '../meta/helpers/NcPluginMgrv2';
 import Local from '../v1-legacy/plugins/adapters/storage/Local';
 
@@ -47,7 +47,7 @@ export async function upload(param: {
     })
   );
 
-  Tele.emit('evt', { evt_type: 'image:uploaded' });
+  T.emit('evt', { evt_type: 'image:uploaded' });
 
   return attachments;
 }
@@ -97,7 +97,7 @@ export async function uploadViaURL(param: {
     })
   );
 
-  Tele.emit('evt', { evt_type: 'image:uploaded' });
+  T.emit('evt', { evt_type: 'image:uploaded' });
 
   return attachments;
 }

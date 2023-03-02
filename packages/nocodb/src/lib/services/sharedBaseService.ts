@@ -1,4 +1,4 @@
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
 import Project from '../models/Project';
 import { NcError } from '../meta/helpers/catchError';
@@ -7,7 +7,7 @@ const config = {
   dashboardPath: '/nc',
 };
 
-export async function createSharedBaseLink(param:{
+export async function createSharedBaseLink(param: {
   projectId: string;
   roles: string;
   password: string;
@@ -34,7 +34,7 @@ export async function createSharedBaseLink(param:{
 
   data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
   delete data.password;
-  Tele.emit('evt', { evt_type: 'sharedBase:generated-link' });
+  T.emit('evt', { evt_type: 'sharedBase:generated-link' });
   return data;
 }
 
@@ -64,11 +64,11 @@ export async function updateSharedBaseLink(param: {
 
   data.url = `${param.siteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
   delete data.password;
-  Tele.emit('evt', { evt_type: 'sharedBase:generated-link' });
+  T.emit('evt', { evt_type: 'sharedBase:generated-link' });
   return data;
 }
 
-export async function disableSharedBaseLink(param:{
+export async function disableSharedBaseLink(param: {
   projectId: string;
 }): Promise<any> {
   const project = await Project.get(param.projectId);
@@ -82,12 +82,12 @@ export async function disableSharedBaseLink(param:{
 
   await Project.update(project.id, data);
 
-  Tele.emit('evt', { evt_type: 'sharedBase:disable-link' });
+  T.emit('evt', { evt_type: 'sharedBase:disable-link' });
 
-  return { uuid: null }
+  return { uuid: null };
 }
 
-export async function getSharedBaseLink(param:{
+export async function getSharedBaseLink(param: {
   projectId: string;
   siteUrl: string;
 }): Promise<any> {
@@ -105,4 +105,3 @@ export async function getSharedBaseLink(param:{
 
   return data;
 }
-

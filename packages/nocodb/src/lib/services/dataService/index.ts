@@ -4,7 +4,7 @@ import { NcError } from '../../meta/helpers/catchError';
 import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
 import { Base, Model, View } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { getViewAndModelByAliasOrId, PathParams } from './helpers'
+import { getViewAndModelByAliasOrId, PathParams } from './helpers';
 
 export async function dataList(param: PathParams & { query: any }) {
   const { model, view } = await getViewAndModelByAliasOrId(param);
@@ -321,7 +321,6 @@ export async function getGroupedDataList(param: {
 
   return data;
 }
-
 
 export async function dataListByViewId(param: { viewId: string; query: any }) {
   const view = await View.get(param.viewId);
@@ -795,3 +794,5 @@ export async function relationDataAdd(param: {
 
   return true;
 }
+
+export * from './helpers'

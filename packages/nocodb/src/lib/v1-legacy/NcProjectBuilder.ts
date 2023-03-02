@@ -10,7 +10,7 @@ import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 import Migrator from '../db/sql-migrator/lib/KnexMigrator';
 
 import Noco from '../Noco';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { GqlApiBuilder } from './gql/GqlApiBuilder';
 import { XCEeError } from '../meta/NcMetaMgr';
 import { RestApiBuilder } from './rest/RestApiBuilder';
@@ -840,7 +840,7 @@ export default class NcProjectBuilder {
     this.apiInfInfoList.push(info);
     this.aggregatedApiInfo = aggregatedInfo;
     if (isFirstTime) {
-      Tele.emit('evt_api_created', info);
+      T.emit('evt_api_created', info);
     }
   }
 

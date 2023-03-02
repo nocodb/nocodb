@@ -1,13 +1,13 @@
 import { Request, Response, Router } from 'express';
 import * as XLSX from 'xlsx';
-import ncMetaAclMw from '../../helpers/ncMetaAclMw';
+import { getViewAndModelFromRequestByAliasOrId } from '../../meta/api/dataApis/helpers';
+import apiMetrics from '../../meta/helpers/apiMetrics';
+import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
+import { View } from '../../models';
 import {
   extractCsvData,
   extractXlsxData,
-  getViewAndModelFromRequestByAliasOrId,
-} from './helpers';
-import apiMetrics from '../../helpers/apiMetrics';
-import View from '../../../models/View';
+} from '../../services/dataService/helpers';
 
 async function excelDataExport(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);

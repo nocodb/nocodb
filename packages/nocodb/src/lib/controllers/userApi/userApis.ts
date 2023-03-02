@@ -1,30 +1,30 @@
 import { Request, Response } from 'express';
 import { TableType, validatePassword } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { NC_APP_SETTINGS } from '../../constants';
-import Store from '../../models/Store';
-import { Tele } from 'nc-help';
-import catchError, { NcError } from '../../meta/helpers/catchError';
+import { NC_APP_SETTINGS } from '../../../constants';
+import Store from '../../../models/Store';
+import { T } from 'nc-help';
+import catchError, { NcError } from '../../helpers/catchError';
 
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';
 
 import bcrypt from 'bcryptjs';
 import { promisify } from 'util';
-import User from '../../models/User';
+import User from '../../../models/User';
 
 const { v4: uuidv4 } = require('uuid');
-import Audit from '../../models/Audit';
-import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
+import Audit from '../../../models/Audit';
+import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 
 import passport from 'passport';
-import extractProjectIdAndAuthenticate from '../../meta/helpers/extractProjectIdAndAuthenticate';
-import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
-import { MetaTable } from '../../utils/globals';
-import Noco from '../../Noco';
-import { getAjvValidatorMw } from '../../meta/api/helpers';
+import extractProjectIdAndAuthenticate from '../../helpers/extractProjectIdAndAuthenticate';
+import ncMetaAclMw from '../../helpers/ncMetaAclMw';
+import { MetaTable } from '../../../utils/globals';
+import Noco from '../../../Noco';
+import { getAjvValidatorMw } from '../helpers';
 import { genJwt } from './helpers';
-import { randomTokenString } from '../../meta/helpers/stringHelpers';
+import { randomTokenString } from '../../helpers/stringHelpers';
 
 export async function registerNewUserIfAllowed({
   firstname,
@@ -47,7 +47,7 @@ export async function registerNewUserIfAllowed({
     roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
     // todo: update in nc_store
     // roles = 'owner,creator,editor'
-    Tele.emit('evt', {
+    T.emit('evt', {
       evt_type: 'project:invite',
       count: 1,
     });
@@ -122,7 +122,7 @@ export async function signup(req: Request, res: Response<TableType>) {
   const email_verification_token = uuidv4();
 
   if (!ignore_subscribe) {
-    Tele.emit('evt_subscribe', email);
+    T.emit('evt_subscribe', email);
   }
 
   if (user) {

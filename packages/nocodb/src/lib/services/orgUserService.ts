@@ -11,7 +11,7 @@ import { NC_APP_SETTINGS } from '../constants';
 import { Audit, ProjectUser, Store, SyncSource, User } from '../models';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
@@ -142,7 +142,7 @@ export async function userAdd(param: {
         });
 
         const count = await User.count();
-        Tele.emit('evt', { evt_type: 'org:user:invite', count });
+        T.emit('evt', { evt_type: 'org:user:invite', count });
 
         await Audit.insert({
           op_type: AuditOperationTypes.ORG_USER,

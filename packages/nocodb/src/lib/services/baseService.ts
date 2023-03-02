@@ -2,7 +2,7 @@ import Project from '../models/Project';
 import { BaseReqType } from 'nocodb-sdk';
 import { syncBaseMigration } from '../meta/helpers/syncMigration';
 import Base from '../models/Base';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import { populateMeta } from '../meta/api/helpers';
 
 export async function baseGetWithConfig(param: { baseId: any }) {
@@ -29,7 +29,7 @@ export async function baseUpdate(param: {
 
   delete base.config;
 
-  Tele.emit('evt', {
+  T.emit('evt', {
     evt_type: 'base:updated',
   });
 
@@ -45,7 +45,7 @@ export async function baseList(param: { projectId: string }) {
 export async function baseDelete(param: { baseId: string }) {
   const base = await Base.get(param.baseId);
   await base.delete();
-  Tele.emit('evt', { evt_type: 'base:deleted' });
+  T.emit('evt', { evt_type: 'base:deleted' });
   return true;
 }
 
@@ -66,11 +66,11 @@ export async function baseCreate(param: {
 
   const info = await populateMeta(base, project);
 
-  Tele.emit('evt_api_created', info);
+  T.emit('evt_api_created', info);
 
   delete base.config;
 
-  Tele.emit('evt', {
+  T.emit('evt', {
     evt_type: 'base:created',
   });
 

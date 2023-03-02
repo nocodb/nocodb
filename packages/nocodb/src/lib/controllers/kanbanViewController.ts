@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import { KanbanType, ViewTypes } from 'nocodb-sdk';
 import View from '../models/View';
 import KanbanView from '../models/KanbanView';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { getAjvValidatorMw } from '../meta/api/helpers';
@@ -12,7 +12,7 @@ export async function kanbanViewGet(req: Request, res: Response<KanbanType>) {
 }
 
 export async function kanbanViewCreate(req: Request<any, any>, res) {
-  Tele.emit('evt', { evt_type: 'vtable:created', show_as: 'kanban' });
+  T.emit('evt', { evt_type: 'vtable:created', show_as: 'kanban' });
   const view = await View.insert({
     ...req.body,
     // todo: sanitize
@@ -23,7 +23,7 @@ export async function kanbanViewCreate(req: Request<any, any>, res) {
 }
 
 export async function kanbanViewUpdate(req, res) {
-  Tele.emit('evt', { evt_type: 'view:updated', type: 'kanban' });
+  T.emit('evt', { evt_type: 'view:updated', type: 'kanban' });
   res.json(await KanbanView.update(req.params.kanbanViewId, req.body));
 }
 

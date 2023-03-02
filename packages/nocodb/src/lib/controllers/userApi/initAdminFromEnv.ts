@@ -1,15 +1,15 @@
-import User from '../../models/User';
+import User from '../../../models/User';
 import { v4 as uuidv4 } from 'uuid';
 import { promisify } from 'util';
 
 import bcrypt from 'bcryptjs';
-import Noco from '../../Noco';
-import { CacheScope, MetaTable } from '../../utils/globals';
-import ProjectUser from '../../models/ProjectUser';
+import Noco from '../../../Noco';
+import { CacheScope, MetaTable } from '../../../utils/globals';
+import ProjectUser from '../../../models/ProjectUser';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
-import NocoCache from '../../cache/NocoCache';
-import { Tele } from 'nc-help';
+import NocoCache from '../../../cache/NocoCache';
+import { T } from 'nc-help';
 
 const { isEmail } = require('validator');
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
@@ -68,7 +68,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
       // if super admin not present
       if (await User.isFirst(ncMeta)) {
         // roles = 'owner,creator,editor'
-        Tele.emit('evt', {
+        T.emit('evt', {
           evt_type: 'project:invite',
           count: 1,
         });
@@ -126,7 +126,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
               ncMeta
             );
           } else {
-            Tele.emit('evt', {
+            T.emit('evt', {
               evt_type: 'project:invite',
               count: 1,
             });

@@ -1,10 +1,10 @@
 import { Request, Response, Router } from 'express';
 
-import SyncSource from '../../models/SyncSource';
-import { Tele } from 'nc-help';
-import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
-import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
-import Project from '../../models/Project';
+import SyncSource from '../../../models/SyncSource';
+import { T } from 'nc-help';
+import { PagedResponseImpl } from '../../helpers/PagedResponse';
+import ncMetaAclMw from '../../helpers/ncMetaAclMw';
+import Project from '../../../models/Project';
 
 export async function syncSourceList(req: Request, res: Response) {
   // todo: pagination
@@ -16,7 +16,7 @@ export async function syncSourceList(req: Request, res: Response) {
 }
 
 export async function syncCreate(req: Request, res: Response) {
-  Tele.emit('evt', { evt_type: 'webhooks:created' });
+  T.emit('evt', { evt_type: 'webhooks:created' });
   const project = await Project.getWithInfo(req.params.projectId);
 
   const sync = await SyncSource.insert({
@@ -29,12 +29,12 @@ export async function syncCreate(req: Request, res: Response) {
 }
 
 export async function syncDelete(req: Request, res: Response<any>) {
-  Tele.emit('evt', { evt_type: 'webhooks:deleted' });
+  T.emit('evt', { evt_type: 'webhooks:deleted' });
   res.json(await SyncSource.delete(req.params.syncId));
 }
 
 export async function syncUpdate(req: Request, res: Response) {
-  Tele.emit('evt', { evt_type: 'webhooks:updated' });
+  T.emit('evt', { evt_type: 'webhooks:updated' });
 
   res.json(await SyncSource.update(req.params.syncId, req.body));
 }

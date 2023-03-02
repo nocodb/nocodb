@@ -1,5 +1,5 @@
 import DOMPurify from 'isomorphic-dompurify';
-import { OrgUserRoles, ProjectReqType, } from 'nocodb-sdk';
+import { OrgUserRoles, ProjectReqType } from 'nocodb-sdk';
 import { promisify } from 'util';
 import { populateMeta } from '../meta/api/helpers';
 import { extractPropsAndSanitize } from '../meta/helpers/extractProps';
@@ -95,23 +95,23 @@ export async function projectCreate(param: {
   for (const base of await project.getBases()) {
     const info = await populateMeta(base, project);
 
-    Tele.emit('evt_api_created', info);
+    T.emit('evt_api_created', info);
     delete base.config;
   }
 
-  Tele.emit('evt', {
+  T.emit('evt', {
     evt_type: 'project:created',
     xcdb: !projectBody.external,
   });
 
-  Tele.emit('evt', { evt_type: 'project:rest' });
+  T.emit('evt', { evt_type: 'project:rest' });
 
   project;
 }
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 
 export async function getProjectWithInfo(param: { projectId: string }) {
   const project = await Project.getWithInfo(param.projectId);
@@ -120,7 +120,7 @@ export async function getProjectWithInfo(param: { projectId: string }) {
 
 export async function projectSoftDelete(param: { projectId: any }) {
   await Project.softDelete(param.projectId);
-  Tele.emit('evt', { evt_type: 'project:deleted' });
+  T.emit('evt', { evt_type: 'project:deleted' });
   return true;
 }
 
@@ -152,7 +152,7 @@ export async function projectUpdate(param: {
   }
 
   const result = await Project.update(param.projectId, data);
-  Tele.emit('evt', { evt_type: 'project:update' });
+  T.emit('evt', { evt_type: 'project:update' });
 
   return result;
 }

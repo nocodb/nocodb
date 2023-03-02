@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 
 import NcMetaMgr from './NcMetaMgr';
 
@@ -104,7 +104,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         ip: req.clientIp,
       });
 
-      Tele.emit('evt', { evt_type: 'acl:updated' });
+      T.emit('evt', { evt_type: 'acl:updated' });
 
       return res;
     } catch (e) {
@@ -277,7 +277,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         sharedView.url = `${req.ncSiteUrl}${this.config.dashboardPath}#/nc/view/${sharedView.view_id}`;
       }
 
-      Tele.emit('evt', { evt_type: 'sharedView:generated-link' });
+      T.emit('evt', { evt_type: 'sharedView:generated-link' });
       return sharedView;
     } catch (e) {
       console.log(e);
@@ -295,7 +295,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         },
         args.args.id
       );
-      Tele.emit('evt', { evt_type: 'sharedView:password-updated' });
+      T.emit('evt', { evt_type: 'sharedView:password-updated' });
       return { msg: 'Success' };
     } catch (e) {
       console.log(e);

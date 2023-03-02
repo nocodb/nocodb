@@ -10,7 +10,7 @@ async function licenseGet(_req, res) {
 }
 
 async function licenseSet(req, res) {
-  await orgLicenseService.licenseSet({ key: req.body.key })
+  await orgLicenseService.licenseSet({ key: req.body.key });
   res.json({ msg: 'License key saved' });
 }
 

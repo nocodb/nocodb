@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { getAjvValidatorMw } from '../meta/api/helpers'
+import { getAjvValidatorMw } from '../meta/api/helpers';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { SortListType, SortReqType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';

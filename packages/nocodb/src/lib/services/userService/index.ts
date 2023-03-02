@@ -1,46 +1,35 @@
-import { Request, Response } from 'express';
 import {
   PasswordChangeReqType,
-  PasswordForgotReqType, PasswordResetReqType,
-  SignUpReqType,
-  TableType,
+  PasswordForgotReqType,
+  PasswordResetReqType,
   UserType,
   validatePassword,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { NC_APP_SETTINGS } from '../../../constants';
-import Store from '../../../models/Store';
-import { Tele } from 'nc-help';
-import catchError, { NcError } from '../../helpers/catchError';
+import { T } from 'nc-help';
 
-const { isEmail } = require('validator');
 import * as ejs from 'ejs';
 
 import bcrypt from 'bcryptjs';
 import { promisify } from 'util';
-import User from '../../../models/User';
+import { NC_APP_SETTINGS } from '../../constants';
+import { NcError } from '../../meta/helpers/catchError';
+import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
+import { Audit, Store, User } from '../../models';
+import Noco from '../../Noco';
+import { MetaTable } from '../../utils/globals';
+import { randomTokenString } from './helpers';
 
 const { v4: uuidv4 } = require('uuid');
-import Audit from '../../../models/Audit';
-import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
-
-import passport from 'passport';
-import extractProjectIdAndAuthenticate from '../../helpers/extractProjectIdAndAuthenticate';
-import ncMetaAclMw from '../../helpers/ncMetaAclMw';
-import { MetaTable } from '../../../utils/globals';
-import Noco from '../../../Noco';
-import { getAjvValidatorMw } from '../helpers';
-import { genJwt } from './helpers';
-import { randomTokenString } from '../../helpers/stringHelpers';
 
 export async function registerNewUserIfAllowed({
-                                                 firstname,
-                                                 lastname,
-                                                 email,
-                                                 salt,
-                                                 password,
-                                                 email_verification_token,
-                                               }: {
+  firstname,
+  lastname,
+  email,
+  salt,
+  password,
+  email_verification_token,
+}: {
   firstname;
   lastname;
   email: string;
@@ -54,7 +43,7 @@ export async function registerNewUserIfAllowed({
     roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
     // todo: update in nc_store
     // roles = 'owner,creator,editor'
-    Tele.emit('evt', {
+    T.emit('evt', {
       evt_type: 'project:invite',
       count: 1,
     });
@@ -85,11 +74,10 @@ export async function registerNewUserIfAllowed({
   });
 }
 
-
 export async function passwordChange(param: {
-  body: PasswordChangeReqType
-  user: UserType
-  req:any
+  body: PasswordChangeReqType;
+  user: UserType;
+  req: any;
 }): Promise<any> {
   const { currentPassword, newPassword } = param.body;
 
@@ -133,13 +121,13 @@ export async function passwordChange(param: {
     ip: param.req?.clientIp,
   });
 
-  return true
+  return true;
 }
 
-export async function passwordForgot(param:{
+export async function passwordForgot(param: {
   body: PasswordForgotReqType;
   siteUrl: string;
-  req:any
+  req: any;
 }): Promise<any> {
   const _email = param.body.email;
 
@@ -165,9 +153,7 @@ export async function passwordForgot(param:{
         adapter.mailSend({
           to: user.email,
           subject: 'Password Reset Link',
-          text: `Visit following link to update your password : ${
-            param.siteUrl
-          }/auth/password/reset/${token}.`,
+          text: `Visit following link to update your password : ${param.siteUrl}/auth/password/reset/${token}.`,
           html: ejs.render(template, {
             resetLink: param.siteUrl + `/auth/password/reset/${token}`,
           }),
@@ -191,12 +177,10 @@ export async function passwordForgot(param:{
     return NcError.badRequest('Your email has not been registered.');
   }
 
-  return true
+  return true;
 }
 
-export async function tokenValidate(param:{
-  token: string;
-}): Promise<any> {
+export async function tokenValidate(param: { token: string }): Promise<any> {
   const token = param.token;
 
   const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
@@ -210,14 +194,14 @@ export async function tokenValidate(param:{
     NcError.badRequest('Password reset url expired');
   }
 
-  return true
+  return true;
 }
 
-export async function passwordReset(param:{
+export async function passwordReset(param: {
   body: PasswordResetReqType;
   token: string;
   // todo: exclude
-  req:any;
+  req: any;
 }): Promise<any> {
   const { token, body, req } = param;
 
@@ -261,7 +245,7 @@ export async function passwordReset(param:{
     ip: req.clientIp,
   });
 
-  return true
+  return true;
 }
 
 export async function emailVerification(param: {
@@ -293,9 +277,8 @@ export async function emailVerification(param: {
     ip: req.clientIp,
   });
 
-  return true
+  return true;
 }
 
-export * from './helpers'
-export * from './initAdminFromEnv'
-
+export * from './helpers';
+export { default as initAdminFromEnv } from './initAdminFromEnv';

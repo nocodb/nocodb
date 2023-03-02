@@ -388,7 +388,8 @@ export interface FilterType {
   fk_column_id?: IdType;
   logical_op?: string;
   comparison_op?: string;
-  comparison_sub_op?: string;
+  /** Model for StringOrNull */
+  comparison_sub_op?: StringOrNullType;
   value?: any;
   is_group?: boolean | number | null;
   children?: FilterType[];
@@ -449,7 +450,37 @@ export interface FilterReqType {
     | 'nextWeek'
     | 'nextYear'
     | 'pastNumberOfDays'
-    | 'nextNumberOfDays';
+    | 'nextNumberOfDays'
+    | 'today'
+    | 'tomorrow'
+    | 'yesterday'
+    | 'oneWeekAgo'
+    | 'oneWeekFromNow'
+    | 'oneMonthAgo'
+    | 'oneMonthFromNow'
+    | 'daysAgo'
+    | 'daysFromNow'
+    | 'exactDate'
+    | null
+    | (
+        | 'pastWeek'
+        | 'pastMonth'
+        | 'pastYear'
+        | 'nextWeek'
+        | 'nextYear'
+        | 'pastNumberOfDays'
+        | 'nextNumberOfDays'
+        | 'today'
+        | 'tomorrow'
+        | 'yesterday'
+        | 'oneWeekAgo'
+        | 'oneWeekFromNow'
+        | 'oneMonthAgo'
+        | 'oneMonthFromNow'
+        | 'daysAgo'
+        | 'daysFromNow'
+        | ('exactDate' & null)
+      );
   /** The filter value. Can be NULL for some operators. */
   value?: any;
   /** Is this filter grouped? */
@@ -1000,20 +1031,24 @@ export interface FormReqType {
    * @example My Form Subheading
    */
   subheading?: string;
-  success_msg?: string;
-  redirect_url?: string | null;
-  redirect_after_secs?: string | null;
-  email?: string | null;
+  /** Custom message after the form is successfully submitted */
+  success_msg?: StringOrNullType;
+  /** URL to redirect after submission */
+  redirect_url?: StringOrNullType;
+  /** The numbers of seconds to redirect after form submission */
+  redirect_after_secs?: StringOrNullType;
   /** Model for StringOrNull */
+  email?: StringOrNullType;
+  /** Banner Image URL. Not in use currently. */
   banner_image_url?: StringOrNullType;
-  /** Model for StringOrNull */
+  /** Logo URL. Not in use currently. */
   logo_url?: StringOrNullType;
-  /** Model for Bool */
+  /** Show `Submit Another Form` button */
   submit_another_form?: BoolType;
-  /** Model for Bool */
+  /** Show `Blank Form` after 5 seconds */
   show_blank_form?: BoolType;
   lock_type?: 'collaborative' | 'locked' | 'personal';
-  /** Model for Meta */
+  /** Meta Info for this view */
   meta?: MetaType;
 }
 
@@ -3484,16 +3519,16 @@ export class Api<
      * @tags DB View
      * @name FormUpdate
      * @summary Update Form
-     * @request PATCH:/api/v1/db/meta/forms/{formId}
+     * @request PATCH:/api/v1/db/meta/forms/{formViewId}
      * @response `200` `void` OK
      */
     formUpdate: (
-      formId: string,
+      formViewId: string,
       data: FormReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/forms/${formId}`,
+        path: `/api/v1/db/meta/forms/${formViewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -3506,12 +3541,12 @@ export class Api<
      * @tags DB View
      * @name FormRead
      * @summary Get Form
-     * @request GET:/api/v1/db/meta/forms/{formId}
+     * @request GET:/api/v1/db/meta/forms/{formViewId}
      * @response `200` `FormType` OK
      */
-    formRead: (formId: string, params: RequestParams = {}) =>
+    formRead: (formViewId: string, params: RequestParams = {}) =>
       this.request<FormType, any>({
-        path: `/api/v1/db/meta/forms/${formId}`,
+        path: `/api/v1/db/meta/forms/${formViewId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -4339,7 +4374,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      rowId: string,
+      rowId: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -4362,7 +4397,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      rowId: string,
+      rowId: any,
       data: any,
       params: RequestParams = {}
     ) =>
@@ -4388,7 +4423,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      rowId: string,
+      rowId: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -4411,7 +4446,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      rowId: string,
+      rowId: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -4589,7 +4624,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      rowId: string,
+      rowId: any,
       relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
@@ -4622,7 +4657,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      rowId: string,
+      rowId: any,
       relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       refRowId: string,
@@ -4655,7 +4690,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      rowId: string,
+      rowId: any,
       relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       refRowId: string,
@@ -4681,7 +4716,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      rowId: string,
+      rowId: any,
       relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
@@ -4900,7 +4935,7 @@ export class Api<
       projectName: string,
       tableName: string,
       viewName: string,
-      rowId: string,
+      rowId: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -4924,7 +4959,7 @@ export class Api<
       projectName: string,
       tableName: string,
       viewName: string,
-      rowId: string,
+      rowId: any,
       data: any,
       params: RequestParams = {}
     ) =>
@@ -4951,7 +4986,7 @@ export class Api<
       projectName: string,
       tableName: string,
       viewName: string,
-      rowId: string,
+      rowId: any,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -4974,7 +5009,7 @@ export class Api<
       projectName: string,
       tableName: string,
       viewName: string,
-      rowId: string,
+      rowId: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -5097,7 +5132,7 @@ export class Api<
      */
     dataNestedList: (
       sharedViewUuid: string,
-      rowId: string,
+      rowId: any,
       relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
@@ -5318,7 +5353,7 @@ export class Api<
      * @response `200` `void` OK
      */
     auditRowUpdate: (
-      rowId: string,
+      rowId: any,
       data: AuditRowUpdateReqType,
       params: RequestParams = {}
     ) =>

@@ -8658,16 +8658,37 @@
         "type": "object",
         "title": "Filter Model",
         "description": "Model for Filter",
+        "examples": [
+          {
+            "id": "fi_xn647tpmdq8fu8",
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "project_id": "p_xm3thidrblw4n7",
+            "fk_view_id": "vw_b739e29vqmrxnf",
+            "fk_hook_id": null,
+            "fk_column_id": "cl_d7ah9n2qfupgys",
+            "fk_parent_id": null,
+            "logical_op": "and",
+            "comparison_op": "eq",
+            "value": "foo",
+            "is_group": null,
+            "order": 1,
+            "created_at": "2023-03-02 18:18:05",
+            "updated_at": "2023-03-02 18:18:05",
+            "comparison_sub_op": null
+          }
+        ],
         "properties": {
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
           "fk_model_id": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Model"
           },
           "fk_column_id": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
           },
           "logical_op": {
             "type": "string",
@@ -8739,7 +8760,9 @@
               }
             ]
           },
-          "value": {},
+          "value": {
+            "description": "The filter value. Can be NULL for some operators."
+          },
           "is_group": {
             "oneOf": [
               {
@@ -8751,52 +8774,40 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Is this filter grouped?"
           },
           "children": {
             "type": "array",
+            "description": "Children filters. Available when the filter is grouped.",
             "items": {
               "$ref": "#/components/schemas/Filter"
             }
           },
           "project_id": {
             "type": "string",
+            "description": "Unique Project ID",
             "readOnly": true
           },
           "base_id": {
             "type": "string",
+            "description": "Unqiue Base ID",
             "readOnly": true
           },
           "fk_parent_id": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to parent group."
           },
           "fk_view_id": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to View"
           },
           "fk_hook_id": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Hook"
           }
         },
-        "readOnly": true,
-        "examples": [
-          {
-            "id": "fi_xn647tpmdq8fu8",
-            "base_id": "ds_g4ccx6e77h1dmi",
-            "project_id": "p_xm3thidrblw4n7",
-            "fk_view_id": "vw_b739e29vqmrxnf",
-            "fk_hook_id": null,
-            "fk_column_id": "cl_d7ah9n2qfupgys",
-            "fk_parent_id": null,
-            "logical_op": "and",
-            "comparison_op": "eq",
-            "value": "foo",
-            "is_group": null,
-            "order": 1,
-            "created_at": "2023-03-02 18:18:05",
-            "updated_at": "2023-03-02 18:18:05",
-            "comparison_sub_op": null
-          }
-        ]
+        "readOnly": true
       },
       "FilterReq": {
         "type": "object",

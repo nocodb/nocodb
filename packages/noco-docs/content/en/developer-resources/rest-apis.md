@@ -120,14 +120,20 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Meta | Patch | dbView | update | /api/v1/db/meta/tables/{tableId} |
 | Meta | Delete| dbView | delete | /api/v1/db/meta/tables/{tableId} |
 | Meta | Post | dbView | reorder | /api/v1/db/meta/tables/{tableId}/reorder |
-| Meta | Post | dbView | formCreate | /api/v1/db/meta/forms |
+| Meta | Post | dbView | formCreate | /api/v1/db/meta/tables/{tableId}/forms |
 | Meta | Patch | dbView | formUpdate | /api/v1/db/meta/forms/{formViewId} |
 | Meta | Get | dbView | formRead | /api/v1/db/meta/forms/{formViewId} |
 | Meta | Patch | dbView | formColumnUpdate | /api/v1/db/meta/form-columns/{formViewColumnId} |
-| Meta | Post | dbView | galleryCreate | /api/v1/db/meta/galleries |
-| Meta | Patch | dbView | galleryUpdate | /api/v1/db/meta/galleries/{galleriesId} |
-| Meta | Get | dbView | galleryRead | /api/v1/db/meta/galleries/{galleriesId} |
-| Meta | Post | dbView | gridCreate | /api/v1/db/meta/tables/${tableId}/grids |
+| Meta | Post | dbView | galleryCreate | /api/v1/db/meta/tables/{tableId}/galleries |
+| Meta | Patch | dbView | galleryUpdate | /api/v1/db/meta/galleries/{galleryViewId} |
+| Meta | Get | dbView | galleryRead | /api/v1/db/meta/galleries/{galleryViewId} |
+| Meta | Post | dbView | kanbanCreate | /api/v1/db/meta/tables/{tableId}/kanbans |
+| Meta | Patch | dbView | kanbanUpdate | /api/v1/db/meta/kanban/{kanbanViewId} |
+| Meta | Get | dbView | kanbanRead | /api/v1/db/meta/kanbans/{kanbanViewId} |
+| Meta | Post | dbView | mapCreate | /api/v1/db/meta/tables/{tableId}/maps |
+| Meta | Patch | dbView | mapUpdate | /api/v1/db/meta/maps/{mapViewId} |
+| Meta | Get | dbView | mapRead | /api/v1/db/meta/maps/{mapViewId} |
+| Meta | Post | dbView | gridCreate | /api/v1/db/meta/tables/{tableId}/grids |
 | Meta | Get | dbView | gridColumnsList | /api/v1/db/meta/grids/{gridId}/grid-columns |
 | Meta | Patch | dbView | gridColumnUpdate | /api/v1/db/meta/grid-columns/{columnId} |
 | Meta | Patch | dbView | update | /api/v1/db/meta/views/{viewId} |

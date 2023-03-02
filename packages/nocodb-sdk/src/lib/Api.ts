@@ -262,19 +262,19 @@ export interface BaseListType {
  */
 export interface ViewType {
   /** Unique ID for View */
-  id: IdType;
+  id?: IdType;
   /** Unique Base ID */
-  base_id: IdType;
+  base_id?: IdType;
   /** Unique Project ID */
-  project_id: IdType;
+  project_id?: IdType;
   /** Unique Model ID */
   fk_model_id: IdType;
   /** View Title */
   title: string;
   /** View Type */
-  type?: number;
+  type: number;
   /** If this view is shown? */
-  show?: BoolType;
+  show: BoolType;
   /** The rder of the list of views */
   order?: number;
   /** UUID of the view */

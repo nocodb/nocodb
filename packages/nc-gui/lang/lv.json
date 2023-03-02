@@ -235,6 +235,7 @@
     "action": "Darbība",
     "actions": "Darbības",
     "operation": "Operācija",
+    "operationSub": "Sub Operation",
     "operationType": "Operācijas tips",
     "operationSubType": "Operācijas apakštips",
     "description": "Apraksts",

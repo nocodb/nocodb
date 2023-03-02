@@ -235,6 +235,7 @@
     "action": "Akcia",
     "actions": "Činnosti",
     "operation": "Operácia",
+    "operationSub": "Sub Operation",
     "operationType": "Typ operácie",
     "operationSubType": "Podtyp operácie",
     "description": "Popis",

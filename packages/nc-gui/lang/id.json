@@ -235,6 +235,7 @@
     "action": "Tindakan",
     "actions": "Tindakan",
     "operation": "Operasi",
+    "operationSub": "Sub Operation",
     "operationType": "Jenis operasi",
     "operationSubType": "SUB-tipe operasi",
     "description": "Keterangan",

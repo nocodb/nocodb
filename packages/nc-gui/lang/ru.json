@@ -235,6 +235,7 @@
     "action": "Действие",
     "actions": "Действия",
     "operation": "Операция",
+    "operationSub": "Sub Operation",
     "operationType": "Тип операции",
     "operationSubType": "Подтип операции",
     "description": "Описание",

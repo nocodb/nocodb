@@ -349,7 +349,8 @@
           },
           "name": "token",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Reset Token"
         }
       ]
     },
@@ -373,7 +374,8 @@
           },
           "name": "token",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Validation Token"
         }
       ]
     },
@@ -406,7 +408,8 @@
           },
           "name": "token",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Reset Password Token"
         }
       ]
     },
@@ -515,7 +518,8 @@
           },
           "name": "token",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "API Token"
         }
       ],
       "delete": {
@@ -2511,10 +2515,12 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "so_xd4t51uv60ghzl"
           },
           "name": "sortId",
           "in": "path",
+          "description": "Unique Sort ID",
           "required": true
         }
       ],
@@ -2855,15 +2861,17 @@
         }
       }
     },
-    "/api/v1/db/meta/forms/{formId}": {
+    "/api/v1/db/meta/forms/{formViewId}": {
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_6fqln9vdytdv8q"
           },
-          "name": "formId",
+          "name": "formViewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Form View ID"
         }
       ],
       "patch": {
@@ -2909,11 +2917,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "fvc_1m9b0aub791d4m",
+            "type": "string"
           },
           "name": "formViewColumnId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Form View Column ID"
         }
       ],
       "patch": {
@@ -9136,63 +9147,43 @@
             "maxLength": 255
           },
           "success_msg": {
-            "type": "string",
-            "maxLength": 255
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Custom message after the form is successfully submitted"
           },
           "redirect_url": {
-            "oneOf": [
-              {
-                "type": "string",
-                "format": "uri",
-                "maxLength": 255
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "URL to redirect after submission"
           },
           "redirect_after_secs": {
-            "oneOf": [
-              {
-                "type": "string",
-                "pattern": "^[0-9]+$",
-                "maxLength": 255
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "The numbers of seconds to redirect after form submission"
           },
           "email": {
-            "oneOf": [
-              {
-                "type": "string",
-                "format": "email",
-                "maxLength": 255
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Banner Image URL. Not in use currently."
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Logo URL. Not in use currently."
           },
           "submit_another_form": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show `Submit Another Form` button"
           },
           "show_blank_form": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show `Blank Form` after 5 seconds"
           },
           "lock_type": {
             "type": "string",
             "enum": ["collaborative", "locked", "personal"]
           },
           "meta": {
-            "$ref": "#/components/schemas/Meta"
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info for this view"
           }
         }
       },

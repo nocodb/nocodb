@@ -235,6 +235,7 @@
     "action": "Toiminta",
     "actions": "Toiminnot",
     "operation": "Operaatio",
+    "operationSub": "Sub Operation",
     "operationType": "Käyttötyyppi",
     "operationSubType": "Käyttö Alatyyppi",
     "description": "Kuvaus",

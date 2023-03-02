@@ -458,4 +458,4 @@ const mapRoutes = (router) => {
   // respond with password reset page
   router.get('/auth/password/reset/:tokenId', catchError(renderPasswordReset));
 };
-export { mapRoutes as userApis };
+export { mapRoutes as userController };

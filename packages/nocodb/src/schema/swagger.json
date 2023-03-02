@@ -1664,11 +1664,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "get": {
@@ -1931,11 +1934,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "post": {
@@ -1968,11 +1974,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "post": {
@@ -2084,11 +2093,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "get": {
@@ -2214,11 +2226,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "get": {
@@ -2727,11 +2742,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "post": {
@@ -2766,11 +2784,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "post": {
@@ -3001,11 +3022,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "post": {
@@ -3090,11 +3114,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "post": {
@@ -3180,11 +3207,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "post": {
@@ -5757,11 +5787,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "get": {
@@ -5829,11 +5862,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         }
       ],
       "post": {
@@ -5866,11 +5902,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
           },
           "name": "tableId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Table ID"
         },
         {
           "schema": {

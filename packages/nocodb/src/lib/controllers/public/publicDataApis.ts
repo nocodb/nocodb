@@ -10,7 +10,7 @@ export async function dataList(req: Request, res: Response) {
     password: req.headers?.['xc-password'] as string,
     sharedViewUuid: req.params.sharedViewUuid,
   });
-  res.json(pagedResponse);
+  res.json({ data: pagedResponse });
 }
 
 // todo: Handle the error case where view doesnt belong to model
@@ -23,6 +23,7 @@ async function groupedDataList(req: Request, res: Response) {
   });
   res.json(groupedData);
 }
+
 async function dataInsert(req: Request & { files: any[] }, res: Response) {
   const insertResult = await publicDataService.dataInsert({
     sharedViewUuid: req.params.sharedViewUuid,

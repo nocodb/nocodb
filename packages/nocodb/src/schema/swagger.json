@@ -3109,15 +3109,17 @@
         }
       }
     },
-    "/api/v1/db/meta/galleries/{galleryId}": {
+    "/api/v1/db/meta/galleries/{galleryViewId}": {
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_1eq2wk2xe3a9j5"
           },
-          "name": "galleryId",
+          "name": "galleryViewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Gallery View ID"
         }
       ],
       "patch": {
@@ -3202,15 +3204,17 @@
         "description": "Create a new Kanban View"
       }
     },
-    "/api/v1/db/meta/kanbans/{kanbanId}": {
+    "/api/v1/db/meta/kanbans/{kanbanViewId}": {
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_1eq2wk2xe3a9j5"
           },
-          "name": "kanbanId",
+          "name": "kanbanViewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Kanban View ID"
         }
       ],
       "patch": {
@@ -3295,15 +3299,17 @@
         "description": "Create a new Map View"
       }
     },
-    "/api/v1/db/meta/maps/{mapId}": {
+    "/api/v1/db/meta/maps/{mapViewId}": {
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_1eq2wk2xe3a9j5"
           },
-          "name": "mapId",
+          "name": "mapViewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Map View ID"
         }
       ],
       "patch": {

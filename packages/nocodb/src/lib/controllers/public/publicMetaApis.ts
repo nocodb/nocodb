@@ -13,7 +13,7 @@ export async function viewMetaGet(req: Request, res: Response) {
 async function publicSharedBaseGet(req, res): Promise<any> {
   res.json(
     await publicMetaService.publicSharedBaseGet({
-      sharedBaseUuid: req.params.sharedViewUuid,
+      sharedBaseUuid: req.params.sharedBaseUuid,
     })
   );
 }

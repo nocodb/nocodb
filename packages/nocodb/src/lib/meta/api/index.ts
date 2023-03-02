@@ -1,39 +1,39 @@
 import { Tele } from 'nc-help';
-import orgLicenseApis from './orgLicenseApis';
-import orgTokenApis from './orgTokenApis';
-import orgUserApis from './orgUserApis';
-import projectApis from './projectApis';
-import baseApis from './baseApis';
-import tableApis from './tableApis';
-import columnApis from './columnApis';
+import orgLicenseApis from '../../controllers/orgLicenseApis';
+import orgTokenApis from '../../controllers/orgTokenApis';
+import orgUserApis from '../../controllers/orgUserApis';
+import projectApis from '../../controllers/projectApis';
+import baseApis from '../../controllers/baseApis';
+import tableApis from '../../controllers/tableApis';
+import columnApis from '../../controllers/columnApis';
 import { Router } from 'express';
-import sortApis from './sortApis';
-import filterApis from './filterApis';
-import viewColumnApis from './viewColumnApis';
-import gridViewApis from './gridViewApis';
-import viewApis from './viewApis';
-import galleryViewApis from './galleryViewApis';
-import formViewApis from './formViewApis';
-import formViewColumnApis from './formViewColumnApis';
-import attachmentApis from './attachmentApis';
-import exportApis from './exportApis';
-import auditApis from './auditApis';
-import hookApis from './hookApis';
-import pluginApis from './pluginApis';
-import gridViewColumnApis from './gridViewColumnApis';
-import kanbanViewApis from './kanbanViewApis';
-import { userApis } from './userApi';
+import sortApis from '../../controllers/sortApis';
+import filterApis from '../../controllers/filterApis';
+import viewColumnApis from '../../controllers/viewColumnApis';
+import gridViewApis from '../../controllers/gridViewApis';
+import viewApis from '../../controllers/viewApis';
+import galleryViewApis from '../../controllers/galleryViewApis';
+import formViewApis from '../../controllers/formViewApis';
+import formViewColumnApis from '../../controllers/formViewColumnApis';
+import attachmentApis from '../../controllers/attachmentApis';
+import exportApis from '../../controllers/exportApis';
+import auditApis from '../../controllers/auditApis';
+import hookApis from '../../controllers/hookApis';
+import pluginApis from '../../controllers/pluginApis';
+import gridViewColumnApis from '../../controllers/gridViewColumnApis';
+import kanbanViewApis from '../../controllers/kanbanViewApis';
+import { userApis } from '../../controllers/userApi';
 // import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
-import utilApis from './utilApis';
-import projectUserApis from './projectUserApis';
-import sharedBaseApis from './sharedBaseApis';
-import { initStrategies } from './userApi/initStrategies';
-import modelVisibilityApis from './modelVisibilityApis';
-import metaDiffApis from './metaDiffApis';
-import cacheApis from './cacheApis';
-import apiTokenApis from './apiTokenApis';
-import hookFilterApis from './hookFilterApis';
-import testApis from './testApis';
+import utilApis from '../../controllers/utilApis';
+import projectUserApis from '../../controllers/projectUserApis';
+import sharedBaseApis from '../../controllers/sharedBaseApis';
+import { initStrategies } from '../../controllers/userApi/initStrategies';
+import modelVisibilityApis from '../../controllers/modelVisibilityApis';
+import metaDiffApis from '../../controllers/metaDiffApis';
+import cacheApis from '../../controllers/cacheApis';
+import apiTokenApis from '../../controllers/apiTokenApis';
+import hookFilterApis from '../../controllers/hookFilterApis';
+import testApis from '../../controllers/testApis';
 import {
   bulkDataAliasApis,
   dataAliasApis,
@@ -41,20 +41,20 @@ import {
   dataAliasNestedApis,
   dataApis,
   oldDataApis,
-} from './dataApis';
+} from '../../controllers/dataApis';
 import {
   publicDataApis,
   publicDataExportApis,
   publicMetaApis,
-} from './publicApis';
+} from '../../controllers/publicApis';
 import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 
 import crypto from 'crypto';
-import swaggerApis from './swagger/swaggerApis';
-import importApis from './sync/importApis';
-import syncSourceApis from './sync/syncSourceApis';
-import mapViewApis from './mapViewApis';
+import swaggerApis from '../../controllers/swagger/swaggerApis';
+import importApis from '../../controllers/sync/importApis';
+import syncSourceApis from '../../controllers/sync/syncSourceApis';
+import mapViewApis from '../../controllers/mapViewApis';
 
 const clients: { [id: string]: Socket } = {};
 const jobs: { [id: string]: { last_message: any } } = {};

@@ -45,7 +45,7 @@ import User from './models/User';
 import * as http from 'http';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
-import initAdminFromEnv from './meta/api/userApi/initAdminFromEnv';
+import initAdminFromEnv from './controllers/userApi/initAdminFromEnv';
 
 const log = debug('nc:app');
 require('dotenv').config();

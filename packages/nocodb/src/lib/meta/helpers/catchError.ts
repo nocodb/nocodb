@@ -5,6 +5,7 @@ enum DBError {
   COLUMN_NOT_EXIST = 'COLUMN_NOT_EXIST',
   CONSTRAINT_EXIST = 'CONSTRAINT_EXIST',
   CONSTRAINT_NOT_EXIST = 'CONSTRAINT_NOT_EXIST',
+  COLUMN_NOT_NULL = 'COLUMN_NOT_NULL',
 }
 
 // extract db errors using database error code
@@ -20,6 +21,7 @@ function extractDBError(error): {
   let extra: Record<string, any>;
   let type: DBError;
 
+  // todo: handle not null constraint error for all databases
   switch (error.code) {
     // sqlite errors
     case 'SQLITE_BUSY':
@@ -172,6 +174,19 @@ function extractDBError(error): {
       break;
     case 'ER_BAD_NULL_ERROR':
       message = 'A null value is not allowed for this field.';
+      {
+        const extractColNameMatch = error.message.match(
+          /Column '(\w+)' cannot be null/i
+        );
+        if (extractColNameMatch && extractColNameMatch[1]) {
+          message = `The column '${extractColNameMatch[1]}' cannot be null.`;
+          type = DBError.COLUMN_NOT_NULL;
+          extra = {
+            column: extractColNameMatch[1],
+          };
+        }
+      }
+
       break;
     case 'ER_DATA_TOO_LONG':
       message = 'The data entered is too long for this field.';

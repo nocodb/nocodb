@@ -1,8 +1,8 @@
 import { VisibilityRuleReqType } from 'nocodb-sdk';
 import { NcError } from '../meta/helpers/catchError';
-import Model from '../models/Model';
 import ModelRoleVisibility from '../models/ModelRoleVisibility';
 import { T } from 'nc-help';
+import { Model, View } from '../models';
 
 export async function xcVisibilityMetaSetAll(param: {
   visibilityRule: VisibilityRuleReqType;
@@ -11,7 +11,7 @@ export async function xcVisibilityMetaSetAll(param: {
   T.emit('evt', { evt_type: 'uiAcl:updated' });
   for (const d of param.visibilityRule) {
     for (const role of Object.keys(d.disabled)) {
-      const view = await Model.get(d.id);
+      const view = await View.get(d.id);
 
       if (view.project_id !== param.projectId) {
         NcError.badRequest('View does not belong to the project');

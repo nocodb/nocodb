@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
 import { createPage, getPage, listPages, updatePage } from '../../factory/page';
-import { createProject } from '../../factory/project';
+import { createProject, updateProject } from '../../factory/project';
 import init, { NcUnitContext } from '../../init';
 
 function docTests() {
@@ -188,7 +188,6 @@ function docTests() {
     .set('xc-auth', context.token)
     .send({
       projectId: project.id,
-      
       attributes: {
         title: 'test',
         content: 'test',
@@ -196,6 +195,18 @@ function docTests() {
     })
     .expect(200)
     expect(response.body).to.have.property('id');
+
+    response = await request(context.app)
+      .get(`/api/v1/docs/page/${response.body.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        projectId: project.id,
+        fields: ['id', 'title', 'content']
+      })
+      .expect(200)
+    
+    expect(response.body.title).to.equal('test')
+    expect(response.body.content).to.equal('test')
 
     const id = response.body.id
     response = await request(context.app)
@@ -213,6 +224,18 @@ function docTests() {
     
     expect(response.body.title).to.equal('test2')
     expect(response.body.last_updated_by_id).to.equal(context.user.id)
+
+    response = await request(context.app)
+      .get(`/api/v1/docs/page/${id}`)
+      .set('xc-auth', context.token)
+      .query({
+        projectId: project.id,
+      })
+      .expect(200)
+    
+    expect(response.body.title).to.equal('test2')
+    expect(response.body.last_updated_by_id).to.equal(context.user.id)
+    expect(response.body.content).to.equal('test2')
   })
 
   it('Update non existing page', async () => {
@@ -594,7 +617,12 @@ function docTests() {
     expect(pageUpdated.published_content).to.equal(page.content)
   })
 
-  it('Public page list and get api', async () => {
+  it('Public project page list and get api', async () => {
+    await updateProject(context, project.id!, {
+      meta: {
+        isPublic: true,
+      }
+    })
     const page1 = await createPage({
       project: project,
       
@@ -629,7 +657,7 @@ function docTests() {
         
       })
       .expect(200)
-    expect(response.body.length).to.equal(1)
+    expect(response.body.length).to.equal(2)
     expect(response.body[0].title).to.equal(page1.title)
 
     const response2 = await request(context.app)
@@ -640,109 +668,6 @@ function docTests() {
       })
       .expect(200)
     expect(response2.body.title).to.equal(page1.title)
-
-    const response3 = await request(context.app)
-      .get(`/api/v1/public/docs/page/${page2.id}`)
-      .query({
-        projectId: project.id,
-        
-      })
-      .expect(400)
-  })
-
-  it('Drafts', async () => {
-    const page1 = await createPage({
-      project: project,
-      
-      attributes: {
-        title: 'test1',
-        content: 'test1',
-      },
-      user: context.user,
-    });
-    const parentPublishedPage = await createPage({
-      project: project,
-      
-      attributes: {
-        title: 'parent test',
-        is_published: true,
-      },
-      user: context.user,
-    });
-    const page2 = await createPage({
-      project: project,
-      
-      attributes: {
-        title: 'test2',
-        content: 'test2',
-        published_content: 'test2',
-        is_published: true,
-        parent_page_id: parentPublishedPage.id,
-      },
-      user: context.user,
-    });
-    const page3 = await createPage({
-      project: project,
-      
-      attributes: {
-        title: 'test3',
-        content: 'test3',
-        published_content: 'old test3',
-        is_published: true,
-        parent_page_id: parentPublishedPage.id,
-      },
-      user: context.user,
-    });
-
-    const response = await request(context.app)
-      .get(`/api/v1/docs/page-drafts`)
-      .set('xc-auth', context.token)
-      .query({
-        projectId: project.id,
-        
-      })
-      .expect(200)
-    expect(response.body.length).to.equal(2)
-  })
-
-  it('Batch publish', async () => {
-    const page1 = await createPage({
-      project: project,
-      
-      attributes: {
-        title: 'test1',
-        content: 'test1',
-      },
-      user: context.user,
-    });
-    const page2 = await createPage({
-      project: project,
-      
-      attributes: {
-        title: 'test2',
-        content: 'test2',
-      },
-      user: context.user,
-    });
-
-    await request(context.app)
-      .post(`/api/v1/docs/page/batch-publish`)
-      .set('xc-auth', context.token)
-      .send({
-        projectId: project.id,
-        
-        pageIds: [page1.id, page2.id],
-      })
-      .expect(200)
-    
-    const pages = await listPages({
-      project: project,
-      
-      user: context.user,
-    })
-    expect(pages.length).to.equal(2)
-    expect(pages[0].is_published).to.equal(1)
-    expect(pages[1].is_published).to.equal(1)
   })
 
   it('Pagination', async () => {

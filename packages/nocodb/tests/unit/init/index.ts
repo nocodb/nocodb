@@ -7,6 +7,7 @@ import {cleanUpSakila, resetAndSeedSakila} from './cleanupSakila';
 import { createUser } from '../factory/user';
 import { DbConfig } from '../../../src/interface/config';
 import { UserType } from 'nocodb-sdk';
+import NocoCache from '../../../src/lib/cache/NocoCache';
 
 let server;
 
@@ -37,6 +38,10 @@ const isFirstTimeRun = () => !server
 
 export default async function () {  
   const {default: TestDbMngr} = await import('../TestDbMngr');
+
+  NocoCache.init();
+  await NocoCache.destroy();
+  NocoCache.init();
 
   if (isFirstTimeRun()) {
     await resetAndSeedSakila();

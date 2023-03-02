@@ -2125,9 +2125,13 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(400);
 
+    // todo: only keep generic error message once updated in noco catchError middleware
     if (
-      !response.body.msg.includes("Column 'customer_id' cannot be null") &&
-      !response.body.msg.includes('Cannot add or update a child row')
+      !response.body.message?.includes("The column 'customer_id' cannot be null") &&
+      !response.body.message?.includes("Column 'customer_id' cannot be null") &&
+      !response.body.message?.includes('Cannot add or update a child row') &&
+      !response.body.msg?.includes("Column 'customer_id' cannot be null") &&
+      !response.body.msg?.includes('Cannot add or update a child row')
     ) {
       console.log(
         'Delete list hm with existing ref row id with non nullable clause',

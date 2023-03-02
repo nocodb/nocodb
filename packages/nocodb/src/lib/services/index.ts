@@ -32,3 +32,4 @@ export * as cacheService from './cacheService';
 export * as auditService from './auditService';
 export * as swaggerService from './swaggerService';
 export * as userService from './userService';
+export * as syncService from './syncService';

@@ -20,6 +20,8 @@ const icon = (tab: TabItem) => {
       return iconMap['mdi-account-group']
     case TabType.SQL:
       return iconMap['mdi-database-search']
+    case TabType.ERD:
+      return iconMap['mdi-graph-outline']
   }
 }
 

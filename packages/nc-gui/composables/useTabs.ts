@@ -63,6 +63,8 @@ export const useTabs = createSharedComposable(() => {
         return tabs.value.findIndex((t) => t.type === TabType.AUTH)
       } else if (routeName.startsWith('projectType-projectId-index-index-sql')) {
         return tabs.value.findIndex((t) => t.type === TabType.SQL)
+      } else if (routeName.startsWith('projectType-projectId-index-index-erd-baseId')) {
+        return tabs.value.findIndex((t) => t.id === `${TabType.ERD}-${route.params.baseId}`)
       }
 
       // by default, it's showing Team & Auth
@@ -143,6 +145,8 @@ export const useTabs = createSharedComposable(() => {
         return navigateTo(`/${projectType}/${route.params.projectId}/auth`)
       case TabType.SQL:
         return navigateTo(`/${projectType}/${route.params.projectId}/sql`)
+      case TabType.ERD:
+        return navigateTo(`/${projectType}/${route.params.projectId}/erd/${tab?.tabMeta?.base.id}`)
     }
   }
 

@@ -41,7 +41,7 @@ onNodeDoubleClick(({ node }) => {
   }, 250)
 })
 
-watch(tables, init)
+watch(tables, init, { flush: 'post' })
 watch(showSkeleton, async (isSkeleton) => {
   await layout(isSkeleton).then(() => {
     fitView({

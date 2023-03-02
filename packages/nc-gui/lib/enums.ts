@@ -86,6 +86,7 @@ export enum TabType {
   VIEW = 'view',
   AUTH = 'auth',
   SQL = 'sql',
+  ERD = 'erd',
 }
 
 export enum SmartsheetStoreEvents {

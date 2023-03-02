@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableType } from 'nocodb-sdk'
+import type { BaseType, TableType } from 'nocodb-sdk'
 import type { Input } from 'ant-design-vue'
 import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import Sortable from 'sortablejs'
@@ -22,6 +22,7 @@ import {
   useNuxtApp,
   useProject,
   useRoute,
+  useSqlEditor,
   useTable,
   useTabs,
   useToggle,
@@ -48,6 +49,8 @@ const route = useRoute()
 const [searchActive, toggleSearchActive] = useToggle()
 
 const { appInfo } = useGlobal()
+
+const { selectedBase } = useSqlEditor()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
@@ -152,9 +155,9 @@ const icon = (table: TableType) => {
   }
 }
 
-const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main'; value?: any }>({})
 
-const setMenuContext = (type: 'table' | 'main', value?: any) => {
+const setMenuContext = (type: 'base' | 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
@@ -279,6 +282,17 @@ function openSchemaMagicDialog(baseId?: string) {
   }
 }
 
+function openSqlEditor(base?: BaseType) {
+  if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
+  selectedBase.value = base.id
+  navigateTo(`/${route.params.projectType}/${route.params.projectId}/sql`)
+}
+
+function openErdView(base?: BaseType) {
+  if (!base) base = bases.value?.filter((base: BaseType) => base.enabled)[0]
+  navigateTo(`/${route.params.projectType}/${route.params.projectId}/erd/${base.id}`)
+}
+
 const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 
 const beforeSearch = ref<string[]>([])
@@ -360,6 +374,14 @@ const setIcon = async (icon: string, table: TableType) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const handleContext = (e: MouseEvent) => {
+  if (!document.querySelector('.base-context, .table-context')?.contains(e.target as Node)) {
+    setMenuContext('main')
+  }
+}
+
+useEventListener(document, 'contextmenu', handleContext, true)
 </script>
 
 <template>
@@ -368,8 +390,8 @@ const setIcon = async (icon: string, table: TableType) => {
       <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull" :class="{ 'mb-[20px]': isSharedBase }">
         <div
           v-if="bases[0] && bases[0].enabled && !bases.slice(1).filter((el) => el.enabled)?.length"
-          class="min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer"
-          @contextmenu="setMenuContext('main')"
+          class="base-context min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer"
+          @contextmenu="setMenuContext('base', bases[0])"
         >
           <Transition name="slide-left" mode="out-in">
             <a-input
@@ -391,13 +413,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
           <Transition name="layout" mode="out-in">
             <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <div v-else>
-              <MdiDatabaseSearch
-                class="text-gray-500 text-md mx-1 mt-0.5 hover:text-accent"
-                @click="navigateTo(`/${route.params.projectType}/${route.params.projectId}/sql`)"
-              />
-              <IcRoundSearch class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
-            </div>
+            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
         <div
@@ -424,13 +440,7 @@ const setIcon = async (icon: string, table: TableType) => {
 
           <Transition name="slide-right" mode="out-in">
             <MdiClose v-if="searchActive" class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
-            <div v-else>
-              <MdiDatabaseSearch
-                class="text-gray-500 text-md mx-1 mt-0.5 hover:text-accent"
-                @click="navigateTo(`/${route.params.projectType}/${route.params.projectId}/sql`)"
-              />
-              <IcRoundSearch class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
-            </div>
+            <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
           </Transition>
 
           <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
@@ -664,7 +674,7 @@ const setIcon = async (icon: string, table: TableType) => {
                   >
                     <GeneralTooltip class="pl-2 pr-3 py-2" modifier-key="Alt">
                       <template #title>{{ table.table_name }}</template>
-                      <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+                      <div class="table-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
                           <component
                             :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
@@ -762,11 +772,19 @@ const setIcon = async (icon: string, table: TableType) => {
               >
                 <a-collapse-panel :key="`collapse-${base.id}`">
                   <template #header>
-                    <div v-if="index === '0'" class="flex items-center gap-2 text-gray-500 font-bold">
+                    <div
+                      v-if="index === '0'"
+                      class="base-context flex items-center gap-2 text-gray-500 font-bold"
+                      @contextmenu="setMenuContext('base', base)"
+                    >
                       <GeneralBaseLogo :base-type="base.type" />
                       Default ({{ tables.filter((table) => table.base_id === base.id).length || '0' }})
                     </div>
-                    <div v-else class="flex items-center gap-2 text-gray-500 font-bold">
+                    <div
+                      v-else
+                      class="base-context flex items-center gap-2 text-gray-500 font-bold"
+                      @contextmenu="setMenuContext('base', base)"
+                    >
                       <GeneralBaseLogo :base-type="base.type" />
                       {{ base.alias || '' }}
                       ({{ tables.filter((table) => table.base_id === base.id).length || '0' }})
@@ -1011,7 +1029,7 @@ const setIcon = async (icon: string, table: TableType) => {
                     >
                       <GeneralTooltip class="pl-8 pr-3 py-2" modifier-key="Alt">
                         <template #title>{{ table.table_name }}</template>
-                        <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+                        <div class="table-context flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
                             <component
                               :is="isUIAllowed('tableIconCustomisation') ? Dropdown : 'div'"
@@ -1094,7 +1112,17 @@ const setIcon = async (icon: string, table: TableType) => {
 
       <template v-if="!isSharedBase" #overlay>
         <a-menu class="!py-0 rounded text-sm">
-          <template v-if="contextMenuTarget.type === 'table'">
+          <template v-if="contextMenuTarget.type === 'base'">
+            <a-menu-item v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
+              <div class="nc-project-menu-item">SQL Editor</div>
+            </a-menu-item>
+
+            <a-menu-item @click="openErdView(contextMenuTarget.value)">
+              <div class="nc-project-menu-item">ERD View</div>
+            </a-menu-item>
+          </template>
+
+          <template v-else-if="contextMenuTarget.type === 'table'">
             <a-menu-item
               v-if="isUIAllowed('table-rename')"
               @click="openRenameTableDialog(contextMenuTarget.value, bases[0].id, true)"

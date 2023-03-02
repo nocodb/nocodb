@@ -16,6 +16,7 @@ import MdiTableLarge from '~icons/mdi/table-large'
 import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDatabaseSearch from '~icons/mdi/database-search'
+import MdiGraphOutline from '~icons/mdi/graph-outline'
 
 export const iconMap = {
   'mdi-check-bold': MdiCheckBold,
@@ -36,6 +37,7 @@ export const iconMap = {
   'mdi-eye-circle-outline': MdiEyeCircleOutline,
   'mdi-account-group': MdiAccountGroup,
   'mdi-database-search': MdiDatabaseSearch,
+  'mdi-graph-outline': MdiGraphOutline,
 } as const
 
 export const getMdiIcon = (type: string): any => {

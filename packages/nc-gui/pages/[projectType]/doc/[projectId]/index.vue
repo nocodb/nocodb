@@ -51,7 +51,7 @@ const isProjectPublic = computed(() => {
 watch(
   [isErrored, isFetching, isNestedPage, isProjectPublic],
   () => {
-    if (!isPublic.value || isProjectPublic.value) {
+    if ((!isPublic.value || isProjectPublic.value) && !isErrored.value) {
       toggleSidebar(true)
       return
     }

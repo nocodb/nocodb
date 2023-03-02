@@ -235,6 +235,7 @@
     "action": "Ekintza",
     "actions": "Ekintzak",
     "operation": "Operation",
+    "operationSub": "Sub Operation",
     "operationType": "Operation type",
     "operationSubType": "Operation sub-type",
     "description": "Deskribapena",

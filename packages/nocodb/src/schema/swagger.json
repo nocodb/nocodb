@@ -7244,9 +7244,8 @@
             "description": "The project ID that this base belongs to"
           },
           "alias": {
-            "type": "string",
-            "description": "Base Name - Default BASE will be null by default",
-            "example": "My Base"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Base Name - Default BASE will be null by default"
           },
           "type": {
             "type": "string",
@@ -7353,24 +7352,40 @@
             "bases": {
               "list": [
                 {
-                  "id": "string",
-                  "project_id": "string",
-                  "alias": "string",
-                  "host": "string",
-                  "port": 0,
-                  "username": "string",
-                  "password": "string",
-                  "database": "string",
-                  "url": "string",
-                  "params": "string",
-                  "type": "string",
-                  "ssl": "string"
+                  "id": "ds_krsappzu9f8vmo",
+                  "project_id": "p_01clqvzik3izk6",
+                  "alias": null,
+                  "config": "<ENCRYPTED>",
+                  "meta": null,
+                  "is_meta": 1,
+                  "type": "mysql2",
+                  "inflection_column": "camelize",
+                  "inflection_table": "camelize",
+                  "created_at": "2023-03-01 16:31:49",
+                  "updated_at": "2023-03-02 11:28:17",
+                  "enabled": 1,
+                  "order": 1
+                },
+                {
+                  "id": "ds_btbdt19zde0gj9",
+                  "project_id": "p_01clqvzik3izk6",
+                  "alias": "sakila",
+                  "config": "<ENCRYPTED>",
+                  "meta": null,
+                  "is_meta": null,
+                  "type": "mysql2",
+                  "inflection_column": "camelize",
+                  "inflection_table": "camelize",
+                  "created_at": "2023-03-02 11:28:17",
+                  "updated_at": "2023-03-02 11:28:17",
+                  "enabled": 1,
+                  "order": 2
                 }
               ],
               "pageInfo": {
-                "pageSize": 0,
-                "totalRows": 0,
-                "sort": "string",
+                "totalRows": 2,
+                "page": 1,
+                "pageSize": 2,
                 "isFirstPage": true,
                 "isLastPage": true
               }
@@ -9015,7 +9030,7 @@
           "show": {
             "type": "number",
             "description": "Whether to show this column or not",
-            "example": "1"
+            "example": 1
           },
           "order": {
             "type": "number",
@@ -10655,24 +10670,40 @@
                   "bases": {
                     "list": [
                       {
-                        "id": "string",
-                        "project_id": "string",
-                        "alias": "string",
-                        "host": "string",
-                        "port": 0,
-                        "username": "string",
-                        "password": "string",
-                        "database": "string",
-                        "url": "string",
-                        "params": "string",
-                        "type": "string",
-                        "ssl": "string"
+                        "id": "ds_krsappzu9f8vmo",
+                        "project_id": "p_01clqvzik3izk6",
+                        "alias": null,
+                        "config": "<ENCRYPTED>",
+                        "meta": null,
+                        "is_meta": 1,
+                        "type": "mysql2",
+                        "inflection_column": "camelize",
+                        "inflection_table": "camelize",
+                        "created_at": "2023-03-01 16:31:49",
+                        "updated_at": "2023-03-02 11:28:17",
+                        "enabled": 1,
+                        "order": 1
+                      },
+                      {
+                        "id": "ds_btbdt19zde0gj9",
+                        "project_id": "p_01clqvzik3izk6",
+                        "alias": "sakila",
+                        "config": "<ENCRYPTED>",
+                        "meta": null,
+                        "is_meta": null,
+                        "type": "mysql2",
+                        "inflection_column": "camelize",
+                        "inflection_table": "camelize",
+                        "created_at": "2023-03-02 11:28:17",
+                        "updated_at": "2023-03-02 11:28:17",
+                        "enabled": 1,
+                        "order": 2
                       }
                     ],
                     "pageInfo": {
-                      "pageSize": 0,
-                      "totalRows": 0,
-                      "sort": "string",
+                      "totalRows": 2,
+                      "page": 1,
+                      "pageSize": 2,
                       "isFirstPage": true,
                       "isLastPage": true
                     }

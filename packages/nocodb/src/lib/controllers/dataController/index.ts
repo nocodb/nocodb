@@ -32,7 +32,7 @@ async function dataFindOne(req: Request, res: Response) {
 
 async function dataGroupBy(req: Request, res: Response) {
   res.json(
-    await dataService.dataFindOne({
+    await dataService.dataGroupBy({
       query: req.query,
       projectName: req.params.projectName,
       tableName: req.params.tableName,

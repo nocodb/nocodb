@@ -114,7 +114,7 @@ export const useProject = createSharedComposable(() => {
       })
 
       if (tablesResponse.list) {
-        tables.value = tablesResponse.list.filter((table) => bases.value.find((base) => base.id === table.base_id)?.enabled)
+        tables.value = tablesResponse.list
       }
     }
   }

@@ -3663,16 +3663,16 @@ export class Api<
      * @tags DB View
      * @name GalleryUpdate
      * @summary Update Gallery View
-     * @request PATCH:/api/v1/db/meta/galleries/{galleryId}
+     * @request PATCH:/api/v1/db/meta/galleries/{galleryViewId}
      * @response `200` `void` OK
      */
     galleryUpdate: (
-      galleryId: string,
+      galleryViewId: string,
       data: GalleryReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/galleries/${galleryId}`,
+        path: `/api/v1/db/meta/galleries/${galleryViewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -3685,12 +3685,12 @@ export class Api<
      * @tags DB View
      * @name GalleryRead
      * @summary Get Gallery View
-     * @request GET:/api/v1/db/meta/galleries/{galleryId}
+     * @request GET:/api/v1/db/meta/galleries/{galleryViewId}
      * @response `200` `GalleryType` OK
      */
-    galleryRead: (galleryId: string, params: RequestParams = {}) =>
+    galleryRead: (galleryViewId: string, params: RequestParams = {}) =>
       this.request<GalleryType, any>({
-        path: `/api/v1/db/meta/galleries/${galleryId}`,
+        path: `/api/v1/db/meta/galleries/${galleryViewId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3725,16 +3725,16 @@ export class Api<
      * @tags DB View
      * @name KanbanUpdate
      * @summary Update Kanban View
-     * @request PATCH:/api/v1/db/meta/kanbans/{kanbanId}
+     * @request PATCH:/api/v1/db/meta/kanbans/{kanbanViewId}
      * @response `200` `void` OK
      */
     kanbanUpdate: (
-      kanbanId: string,
+      kanbanViewId: string,
       data: KanbanUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/kanbans/${kanbanId}`,
+        path: `/api/v1/db/meta/kanbans/${kanbanViewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -3747,12 +3747,12 @@ export class Api<
      * @tags DB View
      * @name KanbanRead
      * @summary Get Kanban View
-     * @request GET:/api/v1/db/meta/kanbans/{kanbanId}
+     * @request GET:/api/v1/db/meta/kanbans/{kanbanViewId}
      * @response `200` `KanbanType` OK
      */
-    kanbanRead: (kanbanId: string, params: RequestParams = {}) =>
+    kanbanRead: (kanbanViewId: string, params: RequestParams = {}) =>
       this.request<KanbanType, any>({
-        path: `/api/v1/db/meta/kanbans/${kanbanId}`,
+        path: `/api/v1/db/meta/kanbans/${kanbanViewId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3783,12 +3783,12 @@ export class Api<
      * @tags DB View
      * @name MapUpdate
      * @summary Update Map View
-     * @request PATCH:/api/v1/db/meta/maps/{mapId}
+     * @request PATCH:/api/v1/db/meta/maps/{mapViewId}
      * @response `200` `void` OK
      */
-    mapUpdate: (mapId: string, data: MapType, params: RequestParams = {}) =>
+    mapUpdate: (mapViewId: string, data: MapType, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/db/meta/maps/${mapId}`,
+        path: `/api/v1/db/meta/maps/${mapViewId}`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -3801,12 +3801,12 @@ export class Api<
      * @tags DB View
      * @name MapRead
      * @summary Get Map View
-     * @request GET:/api/v1/db/meta/maps/{mapId}
+     * @request GET:/api/v1/db/meta/maps/{mapViewId}
      * @response `200` `MapType` OK
      */
-    mapRead: (mapId: string, params: RequestParams = {}) =>
+    mapRead: (mapViewId: string, params: RequestParams = {}) =>
       this.request<MapType, any>({
-        path: `/api/v1/db/meta/maps/${mapId}`,
+        path: `/api/v1/db/meta/maps/${mapViewId}`,
         method: 'GET',
         format: 'json',
         ...params,

@@ -1,15 +1,15 @@
 import { Request, Response, Router } from 'express';
-import Model from '../../../models/Model';
-import Base from '../../../models/Base';
-import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import ncMetaAclMw from '../../helpers/ncMetaAclMw';
+import Model from '../../models/Model';
+import Base from '../../models/Base';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
+import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import {
   getColumnByIdOrName,
   getViewAndModelFromRequestByAliasOrId,
-} from './helpers';
-import { NcError } from '../../helpers/catchError';
-import apiMetrics from '../../helpers/apiMetrics';
+} from '../../meta/api/dataApis/helpers';
+import { NcError } from '../../meta/helpers/catchError';
+import apiMetrics from '../../meta/helpers/apiMetrics';
 
 // todo: handle case where the given column is not ltar
 export async function mmList(req: Request, res: Response, next) {

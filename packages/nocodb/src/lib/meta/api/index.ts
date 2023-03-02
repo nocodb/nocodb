@@ -39,6 +39,7 @@ import baseController from '../../controllers/baseController';
 import utilController from '../../controllers/utilController';
 import dataController from '../../controllers/dataController';
 import bulkDataController from '../../controllers/dataController/bulkData';
+import dataAliasNestedApis from '../../controllers/dataController/dataAliasNestedApis';
 import dataExportController from '../../controllers/dataController/export';
 import viewColumnController from '../../controllers/viewColumnController';
 import viewController from '../../controllers/viewController';
@@ -64,10 +65,10 @@ export default function (router: Router, server) {
   }
   router.use(columnController);
   router.use(exportApis);
-  router.use(dataController);
   router.use(bulkDataController);
+  router.use(dataController);
   // router.use(dataAliasApis);
-  // router.use(dataAliasNestedApis);
+  router.use(dataAliasNestedApis);
   router.use(dataExportController);
   router.use(oldDataApis);
   router.use(sortController);

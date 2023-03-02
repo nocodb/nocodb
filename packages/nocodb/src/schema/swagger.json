@@ -1238,11 +1238,13 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "pattern": "ds_j04jmxh5xg10lu"
           },
           "name": "baseId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Base ID"
         }
       ],
       "get": {
@@ -1847,11 +1849,13 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "pattern": "ds_j04jmxh5xg10lu"
           },
           "name": "baseId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Base ID"
         }
       ],
       "get": {
@@ -3375,11 +3379,13 @@
         },
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "pattern": "ds_j04jmxh5xg10lu"
           },
           "name": "baseId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Base ID"
         }
       ],
       "post": {

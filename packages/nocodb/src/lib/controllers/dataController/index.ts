@@ -42,14 +42,14 @@ async function dataGroupBy(req: Request, res: Response) {
 }
 
 async function dataCount(req: Request, res: Response) {
-  const count = await dataService.dataCount({
+  const countResult = await dataService.dataCount({
     query: req.query,
     projectName: req.params.projectName,
     tableName: req.params.tableName,
     viewName: req.params.viewName,
   });
 
-  res.json({ count });
+  res.json(countResult);
 }
 
 async function dataInsert(req: Request, res: Response) {

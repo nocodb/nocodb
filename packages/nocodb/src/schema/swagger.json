@@ -7892,6 +7892,7 @@
       "Filter": {
         "type": "object",
         "title": "Filter Model",
+        "description": "Model for Filter",
         "properties": {
           "id": {
             "type": "string"
@@ -7909,7 +7910,7 @@
             "type": "string"
           },
           "comparison_sub_op": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull"
           },
           "value": {},
           "is_group": {
@@ -7949,8 +7950,7 @@
             "$ref": "#/components/schemas/StringOrNull"
           }
         },
-        "readOnly": true,
-        "description": "Model for Filter"
+        "readOnly": true
       },
       "FilterReq": {
         "type": "object",
@@ -8002,16 +8002,33 @@
             "description": "Comparison Operator"
           },
           "comparison_sub_op": {
-            "type": "string",
             "description": "Comparison Sub-Operator",
-            "enum": [
-              "pastWeek",
-              "pastMonth",
-              "pastYear",
-              "nextWeek",
-              "nextYear",
-              "pastNumberOfDays",
-              "nextNumberOfDays"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pastWeek",
+                  "pastMonth",
+                  "pastYear",
+                  "nextWeek",
+                  "nextYear",
+                  "pastNumberOfDays",
+                  "nextNumberOfDays",
+                  "today",
+                  "tomorrow",
+                  "yesterday",
+                  "oneWeekAgo",
+                  "oneWeekFromNow",
+                  "oneMonthAgo",
+                  "oneMonthFromNow",
+                  "daysAgo",
+                  "daysFromNow",
+                  "exactDate"
+                ]
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "value": {

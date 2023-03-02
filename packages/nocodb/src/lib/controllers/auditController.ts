@@ -1,11 +1,9 @@
 import { Request, Response, Router } from 'express';
 import Audit from '../models/Audit';
-import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
-import Model from '../models/Model';
+import { AuditOperationTypes } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 
-import DOMPurify from 'isomorphic-dompurify';
 import { getAjvValidatorMw } from '../meta/api/helpers';
 import { auditService } from '../services';
 

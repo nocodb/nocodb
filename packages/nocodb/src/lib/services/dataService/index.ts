@@ -56,7 +56,7 @@ export async function dataInsert(
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
-  await baseModel.insert(param.body, null, param.cookie);
+  return await baseModel.insert(param.body, null, param.cookie);
 }
 
 export async function dataUpdate(

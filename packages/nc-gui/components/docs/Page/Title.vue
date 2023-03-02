@@ -3,15 +3,14 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 
 const emit = defineEmits(['focusEditor'])
 
-const localPage = inject(DocsLocalPageInj)!
-const { updatePage, isPublic } = useDocs()
+const { updatePage, isPublic, openedPage } = useDocs()
 
 const titleInputRef = ref<HTMLInputElement>()
 
 const title = computed({
-  get: () => (localPage.value!.new ? '' : localPage.value?.title || ''),
+  get: () => (openedPage.value!.new ? '' : openedPage.value?.title || ''),
   set: (value) => {
-    localPage.value = { ...localPage.value!, title: value, new: false }
+    openedPage.value = { ...openedPage.value!, title: value, new: false }
   },
 })
 
@@ -24,21 +23,21 @@ const onTitleKeyDown = (e: KeyboardEvent) => {
 
 const setIcon = async (icon: string) => {
   try {
-    localPage.value!.icon = icon
-    await updatePage({ pageId: localPage.value!.id!, page: { icon } })
+    openedPage.value!.icon = icon
+    await updatePage({ pageId: openedPage.value!.id!, page: { icon } })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 watchDebounced(
-  () => [localPage.value?.id, localPage.value?.title],
+  () => [openedPage.value?.id, openedPage.value?.title],
   async ([oldPageId], [newPageId]) => {
     if (isPublic.value) return
 
     if (oldPageId !== newPageId) return
 
-    await updatePage({ pageId: localPage.value!.id!, page: { title: localPage.value?.title } as any })
+    await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any })
   },
   {
     debounce: 100,
@@ -49,7 +48,7 @@ watchDebounced(
 watch(
   titleInputRef,
   () => {
-    if (!localPage.value?.new) {
+    if (!openedPage.value?.new) {
       return
     }
 
@@ -63,14 +62,14 @@ watch(
 
 <template>
   <div class="flex flex-row">
-    <a-dropdown v-if="!isPublic && localPage?.icon" placement="bottom" trigger="click">
+    <a-dropdown v-if="!isPublic && openedPage?.icon" placement="bottom" trigger="click">
       <div class="flex flex-col justify-center h-16 ml-2 px-2 text-gray-500 rounded-md hover:bg-gray-100 cursor-pointer">
         <IconifyIcon
-          v-if="localPage?.icon"
-          :key="localPage.icon"
-          :data-testid="`nc-doc-page-icon-${localPage.icon}`"
+          v-if="openedPage?.icon"
+          :key="openedPage.icon"
+          :data-testid="`nc-doc-page-icon-${openedPage.icon}`"
           class="text-5xl"
-          :icon="localPage.icon"
+          :icon="openedPage.icon"
         ></IconifyIcon>
       </div>
       <template #overlay>
@@ -80,13 +79,13 @@ watch(
       </template>
     </a-dropdown>
     <template v-else>
-      <div v-if="localPage?.icon" class="flex flex-col justify-center h-16">
+      <div v-if="openedPage?.icon" class="flex flex-col justify-center h-16">
         <IconifyIcon
-          v-if="localPage?.icon"
-          :key="localPage.icon"
-          :data-testid="`nc-doc-page-icon-${localPage.icon}`"
+          v-if="openedPage?.icon"
+          :key="openedPage.icon"
+          :data-testid="`nc-doc-page-icon-${openedPage.icon}`"
           class="flex text-5xl"
-          :icon="localPage.icon"
+          :icon="openedPage.icon"
         ></IconifyIcon>
       </div>
     </template>
@@ -96,7 +95,7 @@ watch(
       class="!text-5xl font-semibold !px-1.5 !mb-6"
       :bordered="false"
       :readonly="isPublic"
-      :placeholder="localPage?.title"
+      :placeholder="openedPage?.title"
       auto-size
       @keydown="onTitleKeyDown"
     />

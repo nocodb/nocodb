@@ -1,16 +1,16 @@
 <script lang="ts" setup>
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
-import { TextSelection } from 'prosemirror-state'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import type { PageSidebarNode } from '~~/lib'
 
 const { project } = useProject()
 
 const {
-  openedPage: openedPageInternal,
+  openedPage,
+  openedPageInSidebar,
   updateContent,
-  openedNestedPages,
+  openedPageWithParents,
   nestedUrl,
   fetchPage,
   openPage,
@@ -23,16 +23,14 @@ const {
 // Page opened in the Page component, which is updated to the server debounce-ly
 // Main reason is to speed up the page opening, as data from sidebar might take time
 // And the page content is not available in the sidebar, so we need to parallelly fetch it
-const localPage = ref<PageSidebarNode | undefined>()
+// const localPage = ref<PageSidebarNode | undefined>()
 
 const wrapperRef = ref<HTMLDivElement | undefined>()
 
-provide(DocsLocalPageInj, localPage)
-
-const content = computed(() => localPage.value?.content || '')
+const content = computed(() => openedPage.value?.content || '')
 
 const breadCrumbs = computed(() => {
-  const pagesBreadcrumbs = openedNestedPages.value
+  const pagesBreadcrumbs = openedPageWithParents.value
     .map((page) => ({
       title: page.title,
       href: nestedUrl(page.id!),
@@ -45,9 +43,9 @@ const breadCrumbs = computed(() => {
 const editor = useEditor({
   extensions: tiptapExtensions(),
   onUpdate: ({ editor }) => {
-    if (!localPage.value) return
+    if (!openedPage.value) return
 
-    localPage.value.content = editor.getHTML()
+    openedPage.value.content = editor.getHTML()
   },
   editorProps: {
     handleKeyDown: (view, event) => {
@@ -86,10 +84,10 @@ watch(
 )
 
 watchDebounced(
-  () => [localPage.value?.id, localPage.value?.content],
+  () => [openedPage.value?.id, openedPage.value?.content],
   ([newId, newContent], [oldId, oldContent]) => {
-    if (!isPublic.value && localPage.value?.id && newId === oldId && newContent !== oldContent) {
-      updateContent({ pageId: localPage.value?.id, content: localPage.value!.content })
+    if (!isPublic.value && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
+      updateContent({ pageId: openedPage.value?.id, content: openedPage.value!.content })
     }
   },
   {
@@ -103,11 +101,11 @@ watch(
   async () => {
     if (!openedPageId.value) return
 
-    localPage.value = undefined
+    openedPage.value = undefined
 
-    localPage.value = (await fetchPage()) as any
+    openedPage.value = (await fetchPage()) as any
 
-    if (openedPageInternal.value?.new) localPage.value!.new = true
+    if (openedPageInSidebar.value?.new) openedPage.value!.new = true
   },
   {
     immediate: true,
@@ -115,14 +113,14 @@ watch(
 )
 
 watch(
-  openedPageInternal,
+  openedPageInSidebar,
   () => {
-    if (!localPage.value) return
+    if (!openedPage.value) return
 
-    localPage.value = {
-      ...openedPageInternal.value,
-      content: localPage.value.content,
-      title: localPage.value.title,
+    openedPage.value = {
+      ...openedPageInSidebar.value,
+      content: openedPage.value.content,
+      title: openedPage.value.title,
     } as PageSidebarNode
   },
   {
@@ -133,15 +131,13 @@ watch(
 
 <template>
   <a-layout-content>
-    <div
-      v-if="localPage && !(isPublic && isFetching.nestedPages)"
-      ref="wrapperRef"
-      class="nc-docs-page h-full flex flex-row relative"
-    >
+    <div v-if="openedPage" ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
-            <template v-if="!isPublic || project.meta?.isPublic || nestedPublicParentPage?.is_nested_published">
+            <template
+              v-if="!isFetching.nestedPages &&(!isPublic || (project.meta as any)?.isPublic || nestedPublicParentPage?.is_nested_published)"
+            >
               <div v-for="({ href, title, icon }, index) of breadCrumbs" :key="href" class="flex">
                 <NuxtLink
                   class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
@@ -177,7 +173,7 @@ watch(
             maxWidth: '45vw',
           }"
         >
-          <DocsPageTitle v-if="localPage" @focus-editor="focusEditor" />
+          <DocsPageTitle v-if="openedPage" @focus-editor="focusEditor" />
 
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
           <DocsPageLinkOptions v-if="editor" :editor="editor" />
@@ -190,11 +186,11 @@ watch(
             }"
           />
           <div
-            v-if="(openedPageInternal?.children ?? []).length > 0"
+            v-if="(openedPageInSidebar?.children ?? []).length > 0"
             class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
           >
             <div
-              v-for="page of openedPageInternal?.children"
+              v-for="page of openedPageInSidebar?.children"
               :key="page.id"
               class="flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
               @click="openPage(page)"

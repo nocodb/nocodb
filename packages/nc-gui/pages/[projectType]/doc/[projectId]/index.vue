@@ -8,9 +8,7 @@ definePageMeta({
 const route = useRoute()
 const { isOpen: isSidebarOpen, toggleHasSidebar, toggle } = useSidebar('nc-left-sidebar')
 const { project, loadBookProject, isLoading: isProjectLoading, loadBookPublicProject } = useProject()
-const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, isPublic, nestedPublicParentPage } = useDocs()
-
-const isLoading = ref(true)
+const { fetchNestedPages, openChildPageTabsOfRootPages, isErrored, isPublic, nestedPublicParentPage, isFetching } = useDocs()
 
 const toggleSidebar = (isOpen: boolean) => {
   if (isOpen) {
@@ -23,7 +21,6 @@ const toggleSidebar = (isOpen: boolean) => {
 }
 
 onMounted(async () => {
-  isLoading.value = true
   if (isPublic.value) toggleSidebar(false)
 
   if (!project.value.id && !isProjectLoading.value) {
@@ -37,12 +34,28 @@ onMounted(async () => {
 
     await openChildPageTabsOfRootPages()
   }
-  isLoading.value = false
+})
+
+const isNestedPage = computed(() => {
+  return !!nestedPublicParentPage.value?.is_nested_published
+})
+
+const isProjectPublic = computed(() => {
+  if (typeof project.value.meta === 'string') {
+    return JSON.parse(project.value.meta)?.isPublic
+  }
+
+  return (project.value.meta as any)?.isPublic
 })
 
 watch(
-  [isErrored, isLoading, nestedPublicParentPage.value?.is_nested_published],
+  [isErrored, isFetching, isNestedPage, isProjectPublic],
   () => {
+    if (!isPublic.value || isProjectPublic.value) {
+      toggleSidebar(true)
+      return
+    }
+
     let projectMeta
     if (typeof project.value.meta === 'string') {
       projectMeta = JSON.parse(project.value.meta)
@@ -50,10 +63,14 @@ watch(
       projectMeta = project.value.meta
     }
 
-    if (isErrored.value && !isLoading.value) {
+    if (isErrored.value && !isFetching.value.nestedPages) {
       toggleSidebar(false)
     } else {
-      if (isPublic.value && !nestedPublicParentPage.value?.is_nested_published && !isLoading.value && !projectMeta?.isPublic) {
+      const isPublicProject = isPublic.value && projectMeta?.isPublic
+      const isNestedPages = isPublic.value && nestedPublicParentPage.value?.is_nested_published
+      const isSinglePage = !isPublicProject && !isNestedPages
+
+      if (isSinglePage) {
         toggleSidebar(false)
         return
       }

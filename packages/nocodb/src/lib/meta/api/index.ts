@@ -52,7 +52,7 @@ import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 
 import crypto from 'crypto';
-import swaggerApis from './swagger/swaggerApis';
+import swaggerApis from '../../controllers/swagger/swaggerApis';
 import importApis from './sync/importApis';
 import syncSourceApis from './sync/syncSourceApis';
 import mapViewApis from '../../services/mapViewService';

@@ -838,11 +838,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "post": {
@@ -875,11 +878,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "get": {
@@ -931,11 +937,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         },
         {
           "schema": {
@@ -1020,11 +1029,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "post": {
@@ -1142,11 +1154,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "get": {
@@ -1212,11 +1227,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         },
         {
           "schema": {
@@ -1290,11 +1308,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "get": {
@@ -1370,11 +1391,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "get": {
@@ -1505,11 +1529,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "get": {
@@ -1547,11 +1574,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "post": {
@@ -1803,11 +1833,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         },
         {
           "schema": {
@@ -3237,11 +3270,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "post": {
@@ -3282,11 +3318,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         },
         {
           "schema": {
@@ -3335,11 +3374,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "get": {
@@ -5618,11 +5660,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ],
       "get": {
@@ -6634,11 +6679,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         }
       ]
     },
@@ -6657,11 +6705,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         },
         {
           "schema": {
@@ -6757,11 +6808,14 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
           },
           "name": "projectId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique Project ID"
         },
         {
           "schema": {

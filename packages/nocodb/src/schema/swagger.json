@@ -2119,11 +2119,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique View ID"
         }
       ],
       "patch": {
@@ -2162,11 +2164,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique View ID"
         }
       ],
       "post": {
@@ -2194,11 +2198,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique View ID"
         }
       ],
       "post": {
@@ -2260,11 +2266,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique View ID"
         }
       ],
       "post": {
@@ -2334,11 +2342,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique View ID"
         }
       ],
       "get": {
@@ -2409,11 +2419,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique View ID"
         }
       ],
       "get": {
@@ -2545,11 +2557,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique View ID"
         }
       ],
       "get": {
@@ -2915,11 +2929,13 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Unique View ID"
         }
       ],
       "patch": {

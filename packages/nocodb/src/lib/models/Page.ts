@@ -586,9 +586,10 @@ export default class Page {
       );
     }
 
-    return ncMeta.metaDelete(null, null, Page.tableName({ projectId }), {
+    await ncMeta.metaDelete(null, null, Page.tableName({ projectId }), {
       id,
     });
+    await NocoCache.del(`${CacheScope.DOCS_PAGE}:${id}`);
   }
 
   static async reorder(

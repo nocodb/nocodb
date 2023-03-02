@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
+import NocoCache from '../../../../src/lib/cache/NocoCache';
 import { createPage, getPage, listPages, updatePage } from '../../factory/page';
 import { createProject, updateProject } from '../../factory/project';
 import init, { NcUnitContext } from '../../init';
@@ -14,6 +15,71 @@ function docTests() {
     project = await createProject(context, { title: 'test', type: 'documentation' });
   });
 
+  it('Create and get page and verify cache', async () => {
+    const { body: page1 } = await request(context.app)
+    .post(`/api/v1/docs/page`)
+    .set('xc-auth', context.token)
+    .send({
+      projectId: project.id,
+      attributes: {
+        title: 'test1',
+        content: 'test1',
+      }
+    })
+    .expect(200)
+
+    expect(page1).to.includes({
+      id: page1.id,
+      title: 'test1',
+      content: 'test1',
+      order: 1,
+    })
+
+    const { body: page2 } = await request(context.app)
+      .get(`/api/v1/docs/page/${page1.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        projectId: project.id,
+      })
+      .expect(200)
+
+    expect(page2).to.includes({
+      id: page1.id,
+      title: 'test1',
+      content: 'test1',
+      order: 1,
+    })
+
+    await NocoCache.destroy();
+    await NocoCache.init();
+
+    const response2 = await request(context.app)
+      .get(`/api/v1/docs/page/${page1.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        projectId: project.id,
+        fields: ['id', 'title']
+      })
+      .expect(200)
+
+    expect(response2.body).to.have.property('id');
+    expect(response2.body).to.have.property('title');
+    expect(response2.body).to.not.have.property('content');
+    expect(response2.body).to.not.have.property('order');
+
+    const response3 = await request(context.app)
+      .get(`/api/v1/docs/page/${page1.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        projectId: project.id,
+      })
+      .expect(200)
+    
+    expect(response3.body).to.have.property('id');
+    expect(response3.body).to.have.property('title');
+    expect(response3.body).to.have.property('content');
+    expect(response3.body).to.have.property('order');
+  })  
 
   it('Create and list pages', async () => {
     const { body: page1 } = await request(context.app)
@@ -64,7 +130,7 @@ function docTests() {
   })
 
   it('Create and delete page', async () => {
-    let response = await request(context.app)
+    const response = await request(context.app)
       .post(`/api/v1/docs/page`)
       .set('xc-auth', context.token)
       .send({
@@ -77,7 +143,7 @@ function docTests() {
       .expect(200)
     expect(response.body).to.have.property('id');
 
-    response = await request(context.app)
+    await request(context.app)
       .delete(`/api/v1/docs/page/${response.body.id}`)
       .query({
         projectId: project.id,
@@ -89,6 +155,15 @@ function docTests() {
 
     const pages = await listPages({project,  user: context.user})
     expect(pages.length).to.equal(0)
+
+
+    await request(context.app)
+      .get(`/api/v1/docs/page/${response.body.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        projectId: project.id,
+      })
+      .expect(400)
   });
 
   it('Create and get page', async () => {

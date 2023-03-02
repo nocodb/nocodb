@@ -22,11 +22,17 @@ async function get(
   next
 ) {
   try {
+    let fields: any = req.query?.fields;
+    if (fields) {
+      fields = Array.isArray(fields) ? fields : [fields];
+    }
     const page = await Page.get({
       id: req.params.id,
       projectId: req.query?.projectId as string,
-      fields: req.query?.fields as string[],
+      fields: fields as string[],
     });
+
+    if (!page) throw NcError.notFound('Page not found');
 
     res.json(page);
   } catch (e) {

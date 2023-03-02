@@ -105,39 +105,44 @@ const addMarker = (lat: number, long: number, row: RowType) => {
   const newMarker = L.marker([lat, long], {
     alt: `${lat}, ${long}`,
   }).on('click', () => {
-    expandForm(row)
+    if (newMarker && isPublic.value) {
+      popUpRow.value = row
+      popupIsOpen.value = true
+    } else {
+      expandForm(row)
+    }
   })
   markersClusterGroupRef.value?.addLayer(newMarker)
 
-  if (newMarker && isPublic.value) {
-    // newMarker.setPopupContent(popupContainer.value!)
+  // if (newMarker && isPublic.value) {
+  //   // newMarker.setPopupContent(popupContainer.value!)
 
-    popUpRow.value = row
+  //   popUpRow.value = row
 
-    newMarker.bindPopup(popupContainer.value!)
-    // newMarker.bindPopup(popupContent)
-    // const vm = new Vue({
-    //   render: (h: any) =>
-    //     h(LazySmartsheetMyPopupComponent, {
-    //       props: {
-    //         title: 'Marker Title',
-    //         description: 'Marker Description',
-    //       },
-    //     }),
-    // })
+  //   newMarker.bindPopup(popupContainer.value!)
+  //   // newMarker.bindPopup(popupContent)
+  //   // const vm = new Vue({
+  //   //   render: (h: any) =>
+  //   //     h(LazySmartsheetMyPopupComponent, {
+  //   //       props: {
+  //   //         title: 'Marker Title',
+  //   //         description: 'Marker Description',
+  //   //       },
+  //   //     }),
+  //   // })
 
-    // newMarker.bindPopup(vm.$el, { maxWidth: 300 })
+  //   // newMarker.bindPopup(vm.$el, { maxWidth: 300 })
 
-    newMarker.on('popupopen', () => {
-      popupIsOpen.value = true
-      // vm.$mount()
-    })
+  //   newMarker.on('popupopen', () => {
+  //     popupIsOpen.value = true
+  //     // vm.$mount()
+  //   })
 
-    newMarker.on('popupclose', () => {
-      popupIsOpen.value = false
-      // vm.$destroy()
-    })
-  }
+  //   newMarker.on('popupclose', () => {
+  //     popupIsOpen.value = false
+  //     // vm.$destroy()
+  //   })
+  // }
 }
 
 const resetZoomAndCenterBasedOnLocalStorage = () => {
@@ -263,14 +268,23 @@ watch(view, async (nextView) => {
   }
 })
 
+// @cancel="emit('closed')"
 const count = computed(() => paginationData.value.totalRows)
 </script>
 
 <template>
-  <div v-if="popupIsOpen" ref="popupContainer">
-    <LazySmartsheetMyPopupComponent :fields="fields" :row="popUpRow"></LazySmartsheetMyPopupComponent>
-  </div>
-  <!-- <div ref="popupContainer" v-if="popupIsOpen">FOO-Hi<LazySmartsheetMyPopupComponent></LazySmartsheetMyPopupComponent></div> -->
+  <a-modal
+    v-model:visible="popupIsOpen"
+    :class="{ active: popupIsOpen }"
+    :footer="null"
+    centered
+    :closable="false"
+    @close="popupIsOpen = false"
+  >
+    <!-- <div v-if="popupIsOpen" ref="popupContainer"> -->
+    <LazySmartsheetMyPopupComponent v-if="popUpRow" :fields="fields" :row="popUpRow"></LazySmartsheetMyPopupComponent>
+    <!-- </div> -->
+  </a-modal>
 
   <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
     <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">

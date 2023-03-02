@@ -140,6 +140,25 @@ export function useViewFilters(
     return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
   }
 
+  const isComparisonSubOpAllowed = (
+    filter: FilterType,
+    compOp: {
+      text: string
+      value: string
+      ignoreVal?: boolean
+      includedTypes?: UITypes[]
+      excludedTypes?: UITypes[]
+    },
+  ) => {
+    if (compOp.includedTypes) {
+      // include allowed values only if selected column type matches
+      return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
+    } else if (compOp.excludedTypes) {
+      // include not allowed values only if selected column type not matches
+      return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
+    }
+  }
+
   const placeholderFilter = (): Filter => {
     return {
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
@@ -327,5 +346,6 @@ export function useViewFilters(
     addFilterGroup,
     saveOrUpdateDebounced,
     isComparisonOpAllowed,
+    isComparisonSubOpAllowed,
   }
 }

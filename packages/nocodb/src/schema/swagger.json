@@ -1723,6 +1723,7 @@
                           "fk_column_id": "string",
                           "logical_op": "string",
                           "comparison_op": "string",
+                          "comparison_sub_op": "string",
                           "value": "string",
                           "is_group": true,
                           "children": [{}]
@@ -7557,6 +7558,7 @@
                 "fk_column_id": "string",
                 "logical_op": "string",
                 "comparison_op": "string",
+                "comparison_sub_op": "string",
                 "value": "string",
                 "is_group": true,
                 "children": [{}]
@@ -7738,6 +7740,9 @@
             "type": "string"
           },
           "comparison_op": {
+            "type": "string"
+          },
+          "comparison_sub_op": {
             "type": "string"
           },
           "value": {},

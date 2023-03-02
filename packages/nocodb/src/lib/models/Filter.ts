@@ -92,7 +92,7 @@ export default class Filter implements FilterType {
   base_id?: string;
   column?: Column;
 
-  constructor(data: Filter) {
+  constructor(data: Filter | FilterType) {
     Object.assign(this, data);
   }
 

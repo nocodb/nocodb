@@ -8,6 +8,7 @@ import {
   AuditOperationTypes,
   isVirtualCol,
   ModelTypes,
+  NormalColumnRequestType,
   TableListType,
   TableReqType,
   TableType,
@@ -17,6 +18,7 @@ import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import Project from '../../models/Project';
 import Audit from '../../models/Audit';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
+import { getAjvValidatorMw } from './helpers';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
 import View from '../../models/View';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
@@ -226,10 +228,13 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
       columns: columns.map((c, i) => {
         const colMetaFromReq = req.body?.columns?.find(
           (c1) => c.cn === c1.column_name
-        );
+        ) as NormalColumnRequestType;
         return {
           ...colMetaFromReq,
-          uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(base, c),
+          uidt:
+            (colMetaFromReq?.uidt as string) ||
+            c.uidt ||
+            getColumnUiType(base, c),
           ...c,
           dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
             colMetaFromReq.uidt as any
@@ -239,7 +244,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
           title: colMetaFromReq?.title || getColumnNameAlias(c.cn, base),
           column_name: c.cn,
           order: i + 1,
-        };
+        } as NormalColumnRequestType;
       }),
       order: +(tables?.pop()?.order ?? 0) + 1,
     })
@@ -647,6 +652,7 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/TableReq'),
   ncMetaAclMw(tableCreate, 'tableCreate')
 );
 router.post(
@@ -662,6 +668,7 @@ router.post(
 router.post(
   '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/TableReq'),
   ncMetaAclMw(tableCreate, 'tableCreate')
 );
 router.get(

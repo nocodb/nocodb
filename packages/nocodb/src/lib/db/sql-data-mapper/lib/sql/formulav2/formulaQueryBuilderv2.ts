@@ -753,7 +753,7 @@ async function _formulaQueryBuilder(
           sql = `${sql} ${colAlias}`;
         }
       }
-      const query = knex.raw(sql);
+      const query = knex.raw(sql.replace(/\?/g, '\\?'));
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
       }

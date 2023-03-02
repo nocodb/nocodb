@@ -97,7 +97,7 @@ export interface UserListType {
 }
 
 export interface ProjectReqType {
-  title?: string;
+  title: string;
   description?: string;
   color?: string;
   fk_workspace_id?: string;
@@ -109,13 +109,13 @@ export interface ProjectType {
   title?: string;
   status?: string;
   description?: string;
-  meta?: string | object;
+  meta?: MetaType;
   color?: string;
-  deleted?: string | boolean;
+  deleted?: BoolType;
   order?: number;
   bases?: BaseType[];
-  is_meta?: boolean;
   type?: string;
+  is_meta?: BoolType;
   prefix?: string;
   created_at?: any;
   updated_at?: any;
@@ -133,15 +133,15 @@ export interface BaseType {
   project_id?: string;
   alias?: string;
   type?: string;
-  is_meta?: boolean;
+  is_meta?: BoolType;
   config?: any;
   created_at?: any;
   updated_at?: any;
   inflection_column?: string;
   inflection_table?: string;
   order?: number;
-  enabled?: boolean;
   erd_uuid?: string;
+  enabled?: BoolType;
 }
 
 export interface BaseReqType {
@@ -169,33 +169,39 @@ export interface TableType {
   table_name: string;
   title: string;
   type?: string;
-  enabled?: boolean;
+  enabled?: BoolType;
   parent_id?: string;
   show_as?: string;
   tags?: string;
-  pinned?: boolean;
-  deleted?: boolean;
+  pinned?: BoolType;
+  deleted?: BoolType;
   order?: number;
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
-  mm?: boolean | number;
-  meta?: any;
+  mm?: BoolType;
+  meta?: MetaType;
 }
 
 export interface ViewType {
   id?: string;
   title: string;
-  deleted?: boolean;
+  deleted?: BoolType;
   order?: number;
   fk_model_id?: string;
   slug?: string;
   uuid?: string;
-  meta?: any;
-  show_system_fields?: boolean;
+  meta?: MetaType;
+  show_system_fields?: BoolType;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
-  view?: FormType | GridType | GalleryType | KanbanType;
+  view?:
+    | FormType
+    | GridType
+    | GalleryType
+    | KanbanType
+    | MapType
+    | (FormType & GridType & GalleryType & KanbanType & MapType);
 }
 
 export interface TableInfoType {
@@ -209,8 +215,8 @@ export interface TableInfoType {
   parent_id?: string;
   show_as?: string;
   tags?: string;
-  pinned?: boolean;
-  deleted?: boolean;
+  pinned?: BoolType;
+  deleted?: BoolType;
   order?: number;
   column?: ColumnType[];
   filters?: FilterType[];
@@ -228,12 +234,12 @@ export interface TableReqType {
   parent_id?: string;
   show_as?: string;
   tags?: string;
-  pinned?: boolean;
-  deleted?: boolean;
+  pinned?: BoolType;
+  deleted?: BoolType;
   order?: number;
-  mm?: boolean;
-  columns: ColumnType[];
-  meta?: any;
+  mm?: BoolType;
+  columns: NormalColumnRequestType[];
+  meta?: MetaType;
 }
 
 export interface TableListType {
@@ -247,14 +253,31 @@ export interface FilterType {
   fk_column_id?: string;
   logical_op?: string;
   comparison_op?: string;
-  value?: string | number | boolean | null;
-  is_group?: boolean;
+  comparison_sub_op?: string;
+  value?: any;
+  is_group?: boolean | number | null;
   children?: FilterType[];
   project_id?: string;
   base_id?: string;
   fk_parent_id?: string;
-  fk_view_id?: string;
-  fk_hook_id?: string;
+  fk_view_id?: StringOrNullType;
+  fk_hook_id?: StringOrNullType;
+}
+
+export interface FilterReqType {
+  id?: string;
+  fk_model_id?: string;
+  fk_column_id?: string;
+  logical_op?: string;
+  comparison_op?: string;
+  value?: any;
+  is_group?: boolean | number | null;
+  children?: FilterType[];
+  project_id?: string;
+  base_id?: string;
+  fk_parent_id?: string;
+  fk_view_id?: StringOrNullType;
+  fk_hook_id?: StringOrNullType;
 }
 
 export interface FilterListType {
@@ -273,6 +296,11 @@ export interface SortType {
   base_id?: string;
 }
 
+export interface SortReqType {
+  fk_column_id?: string;
+  direction?: string;
+}
+
 export interface SortListType {
   sorts: {
     list: SharedViewType[];
@@ -284,39 +312,45 @@ export interface ColumnType {
   base_id?: string;
   fk_model_id?: string;
   title?: string;
-  uidt: string;
+  uidt?: string;
   dt?: string;
-  np?: string;
-  ns?: string;
-  clen?: string | number;
+  np?: string | number | null;
+  ns?: string | number | null;
+  clen?: string | number | null;
   cop?: string;
-  pk?: boolean;
-  pv?: boolean;
-  rqd?: boolean;
+  pk?: BoolType;
+  pv?: BoolType;
+  rqd?: BoolType;
   column_name?: string;
-  un?: boolean;
+  un?: BoolType;
   ct?: string;
-  ai?: boolean;
-  unique?: boolean;
+  ai?: BoolType;
+  unique?: BoolType;
   cdf?: string;
   cc?: string;
   csn?: string;
   dtx?: string;
-  dtxp?: string;
-  dtxs?: string;
-  au?: boolean;
-  deleted?: boolean;
-  visible?: boolean;
+  dtxp?: string | number | null;
+  dtxs?: string | number | null;
+  au?: BoolType;
+  deleted?: BoolType;
+  visible?: BoolType;
   order?: number;
-  system?: number | boolean;
-  meta?: any;
+  system?: BoolType;
+  meta?: MetaType;
   colOptions?:
     | LinkToAnotherRecordType
     | FormulaType
     | RollupType
     | LookupType
     | SelectOptionsType
-    | object;
+    | object
+    | (LinkToAnotherRecordType &
+        FormulaType &
+        RollupType &
+        LookupType &
+        SelectOptionsType &
+        object);
 }
 
 export interface ColumnListType {
@@ -328,7 +362,7 @@ export interface ColumnListType {
 export interface LinkToAnotherRecordType {
   id?: string;
   type?: string;
-  virtual?: boolean;
+  virtual?: BoolType;
   fk_column_id?: string;
   fk_child_column_id?: string;
   fk_parent_column_id?: string;
@@ -346,7 +380,7 @@ export interface LinkToAnotherRecordType {
 export interface LookupType {
   id?: string;
   type?: string;
-  virtual?: boolean;
+  virtual?: BoolType;
   fk_column_id?: string;
   fk_relation_column_id?: string;
   fk_lookup_column_id?: string;
@@ -357,7 +391,7 @@ export interface LookupType {
 export interface RollupType {
   id?: string;
   type?: string;
-  virtual?: boolean;
+  virtual?: BoolType;
   fk_column_id?: string;
   fk_relation_column_id?: string;
   fk_rollup_column_id?: string;
@@ -369,7 +403,7 @@ export interface RollupType {
 export interface FormulaType {
   id?: string;
   type?: string;
-  virtual?: boolean;
+  virtual?: BoolType;
   fk_column_id?: string;
   formula?: string;
   formula_raw?: string;
@@ -393,7 +427,14 @@ export interface GridType {
   id?: string;
   title?: string;
   alias?: string;
-  deleted?: boolean;
+  deleted?: BoolType;
+  order?: number;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  row_height?: number;
+}
+
+export interface GridReqType {
+  title: string;
   order?: number;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   row_height?: number;
@@ -403,10 +444,10 @@ export interface GalleryType {
   fk_view_id?: string;
   title?: string;
   alias?: string;
-  deleted?: boolean;
+  deleted?: BoolType;
   order?: number;
-  next_enabled?: boolean;
-  prev_enabled?: boolean;
+  next_enabled?: BoolType;
+  prev_enabled?: BoolType;
   cover_image_idx?: number;
   cover_image?: string;
   restrict_types?: string;
@@ -418,12 +459,33 @@ export interface GalleryType {
   lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
+export interface GalleryReqType {
+  title: string;
+  next_enabled?: BoolType;
+  prev_enabled?: BoolType;
+  cover_image_idx?: number;
+  cover_image?: string;
+  restrict_types?: string;
+  restrict_size?: string;
+  restrict_number?: string;
+  fk_cover_image_col_id?: string;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+}
+
 export interface GalleryColumnType {
   id?: string;
   label?: string;
   help?: string;
   fk_col_id?: string;
   fk_gallery_id?: string;
+}
+
+export interface GridColumnReqType {
+  label?: string;
+  help?: string;
+  fk_column_id?: string;
+  fk_gallery_id?: string;
+  width?: string;
 }
 
 export interface GridColumnType {
@@ -449,9 +511,49 @@ export interface KanbanType {
   alias?: string;
   columns?: KanbanColumnType[];
   fk_model_id?: string;
-  fk_grp_col_id?: string | null;
+  fk_grp_col_id?: StringOrNullType;
   fk_cover_image_col_id?: string;
-  meta?: string | object;
+  meta?: MetaType;
+}
+
+export interface GeoLocationType {
+  /** @format double */
+  latitude?: number;
+  /** @format double */
+  longitude?: number;
+}
+
+export interface MapType {
+  id?: string;
+  title?: string;
+  alias?: string;
+  initial_geo_position?: GeoLocationType;
+  fk_model_id?: string;
+  fk_view_id?: string;
+  fk_geo_data_col_id?: StringOrNullType;
+  columns?: MapColumnType[];
+  meta?: MetaType;
+}
+
+export interface MapColumnType {
+  id?: string;
+  label?: string;
+  help?: string;
+  fk_col_id?: string;
+  fk_gallery_id?: string;
+}
+
+export interface LicenseReqType {
+  key?: string;
+}
+
+export interface KanbanReqType {
+  title: string;
+  fk_grp_col_id?: StringOrNullType;
+}
+
+export interface KanbanUpdateReqType {
+  fk_grp_col_id?: StringOrNullType;
 }
 
 export interface FormType {
@@ -460,18 +562,36 @@ export interface FormType {
   heading?: string;
   subheading?: string;
   success_msg?: string;
-  redirect_url?: string;
-  redirect_after_secs?: string;
-  email?: string;
-  banner_image_url?: string;
-  logo_url?: string;
-  submit_another_form?: boolean;
-  show_blank_form?: boolean;
+  redirect_url?: StringOrNullType;
+  redirect_after_secs?: StringOrNullType;
+  email?: StringOrNullType;
+  banner_image_url?: StringOrNullType;
+  logo_url?: StringOrNullType;
+  submit_another_form?: BoolType;
+  show_blank_form?: BoolType;
   columns?: FormColumnType[];
   fk_model_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
-  meta?: any;
+  meta?: MetaType;
 }
+
+export interface FormReqType {
+  title?: string;
+  heading?: string;
+  subheading?: string;
+  success_msg?: string;
+  redirect_url?: StringOrNullType;
+  redirect_after_secs?: StringOrNullType;
+  email?: StringOrNullType;
+  banner_image_url?: StringOrNullType;
+  logo_url?: StringOrNullType;
+  submit_another_form?: BoolType;
+  show_blank_form?: BoolType;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  meta?: MetaType;
+}
+
+export type FormCreateReqType = FormReqType;
 
 export interface FormColumnType {
   fk_column_id?: string;
@@ -480,19 +600,30 @@ export interface FormColumnType {
   uuid?: any;
   label?: string;
   help?: any;
-  required?: boolean;
-  show?: boolean;
+  required?: BoolType;
+  show?: BoolType;
   order?: number;
   created_at?: string;
   updated_at?: string;
   description?: string;
-  meta?: any;
+  meta?: MetaType;
+}
+
+export interface FormColumnReqType {
+  uuid?: any;
+  label?: string;
+  help?: any;
+  required?: BoolType;
+  show?: BoolType;
+  order?: number;
+  description?: string;
+  meta?: MetaType;
 }
 
 export interface PaginatedType {
   pageSize?: number;
   totalRows?: number;
-  sort?: string | any[];
+  sort?: string | SortType[];
   isFirstPage?: boolean;
   isLastPage?: boolean;
   page?: number;
@@ -588,23 +719,67 @@ export interface HookType {
   type?: string;
   event?: 'after' | 'before';
   operation?: 'insert' | 'delete' | 'update';
-  async?: boolean;
-  payload?: string;
-  url?: string;
-  headers?: string;
-  condition?: boolean;
+  async?: BoolType;
   notification?: string;
   retries?: number;
   retry_interval?: number;
   timeout?: number;
-  active?: boolean;
+  active?: BoolType;
+}
+
+export interface HookReqType {
+  id?: string;
+  fk_model_id?: string;
+  title: string;
+  description?: StringOrNullType;
+  env?: string;
+  event: 'after' | 'before';
+  operation: 'insert' | 'delete' | 'update';
+  async?: string | number | null;
+  notification: object;
+  retries?: number;
+  retry_interval?: number;
+  timeout?: number;
+  active?: BoolType;
+}
+
+export interface HookTestReqType {
+  payload: any;
+  hook: HookReqType;
+}
+
+export interface SignUpReqType {
+  email: string;
+  password: string;
+}
+
+export interface SignInReqType {
+  email: string;
+  password: string;
+}
+
+export interface PasswordForgotReqType {
+  email: string;
+}
+
+export interface PasswordResetReqType {
+  password: string;
+}
+
+export interface PasswordChangeReqType {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ApiTokenReqType {
+  description?: StringOrNullType;
 }
 
 export interface PluginType {
   id?: string;
   title?: string;
   description?: string;
-  active?: boolean;
+  active?: BoolType;
   rating?: number;
   version?: string;
   docs?: string;
@@ -615,7 +790,7 @@ export interface PluginType {
   tags?: string;
   category?: string;
   input_schema?: string;
-  input?: string | null;
+  input?: number | StringOrNullType;
   creator?: string;
   creator_website?: string;
   price?: string;
@@ -628,7 +803,7 @@ export interface ModelRoleVisibilityType {
   fk_model_id?: string;
   fk_view_id?: string;
   role?: string;
-  disabled?: boolean;
+  disabled?: BoolType;
 }
 
 export interface ApiTokenType {
@@ -644,12 +819,12 @@ export interface HookLogType {
   id?: string;
   base_id?: string;
   project_id?: string;
-  fk_hook_id?: string;
+  fk_hook_id?: StringOrNullType;
   type?: string;
   event?: string;
   operation?: string;
-  test_call?: boolean;
-  payload?: string;
+  test_call?: BoolType;
+  payload?: any;
   conditions?: string;
   notifications?: string;
   error_code?: string;
@@ -674,6 +849,7 @@ export interface NormalColumnRequestType {
     | 'Collaborator'
     | 'Date'
     | 'Year'
+    | 'GeoData'
     | 'Time'
     | 'PhoneNumber'
     | 'Email'
@@ -699,31 +875,29 @@ export interface NormalColumnRequestType {
   fk_model_id?: string;
   title?: string;
   dt?: string;
-  np?: string;
-  ns?: string;
-  clen?: string | number;
-  cop?: string;
-  pk?: boolean;
-  pv?: boolean;
-  rqd?: boolean;
+  np?: number | StringOrNullType;
+  ns?: number | StringOrNullType;
+  pk?: BoolType;
+  pv?: BoolType;
+  rqd?: BoolType;
   column_name?: string;
-  un?: boolean;
+  un?: BoolType;
   ct?: string;
-  ai?: boolean;
-  unique?: boolean;
-  cdf?: string;
+  ai?: BoolType;
+  unique?: BoolType;
+  cdf?: StringOrNullType;
   cc?: string;
   csn?: string;
   dtx?: string;
-  dtxp?: string;
-  dtxs?: string;
-  au?: boolean;
+  dtxp?: number | StringOrNullType;
+  dtxs?: number | StringOrNullType;
+  au?: BoolType;
 }
 
 export interface LinkToAnotherColumnReqType {
   uidt: 'LinkToAnotherRecord';
   title: string;
-  virtual?: boolean;
+  virtual?: BoolType;
   parentId: string;
   childId: string;
   type: 'hm' | 'bt' | 'mm';
@@ -752,11 +926,16 @@ export interface FormulaColumnReqType {
 }
 
 export type ColumnReqType = (
-  | NormalColumnRequestType
   | LinkToAnotherColumnReqType
   | RollupColumnReqType
   | FormulaColumnReqType
   | LookupColumnReqType
+  | NormalColumnRequestType
+  | (LinkToAnotherColumnReqType &
+      RollupColumnReqType &
+      FormulaColumnReqType &
+      LookupColumnReqType &
+      NormalColumnRequestType)
 ) & {
   column_name?: string;
   title?: string;
@@ -793,6 +972,62 @@ export interface CowriterType {
   created_by?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export type VisibilityRuleReqType = {
+  disabled?: {
+    commenter?: BoolType;
+    creator?: BoolType;
+    editor?: BoolType;
+    guest?: BoolType;
+    owner?: BoolType;
+    viewer?: BoolType;
+  };
+}[];
+
+export type BoolType = boolean | number | null;
+
+export type StringOrNullType = string | null;
+
+export type MetaType = object | string | null;
+
+export interface CommentReqType {
+  row_id: string;
+  fk_model_id: string;
+  description?: string;
+}
+
+export interface AuditRowUpdateReqType {
+  fk_model_id?: string;
+  column_name?: string;
+  row_id?: string;
+  value?: any;
+  prev_value?: any;
+}
+
+export interface OrgUserReqType {
+  email?: string;
+  roles?: string;
+}
+
+export interface ProjectUserReqType {
+  email?: string;
+  roles?: string;
+}
+
+export interface SharedBaseReqType {
+  uuid?: StringOrNullType;
+  roles?: StringOrNullType;
+}
+
+export interface PluginTestReqType {
+  title?: string;
+  input?: any;
+}
+
+export interface PluginReqType {
+  active?: BoolType;
+  input?: any;
 }
 
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
@@ -1453,13 +1688,7 @@ export class Api<
  * @response `401` `void` Unauthorized
  * @response `403` `void` Forbidden
  */
-    signup: (
-      data: {
-        email?: string;
-        password?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    signup: (data: SignUpReqType, params: RequestParams = {}) =>
       this.request<
         {
           token?: string;
@@ -1471,6 +1700,31 @@ export class Api<
         path: `/api/v1/auth/user/signup`,
         method: 'POST',
         body: data,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Clear refresh token from the database and cookie.
+ * 
+ * @tags Auth
+ * @name Signout
+ * @summary Signout
+ * @request POST:/api/v1/auth/user/signout
+ * @response `200` `{
+  msg?: string,
+
+}` OK
+ */
+    signout: (params: RequestParams = {}) =>
+      this.request<
+        {
+          msg?: string;
+        },
+        any
+      >({
+        path: `/api/v1/auth/user/signout`,
+        method: 'POST',
         format: 'json',
         ...params,
       }),
@@ -1491,13 +1745,7 @@ export class Api<
 
 }` Bad Request
  */
-    signin: (
-      data: {
-        email: string;
-        password: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    signin: (data: SignInReqType, params: RequestParams = {}) =>
       this.request<
         {
           token?: string;
@@ -1548,12 +1796,7 @@ export class Api<
      * @response `200` `void` OK
      * @response `401` `void` Unauthorized
      */
-    passwordForgot: (
-      data: {
-        email?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    passwordForgot: (data: PasswordForgotReqType, params: RequestParams = {}) =>
       this.request<void, void>({
         path: `/api/v1/auth/password/forgot`,
         method: 'POST',
@@ -1578,13 +1821,7 @@ export class Api<
 
 }` Bad request
  */
-    passwordChange: (
-      data: {
-        currentPassword?: string;
-        newPassword?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    passwordChange: (data: PasswordChangeReqType, params: RequestParams = {}) =>
       this.request<
         {
           msg?: string;
@@ -1644,9 +1881,7 @@ export class Api<
      */
     passwordReset: (
       token: string,
-      data: {
-        new_password?: string;
-      },
+      data: PasswordResetReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -1716,7 +1951,7 @@ export class Api<
      */
     projectUserAdd: (
       projectId: string,
-      data: any,
+      data: ProjectUserReqType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -1740,7 +1975,7 @@ export class Api<
     projectUserUpdate: (
       projectId: string,
       userId: string,
-      data: any,
+      data: ProjectUserReqType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -1839,7 +2074,7 @@ export class Api<
      * @request POST:/api/v1/tokens
      * @response `200` `void` OK
      */
-    create: (data: ApiTokenType, params: RequestParams = {}) =>
+    create: (data: ApiTokenReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/tokens`,
         method: 'POST',
@@ -1898,12 +2133,7 @@ export class Api<
      * @request POST:/api/v1/license
      * @response `200` `void` OK
      */
-    set: (
-      data: {
-        key?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    set: (data: LicenseReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/license`,
         method: 'POST',
@@ -2022,7 +2252,11 @@ export class Api<
      * @request PATCH:/api/v1/users/{userId}
      * @response `200` `void` OK
      */
-    update: (userId: string, data: UserType, params: RequestParams = {}) =>
+    update: (
+      userId: string,
+      data: OrgUserReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}`,
         method: 'PATCH',
@@ -2339,14 +2573,14 @@ export class Api<
      * @tags Project
      * @name ModelVisibilitySet
      * @request POST:/api/v1/db/meta/projects/{projectId}/visibility-rules
-     * @response `200` `any` OK
+     * @response `200` `VisibilityRuleReqType` OK
      */
     modelVisibilitySet: (
       projectId: string,
       data: any,
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<VisibilityRuleReqType, any>({
         path: `/api/v1/db/meta/projects/${projectId}/visibility-rules`,
         method: 'POST',
         body: data,
@@ -2524,18 +2758,13 @@ export class Api<
       }),
 
     /**
- * No description
- * 
- * @tags Project
- * @name SharedBaseCreate
- * @request POST:/api/v1/db/meta/projects/{projectId}/shared
- * @response `200` `{
-  uuid?: string,
-  url?: string,
-  roles?: string,
-
-}` OK
- */
+     * No description
+     *
+     * @tags Project
+     * @name SharedBaseCreate
+     * @request POST:/api/v1/db/meta/projects/{projectId}/shared
+     * @response `200` `SharedBaseReqType` OK
+     */
     sharedBaseCreate: (
       projectId: string,
       data: {
@@ -2544,14 +2773,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<
-        {
-          uuid?: string;
-          url?: string;
-          roles?: string;
-        },
-        any
-      >({
+      this.request<SharedBaseReqType, any>({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'POST',
         body: data,
@@ -3077,7 +3299,7 @@ export class Api<
         table_name?: string;
         title?: string;
         project_id?: string;
-        meta?: any;
+        meta?: MetaType;
       },
       params: RequestParams = {}
     ) =>
@@ -3249,7 +3471,7 @@ export class Api<
       viewId: string,
       data: {
         order?: number;
-        meta?: any;
+        meta?: MetaType;
         title?: string;
         show_system_fields?: boolean;
         lock_type?: 'collaborative' | 'locked' | 'personal';
@@ -3331,7 +3553,11 @@ export class Api<
      * @request POST:/api/v1/db/meta/tables/{tableId}/grids
      * @response `200` `GridType` OK
      */
-    gridCreate: (tableId: string, data: GridType, params: RequestParams = {}) =>
+    gridCreate: (
+      tableId: string,
+      data: GridReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<GridType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/grids`,
         method: 'POST',
@@ -3349,7 +3575,11 @@ export class Api<
      * @request POST:/api/v1/db/meta/tables/{tableId}/forms
      * @response `200` `FormType` OK
      */
-    formCreate: (tableId: string, data: FormType, params: RequestParams = {}) =>
+    formCreate: (
+      tableId: string,
+      data: FormCreateReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<FormType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/forms`,
         method: 'POST',
@@ -3367,7 +3597,11 @@ export class Api<
      * @request PATCH:/api/v1/db/meta/forms/{formId}
      * @response `200` `void` OK
      */
-    formUpdate: (formId: string, data: FormType, params: RequestParams = {}) =>
+    formUpdate: (
+      formId: string,
+      data: FormReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/forms/${formId}`,
         method: 'PATCH',
@@ -3402,7 +3636,7 @@ export class Api<
      */
     formColumnUpdate: (
       formViewColumnId: string,
-      data: FormColumnType,
+      data: FormColumnReqType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -3458,7 +3692,7 @@ export class Api<
      */
     gridColumnUpdate: (
       columnId: string,
-      data: GridColumnType,
+      data: GridColumnReqType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -3480,7 +3714,7 @@ export class Api<
      */
     galleryCreate: (
       tableId: string,
-      data: GalleryType,
+      data: GalleryReqType,
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
@@ -3502,7 +3736,7 @@ export class Api<
      */
     galleryUpdate: (
       galleryId: string,
-      data: GalleryType,
+      data: GalleryReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -3539,7 +3773,7 @@ export class Api<
      */
     kanbanCreate: (
       tableId: string,
-      data: KanbanType,
+      data: KanbanReqType,
       params: RequestParams = {}
     ) =>
       this.request<object, any>({
@@ -3561,7 +3795,7 @@ export class Api<
      */
     kanbanUpdate: (
       kanbanId: string,
-      data: KanbanType,
+      data: KanbanUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -3583,6 +3817,57 @@ export class Api<
     kanbanRead: (kanbanId: string, params: RequestParams = {}) =>
       this.request<KanbanType, any>({
         path: `/api/v1/db/meta/kanbans/${kanbanId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name MapCreate
+     * @request POST:/api/v1/db/meta/tables/{tableId}/maps
+     * @response `200` `object` OK
+     */
+    mapCreate: (tableId: string, data: MapType, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/tables/${tableId}/maps`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name MapUpdate
+     * @request PATCH:/api/v1/db/meta/maps/{mapId}
+     * @response `200` `void` OK
+     */
+    mapUpdate: (mapId: string, data: MapType, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/maps/${mapId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name MapRead
+     * @request GET:/api/v1/db/meta/maps/{mapId}
+     * @response `200` `MapType` OK
+     */
+    mapRead: (mapId: string, params: RequestParams = {}) =>
+      this.request<MapType, any>({
+        path: `/api/v1/db/meta/maps/${mapId}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3642,7 +3927,7 @@ export class Api<
       viewId: string,
       data: {
         password?: string;
-        meta?: any;
+        meta?: MetaType;
       },
       params: RequestParams = {}
     ) =>
@@ -3850,7 +4135,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/views/{viewId}/filters
      * @response `200` `FilterType` OK
      */
-    create: (viewId: string, data: FilterType, params: RequestParams = {}) =>
+    create: (viewId: string, data: FilterReqType, params: RequestParams = {}) =>
       this.request<FilterType, any>({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'POST',
@@ -3884,7 +4169,11 @@ export class Api<
      * @request PATCH:/api/v1/db/meta/filters/{filterId}
      * @response `200` `void` OK
      */
-    update: (filterId: string, data: FilterType, params: RequestParams = {}) =>
+    update: (
+      filterId: string,
+      data: FilterReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'PATCH',
@@ -3948,7 +4237,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `void` OK
      */
-    create: (hookId: string, data: FilterType, params: RequestParams = {}) =>
+    create: (hookId: string, data: FilterReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'POST',
@@ -4973,11 +5262,11 @@ export class Api<
   relatedMetas?: any,
   client?: string,
   base_id?: string,
-  columns?: ((GridColumnType | FormColumnType | GalleryColumnType) & ColumnType),
+  columns?: ((GridColumnType | FormColumnType | GalleryColumnType | (GridColumnType & FormColumnType & GalleryColumnType)) & ColumnType),
   model?: TableType,
 
 } & {
-  view?: (FormType | GridType | GalleryType),
+  view?: (FormType | GridType | GalleryType | (FormType & GridType & GalleryType)),
 
 })` OK
  */
@@ -4987,11 +5276,20 @@ export class Api<
           relatedMetas?: any;
           client?: string;
           base_id?: string;
-          columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
+          columns?: (
+            | GridColumnType
+            | FormColumnType
+            | GalleryColumnType
+            | (GridColumnType & FormColumnType & GalleryColumnType)
+          ) &
             ColumnType;
           model?: TableType;
         } & {
-          view?: FormType | GridType | GalleryType;
+          view?:
+            | FormType
+            | GridType
+            | GalleryType
+            | (FormType & GridType & GalleryType);
         },
         any
       >({
@@ -5048,14 +5346,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/audits/comments
      * @response `200` `void` OK
      */
-    commentRow: (
-      data: {
-        row_id: string;
-        fk_model_id: string;
-        description?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    commentRow: (data: CommentReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/audits/comments`,
         method: 'POST',
@@ -5097,13 +5388,7 @@ export class Api<
      */
     auditRowUpdate: (
       rowId: string,
-      data: {
-        fk_model_id?: string;
-        column_name?: string;
-        row_id?: string;
-        value?: string;
-        prev_value?: string;
-      },
+      data: AuditRowUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -5466,13 +5751,7 @@ export class Api<
      */
     test: (
       tableId: string,
-      data: {
-        payload?: {
-          data?: any;
-          user?: any;
-        };
-        hook?: HookType;
-      },
+      data: HookTestReqType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -5729,15 +6008,7 @@ export class Api<
      * @response `400` `void` Bad Request
      * @response `401` `void` Unauthorized
      */
-    test: (
-      data: {
-        id?: string;
-        title?: string;
-        input?: any;
-        category?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    test: (data: PluginTestReqType, params: RequestParams = {}) =>
       this.request<any, void>({
         path: `/api/v1/db/meta/plugins/test`,
         method: 'POST',
@@ -5753,10 +6024,10 @@ export class Api<
      * @tags Plugin
      * @name Update
      * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
-     * @response `200` `PluginType` OK
+     * @response `200` `PluginReqType` OK
      */
     update: (pluginId: string, data: PluginType, params: RequestParams = {}) =>
-      this.request<PluginType, any>({
+      this.request<PluginReqType, any>({
         path: `/api/v1/db/meta/plugins/${pluginId}`,
         method: 'PATCH',
         body: data,
@@ -5806,7 +6077,7 @@ export class Api<
      * @name Create
      * @request POST:/api/v1/db/meta/projects/{projectId}/api-tokens
      * @response `200` `void` OK
-     * @response `201` `ApiTokenType` Created
+     * @response `201` `ApiTokenReqType` Created
      */
     create: (
       projectId: string,

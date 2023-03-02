@@ -8,6 +8,7 @@ import getHandler from '../helpers/getHandler';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { apiTokenListEE } from './ee/orgTokenApis';
+import { getAjvValidatorMw } from './helpers';
 
 async function apiTokenList(req, res) {
   const fk_user_id = req.user.id;
@@ -65,6 +66,7 @@ router.get(
 router.post(
   '/api/v1/tokens',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/ApiTokenReq'),
   ncMetaAclMw(apiTokenCreate, 'apiTokenCreate', {
     // allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,

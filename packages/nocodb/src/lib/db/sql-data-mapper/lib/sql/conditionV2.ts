@@ -8,8 +8,12 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import RollupColumn from '../../../../models/RollupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
-import { RelationTypes, UITypes, isNumericCol } from 'nocodb-sdk';
+import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
 import { sanitize } from './helpers/sanitize';
+import dayjs, { extend } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+
+extend(customParseFormat);
 
 export default async function conditionV2(
   conditionObj: Filter | Filter[],
@@ -86,10 +90,20 @@ const parseConditionV2 = async (
       const parentModel = await parentColumn.getModel();
       await parentModel.getColumns();
       if (colOptions.type === RelationTypes.HAS_MANY) {
-        if (
-          filter.comparison_op === 'empty' ||
-          filter.comparison_op === 'notempty'
-        ) {
+        if (['blank', 'notblank'].includes(filter.comparison_op)) {
+          // handle self reference
+          if (parentModel.id === childModel.id) {
+            if (filter.comparison_op === 'blank') {
+              return (qb) => {
+                qb.whereNull(childColumn.column_name);
+              };
+            } else {
+              return (qb) => {
+                qb.whereNotNull(childColumn.column_name);
+              };
+            }
+          }
+
           const selectHmCount = knex(childModel.table_name)
             .count(childColumn.column_name)
             .where(
@@ -101,7 +115,7 @@ const parseConditionV2 = async (
             );
 
           return (qb) => {
-            if (filter.comparison_op === 'empty') {
+            if (filter.comparison_op === 'blank') {
               qb.where(knex.raw('0'), selectHmCount);
             } else {
               qb.whereNot(knex.raw('0'), selectHmCount);
@@ -132,14 +146,36 @@ const parseConditionV2 = async (
           else qbP.whereIn(parentColumn.column_name, selectQb);
         };
       } else if (colOptions.type === RelationTypes.BELONGS_TO) {
-        if (filter.comparison_op === 'null') {
+        if (['blank', 'notblank'].includes(filter.comparison_op)) {
+          // handle self reference
+          if (parentModel.id === childModel.id) {
+            if (filter.comparison_op === 'blank') {
+              return (qb) => {
+                qb.whereNull(childColumn.column_name);
+              };
+            } else {
+              return (qb) => {
+                qb.whereNotNull(childColumn.column_name);
+              };
+            }
+          }
+
+          const selectBtCount = knex(parentModel.table_name)
+            .count(parentColumn.column_name)
+            .where(
+              parentColumn.column_name,
+              knex.raw('??.??', [
+                alias || childModel.table_name,
+                childColumn.column_name,
+              ])
+            );
+
           return (qb) => {
-            qb.whereNull(childColumn.column_name);
-          };
-        }
-        if (filter.comparison_op === 'notnull') {
-          return (qb) => {
-            qb.whereNotNull(childColumn.column_name);
+            if (filter.comparison_op === 'blank') {
+              qb.where(knex.raw('0'), selectBtCount);
+            } else {
+              qb.whereNot(knex.raw('0'), selectBtCount);
+            }
           };
         }
 
@@ -171,10 +207,20 @@ const parseConditionV2 = async (
         const mmParentColumn = await colOptions.getMMParentColumn();
         const mmChildColumn = await colOptions.getMMChildColumn();
 
-        if (
-          filter.comparison_op === 'empty' ||
-          filter.comparison_op === 'notempty'
-        ) {
+        if (['blank', 'notblank'].includes(filter.comparison_op)) {
+          // handle self reference
+          if (mmModel.id === childModel.id) {
+            if (filter.comparison_op === 'blank') {
+              return (qb) => {
+                qb.whereNull(childColumn.column_name);
+              };
+            } else {
+              return (qb) => {
+                qb.whereNotNull(childColumn.column_name);
+              };
+            }
+          }
+
           const selectMmCount = knex(mmModel.table_name)
             .count(mmChildColumn.column_name)
             .where(
@@ -186,7 +232,7 @@ const parseConditionV2 = async (
             );
 
           return (qb) => {
-            if (filter.comparison_op === 'empty') {
+            if (filter.comparison_op === 'blank') {
               qb.where(knex.raw('0'), selectMmCount);
             } else {
               qb.whereNot(knex.raw('0'), selectMmCount);
@@ -201,6 +247,7 @@ const parseConditionV2 = async (
             `${mmModel.table_name}.${mmParentColumn.column_name}`,
             `${parentModel.table_name}.${parentColumn.column_name}`
           );
+
         (
           await parseConditionV2(
             new Filter({
@@ -271,14 +318,83 @@ const parseConditionV2 = async (
 
       return (qb: Knex.QueryBuilder) => {
         let [field, val] = [_field, _val];
-        if (
-          [UITypes.Date, UITypes.DateTime].includes(column.uidt) &&
-          !val &&
-          ['is', 'isnot'].includes(filter.comparison_op)
-        ) {
-          // for date & datetime,
-          // val cannot be empty for non-is & non-isnot filters
-          return;
+
+        const dateFormat =
+          qb?.client?.config?.client === 'mysql2'
+            ? 'YYYY-MM-DD HH:mm:ss'
+            : 'YYYY-MM-DD HH:mm:ssZ';
+
+        if ([UITypes.Date, UITypes.DateTime].includes(column.uidt)) {
+          const now = dayjs(new Date());
+          // handle sub operation
+          switch (filter.comparison_sub_op) {
+            case 'today':
+              val = now;
+              break;
+            case 'tomorrow':
+              val = now.add(1, 'day');
+              break;
+            case 'yesterday':
+              val = now.add(-1, 'day');
+              break;
+            case 'oneWeekAgo':
+              val = now.add(-1, 'week');
+              break;
+            case 'oneWeekFromNow':
+              val = now.add(1, 'week');
+              break;
+            case 'oneMonthAgo':
+              val = now.add(-1, 'month');
+              break;
+            case 'oneMonthFromNow':
+              val = now.add(1, 'month');
+              break;
+            case 'daysAgo':
+              if (!val) return;
+              val = now.add(-val, 'day');
+              break;
+            case 'daysFromNow':
+              if (!val) return;
+              val = now.add(val, 'day');
+              break;
+            case 'exactDate':
+              if (!val) return;
+              break;
+            // sub-ops for `isWithin` comparison
+            case 'pastWeek':
+              val = now.add(-1, 'week');
+              break;
+            case 'pastMonth':
+              val = now.add(-1, 'month');
+              break;
+            case 'pastYear':
+              val = now.add(-1, 'year');
+              break;
+            case 'nextWeek':
+              val = now.add(1, 'week');
+              break;
+            case 'nextMonth':
+              val = now.add(1, 'month');
+              break;
+            case 'nextYear':
+              val = now.add(1, 'year');
+              break;
+            case 'pastNumberOfDays':
+              if (!val) return;
+              val = now.add(-val, 'day');
+              break;
+            case 'nextNumberOfDays':
+              if (!val) return;
+              val = now.add(val, 'day');
+              break;
+          }
+
+          if (dayjs.isDayjs(val)) {
+            // turn `val` in dayjs object format to string
+            val = val.format(dateFormat).toString();
+            // keep YYYY-MM-DD only for date
+            val = column.uidt === UITypes.Date ? val.substring(0, 10) : val;
+          }
         }
 
         if (isNumericCol(column.uidt) && typeof val === 'string') {
@@ -481,6 +597,27 @@ const parseConditionV2 = async (
               }
             }
             break;
+          case 'lt':
+            const lt_op = customWhereClause ? '>' : '<';
+            qb = qb.where(field, lt_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
+              if (lt_op === '<' && val > 0) {
+                qb = qb.orWhereNull(field);
+              }
+            }
+            break;
+          case 'le':
+          case 'lte':
+            const le_op = customWhereClause ? '>=' : '<=';
+            qb = qb.where(field, le_op, val);
+            if (column.uidt === UITypes.Rating) {
+              // unset number is considered as NULL
+              if (le_op === '<=' || (le_op === '>=' && val === 0)) {
+                qb = qb.orWhereNull(field);
+              }
+            }
+            break;
           case 'in':
             qb = qb.whereIn(
               field,
@@ -517,27 +654,6 @@ const parseConditionV2 = async (
             else if (filter.value === 'false')
               qb = qb.whereNot(customWhereClause || field, false);
             break;
-          case 'lt':
-            const lt_op = customWhereClause ? '>' : '<';
-            qb = qb.where(field, lt_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset number is considered as NULL
-              if (lt_op === '<' && val > 0) {
-                qb = qb.orWhereNull(field);
-              }
-            }
-            break;
-          case 'le':
-          case 'lte':
-            const le_op = customWhereClause ? '>=' : '<=';
-            qb = qb.where(field, le_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset number is considered as NULL
-              if (le_op === '<=' || (le_op === '>=' && val === 0)) {
-                qb = qb.orWhereNull(field);
-              }
-            }
-            break;
           case 'empty':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
@@ -564,7 +680,10 @@ const parseConditionV2 = async (
                 .orWhere(field, 'null');
             } else {
               qb = qb.whereNull(customWhereClause || field);
-              if (!isNumericCol(column.uidt)) {
+              if (
+                !isNumericCol(column.uidt) &&
+                ![UITypes.Date, UITypes.DateTime].includes(column.uidt)
+              ) {
                 qb = qb.orWhere(field, '');
               }
             }
@@ -577,7 +696,10 @@ const parseConditionV2 = async (
                 .whereNot(field, 'null');
             } else {
               qb = qb.whereNotNull(customWhereClause || field);
-              if (!isNumericCol(column.uidt)) {
+              if (
+                !isNumericCol(column.uidt) &&
+                ![UITypes.Date, UITypes.DateTime].includes(column.uidt)
+              ) {
                 qb = qb.whereNot(field, '');
               }
             }
@@ -598,6 +720,23 @@ const parseConditionV2 = async (
           case 'nbtw':
             qb = qb.whereNotBetween(field, val.split(','));
             break;
+          case 'isWithin':
+            let now = dayjs(new Date()).format(dateFormat).toString();
+            now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
+            switch (filter.comparison_sub_op) {
+              case 'pastWeek':
+              case 'pastMonth':
+              case 'pastYear':
+              case 'pastNumberOfDays':
+                qb = qb.whereBetween(field, [val, now]);
+                break;
+              case 'nextWeek':
+              case 'nextMonth':
+              case 'nextYear':
+              case 'nextNumberOfDays':
+                qb = qb.whereBetween(field, [now, val]);
+                break;
+            }
         }
       };
     }

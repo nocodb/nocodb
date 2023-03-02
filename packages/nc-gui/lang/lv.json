@@ -74,7 +74,8 @@
     "insertBefore": "Ievietot pirms",
     "hideField": "Slēpt lauku",
     "sortAsc": "Kārtot augošā secībā",
-    "sortDesc": "Kārtot dilstošā secībā"
+    "sortDesc": "Kārtot dilstošā secībā",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekts",
@@ -98,7 +99,8 @@
       "gallery": "Galerija",
       "form": "Forma",
       "kanban": "Kanban",
-      "calendar": "Kalendārs"
+      "calendar": "Kalendārs",
+      "map": "Map"
     },
     "user": "Lietotājs",
     "users": "Lietotāji",
@@ -136,6 +138,7 @@
     "Currency": "Valūta",
     "Percent": "Procenti",
     "Duration": "Ilgums",
+    "GeoData": "GeoData",
     "Rating": "Vērtējums",
     "Formula": "Formula",
     "Rollup": "Apkopojums",
@@ -232,6 +235,7 @@
     "action": "Darbība",
     "actions": "Darbības",
     "operation": "Operācija",
+    "operationSub": "Sub Operation",
     "operationType": "Operācijas tips",
     "operationSubType": "Operācijas apakštips",
     "description": "Apraksts",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Svītrkoda formāts",
     "qrCodeValueTooLong": "Pārāk daudz rakstzīmju QR kodam",
     "barcodeValueTooLong": "Pārāk daudz zīmju svītrkodam",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Agregācijas funkcija",
     "dbCreateIfNotExists": "Datubāze : izveidotm ja neeksistē",
     "clientKey": "Klienta atslēga",
@@ -452,6 +459,10 @@
       "stackedBy": "Sakrautas ar",
       "chooseGroupingField": "Izvēlieties grupēšanas lauku",
       "addOrEditStack": "Pievienot / rediģēt kaudzi"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -517,6 +528,11 @@
       "roles": {
         "orgCreator": "Radītājs var izveidot jaunus projektus un piekļūt jebkuram uzaicinātajam projektam.",
         "orgViewer": "Skatītājs nedrīkst veidot jaunus projektus, bet var piekļūt jebkuram uzaicinātajam projektam."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "ieraksti lapā",
       "upload": "Izvēlēties datni augšupielādei",
@@ -600,6 +616,7 @@
         "gallery": "Pievienot galerijas skatu",
         "form": "Pievienot formas skatu",
         "kanban": "Pievienot Kanban skatu",
+        "map": "Add Map View",
         "calendar": "Pievienot kalendāra skatu"
       },
       "tablesMetadataInSync": "Tabulu metadati ir sinhronizācijā",
@@ -690,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Vārdam jāsākas ar alfabētu vai _",
       "followingCharactersAreNotAllowed": "Šādas rakstzīmes nav atļautas",
       "columnNameRequired": "Slejas nosaukums ir obligāts",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Projekta nosaukums pārsniedz 50 rakstzīmes",
       "projectNameCannotStartWithSpace": "Projekta nosaukums nedrīkst sākties ar atstarpi",
       "requiredField": "Obligātais lauks",

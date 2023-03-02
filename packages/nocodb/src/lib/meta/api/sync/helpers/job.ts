@@ -11,15 +11,12 @@ import hash from 'object-hash';
 import { promisify } from 'util';
 
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { importData, importLTARData } from './readAndProcessData';
 
 import EntityMap from './EntityMap';
 
 const writeJsonFileAsync = promisify(jsonfile.writeFile);
-
-dayjs.extend(utc);
 
 const selectColors = {
   // normal
@@ -679,8 +676,6 @@ export default async (
       );
     }
 
-    // debug
-    // console.log(JSON.stringify(tables, null, 2));
     return tables;
   }
 
@@ -914,8 +909,6 @@ export default async (
               aTblLinkColumns[i].name + suffix,
               ncTbl.id
             );
-
-            // console.log(res.columns.find(x => x.title === aTblLinkColumns[i].name))
           }
         }
       }
@@ -1413,7 +1406,7 @@ export default async (
         case UITypes.DateTime:
         case UITypes.CreateTime:
         case UITypes.LastModifiedTime:
-          rec[key] = dayjs(value).utc().format('YYYY-MM-DD HH:mm');
+          rec[key] = dayjs(value).format('YYYY-MM-DD HH:mm');
           break;
 
         case UITypes.Date:
@@ -1422,7 +1415,7 @@ export default async (
             rec[key] = null;
             logBasic(`:: Invalid date ${value}`);
           } else {
-            rec[key] = dayjs(value).utc().format('YYYY-MM-DD');
+            rec[key] = dayjs(value).format('YYYY-MM-DD');
           }
           break;
 
@@ -1504,8 +1497,6 @@ export default async (
         })
         .eachPage(
           async function page(records, fetchNextPage) {
-            // console.log(JSON.stringify(records, null, 2));
-
             // This function (`page`) will get called for each page of records.
             // records.forEach(record => callback(table, record));
             logBasic(
@@ -1974,6 +1965,7 @@ export default async (
     '>=': 'gte',
     isEmpty: 'empty',
     isNotEmpty: 'notempty',
+    isWithin: 'isWithin',
     contains: 'like',
     doesNotContain: 'nlike',
     isAnyOf: 'anyof',
@@ -2002,16 +1994,29 @@ export default async (
       const datatype = colSchema.uidt;
       const ncFilters = [];
 
-      // console.log(filter)
       if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
-        // skip filters over data datatype
-        updateMigrationSkipLog(
-          await sMap.getNcNameFromAtId(viewId),
-          colSchema.title,
-          colSchema.uidt,
-          `filter config skipped; filter over date datatype not supported`
-        );
-        continue;
+        let comparison_op = null;
+        let comparison_sub_op = null;
+        let value = null;
+        if (['isEmpty', 'isNotEmpty'].includes(filter.operator)) {
+          comparison_op = filter.operator === 'isEmpty' ? 'blank' : 'notblank';
+        } else {
+          if ('numberOfDays' in filter.value) {
+            value = filter.value['numberOfDays'];
+          } else if ('exactDate' in filter.value) {
+            value = filter.value['exactDate'];
+          }
+          comparison_op = filterMap[filter.operator];
+          comparison_sub_op = filter.value.mode;
+        }
+        const fx = {
+          fk_column_id: columnId,
+          logical_op: f.conjunction,
+          comparison_op,
+          comparison_sub_op,
+          value,
+        };
+        ncFilters.push(fx);
       }
 
       // single-select & multi-select

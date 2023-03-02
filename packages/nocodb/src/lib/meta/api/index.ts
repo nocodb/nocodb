@@ -60,6 +60,7 @@ import crypto from 'crypto';
 import swaggerApis from './swagger/swaggerApis';
 import importApis from './sync/importApis';
 import syncSourceApis from './sync/syncSourceApis';
+import mapViewApis from './mapViewApis';
 
 const clients: { [id: string]: Socket } = {};
 const jobs: { [id: string]: { last_message: any } } = {};
@@ -117,6 +118,7 @@ export default function (router: Router, server) {
   router.use(workspaceApis);
   router.use(cowriterApis);
   router.use(sqlViewApis);
+  router.use(mapViewApis);
 
   userApis(router);
 

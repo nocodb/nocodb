@@ -105,7 +105,7 @@ export default class Noco {
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move
-    process.env.NC_VERSION = '0105002';
+    process.env.NC_VERSION = '0105003';
 
     // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
     if (process.env.NC_MINIMAL_DBS) {

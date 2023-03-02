@@ -41,6 +41,7 @@ import formulaQueryBuilderv2 from '../../db/sql-data-mapper/lib/sql/formulav2/fo
 import {
   createHmAndBtColumn,
   generateFkName,
+  getAjvValidatorMw,
   randomID,
   validateLookupPayload,
   validateRequiredField,
@@ -1785,6 +1786,7 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/columns/',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/ColumnReq'),
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
 

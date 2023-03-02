@@ -4,6 +4,7 @@ import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { v4 as uuidv4 } from 'uuid';
 import Project from '../../models/Project';
 import { NcError } from '../helpers/catchError';
+import { getAjvValidatorMw } from './helpers';
 // todo: load from config
 const config = {
   dashboardPath: '/nc',
@@ -96,10 +97,12 @@ router.get(
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/shared',
+  getAjvValidatorMw('swagger.json#/components/schemas/SharedBaseReq'),
   ncMetaAclMw(createSharedBaseLink, 'createSharedBaseLink')
 );
 router.patch(
   '/api/v1/db/meta/projects/:projectId/shared',
+  getAjvValidatorMw('swagger.json#/components/schemas/SharedBaseReq'),
   ncMetaAclMw(updateSharedBaseLink, 'updateSharedBaseLink')
 );
 router.delete(

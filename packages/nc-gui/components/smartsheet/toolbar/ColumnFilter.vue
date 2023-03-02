@@ -6,6 +6,7 @@ import {
   MetaInj,
   ReloadViewDataHookInj,
   comparisonOpList,
+  comparisonSubOpList,
   computed,
   inject,
   ref,
@@ -54,6 +55,7 @@ const {
   sync,
   saveOrUpdateDebounced,
   isComparisonOpAllowed,
+  isComparisonSubOpAllowed,
 } = useViewFilters(
   activeView,
   parentId,
@@ -75,9 +77,10 @@ const filterPrevComparisonOp = ref<Record<string, string>>({})
 
 const filterUpdateCondition = (filter: FilterType, i: number) => {
   const col = getColumn(filter)
+  if (!col) return
   if (
     col.uidt === UITypes.SingleSelect &&
-    ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value[filter.id]) &&
+    ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value[filter.id!]) &&
     ['eq', 'neq'].includes(filter.comparison_op!)
   ) {
     // anyof and nanyof can allow multiple selections,
@@ -87,12 +90,30 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // since `blank`, `empty`, `null` doesn't require value,
     // hence remove the previous value
     filter.value = ''
+    filter.comparison_sub_op = ''
+  } else if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)) {
+    // for date / datetime,
+    // the input type could be decimal or datepicker / datetime picker
+    // hence remove the previous value
+    filter.value = ''
+    if (
+      !comparisonSubOpList(filter.comparison_op!)
+        .map((op) => op.value)
+        .includes(filter.comparison_sub_op!)
+    ) {
+      if (filter.comparison_op === 'isWithin') {
+        filter.comparison_sub_op = 'pastNumberOfDays'
+      } else {
+        filter.comparison_sub_op = 'exactDate'
+      }
+    }
   }
   saveOrUpdate(filter, i)
   filterPrevComparisonOp.value[filter.id] = filter.comparison_op
   $e('a:filter:update', {
     logical: filter.logical_op,
     comparison: filter.comparison_op,
+    comparison_sub_op: filter.comparison_sub_op,
   })
 }
 
@@ -109,7 +130,7 @@ const types = computed(() => {
 
 watch(
   () => activeView.value?.id,
-  (n: string, o: string) => {
+  (n, o) => {
     // if nested no need to reload since it will get reloaded from parent
     if (!nested && n !== o && (hookId || !webHook)) loadFilters(hookId as string)
   },
@@ -137,14 +158,28 @@ const applyChanges = async (hookId?: string, _nested = false) => {
 }
 
 const selectFilterField = (filter: Filter, index: number) => {
+  const col = getColumn(filter)
+  if (!col) return
   // when we change the field,
   // the corresponding default filter operator needs to be changed as well
   // since the existing one may not be supported for the new field
   // e.g. `eq` operator is not supported in checkbox field
   // hence, get the first option of the supported operators of the new field
-  filter.comparison_op = comparisonOpList(getColumn(filter)!.uidt as UITypes).filter((compOp) =>
+  filter.comparison_op = comparisonOpList(col.uidt as UITypes).filter((compOp) =>
     isComparisonOpAllowed(filter, compOp),
   )?.[0].value
+
+  if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op)) {
+    if (filter.comparison_op === 'isWithin') {
+      filter.comparison_sub_op = 'pastNumberOfDays'
+    } else {
+      filter.comparison_sub_op = 'exactDate'
+    }
+  } else {
+    // reset
+    filter.comparison_sub_op = ''
+  }
+
   // reset filter value as well
   filter.value = ''
   saveOrUpdate(filter, index)
@@ -261,22 +296,47 @@ defineExpose({
               </template>
             </a-select>
 
-            <span
+            <a-select
               v-if="
-                filter.comparison_op &&
-                ['null', 'notnull', 'checked', 'notchecked', 'empty', 'notempty', 'blank', 'notblank'].includes(
-                  filter.comparison_op,
-                )
+                [UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt) &&
+                !['blank', 'notblank'].includes(filter.comparison_op)
               "
-              :key="`span${i}`"
-            />
+              v-model:value="filter.comparison_sub_op"
+              :dropdown-match-select-width="false"
+              class="caption nc-filter-sub_operation-select"
+              :placeholder="$t('labels.operationSub')"
+              density="compact"
+              variant="solo"
+              :disabled="filter.readOnly"
+              hide-details
+              dropdown-class-name="nc-dropdown-filter-comp-sub-op"
+              @change="filterUpdateCondition(filter, i)"
+            >
+              <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
+                <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
+                  {{ compSubOp.text }}
+                </a-select-option>
+              </template>
+            </a-select>
+
+            <span v-else />
 
             <a-checkbox
-              v-else-if="filter.field && types[filter.field] === 'boolean'"
+              v-if="filter.field && types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
               dense
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
+            />
+
+            <span
+              v-else-if="
+                filter.comparison_sub_op
+                  ? comparisonSubOpList(filter.comparison_op).find((op) => op.value === filter.comparison_sub_op)?.ignoreVal ??
+                    false
+                  : comparisonOpList(getColumn(filter)?.uidt).find((op) => op.value === filter.comparison_op)?.ignoreVal ?? false
+              "
+              :key="`span${i}`"
             />
 
             <LazySmartsheetToolbarFilterInput
@@ -315,7 +375,7 @@ defineExpose({
 
 <style scoped>
 .nc-filter-grid {
-  grid-template-columns: auto auto auto auto auto;
+  grid-template-columns: auto auto auto auto auto auto;
   @apply grid gap-[12px] items-center;
 }
 

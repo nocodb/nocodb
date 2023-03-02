@@ -106,7 +106,7 @@ export async function projectCreate(param: {
 
   T.emit('evt', { evt_type: 'project:rest' });
 
-  project;
+  return project;
 }
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);

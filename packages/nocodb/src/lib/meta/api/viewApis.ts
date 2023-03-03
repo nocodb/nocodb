@@ -14,6 +14,7 @@ import View from '../../models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers';
 // @ts-ignore
 export async function viewGet(req: Request, res: Response<Table>) {}
 
@@ -109,6 +110,7 @@ router.get(
 );
 router.patch(
   '/api/v1/db/meta/views/:viewId',
+  getAjvValidatorMw('swagger.json#/components/schemas/ViewReq'),
   metaApiMetrics,
   ncMetaAclMw(viewUpdate, 'viewUpdate')
 );

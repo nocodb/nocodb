@@ -7644,88 +7644,160 @@
         "description": "Model for Audit",
         "examples": [
           {
-            "base_id": "string",
-            "description": "string",
-            "details": "string",
-            "fk_model_id": "string",
-            "id": "string",
-            "ip": "string",
-            "op_sub_type": "string",
-            "op_type": "string",
-            "project_id": "string",
-            "row_id": "string",
+            "id": "adt_l5we7pkx70vaao",
+            "user": "w@nocodb.com",
+            "ip": "::ffff:127.0.0.1",
+            "base_id": "ds_3l9qx8xqksenrl",
+            "project_id": "p_9sx43moxhqtjm3",
+            "fk_model_id": "md_ehn5izr99m7d45",
+            "row_id": "rec0Adp9PMG9o7uJy",
+            "op_type": "AUTHENTICATION",
+            "op_sub_type": "UPDATE",
             "status": "string",
-            "user": "string"
+            "description": "Table nc_snms___Table_1 : field Date got changed from  2023-03-12 to ",
+            "details": "<span class=\"\">Date</span>   : <span class=\"text-decoration-line-through red px-2 lighten-4 black--text\">2023-03-12</span>   <span class=\"black--text green lighten-4 px-2\"></span>"
           }
         ],
+        "title": "Audit Model",
+        "type": "object",
         "properties": {
-          "base_id": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "details": {
-            "type": "string"
-          },
-          "fk_model_id": {
-            "type": "string"
-          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
+          "user": {
+            "type": "string",
+            "description": "The user name performing the action",
+            "example": "w@nocodb.com"
+          },
           "ip": {
-            "type": "string"
+            "type": "string",
+            "example": "::ffff:127.0.0.1",
+            "description": "IP address from the user"
           },
-          "op_sub_type": {
-            "type": "string"
-          },
-          "op_type": {
-            "type": "string"
+          "base_id": {
+            "type": "string",
+            "description": "Base ID in where action is performed",
+            "example": "ds_3l9qx8xqksenrl"
           },
           "project_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Project ID in where action is performed",
+            "example": "p_9sx43moxhqtjm3"
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Model ID in where action is performed",
+            "example": "md_ehn5izr99m7d45"
           },
           "row_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Row ID",
+            "example": "rec0Adp9PMG9o7uJy"
+          },
+          "op_type": {
+            "type": "string",
+            "description": "Operation Type",
+            "example": "AUTHENTICATION",
+            "enum": [
+              "COMMENT",
+              "DATA",
+              "PROJECT",
+              "VIRTUAL_RELATION",
+              "RELATION",
+              "TABLE_VIEW",
+              "TABLE",
+              "VIEW",
+              "META",
+              "WEBHOOKS",
+              "AUTHENTICATION",
+              "TABLE_COLUMN",
+              "ORG_USER"
+            ]
+          },
+          "op_sub_type": {
+            "type": "string",
+            "description": "Operation Sub Type",
+            "example": "UPDATE",
+            "enum": [
+              "UPDATE",
+              "INSERT",
+              "BULK_INSERT",
+              "BULK_UPDATE",
+              "BULK_DELETE",
+              "LINK_RECORD",
+              "UNLINK_RECORD",
+              "DELETE",
+              "CREATED",
+              "DELETED",
+              "RENAMED",
+              "IMPORT_FROM_ZIP",
+              "EXPORT_TO_FS",
+              "EXPORT_TO_ZIP",
+              "UPDATED",
+              "SIGNIN",
+              "SIGN",
+              "PASSWORD_RESET",
+              "PASSWORD_FORGOT",
+              "PASSWORD_CHANGE",
+              "EMAIL_VERIFICATION",
+              "ROLES_MANAGEMENT",
+              "INVITE",
+              "RESEND_INVITE"
+            ]
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "description": "Audit Status"
           },
-          "user": {
-            "type": "string"
+          "description": {
+            "type": "string",
+            "description": "Description of the action",
+            "example": "Table nc_snms___Table_1 : field Date got changed from  2023-03-12 to "
+          },
+          "details": {
+            "type": "string",
+            "description": "Detail",
+            "example": "<span class=\"\">Date</span>   : <span class=\"text-decoration-line-through red px-2 lighten-4 black--text\">2023-03-12</span>   <span class=\"black--text green lighten-4 px-2\"></span>"
           }
-        },
-        "title": "Audit Model",
-        "type": "object"
+        }
       },
       "AuditRowUpdateReq": {
         "description": "Model for Audit Row Update Request",
         "examples": [
           {
-            "column_name": "string",
-            "fk_model_id": "string",
-            "prev_value": null,
-            "row_id": "string",
-            "value": null
+            "column_name": "baz",
+            "fk_model_id": "md_ehn5izr99m7d45",
+            "row_id": "rec0Adp9PMG9o7uJy",
+            "prev_value": "foo",
+            "value": "bar"
           }
         ],
+        "title": "Audit Row Update Request Model",
+        "type": "object",
         "properties": {
           "column_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Column Name",
+            "example": "baz"
           },
           "fk_model_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Foreign Key to Model",
+            "example": "md_ehn5izr99m7d45"
           },
-          "prev_value": {},
           "row_id": {
-            "type": "string"
+            "type": "string",
+            "example": "rec0Adp9PMG9o7uJy",
+            "description": "Row ID"
           },
-          "value": {}
-        },
-        "title": "Audit Row Update Request Model",
-        "type": "object"
+          "prev_value": {
+            "description": "The previous value before the action"
+          },
+          "value": {
+            "description": "The current value after the action"
+          }
+        }
       },
       "Base": {
         "description": "Model for Base",

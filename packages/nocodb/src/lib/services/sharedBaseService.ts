@@ -1,5 +1,6 @@
 import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
+import { validatePayload } from '../meta/api/helpers';
 import Project from '../models/Project';
 import { NcError } from '../meta/helpers/catchError';
 // todo: load from config
@@ -13,6 +14,8 @@ export async function createSharedBaseLink(param: {
   password: string;
   siteUrl: string;
 }): Promise<any> {
+  validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
+
   const project = await Project.get(param.projectId);
 
   let roles = param?.roles;
@@ -44,6 +47,8 @@ export async function updateSharedBaseLink(param: {
   password: string;
   siteUrl: string;
 }): Promise<any> {
+  validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
+
   const project = await Project.get(param.projectId);
 
   let roles = param.roles;

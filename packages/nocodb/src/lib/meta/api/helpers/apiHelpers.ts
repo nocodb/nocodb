@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import Ajv, { ErrorObject } from 'ajv';
 // @ts-ignore
 import swagger from '../../../../schema/swagger.json';
-import { NcError } from '../../helpers/catchError'
+import { NcError } from '../../helpers/catchError';
 
 export function parseHrtimeToSeconds(hrtime) {
   const seconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);
@@ -38,7 +38,7 @@ export const getAjvValidatorMw = (schema) => {
 };
 
 // a function to validate the payload against the schema
-export const ajvValidator = (schema, payload) => {
+export const validatePayload = (schema, payload) => {
   // Validate the request body against the schema
   const valid = ajv.validate(
     typeof schema === 'string' ? { $ref: schema } : schema,
@@ -55,4 +55,4 @@ export const ajvValidator = (schema, payload) => {
       errors,
     });
   }
-}
+};

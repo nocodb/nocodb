@@ -1,6 +1,5 @@
 import { Request, Response, Router } from 'express';
 import { ColumnReqType, TableType, UITypes } from 'nocodb-sdk';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { columnService } from '../services';
@@ -45,7 +44,6 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/columns/',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/ColumnReq'),
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
 

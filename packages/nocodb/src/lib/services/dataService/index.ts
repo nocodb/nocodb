@@ -795,4 +795,4 @@ export async function relationDataAdd(param: {
   return true;
 }
 
-export * from './helpers'
+export * from './helpers';

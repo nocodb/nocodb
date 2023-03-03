@@ -18,6 +18,7 @@ import {
   generateFkName,
   randomID,
   validateLookupPayload,
+  validatePayload,
   validateRequiredField,
   validateRollupPayload,
 } from '../meta/api/helpers';
@@ -835,6 +836,8 @@ export async function columnAdd(param: {
   tableId: string;
   column: ColumnReqType;
 }) {
+  validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
+
   const table = await Model.getWithInfo({
     id: param.tableId,
   });

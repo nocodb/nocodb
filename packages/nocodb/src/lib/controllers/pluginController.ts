@@ -3,7 +3,6 @@ import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { PluginType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { pluginService } from '../services';
 
 export async function pluginList(_req: Request, res: Response) {
@@ -42,8 +41,6 @@ router.get(
 router.post(
   '/api/v1/db/meta/plugins/test',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/PluginTestReq'),
-
   ncMetaAclMw(pluginTest, 'pluginTest')
 );
 router.get(
@@ -54,7 +51,6 @@ router.get(
 router.patch(
   '/api/v1/db/meta/plugins/:pluginId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/PluginReq'),
   ncMetaAclMw(pluginUpdate, 'pluginUpdate')
 );
 router.get(

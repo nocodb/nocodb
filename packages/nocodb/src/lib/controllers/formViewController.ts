@@ -1,50 +1,37 @@
 import { Request, Response, Router } from 'express';
-// @ts-ignore
-import Model from '../models/Model';
-import { Tele } from 'nc-help';
-// @ts-ignore
-import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import { FormType, ViewTypes } from 'nocodb-sdk';
-// @ts-ignore
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
-// @ts-ignore
-import Project from '../models/Project';
-import View from '../models/View';
-import FormView from '../models/FormView';
+import { FormType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
+import { formViewService } from '../services';
 
-// @ts-ignore
 export async function formViewGet(req: Request, res: Response<FormType>) {
-  const formViewData = await FormView.getWithInfo(req.params.formViewId);
+  const formViewData = await formViewService.formViewGet({
+    formViewId: req.params.formViewId,
+  });
   res.json(formViewData);
 }
 
 export async function formViewCreate(req: Request<any, any>, res) {
-  Tele.emit('evt', { evt_type: 'vtable:created', show_as: 'form' });
-  const view = await View.insert({
-    ...req.body,
-    // todo: sanitize
-    fk_model_id: req.params.tableId,
-    type: ViewTypes.FORM,
+  const view = await formViewService.formViewCreate({
+    body: req.body,
+    tableId: req.params.tableId,
   });
   res.json(view);
 }
-// @ts-ignore
-export async function formViewUpdate(req, res) {
-  Tele.emit('evt', { evt_type: 'view:updated', type: 'grid' });
-  res.json(await FormView.update(req.params.formViewId, req.body));
-}
 
-// @ts-ignore
-export async function formViewDelete(req: Request, res: Response, next) {}
+export async function formViewUpdate(req, res) {
+  res.json(
+    await formViewService.formViewUpdate({
+      formViewId: req.params.formViewId,
+      body: req.body,
+    })
+  );
+}
 
 const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/forms',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/FormCreateReq'),
   ncMetaAclMw(formViewCreate, 'formViewCreate')
 );
 router.get(
@@ -55,12 +42,7 @@ router.get(
 router.patch(
   '/api/v1/db/meta/forms/:formViewId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/FormReq'),
   ncMetaAclMw(formViewUpdate, 'formViewUpdate')
 );
-router.delete(
-  '/api/v1/db/meta/forms/:formViewId',
-  metaApiMetrics,
-  ncMetaAclMw(formViewDelete, 'formViewDelete')
-);
+
 export default router;

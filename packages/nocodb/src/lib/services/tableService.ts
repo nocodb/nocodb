@@ -9,6 +9,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
+import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
 import getColumnPropsFromUIDT from '../meta/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '../meta/helpers/getColumnUiType';
@@ -16,14 +17,16 @@ import getTableNameAlias, {
   getColumnNameAlias,
 } from '../meta/helpers/getTableName';
 import mapDefaultDisplayValue from '../meta/helpers/mapDefaultDisplayValue';
-import Audit from '../models/Audit';
-import Column from '../models/Column';
-import LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
-import Model from '../models/Model';
-import ModelRoleVisibility from '../models/ModelRoleVisibility';
-import Project from '../models/Project';
-import User from '../models/User';
-import View from '../models/View';
+import {
+  Audit,
+  Column,
+  LinkToAnotherRecordColumn,
+  Model,
+  ModelRoleVisibility,
+  Project,
+  User,
+  View,
+} from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { T } from 'nc-help';
 
@@ -304,6 +307,8 @@ export async function tableCreate(args: {
   table: TableReqType;
   user: User;
 }) {
+  validatePayload('swagger.json#/components/schemas/TableReq', args.table);
+
   const project = await Project.getWithInfo(args.projectId);
   let base = project.bases[0];
 

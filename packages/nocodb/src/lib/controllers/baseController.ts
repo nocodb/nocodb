@@ -1,104 +1,66 @@
 import { Request, Response } from 'express';
-import Project from '../models/Project';
 import { BaseListType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import { syncBaseMigration } from '../meta/helpers/syncMigration';
 import Base from '../models/Base';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw, populateMeta } from '../meta/api/helpers';
 
-export async function baseGet(
-  req: Request<any, any, any>,
-  res: Response<Base>
-) {
-  const base = await Base.get(req.params.baseId);
+import { baseService } from '../services';
 
-  base.config = base.getConnectionConfig();
-
-  res.json(base);
-}
-
-export async function baseUpdate(
-  req: Request<any, any, any>,
-  res: Response<any>
-) {
-  const baseBody = req.body;
-  const project = await Project.getWithInfo(req.params.projectId);
-  const base = await Base.updateBase(req.params.baseId, {
-    ...baseBody,
-    type: baseBody.config?.client,
-    projectId: project.id,
-    id: req.params.baseId,
-  });
-
-  delete base.config;
-
-  Tele.emit('evt', {
-    evt_type: 'base:updated',
+async function baseGet(req: Request<any>, res: Response<Base>) {
+  const base = await baseService.baseGetWithConfig({
+    baseId: req.params.baseId,
   });
 
   res.json(base);
 }
 
-export async function baseList(
-  req: Request<any, any, any>,
-  res: Response<BaseListType>,
-  next
-) {
-  try {
-    const bases = await Base.list({ projectId: req.params.projectId });
+async function baseUpdate(req: Request<any, any, any>, res: Response<any>) {
+  const base = await baseService.baseUpdate({
+    baseId: req.params.baseId,
+    base: req.body,
+    projectId: req.params.projectId,
+  });
+  res.json(base);
+}
 
-    res // todo: pagination
-      .json({
-        bases: new PagedResponseImpl(bases, {
-          count: bases.length,
-          limit: bases.length,
-        }),
-      });
-  } catch (e) {
-    console.log(e);
-    next(e);
-  }
+async function baseList(
+  req: Request<any, any, any>,
+  res: Response<BaseListType>
+) {
+  const bases = await baseService.baseList({
+    projectId: req.params.projectId,
+  });
+
+  res // todo: pagination
+    .json({
+      bases: new PagedResponseImpl(bases, {
+        count: bases.length,
+        limit: bases.length,
+      }),
+    });
 }
 
 export async function baseDelete(
   req: Request<any, any, any>,
   res: Response<any>
 ) {
-  const base = await Base.get(req.params.baseId);
-  const result = await base.delete();
-  Tele.emit('evt', { evt_type: 'base:deleted' });
+  const result = await baseService.baseDelete({
+    baseId: req.params.baseId,
+  });
   res.json(result);
 }
 
 async function baseCreate(req: Request<any, any>, res) {
-  // type | base | projectId
-  const baseBody = req.body;
-  const project = await Project.getWithInfo(req.params.projectId);
-  const base = await Base.createBase({
-    ...baseBody,
-    type: baseBody.config?.client,
-    projectId: project.id,
-  });
-
-  await syncBaseMigration(project, base);
-
-  const info = await populateMeta(base, project);
-
-  Tele.emit('evt_api_created', info);
-
-  delete base.config;
-
-  Tele.emit('evt', {
-    evt_type: 'base:created',
+  const base = await baseService.baseCreate({
+    projectId: req.params.projectId,
+    base: req.body,
   });
 
   res.json(base);
 }
 
-export default (router) => {
+const initRoutes = (router) => {
   router.get(
     '/api/v1/db/meta/projects/:projectId/bases/:baseId',
     metaApiMetrics,
@@ -107,7 +69,6 @@ export default (router) => {
   router.patch(
     '/api/v1/db/meta/projects/:projectId/bases/:baseId',
     metaApiMetrics,
-    getAjvValidatorMw('swagger.json#/components/schemas/BaseReq'),
     ncMetaAclMw(baseUpdate, 'baseUpdate')
   );
   router.delete(
@@ -118,7 +79,6 @@ export default (router) => {
   router.post(
     '/api/v1/db/meta/projects/:projectId/bases',
     metaApiMetrics,
-    getAjvValidatorMw('swagger.json#/components/schemas/BaseReq'),
     ncMetaAclMw(baseCreate, 'baseCreate')
   );
   router.get(
@@ -127,3 +87,5 @@ export default (router) => {
     ncMetaAclMw(baseList, 'baseList')
   );
 };
+
+export default initRoutes;

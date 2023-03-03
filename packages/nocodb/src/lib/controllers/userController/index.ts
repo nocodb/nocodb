@@ -340,11 +340,7 @@ const mapRoutes = (router) => {
     catchError(signin)
   );
   router.get('/auth/user/me', extractProjectIdAndAuthenticate, catchError(me));
-  router.post(
-    '/auth/password/forgot',
-    getAjvValidatorMw('swagger.json#/components/schemas/ForgotPasswordReq'),
-    catchError(passwordForgot)
-  );
+  router.post('/auth/password/forgot', catchError(passwordForgot));
   router.post('/auth/token/validate/:tokenId', catchError(tokenValidate));
   router.post(
     '/auth/password/reset/:tokenId',
@@ -354,7 +350,6 @@ const mapRoutes = (router) => {
   router.post('/auth/email/validate/:tokenId', catchError(emailVerification));
   router.post(
     '/user/password/change',
-    getAjvValidatorMw('swagger.json#/components/schemas/PasswordChangeReq'),
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
   router.post('/auth/token/refresh', catchError(refreshToken));
@@ -387,18 +382,13 @@ const mapRoutes = (router) => {
     extractProjectIdAndAuthenticate,
     catchError(me)
   );
-  router.post(
-    '/api/v1/db/auth/password/forgot',
-    getAjvValidatorMw('swagger.json#/components/schemas/ForgotPasswordReq'),
-    catchError(passwordForgot)
-  );
+  router.post('/api/v1/db/auth/password/forgot', catchError(passwordForgot));
   router.post(
     '/api/v1/db/auth/token/validate/:tokenId',
     catchError(tokenValidate)
   );
   router.post(
     '/api/v1/db/auth/password/reset/:tokenId',
-    getAjvValidatorMw('swagger.json#/components/schemas/PasswordResetReq'),
     catchError(passwordReset)
   );
   router.post(
@@ -407,7 +397,6 @@ const mapRoutes = (router) => {
   );
   router.post(
     '/api/v1/db/auth/password/change',
-    getAjvValidatorMw('swagger.json#/components/schemas/PasswordChangeReq'),
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
   router.post('/api/v1/db/auth/token/refresh', catchError(refreshToken));
@@ -432,11 +421,7 @@ const mapRoutes = (router) => {
     extractProjectIdAndAuthenticate,
     catchError(me)
   );
-  router.post(
-    '/api/v1/auth/password/forgot',
-    getAjvValidatorMw('swagger.json#/components/schemas/ForgotPasswordReq'),
-    catchError(passwordForgot)
-  );
+  router.post('/api/v1/auth/password/forgot', catchError(passwordForgot));
   router.post(
     '/api/v1/auth/token/validate/:tokenId',
     catchError(tokenValidate)
@@ -451,7 +436,6 @@ const mapRoutes = (router) => {
   );
   router.post(
     '/api/v1/auth/password/change',
-    getAjvValidatorMw('swagger.json#/components/schemas/PasswordChangeReq'),
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
   router.post('/api/v1/auth/token/refresh', catchError(refreshToken));

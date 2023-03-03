@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { orgUserService } from '../services';
 
 async function userList(req, res) {
@@ -87,7 +86,6 @@ router.get(
 router.patch(
   '/api/v1/users/:userId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/OrgUserReq'),
   ncMetaAclMw(userUpdate, 'userUpdate', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
@@ -104,7 +102,6 @@ router.delete(
 router.post(
   '/api/v1/users',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/OrgUserReq'),
   ncMetaAclMw(userAdd, 'userAdd', {
     allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,

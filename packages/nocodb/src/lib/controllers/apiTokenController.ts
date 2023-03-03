@@ -1,31 +1,28 @@
 import { Request, Response, Router } from 'express';
-import { OrgUserRoles } from 'nocodb-sdk';
-import { Tele } from 'nc-help';
-import { NcError } from '../meta/helpers/catchError';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import ApiToken from '../models/ApiToken';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
+import { apiTokenService } from '../services';
 
 export async function apiTokenList(req: Request, res: Response) {
-  res.json(await ApiToken.list(req['user'].id));
+  res.json(await apiTokenService.apiTokenList({ userId: req['user'].id }));
 }
-export async function apiTokenCreate(req: Request, res: Response) {
-  Tele.emit('evt', { evt_type: 'apiToken:created' });
-  res.json(await ApiToken.insert({ ...req.body, fk_user_id: req['user'].id }));
-}
-export async function apiTokenDelete(req: Request, res: Response) {
-  const apiToken = await ApiToken.getByToken(req.params.token);
-  if (
-    !req['user'].roles.includes(OrgUserRoles.SUPER_ADMIN) &&
-    apiToken.fk_user_id !== req['user'].id
-  ) {
-    NcError.notFound('Token not found');
-  }
-  Tele.emit('evt', { evt_type: 'apiToken:deleted' });
 
-  // todo: verify token belongs to the user
-  res.json(await ApiToken.delete(req.params.token));
+export async function apiTokenCreate(req: Request, res: Response) {
+  res.json(
+    await apiTokenService.apiTokenCreate({
+      tokenBody: req.body,
+      userId: req['user'].id,
+    })
+  );
+}
+
+export async function apiTokenDelete(req: Request, res: Response) {
+  res.json(
+    await apiTokenService.apiTokenDelete({
+      token: req.params.token,
+      user: req['user'],
+    })
+  );
 }
 
 // todo: add reset token api to regenerate token
@@ -41,7 +38,6 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/api-tokens',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/ApiTokenReq'),
   ncMetaAclMw(apiTokenCreate, 'apiTokenCreate')
 );
 router.delete(

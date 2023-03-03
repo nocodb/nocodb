@@ -15,7 +15,11 @@ async function excelDataExport(req: Request, res: Response) {
   if (!targetView) {
     targetView = await View.getDefaultView(model.id);
   }
-  const { offset, elapsed, data } = await extractXlsxData({ view: targetView, query: req.query, siteUrl: (req as any).ncSiteUrl });
+  const { offset, elapsed, data } = await extractXlsxData({
+    view: targetView,
+    query: req.query,
+    siteUrl: (req as any).ncSiteUrl,
+  });
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, data, targetView.title);
   const buf = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });

@@ -4,7 +4,6 @@ import { HookListType, HookType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { hookService } from '../services';
 
 export async function hookList(
@@ -74,13 +73,11 @@ router.get(
 router.post(
   '/api/v1/db/meta/tables/:tableId/hooks/test',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/HookTestReq'),
   ncMetaAclMw(hookTest, 'hookTest')
 );
 router.post(
   '/api/v1/db/meta/tables/:tableId/hooks',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/HookReq'),
   ncMetaAclMw(hookCreate, 'hookCreate')
 );
 router.delete(
@@ -91,7 +88,6 @@ router.delete(
 router.patch(
   '/api/v1/db/meta/hooks/:hookId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/HookReq'),
   ncMetaAclMw(hookUpdate, 'hookUpdate')
 );
 router.get(

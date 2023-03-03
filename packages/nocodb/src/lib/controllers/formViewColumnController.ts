@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { formViewColumnService } from '../services';
 
 export async function columnUpdate(req: Request, res: Response) {
@@ -17,7 +16,6 @@ const router = Router({ mergeParams: true });
 router.patch(
   '/api/v1/db/meta/form-columns/:formViewColumnId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/FormColumnReq'),
   ncMetaAclMw(columnUpdate, 'columnUpdate')
 );
 export default router;

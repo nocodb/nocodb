@@ -1,7 +1,7 @@
 import DOMPurify from 'isomorphic-dompurify';
 import { OrgUserRoles, ProjectReqType } from 'nocodb-sdk';
 import { promisify } from 'util';
-import { populateMeta } from '../meta/api/helpers';
+import { populateMeta, validatePayload } from '../meta/api/helpers';
 import { extractPropsAndSanitize } from '../meta/helpers/extractProps';
 import syncMigration from '../meta/helpers/syncMigration';
 import Project from '../models/Project';
@@ -15,6 +15,8 @@ export async function projectCreate(param: {
   project: ProjectReqType;
   user: any;
 }) {
+  validatePayload('swagger.json#/components/schemas/ProjectReq', param.project);
+
   const projectBody: ProjectReqType & Record<string, any> = param.project;
   if (!projectBody.external) {
     const ranId = nanoid();

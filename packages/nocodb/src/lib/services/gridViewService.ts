@@ -1,5 +1,6 @@
 import { T } from 'nc-help';
 import { GridReqType, ViewTypes } from 'nocodb-sdk';
+import { validatePayload } from '../meta/api/helpers';
 import { View } from '../models';
 import { GridView } from '../models';
 
@@ -7,6 +8,8 @@ export async function gridViewCreate(param: {
   tableId: string;
   grid: GridReqType;
 }) {
+  validatePayload('swagger.json#/components/schemas/GridReq', param.grid);
+
   const view = await View.insert({
     ...param.grid,
     // todo: sanitize
@@ -17,6 +20,7 @@ export async function gridViewCreate(param: {
   return view;
 }
 
+// todo: json schema validation
 export async function gridViewUpdate(param: {
   viewId: string;
   grid: GridReqType;

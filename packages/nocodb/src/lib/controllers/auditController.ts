@@ -1,18 +1,17 @@
 import { Request, Response, Router } from 'express';
 import Audit from '../models/Audit';
-import { AuditOperationTypes } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { auditService } from '../services';
 
 export async function commentRow(req: Request<any, any>, res) {
   res.json(
-    await Audit.insert({
-      ...req.body,
+    await auditService.commentRow({
+      rowId: req.params.rowId,
       user: (req as any).user,
-      op_type: AuditOperationTypes.COMMENT,
+      body: {
+        ...req.body,
+      },
     })
   );
 }
@@ -60,12 +59,10 @@ router.get(
 );
 router.post(
   '/api/v1/db/meta/audits/comments',
-  getAjvValidatorMw('swagger.json#/components/schemas/CommentReq'),
   ncMetaAclMw(commentRow, 'commentRow')
 );
 router.post(
   '/api/v1/db/meta/audits/rows/:rowId/update',
-  getAjvValidatorMw('swagger.json#/components/schemas/AuditRowUpdateReq'),
   ncMetaAclMw(auditRowUpdate, 'auditRowUpdate')
 );
 router.get(

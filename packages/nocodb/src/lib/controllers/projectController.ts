@@ -11,7 +11,6 @@ import ProjectUser from '../models/ProjectUser';
 import Noco from '../Noco';
 import isDocker from 'is-docker';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import Filter from '../models/Filter';
 
 import { projectService } from '../services';
@@ -155,7 +154,6 @@ export default (router) => {
   router.post(
     '/api/v1/db/meta/projects',
     metaApiMetrics,
-    getAjvValidatorMw('swagger.json#/components/schemas/ProjectReq'),
     ncMetaAclMw(projectCreate, 'projectCreate')
   );
   router.get(

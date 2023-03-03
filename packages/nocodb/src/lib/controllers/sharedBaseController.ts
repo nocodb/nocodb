@@ -1,93 +1,44 @@
 import { Router } from 'express';
-import { Tele } from 'nc-help';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { v4 as uuidv4 } from 'uuid';
-import Project from '../models/Project';
-import { NcError } from '../meta/helpers/catchError';
-import { getAjvValidatorMw } from '../meta/api/helpers';
-// todo: load from config
-const config = {
-  dashboardPath: '/nc',
-};
+import { sharedBaseService } from '../services';
 
 async function createSharedBaseLink(req, res): Promise<any> {
-  const project = await Project.get(req.params.projectId);
-
-  let roles = req.body?.roles;
-  if (!roles || (roles !== 'editor' && roles !== 'viewer')) {
-    roles = 'viewer';
-  }
-
-  if (!project) {
-    NcError.badRequest('Invalid project id');
-  }
-  const data: any = {
-    uuid: uuidv4(),
+  const sharedBase = await sharedBaseService.createSharedBaseLink({
+    projectId: req.params.projectId,
+    roles: req.body?.roles,
     password: req.body?.password,
-    roles,
-  };
+    siteUrl: req.ncSiteUrl,
+  });
 
-  await Project.update(project.id, data);
-
-  data.url = `${req.ncSiteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
-  delete data.password;
-  Tele.emit('evt', { evt_type: 'sharedBase:generated-link' });
-  res.json(data);
+  res.json(sharedBase);
 }
+
 async function updateSharedBaseLink(req, res): Promise<any> {
-  const project = await Project.get(req.params.projectId);
-
-  let roles = req.body?.roles;
-  if (!roles || (roles !== 'editor' && roles !== 'viewer')) {
-    roles = 'viewer';
-  }
-
-  if (!project) {
-    NcError.badRequest('Invalid project id');
-  }
-  const data: any = {
-    uuid: project.uuid || uuidv4(),
+  const sharedBase = await sharedBaseService.updateSharedBaseLink({
+    projectId: req.params.projectId,
+    roles: req.body?.roles,
     password: req.body?.password,
-    roles,
-  };
+    siteUrl: req.ncSiteUrl,
+  });
 
-  await Project.update(project.id, data);
-
-  data.url = `${req.ncSiteUrl}${config.dashboardPath}#/nc/base/${data.uuid}`;
-  delete data.password;
-  Tele.emit('evt', { evt_type: 'sharedBase:generated-link' });
-  res.json(data);
+  res.json(sharedBase);
 }
 
 async function disableSharedBaseLink(req, res): Promise<any> {
-  const project = await Project.get(req.params.projectId);
+  const sharedBase = await sharedBaseService.disableSharedBaseLink({
+    projectId: req.params.projectId,
+  });
 
-  if (!project) {
-    NcError.badRequest('Invalid project id');
-  }
-  const data: any = {
-    uuid: null,
-  };
-
-  await Project.update(project.id, data);
-  Tele.emit('evt', { evt_type: 'sharedBase:disable-link' });
-  res.json({ uuid: null });
+  res.json(sharedBase);
 }
 
 async function getSharedBaseLink(req, res): Promise<any> {
-  const project = await Project.get(req.params.projectId);
+  const sharedBase = await sharedBaseService.getSharedBaseLink({
+    projectId: req.params.projectId,
+    siteUrl: req.ncSiteUrl,
+  });
 
-  if (!project) {
-    NcError.badRequest('Invalid project id');
-  }
-  const data: any = {
-    uuid: project.uuid,
-    roles: project.roles,
-  };
-  if (data.uuid)
-    data.url = `${req.ncSiteUrl}${config.dashboardPath}#/nc/base/${data.shared_base_id}`;
-
-  res.json(data);
+  res.json(sharedBase);
 }
 
 const router = Router({ mergeParams: true });
@@ -97,12 +48,10 @@ router.get(
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/shared',
-  getAjvValidatorMw('swagger.json#/components/schemas/SharedBaseReq'),
   ncMetaAclMw(createSharedBaseLink, 'createSharedBaseLink')
 );
 router.patch(
   '/api/v1/db/meta/projects/:projectId/shared',
-  getAjvValidatorMw('swagger.json#/components/schemas/SharedBaseReq'),
   ncMetaAclMw(updateSharedBaseLink, 'updateSharedBaseLink')
 );
 router.delete(

@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { gridViewColumnService } from '../services';
 
 export async function columnList(req: Request, res: Response) {
@@ -30,7 +29,6 @@ router.get(
 router.patch(
   '/api/v1/db/meta/grid-columns/:gridViewColumnId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/GridColumnReq'),
   ncMetaAclMw(gridColumnUpdate, 'gridColumnUpdate')
 );
 export default router;

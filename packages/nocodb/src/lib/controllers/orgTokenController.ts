@@ -1,56 +1,35 @@
 import { Request, Response, Router } from 'express';
-import { OrgUserRoles } from 'nocodb-sdk';
-import ApiToken from '../models/ApiToken';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { NcError } from '../meta/helpers/catchError';
 import getHandler from '../meta/helpers/getHandler';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { apiTokenListEE } from '../meta/api/ee/orgTokenApis';
-import { getAjvValidatorMw } from '../meta/api/helpers';
+import { orgTokenService } from '../services';
 
 async function apiTokenList(req, res) {
-  const fk_user_id = req.user.id;
-  let includeUnmappedToken = false;
-  if (req['user'].roles.includes(OrgUserRoles.SUPER_ADMIN)) {
-    includeUnmappedToken = true;
-  }
-
   res.json(
-    new PagedResponseImpl(
-      await ApiToken.listWithCreatedBy({
-        ...req.query,
-        fk_user_id,
-        includeUnmappedToken,
-      }),
-      {
-        ...req.query,
-        count: await ApiToken.count({
-          includeUnmappedToken,
-          fk_user_id,
-        }),
-      }
-    )
+    await orgTokenService.apiTokenList({
+      query: req.query,
+      user: req['user'],
+    })
   );
 }
 
 export async function apiTokenCreate(req: Request, res: Response) {
-  Tele.emit('evt', { evt_type: 'org:apiToken:created' });
-  res.json(await ApiToken.insert({ ...req.body, fk_user_id: req['user'].id }));
+  res.json(
+    await orgTokenService.apiTokenCreate({
+      apiToken: req.body,
+      user: req['user'],
+    })
+  );
 }
 
 export async function apiTokenDelete(req: Request, res: Response) {
-  const fk_user_id = req['user'].id;
-  const apiToken = await ApiToken.getByToken(req.params.token);
-  if (
-    !req['user'].roles.includes(OrgUserRoles.SUPER_ADMIN) &&
-    apiToken.fk_user_id !== fk_user_id
-  ) {
-    NcError.notFound('Token not found');
-  }
-  Tele.emit('evt', { evt_type: 'org:apiToken:deleted' });
-  res.json(await ApiToken.delete(req.params.token));
+  res.json(
+    await orgTokenService.apiTokenDelete({
+      token: req.params.token,
+      user: req['user'],
+    })
+  );
 }
 
 const router = Router({ mergeParams: true });
@@ -66,7 +45,6 @@ router.get(
 router.post(
   '/api/v1/tokens',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/ApiTokenReq'),
   ncMetaAclMw(apiTokenCreate, 'apiTokenCreate', {
     // allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,

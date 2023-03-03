@@ -2,6 +2,7 @@ import {
   AuditRowUpdatePayloadType,
   CommentRowPayloadType,
 } from 'nocodb-sdk/build/main/lib/CustomAPI';
+import { validatePayload } from '../meta/api/helpers';
 import Audit from '../models/Audit';
 import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import Model from '../models/Model';
@@ -14,6 +15,11 @@ export async function commentRow(param: {
   body: CommentRowPayloadType;
   user: any;
 }) {
+  await validatePayload(
+    'swagger.json#/components/schemas/CommentReq',
+    param.body
+  );
+
   return await Audit.insert({
     ...param.body,
     user: param.user?.email,
@@ -25,6 +31,11 @@ export async function auditRowUpdate(param: {
   rowId: string;
   body: AuditRowUpdatePayloadType;
 }) {
+  await validatePayload(
+    'swagger.json#/components/schemas/AuditRowUpdateReq',
+    param.body
+  );
+
   const model = await Model.getByIdOrName({ id: param.body.fk_model_id });
   return await Audit.insert({
     fk_model_id: param.body.fk_model_id,

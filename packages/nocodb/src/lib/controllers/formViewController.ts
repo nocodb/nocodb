@@ -2,7 +2,6 @@ import { Request, Response, Router } from 'express';
 import { FormType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { formViewService } from '../services';
 
 export async function formViewGet(req: Request, res: Response<FormType>) {
@@ -33,7 +32,6 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/forms',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/FormCreateReq'),
   ncMetaAclMw(formViewCreate, 'formViewCreate')
 );
 router.get(
@@ -44,7 +42,7 @@ router.get(
 router.patch(
   '/api/v1/db/meta/forms/:formViewId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/FormReq'),
   ncMetaAclMw(formViewUpdate, 'formViewUpdate')
 );
+
 export default router;

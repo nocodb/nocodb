@@ -1,7 +1,6 @@
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { Router } from 'express';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { projectUserService } from '../services';
 
 async function userList(req, res) {
@@ -66,13 +65,11 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/users',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/ProjectUserReq'),
   ncMetaAclMw(userInvite, 'userInvite')
 );
 router.patch(
   '/api/v1/db/meta/projects/:projectId/users/:userId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/ProjectUserReq'),
   ncMetaAclMw(projectUserUpdate, 'projectUserUpdate')
 );
 router.delete(

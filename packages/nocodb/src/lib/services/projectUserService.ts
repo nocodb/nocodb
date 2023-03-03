@@ -1,5 +1,6 @@
 import { OrgUserRoles, ProjectUserReqType } from 'nocodb-sdk';
 import { T } from 'nc-help';
+import { validatePayload } from '../meta/api/helpers';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ProjectUser from '../models/ProjectUser';
 import validator from 'validator';
@@ -33,6 +34,11 @@ export async function userInvite(param: {
   projectUser: ProjectUserReqType;
   req: any;
 }): Promise<any> {
+  validatePayload(
+    'swagger.json#/components/schemas/ProjectUserReq',
+    param.projectUser
+  );
+
   const emails = (param.projectUser.email || '')
     .toLowerCase()
     .split(/\s*,\s*/)
@@ -157,6 +163,11 @@ export async function projectUserUpdate(param: {
   req: any;
   projectId: string;
 }): Promise<any> {
+  validatePayload(
+    'swagger.json#/components/schemas/ProjectUserReq',
+    param.projectUser
+  );
+
   // todo: use param.projectId
   if (!param.projectUser?.project_id) {
     NcError.badRequest('Missing project id in request body.');

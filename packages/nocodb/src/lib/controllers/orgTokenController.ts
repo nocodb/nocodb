@@ -3,7 +3,6 @@ import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import getHandler from '../meta/helpers/getHandler';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { apiTokenListEE } from '../meta/api/ee/orgTokenApis';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { orgTokenService } from '../services';
 
 async function apiTokenList(req, res) {
@@ -46,7 +45,6 @@ router.get(
 router.post(
   '/api/v1/tokens',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/ApiTokenReq'),
   ncMetaAclMw(apiTokenCreate, 'apiTokenCreate', {
     // allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,

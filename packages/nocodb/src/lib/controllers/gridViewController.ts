@@ -1,7 +1,6 @@
 import { Request, Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { gridViewService } from '../services';
 
 export async function gridViewCreate(req: Request<any>, res) {
@@ -25,7 +24,6 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/grids/',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/GridReq'),
   ncMetaAclMw(gridViewCreate, 'gridViewCreate')
 );
 router.patch(

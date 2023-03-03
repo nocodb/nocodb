@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '../constants';
+import { validatePayload } from '../meta/api/helpers';
 import { Audit, ProjectUser, Store, SyncSource, User } from '../models';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
@@ -35,6 +36,8 @@ export async function userUpdate(param: {
   user: Partial<UserType>;
   userId: string;
 }) {
+  validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
+
   const updateBody = extractProps(param.user, ['roles']);
 
   const user = await User.get(param.userId);
@@ -95,6 +98,8 @@ export async function userAdd(param: {
   // todo: refactor
   req: any;
 }) {
+  validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
+
   // allow only viewer or creator role
   if (
     param.user.roles &&

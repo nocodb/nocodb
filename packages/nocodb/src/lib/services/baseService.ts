@@ -3,7 +3,7 @@ import { BaseReqType } from 'nocodb-sdk';
 import { syncBaseMigration } from '../meta/helpers/syncMigration';
 import Base from '../models/Base';
 import { T } from 'nc-help';
-import { populateMeta } from '../meta/api/helpers';
+import { populateMeta, validatePayload } from '../meta/api/helpers';
 
 export async function baseGetWithConfig(param: { baseId: any }) {
   const base = await Base.get(param.baseId);
@@ -18,6 +18,8 @@ export async function baseUpdate(param: {
   base: BaseReqType;
   projectId: string;
 }) {
+  validatePayload('swagger.json#/components/schemas/BaseReq', param.base);
+
   const baseBody = param.base;
   const project = await Project.getWithInfo(param.projectId);
   const base = await Base.updateBase(param.baseId, {
@@ -53,6 +55,8 @@ export async function baseCreate(param: {
   projectId: string;
   base: BaseReqType;
 }) {
+  validatePayload('swagger.json#/components/schemas/BaseReq', param.base);
+
   // type | base | projectId
   const baseBody = param.base;
   const project = await Project.getWithInfo(param.projectId);

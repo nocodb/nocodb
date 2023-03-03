@@ -4,11 +4,10 @@ import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import Base from '../models/Base';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 
 import { baseService } from '../services';
 
-export async function baseGet(req: Request<any>, res: Response<Base>) {
+async function baseGet(req: Request<any>, res: Response<Base>) {
   const base = await baseService.baseGetWithConfig({
     baseId: req.params.baseId,
   });
@@ -16,10 +15,7 @@ export async function baseGet(req: Request<any>, res: Response<Base>) {
   res.json(base);
 }
 
-export async function baseUpdate(
-  req: Request<any, any, any>,
-  res: Response<any>
-) {
+async function baseUpdate(req: Request<any, any, any>, res: Response<any>) {
   const base = await baseService.baseUpdate({
     baseId: req.params.baseId,
     base: req.body,
@@ -28,7 +24,7 @@ export async function baseUpdate(
   res.json(base);
 }
 
-export async function baseList(
+async function baseList(
   req: Request<any, any, any>,
   res: Response<BaseListType>
 ) {
@@ -64,7 +60,7 @@ async function baseCreate(req: Request<any, any>, res) {
   res.json(base);
 }
 
-export default (router) => {
+const initRoutes = (router) => {
   router.get(
     '/api/v1/db/meta/projects/:projectId/bases/:baseId',
     metaApiMetrics,
@@ -73,7 +69,6 @@ export default (router) => {
   router.patch(
     '/api/v1/db/meta/projects/:projectId/bases/:baseId',
     metaApiMetrics,
-    getAjvValidatorMw('swagger.json#/components/schemas/BaseReq'),
     ncMetaAclMw(baseUpdate, 'baseUpdate')
   );
   router.delete(
@@ -84,7 +79,6 @@ export default (router) => {
   router.post(
     '/api/v1/db/meta/projects/:projectId/bases',
     metaApiMetrics,
-    getAjvValidatorMw('swagger.json#/components/schemas/BaseReq'),
     ncMetaAclMw(baseCreate, 'baseCreate')
   );
   router.get(
@@ -93,3 +87,5 @@ export default (router) => {
     ncMetaAclMw(baseList, 'baseList')
   );
 };
+
+export default initRoutes;

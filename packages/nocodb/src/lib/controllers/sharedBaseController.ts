@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { sharedBaseService } from '../services';
 
 async function createSharedBaseLink(req, res): Promise<any> {
@@ -49,12 +48,10 @@ router.get(
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/shared',
-  getAjvValidatorMw('swagger.json#/components/schemas/SharedBaseReq'),
   ncMetaAclMw(createSharedBaseLink, 'createSharedBaseLink')
 );
 router.patch(
   '/api/v1/db/meta/projects/:projectId/shared',
-  getAjvValidatorMw('swagger.json#/components/schemas/SharedBaseReq'),
   ncMetaAclMw(updateSharedBaseLink, 'updateSharedBaseLink')
 );
 router.delete(

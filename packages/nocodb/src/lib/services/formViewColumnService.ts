@@ -1,3 +1,4 @@
+import { validatePayload } from '../meta/api/helpers';
 import { FormViewColumn } from '../models';
 import { T } from 'nc-help';
 export async function columnUpdate(param: {
@@ -5,6 +6,11 @@ export async function columnUpdate(param: {
   // todo: replace with FormColumnReq
   formViewColumn: FormViewColumn;
 }) {
+  validatePayload(
+    'swagger.json#/components/schemas/FormColumnReq',
+    param.formViewColumn
+  );
+
   T.emit('evt', { evt_type: 'formViewColumn:updated' });
   return await FormViewColumn.update(
     param.formViewColumnId,

@@ -2,7 +2,6 @@ import { Request, Response, Router } from 'express';
 import { T } from 'nc-help';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { hookFilterService } from '../services';
 
 export async function filterGet(req: Request, res: Response) {
@@ -66,7 +65,6 @@ router.get(
 router.post(
   '/hooks/:hookId/filters/',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/FilterReq'),
   ncMetaAclMw(filterCreate, 'filterCreate')
 );
 router.get(
@@ -77,7 +75,6 @@ router.get(
 router.patch(
   '/hooks/:hookId/filters/:filterId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/FilterReq'),
   ncMetaAclMw(filterUpdate, 'filterUpdate')
 );
 router.delete(

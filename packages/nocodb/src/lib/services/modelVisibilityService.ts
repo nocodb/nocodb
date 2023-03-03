@@ -1,4 +1,5 @@
 import { VisibilityRuleReqType } from 'nocodb-sdk';
+import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
 import ModelRoleVisibility from '../models/ModelRoleVisibility';
 import { T } from 'nc-help';
@@ -8,7 +9,11 @@ export async function xcVisibilityMetaSetAll(param: {
   visibilityRule: VisibilityRuleReqType;
   projectId: string;
 }) {
-  T.emit('evt', { evt_type: 'uiAcl:updated' });
+  validatePayload(
+    'swagger.json#/components/schemas/VisibilityRuleReq',
+    param.visibilityRule
+  ),
+    T.emit('evt', { evt_type: 'uiAcl:updated' });
   for (const d of param.visibilityRule) {
     for (const role of Object.keys(d.disabled)) {
       const view = await View.get(d.id);

@@ -2,7 +2,6 @@ import { Request, Response, Router } from 'express';
 import { GalleryType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { galleryViewService } from '../services';
 
 export async function galleryViewGet(req: Request, res: Response<GalleryType>) {
@@ -35,13 +34,11 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/galleries',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/GalleryReq'),
   ncMetaAclMw(galleryViewCreate, 'galleryViewCreate')
 );
 router.patch(
   '/api/v1/db/meta/galleries/:galleryViewId',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/GalleryReq'),
   ncMetaAclMw(galleryViewUpdate, 'galleryViewUpdate')
 );
 router.get(

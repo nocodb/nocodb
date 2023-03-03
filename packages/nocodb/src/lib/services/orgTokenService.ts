@@ -1,4 +1,5 @@
 import { ApiTokenReqType, OrgUserRoles } from 'nocodb-sdk';
+import { validatePayload } from '../meta/api/helpers';
 import { User } from '../models';
 import ApiToken from '../models/ApiToken';
 import { T } from 'nc-help';
@@ -32,6 +33,11 @@ export async function apiTokenCreate(param: {
   user: User;
   apiToken: ApiTokenReqType;
 }) {
+  validatePayload(
+    'swagger.json#/components/schemas/ApiTokenReq',
+    param.apiToken
+  );
+
   T.emit('evt', { evt_type: 'org:apiToken:created' });
   return await ApiToken.insert({
     ...param.apiToken,

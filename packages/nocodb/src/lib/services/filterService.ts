@@ -1,4 +1,5 @@
 import { FilterReqType } from 'nocodb-sdk';
+import { validatePayload } from '../meta/api/helpers';
 import Filter from '../models/Filter';
 import { T } from 'nc-help';
 
@@ -6,6 +7,8 @@ export async function hookFilterCreate(param: {
   filter: FilterReqType;
   hookId: any;
 }) {
+  validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
   const filter = await Filter.insert({
     ...param.filter,
     fk_hook_id: param.hookId,
@@ -29,6 +32,8 @@ export async function filterCreate(param: {
   filter: FilterReqType;
   viewId: string;
 }) {
+  validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
   const filter = await Filter.insert({
     ...param.filter,
     fk_view_id: param.viewId,
@@ -42,6 +47,8 @@ export async function filterUpdate(param: {
   filter: FilterReqType;
   filterId: string;
 }) {
+  validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
   // todo: type correction
   const filter = await Filter.update(param.filterId, param.filter as Filter);
 

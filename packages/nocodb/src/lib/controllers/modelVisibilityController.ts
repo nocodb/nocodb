@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { getAjvValidatorMw } from '../meta/api/helpers';
 import { modelVisibilityService } from '../services';
 
 async function xcVisibilityMetaSetAll(req, res) {
@@ -30,7 +29,6 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/visibility-rules',
   metaApiMetrics,
-  getAjvValidatorMw('swagger.json#/components/schemas/VisibilityRuleReq'),
   ncMetaAclMw(xcVisibilityMetaSetAll, 'modelVisibilitySet')
 );
 export default router;

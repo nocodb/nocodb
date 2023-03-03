@@ -13,6 +13,7 @@ import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import { promisify } from 'util';
 import { NC_APP_SETTINGS } from '../../constants';
+import { validatePayload } from '../../meta/api/helpers';
 import { NcError } from '../../meta/helpers/catchError';
 import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
 import { Audit, Store, User } from '../../models';
@@ -79,6 +80,11 @@ export async function passwordChange(param: {
   user: UserType;
   req: any;
 }): Promise<any> {
+  validatePayload(
+    'swagger.json#/components/schemas/PasswordChangeReq',
+    param.body
+  );
+
   const { currentPassword, newPassword } = param.body;
 
   if (!currentPassword || !newPassword) {
@@ -129,6 +135,11 @@ export async function passwordForgot(param: {
   siteUrl: string;
   req: any;
 }): Promise<any> {
+  validatePayload(
+    'swagger.json#/components/schemas/ForgotPasswordReq',
+    param.body
+  );
+
   const _email = param.body.email;
 
   if (!_email) {
@@ -203,6 +214,11 @@ export async function passwordReset(param: {
   // todo: exclude
   req: any;
 }): Promise<any> {
+  validatePayload(
+    'swagger.json#/components/schemas/PasswordResetReq',
+    param.body
+  );
+
   const { token, body, req } = param;
 
   const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {

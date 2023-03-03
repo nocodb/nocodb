@@ -1,4 +1,5 @@
 import { T } from 'nc-help';
+import { validatePayload } from '../meta/api/helpers';
 import { Hook, Model } from '../models';
 import { HookReqType, HookTestReqType } from 'nocodb-sdk';
 
@@ -14,6 +15,8 @@ export async function hookCreate(param: {
   tableId: string;
   hook: HookReqType;
 }) {
+  validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+
   T.emit('evt', { evt_type: 'webhooks:created' });
   // todo: type correction
   const hook = await Hook.insert({
@@ -30,6 +33,8 @@ export async function hookDelete(param: { hookId: string }) {
 }
 
 export async function hookUpdate(param: { hookId: string; hook: HookReqType }) {
+  validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+
   T.emit('evt', { evt_type: 'webhooks:updated' });
 
   // todo: correction in swagger
@@ -40,6 +45,11 @@ export async function hookTest(param: {
   tableId: string;
   hookTest: HookTestReqType;
 }) {
+  validatePayload(
+    'swagger.json#/components/schemas/HookTestReq',
+    param.hookTest
+  );
+
   const model = await Model.getByIdOrName({ id: param.tableId });
 
   const {

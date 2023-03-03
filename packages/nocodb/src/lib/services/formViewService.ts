@@ -1,5 +1,6 @@
 import { T } from 'nc-help';
 import { FormReqType, ViewTypes } from 'nocodb-sdk';
+import { validatePayload } from '../meta/api/helpers';
 import { FormView, View } from '../models';
 
 export async function formViewGet(param: { formViewId: string }) {
@@ -11,6 +12,8 @@ export async function formViewCreate(param: {
   tableId: string;
   body: FormReqType;
 }) {
+  validatePayload('swagger.json#/components/schemas/FormCreateReq', param.body);
+
   T.emit('evt', { evt_type: 'vtable:created', show_as: 'form' });
   const view = await View.insert({
     ...param.body,
@@ -26,6 +29,8 @@ export async function formViewUpdate(param: {
   formViewId: string;
   body: FormReqType;
 }) {
+  validatePayload('swagger.json#/components/schemas/FormReq', param.body);
+
   T.emit('evt', { evt_type: 'view:updated', type: 'grid' });
   await FormView.update(param.formViewId, param.body);
 }

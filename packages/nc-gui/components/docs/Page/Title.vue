@@ -34,6 +34,7 @@ watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.title],
   async ([oldPageId], [newPageId]) => {
     if (isPublic.value) return
+    if (!openedPage.value) return
 
     if (oldPageId !== newPageId) return
 

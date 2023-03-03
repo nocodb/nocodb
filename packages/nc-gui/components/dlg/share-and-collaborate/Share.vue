@@ -12,6 +12,10 @@ const { openedPage, updatePage, nestedUrl } = useDocs()
 const isPagePublishing = ref(false)
 const isProjectPublishing = ref(false)
 const isNestedPagePublishing = ref(false)
+const isCopied = ref({
+  link: false,
+  embed: false,
+})
 
 const projectMeta = computed(() => {
   if (!project.value) {
@@ -31,6 +35,7 @@ const projectMeta = computed(() => {
 
 const copyProjectUrl = async () => {
   await navigator.clipboard.writeText(`${window.location.origin}/#/nc/doc/${project?.value?.id}/s/`)
+  isCopied.value.link = true
 }
 
 const openProjectUrl = async () => {
@@ -41,6 +46,7 @@ const embedProjectHtml = async () => {
   await navigator.clipboard.writeText(
     `<iframe src="${window.location.origin}/#/nc/doc/${project?.value?.id}/s/" width="100%" height="100%" style="border: none;"></iframe>`,
   )
+  isCopied.value.embed = true
 }
 
 const toggleProjectPublishedState = async () => {
@@ -61,6 +67,7 @@ const toggleProjectPublishedState = async () => {
 
 const copyPageUrl = async () => {
   await navigator.clipboard.writeText(nestedUrl(openedPage.value!.id!, { completeUrl: true, publicUrl: true }))
+  isCopied.value.link = true
 }
 
 const openPageUrl = async () => {
@@ -74,6 +81,7 @@ const embedPageHtml = async () => {
       publicUrl: true,
     })}" width="100%" height="100%" style="border: none;"></iframe>`,
   )
+  isCopied.value.embed = true
 }
 
 const togglePagePublishedState = async () => {
@@ -115,6 +123,17 @@ const toggleNestedPagePublishedState = async () => {
     isNestedPagePublishing.value = false
   }
 }
+
+watch(
+  [isNestedPagePublishing, isPagePublishing, isProjectPublishing],
+  () => {
+    isCopied.value.link = false
+    isCopied.value.embed = false
+  },
+  {
+    deep: true,
+  },
+)
 </script>
 
 <template>
@@ -139,16 +158,26 @@ const toggleNestedPagePublishedState = async () => {
         </div>
         <div
           class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300"
+          :class="{
+            '!text-gray-300 !border-gray-200 !cursor-not-allowed': isCopied.embed,
+          }"
           @click="embedProjectHtml"
         >
           <MdiCodeTags class="h-4" />
         </div>
         <div
           class="flex flex-row py-1 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300 gap-x-1 items-center"
+          :class="{
+            '!text-gray-300 !border-gray-200 !cursor-not-allowed': isCopied.link,
+          }"
           @click="copyProjectUrl"
         >
-          <MdiContentCopy class="h-3.5" />
-          <div class="flex text-xs" :style="{ fontWeight: 500 }">Copy link</div>
+          <MdiCheck v-if="isCopied.link" class="h-3.5" />
+          <MdiContentCopy v-else class="h-3.5" />
+          <div class="flex text-xs" :style="{ fontWeight: 500 }">
+            <template v-if="isCopied.link"> Link Copied </template>
+            <template v-else> Copy link </template>
+          </div>
         </div>
       </div>
     </div>
@@ -184,16 +213,26 @@ const toggleNestedPagePublishedState = async () => {
         </div>
         <div
           class="flex py-1.5 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300"
+          :class="{
+            '!text-gray-300 !border-gray-200 !cursor-not-allowed': isCopied.embed,
+          }"
           @click="embedPageHtml"
         >
           <MdiCodeTags class="h-4" />
         </div>
         <div
           class="flex flex-row py-1 px-1.5 hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-300 gap-x-1 items-center"
+          :class="{
+            '!text-gray-300 !border-gray-200 !cursor-not-allowed': isCopied.link,
+          }"
           @click="copyPageUrl"
         >
-          <MdiContentCopy class="h-3.5" />
-          <div class="flex text-xs" :style="{ fontWeight: 500 }">Copy link</div>
+          <MdiCheck v-if="isCopied.link" class="h-3.5" />
+          <MdiContentCopy v-else class="h-3.5" />
+          <div class="flex text-xs" :style="{ fontWeight: 500 }">
+            <template v-if="isCopied.link"> Link Copied </template>
+            <template v-else> Copy link </template>
+          </div>
         </div>
       </div>
     </div>

@@ -10865,47 +10865,58 @@
         "description": "Model for Plugin",
         "examples": [
           {
+            "id": "nc_tljibbzcyjrhcc",
+            "title": "S3",
+            "description": "Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance.",
             "active": true,
-            "category": "string",
-            "creator": "string",
-            "creator_website": "string",
-            "description": "string",
-            "docs": "string",
-            "icon": "string",
-            "id": "string",
-            "input": 0,
-            "input_schema": "string",
-            "logo": "string",
-            "price": "string",
-            "rating": 0,
-            "status": "string",
-            "status_details": "string",
-            "tags": "string",
-            "title": "string",
-            "version": "string"
+            "rating": null,
+            "version": "0.0.1",
+            "docs": null,
+            "status": "install",
+            "status_details": null,
+            "logo": "plugins/s3.png",
+            "icon": null,
+            "tags": "Storage",
+            "category": "Storage",
+            "input_schema": "{\"title\":\"Configure Amazon S3\",\"items\":[{\"key\":\"bucket\",\"label\":\"Bucket Name\",\"placeholder\":\"Bucket Name\",\"type\":\"SingleLineText\",\"required\":true},{\"key\":\"region\",\"label\":\"Region\",\"placeholder\":\"Region\",\"type\":\"SingleLineText\",\"required\":true},{\"key\":\"access_key\",\"label\":\"Access Key\",\"placeholder\":\"Access Key\",\"type\":\"SingleLineText\",\"required\":true},{\"key\":\"access_secret\",\"label\":\"Access Secret\",\"placeholder\":\"Access Secret\",\"type\":\"Password\",\"required\":true}],\"actions\":[{\"label\":\"Test\",\"placeholder\":\"Test\",\"key\":\"test\",\"actionType\":\"TEST\",\"type\":\"Button\"},{\"label\":\"Save\",\"placeholder\":\"Save\",\"key\":\"save\",\"actionType\":\"SUBMIT\",\"type\":\"Button\"}],\"msgOnInstall\":\"Successfully installed and attachment will be stored in AWS S3\",\"msgOnUninstall\":\"\"}",
+            "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}",
+            "creator": null,
+            "creator_website": null,
+            "price": null
           }
         ],
+        "title": "Plugin Model",
+        "type": "object",
         "properties": {
           "active": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is plguin active?"
           },
           "category": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Category",
+            "example": "Storage"
           },
           "creator": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Creator (Not in use)"
           },
           "creator_website": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Creator website (Not in use)"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Description",
+            "example": "Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance."
           },
           "docs": {
-            "type": "string"
+            "type": "string",
+            "description": "Documentation of plugin (Not in use)"
           },
           "icon": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Icon (Not in use)"
           },
           "id": {
             "$ref": "#/components/schemas/Id",
@@ -10919,74 +10930,94 @@
               {
                 "type": "integer"
               }
-            ]
+            ],
+            "description": "Plugin Input"
           },
           "input_schema": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Input Schema\n"
           },
           "logo": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin logo",
+            "example": "plugins/s3.png"
           },
           "price": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Price (Not in use)"
           },
           "rating": {
-            "type": "number"
+            "type": "number",
+            "description": "Plugin Rating (Not in use)"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Status",
+            "example": "install"
           },
           "status_details": {
-            "type": "string"
+            "type": "string",
+            "description": "Not in use"
           },
           "tags": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin tags",
+            "example": "Storage"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Title"
           },
           "version": {
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Version",
+            "example": "0.0.1"
           }
-        },
-        "title": "Plugin Model",
-        "type": "object"
+        }
       },
       "PluginReq": {
         "description": "Model for Plugin Request",
         "examples": [
           {
-            "active": true,
-            "input": null
+            "active": 0,
+            "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}"
           }
         ],
+        "title": "Plugin Reqeust",
+        "type": "object",
         "properties": {
           "active": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is Plugin Active?"
           },
-          "input": {}
-        },
-        "title": "Plugin Reqeust",
-        "type": "object"
+          "input": {
+            "type": "string",
+            "description": "Plugin Input"
+          }
+        }
       },
       "PluginTestReq": {
         "description": "Model for Plugin Test Request",
         "examples": [
           {
-            "input": null,
-            "title": "string"
+            "title": "Plugin Foo",
+            "input": "{\"bucket\":\"my-bucket\",\"region\":\"us-west-004\",\"access_key\":\"redacted\",\"access_secret\":\"redacted\"}"
           }
         ],
+        "title": "Plugin Test Request Model",
+        "type": "object",
         "properties": {
-          "input": {},
           "title": {
             "maxLength": 45,
-            "type": "string"
+            "type": "string",
+            "description": "Plugin Title"
+          },
+          "input": {
+            "type": "string",
+            "description": "Plugin Input"
           }
         },
-        "required": ["input", "title"],
-        "title": "Plugin Test Request Model",
-        "type": "object"
+        "required": ["title", "input"]
       },
       "Project": {
         "description": "Model for Project",

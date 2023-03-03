@@ -169,7 +169,7 @@
               "examples": {
                 "example-1": {
                   "value": {
-                    "email": "user@nocodb.com",
+                    "email": "user@example.com",
                     "password": "Password"
                   }
                 }
@@ -198,7 +198,7 @@
                   "example-1": {
                     "value": {
                       "id": "us_8kugj628ebjngs",
-                      "email": "user@nocodb.com",
+                      "email": "user@example.com",
                       "email_verified": true,
                       "firstname": "Alice",
                       "lastname": "Smith",
@@ -12265,7 +12265,7 @@
         "examples": [
           {
             "created_at": "2023-03-01 11:36:49",
-            "email": "alice.smith@nocodb.com",
+            "email": "user@example.com",
             "email_verified": true,
             "firstName": "Alice",
             "id": "us_8kugj628ebjngs",
@@ -12283,7 +12283,7 @@
           },
           "email": {
             "description": "The email of the user",
-            "example": "alice.smith@nocodb.com",
+            "example": "user@example.com",
             "format": "email",
             "type": "string"
           },
@@ -12371,7 +12371,7 @@
             "users": {
               "list": {
                 "created_at": "2023-03-01 11:36:49",
-                "email": "alice.smith@nocodb.com",
+                "email": "user@example.com",
                 "email_verified": true,
                 "firstName": "Alice",
                 "id": "us_8kugj628ebjngs",

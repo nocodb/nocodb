@@ -14,7 +14,7 @@ import catchError, { NcError } from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
-import { getCacheMiddleware } from './helpers';
+import { getCacheMiddleware, getAjvValidatorMw } from './helpers';
 
 const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
   if (!req['user']?.id) {
@@ -206,21 +206,19 @@ router.post(
     },
   }).any(),
   [
+    getAjvValidatorMw('swagger.json#/components/schemas/AttachmentReq'),
     extractProjectIdAndAuthenticate,
     catchError(isUploadAllowed),
     catchError(upload),
   ]
 );
 
-router.post(
-  '/api/v1/db/storage/upload-by-url',
-
-  [
-    extractProjectIdAndAuthenticate,
-    catchError(isUploadAllowed),
-    catchError(uploadViaURL),
-  ]
-);
+router.post('/api/v1/db/storage/upload-by-url', [
+  getAjvValidatorMw('swagger.json#/components/schemas/AttachmentReq'),
+  extractProjectIdAndAuthenticate,
+  catchError(isUploadAllowed),
+  catchError(uploadViaURL),
+]);
 
 router.get(/^\/download\/(.+)$/, getCacheMiddleware(), catchError(fileRead));
 

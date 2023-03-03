@@ -52,7 +52,12 @@ const tiptapExtensions = (): Extensions => {
       suggestion,
     }),
     Placeholder.configure({
-      placeholder: 'Press / to open the command menu or start writing',
+      placeholder: ({ node }) => {
+        if (node.type.name === 'heading') {
+          return `Heading ${node.attrs.level}`
+        }
+        return 'Press / to open the command menu or start writing'
+      },
     }),
     BulletList,
     OrderedList,

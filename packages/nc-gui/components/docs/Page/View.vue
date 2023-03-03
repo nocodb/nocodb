@@ -351,26 +351,26 @@ watch(
     }
   }
 
-  p.is-empty::before {
+  p.is-empty::before,
+  h1.is-empty::before,
+  h2.is-empty::before,
+  h3.is-empty::before {
     content: attr(data-placeholder);
-    font-weight: 400;
     float: left;
-    color: #bcc2c8;
+    color: #afafaf;
     pointer-events: none;
     height: 0;
+  }
+
+  h1.is-empty::before,
+  h2.is-empty::before,
+  h3.is-empty::before {
+    color: #d6d6d6;
   }
 
   .nc-docs-list-item > p {
     margin-top: 0.25rem !important;
     margin-bottom: 0.25rem !important;
-  }
-
-  p,
-  h1,
-  h2,
-  h3 {
-    -webkit-animation: pop-in 0.1s cubic-bezier(0, 0, 0.22, 0.58);
-    animation: pop-in 0.1s cubic-bezier(0, 0, 0.22, 0.58);
   }
 
   p {

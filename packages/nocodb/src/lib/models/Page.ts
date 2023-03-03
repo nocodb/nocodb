@@ -174,7 +174,7 @@ export default class Page {
     let page = withoutCache
       ? undefined
       : await NocoCache.get(
-          `${CacheScope.DOCS_PAGE}:${id}`,
+          `${CacheScope.DOCS_PAGE}:${projectId}:${id}`,
           CacheGetType.TYPE_OBJECT
         );
 
@@ -208,7 +208,10 @@ export default class Page {
         id
       );
 
-      await NocoCache.set(`${CacheScope.DOCS_PAGE}:${id}`, pageWithAllFields);
+      await NocoCache.set(
+        `${CacheScope.DOCS_PAGE}:${projectId}:${id}`,
+        pageWithAllFields
+      );
     }
 
     return page as DocsPageType | undefined;
@@ -589,7 +592,7 @@ export default class Page {
     await ncMeta.metaDelete(null, null, Page.tableName({ projectId }), {
       id,
     });
-    await NocoCache.del(`${CacheScope.DOCS_PAGE}:${id}`);
+    await NocoCache.del(`${CacheScope.DOCS_PAGE}:${projectId}:${id}`);
   }
 
   static async reorder(

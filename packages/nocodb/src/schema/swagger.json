@@ -6237,32 +6237,38 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "10"
             },
             "in": "query",
             "name": "row_id",
-            "required": true
+            "required": true,
+            "description": "Row ID"
           },
           {
             "schema": {
-              "$ref": "#/components/schemas/Id"
+              "$ref": "#/components/schemas/Id",
+              "example": "md_c6csq89tl37jm5"
             },
             "in": "query",
             "name": "fk_model_id",
-            "required": true
+            "required": true,
+            "description": "Foreign Key to Model"
           },
           {
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "example": "true"
             },
             "in": "query",
-            "name": "comments_only"
+            "name": "comments_only",
+            "description": "Is showing comments only?"
           }
         ],
         "tags": ["Utils"]
       },
       "post": {
-        "summary": "",
+        "summary": "Comment Rows",
         "operationId": "utils-comment-row",
         "responses": {
           "200": {
@@ -6274,12 +6280,21 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CommentReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "description": "This is the comment for the row",
+                    "fk_model_id": "md_ehn5izr99m7d45",
+                    "row_id": "3"
+                  }
+                }
               }
             }
           }
         },
         "tags": ["Utils"],
-        "description": "Create a new comment for Audit"
+        "description": "Create a new comment in a row. Logged in Audit."
       }
     },
     "/api/v1/db/meta/audits/comments/count": {
@@ -7736,7 +7751,7 @@
               "EXPORT_TO_ZIP",
               "UPDATED",
               "SIGNIN",
-              "SIGN",
+              "SIGNUP",
               "PASSWORD_RESET",
               "PASSWORD_FORGOT",
               "PASSWORD_CHANGE",
@@ -8495,25 +8510,31 @@
         "description": "Model for Comment Request",
         "examples": [
           {
-            "description": "string",
-            "fk_model_id": "string",
-            "row_id": "string"
+            "description": "This is the comment for the row",
+            "fk_model_id": "md_ehn5izr99m7d45",
+            "row_id": "3"
           }
         ],
+        "title": "Comment Request Model",
+        "type": "object",
         "properties": {
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Description for the target row",
+            "example": "This is the comment for the row"
           },
           "fk_model_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Foreign Key to Model",
+            "example": "md_ehn5izr99m7d45"
           },
           "row_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Row ID",
+            "example": "3"
           }
         },
-        "required": ["comment", "fk_model_id", "row_id"],
-        "title": "Comment Request Model",
-        "type": "object"
+        "required": ["fk_model_id", "row_id"]
       },
       "Filter": {
         "description": "Model for Filter",

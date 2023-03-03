@@ -42,6 +42,7 @@ export async function tableDelete(req: Request, res: Response) {
   const result = await tableService.tableDelete({
     tableId: req.params.tableId,
     user: (req as any).session?.passport?.user,
+    req,
   });
 
   res.json(result);

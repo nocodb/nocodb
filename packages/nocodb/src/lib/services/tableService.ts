@@ -140,7 +140,11 @@ export function reorderTable(param: { tableId: string; order: any }) {
   return Model.updateOrder(param.tableId, param.order);
 }
 
-export async function tableDelete(param: { tableId: string; user: User }) {
+export async function tableDelete(param: {
+  tableId: string;
+  user: User;
+  req?: any;
+}) {
   const table = await Model.getByIdOrName({ id: param.tableId });
   await table.getColumns();
 
@@ -189,7 +193,7 @@ export async function tableDelete(param: { tableId: string; user: User }) {
     op_sub_type: AuditOperationSubTypes.DELETED,
     user: param.user?.email,
     description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
-    // ip: (req as any).clientIp,
+    ip: param.req?.clientIp,
   }).then(() => {});
 
   T.emit('evt', { evt_type: 'table:deleted' });
@@ -408,24 +412,25 @@ export async function getAccessibleTables(param: {
     : (tableList.filter((t) => !t.mm) as Model[]);
 }
 
-export async function tableCreate(args: {
+export async function tableCreate(param: {
   projectId: string;
   baseId?: string;
   table: TableReqType;
   user: User;
+  req?: any;
 }) {
-  validatePayload('swagger.json#/components/schemas/TableReq', args.table);
+  validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
-  const project = await Project.getWithInfo(args.projectId);
+  const project = await Project.getWithInfo(param.projectId);
   let base = project.bases[0];
 
-  if (args.baseId) {
-    base = project.bases.find((b) => b.id === args.baseId);
+  if (param.baseId) {
+    base = project.bases.find((b) => b.id === param.baseId);
   }
 
   if (
-    !args.table.table_name ||
-    (project.prefix && project.prefix === args.table.table_name)
+    !param.table.table_name ||
+    (project.prefix && project.prefix === param.table.table_name)
   ) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
@@ -433,15 +438,15 @@ export async function tableCreate(args: {
   }
 
   if (base.is_meta && project.prefix) {
-    if (!args.table.table_name.startsWith(project.prefix)) {
-      args.table.table_name = `${project.prefix}_${args.table.table_name}`;
+    if (!param.table.table_name.startsWith(project.prefix)) {
+      param.table.table_name = `${project.prefix}_${param.table.table_name}`;
     }
   }
 
-  args.table.table_name = DOMPurify.sanitize(args.table.table_name);
+  param.table.table_name = DOMPurify.sanitize(param.table.table_name);
 
   // validate table name
-  if (/^\s+|\s+$/.test(args.table.table_name)) {
+  if (/^\s+|\s+$/.test(param.table.table_name)) {
     NcError.badRequest(
       'Leading or trailing whitespace not allowed in table names'
     );
@@ -449,7 +454,7 @@ export async function tableCreate(args: {
 
   if (
     !(await Model.checkTitleAvailable({
-      table_name: args.table.table_name,
+      table_name: param.table.table_name,
       project_id: project.id,
       base_id: base.id,
     }))
@@ -457,9 +462,9 @@ export async function tableCreate(args: {
     NcError.badRequest('Duplicate table name');
   }
 
-  if (!args.table.title) {
-    args.table.title = getTableNameAlias(
-      args.table.table_name,
+  if (!param.table.title) {
+    param.table.title = getTableNameAlias(
+      param.table.table_name,
       project.prefix,
       base
     );
@@ -467,7 +472,7 @@ export async function tableCreate(args: {
 
   if (
     !(await Model.checkAliasAvailable({
-      title: args.table.title,
+      title: param.table.title,
       project_id: project.id,
       base_id: base.id,
     }))
@@ -489,13 +494,13 @@ export async function tableCreate(args: {
     tableNameLengthLimit = 128;
   }
 
-  if (args.table.table_name.length > tableNameLengthLimit) {
+  if (param.table.table_name.length > tableNameLengthLimit) {
     NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
   }
 
   const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
-  for (const column of args.table.columns) {
+  for (const column of param.table.columns) {
     if (column.column_name.length > mxColumnLength) {
       NcError.badRequest(
         `Column name ${column.column_name} exceeds ${mxColumnLength} characters`
@@ -503,13 +508,13 @@ export async function tableCreate(args: {
     }
   }
 
-  args.table.columns = args.table.columns?.map((c) => ({
+  param.table.columns = param.table.columns?.map((c) => ({
     ...getColumnPropsFromUIDT(c as any, base),
     cn: c.column_name,
   }));
   await sqlMgr.sqlOpPlus(base, 'tableCreate', {
-    ...args.table,
-    tn: args.table.table_name,
+    ...param.table,
+    tn: param.table.table_name,
   });
 
   const columns: Array<
@@ -517,7 +522,7 @@ export async function tableCreate(args: {
       cn: string;
       system?: boolean;
     }
-  > = (await sqlClient.columnList({ tn: args.table.table_name }))?.data?.list;
+  > = (await sqlClient.columnList({ tn: param.table.table_name }))?.data?.list;
 
   const tables = await Model.list({
     project_id: project.id,
@@ -529,20 +534,20 @@ export async function tableCreate(args: {
     base_id: base.id,
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.CREATED,
-    user: args.user?.email,
-    description: `created table ${args.table.table_name} with alias ${args.table.title}  `,
-    // ip: (req as any).clientIp,
+    user: param.user?.email,
+    description: `created table ${param.table.table_name} with alias ${param.table.title}  `,
+    ip: param.req?.clientIp,
   }).then(() => {});
 
-  mapDefaultDisplayValue(args.table.columns);
+  mapDefaultDisplayValue(param.table.columns);
 
   T.emit('evt', { evt_type: 'table:created' });
 
   // todo: type correction
   const result = await Model.insert(project.id, base.id, {
-    ...args.table,
+    ...param.table,
     columns: columns.map((c, i) => {
-      const colMetaFromReq = args.table?.columns?.find(
+      const colMetaFromReq = param.table?.columns?.find(
         (c1) => c.cn === c1.column_name
       );
       return {

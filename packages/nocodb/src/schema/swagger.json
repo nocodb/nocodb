@@ -12968,30 +12968,6 @@
         },
         "title": "Visibility Rule Request Model",
         "type": "array"
-      },
-      "Webhook": {
-        "description": "Model for Webhook",
-        "examples": [
-          {
-            "id": "string",
-            "title": "string",
-            "type": "string"
-          }
-        ],
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "title": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          }
-        },
-        "title": "Webhook Model",
-        "type": "object"
       }
     },
     "responses": {

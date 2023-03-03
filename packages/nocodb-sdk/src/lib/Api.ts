@@ -607,46 +607,92 @@ export interface SortListType {
 export interface ColumnType {
   /** Unique ID */
   id?: IdType;
+  /**
+   * Base ID that this column belongs to
+   * @example ds_krsappzu9f8vmo
+   */
   base_id?: string;
+  /**
+   * Model ID that this column belongs to
+   * @example md_yvwvbt2i78rgcm
+   */
   fk_model_id?: string;
+  /**
+   * Column Title
+   * @example Title
+   */
   title?: string;
+  /**
+   * The data type in UI
+   * @example SingleLineText
+   */
   uidt?: string;
+  /**
+   * Data Type in DB
+   * @example varchar
+   */
   dt?: string;
+  /** Numeric Precision */
   np?: string | number | null;
+  /** Numeric Scale */
   ns?: string | number | null;
+  /** Character Maximum Length */
   clen?: string | number | null;
+  /** Column Ordinal Position */
   cop?: string;
-  /** Model for Bool */
+  /** Is Primary Key? */
   pk?: BoolType;
-  /** Model for Bool */
+  /** Is Primary Value? */
   pv?: BoolType;
-  /** Model for Bool */
+  /** Is Required? */
   rqd?: BoolType;
+  /**
+   * Column Name
+   * @example title
+   */
   column_name?: string;
-  /** Model for Bool */
+  /** Is Unsigned? */
   un?: BoolType;
+  /**
+   * Column Type
+   * @example varchar(45)
+   */
   ct?: string;
-  /** Model for Bool */
+  /** Is Auto-Increment? */
   ai?: BoolType;
-  /** Model for Bool */
+  /** Is unique? */
   unique?: BoolType;
+  /** Column Default */
   cdf?: string;
+  /** Column Comment */
   cc?: string;
+  /**
+   * Character Set Name
+   * @example utf8mb4
+   */
   csn?: string;
+  /**
+   * Data Type X
+   * @example specificType
+   */
   dtx?: string;
+  /** Data Type X Precision */
   dtxp?: string | number | null;
+  /** Data Type X Scale */
   dtxs?: string | number | null;
-  /** Model for Bool */
+  /** Auto Update Timestamp */
   au?: BoolType;
-  /** Model for Bool */
+  /** Is Deleted? */
   deleted?: BoolType;
-  /** Model for Bool */
+  /** Is Visible? */
   visible?: BoolType;
+  /** The order of the list of columns */
   order?: number;
-  /** Model for Bool */
+  /** Is System Colun? */
   system?: BoolType;
-  /** Model for Meta */
+  /** Meta Info */
   meta?: MetaType;
+  /** Column Options */
   colOptions?:
     | LinkToAnotherRecordType
     | FormulaType
@@ -670,6 +716,30 @@ export interface ColumnListType {
     list: ColumnType[];
   };
 }
+
+/**
+ * Model for Column Request
+ */
+export type ColumnReqType = (
+  | LinkToAnotherColumnReqType
+  | RollupColumnReqType
+  | FormulaColumnReqType
+  | LookupColumnReqType
+  | NormalColumnRequestType
+  | (LinkToAnotherColumnReqType &
+      RollupColumnReqType &
+      FormulaColumnReqType &
+      LookupColumnReqType &
+      NormalColumnRequestType)
+) & {
+  column_name: string;
+  title: string;
+  /** Column order in a specific view */
+  column_order?: {
+    view_id?: string;
+    order?: number;
+  };
+};
 
 /**
  * Model for LinkToAnotherRecord
@@ -1608,30 +1678,6 @@ export interface FormulaColumnReqType {
   formula?: string;
   title?: string;
 }
-
-/**
- * Model for Column Request
- */
-export type ColumnReqType = (
-  | LinkToAnotherColumnReqType
-  | RollupColumnReqType
-  | FormulaColumnReqType
-  | LookupColumnReqType
-  | NormalColumnRequestType
-  | (LinkToAnotherColumnReqType &
-      RollupColumnReqType &
-      FormulaColumnReqType &
-      LookupColumnReqType &
-      NormalColumnRequestType)
-) & {
-  column_name: string;
-  title: string;
-  /** Column order in a specific view */
-  column_order?: {
-    view_id?: string;
-    order?: number;
-  };
-};
 
 /**
  * Model for User Info
@@ -4321,8 +4367,11 @@ export class Api<
       projectName: string,
       tableName: string,
       query?: {
+        /** Which fields to be shown */
         fields?: any[];
+        /** The result will be sorted based on `sort` query */
         sort?: string[] | string;
+        /** Extra filtering */
         where?: string;
         /**
          * Offset in rows
@@ -4334,6 +4383,10 @@ export class Api<
          * @min 1
          */
         limit?: number;
+        /** Used for multiple sort queries */
+        sortArrJson?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
       },
       params: RequestParams = {}
     ) =>

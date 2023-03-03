@@ -98,16 +98,15 @@ watch(
   openedPageId,
   async () => {
     if (!openedPageId.value) return
+    if (openedPage.value?.new) return
 
     isFetching.value.page = true
-
     openedPage.value = undefined
 
     const newPage = (await fetchPage()) as any
     if (newPage?.id !== openedPageId.value) return
 
     openedPage.value = newPage
-    if (openedPageInSidebar.value?.new) openedPage.value!.new = true
 
     isFetching.value.page = false
   },
@@ -135,7 +134,7 @@ watch(
 
 <template>
   <a-layout-content>
-    <div v-if="openedPage && !isFetching.page" ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
+    <div ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
@@ -177,11 +176,25 @@ watch(
             maxWidth: '45vw',
           }"
         >
-          <DocsPageTitle v-if="openedPage" @focus-editor="focusEditor" />
+          <a-skeleton-input
+            v-if="isFetching.page && !isPublic"
+            :active="true"
+            size="large"
+            class="docs-page-title-skelton !mt-4 !max-w-156 mb-3 -ml-3"
+          />
+          <DocsPageTitle v-else-if="openedPage" @focus-editor="focusEditor" />
+          <div class="flex !mb-6"></div>
 
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
           <DocsPageLinkOptions v-if="editor" :editor="editor" />
+          <a-skeleton-input
+            v-if="isFetching.page && !isPublic"
+            :active="true"
+            size="small"
+            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 -ml-3"
+          />
           <EditorContent
+            v-else
             :editor="editor"
             class="px-2"
             :class="{
@@ -190,7 +203,7 @@ watch(
             }"
           />
           <div
-            v-if="(openedPageInSidebar?.children ?? []).length > 0"
+            v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isFetching.page"
             class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
           >
             <div
@@ -208,7 +221,7 @@ watch(
         </div>
       </div>
       <div class="sticky top-0 pt-1.5 flex flex-col mr-3">
-        <DocsPageOutline :wrapper-ref="wrapperRef" />
+        <DocsPageOutline v-if="openedPage" :wrapper-ref="wrapperRef" />
       </div>
     </div>
   </a-layout-content>
@@ -224,6 +237,12 @@ watch(
 ::selection {
   color: black;
   background-color: #1c26b820;
+}
+
+.docs-page-title-skelton {
+  .ant-skeleton-input {
+    @apply !rounded-md;
+  }
 }
 
 .nc-docs-page {

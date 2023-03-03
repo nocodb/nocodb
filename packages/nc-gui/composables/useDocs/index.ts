@@ -213,6 +213,7 @@ const [setup, use] = useInjectionState(() => {
       dummyTitle = `Page ${conflictCount}`
     }
 
+    isFetching.value.page = true
     await createPage({
       page: {
         title: dummyTitle,
@@ -223,12 +224,12 @@ const [setup, use] = useInjectionState(() => {
         new: true,
       },
     })
+    isFetching.value.page = false
   }
 
   const deletePage = async ({ pageId }: { pageId: string }) => {
     try {
       const page = findPage(nestedPages.value, pageId)
-      navigateTo(nestedUrl(page?.parent_page_id))
 
       if (page?.parent_page_id) {
         const parentPage = findPage(nestedPages.value, page.parent_page_id)
@@ -236,8 +237,13 @@ const [setup, use] = useInjectionState(() => {
 
         parentPage.children = parentPage.children?.filter((p) => p.id !== pageId)
         parentPage.isLeaf = parentPage.children?.length === 0
+        navigateTo(nestedUrl(page?.parent_page_id))
       } else {
         nestedPages.value = nestedPages.value.filter((p) => p.id !== pageId)
+        if (nestedPages.value.length === 0) return navigateTo(projectUrl())
+
+        const siblingPage = nestedPages.value[0]
+        navigateTo(nestedUrl(siblingPage.id))
       }
 
       await $api.nocoDocs.deletePage(pageId, { projectId: projectId! })
@@ -317,15 +323,17 @@ const [setup, use] = useInjectionState(() => {
   }
 
   const updatePage = async ({ pageId, page }: { pageId: string; page: Partial<PageSidebarNode> }) => {
+    const foundPage = findPage(nestedPages.value, pageId)!
+    if (page.title) foundPage.title = page.title
+
     const updatedPage = await $api.nocoDocs.updatePage(pageId, {
       attributes: page as any,
       projectId: projectId!,
     })
-    const foundPage = findPage(nestedPages.value, pageId)!
+
     if (page.title) {
       // todo: Update the page in a better way
       foundPage.slug = updatedPage.slug
-      foundPage.title = updatedPage.title
       foundPage.updated_at = updatedPage.updated_at
       foundPage.last_updated_by_id = updatedPage.last_updated_by_id
 

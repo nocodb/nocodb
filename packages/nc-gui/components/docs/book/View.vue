@@ -2,6 +2,7 @@
 import dayjs from 'dayjs'
 import type { Ref } from 'vue'
 // import InfiniteLoading from 'v3-infinite-loading'
+import { Loading3QuartersOutlined } from '@ant-design/icons-vue'
 import MdiFileDocumentOutline from '~icons/mdi/file-document-outline'
 import MdiFilterVariant from '~icons/mdi/filter-variant'
 import type { PageSidebarNode } from '~composables/docs/useDocs'
@@ -13,15 +14,18 @@ const {
   addNewPage: _addNewPage,
   createImport,
   flattenedNestedPages,
-  // fetchAllPages,
-  // allPages,
-  // allByTitle,
   openPage,
+  isFetching,
   openChildPageTabsOfRootPages,
-  // fetchPublishedPages,
-  // fetchAllPagesByTitle,
-  // isOnlyBookOpened,
 } = useDocs()
+
+const indicator = h(Loading3QuartersOutlined, {
+  style: {
+    fontSize: '2.3rem',
+    color: '#c9c9c9',
+  },
+  spin: true,
+})
 
 const showPublishModal = ref(false)
 
@@ -329,12 +333,12 @@ const closeMagicModal = () => {
                 </div>
               </div>
             </template>
-            <!-- <div v-if="isPagesFetching">
-              <div class="flex flex-col mt-36">
-                <a-spin size="large" />
+            <div v-if="isFetching.nestedPages">
+              <div class="flex flex-col mt-64">
+                <a-spin size="large" :indicator="indicator" />
               </div>
-            </div> -->
-            <div v-if="pages.length === 0" class="h-full flex flex-col justify-center -mt-6">
+            </div>
+            <div v-else-if="pages.length === 0" class="h-full flex flex-col justify-center -mt-6">
               <div class="flex flex-col gap-y-3 items-center">
                 <img src="~/assets/img/add-page.svg" class="flex h-12" />
                 <div class="flex text-xl font-semibold">Lets get started!</div>

@@ -2384,12 +2384,12 @@ export class Api<
         ...params,
       }),
   };
-  organisationTokens = {
+  orgTokens = {
     /**
  * @description List all organisation API tokens.  Access with API tokens will be blocked.
  * 
- * @tags Organisation Tokens
- * @name OrgTokensList
+ * @tags Org Tokens
+ * @name List
  * @summary List Organisation API Tokens
  * @request GET:/api/v1/tokens
  * @response `200` `{
@@ -2405,7 +2405,7 @@ export class Api<
 
 }` OK
  */
-    orgTokensList: (params: RequestParams = {}) =>
+    list: (params: RequestParams = {}) =>
       this.request<
         {
           users?: {
@@ -2427,13 +2427,13 @@ export class Api<
     /**
      * @description Creat an organisation API token. Access with API tokens will be blocked.
      *
-     * @tags Organisation Tokens
-     * @name OrgTokensCreate
+     * @tags Org Tokens
+     * @name Create
      * @summary Create Organisation API Token
      * @request POST:/api/v1/tokens
      * @response `200` `void` OK
      */
-    orgTokensCreate: (data: ApiTokenReqType, params: RequestParams = {}) =>
+    create: (data: ApiTokenReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/tokens`,
         method: 'POST',
@@ -2445,25 +2445,25 @@ export class Api<
     /**
      * @description Delete an organisation API token. Access with API tokens will be blocked.
      *
-     * @tags Organisation Tokens
-     * @name OrgTokensDelete
+     * @tags Org Tokens
+     * @name Delete
      * @summary Delete Organisation API Tokens
      * @request DELETE:/api/v1/tokens/{token}
      * @response `200` `void` OK
      */
-    orgTokensDelete: (token: string, params: RequestParams = {}) =>
+    delete: (token: string, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/tokens/${token}`,
         method: 'DELETE',
         ...params,
       }),
   };
-  organisationLicense = {
+  orgLicense = {
     /**
  * @description Get the application license key. Exclusive for super admin.
  * 
- * @tags Organisation License
- * @name OrgLicenseGet
+ * @tags Org License
+ * @name Get
  * @summary Get App License
  * @request GET:/api/v1/license
  * @response `200` `{
@@ -2471,7 +2471,7 @@ export class Api<
 
 }` OK
  */
-    orgLicenseGet: (params: RequestParams = {}) =>
+    get: (params: RequestParams = {}) =>
       this.request<
         {
           key?: string;
@@ -2487,13 +2487,13 @@ export class Api<
     /**
      * @description Set the application license key. Exclusive for super admin.
      *
-     * @tags Organisation License
-     * @name OrgLicenseSet
+     * @tags Org License
+     * @name Set
      * @summary Create App License
      * @request POST:/api/v1/license
      * @response `200` `void` OK
      */
-    orgLicenseSet: (data: LicenseReqType, params: RequestParams = {}) =>
+    set: (data: LicenseReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/license`,
         method: 'POST',
@@ -2502,12 +2502,12 @@ export class Api<
         ...params,
       }),
   };
-  organisationAppSettings = {
+  orgAppSettings = {
     /**
  * @description Get the application settings. Exclusive for super admin.
  * 
- * @tags Organisation App Settings
- * @name OrgAppSettingsGet
+ * @tags Org App Settings
+ * @name Get
  * @summary Get App Settings
  * @request GET:/api/v1/app-settings
  * @response `200` `{
@@ -2515,7 +2515,7 @@ export class Api<
 
 }` OK
  */
-    orgAppSettingsGet: (params: RequestParams = {}) =>
+    get: (params: RequestParams = {}) =>
       this.request<
         {
           invite_only_signup?: boolean;
@@ -2531,13 +2531,13 @@ export class Api<
     /**
      * @description Update the application settings. Exclusive for super admin.
      *
-     * @tags Organisation App Settings
-     * @name OrgAppSettingsSet
+     * @tags Org App Settings
+     * @name Set
      * @summary Create App Settings
      * @request POST:/api/v1/app-settings
      * @response `200` `void` OK
      */
-    orgAppSettingsSet: (
+    set: (
       data: {
         invite_only_signup?: boolean;
       },
@@ -2551,12 +2551,12 @@ export class Api<
         ...params,
       }),
   };
-  organisationUsers = {
+  orgUsers = {
     /**
  * @description List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.
  * 
- * @tags Organisation Users
- * @name OrgUsersList
+ * @tags Org Users
+ * @name List
  * @summary List Organisation Users
  * @request GET:/api/v1/users
  * @response `200` `{
@@ -2569,7 +2569,7 @@ export class Api<
 
 }` OK
  */
-    orgUsersList: (params: RequestParams = {}) =>
+    list: (params: RequestParams = {}) =>
       this.request<
         {
           users?: {
@@ -2589,13 +2589,13 @@ export class Api<
     /**
      * @description Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked.
      *
-     * @tags Organisation Users
-     * @name OrgUsersAdd
+     * @tags Org Users
+     * @name Add
      * @summary Create Organisation User
      * @request POST:/api/v1/users
      * @response `200` `any` OK
      */
-    orgUsersAdd: (data: OrgUserReqType, params: RequestParams = {}) =>
+    add: (data: OrgUserReqType, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/users`,
         method: 'POST',
@@ -2608,13 +2608,13 @@ export class Api<
     /**
      * @description Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
      *
-     * @tags Organisation Users
-     * @name OrgUsersUpdate
+     * @tags Org Users
+     * @name Update
      * @summary Update Organisation User
      * @request PATCH:/api/v1/users/{userId}
      * @response `200` `void` OK
      */
-    orgUsersUpdate: (
+    update: (
       userId: IdType,
       data: OrgUserReqType,
       params: RequestParams = {}
@@ -2630,13 +2630,13 @@ export class Api<
     /**
      * @description Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.
      *
-     * @tags Organisation Users
-     * @name OrgUsersDelete
+     * @tags Org Users
+     * @name Delete
      * @summary Delete Organisation User
      * @request DELETE:/api/v1/users/{userId}
      * @response `200` `void` OK
      */
-    orgUsersDelete: (userId: IdType, params: RequestParams = {}) =>
+    delete: (userId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}`,
         method: 'DELETE',
@@ -2646,13 +2646,13 @@ export class Api<
     /**
      * @description Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked.
      *
-     * @tags Organisation Users
-     * @name OrgUsersResendInvite
+     * @tags Org Users
+     * @name ResendInvite
      * @summary Invite Organisation User
      * @request POST:/api/v1/users/{userId}/resend-invite
      * @response `200` `void` OK
      */
-    orgUsersResendInvite: (userId: IdType, params: RequestParams = {}) =>
+    resendInvite: (userId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/users/${userId}/resend-invite`,
         method: 'POST',
@@ -2662,8 +2662,8 @@ export class Api<
     /**
  * @description Generate Password Reset Token for Organisation User. Exclusive for Super Admin. Access with API Tokens will be blocked.
  * 
- * @tags Organisation Users
- * @name OrgUsersGeneratePasswordResetToken
+ * @tags Org Users
+ * @name GeneratePasswordResetToken
  * @summary Generate Organisation User Password Reset Token
  * @request POST:/api/v1/users/{userId}/generate-reset-url
  * @response `200` `{
@@ -2672,10 +2672,7 @@ export class Api<
 
 }` OK
  */
-    orgUsersGeneratePasswordResetToken: (
-      userId: IdType,
-      params: RequestParams = {}
-    ) =>
+    generatePasswordResetToken: (userId: IdType, params: RequestParams = {}) =>
       this.request<
         {
           reset_password_token?: string;

@@ -12891,36 +12891,63 @@
         "description": "Model for View Request",
         "examples": [
           {
+            "title": "Grid View 1",
+            "uuid": "e2457bbf-e29c-4fec-866e-fe3b01dba57f",
+            "password": "password123",
             "lock_type": "collaborative",
-            "meta": {},
-            "order": 0,
-            "show_system_fields": true,
-            "title": "string"
+            "meta": "{\"allowCSVDownload\":true}",
+            "order": 1,
+            "show_system_fields": 0
           }
         ],
+        "title": "View Request Model",
+        "type": "object",
         "properties": {
-          "lock_type": {
-            "enum": ["collaborative", "locked", "personal"],
-            "type": "string"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta"
-          },
-          "order": {
-            "exclusiveMinimum": true,
-            "minimum": 0,
-            "type": "number"
-          },
-          "show_system_fields": {
-            "$ref": "#/components/schemas/Bool"
-          },
           "title": {
             "maxLength": 255,
-            "type": "string"
+            "type": "string",
+            "description": "View Title",
+            "example": "Grid View 1"
+          },
+          "uuid": {
+            "maxLength": 255,
+            "type": "string",
+            "x-stoplight": {
+              "id": "vlhs7xs644u8l"
+            },
+            "description": "View UUID. Used in Shared View.",
+            "example": "e2457bbf-e29c-4fec-866e-fe3b01dba57f"
+          },
+          "password": {
+            "maxLength": 255,
+            "type": "string",
+            "x-stoplight": {
+              "id": "vlhs7xs644u8l"
+            },
+            "description": "View Password. Used in Shared View.",
+            "example": "password123"
+          },
+          "lock_type": {
+            "enum": ["collaborative", "locked", "personal"],
+            "type": "string",
+            "description": "Lock type of View.",
+            "example": "collaborative"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info used in View."
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the list of views.",
+            "example": 1,
+            "minimum": 0
+          },
+          "show_system_fields": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Should this view show system fields?"
           }
-        },
-        "title": "View Request Model",
-        "type": "object"
+        }
       },
       "VisibilityRuleReq": {
         "description": "Model for Visibility Rule Request",

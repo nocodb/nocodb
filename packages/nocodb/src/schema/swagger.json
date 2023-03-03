@@ -1494,6 +1494,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SharedBaseReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "roles": "editor",
+                    "password": "password123"
+                  }
+                }
               }
             }
           }
@@ -3797,7 +3805,8 @@
               "type": "array"
             },
             "in": "query",
-            "name": "fields"
+            "name": "fields",
+            "description": "Which fields to be shown"
           },
           {
             "schema": {
@@ -3814,14 +3823,16 @@
               ]
             },
             "in": "query",
-            "name": "sort"
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
           },
           {
             "schema": {
               "type": "string"
             },
             "in": "query",
-            "name": "where"
+            "name": "where",
+            "description": "Extra filtering"
           },
           {
             "schema": {
@@ -3840,6 +3851,22 @@
             "in": "query",
             "name": "limit",
             "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
           }
         ],
         "responses": {
@@ -5336,11 +5363,37 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1
+              "type": "array"
             },
             "in": "query",
-            "name": "limit"
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
           },
           {
             "schema": {
@@ -5348,7 +5401,33 @@
               "minimum": 0
             },
             "in": "query",
-            "name": "offset"
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
           }
         ],
         "description": "Create a new nested relations row"
@@ -5512,11 +5591,37 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1
+              "type": "array"
             },
             "in": "query",
-            "name": "limit"
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
           },
           {
             "schema": {
@@ -5524,7 +5629,33 @@
               "minimum": 0
             },
             "in": "query",
-            "name": "offset"
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
           }
         ],
         "description": "List Shared View Grouped Data"
@@ -5566,11 +5697,37 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1
+              "type": "array"
             },
             "in": "query",
-            "name": "limit"
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
           },
           {
             "schema": {
@@ -5578,7 +5735,33 @@
               "minimum": 0
             },
             "in": "query",
-            "name": "offset"
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
           }
         ],
         "description": "List all shared view rows"
@@ -5672,11 +5855,37 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1
+              "type": "array"
             },
             "in": "query",
-            "name": "limit"
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
           },
           {
             "schema": {
@@ -5684,7 +5893,33 @@
               "minimum": 0
             },
             "in": "query",
-            "name": "offset"
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
           }
         ],
         "description": "List all nested list data in a given shared view"
@@ -5777,11 +6012,37 @@
         "parameters": [
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1
+              "type": "array"
             },
             "in": "query",
-            "name": "limit"
+            "name": "fields",
+            "description": "Which fields to be shown"
+          },
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
           },
           {
             "schema": {
@@ -5789,7 +6050,33 @@
               "minimum": 0
             },
             "in": "query",
-            "name": "offset"
+            "name": "offset",
+            "description": "Offset in rows"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "Limit in rows"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sortArrJson",
+            "description": "Used for multiple sort queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
           }
         ],
         "tags": ["Public"],
@@ -9504,6 +9791,72 @@
           }
         ]
       },
+      "ColumnReq": {
+        "allOf": [
+          {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LinkToAnotherColumnReq"
+              },
+              {
+                "$ref": "#/components/schemas/RollupColumnReq"
+              },
+              {
+                "$ref": "#/components/schemas/FormulaColumnReq"
+              },
+              {
+                "$ref": "#/components/schemas/LookupColumnReq"
+              },
+              {
+                "$ref": "#/components/schemas/NormalColumnRequest"
+              }
+            ]
+          },
+          {
+            "properties": {
+              "column_name": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              "column_order": {
+                "type": "object",
+                "description": "Column order in a specific view",
+                "properties": {
+                  "view_id": {
+                    "type": "string"
+                  },
+                  "order": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            "required": ["column_name", "title"]
+          }
+        ],
+        "description": "Model for Column Request",
+        "title": "Column Request Model",
+        "examples": [
+          {
+            "uidt": "LinkToAnotherRecord",
+            "title": "string",
+            "virtual": true,
+            "parentId": "string",
+            "childId": "string",
+            "type": "hm",
+            "column_name": "string",
+            "column_order": {
+              "view_id": "string",
+              "order": 0
+            }
+          }
+        ],
+        "type": "object"
+      },
       "LinkToAnotherRecord": {
         "title": "LinkToAnotherRecord Model",
         "type": "object",
@@ -11757,6 +12110,32 @@
         ]
       },
       "NormalColumnRequest": {
+        "description": "Model for Normal Column Request",
+        "title": "Normal Column Request Model",
+        "examples": [
+          {
+            "uidt": "ID",
+            "title": "string",
+            "dt": "string",
+            "np": 0,
+            "ns": 0,
+            "pk": true,
+            "pv": true,
+            "rqd": true,
+            "column_name": "string",
+            "un": true,
+            "ai": true,
+            "unique": true,
+            "cdf": "string",
+            "cc": "string",
+            "csn": "string",
+            "dtx": "string",
+            "dtxp": 0,
+            "dtxs": 0,
+            "au": true
+          }
+        ],
+        "type": "object",
         "properties": {
           "uidt": {
             "type": "string",
@@ -11879,32 +12258,7 @@
           "au": {
             "$ref": "#/components/schemas/Bool"
           }
-        },
-        "description": "Model for Normal Column Request",
-        "title": "Normal Column Request Model",
-        "examples": [
-          {
-            "uidt": "ID",
-            "title": "string",
-            "dt": "string",
-            "np": 0,
-            "ns": 0,
-            "pk": true,
-            "pv": true,
-            "rqd": true,
-            "column_name": "string",
-            "un": true,
-            "ai": true,
-            "unique": true,
-            "cdf": "string",
-            "cc": "string",
-            "csn": "string",
-            "dtx": "string",
-            "dtxp": 0,
-            "dtxs": 0,
-            "au": true
-          }
-        ]
+        }
       },
       "LinkToAnotherColumnReq": {
         "type": "object",
@@ -11997,6 +12351,17 @@
         ]
       },
       "LookupColumnReq": {
+        "title": "Lookup Column Request Model",
+        "description": "Model for Lookup Column Request",
+        "examples": [
+          {
+            "uidt": "Lookup",
+            "title": "string",
+            "fk_relation_column_id": "string",
+            "fk_lookup_column_id": "string"
+          }
+        ],
+        "type": "object",
         "properties": {
           "uidt": {
             "type": "string",
@@ -12018,19 +12383,20 @@
           "title",
           "fk_relation_column_id",
           "fk_lookup_column_id"
-        ],
-        "title": "Lookup Column Request Model",
-        "description": "Model for Lookup Column Request",
-        "examples": [
-          {
-            "uidt": "Lookup",
-            "title": "string",
-            "fk_relation_column_id": "string",
-            "fk_lookup_column_id": "string"
-          }
         ]
       },
       "FormulaColumnReq": {
+        "title": "Formula Column Request Model",
+        "description": "Model for Formula Column Request",
+        "examples": [
+          {
+            "uidt": "Formula",
+            "formula_raw": "string",
+            "formula": "string",
+            "title": "string"
+          }
+        ],
+        "type": "object",
         "properties": {
           "uidt": {
             "type": "string",
@@ -12047,84 +12413,7 @@
             "minLength": 1,
             "maxLength": 255
           }
-        },
-        "title": "Formula Column Request Model",
-        "description": "Model for Formula Column Request",
-        "examples": [
-          {
-            "uidt": "Formula",
-            "formula_raw": "string",
-            "formula": "string",
-            "title": "string"
-          }
-        ]
-      },
-      "ColumnReq": {
-        "allOf": [
-          {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/LinkToAnotherColumnReq"
-              },
-              {
-                "$ref": "#/components/schemas/RollupColumnReq"
-              },
-              {
-                "$ref": "#/components/schemas/FormulaColumnReq"
-              },
-              {
-                "$ref": "#/components/schemas/LookupColumnReq"
-              },
-              {
-                "$ref": "#/components/schemas/NormalColumnRequest"
-              }
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "column_name": {
-                "type": "string"
-              },
-              "title": {
-                "type": "string",
-                "maxLength": 255,
-                "minLength": 1
-              },
-              "column_order": {
-                "type": "object",
-                "properties": {
-                  "view_id": {
-                    "type": "string"
-                  },
-                  "order": {
-                    "type": "number"
-                  }
-                },
-                "description": "Column order in a specific view"
-              }
-            },
-            "required": ["column_name", "title", "uidt"]
-          }
-        ],
-        "description": "Model for Column Request",
-        "type": "object",
-        "title": "Column Request Model",
-        "examples": [
-          {
-            "uidt": "LinkToAnotherRecord",
-            "title": "string",
-            "virtual": true,
-            "parentId": "string",
-            "childId": "string",
-            "type": "hm",
-            "column_name": "string",
-            "column_order": {
-              "view_id": "string",
-              "order": 0
-            }
-          }
-        ]
+        }
       },
       "UserInfo": {
         "title": "User Info Model",

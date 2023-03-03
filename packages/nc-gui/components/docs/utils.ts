@@ -27,7 +27,7 @@ const useShortcuts = () => {
             e.preventDefault()
 
             const parentPage = openedPage.value?.parent_page_id ? getParentOfPage(openedPage.value.parent_page_id) : null
-            addNewPage(parentPage?.parent_page_id)
+            addNewPage(parentPage?.id)
           },
         },
       ]

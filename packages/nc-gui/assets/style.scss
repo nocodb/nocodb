@@ -363,3 +363,24 @@ a {
 ninja-keys {
   --ninja-z-index: 1000;
 }
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.pop-in-animation {
+  -webkit-animation: pop-in 0.075s cubic-bezier(0, 0, 0.6, -0.13);
+  animation: pop-in 0.075s cubic-bezier(0, 0, 0.6, -0.13);
+}
+.pop-in-animation-med-delay {
+  -webkit-animation: pop-in 0.15s cubic-bezier(0, 0, 0.6, -0.13);
+  animation: pop-in 0.15s cubic-bezier(0, 0, 0.6, -0.13);
+}
+.pop-in-animation-long-delay {
+  -webkit-animation: pop-in 0.3s cubic-bezier(0, 0, 0.6, -0.13);
+  animation: pop-in 0.3s cubic-bezier(0, 0, 0.6, -0.13);
+}

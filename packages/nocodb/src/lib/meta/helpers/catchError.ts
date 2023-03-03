@@ -412,7 +412,7 @@ export default function (
       } else if (e instanceof NotImplemented) {
         return res.status(501).json({ msg: e.message });
       } else if (e instanceof AjvError) {
-        return res.status(501).json({ msg: e.message, errors: e.errors });
+        return res.status(400).json({ msg: e.message, errors: e.errors });
       }
       next(e);
     }

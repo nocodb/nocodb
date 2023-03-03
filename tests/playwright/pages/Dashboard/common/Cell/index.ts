@@ -228,26 +228,27 @@ export class CellPageObject extends BasePage {
   async verifyBarcodeCell({
     index,
     columnHeader,
-    expectedSvgValue,
+    expectedImgValue,
   }: {
     index: number;
     columnHeader: string;
-    expectedSvgValue: string;
+    expectedImgValue: string;
   }) {
     const _verify = async expectedBarcodeSvg => {
       await expect
         .poll(async () => {
-          const barcodeCell = await this.get({
+          const barcodeCell = this.get({
             index,
             columnHeader,
           });
-          const barcodeSvg = await barcodeCell.getByTestId('barcode');
-          return await barcodeSvg.innerHTML();
+          const barcodeImg = barcodeCell.getByTestId('barcode');
+          const barcodeBuffer= (await barcodeImg.screenshot())
+          return Buffer.from(barcodeBuffer).toString("base64");
         })
         .toEqual(expectedBarcodeSvg);
     };
 
-    await _verify(expectedSvgValue);
+    await _verify(expectedImgValue);
   }
 
   // todo: Improve param names (i.e value => values)

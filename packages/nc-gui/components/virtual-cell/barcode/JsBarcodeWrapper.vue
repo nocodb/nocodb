@@ -45,8 +45,8 @@ onMounted(generate)
   <img
     v-show="!errorForCurrentInput"
     ref="barcodeImgRef"
+    class="ml-auto mr-auto"
     alt="barcode"
-    class="w-full"
     data-testid="barcode"
     @click="onBarcodeClick"
   />

@@ -14,9 +14,10 @@ export class BarcodeOverlay extends BasePage {
     return this.rootPage.locator(`.nc-barcode-large`);
   }
 
-  async verifyBarcodeSvgValue(expectedValue: string) {
-    const foundBarcodeSvg = await this.get().getByTestId('barcode').innerHTML();
-    await expect(foundBarcodeSvg).toContain(expectedValue);
+  async verifyBarcodeImgValue(expectedValue: string) {
+    const foundBarcodeImg = this.get().getByTestId('barcode');
+    const foundBarcodeBase64=(await foundBarcodeImg.screenshot())
+    await expect(Buffer.from(foundBarcodeBase64).toString("base64")).toEqual(expectedValue);
   }
 
   async clickCloseButton() {

@@ -10807,8 +10807,8 @@
         "description": "Model for Password Change Request",
         "examples": [
           {
-            "currentPassword": "string",
-            "newPassword": "stringst"
+            "currentPassword": "currentpassword",
+            "newPassword": "newpassword"
           }
         ],
         "properties": {

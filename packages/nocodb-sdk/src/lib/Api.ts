@@ -40,11 +40,31 @@ export interface ApiTokenReqType {
 export interface AttachmentType {
   /** Data for uploading */
   data?: any;
-  icon?: string;
+  /** The mimetype of the attachment */
   mimetype?: string;
+  /** File Path */
   path?: string;
-  size?: string;
+  /** Attachment Size */
+  size?: number;
+  /** The title of the attachment. Used in UI. */
   title?: string;
+  /** Attachment URL */
+  url?: string;
+}
+
+/**
+ * Model for Attachment Request
+ */
+export interface AttachmentReqType {
+  /** The mimetype of the attachment */
+  mimetype?: string;
+  /** The file path of the attachment */
+  path?: string;
+  /** The size of the attachment */
+  size?: number;
+  /** The title of the attachment used in UI */
+  title?: string;
+  /** Attachment URL to be uploaded via upload-by-url */
   url?: string;
 }
 
@@ -52,29 +72,121 @@ export interface AttachmentType {
  * Model for Audit
  */
 export interface AuditType {
-  base_id?: string;
-  description?: string;
-  details?: string;
-  fk_model_id?: string;
   /** Unique ID */
   id?: IdType;
-  ip?: string;
-  op_sub_type?: string;
-  op_type?: string;
-  project_id?: string;
-  row_id?: string;
-  status?: string;
+  /**
+   * The user name performing the action
+   * @example w@nocodb.com
+   */
   user?: string;
+  /**
+   * IP address from the user
+   * @example ::ffff:127.0.0.1
+   */
+  ip?: string;
+  /**
+   * Base ID in where action is performed
+   * @example ds_3l9qx8xqksenrl
+   */
+  base_id?: string;
+  /**
+   * Project ID in where action is performed
+   * @example p_9sx43moxhqtjm3
+   */
+  project_id?: string;
+  /**
+   * Model ID in where action is performed
+   * @example md_ehn5izr99m7d45
+   */
+  fk_model_id?: string;
+  /**
+   * Row ID
+   * @example rec0Adp9PMG9o7uJy
+   */
+  row_id?: string;
+  /**
+   * Operation Type
+   * @example AUTHENTICATION
+   */
+  op_type?:
+    | 'COMMENT'
+    | 'DATA'
+    | 'PROJECT'
+    | 'VIRTUAL_RELATION'
+    | 'RELATION'
+    | 'TABLE_VIEW'
+    | 'TABLE'
+    | 'VIEW'
+    | 'META'
+    | 'WEBHOOKS'
+    | 'AUTHENTICATION'
+    | 'TABLE_COLUMN'
+    | 'ORG_USER';
+  /**
+   * Operation Sub Type
+   * @example UPDATE
+   */
+  op_sub_type?:
+    | 'UPDATE'
+    | 'INSERT'
+    | 'BULK_INSERT'
+    | 'BULK_UPDATE'
+    | 'BULK_DELETE'
+    | 'LINK_RECORD'
+    | 'UNLINK_RECORD'
+    | 'DELETE'
+    | 'CREATED'
+    | 'DELETED'
+    | 'RENAMED'
+    | 'IMPORT_FROM_ZIP'
+    | 'EXPORT_TO_FS'
+    | 'EXPORT_TO_ZIP'
+    | 'UPDATED'
+    | 'SIGNIN'
+    | 'SIGNUP'
+    | 'PASSWORD_RESET'
+    | 'PASSWORD_FORGOT'
+    | 'PASSWORD_CHANGE'
+    | 'EMAIL_VERIFICATION'
+    | 'ROLES_MANAGEMENT'
+    | 'INVITE'
+    | 'RESEND_INVITE';
+  /** Audit Status */
+  status?: string;
+  /**
+   * Description of the action
+   * @example Table nc_snms___Table_1 : field Date got changed from  2023-03-12 to
+   */
+  description?: string;
+  /**
+   * Detail
+   * @example <span class="">Date</span>   : <span class="text-decoration-line-through red px-2 lighten-4 black--text">2023-03-12</span>   <span class="black--text green lighten-4 px-2"></span>
+   */
+  details?: string;
 }
 
 /**
  * Model for Audit Row Update Request
  */
 export interface AuditRowUpdateReqType {
+  /**
+   * Column Name
+   * @example baz
+   */
   column_name?: string;
+  /**
+   * Foreign Key to Model
+   * @example md_ehn5izr99m7d45
+   */
   fk_model_id?: string;
-  prev_value?: any;
+  /**
+   * Row ID
+   * @example rec0Adp9PMG9o7uJy
+   */
   row_id?: string;
+  /** The previous value before the action */
+  prev_value?: any;
+  /** The current value after the action */
   value?: any;
 }
 
@@ -329,8 +441,20 @@ export type ColumnReqType = (
  * Model for Comment Request
  */
 export interface CommentReqType {
+  /**
+   * Description for the target row
+   * @example This is the comment for the row
+   */
   description?: string;
+  /**
+   * Foreign Key to Model
+   * @example md_ehn5izr99m7d45
+   */
   fk_model_id: string;
+  /**
+   * Row ID
+   * @example 3
+   */
   row_id: string;
 }
 
@@ -1681,7 +1805,7 @@ export interface UserType {
   /**
    * The email of the user
    * @format email
-   * @example alice.smith@nocodb.com
+   * @example user@example.com
    */
   email: string;
   /** Set to true if the user's email has been verified. */
@@ -5522,9 +5646,20 @@ export class Api<
      */
     commentList: (
       query: {
+        /**
+         * Row ID
+         * @example 10
+         */
         row_id: string;
-        /** Model for ID */
+        /**
+         * Foreign Key to Model
+         * @example md_c6csq89tl37jm5
+         */
         fk_model_id: IdType;
+        /**
+         * Is showing comments only?
+         * @example true
+         */
         comments_only?: boolean;
       },
       params: RequestParams = {}
@@ -5538,10 +5673,11 @@ export class Api<
       }),
 
     /**
-     * @description Create a new comment for Audit
+     * @description Create a new comment in a row. Logged in Audit.
      *
      * @tags Utils
      * @name CommentRow
+     * @summary Comment Rows
      * @request POST:/api/v1/db/meta/audits/comments
      * @response `200` `void` OK
      */
@@ -6170,12 +6306,13 @@ export class Api<
      */
     upload: (
       query: {
+        /**
+         * Target File Path
+         * @example download/noco/jango_fett/Table1/attachment/uVbjPVQxC_SSfs8Ctx.jpg
+         */
         path: string;
       },
-      data: {
-        files?: any;
-        json?: string;
-      },
+      data: AttachmentReqType,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -6197,14 +6334,13 @@ export class Api<
      */
     uploadByUrl: (
       query: {
+        /**
+         * Target File Path
+         * @example download/noco/jango_fett/Table1/attachment/c7z_UF8sZBgJUxMjpN.jpg
+         */
         path: string;
       },
-      data: {
-        url?: string;
-        fileName?: string;
-        mimetype?: string;
-        size?: string;
-      }[],
+      data: AttachmentReqType[],
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

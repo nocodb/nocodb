@@ -11634,22 +11634,21 @@
         "description": "Model for Sort",
         "examples": [
           {
-            "base_id": "string",
-            "direction": "string",
-            "fk_column_id": "string",
-            "fk_model_id": "string",
-            "id": "string",
-            "order": 0,
-            "project_id": "string"
+            "id": "so_xd4t51uv60ghzl",
+            "fk_column_id": "cl_l11b769pe2j1ce",
+            "fk_model_id": "md_ehn5izr99m7d45",
+            "base_id": "ds_3l9qx8xqksenrl",
+            "direction": "desc",
+            "order": 1,
+            "project_id": "p_9sx43moxhqtjm3"
           }
         ],
+        "title": "Sort Model",
+        "type": "object",
         "properties": {
-          "base_id": {
-            "readOnly": true,
-            "type": "string"
-          },
-          "direction": {
-            "type": "string"
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
           },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id"
@@ -11657,20 +11656,29 @@
           "fk_model_id": {
             "$ref": "#/components/schemas/Id"
           },
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
+          "base_id": {
+            "type": "string",
+            "description": "Base ID",
+            "example": "ds_3l9qx8xqksenrl",
+            "readOnly": true
+          },
+          "direction": {
+            "type": "string",
+            "description": "Sort direction",
+            "enum": ["asc", "desc"],
+            "example": "desc"
           },
           "order": {
-            "type": "number"
+            "type": "number",
+            "example": 1
           },
           "project_id": {
-            "readOnly": true,
-            "type": "string"
+            "type": "string",
+            "description": "Project ID",
+            "example": "p_9sx43moxhqtjm3",
+            "readOnly": true
           }
-        },
-        "title": "Sort Model",
-        "type": "object"
+        }
       },
       "SortList": {
         "description": "Model for Sort List",
@@ -11679,32 +11687,18 @@
             "sorts": {
               "list": [
                 {
-                  "deleted": "string",
-                  "fk_view_id": "string",
-                  "id": "string",
-                  "password": "string"
+                  "id": "so_xd4t51uv60ghzl",
+                  "fk_column_id": "cl_l11b769pe2j1ce",
+                  "fk_model_id": "md_ehn5izr99m7d45",
+                  "base_id": "ds_3l9qx8xqksenrl",
+                  "direction": "desc",
+                  "order": 1,
+                  "project_id": "p_9sx43moxhqtjm3"
                 }
               ]
             }
           }
         ],
-        "properties": {
-          "sorts": {
-            "properties": {
-              "list": {
-                "items": {
-                  "$ref": "#/components/schemas/SharedView"
-                },
-                "minItems": 1,
-                "type": "array",
-                "uniqueItems": true
-              }
-            },
-            "required": ["list"],
-            "type": "object"
-          }
-        },
-        "required": ["sorts"],
         "title": "Sort List Model",
         "type": "object",
         "x-examples": {
@@ -11735,30 +11729,47 @@
               }
             }
           }
-        }
+        },
+        "properties": {
+          "sorts": {
+            "type": "object",
+            "required": ["list"],
+            "properties": {
+              "list": {
+                "minItems": 1,
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/components/schemas/Sort"
+                }
+              }
+            }
+          }
+        },
+        "required": ["sorts"]
       },
       "SortReq": {
         "description": "Model for Sort Request",
         "examples": [
           {
             "direction": "asc",
-            "fk_column_id": "string"
+            "fk_column_id": "cl_l11b769pe2j1ce"
           }
         ],
         "minProperties": 1,
+        "title": "Sort Request Model",
+        "type": "object",
         "properties": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
           "direction": {
             "description": "Sort direction",
             "enum": ["asc", "desc"],
             "type": "string"
-          },
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
           }
-        },
-        "title": "Sort Request Model",
-        "type": "object"
+        }
       },
       "StringOrNull": {
         "description": "Model for StringOrNull",

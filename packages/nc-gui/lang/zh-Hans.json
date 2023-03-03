@@ -235,6 +235,7 @@
     "action": "操作",
     "actions": "操作",
     "operation": "操作",
+    "operationSub": "Sub Operation",
     "operationType": "操作类型",
     "operationSubType": "子操作类型",
     "description": "描述",

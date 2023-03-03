@@ -235,6 +235,7 @@
     "action": "কর্ম",
     "actions": "ক্রিয়া",
     "operation": "অপারেশন",
+    "operationSub": "Sub Operation",
     "operationType": "অপারেশন টাইপ",
     "operationSubType": "অপারেশন সাব-টাইপ",
     "description": "বর্ণনা",

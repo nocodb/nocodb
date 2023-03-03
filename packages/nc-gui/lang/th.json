@@ -235,6 +235,7 @@
     "action": "หนังบู๊",
     "actions": "การกระทำ",
     "operation": "การดำเนินการ",
+    "operationSub": "Sub Operation",
     "operationType": "ประเภทการทำงาน",
     "operationSubType": "การดำเนินงานประเภทย่อย",
     "description": "คำอธิบาย",

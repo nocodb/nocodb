@@ -13,6 +13,7 @@ import Project from '../../models/Project';
 import Filter from '../../models/Filter';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers';
 
 // @ts-ignore
 export async function filterGet(req: Request, res: Response, next) {
@@ -117,6 +118,7 @@ router.get(
 router.post(
   '/hooks/:hookId/filters/',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/FilterReq'),
   ncMetaAclMw(filterCreate, 'filterCreate')
 );
 router.get(
@@ -127,6 +129,7 @@ router.get(
 router.patch(
   '/hooks/:hookId/filters/:filterId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/FilterReq'),
   ncMetaAclMw(filterUpdate, 'filterUpdate')
 );
 router.delete(

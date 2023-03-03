@@ -81,13 +81,13 @@ const getAst = async ({
       ...(await obj),
       [col.title]:
         allowedCols && (!includePkByDefault || !col.pk)
-          ? (allowedCols[col.id] &&
+          ? allowedCols[col.id] &&
             (!isSystemColumn(col) || view.show_system_fields) &&
             (!fields?.length || fields.includes(col.title)) &&
-            value)
-          : (fields?.length
+            value
+          : fields?.length
           ? fields.includes(col.title) && value
-          : value),
+          : value,
     };
   }, Promise.resolve({}));
 };

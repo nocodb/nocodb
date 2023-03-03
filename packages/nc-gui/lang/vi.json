@@ -235,6 +235,7 @@
     "action": "Hoạt động",
     "actions": "Hành động",
     "operation": "Hoạt động",
+    "operationSub": "Sub Operation",
     "operationType": "Loại hoạt động",
     "operationSubType": "Loại phụ hoạt động",
     "description": "Sự miêu tả",

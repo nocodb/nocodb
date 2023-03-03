@@ -486,7 +486,7 @@
           }
         },
         "description": "List all organisation API tokens.  Access with API tokens will be blocked.",
-        "tags": ["Organisation Tokens"]
+        "tags": ["Org Tokens"]
       },
       "parameters": [],
       "post": {
@@ -506,7 +506,7 @@
             }
           }
         },
-        "tags": ["Organisation Tokens"],
+        "tags": ["Org Tokens"],
         "description": "Creat an organisation API token. Access with API tokens will be blocked."
       }
     },
@@ -530,7 +530,7 @@
             "description": "OK"
           }
         },
-        "tags": ["Organisation Tokens"],
+        "tags": ["Org Tokens"],
         "description": "Delete an organisation API token. Access with API tokens will be blocked."
       }
     },
@@ -556,7 +556,7 @@
           }
         },
         "description": "Get the application license key. Exclusive for super admin.",
-        "tags": ["Organisation License"]
+        "tags": ["Org License"]
       },
       "parameters": [],
       "post": {
@@ -576,7 +576,7 @@
             }
           }
         },
-        "tags": ["Organisation License"],
+        "tags": ["Org License"],
         "description": "Set the application license key. Exclusive for super admin."
       }
     },
@@ -602,7 +602,7 @@
           }
         },
         "description": "Get the application settings. Exclusive for super admin.",
-        "tags": ["Organisation App Settings"]
+        "tags": ["Org App Settings"]
       },
       "parameters": [],
       "post": {
@@ -627,7 +627,7 @@
             }
           }
         },
-        "tags": ["Organisation App Settings"],
+        "tags": ["Org App Settings"],
         "description": "Update the application settings. Exclusive for super admin."
       }
     },
@@ -667,7 +667,7 @@
           }
         },
         "description": "List all organisation users. Exclusive for Super Admin. Access with API Tokens will be blocked.",
-        "tags": ["Organisation Users"]
+        "tags": ["Org Users"]
       },
       "parameters": [],
       "post": {
@@ -692,7 +692,7 @@
             }
           }
         },
-        "tags": ["Organisation Users"],
+        "tags": ["Org Users"],
         "description": "Create an organisation user. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
@@ -717,7 +717,7 @@
             "description": "OK"
           }
         },
-        "tags": ["Organisation Users"],
+        "tags": ["Org Users"],
         "description": "Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "requestBody": {
           "content": {
@@ -738,7 +738,7 @@
             "description": "OK"
           }
         },
-        "tags": ["Organisation Users"],
+        "tags": ["Org Users"],
         "description": "Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
@@ -763,7 +763,7 @@
             "description": "OK"
           }
         },
-        "tags": ["Organisation Users"],
+        "tags": ["Org Users"],
         "description": "Resend Invitation to a specific user. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
     },
@@ -783,7 +783,7 @@
       "post": {
         "summary": "Generate Organisation User Password Reset Token",
         "operationId": "org-users-generate-password-reset-token",
-        "tags": ["Organisation Users"],
+        "tags": ["Org Users"],
         "responses": {
           "200": {
             "description": "OK",

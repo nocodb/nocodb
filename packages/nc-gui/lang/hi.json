@@ -74,7 +74,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "परियोजना",
@@ -98,7 +99,8 @@
       "gallery": "गेलरी",
       "form": "प्रपत्र",
       "kanban": "Kanban",
-      "calendar": "पंचांग"
+      "calendar": "पंचांग",
+      "map": "Map"
     },
     "user": "उपयोगकर्ता",
     "users": "उपयोगकर्ताओं",
@@ -136,6 +138,7 @@
     "Currency": "मुद्रा",
     "Percent": "प्रतिशत",
     "Duration": "अवधि",
+    "GeoData": "GeoData",
     "Rating": "रेटिंग",
     "Formula": "सूत्र",
     "Rollup": "जमना",
@@ -232,6 +235,7 @@
     "action": "गतिविधि",
     "actions": "कार्रवाई",
     "operation": "संचालन",
+    "operationSub": "Sub Operation",
     "operationType": "प्रचालन प्रकार",
     "operationSubType": "प्रचालन उप-प्रकार",
     "description": "विवरण",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "कुल समारोह",
     "dbCreateIfNotExists": "डेटाबेस: बनाएं यदि मौजूद नहीं है",
     "clientKey": "ग्राहक कुंजी",
@@ -380,13 +387,14 @@
     "renameTable": "तालिका का नाम",
     "deleteTable": "टेबल मिटाये",
     "addField": "इस तालिका में नया फ़ील्ड जोड़ें",
-    "setPrimary": "प्राथमिक मूल्य के रूप में सेट करें",
+    "setDisplay": "Set as Display value",
     "addRow": "नई पंक्ति जोड़ें",
     "saveRow": "पंक्ति सहेजें",
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "नई पंक्ति डालें",
     "deleteRow": "पंक्ति को हटाएं",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "चयनित पंक्तियों को हटा दें",
     "importExcel": "आयात एक्सेल",
     "importCSV": "Import CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "प्रति पृष्ठ पंक्तियाँ",
       "upload": "अपलोड करने के लिए फ़ाइल का चयन करें",
@@ -599,6 +616,7 @@
         "gallery": "गैलरी दृश्य जोड़ें",
         "form": "फॉर्म व्यू जोड़ें",
         "kanban": "कनबान दृश्य जोड़ें",
+        "map": "Add Map View",
         "calendar": "कैलेंडर दृश्य जोड़ें"
       },
       "tablesMetadataInSync": "टेबल के मेटाडेटा SYNC है",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Are you sure you want to delete this view?",
       "deleteTableConfirmation": "Do you want to delete the table",
       "showM2mTables": "Show M2M Tables",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
       "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

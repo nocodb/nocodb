@@ -74,7 +74,8 @@
     "insertBefore": "Wstaw przed",
     "hideField": "Ukryj pole",
     "sortAsc": "Sortowanie rosnące",
-    "sortDesc": "Sortuj malejąco"
+    "sortDesc": "Sortuj malejąco",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +99,8 @@
       "gallery": "Galeria",
       "form": "Formularz",
       "kanban": "Kanban",
-      "calendar": "Kalendarz"
+      "calendar": "Kalendarz",
+      "map": "Map"
     },
     "user": "Użytkownik",
     "users": "Użytkownicy",
@@ -136,6 +138,7 @@
     "Currency": "Waluta",
     "Percent": "Procent",
     "Duration": "Czas trwania",
+    "GeoData": "GeoData",
     "Rating": "Ocena",
     "Formula": "Formuła",
     "Rollup": "Zliczanie",
@@ -232,6 +235,7 @@
     "action": "Akcja",
     "actions": "Akcje",
     "operation": "Operacja",
+    "operationSub": "Sub Operation",
     "operationType": "Typ operacji",
     "operationSubType": "Podtypowy akcji",
     "description": "Opis",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Format kodu kreskowego",
     "qrCodeValueTooLong": "Zbyt wiele znaków dla kodu QR",
     "barcodeValueTooLong": "Zbyt wiele znaków dla kodu kreskowego",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Funkcja agregacji",
     "dbCreateIfNotExists": "Baza danych: Utwórz, jeśli nie istnieje",
     "clientKey": "Klucz klienta",
@@ -380,13 +387,14 @@
     "renameTable": "Zmień nazwę tabeli.",
     "deleteTable": "Usuń tabelę",
     "addField": "Dodaj nowe pole do tej tabeli",
-    "setPrimary": "Ustaw jako wartość podstawowa",
+    "setDisplay": "Set as Display value",
     "addRow": "Dodaj nowy rząd",
     "saveRow": "Zapisz wiersz",
     "saveAndExit": "Zapisz i wyjdź",
     "saveAndStay": "Oszczędzaj i zostań",
     "insertRow": "Wstaw nowy rząd",
     "deleteRow": "Usuń rząd",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Usuń wybrane wiersze",
     "importExcel": "Importuj Excel.",
     "importCSV": "Importuj z CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Ułożone według",
       "chooseGroupingField": "Wybierz pole grupowania",
       "addOrEditStack": "Dodaj / Edytuj stos"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Twórca może tworzyć nowe projekty i mieć dostęp do każdego zaproszonego projektu.",
         "orgViewer": "Widz nie może tworzyć nowych projektów, ale może mieć dostęp do każdego zaproszonego projektu."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Wiersze na stronę",
       "upload": "Wybierz plik do przesłania",
@@ -599,6 +616,7 @@
         "gallery": "Dodaj widok galerii.",
         "form": "Dodaj widok formy",
         "kanban": "Dodaj widok Kanban.",
+        "map": "Add Map View",
         "calendar": "Dodaj widok kalendarza"
       },
       "tablesMetadataInSync": "Tabele Metadane są synchronizowane",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Czy na pewno chcesz usunąć ten widok?",
       "deleteTableConfirmation": "Czy chcesz usunąć tabelę",
       "showM2mTables": "Pokaż tabele M2M",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Usunięcie tego stosu spowoduje również usunięcie wybranej opcji `{stackToBeDeleted}` z `{groupingField}`. Rekordy przeniosą się do nieskategoryzowanego stosu.",
       "computedFieldEditWarning": "Pole obliczeniowe: zawartość jest tylko do odczytu. Do rekonfiguracji należy użyć menu edycji kolumny",
       "computedFieldDeleteWarning": "Pole obliczeniowe: zawartość jest tylko do odczytu. Nie można wyczyścić zawartości.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Nazwa powinna zaczynać się od alfabetu lub od _",
       "followingCharactersAreNotAllowed": "Następujące znaki są niedozwolone",
       "columnNameRequired": "Nazwa kolumny jest wymagana",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Nazwa projektu przekracza 50 znaków",
       "projectNameCannotStartWithSpace": "Nazwa projektu nie może zaczynać się od spacji",
       "requiredField": "Pole wymagane",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Kolumna powielona z powodzeniem",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Pomyślnie zaktualizowano UI ACL dla tabel",
       "pluginUninstalled": "Wtyczka odinstalowana pomyślnie",
       "pluginSettingsSaved": "Ustawienia wtyczki zapisane pomyślnie",

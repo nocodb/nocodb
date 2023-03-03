@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { getRelationName } from './utils'
@@ -14,7 +15,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = $(inject(MetaInj, ref()))
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
 
 const { tables } = $(useProject())
 
@@ -69,8 +70,23 @@ const columns = $computed(() => {
     return []
   }
 
-  return metas[selectedTable.id].columns.filter((c: ColumnType) => !isVirtualCol(c.uidt as UITypes) && !isSystemColumn(c))
+  return metas[selectedTable.id].columns.filter(
+    (c: ColumnType) => !isVirtualCol(c.uidt as UITypes) && (!isSystemColumn(c) || c.pk),
+  )
 })
+
+onMounted(() => {
+  if (isEdit.value) {
+    vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
+    vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
+    vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
+  }
+})
+
+const onRelationColChange = () => {
+  vModel.value.fk_rollup_column_id = columns?.[0]?.id
+  onDataTypeChange()
+}
 </script>
 
 <template>
@@ -80,7 +96,7 @@ const columns = $computed(() => {
         <a-select
           v-model:value="vModel.fk_relation_column_id"
           dropdown-class-name="!w-64 nc-dropdown-relation-table"
-          @change="onDataTypeChange"
+          @change="onRelationColChange"
         >
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">

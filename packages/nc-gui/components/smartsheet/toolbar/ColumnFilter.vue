@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import type { FilterType } from 'nocodb-sdk'
+import type { ColumnType, FilterType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
   ReloadViewDataHookInj,
   comparisonOpList,
+  comparisonSubOpList,
   computed,
   inject,
   ref,
@@ -42,7 +44,19 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
-const { filters, nonDeletedFilters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
+const {
+  filters,
+  nonDeletedFilters,
+  deleteFilter,
+  saveOrUpdate,
+  loadFilters,
+  addFilter,
+  addFilterGroup,
+  sync,
+  saveOrUpdateDebounced,
+  isComparisonOpAllowed,
+  isComparisonSubOpAllowed,
+} = useViewFilters(
   activeView,
   parentId,
   computed(() => autoSave),
@@ -53,15 +67,55 @@ const { filters, nonDeletedFilters, deleteFilter, saveOrUpdate, loadFilters, add
 
 const localNestedFilters = ref()
 
+const columns = computed(() => meta.value?.columns)
+
+const getColumn = (filter: Filter) => {
+  return columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
+}
+
+const filterPrevComparisonOp = ref<Record<string, string>>({})
+
 const filterUpdateCondition = (filter: FilterType, i: number) => {
+  const col = getColumn(filter)
+  if (!col) return
+  if (
+    col.uidt === UITypes.SingleSelect &&
+    ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value[filter.id!]) &&
+    ['eq', 'neq'].includes(filter.comparison_op!)
+  ) {
+    // anyof and nanyof can allow multiple selections,
+    // while `eq` and `neq` only allow one selection
+    filter.value = null
+  } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
+    // since `blank`, `empty`, `null` doesn't require value,
+    // hence remove the previous value
+    filter.value = null
+    filter.comparison_sub_op = ''
+  } else if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)) {
+    // for date / datetime,
+    // the input type could be decimal or datepicker / datetime picker
+    // hence remove the previous value
+    filter.value = null
+    if (
+      !comparisonSubOpList(filter.comparison_op!)
+        .map((op) => op.value)
+        .includes(filter.comparison_sub_op!)
+    ) {
+      if (filter.comparison_op === 'isWithin') {
+        filter.comparison_sub_op = 'pastNumberOfDays'
+      } else {
+        filter.comparison_sub_op = 'exactDate'
+      }
+    }
+  }
   saveOrUpdate(filter, i)
+  filterPrevComparisonOp.value[filter.id] = filter.comparison_op
   $e('a:filter:update', {
     logical: filter.logical_op,
     comparison: filter.comparison_op,
+    comparison_sub_op: filter.comparison_sub_op,
   })
 }
-
-const columns = computed(() => meta.value?.columns)
 
 const types = computed(() => {
   if (!meta.value?.columns?.length) {
@@ -86,7 +140,7 @@ loadFilters(hookId as string)
 
 watch(
   () => nonDeletedFilters.value.length,
-  (length) => {
+  (length: number) => {
     emit('update:filtersLength', length ?? 0)
   },
 )
@@ -103,19 +157,37 @@ const applyChanges = async (hookId?: string, _nested = false) => {
   }
 }
 
-const isComparisonOpAllowed = (filter: FilterType, compOp: typeof comparisonOpList[number]) => {
-  // show current selected value in list even if not allowed
-  if (filter.comparison_op === compOp.value) return true
+const selectFilterField = (filter: Filter, index: number) => {
+  const col = getColumn(filter)
+  if (!col) return
+  // when we change the field,
+  // the corresponding default filter operator needs to be changed as well
+  // since the existing one may not be supported for the new field
+  // e.g. `eq` operator is not supported in checkbox field
+  // hence, get the first option of the supported operators of the new field
+  filter.comparison_op = comparisonOpList(col.uidt as UITypes).filter((compOp) =>
+    isComparisonOpAllowed(filter, compOp),
+  )?.[0].value
 
-  // include allowed values only if selected column type matches
-  if (compOp.includedTypes) {
-    return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
+  if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op)) {
+    if (filter.comparison_op === 'isWithin') {
+      filter.comparison_sub_op = 'pastNumberOfDays'
+    } else {
+      filter.comparison_sub_op = 'exactDate'
+    }
+  } else {
+    // reset
+    filter.comparison_sub_op = ''
   }
-  // include not allowed values only if selected column type not matches
-  else if (compOp.excludedTypes) {
-    return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
-  }
-  return true
+
+  // reset filter value as well
+  filter.value = null
+  saveOrUpdate(filter, index)
+}
+
+const updateFilterValue = (value: string, filter: Filter, index: number) => {
+  filter.value = value
+  saveOrUpdateDebounced(filter, index)
 }
 
 defineExpose({
@@ -127,7 +199,7 @@ defineExpose({
 <template>
   <div
     class="p-4 menu-filter-dropdown bg-gray-50 !border mt-4"
-    :class="{ 'shadow min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
+    :class="{ 'shadow min-w-[430px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
   >
     <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
       <template v-for="(filter, i) in filters" :key="i">
@@ -189,14 +261,13 @@ defineExpose({
               hide-details
               :disabled="filter.readOnly"
               dropdown-class-name="nc-dropdown-filter-logical-op"
-              @click.stop
               @change="filterUpdateCondition(filter, i)"
+              @click.stop
             >
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
                 {{ op.text }}
               </a-select-option>
             </a-select>
-
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
@@ -204,9 +275,8 @@ defineExpose({
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
-              @change="saveOrUpdate(filter, i)"
+              @change="selectFilterField(filter, i)"
             />
-
             <a-select
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
@@ -219,29 +289,63 @@ defineExpose({
               dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
-              <template v-for="compOp of comparisonOpList" :key="compOp.value">
+              <template v-for="compOp of comparisonOpList(getColumn(filter)?.uidt)" :key="compOp.value">
                 <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
                   {{ compOp.text }}
                 </a-select-option>
               </template>
             </a-select>
 
-            <span
+            <a-select
               v-if="
-                filter.comparison_op &&
-                ['null', 'notnull', 'checked', 'notchecked', 'empty', 'notempty'].includes(filter.comparison_op)
+                [UITypes.Date, UITypes.DateTime].includes(getColumn(filter)?.uidt) &&
+                !['blank', 'notblank'].includes(filter.comparison_op)
+              "
+              v-model:value="filter.comparison_sub_op"
+              :dropdown-match-select-width="false"
+              class="caption nc-filter-sub_operation-select"
+              :placeholder="$t('labels.operationSub')"
+              density="compact"
+              variant="solo"
+              :disabled="filter.readOnly"
+              hide-details
+              dropdown-class-name="nc-dropdown-filter-comp-sub-op"
+              @change="filterUpdateCondition(filter, i)"
+            >
+              <template v-for="compSubOp of comparisonSubOpList(filter.comparison_op)" :key="compSubOp.value">
+                <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
+                  {{ compSubOp.text }}
+                </a-select-option>
+              </template>
+            </a-select>
+
+            <span v-else />
+
+            <a-checkbox
+              v-if="filter.field && types[filter.field] === 'boolean'"
+              v-model:checked="filter.value"
+              dense
+              :disabled="filter.readOnly"
+              @change="saveOrUpdate(filter, i)"
+            />
+
+            <span
+              v-else-if="
+                filter.comparison_sub_op
+                  ? comparisonSubOpList(filter.comparison_op).find((op) => op.value === filter.comparison_sub_op)?.ignoreVal ??
+                    false
+                  : comparisonOpList(getColumn(filter)?.uidt).find((op) => op.value === filter.comparison_op)?.ignoreVal ?? false
               "
               :key="`span${i}`"
             />
 
-            <a-input
+            <LazySmartsheetToolbarFilterInput
               v-else
-              :key="`${i}_7`"
-              v-model:value="filter.value"
-              class="nc-filter-value-select"
-              :disabled="filter.readOnly || !filter.fk_column_id"
+              class="nc-filter-value-select min-w-[120px]"
+              :column="getColumn(filter)"
+              :filter="filter"
+              @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
-              @input="saveOrUpdate(filter, i)"
             />
           </template>
         </template>
@@ -259,7 +363,7 @@ defineExpose({
 
       <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
-          <!--          Add Filter Group -->
+          <!-- Add Filter Group -->
           <MdiPlus />
           {{ $t('activity.addFilterGroup') }}
         </div>
@@ -271,7 +375,7 @@ defineExpose({
 
 <style scoped>
 .nc-filter-grid {
-  grid-template-columns: 18px 83px 160px auto auto;
+  grid-template-columns: auto auto auto auto auto auto;
   @apply grid gap-[12px] items-center;
 }
 

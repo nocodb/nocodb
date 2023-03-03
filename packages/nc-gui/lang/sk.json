@@ -74,7 +74,8 @@
     "insertBefore": "Vložiť pred",
     "hideField": "Skryť pole",
     "sortAsc": "Zoradiť vzostupne",
-    "sortDesc": "Zoradiť zostupne"
+    "sortDesc": "Zoradiť zostupne",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +99,8 @@
       "gallery": "Galéria",
       "form": "Formulár",
       "kanban": "Kanban",
-      "calendar": "Kalendár"
+      "calendar": "Kalendár",
+      "map": "Map"
     },
     "user": "Používateľ",
     "users": "Používatelia",
@@ -136,6 +138,7 @@
     "Currency": "Mena",
     "Percent": "Percentá",
     "Duration": "Trvanie",
+    "GeoData": "GeoData",
     "Rating": "Hodnotenie",
     "Formula": "Vzorec",
     "Rollup": "Rollup",
@@ -232,6 +235,7 @@
     "action": "Akcia",
     "actions": "Činnosti",
     "operation": "Operácia",
+    "operationSub": "Sub Operation",
     "operationType": "Typ operácie",
     "operationSubType": "Podtyp operácie",
     "description": "Popis",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Formát čiarového kódu",
     "qrCodeValueTooLong": "Príliš veľa znakov pre kód QR",
     "barcodeValueTooLong": "Príliš veľa znakov pre čiarový kód",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Súhrnná funkcia",
     "dbCreateIfNotExists": "Databáza : vytvoriť, ak neexistuje",
     "clientKey": "Kľúč klienta",
@@ -380,13 +387,14 @@
     "renameTable": "Premenovanie tabuľky",
     "deleteTable": "Tabuľka Vymazať",
     "addField": "Pridanie nového poľa do tejto tabuľky",
-    "setPrimary": "Nastaviť ako primárnu hodnotu",
+    "setDisplay": "Set as Display value",
     "addRow": "Pridanie nového riadku",
     "saveRow": "Uložiť riadok",
     "saveAndExit": "Uložiť a ukončiť",
     "saveAndStay": "Uložiť a zostať",
     "insertRow": "Vložiť nový riadok",
     "deleteRow": "Odstrániť riadok",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Odstránenie vybraných riadkov",
     "importExcel": "Importovať aplikáciu Excel",
     "importCSV": "Import CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Naskladané podľa",
       "chooseGroupingField": "Výber zoskupovacieho poľa",
       "addOrEditStack": "Pridať / upraviť zásobník"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Creator môže vytvárať nové projekty a pristupovať k ľubovoľnému pozvanému projektu.",
         "orgViewer": "Prehliadač nemôže vytvárať nové projekty, ale môže pristupovať k ľubovoľnému pozvanému projektu."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Riadky na stránku",
       "upload": "Vyberte súbor na odoslanie",
@@ -599,6 +616,7 @@
         "gallery": "Pridanie zobrazenia galérie",
         "form": "Pridanie zobrazenia formulára",
         "kanban": "Pridanie zobrazenia Kanban",
+        "map": "Add Map View",
         "calendar": "Pridanie zobrazenia kalendára"
       },
       "tablesMetadataInSync": "Metadáta tabuliek sú synchronizované",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Ste si istí, že chcete toto zobrazenie odstrániť?",
       "deleteTableConfirmation": "Chcete odstrániť tabuľku",
       "showM2mTables": "Zobraziť tabuľky M2M",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Odstránením tohto zásobníka sa odstráni aj možnosť výberu `{stackToBeDeleted}` z `{groupingField}`. Záznamy sa presunú do zásobníka bez kategórií.",
       "computedFieldEditWarning": "Vypočítané pole: obsah je len na čítanie. Na zmenu konfigurácie použite ponuku úprav stĺpcov",
       "computedFieldDeleteWarning": "Vypočítané pole: obsah je len na čítanie. Nie je možné vymazať obsah.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Meno by malo začínať abecedou alebo _",
       "followingCharactersAreNotAllowed": "Nasledujúce znaky nie sú povolené",
       "columnNameRequired": "Vyžaduje sa názov stĺpca",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Názov projektu presahuje 50 znakov",
       "projectNameCannotStartWithSpace": "Názov projektu nemôže začínať medzerou",
       "requiredField": "Povinné pole",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Stĺpec bol úspešne duplikovaný",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Úspešne aktualizované používateľské rozhranie ACL pre tabuľky",
       "pluginUninstalled": "Plugin úspešne odinštalovaný",
       "pluginSettingsSaved": "Nastavenia zásuvného modulu boli úspešne uložené",

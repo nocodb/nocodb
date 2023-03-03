@@ -22,6 +22,7 @@ import extractProjectIdAndAuthenticate from '../../helpers/extractProjectIdAndAu
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { MetaTable } from '../../../utils/globals';
 import Noco from '../../../Noco';
+import { getAjvValidatorMw } from '../helpers';
 import { genJwt } from './helpers';
 import { randomTokenString } from '../../helpers/stringHelpers';
 
@@ -278,13 +279,15 @@ async function googleSignin(req, res, next) {
   )(req, res, next);
 }
 
+const REFRESH_TOKEN_COOKIE_KEY = 'refresh_token';
+
 function setTokenCookie(res, token): void {
   // create http only cookie with refresh token that expires in 7 days
   const cookieOptions = {
     httpOnly: true,
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   };
-  res.cookie('refresh_token', token, cookieOptions);
+  res.cookie(REFRESH_TOKEN_COOKIE_KEY, token, cookieOptions);
 }
 
 async function me(req, res): Promise<any> {
@@ -484,7 +487,9 @@ async function refreshToken(req, res): Promise<any> {
       return res.status(400).json({ msg: 'Missing refresh token' });
     }
 
-    const user = await User.getByRefreshToken(req.cookies.refresh_token);
+    const user = await User.getByRefreshToken(
+      req.cookies[REFRESH_TOKEN_COOKIE_KEY]
+    );
 
     if (!user) {
       return res.status(400).json({ msg: 'Invalid refresh token' });
@@ -511,6 +516,7 @@ async function renderPasswordReset(req, res): Promise<any> {
   try {
     res.send(
       ejs.render((await import('./ui/auth/resetPassword')).default, {
+        ncPublicUrl: process.env.NC_PUBLIC_URL || '',
         token: JSON.stringify(req.params.tokenId),
         baseUrl: `/`,
       })
@@ -520,20 +526,62 @@ async function renderPasswordReset(req, res): Promise<any> {
   }
 }
 
+// clear refresh token cookie and update user refresh token to null
+const signout = async (req, res): Promise<any> => {
+  const resBody = { msg: 'Success' };
+  if (!req.cookies[REFRESH_TOKEN_COOKIE_KEY]) {
+    return res.json(resBody);
+  }
+
+  const user = await User.getByRefreshToken(
+    req.cookies[REFRESH_TOKEN_COOKIE_KEY]
+  );
+
+  if (!user) {
+    return res.json(resBody);
+  }
+
+  res.clearCookie(REFRESH_TOKEN_COOKIE_KEY);
+
+  await User.update(user.id, {
+    refresh_token: null,
+  });
+
+  res.json(resBody);
+};
+
 const mapRoutes = (router) => {
   // todo: old api - /auth/signup?tool=1
-  router.post('/auth/user/signup', catchError(signup));
-  router.post('/auth/user/signin', catchError(signin));
+  router.post(
+    '/auth/user/signup',
+    getAjvValidatorMw('swagger.json#/components/schemas/SignUpReq'),
+    catchError(signup)
+  );
+  router.post(
+    '/auth/user/signin',
+    getAjvValidatorMw('swagger.json#/components/schemas/SignInReq'),
+    catchError(signin)
+  );
+  router.post('/auth/user/signout', catchError(signout));
   router.get('/auth/user/me', extractProjectIdAndAuthenticate, catchError(me));
-  router.post('/auth/password/forgot', catchError(passwordForgot));
+  router.post(
+    '/auth/password/forgot',
+    getAjvValidatorMw('swagger.json#/components/schemas/ForgotPasswordReq'),
+    catchError(passwordForgot)
+  );
   router.post('/auth/token/validate/:tokenId', catchError(tokenValidate));
-  router.post('/auth/password/reset/:tokenId', catchError(passwordReset));
+  router.post(
+    '/auth/password/reset/:tokenId',
+    getAjvValidatorMw('swagger.json#/components/schemas/PasswordResetReq'),
+    catchError(passwordReset)
+  );
   router.post('/auth/email/validate/:tokenId', catchError(emailVerification));
   router.post(
     '/user/password/change',
+    getAjvValidatorMw('swagger.json#/components/schemas/PasswordChangeReq'),
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
-  router.post('/auth/token/refresh', ncMetaAclMw(refreshToken, 'refreshToken'));
+  router.post('/auth/token/refresh', catchError(refreshToken));
 
   /* Google auth apis */
 
@@ -548,20 +596,33 @@ const mapRoutes = (router) => {
   );
 
   // deprecated APIs
-  router.post('/api/v1/db/auth/user/signup', catchError(signup));
-  router.post('/api/v1/db/auth/user/signin', catchError(signin));
+  router.post(
+    '/api/v1/db/auth/user/signup',
+    getAjvValidatorMw('swagger.json#/components/schemas/SignUpReq'),
+    catchError(signup)
+  );
+  router.post(
+    '/api/v1/db/auth/user/signin',
+    getAjvValidatorMw('swagger.json#/components/schemas/SignInReq'),
+    catchError(signin)
+  );
   router.get(
     '/api/v1/db/auth/user/me',
     extractProjectIdAndAuthenticate,
     catchError(me)
   );
-  router.post('/api/v1/db/auth/password/forgot', catchError(passwordForgot));
+  router.post(
+    '/api/v1/db/auth/password/forgot',
+    getAjvValidatorMw('swagger.json#/components/schemas/ForgotPasswordReq'),
+    catchError(passwordForgot)
+  );
   router.post(
     '/api/v1/db/auth/token/validate/:tokenId',
     catchError(tokenValidate)
   );
   router.post(
     '/api/v1/db/auth/password/reset/:tokenId',
+    getAjvValidatorMw('swagger.json#/components/schemas/PasswordResetReq'),
     catchError(passwordReset)
   );
   router.post(
@@ -570,26 +631,37 @@ const mapRoutes = (router) => {
   );
   router.post(
     '/api/v1/db/auth/password/change',
+    getAjvValidatorMw('swagger.json#/components/schemas/PasswordChangeReq'),
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
-  router.post(
-    '/api/v1/db/auth/token/refresh',
-    ncMetaAclMw(refreshToken, 'refreshToken')
-  );
+  router.post('/api/v1/db/auth/token/refresh', catchError(refreshToken));
   router.get(
     '/api/v1/db/auth/password/reset/:tokenId',
     catchError(renderPasswordReset)
   );
 
   // new API
-  router.post('/api/v1/auth/user/signup', catchError(signup));
-  router.post('/api/v1/auth/user/signin', catchError(signin));
+  router.post(
+    '/api/v1/auth/user/signup',
+    getAjvValidatorMw('swagger.json#/components/schemas/SignUpReq'),
+    catchError(signup)
+  );
+  router.post(
+    '/api/v1/auth/user/signin',
+    getAjvValidatorMw('swagger.json#/components/schemas/SignInReq'),
+    catchError(signin)
+  );
+  router.post('/api/v1/auth/user/signout', catchError(signout));
   router.get(
     '/api/v1/auth/user/me',
     extractProjectIdAndAuthenticate,
     catchError(me)
   );
-  router.post('/api/v1/auth/password/forgot', catchError(passwordForgot));
+  router.post(
+    '/api/v1/auth/password/forgot',
+    getAjvValidatorMw('swagger.json#/components/schemas/ForgotPasswordReq'),
+    catchError(passwordForgot)
+  );
   router.post(
     '/api/v1/auth/token/validate/:tokenId',
     catchError(tokenValidate)
@@ -604,12 +676,10 @@ const mapRoutes = (router) => {
   );
   router.post(
     '/api/v1/auth/password/change',
+    getAjvValidatorMw('swagger.json#/components/schemas/PasswordChangeReq'),
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
-  router.post(
-    '/api/v1/auth/token/refresh',
-    ncMetaAclMw(refreshToken, 'refreshToken')
-  );
+  router.post('/api/v1/auth/token/refresh', catchError(refreshToken));
   // respond with password reset page
   router.get('/auth/password/reset/:tokenId', catchError(renderPasswordReset));
 };

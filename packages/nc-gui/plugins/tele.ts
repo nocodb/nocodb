@@ -1,12 +1,12 @@
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
-import { defineNuxtPlugin, useGlobal, useRoute, useRouter, watch } from '#imports'
+import { defineNuxtPlugin, useGlobal, useRouter, watch } from '#imports'
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
   const router = useRouter()
 
-  const route = useRoute()
+  const route = $(router.currentRoute)
 
   const { appInfo } = $(useGlobal())
 

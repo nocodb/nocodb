@@ -714,9 +714,9 @@ const closeAddColumnDropdown = () => {
           @contextmenu="showContextMenu"
         >
           <thead ref="tableHead">
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px] !z-4">
-              <th data-testid="grid-id-column">
-                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" data-testid="nc-check-all">
+            <tr class="nc-grid-header">
+              <th class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
+                <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
@@ -793,7 +793,7 @@ const closeAddColumnDropdown = () => {
                         class="nc-row-no text-xs text-gray-500"
                         :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                       >
-                        {{ rowIndex + 1 }}
+                        {{ ((paginationData.page ?? 1) - 1) * 25 + rowIndex + 1 }}
                       </div>
                       <div
                         v-if="!readOnly"
@@ -993,9 +993,14 @@ const closeAddColumnDropdown = () => {
 
   td,
   th {
+    @apply border-gray-200 border-solid border-b border-r;
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
+  }
+
+  th {
+    @apply bg-gray-100;
   }
 
   td:not(:first-child) > div {
@@ -1003,11 +1008,9 @@ const closeAddColumnDropdown = () => {
     @apply flex px-1 h-auto;
   }
 
-  table,
-  td,
-  th {
-    @apply !border-1;
-    border-collapse: collapse;
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   td {
@@ -1027,7 +1030,7 @@ const closeAddColumnDropdown = () => {
 
   // todo: replace with css variable
   td.active::after {
-    @apply border-2 border-solid text-primary border-current bg-primary bg-opacity-5;
+    @apply border-1 border-solid text-primary border-current bg-primary bg-opacity-5;
   }
 
   //td.active::before {
@@ -1035,6 +1038,34 @@ const closeAddColumnDropdown = () => {
   //  z-index:4;
   //  @apply absolute !w-[10px] !h-[10px] !right-[-5px] !bottom-[-5px] bg-primary;
   //}
+
+  thead th:nth-child(1) {
+    position: sticky !important;
+    left: 0;
+    z-index: 5;
+  }
+
+  tbody td:nth-child(1) {
+    position: sticky !important;
+    left: 0;
+    z-index: 4;
+    background: white;
+  }
+
+  thead th:nth-child(2) {
+    position: sticky !important;
+    left: 80px;
+    z-index: 5;
+    @apply border-r-2 border-r-gray-300;
+  }
+
+  tbody td:nth-child(2) {
+    position: sticky !important;
+    left: 80px;
+    z-index: 4;
+    background: white;
+    @apply border-r-2 border-r-gray-300;
+  }
 }
 
 :deep {
@@ -1081,7 +1112,7 @@ const closeAddColumnDropdown = () => {
   position: sticky;
   top: -1px;
 
-  @apply z-1;
+  @apply z-10 bg-gray-100;
 
   &:hover {
     .nc-no-label {

@@ -287,6 +287,10 @@ a {
   @apply !shadow-none rounded hover:(ring-1 ring-primary ring-opacity-100) focus:(ring-1 ring-accent ring-opacity-100);
 }
 
+.nc-warning-info {
+  @apply !shadow-none rounded ring-1 ring-red-600
+}
+
 .ant-modal {
   @apply !top-[50px];
 }
@@ -308,6 +312,24 @@ a {
 
 .ant-btn-loading-icon{
   & > span {
-    @apply block bg-red-500
+    @apply block;
   }
+}
+
+
+.nc-copy-failed-modal .ant-modal-confirm-content{
+  @apply pt-4 overflow-auto;
+  white-space: pre;
+  user-select: auto;
+}
+
+
+
+.nc-drawer-expanded-form .ant-drawer-content-wrapper {
+  transition: width 0.3s !important;
+}
+
+
+.nc-icon-transition {
+  @apply transform transition-transform !hover:(scale-115) !active:(scale-100)
 }

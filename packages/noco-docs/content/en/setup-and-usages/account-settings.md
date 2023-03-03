@@ -54,9 +54,15 @@ Signup without an invitation is disabled by default and can be managed from UI b
 
 ## App Store
 
-You can also manage the app store plugins here.
-
 ![image](https://user-images.githubusercontent.com/35857179/203267619-24a8f5f5-1c8c-4419-a7a1-be4377fe6216.png)
+
+We provide different integrations in three main categories.
+
+| Category | App Name |
+|---|---|
+| Chat | Microsoft Teams <br/> Discord <br/> Twilio <br/> Whatsapp Twilio<br/> Mattermost<br/> Slack |
+| Email | SMTP<br/> MailerSend<br/> AWS SES |
+| Storage | AWS S3 <br/> Minio <br/> Google Cloud Storage <br/> Spaces <br/> Backblaze B2 <br/> Vultr Object Storage <br/> OvhCloud Object Storage <br/> Linode Object Storage <br/> UpCloud Object Storage <br/> Scaleway Object Storage |
 
 ## License
 

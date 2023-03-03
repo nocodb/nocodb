@@ -9,9 +9,67 @@ import {
   MetaTable,
 } from '../utils/globals';
 import View from './View';
-import { FilterType, UITypes } from 'nocodb-sdk';
+import { BoolType, FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { NcError } from '../meta/helpers/catchError';
+import { extractProps } from '../meta/helpers/extractProps';
+
+export const COMPARISON_OPS = <const>[
+  'eq',
+  'neq',
+  'not',
+  'like',
+  'nlike',
+  'empty',
+  'notempty',
+  'null',
+  'notnull',
+  'checked',
+  'notchecked',
+  'blank',
+  'notblank',
+  'allof',
+  'anyof',
+  'nallof',
+  'nanyof',
+  'gt',
+  'lt',
+  'gte',
+  'lte',
+  'ge',
+  'le',
+  'in',
+  'isnot',
+  'is',
+  'isWithin',
+  'btw',
+  'nbtw',
+];
+
+export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
+  'pastWeek',
+  'pastMonth',
+  'pastYear',
+  'nextWeek',
+  'nextMonth',
+  'nextYear',
+  'pastNumberOfDays',
+  'nextNumberOfDays',
+];
+
+export const COMPARISON_SUB_OPS = <const>[
+  'today',
+  'tomorrow',
+  'yesterday',
+  'oneWeekAgo',
+  'oneWeekFromNow',
+  'oneMonthAgo',
+  'oneMonthFromNow',
+  'daysAgo',
+  'daysFromNow',
+  'exactDate',
+  ...IS_WITHIN_COMPARISON_SUB_OPS,
+];
 
 export default class Filter {
   id: string;
@@ -22,37 +80,13 @@ export default class Filter {
   fk_column_id?: string;
   fk_parent_id?: string;
 
-  comparison_op?:
-    | 'eq'
-    | 'neq'
-    | 'not'
-    | 'like'
-    | 'nlike'
-    | 'empty'
-    | 'notempty'
-    | 'null'
-    | 'notnull'
-    | 'checked'
-    | 'notchecked'
-    | 'allof'
-    | 'anyof'
-    | 'nallof'
-    | 'nanyof'
-    | 'gt'
-    | 'lt'
-    | 'gte'
-    | 'lte'
-    | 'ge'
-    | 'le'
-    | 'in'
-    | 'isnot'
-    | 'is'
-    | 'btw'
-    | 'nbtw';
+  comparison_op?: typeof COMPARISON_OPS[number];
+  comparison_sub_op?: typeof COMPARISON_SUB_OPS[number];
+
   value?: string;
 
   logical_op?: string;
-  is_group?: boolean;
+  is_group?: BoolType;
   children?: Filter[];
   project_id?: string;
   base_id?: string;
@@ -74,29 +108,31 @@ export default class Filter {
   }
 
   public static async insert(
-    filter: Partial<FilterType>,
+    filter: Partial<FilterType> & { order?: number },
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = {
-      id: filter.id,
-      fk_view_id: filter.fk_view_id,
-      fk_hook_id: filter.fk_hook_id,
-      fk_column_id: filter.fk_column_id,
-      comparison_op: filter.comparison_op,
-      value: filter.value,
-      fk_parent_id: filter.fk_parent_id,
+    const insertObj = extractProps(filter, [
+      'id',
+      'fk_view_id',
+      'fk_hook_id',
+      'fk_column_id',
+      'comparison_op',
+      'comparison_sub_op',
+      'value',
+      'fk_parent_id',
+      'is_group',
+      'logical_op',
+      'project_id',
+      'base_id',
+      'order',
+    ]);
 
-      is_group: filter.is_group,
-      logical_op: filter.logical_op,
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
+      [filter.fk_hook_id ? 'fk_hook_id' : 'fk_view_id']: filter.fk_hook_id
+        ? filter.fk_hook_id
+        : filter.fk_view_id,
+    });
 
-      project_id: filter.project_id,
-      base_id: filter.base_id,
-      order: await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
-        [filter.fk_hook_id ? 'fk_hook_id' : 'fk_view_id']: filter.fk_hook_id
-          ? filter.fk_hook_id
-          : filter.fk_view_id,
-      }),
-    };
     if (!(filter.project_id && filter.base_id)) {
       let model: { project_id?: string; base_id?: string };
       if (filter.fk_view_id) {
@@ -216,15 +252,15 @@ export default class Filter {
   }
 
   static async update(id, filter: Partial<Filter>, ncMeta = Noco.ncMeta) {
-    const updateObj = {
-      fk_column_id: filter.fk_column_id,
-      comparison_op: filter.comparison_op,
-      value: filter.value,
-      fk_parent_id: filter.fk_parent_id,
-
-      is_group: filter.is_group,
-      logical_op: filter.logical_op,
-    };
+    const updateObj = extractProps(filter, [
+      'fk_column_id',
+      'comparison_op',
+      'comparison_sub_op',
+      'value',
+      'fk_parent_id',
+      'is_group',
+      'logical_op',
+    ]);
     // get existing cache
     const key = `${CacheScope.FILTER_EXP}:${id}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -239,7 +275,7 @@ export default class Filter {
   }
 
   static async delete(id: string, ncMeta = Noco.ncMeta) {
-    const filter = await this.get(id);
+    const filter = await this.get(id, ncMeta);
 
     const deleteRecursively = async (filter: Filter) => {
       if (!filter) return;
@@ -524,5 +560,43 @@ export default class Filter {
       );
     }
     return filterObjs?.map((f) => new Filter(f));
+  }
+
+  static async hasEmptyOrNullFilters(projectId: string, ncMeta = Noco.ncMeta) {
+    const emptyOrNullFilterObjs = await ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.FILTER_EXP,
+      {
+        condition: {
+          project_id: projectId,
+        },
+        xcCondition: {
+          _or: [
+            {
+              comparison_op: {
+                eq: 'null',
+              },
+            },
+            {
+              comparison_op: {
+                eq: 'notnull',
+              },
+            },
+            {
+              comparison_op: {
+                eq: 'empty',
+              },
+            },
+            {
+              comparison_op: {
+                eq: 'notempty',
+              },
+            },
+          ],
+        },
+      }
+    );
+    return emptyOrNullFilterObjs.length > 0;
   }
 }

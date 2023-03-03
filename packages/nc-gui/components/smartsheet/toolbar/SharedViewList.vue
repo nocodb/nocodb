@@ -56,6 +56,9 @@ const sharedViewUrl = (view: SharedViewType) => {
     case ViewTypes.FORM:
       viewType = 'form'
       break
+    case ViewTypes.MAP:
+      viewType = 'map'
+      break
     case ViewTypes.KANBAN:
       viewType = 'kanban'
       break
@@ -75,9 +78,13 @@ const renderAllowCSVDownload = (view: SharedViewType) => {
 }
 
 const copyLink = (view: SharedViewType) => {
-  copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
-  // Copied to clipboard
-  message.success(t('msg.info.copiedToClipboard'))
+  try {
+    copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
+    // Copied to clipboard
+    message.success(t('msg.info.copiedToClipboard'))
+  } catch (e) {
+    message.error(e.message)
+  }
 }
 
 const deleteLink = async (id: string) => {

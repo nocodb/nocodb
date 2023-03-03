@@ -6,7 +6,6 @@ import Column from '../../models/Column';
 import { Tele } from 'nc-help';
 import validateParams from '../helpers/validateParams';
 
-import { customAlphabet } from 'nanoid';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import {
   getUniqueColumnAliasName,
@@ -19,9 +18,7 @@ import {
   isVirtualCol,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
-  LookupColumnReqType,
   RelationTypes,
-  RollupColumnReqType,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   TableType,
@@ -34,71 +31,27 @@ import NcMetaIO from '../NcMetaIO';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { NcError } from '../helpers/catchError';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import FormulaColumn from '../../models/FormulaColumn';
 import KanbanView from '../../models/KanbanView';
 import { MetaTable } from '../../utils/globals';
 import formulaQueryBuilderv2 from '../../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
-
-const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
+import {
+  createHmAndBtColumn,
+  generateFkName,
+  getAjvValidatorMw,
+  randomID,
+  validateLookupPayload,
+  validateRequiredField,
+  validateRollupPayload,
+} from './helpers';
 
 export enum Altered {
   NEW_COLUMN = 1,
   DELETE_COLUMN = 4,
   UPDATE_COLUMN = 8,
-}
-
-async function createHmAndBtColumn(
-  child: Model,
-  parent: Model,
-  childColumn: Column,
-  type?: RelationTypes,
-  alias?: string,
-  virtual = false,
-  isSystemCol = false
-) {
-  // save bt column
-  {
-    const title = getUniqueColumnAliasName(
-      await child.getColumns(),
-      type === 'bt' ? alias : `${parent.title}`
-    );
-    await Column.insert<LinkToAnotherRecordColumn>({
-      title,
-
-      fk_model_id: child.id,
-      // ref_db_alias
-      uidt: UITypes.LinkToAnotherRecord,
-      type: 'bt',
-      // db_type:
-
-      fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parent.primaryKey.id,
-      fk_related_model_id: parent.id,
-      virtual,
-      system: isSystemCol,
-    });
-  }
-  // save hm column
-  {
-    const title = getUniqueColumnAliasName(
-      await parent.getColumns(),
-      type === 'hm' ? alias : `${child.title} List`
-    );
-    await Column.insert({
-      title,
-      fk_model_id: parent.id,
-      uidt: UITypes.LinkToAnotherRecord,
-      type: 'hm',
-      fk_child_column_id: childColumn.id,
-      fk_parent_column_id: parent.primaryKey.id,
-      fk_related_model_id: child.id,
-      virtual,
-      system: isSystemCol,
-    });
-  }
 }
 
 export async function columnGet(req: Request, res: Response) {
@@ -112,8 +65,26 @@ export async function columnAdd(
   const table = await Model.getWithInfo({
     id: req.params.tableId,
   });
+
   const base = await Base.get(table.base_id);
+
   const project = await base.getProject();
+
+  if (req.body.title || req.body.column_name) {
+    const dbDriver = NcConnectionMgrv2.get(base);
+
+    const sqlClientType = dbDriver.clientType();
+
+    const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+    if ((req.body.title || req.body.column_name).length > mxColumnLength) {
+      NcError.badRequest(
+        `Column name ${
+          req.body.title || req.body.column_name
+        } exceeds ${mxColumnLength} characters`
+      );
+    }
+  }
 
   if (
     !isVirtualCol(req.body) &&
@@ -137,49 +108,7 @@ export async function columnAdd(
   switch (colBody.uidt) {
     case UITypes.Rollup:
       {
-        validateParams(
-          [
-            'title',
-            'fk_relation_column_id',
-            'fk_rollup_column_id',
-            'rollup_function',
-          ],
-          req.body
-        );
-
-        const relation = await (
-          await Column.get({
-            colId: (req.body as RollupColumnReqType).fk_relation_column_id,
-          })
-        ).getColOptions<LinkToAnotherRecordType>();
-
-        if (!relation) {
-          throw new Error('Relation column not found');
-        }
-
-        let relatedColumn: Column;
-        switch (relation.type) {
-          case 'hm':
-            relatedColumn = await Column.get({
-              colId: relation.fk_child_column_id,
-            });
-            break;
-          case 'mm':
-          case 'bt':
-            relatedColumn = await Column.get({
-              colId: relation.fk_parent_column_id,
-            });
-            break;
-        }
-
-        const relatedTable = await relatedColumn.getModel();
-        if (
-          !(await relatedTable.getColumns()).find(
-            (c) =>
-              c.id === (req.body as RollupColumnReqType).fk_rollup_column_id
-          )
-        )
-          throw new Error('Rollup column not found in related table');
+        await validateRollupPayload(req.body);
 
         await Column.insert({
           ...colBody,
@@ -189,44 +118,7 @@ export async function columnAdd(
       break;
     case UITypes.Lookup:
       {
-        validateParams(
-          ['title', 'fk_relation_column_id', 'fk_lookup_column_id'],
-          req.body
-        );
-
-        const relation = await (
-          await Column.get({
-            colId: (req.body as LookupColumnReqType).fk_relation_column_id,
-          })
-        ).getColOptions<LinkToAnotherRecordType>();
-
-        if (!relation) {
-          throw new Error('Relation column not found');
-        }
-
-        let relatedColumn: Column;
-        switch (relation.type) {
-          case 'hm':
-            relatedColumn = await Column.get({
-              colId: relation.fk_child_column_id,
-            });
-            break;
-          case 'mm':
-          case 'bt':
-            relatedColumn = await Column.get({
-              colId: relation.fk_parent_column_id,
-            });
-            break;
-        }
-
-        const relatedTable = await relatedColumn.getModel();
-        if (
-          !(await relatedTable.getColumns()).find(
-            (c) =>
-              c.id === (req.body as LookupColumnReqType).fk_lookup_column_id
-          )
-        )
-          throw new Error('Lookup column not found in related table');
+        await validateLookupPayload(req.body);
 
         await Column.insert({
           ...colBody,
@@ -236,7 +128,6 @@ export async function columnAdd(
       break;
 
     case UITypes.LinkToAnotherRecord:
-      // case UITypes.ForeignKey:
       {
         validateParams(['parentId', 'childId', 'type'], req.body);
 
@@ -262,6 +153,7 @@ export async function columnAdd(
             `${parent.table_name}_id`
           );
 
+          let foreignKeyName;
           {
             // create foreign key
             const newColumn = {
@@ -307,6 +199,7 @@ export async function columnAdd(
 
             // ignore relation creation if virtual
             if (!(req.body as LinkToAnotherColumnReqType).virtual) {
+              foreignKeyName = generateFkName(parent, child);
               // create relation
               await sqlMgr.sqlOpPlus(base, 'relationCreate', {
                 childColumn: fkColName,
@@ -316,6 +209,7 @@ export async function columnAdd(
                 onUpdate: 'NO ACTION',
                 type: 'real',
                 parentColumn: parent.primaryKey.column_name,
+                foreignKeyName,
               });
             }
 
@@ -338,6 +232,7 @@ export async function columnAdd(
             childColumn,
             (req.body as LinkToAnotherColumnReqType).type as RelationTypes,
             (req.body as LinkToAnotherColumnReqType).title,
+            foreignKeyName,
             (req.body as LinkToAnotherColumnReqType).virtual
           );
         } else if ((req.body as LinkToAnotherColumnReqType).type === 'mm') {
@@ -399,7 +294,13 @@ export async function columnAdd(
             columns: associateTableCols,
           });
 
+          let foreignKeyName1;
+          let foreignKeyName2;
+
           if (!(req.body as LinkToAnotherColumnReqType).virtual) {
+            foreignKeyName1 = generateFkName(parent, child);
+            foreignKeyName2 = generateFkName(parent, child);
+
             const rel1Args = {
               ...req.body,
               childTable: aTn,
@@ -407,6 +308,7 @@ export async function columnAdd(
               parentTable: parent.table_name,
               parentColumn: parentPK.column_name,
               type: 'real',
+              foreignKeyName: foreignKeyName1,
             };
             const rel2Args = {
               ...req.body,
@@ -415,6 +317,7 @@ export async function columnAdd(
               parentTable: child.table_name,
               parentColumn: childPK.column_name,
               type: 'real',
+              foreignKeyName: foreignKeyName2,
             };
 
             await sqlMgr.sqlOpPlus(base, 'relationCreate', rel1Args);
@@ -433,6 +336,7 @@ export async function columnAdd(
             childCol,
             null,
             null,
+            foreignKeyName1,
             (req.body as LinkToAnotherColumnReqType).virtual,
             true
           );
@@ -442,6 +346,7 @@ export async function columnAdd(
             parentCol,
             null,
             null,
+            foreignKeyName2,
             (req.body as LinkToAnotherColumnReqType).virtual,
             true
           );
@@ -674,7 +579,7 @@ export async function columnAdd(
           ],
         };
 
-        const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+        const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
         const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
         await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
@@ -723,13 +628,49 @@ export async function columnSetAsPrimary(req: Request, res: Response) {
   res.json(await Model.updatePrimaryColumn(column.fk_model_id, column.id));
 }
 
+async function updateRollupOrLookup(colBody: any, column: Column<any>) {
+  if (
+    UITypes.Lookup === column.uidt &&
+    validateRequiredField(colBody, [
+      'fk_lookup_column_id',
+      'fk_relation_column_id',
+    ])
+  ) {
+    await validateLookupPayload(colBody, column.id);
+    await Column.update(column.id, colBody);
+  } else if (
+    UITypes.Rollup === column.uidt &&
+    validateRequiredField(colBody, [
+      'fk_relation_column_id',
+      'fk_rollup_column_id',
+      'rollup_function',
+    ])
+  ) {
+    await validateRollupPayload(colBody);
+    await Column.update(column.id, colBody);
+  }
+}
+
 export async function columnUpdate(req: Request, res: Response<TableType>) {
   const column = await Column.get({ colId: req.params.columnId });
 
   const table = await Model.getWithInfo({
     id: column.fk_model_id,
   });
+
   const base = await Base.get(table.base_id);
+
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+
+  const sqlClientType = sqlClient.knex.clientType();
+
+  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+  if (req.body.column_name.length > mxColumnLength) {
+    NcError.badRequest(
+      `Column name ${req.body.column_name} exceeds ${mxColumnLength} characters`
+    );
+  }
 
   if (
     !isVirtualCol(req.body) &&
@@ -794,6 +735,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           title: colBody.title,
         });
       }
+      await updateRollupOrLookup(colBody, column);
     } else {
       NcError.notImplemented(
         `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`
@@ -1682,11 +1624,11 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
 
   await table.getColumns();
 
-  const primaryValueColumn = mapDefaultPrimaryValue(table.columns);
-  if (primaryValueColumn) {
+  const displayValueColumn = mapDefaultDisplayValue(table.columns);
+  if (displayValueColumn) {
     await Model.updatePrimaryColumn(
-      primaryValueColumn.fk_model_id,
-      primaryValueColumn.id
+      displayValueColumn.fk_model_id,
+      displayValueColumn.id
     );
   }
 
@@ -1724,6 +1666,31 @@ const deleteHmOrBtRelation = async (
   },
   ignoreFkDelete = false
 ) => {
+  let foreignKeyName;
+
+  // if relationColOpt is not provided, extract it from child table
+  // and get the foreign key name for dropping the foreign key
+  if (!relationColOpt) {
+    foreignKeyName = (
+      (
+        await childTable.getColumns().then((cols) => {
+          return cols?.find((c) => {
+            return (
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions.fk_related_model_id === parentTable.id &&
+              (c.colOptions as LinkToAnotherRecordType).fk_child_column_id ===
+                childColumn.id &&
+              (c.colOptions as LinkToAnotherRecordType).fk_parent_column_id ===
+                parentColumn.id
+            );
+          });
+        })
+      ).colOptions as LinkToAnotherRecordType
+    ).fk_index_name;
+  } else {
+    foreignKeyName = relationColOpt.fk_index_name;
+  }
+
   // todo: handle relation delete exception
   try {
     await sqlMgr.sqlOpPlus(base, 'relationDelete', {
@@ -1731,7 +1698,7 @@ const deleteHmOrBtRelation = async (
       childTable: childTable.table_name,
       parentTable: parentTable.table_name,
       parentColumn: parentColumn.column_name,
-      // foreignKeyName: relation.fkn
+      foreignKeyName,
     });
   } catch (e) {
     console.log(e);
@@ -1819,6 +1786,7 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/columns/',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/ColumnReq'),
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
 

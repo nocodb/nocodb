@@ -25,6 +25,7 @@ import addFormulaErrorIfMissingColumn from '../meta/helpers/addFormulaErrorIfMis
 import { NcError } from '../meta/helpers/catchError';
 import QrCodeColumn from './QrCodeColumn';
 import BarcodeColumn from './BarcodeColumn';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
@@ -85,41 +86,50 @@ export default class Column<T = any> implements ColumnType {
   ) {
     if (!column.fk_model_id) NcError.badRequest('Missing model id');
 
-    const insertObj: any = {
-      id: column?.id,
-      fk_model_id: column.fk_model_id,
-      column_name: column.column_name || column.cn,
-      title: column.title || column._cn,
-      uidt: column.uidt,
-      dt: column.dt,
-      np: column.np,
-      ns: column.ns,
-      clen: column.clen,
-      cop: column.cop,
-      pk: column.pk,
-      rqd: column.rqd,
-      un: column.un,
-      ct: column.ct,
-      ai: column.ai,
-      unique: column.unique,
-      cdf: column.cdf,
-      cc: column.cc,
-      csn: column.csn,
-      dtx: column.dtx,
-      dtxp: column.dtxp,
-      dtxs: column.dtxs,
-      au: column.au,
-      pv: column.pv,
-      order: column.order,
-      project_id: column.project_id,
-      base_id: column.base_id,
-      system: column.system,
-      meta:
-        column.meta && typeof column.meta === 'object'
-          ? JSON.stringify(column.meta)
-          : column.meta,
-    };
+    // TODO: fix type
+    const insertObj = extractProps(column as any, [
+      'id',
+      'fk_model_id',
+      'column_name',
+      'title',
+      'uidt',
+      'dt',
+      'np',
+      'ns',
+      'clen',
+      'cop',
+      'pk',
+      'rqd',
+      'un',
+      'ct',
+      'ai',
+      'unique',
+      'cdf',
+      'cc',
+      'csn',
+      'dtx',
+      'dtxp',
+      'dtxs',
+      'au',
+      'pv',
+      'order',
+      'project_id',
+      'base_id',
+      'system',
+      'meta',
+    ]);
 
+    if (!insertObj.column_name) {
+      insertObj.column_name = column.cn;
+    }
+
+    if (!insertObj.title) {
+      insertObj.title = column._cn;
+    }
+
+    if (insertObj.meta && typeof insertObj.meta === 'object') {
+      insertObj.meta = JSON.stringify(insertObj.meta);
+    }
     if (column.validate) {
       if (typeof column.validate === 'string')
         insertObj.validate = column.validate;
@@ -873,7 +883,11 @@ export default class Column<T = any> implements ColumnType {
     );
   }
 
-  static async update(colId: string, column: any, ncMeta = Noco.ncMeta) {
+  static async update(
+    colId: string,
+    column: Partial<Column>,
+    ncMeta = Noco.ncMeta
+  ) {
     const oldCol = await Column.get({ colId }, ncMeta);
 
     switch (oldCol.uidt) {
@@ -965,33 +979,34 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
     }
-    const updateObj = {
-      column_name: column.column_name,
-      title: column.title,
-      uidt: column.uidt,
-      dt: column.dt,
-      np: column.np,
-      ns: column.ns,
-      clen: column.clen,
-      cop: column.cop,
-      pk: column.pk,
-      rqd: column.rqd,
-      un: column.un,
-      ct: column.ct,
-      ai: column.ai,
-      unique: column.unique,
-      cdf: column.cdf,
-      cc: column.cc,
-      csn: column.csn,
-      dtx: column.dtx,
-      dtxp: column.dtxp,
-      dtxs: column.dtxs,
-      au: column.au,
-      pv: column.pv,
-      system: column.system,
-      validate: null,
-      meta: column.meta,
-    };
+
+    const updateObj = extractProps(column, [
+      'column_name',
+      'title',
+      'uidt',
+      'dt',
+      'np',
+      'ns',
+      'clen',
+      'cop',
+      'pk',
+      'rqd',
+      'un',
+      'ct',
+      'ai',
+      'unique',
+      'cdf',
+      'cc',
+      'csn',
+      'dtx',
+      'dtxp',
+      'dtxs',
+      'au',
+      'pv',
+      'system',
+      'validate',
+      'meta',
+    ]);
 
     if (column.validate) {
       if (typeof column.validate === 'string')
@@ -1150,5 +1165,18 @@ export default class Column<T = any> implements ColumnType {
       },
       colId
     );
+  }
+
+  static getMaxColumnNameLength(sqlClientType: string) {
+    // no limit for sqlite but set as 255
+    let fieldLengthLimit = 255;
+    if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+      fieldLengthLimit = 64;
+    } else if (sqlClientType === 'pg') {
+      fieldLengthLimit = 59;
+    } else if (sqlClientType === 'mssql') {
+      fieldLengthLimit = 128;
+    }
+    return fieldLengthLimit;
   }
 }

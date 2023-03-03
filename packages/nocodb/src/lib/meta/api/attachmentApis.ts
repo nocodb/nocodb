@@ -14,10 +14,13 @@ import catchError, { NcError } from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+import { getCacheMiddleware } from './helpers';
 
 const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
   if (!req['user']?.id) {
-    NcError.unauthorized('Unauthorized');
+    if (!req['user']?.isPublicBase) {
+      NcError.unauthorized('Unauthorized');
+    }
   }
 
   try {
@@ -25,6 +28,7 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
     if (
       req['user'].roles?.includes(OrgUserRoles.SUPER_ADMIN) ||
       req['user'].roles?.includes(OrgUserRoles.CREATOR) ||
+      req['user'].roles?.includes(ProjectRoles.EDITOR) ||
       // if viewer then check at-least one project have editor or higher role
       // todo: cache
       !!(await Noco.ncMeta
@@ -54,7 +58,7 @@ export async function upload(req: Request, res: Response) {
     (req as any).files?.map(async (file) => {
       const fileName = `${nanoid(18)}${path.extname(file.originalname)}`;
 
-      let url = await storageAdapter.fileCreate(
+      const url = await storageAdapter.fileCreate(
         slash(path.join(destPath, fileName)),
         file
       );
@@ -98,7 +102,7 @@ export async function uploadViaURL(req: Request, res: Response) {
 
       const fileName = `${nanoid(18)}${_fileName || url.split('/').pop()}`;
 
-      let attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
+      const attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
         slash(path.join(destPath, fileName)),
         url
       );
@@ -158,32 +162,36 @@ export async function fileRead(req, res) {
 
 const router = Router({ mergeParams: true });
 
-router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
-  try {
-    // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
-    const type =
-      mimetypes[path.extname(req.params[2]).split('/').pop().slice(1)] ||
-      'text/plain';
+router.get(
+  /^\/dl\/([^/]+)\/([^/]+)\/(.+)$/,
+  getCacheMiddleware(),
+  async (req, res) => {
+    try {
+      // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
+      const type =
+        mimetypes[path.extname(req.params[2]).split('/').pop().slice(1)] ||
+        'text/plain';
 
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
-    // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
-    const img = await storageAdapter.fileRead(
-      slash(
-        path.join(
-          'nc',
-          req.params[0],
-          req.params[1],
-          'uploads',
-          ...req.params[2].split('/')
+      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+      // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
+      const img = await storageAdapter.fileRead(
+        slash(
+          path.join(
+            'nc',
+            req.params[0],
+            req.params[1],
+            'uploads',
+            ...req.params[2].split('/')
+          )
         )
-      )
-    );
-    res.writeHead(200, { 'Content-Type': type });
-    res.end(img, 'binary');
-  } catch (e) {
-    res.status(404).send('Not found');
+      );
+      res.writeHead(200, { 'Content-Type': type });
+      res.end(img, 'binary');
+    } catch (e) {
+      res.status(404).send('Not found');
+    }
   }
-});
+);
 
 export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
@@ -214,6 +222,6 @@ router.post(
   ]
 );
 
-router.get(/^\/download\/(.+)$/, catchError(fileRead));
+router.get(/^\/download\/(.+)$/, getCacheMiddleware(), catchError(fileRead));
 
 export default router;

@@ -32,6 +32,7 @@ export interface Field {
   title: string
   fk_column_id?: string
   system?: boolean
+  isViewEssentialField?: boolean
 }
 
 export type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>

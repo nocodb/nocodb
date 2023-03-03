@@ -74,7 +74,8 @@
     "insertBefore": "Önce Ekle",
     "hideField": "Alanı Gizle",
     "sortAsc": "Artan Sırala",
-    "sortDesc": "Azalan Sıralama"
+    "sortDesc": "Azalan Sıralama",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Proje",
@@ -98,7 +99,8 @@
       "gallery": "Galeri",
       "form": "Form",
       "kanban": "Kanban",
-      "calendar": "Takvim"
+      "calendar": "Takvim",
+      "map": "Map"
     },
     "user": "Kullanıcı",
     "users": "Kullanıcılar",
@@ -136,6 +138,7 @@
     "Currency": "Para birimi",
     "Percent": "Yüzde",
     "Duration": "Süre",
+    "GeoData": "GeoData",
     "Rating": "Değerlendirme",
     "Formula": "Formül",
     "Rollup": "Referans hesapla",
@@ -232,6 +235,7 @@
     "action": "Aksiyon",
     "actions": "Aksiyonlar",
     "operation": "İşlem",
+    "operationSub": "Sub Operation",
     "operationType": "İşlem türü",
     "operationSubType": "İşlem alt-türü",
     "description": "Tanım",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Barkod formatı",
     "qrCodeValueTooLong": "QR kodu için çok fazla karakter",
     "barcodeValueTooLong": "Barkod için çok fazla karakter",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Birleştirme fonksiyonu",
     "dbCreateIfNotExists": "Veritabanı : yoksa oluştur",
     "clientKey": "İstemci Anahtarı",
@@ -380,13 +387,14 @@
     "renameTable": "Tabloyu Yeniden Adlandır",
     "deleteTable": "Tabloyu Sil",
     "addField": "Tabloya yeni alan ekle",
-    "setPrimary": "Birincil değer yap",
+    "setDisplay": "Set as Display value",
     "addRow": "Yeni satır ekle",
     "saveRow": "Satırı kaydet",
     "saveAndExit": "Kaydet ve Çık",
     "saveAndStay": "Kaydet ve Kal",
     "insertRow": "Yeni Satır Ekle",
     "deleteRow": "Satırı Sil",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Seçilen Satırları Sil",
     "importExcel": "Excel içe aktar",
     "importCSV": "CSV içe aktar",
@@ -451,6 +459,10 @@
       "stackedBy": "Tarafından Yığılmış",
       "chooseGroupingField": "Bir Gruplama Alanı Seçin",
       "addOrEditStack": "Yığın Ekle / Düzenle"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "İçerik oluşturucu yeni projeler oluşturabilir ve davet edilen herhangi bir projeye erişebilir.",
         "orgViewer": "İzleyicinin yeni proje oluşturmasına izin verilmez ancak davet edilen herhangi bir projeye erişebilir."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Sayfa başına satır",
       "upload": "Yüklenecek Dosyayı Seçin",
@@ -599,6 +616,7 @@
         "gallery": "Galeri görünümü ekle",
         "form": "Form görünümü ekle",
         "kanban": "Kanban görünümü ekle",
+        "map": "Add Map View",
         "calendar": "Takvim görünümü ekle"
       },
       "tablesMetadataInSync": "Tablonun meta verileri senkronize",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Bu görünümü silmek istediğinizden emin misiniz?",
       "deleteTableConfirmation": "Tabloyu silmek istiyor musunuz",
       "showM2mTables": "M2M Tablolarını Göster",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Bu yığının silinmesi `{stackToBeDeleted}` seçim seçeneğini `{groupingField}` adresinden de kaldıracaktır. Kayıtlar kategorize edilmemiş yığına taşınacaktır.",
       "computedFieldEditWarning": "Hesaplanan alan: içerik salt okunurdur. Yeniden yapılandırmak için sütun düzenleme menüsünü kullanın",
       "computedFieldDeleteWarning": "Hesaplanan alan: içerik salt okunurdur. İçerik temizlenemiyor.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "İsim bir alfabe veya _ ile başlamalıdır",
       "followingCharactersAreNotAllowed": "Aşağıdaki karakterlere izin verilmez",
       "columnNameRequired": "Sütun adı gereklidir",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Proje adı 50 karakteri aşıyor",
       "projectNameCannotStartWithSpace": "Proje adı boşlukla başlayamaz",
       "requiredField": "Zorunlu alan",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Sütun başarıyla çoğaltıldı",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Tablolar için UI ACL başarıyla güncellendi",
       "pluginUninstalled": "Eklenti başarıyla kaldırıldı",
       "pluginSettingsSaved": "Eklenti ayarları başarıyla kaydedildi",

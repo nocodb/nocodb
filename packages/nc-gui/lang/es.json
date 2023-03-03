@@ -74,7 +74,8 @@
     "insertBefore": "Insertar antes",
     "hideField": "Ocultar campo",
     "sortAsc": "Ordenación ascendente",
-    "sortDesc": "Orden descendente"
+    "sortDesc": "Orden descendente",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Proyecto",
@@ -98,7 +99,8 @@
       "gallery": "Galería",
       "form": "Formulario",
       "kanban": "Kanban",
-      "calendar": "Calendario"
+      "calendar": "Calendario",
+      "map": "Map"
     },
     "user": "Usuario",
     "users": "Usuarios",
@@ -136,6 +138,7 @@
     "Currency": "Divisa",
     "Percent": "Por ciento",
     "Duration": "Duración",
+    "GeoData": "GeoData",
     "Rating": "Clasificación",
     "Formula": "Fórmula",
     "Rollup": "Acumulado",
@@ -232,6 +235,7 @@
     "action": "Acción",
     "actions": "Acciones",
     "operation": "Operación",
+    "operationSub": "Sub Operation",
     "operationType": "Tipo de operación",
     "operationSubType": "Sub-tipo de operación",
     "description": "Descripción",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Formato del código de barras",
     "qrCodeValueTooLong": "Demasiados caracteres para un código QR",
     "barcodeValueTooLong": "Demasiados caracteres para un código de barras",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Función agregada",
     "dbCreateIfNotExists": "Base de datos : Crear si no existe",
     "clientKey": "Clave de Cliente",
@@ -380,13 +387,14 @@
     "renameTable": "Cambiar el nombre de la tabla",
     "deleteTable": "Borrar tabla",
     "addField": "Añadir nuevo campo a esta tabla",
-    "setPrimary": "Establecido como clave primaria",
+    "setDisplay": "Set as Display value",
     "addRow": "Añadir nueva fila",
     "saveRow": "Grabar la fila",
     "saveAndExit": "Guardar y salir",
     "saveAndStay": "Ahorrar y quedarse",
     "insertRow": "Insertar nueva fila",
     "deleteRow": "Borrar fila",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Eliminar filas seleccionadas",
     "importExcel": "Importar Excel",
     "importCSV": "Importar CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Apilado por",
       "chooseGroupingField": "Elija un campo de agrupación",
       "addOrEditStack": "Añadir / Editar pila"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "El creador puede crear nuevos proyectos y acceder a cualquier proyecto invitado.",
         "orgViewer": "El espectador no puede crear nuevos proyectos, pero puede acceder a cualquier proyecto invitado."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Filas por página",
       "upload": "Selecciona Archivo para cargar",
@@ -599,6 +616,7 @@
         "gallery": "Agregar vista de Galería",
         "form": "Agregar vista de Formulario",
         "kanban": "Agregar vista de Kanban",
+        "map": "Add Map View",
         "calendar": "Agregar vista de Calendario"
       },
       "tablesMetadataInSync": "Sincronización de tablas de metadatos activa",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "¿Está seguro de que desea eliminar esta vista?",
       "deleteTableConfirmation": "¿Desea eliminar la tabla",
       "showM2mTables": "Mostrar tablas M2M",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Al eliminar esta pila también se eliminará la opción de selección `{stackToBeDeleted}` de la `{groupingField}`. Los registros pasarán a la pila de no categorizados.",
       "computedFieldEditWarning": "Campo calculado: el contenido es de sólo lectura. Utilice el menú de edición de columnas para reconfigurar",
       "computedFieldDeleteWarning": "Campo calculado: el contenido es de sólo lectura. No se puede borrar el contenido.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "El nombre debe empezar por un alfabeto o _",
       "followingCharactersAreNotAllowed": "Los siguientes caracteres no están permitidos",
       "columnNameRequired": "El nombre de la columna es obligatorio",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "El nombre del proyecto supera los 50 caracteres",
       "projectNameCannotStartWithSpace": "El nombre del proyecto no puede empezar con un espacio",
       "requiredField": "Campo obligatorio",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Columna duplicada con éxito",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Actualizada con éxito la interfaz de usuario ACL para las tablas",
       "pluginUninstalled": "Plugin desinstalado correctamente",
       "pluginSettingsSaved": "La configuración del plugin se ha guardado correctamente",

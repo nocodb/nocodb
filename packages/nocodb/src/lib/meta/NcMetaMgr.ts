@@ -437,9 +437,12 @@ export default class NcMetaMgr {
       await this.xcMetaTablesReset(args);
 
       for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
-        if (fs.existsSync(path.join(metaFolder, `${tn}.json`))) {
+        if (await promisify(fs.exists)(path.join(metaFolder, `${tn}.json`))) {
           const data = JSON.parse(
-            fs.readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8')
+            await promisify(fs.readFile)(
+              path.join(metaFolder, `${tn}.json`),
+              'utf8'
+            )
           );
           for (const row of data) {
             delete row.id;
@@ -488,14 +491,14 @@ export default class NcMetaMgr {
         },
       });
       // delete temporary upload file
-      fs.unlinkSync(file.path);
+      await promisify(fs.unlink)(file.path);
 
       let projectId = this.getProjectId(args);
       if (!projectConfigPath) {
         throw new Error('Missing project config file');
       }
 
-      const projectDetailsJSON: any = fs.readFileSync(
+      const projectDetailsJSON: any = await promisify(fs.readFile)(
         path.join(this.config.toolDir, 'uploads', projectConfigPath),
         'utf8'
       );
@@ -519,7 +522,7 @@ export default class NcMetaMgr {
 
         if (projectConfig?.prefix) {
           const metaProjConfig =
-            NcConfigFactory.makeProjectConfigFromConnection(
+            await NcConfigFactory.makeProjectConfigFromConnection(
               this.config?.meta?.db,
               args.args.projectType
             );
@@ -614,11 +617,11 @@ export default class NcMetaMgr {
         },
       });
       // delete temporary upload file
-      fs.unlinkSync(file.path);
+      await promisify(fs.unlink)(file.path);
 
       if (projectConfigPath) {
         // read project config and extract project id
-        let projectConfig: any = fs.readFileSync(
+        let projectConfig: any = await promisify(fs.readFile)(
           path.join(this.config?.toolDir, projectConfigPath),
           'utf8'
         );
@@ -702,14 +705,14 @@ export default class NcMetaMgr {
           'meta'
         );
 
-        mkdirp.sync(metaFolder);
+        await mkdirp(metaFolder);
 
         // const client = await this.projectGetSqlClient(args);
         const dbAlias = this.getDbAlias(args);
         for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
           // const metaData = await client.knex(tn).select();
           const metaData = await this.xcMeta.metaList(projectId, dbAlias, tn);
-          fs.writeFileSync(
+          await promisify(fs.writeFile)(
             path.join(metaFolder, `${tn}.json`),
             JSON.stringify(metaData, null, 2)
           );
@@ -720,7 +723,7 @@ export default class NcMetaMgr {
           true
         );
         projectMetaData.key = this.config?.auth?.jwt?.secret;
-        fs.writeFileSync(
+        await promisify(fs.writeFile)(
           path.join(metaFolder, `nc_project.json`),
           JSON.stringify(projectMetaData, null, 2)
         );
@@ -1551,7 +1554,9 @@ export default class NcMetaMgr {
           break;
 
         case 'testConnection':
-          result = await SqlClientFactory.create(args.args).testConnection();
+          result = await (
+            await SqlClientFactory.create(args.args)
+          ).testConnection();
           break;
         case 'xcProjectGetConfig':
           result = await this.xcMeta.projectGetById(this.getProjectId(args));
@@ -1602,7 +1607,7 @@ export default class NcMetaMgr {
           break;
         case 'projectCreateByOneClick':
           {
-            const config = NcConfigFactory.makeProjectConfigFromUrl(
+            const config = await NcConfigFactory.makeProjectConfigFromUrl(
               process.env.NC_DB,
               args.args.projectType
             );
@@ -1635,7 +1640,7 @@ export default class NcMetaMgr {
           break;
         case 'projectCreateByWebWithXCDB': {
           await this.checkIsUserAllowedToCreateProject(req);
-          const config = NcConfigFactory.makeProjectConfigFromConnection(
+          const config = await NcConfigFactory.makeProjectConfigFromConnection(
             this.config?.meta?.db,
             args.args.projectType
           );
@@ -2904,7 +2909,7 @@ export default class NcMetaMgr {
     }
   }
 
-  protected projectGetSqlClient(args) {
+  protected async projectGetSqlClient(args) {
     const builder = this.getBuilder(args);
     return builder?.getSqlClient();
   }
@@ -3440,7 +3445,7 @@ export default class NcMetaMgr {
   }
 
   // @ts-ignore
-  protected getSqlClient(project_id: string, dbAlias: string) {
+  protected async getSqlClient(project_id: string, dbAlias: string) {
     return this.app?.projectBuilders
       ?.find((pb) => pb?.id === project_id)
       ?.apiBuilders?.find((builder) => builder.dbAlias === dbAlias)
@@ -4250,7 +4255,7 @@ export default class NcMetaMgr {
         return { data: { list: columns } };
       }
 
-      return this.projectGetSqlClient(args).columnList(args.args);
+      return (await this.projectGetSqlClient(args)).columnList(args.args);
     } catch (e) {
       throw e;
     }
@@ -4595,7 +4600,7 @@ export default class NcMetaMgr {
         {}
       );
 
-      const sqlClient = this.projectGetSqlClient(args);
+      const sqlClient = await this.projectGetSqlClient(args);
 
       switch (args.args.type) {
         case 'table':

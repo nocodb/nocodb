@@ -5,6 +5,7 @@ import { NcError } from '../helpers/catchError';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import ApiToken from '../../models/ApiToken';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers';
 
 export async function apiTokenList(req: Request, res: Response) {
   res.json(await ApiToken.list(req['user'].id));
@@ -40,6 +41,7 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/api-tokens',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/ApiTokenReq'),
   ncMetaAclMw(apiTokenCreate, 'apiTokenCreate')
 );
 router.delete(

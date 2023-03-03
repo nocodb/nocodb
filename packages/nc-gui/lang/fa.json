@@ -74,7 +74,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "پروژه",
@@ -98,7 +99,8 @@
       "gallery": "گالری",
       "form": "فرم",
       "kanban": "کانبان",
-      "calendar": "تقویم"
+      "calendar": "تقویم",
+      "map": "Map"
     },
     "user": "کاربر",
     "users": "کاربران",
@@ -136,6 +138,7 @@
     "Currency": "واحد پول",
     "Percent": "درصد",
     "Duration": "مدت زمان",
+    "GeoData": "GeoData",
     "Rating": "امتیاز",
     "Formula": "فرمول",
     "Rollup": "تجمیع کردن",
@@ -232,6 +235,7 @@
     "action": "اقدام",
     "actions": "اقدامات",
     "operation": "عملیات",
+    "operationSub": "Sub Operation",
     "operationType": "نوع عملیات",
     "operationSubType": "زیرگونه عملیات",
     "description": "شرح",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "تابع جمع",
     "dbCreateIfNotExists": "پایگاه داده: ایجاد در صورت عدم وجود",
     "clientKey": "کلید Client",
@@ -380,13 +387,14 @@
     "renameTable": "تغییر نام جدول",
     "deleteTable": "حذف جدول",
     "addField": "اضافه کردن فیلد جدید به این جدول",
-    "setPrimary": "تنظیم به عنوان مقدار اولیه",
+    "setDisplay": "Set as Display value",
     "addRow": "اضافه کردن ردیف جدید",
     "saveRow": "دخیره ردیف",
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "وارد کردن ردیف جدید",
     "deleteRow": "حذف ردیف جدید",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "حذف ردیف‌های انتخاب شده",
     "importExcel": "وارد کردن فایل Excel",
     "importCSV": "Import CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "تعداد ردیف‌ها در هر صفحه",
       "upload": "فایل را برای بارگذاری انتخاب کنید",
@@ -599,6 +616,7 @@
         "gallery": "افزودن نمایش گالری",
         "form": "افزودن نمایش فرم",
         "kanban": "افزودن نمایش کانبان",
+        "map": "Add Map View",
         "calendar": "افزودن نمایش تقویم"
       },
       "tablesMetadataInSync": "متاداده جداول در حالت همگام‌سازی است",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Are you sure you want to delete this view?",
       "deleteTableConfirmation": "Do you want to delete the table",
       "showM2mTables": "Show M2M Tables",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
       "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",

@@ -8,6 +8,7 @@ import {
   AuditOperationTypes,
   isVirtualCol,
   ModelTypes,
+  NormalColumnRequestType,
   TableListType,
   TableReqType,
   TableType,
@@ -17,10 +18,11 @@ import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import Project from '../../models/Project';
 import Audit from '../../models/Audit';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
+import { getAjvValidatorMw } from './helpers';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
 import View from '../../models/View';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
-import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
+import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
 import { NcError } from '../helpers/catchError';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import Column from '../../models/Column';
@@ -148,10 +150,11 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -162,6 +165,16 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 
   if (req.body.table_name.length > tableNameLengthLimit) {
     NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+  }
+
+  const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+  for (const column of req.body.columns) {
+    if (column.column_name.length > mxColumnLength) {
+      NcError.badRequest(
+        `Column name ${column.column_name} exceeds ${mxColumnLength} characters`
+      );
+    }
   }
 
   req.body.columns = req.body.columns?.map((c) => ({
@@ -195,7 +208,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     ip: (req as any).clientIp,
   }).then(() => {});
 
-  mapDefaultPrimaryValue(req.body.columns);
+  mapDefaultDisplayValue(req.body.columns);
 
   Tele.emit('evt', { evt_type: 'table:created' });
 
@@ -205,10 +218,13 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
       columns: columns.map((c, i) => {
         const colMetaFromReq = req.body?.columns?.find(
           (c1) => c.cn === c1.column_name
-        );
+        ) as NormalColumnRequestType;
         return {
           ...colMetaFromReq,
-          uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(base, c),
+          uidt:
+            (colMetaFromReq?.uidt as string) ||
+            c.uidt ||
+            getColumnUiType(base, c),
           ...c,
           dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
             colMetaFromReq.uidt as any
@@ -218,7 +234,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
           title: colMetaFromReq?.title || getColumnNameAlias(c.cn, base),
           column_name: c.cn,
           order: i + 1,
-        };
+        } as NormalColumnRequestType;
       }),
       order: +(tables?.pop()?.order ?? 0) + 1,
     })
@@ -295,10 +311,10 @@ export async function tableUpdate(req: Request<any, any>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
 
   let tableNameLengthLimit = 255;
-  const sqlClientType = sqlClient.clientType;
+  const sqlClientType = sqlClient.knex.clientType();
   if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
     tableNameLengthLimit = 64;
   } else if (sqlClientType === 'pg') {
@@ -399,11 +415,13 @@ router.get(
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/TableReq'),
   ncMetaAclMw(tableCreate, 'tableCreate')
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/TableReq'),
   ncMetaAclMw(tableCreate, 'tableCreate')
 );
 router.get(

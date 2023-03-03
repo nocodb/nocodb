@@ -25,10 +25,10 @@ export default class SqlMgrv2Trans extends SqlMgrv2 {
     this.base = base;
   }
 
-  public migrator() {
+  public async migrator() {
     return new KnexMigratorv2Tans(
       { id: this.projectId },
-      this.getSqlClient(this.base),
+      await this.getSqlClient(this.base),
       this.ncMeta
     );
   }
@@ -52,7 +52,7 @@ export default class SqlMgrv2Trans extends SqlMgrv2 {
     }
   }
 
-  protected getSqlClient(base: Base) {
+  protected async getSqlClient(base: Base) {
     return NcConnectionMgrv2.getSqlClient(base, this.trx);
   }
 

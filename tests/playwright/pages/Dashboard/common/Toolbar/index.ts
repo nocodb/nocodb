@@ -15,9 +15,10 @@ import { ToolbarStackbyPage } from './StackBy';
 import { ToolbarAddEditStackPage } from './AddEditKanbanStack';
 import { ToolbarSearchDataPage } from './SearchData';
 import { RowHeight } from './RowHeight';
+import { MapPage } from '../../Map';
 
 export class ToolbarPage extends BasePage {
-  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage;
+  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
@@ -29,7 +30,7 @@ export class ToolbarPage extends BasePage {
   readonly searchData: ToolbarSearchDataPage;
   readonly rowHeight: RowHeight;
 
-  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage) {
+  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage) {
     super(parent.rootPage);
     this.parent = parent;
     this.fields = new ToolbarFieldsPage(this);
@@ -82,10 +83,10 @@ export class ToolbarPage extends BasePage {
   }: { networkValidation?: boolean } = {}) {
     const menuOpen = await this.filter.get().isVisible();
 
-    const clickFilterAction = this.get().locator(`button.nc-filter-menu-btn`).click();
+    const clickFilterAction = () => this.get().locator(`button.nc-filter-menu-btn`).click();
     // Wait for the menu to close
     if (menuOpen) {
-      await clickFilterAction;
+      await clickFilterAction();
       await this.filter.get().waitFor({ state: 'hidden' });
     } else {
       if (networkValidation) {
@@ -96,7 +97,7 @@ export class ToolbarPage extends BasePage {
           httpMethodsToMatch: ['GET'],
         });
       } else {
-        await clickFilterAction;
+        await clickFilterAction();
       }
     }
   }

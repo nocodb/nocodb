@@ -269,7 +269,7 @@ async function _formulaQueryBuilder(
                         );
                         cn = knex.raw('??.??', [
                           nestedAlias,
-                          parentModel?.primaryValue?.column_name,
+                          parentModel?.displayValue?.column_name,
                         ]);
                       }
                       break;
@@ -283,7 +283,7 @@ async function _formulaQueryBuilder(
                         );
                         cn = knex.raw('??.??', [
                           nestedAlias,
-                          childModel?.primaryValue?.column_name,
+                          childModel?.displayValue?.column_name,
                         ]);
                       }
                       break;
@@ -311,7 +311,7 @@ async function _formulaQueryBuilder(
                       }
                       cn = knex.raw('??.??', [
                         nestedAlias,
-                        parentModel?.primaryValue?.column_name,
+                        parentModel?.displayValue?.column_name,
                       ]);
                   }
 
@@ -424,7 +424,7 @@ async function _formulaQueryBuilder(
           let selectQb;
           if (relation.type === 'bt') {
             selectQb = knex(parentModel.table_name)
-              .select(parentModel?.primaryValue?.column_name)
+              .select(parentModel?.displayValue?.column_name)
               .where(
                 `${parentModel.table_name}.${parentColumn.column_name}`,
                 knex.raw(`??`, [
@@ -447,7 +447,7 @@ async function _formulaQueryBuilder(
                   getAggregateFn(fn)({
                     qb,
                     knex,
-                    cn: childModel?.primaryValue?.column_name,
+                    cn: childModel?.displayValue?.column_name,
                   })
                 )
                 .wrap('(', ')');
@@ -499,7 +499,7 @@ async function _formulaQueryBuilder(
                   getAggregateFn(fn)({
                     qb,
                     knex,
-                    cn: parentModel?.primaryValue?.column_name,
+                    cn: parentModel?.displayValue?.column_name,
                   })
                 )
                 .wrap('(', ')');
@@ -753,7 +753,7 @@ async function _formulaQueryBuilder(
           sql = `${sql} ${colAlias}`;
         }
       }
-      const query = knex.raw(sql);
+      const query = knex.raw(sql.replace(/\?/g, '\\?'));
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
       }

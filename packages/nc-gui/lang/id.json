@@ -74,7 +74,8 @@
     "insertBefore": "Sisipkan Sebelum",
     "hideField": "Sembunyikan Bidang",
     "sortAsc": "Urutkan Menaik",
-    "sortDesc": "Urutkan Menurun"
+    "sortDesc": "Urutkan Menurun",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Proyek",
@@ -98,7 +99,8 @@
       "gallery": "Galeri",
       "form": "Membentuk",
       "kanban": "Kanban.",
-      "calendar": "Kalender"
+      "calendar": "Kalender",
+      "map": "Map"
     },
     "user": "Pengguna",
     "users": "Pengguna.",
@@ -136,6 +138,7 @@
     "Currency": "Mata uang",
     "Percent": "Persen",
     "Duration": "Durasi",
+    "GeoData": "GeoData",
     "Rating": "Peringkat",
     "Formula": "Rumus",
     "Rollup": "Rollup.",
@@ -232,6 +235,7 @@
     "action": "Tindakan",
     "actions": "Tindakan",
     "operation": "Operasi",
+    "operationSub": "Sub Operation",
     "operationType": "Jenis operasi",
     "operationSubType": "SUB-tipe operasi",
     "description": "Keterangan",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Format kode batang",
     "qrCodeValueTooLong": "Terlalu banyak karakter untuk kode QR",
     "barcodeValueTooLong": "Terlalu banyak karakter untuk barcode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Fungsi agregat.",
     "dbCreateIfNotExists": "Basis Data: Buat jika tidak ada",
     "clientKey": "Kunci klien",
@@ -380,13 +387,14 @@
     "renameTable": "Ganti nama meja",
     "deleteTable": "Table Delete.",
     "addField": "Tambahkan bidang baru ke tabel ini",
-    "setPrimary": "Tetapkan sebagai nilai utama",
+    "setDisplay": "Set as Display value",
     "addRow": "Tambahkan baris baru",
     "saveRow": "Hemat Baris",
     "saveAndExit": "Simpan & Keluar",
     "saveAndStay": "Simpan & Menginap",
     "insertRow": "Masukkan baris baru.",
     "deleteRow": "Hapus Baris",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Hapus baris yang dipilih",
     "importExcel": "Impor Excel.",
     "importCSV": "Impor CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Ditumpuk oleh",
       "chooseGroupingField": "Pilih Bidang Pengelompokan",
       "addOrEditStack": "Tambah / Edit Tumpukan"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Kreator dapat membuat proyek baru dan mengakses proyek yang diundang.",
         "orgViewer": "Penonton tidak diizinkan untuk membuat proyek baru, tetapi mereka dapat mengakses proyek yang diundang."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Baris per halaman",
       "upload": "Pilih file untuk diunggah",
@@ -599,6 +616,7 @@
         "gallery": "Tambahkan Tampilan Galeri",
         "form": "Tambahkan tampilan formulir",
         "kanban": "Tambahkan Kanban Lihat",
+        "map": "Add Map View",
         "calendar": "Tambahkan tampilan kalender"
       },
       "tablesMetadataInSync": "Tabel metadata sedang disinkronkan",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Apakah Anda yakin ingin menghapus tampilan ini?",
       "deleteTableConfirmation": "Apakah Anda ingin menghapus tabel",
       "showM2mTables": "Tampilkan Tabel M2M",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Menghapus tumpukan ini juga akan menghapus opsi pilihan `{stackToBeDeleted}` dari `{groupingField}`. Catatan akan berpindah ke tumpukan yang tidak dikategorikan.",
       "computedFieldEditWarning": "Bidang yang dihitung: isinya hanya dapat dibaca. Gunakan menu edit kolom untuk mengkonfigurasi ulang",
       "computedFieldDeleteWarning": "Bidang yang dihitung: isinya hanya dapat dibaca. Tidak dapat menghapus konten.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Nama harus dimulai dengan alfabet atau _",
       "followingCharactersAreNotAllowed": "Karakter berikut tidak diperbolehkan",
       "columnNameRequired": "Nama kolom harus diisi",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Nama proyek melebihi 50 karakter",
       "projectNameCannotStartWithSpace": "Nama proyek tidak boleh dimulai dengan spasi",
       "requiredField": "Bidang yang dibutuhkan",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Kolom berhasil diduplikasi",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Berhasil memperbarui ACL UI untuk tabel",
       "pluginUninstalled": "Plugin berhasil dihapus instalasinya",
       "pluginSettingsSaved": "Pengaturan plugin berhasil disimpan",

@@ -8,6 +8,7 @@ import { CheckboxCellPageObject } from './CheckboxCell';
 import { RatingCellPageObject } from './RatingCell';
 import { DateCellPageObject } from './DateCell';
 import { DateTimeCellPageObject } from './DateTimeCell';
+import { GeoDataCellPageObject } from './GeoDataCell';
 
 export interface CellProps {
   index?: number;
@@ -20,6 +21,7 @@ export class CellPageObject extends BasePage {
   readonly attachment: AttachmentCellPageObject;
   readonly checkbox: CheckboxCellPageObject;
   readonly rating: RatingCellPageObject;
+  readonly geoData: GeoDataCellPageObject;
   readonly date: DateCellPageObject;
   readonly dateTime: DateTimeCellPageObject;
 
@@ -30,6 +32,7 @@ export class CellPageObject extends BasePage {
     this.attachment = new AttachmentCellPageObject(this);
     this.checkbox = new CheckboxCellPageObject(this);
     this.rating = new RatingCellPageObject(this);
+    this.geoData = new GeoDataCellPageObject(this);
     this.date = new DateCellPageObject(this);
     this.dateTime = new DateTimeCellPageObject(this);
   }
@@ -75,7 +78,7 @@ export class CellPageObject extends BasePage {
   async inCellExpand({ index, columnHeader }: CellProps) {
     await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
-      uiAction: this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
+      uiAction: () => this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
@@ -96,15 +99,37 @@ export class CellPageObject extends BasePage {
 
   async verify({ index, columnHeader, value }: CellProps & { value: string | string[] }) {
     const _verify = async text => {
-      await expect
-        .poll(async () => {
-          const innerTexts = await this.get({
-            index,
-            columnHeader,
-          }).allInnerTexts();
-          return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
-        })
-        .toContain(text);
+      // await expect
+      //   .poll(async () => {
+      //     const innerTexts = await this.get({
+      //       index,
+      //       columnHeader,
+      //     }).allInnerTexts();
+      //     return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
+      //   })
+      //   .toContain(text);
+
+      // retrieve text from cell
+      // loop for 5 seconds
+      // if text is found, return
+      // if text is not found, throw error
+      let count = 0;
+      while (count < 5) {
+        const innerTexts = await this.get({
+          index,
+          columnHeader,
+        }).allInnerTexts();
+        const cellText = typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
+
+        if (cellText) {
+          if (cellText?.includes(text) || cellText[0]?.includes(text)) {
+            return;
+          }
+        }
+        await this.rootPage.waitForTimeout(1000);
+        count++;
+        if (count === 5) throw new Error(`Cell text ${text} not found`);
+      }
     };
 
     if (Array.isArray(value)) {
@@ -114,6 +139,33 @@ export class CellPageObject extends BasePage {
     } else {
       await _verify(value);
     }
+  }
+
+  async verifyGeoDataCell({
+    index,
+    columnHeader,
+    lat,
+    long,
+  }: {
+    index: number;
+    columnHeader: string;
+    lat: string;
+    long: string;
+  }) {
+    const _verify = async expectedValue => {
+      await expect
+        .poll(async () => {
+          const cell = await this.get({
+            index,
+            columnHeader,
+          }).locator(`[data-testid="nc-geo-data-lat-long-set"]`);
+          return await cell.textContent(); //.getAttribute('title');
+        })
+        .toEqual(expectedValue);
+    };
+
+    const value = `${lat}; ${long}`;
+    await _verify(value);
   }
 
   async verifyDateCell({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {

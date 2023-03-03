@@ -74,7 +74,8 @@
     "insertBefore": "Indsæt før",
     "hideField": "Skjul felt",
     "sortAsc": "Sortere stigende",
-    "sortDesc": "Sortere nedadgående"
+    "sortDesc": "Sortere nedadgående",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +99,8 @@
       "gallery": "Galleri",
       "form": "Formular",
       "kanban": "Kanban.",
-      "calendar": "Kalender"
+      "calendar": "Kalender",
+      "map": "Map"
     },
     "user": "Bruger",
     "users": "Brugere",
@@ -136,6 +138,7 @@
     "Currency": "betalingsmiddel",
     "Percent": "Procentdel",
     "Duration": "Varighed",
+    "GeoData": "GeoData",
     "Rating": "Bedømmelse",
     "Formula": "Formel",
     "Rollup": "Rul op",
@@ -232,6 +235,7 @@
     "action": "Handling",
     "actions": "Handlinger",
     "operation": "Operation",
+    "operationSub": "Sub Operation",
     "operationType": "Driftstype",
     "operationSubType": "Drift Undertype",
     "description": "Beskrivelse",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Stregkodeformat",
     "qrCodeValueTooLong": "For mange tegn til en QR-kode",
     "barcodeValueTooLong": "For mange tegn til en stregkode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Aggregate Function.",
     "dbCreateIfNotExists": "DATABASE: Opret, hvis ikke eksisterer",
     "clientKey": "Klientnøgle",
@@ -380,13 +387,14 @@
     "renameTable": "Bord omdøb",
     "deleteTable": "TABEL DELETE.",
     "addField": "Tilføj nyt felt til denne tabel",
-    "setPrimary": "Indstil som primær værdi",
+    "setDisplay": "Set as Display value",
     "addRow": "Tilføj ny række",
     "saveRow": "Gem ro",
     "saveAndExit": "Gem og afslutning",
     "saveAndStay": "Gem og bliv",
     "insertRow": "Indsæt ny række",
     "deleteRow": "DELETE ROW.",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Slet de valgte rækker",
     "importExcel": "Import Excel.",
     "importCSV": "Import CSV.",
@@ -451,6 +459,10 @@
       "stackedBy": "Stablet af",
       "chooseGroupingField": "Vælg et grupperingsfelt",
       "addOrEditStack": "Tilføj / Rediger stak"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Skaberen kan oprette nye projekter og få adgang til alle inviterede projekter.",
         "orgViewer": "Seeren har ikke lov til at oprette nye projekter, men kan få adgang til alle inviterede projekter."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Rækker per side",
       "upload": "Vælg fil for at uploade",
@@ -599,6 +616,7 @@
         "gallery": "Tilføj Gallery View.",
         "form": "Tilføj formularvisning",
         "kanban": "Tilføj Kanban View.",
+        "map": "Add Map View",
         "calendar": "Tilføj kalendervisning"
       },
       "tablesMetadataInSync": "Tabeller Metadata er synkroniseret",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Er du sikker på, at du vil slette denne visning?",
       "deleteTableConfirmation": "Ønsker du at slette tabellen",
       "showM2mTables": "Vis M2M-tabeller",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Hvis du sletter denne stak, fjernes også valgmuligheden `{stackToBeDeleted}` fra `{groupingField}`. Posterne vil blive flyttet til stakken \"uncategorized\".",
       "computedFieldEditWarning": "Beregnet felt: indholdet er skrivebeskyttet. Brug kolonne-redigeringsmenuen til at omkonfigurere",
       "computedFieldDeleteWarning": "Beregnet felt: indholdet er skrivebeskyttet. Det er ikke muligt at slette indholdet.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Navnet skal starte med et alfabet eller _",
       "followingCharactersAreNotAllowed": "Følgende tegn er ikke tilladt",
       "columnNameRequired": "Kolonnens navn er påkrævet",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Projektnavnet overstiger 50 tegn",
       "projectNameCannotStartWithSpace": "Projektnavnet kan ikke begynde med et mellemrum",
       "requiredField": "Obligatorisk felt",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Kolonne duplikeret med succes",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Opdateret UI ACL for tabeller med succes",
       "pluginUninstalled": "Plugin afinstalleret med succes",
       "pluginSettingsSaved": "Plugin-indstillingerne er gemt med succes",

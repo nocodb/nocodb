@@ -7,6 +7,8 @@ export class ExpandedFormPage extends BasePage {
   readonly addNewTableButton: Locator;
   readonly copyUrlButton: Locator;
   readonly toggleCommentsButton: Locator;
+  readonly duplicateRowButton: Locator;
+  readonly deleteRowButton: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -14,10 +16,35 @@ export class ExpandedFormPage extends BasePage {
     this.addNewTableButton = this.dashboard.get().locator('.nc-add-new-table');
     this.copyUrlButton = this.dashboard.get().locator('.nc-copy-row-url:visible');
     this.toggleCommentsButton = this.dashboard.get().locator('.nc-toggle-comments:visible');
+    this.duplicateRowButton = this.dashboard.get().locator('.nc-duplicate-row:visible');
+    this.deleteRowButton = this.dashboard.get().locator('.nc-delete-row:visible');
   }
 
   get() {
     return this.dashboard.get().locator(`.nc-drawer-expanded-form`);
+  }
+
+  async clickDuplicateRow() {
+    await this.duplicateRowButton.click();
+
+    // wait for loader to disappear
+    // await this.dashboard.waitForLoaderToDisappear();
+    await this.rootPage.waitForTimeout(2000);
+  }
+
+  async clickDeleteRow() {
+    await this.deleteRowButton.click();
+    await this.rootPage.locator('.ant-btn-primary:has-text("OK")').click();
+  }
+
+  async isDisabledDuplicateRow() {
+    const isDisabled = await this.duplicateRowButton;
+    return await isDisabled.count();
+  }
+
+  async isDisabledDeleteRow() {
+    const isDisabled = await this.deleteRowButton;
+    return await isDisabled.count();
   }
 
   async getShareRowUrl() {
@@ -40,6 +67,14 @@ export class ExpandedFormPage extends BasePage {
       case 'text':
         await field.locator('input').fill(value);
         break;
+      case 'geodata': {
+        const [lat, long] = value.split(',');
+        await this.rootPage.locator(`[data-testid="nc-geo-data-set-location-button"]`).click();
+        await this.rootPage.locator(`[data-testid="nc-geo-data-latitude"]`).fill(lat);
+        await this.rootPage.locator(`[data-testid="nc-geo-data-longitude"]`).fill(long);
+        await this.rootPage.locator(`[data-testid="nc-geo-data-save"]`).click();
+        break;
+      }
       case 'belongsTo':
         await field.locator('.nc-action-icon').click();
         await this.dashboard.linkRecord.select(value);
@@ -65,9 +100,10 @@ export class ExpandedFormPage extends BasePage {
       await dropdownList.locator('.ant-dropdown-menu-item:has-text("Save & Stay")').click();
     }
 
-    const saveRowAction = saveAndExitMode
-      ? this.get().locator('button:has-text("Save & Exit")').click()
-      : this.get().locator('button:has-text("Save & Stay")').click();
+    const saveRowAction = () =>
+      saveAndExitMode
+        ? this.get().locator('button:has-text("Save & Exit")').click()
+        : this.get().locator('button:has-text("Save & Stay")').click();
 
     if (waitForRowsData) {
       await this.waitForResponse({
@@ -106,7 +142,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('button:has-text("Close")').last().click();
+    await this.get().locator('.nc-close-form').last().click();
   }
 
   async openChildCard(param: { column: string; title: string }) {

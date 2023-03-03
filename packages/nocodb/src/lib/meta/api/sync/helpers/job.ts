@@ -8,15 +8,15 @@ import { Api } from 'nocodb-sdk';
 import Airtable from 'airtable';
 import jsonfile from 'jsonfile';
 import hash from 'object-hash';
+import { promisify } from 'util';
 
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { importData, importLTARData } from './readAndProcessData';
 
 import EntityMap from './EntityMap';
 
-dayjs.extend(utc);
+const writeJsonFileAsync = promisify(jsonfile.writeFile);
 
 const selectColors = {
   // normal
@@ -204,7 +204,8 @@ export default async (
     // store copy of airtable schema globally
     g_aTblSchema = file.tableSchemas;
 
-    if (debugMode) jsonfile.writeFileSync('aTblSchema.json', ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync('aTblSchema.json', ft, { spaces: 2 });
 
     return file;
   }
@@ -216,7 +217,8 @@ export default async (
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
 
-    if (debugMode) jsonfile.writeFileSync(`${viewId}.json`, ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync(`${viewId}.json`, ft, { spaces: 2 });
     return ft.view;
   }
 
@@ -674,8 +676,6 @@ export default async (
       );
     }
 
-    // debug
-    // console.log(JSON.stringify(tables, null, 2));
     return tables;
   }
 
@@ -909,8 +909,6 @@ export default async (
               aTblLinkColumns[i].name + suffix,
               ncTbl.id
             );
-
-            // console.log(res.columns.find(x => x.title === aTblLinkColumns[i].name))
           }
         }
       }
@@ -1287,7 +1285,7 @@ export default async (
   async function nocoSetPrimary(aTblSchema) {
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       logDetailed(
-        `[${idx + 1}/${aTblSchema.length}] Configuring Primary value : ${
+        `[${idx + 1}/${aTblSchema.length}] Configuring Display value : ${
           aTblSchema[idx].name
         }`
       );
@@ -1408,7 +1406,7 @@ export default async (
         case UITypes.DateTime:
         case UITypes.CreateTime:
         case UITypes.LastModifiedTime:
-          rec[key] = dayjs(value).utc().format('YYYY-MM-DD HH:mm');
+          rec[key] = dayjs(value).format('YYYY-MM-DD HH:mm');
           break;
 
         case UITypes.Date:
@@ -1417,7 +1415,7 @@ export default async (
             rec[key] = null;
             logBasic(`:: Invalid date ${value}`);
           } else {
-            rec[key] = dayjs(value).utc().format('YYYY-MM-DD');
+            rec[key] = dayjs(value).format('YYYY-MM-DD');
           }
           break;
 
@@ -1499,8 +1497,6 @@ export default async (
         })
         .eachPage(
           async function page(records, fetchNextPage) {
-            // console.log(JSON.stringify(records, null, 2));
-
             // This function (`page`) will get called for each page of records.
             // records.forEach(record => callback(table, record));
             logBasic(
@@ -1917,13 +1913,13 @@ export default async (
     logBasic(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
 
     if (debugMode) {
-      jsonfile.writeFileSync('stats.json', perfStats, { spaces: 2 });
+      await writeJsonFileAsync('stats.json', perfStats, { spaces: 2 });
       const perflog = [];
       for (let i = 0; i < perfStats.length; i++) {
         perflog.push(`${perfStats[i].e}, ${perfStats[i].d}`);
       }
-      jsonfile.writeFileSync('stats.csv', perflog, { spaces: 2 });
-      jsonfile.writeFileSync('skip.txt', rtc.migrationSkipLog.log, {
+      await writeJsonFileAsync('stats.csv', perflog, { spaces: 2 });
+      await writeJsonFileAsync('skip.txt', rtc.migrationSkipLog.log, {
         spaces: 2,
       });
     }
@@ -1969,10 +1965,13 @@ export default async (
     '>=': 'gte',
     isEmpty: 'empty',
     isNotEmpty: 'notempty',
+    isWithin: 'isWithin',
     contains: 'like',
     doesNotContain: 'nlike',
-    isAnyOf: 'eq',
-    isNoneOf: 'neq',
+    isAnyOf: 'anyof',
+    isNoneOf: 'nanyof',
+    '|': 'anyof',
+    '&': 'allof',
   };
 
   async function nc_configureFilters(viewId, f) {
@@ -1995,16 +1994,29 @@ export default async (
       const datatype = colSchema.uidt;
       const ncFilters = [];
 
-      // console.log(filter)
       if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
-        // skip filters over data datatype
-        updateMigrationSkipLog(
-          await sMap.getNcNameFromAtId(viewId),
-          colSchema.title,
-          colSchema.uidt,
-          `filter config skipped; filter over date datatype not supported`
-        );
-        continue;
+        let comparison_op = null;
+        let comparison_sub_op = null;
+        let value = null;
+        if (['isEmpty', 'isNotEmpty'].includes(filter.operator)) {
+          comparison_op = filter.operator === 'isEmpty' ? 'blank' : 'notblank';
+        } else {
+          if ('numberOfDays' in filter.value) {
+            value = filter.value['numberOfDays'];
+          } else if ('exactDate' in filter.value) {
+            value = filter.value['exactDate'];
+          }
+          comparison_op = filterMap[filter.operator];
+          comparison_sub_op = filter.value.mode;
+        }
+        const fx = {
+          fk_column_id: columnId,
+          logical_op: f.conjunction,
+          comparison_op,
+          comparison_sub_op,
+          value,
+        };
+        ncFilters.push(fx);
       }
 
       // single-select & multi-select
@@ -2012,17 +2024,22 @@ export default async (
         datatype === UITypes.SingleSelect ||
         datatype === UITypes.MultiSelect
       ) {
+        if (filter.operator === 'doesNotContain') {
+          filter.operator = 'isNoneOf';
+        }
         // if array, break it down to multiple filters
         if (Array.isArray(filter.value)) {
-          for (let i = 0; i < filter.value.length; i++) {
-            const fx = {
-              fk_column_id: columnId,
-              logical_op: f.conjunction,
-              comparison_op: filterMap[filter.operator],
-              value: await sMap.getNcNameFromAtId(filter.value[i]),
-            };
-            ncFilters.push(fx);
-          }
+          const fx = {
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filterMap[filter.operator],
+            value: (
+              await Promise.all(
+                filter.value.map(async (f) => await sMap.getNcNameFromAtId(f))
+              )
+            ).join(','),
+          };
+          ncFilters.push(fx);
         }
         // not array - add as is
         else if (filter.value) {
@@ -2220,10 +2237,10 @@ export default async (
         logDetailed('Migrating Lookup form Rollup columns completed');
       }
     }
-    logDetailed('Configuring Primary value column');
-    // configure primary values
+    logDetailed('Configuring Display Value column');
+    // configure Display Value
     await nocoSetPrimary(aTblSchema);
-    logDetailed('Configuring primary value column completed');
+    logDetailed('Configuring Display Value column completed');
 
     logBasic('Configuring User(s)');
     // add users

@@ -50,7 +50,7 @@ export default defineConfig({
     fontFamily: {
       sans: ['Vazirmatn', 'sans-serif'],
       serif: ['Vazirmatn', 'serif'],
-      mono: ['Roboto', 'mono'],
+      mono: ['Inter', 'mono'],
     },
     extend: {
       textColor: {

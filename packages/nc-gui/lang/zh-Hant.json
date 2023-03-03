@@ -74,7 +74,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "項目",
@@ -98,7 +99,8 @@
       "gallery": "相簿",
       "form": "表單",
       "kanban": "看板",
-      "calendar": "日曆"
+      "calendar": "日曆",
+      "map": "Map"
     },
     "user": "使用者",
     "users": "使用者",
@@ -136,6 +138,7 @@
     "Currency": "貨幣",
     "Percent": "百分",
     "Duration": "期間",
+    "GeoData": "GeoData",
     "Rating": "評分",
     "Formula": "公式",
     "Rollup": "捲起",
@@ -232,6 +235,7 @@
     "action": "行動",
     "actions": "行動",
     "operation": "操作",
+    "operationSub": "Sub Operation",
     "operationType": "操作類型",
     "operationSubType": "操作子類型",
     "description": "描述",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "匯總功能",
     "dbCreateIfNotExists": "資料庫：不存在則建立",
     "clientKey": "用戶端金鑰",
@@ -380,13 +387,14 @@
     "renameTable": "表重命名",
     "deleteTable": "表刪除",
     "addField": "將新字段添加到此表",
-    "setPrimary": "設置為主要值",
+    "setDisplay": "Set as Display value",
     "addRow": "新增行",
     "saveRow": "儲存行",
     "saveAndExit": "儲存並結束",
     "saveAndStay": "Save & Stay",
     "insertRow": "插入新行",
     "deleteRow": "刪除行",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "刪除所選行",
     "importExcel": "匯入 Excel",
     "importCSV": "匯入 CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "建立者可以建立專案與存取任何受邀請的專案",
         "orgViewer": "檢視者不能建立專案但可以存取任何受邀請的專案"
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "每頁行駛",
       "upload": "選擇檔案以上傳",
@@ -599,6 +616,7 @@
         "gallery": "加入相簿檢視",
         "form": "加入表單檢視",
         "kanban": "加入看板檢視",
+        "map": "Add Map View",
         "calendar": "加入日曆檢視"
       },
       "tablesMetadataInSync": "表元數據同步",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "是否確定要刪除此檢視?",
       "deleteTableConfirmation": "你想刪除此資料表",
       "showM2mTables": "顯示多對多資料表",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
       "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "名稱必須用 英文字母 或 _ 當開頭",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "欄位名稱必填",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "專案名稱超過 50 個字元",
       "projectNameCannotStartWithSpace": "專案名稱不能有空白開頭",
       "requiredField": "必填欄位",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "外掛移除安裝成功",
       "pluginSettingsSaved": "外掛設定儲存成功",

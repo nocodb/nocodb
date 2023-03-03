@@ -74,7 +74,8 @@
     "insertBefore": "Invoegen voor",
     "hideField": "Verberg veld",
     "sortAsc": "Oplopend sorteren",
-    "sortDesc": "Aflopend sorteren"
+    "sortDesc": "Aflopend sorteren",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Project",
@@ -98,7 +99,8 @@
       "gallery": "Galerij",
       "form": "Formulier",
       "kanban": "Kanban",
-      "calendar": "Kalender"
+      "calendar": "Kalender",
+      "map": "Map"
     },
     "user": "Gebruiker",
     "users": "Gebruikers",
@@ -136,6 +138,7 @@
     "Currency": "Munteenheid",
     "Percent": "Procent",
     "Duration": "Looptijd",
+    "GeoData": "GeoData",
     "Rating": "Beoordeling",
     "Formula": "Formule",
     "Rollup": "Rollup",
@@ -232,6 +235,7 @@
     "action": "Actie",
     "actions": "Acties",
     "operation": "Operatie",
+    "operationSub": "Sub Operation",
     "operationType": "Operatietype",
     "operationSubType": "Operatiesubtype",
     "description": "Beschrijving",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Barcode formaat",
     "qrCodeValueTooLong": "Te veel tekens voor een QR-code",
     "barcodeValueTooLong": "Te veel tekens voor een streepjescode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Geaggregeerde functie",
     "dbCreateIfNotExists": "Database: creëer als het niet bestaat",
     "clientKey": "Klantensleutel",
@@ -380,13 +387,14 @@
     "renameTable": "Tabel hernoemen",
     "deleteTable": "Tabel verwijderen",
     "addField": "Voeg nieuw veld toe aan deze tabel",
-    "setPrimary": "Instellen als primaire waarde",
+    "setDisplay": "Set as Display value",
     "addRow": "Nieuwe rij toevoegen",
     "saveRow": "Sla rij op",
     "saveAndExit": "Opslaan en afsluiten",
     "saveAndStay": "Sparen & Blijven",
     "insertRow": "Voeg nieuwe rij toe",
     "deleteRow": "Verwijder rij",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Verwijder geselecteerde rijen",
     "importExcel": "Excel importeren",
     "importCSV": "CSV importeren",
@@ -451,6 +459,10 @@
       "stackedBy": "Gestapeld door",
       "chooseGroupingField": "Kies een groepeerveld",
       "addOrEditStack": "Stapel toevoegen / bewerken"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Creator kan nieuwe projecten aanmaken en heeft toegang tot elk uitgenodigd project.",
         "orgViewer": "De Viewer mag geen nieuwe projecten aanmaken, maar heeft wel toegang tot elk uitgenodigd project."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Rijen per pagina",
       "upload": "Selecteer bestand om te uploaden",
@@ -599,6 +616,7 @@
         "gallery": "Gallerijweergave toevoegen",
         "form": "Formulierweergave toevoegen",
         "kanban": "Kanbanweergave toevoegen",
+        "map": "Add Map View",
         "calendar": "Kalenderweergave toevoegen"
       },
       "tablesMetadataInSync": "Tabelmetadata is gesynchroniseerd",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Weet u zeker dat u deze weergave wilt verwijderen?",
       "deleteTableConfirmation": "Wilt u de tabel verwijderen",
       "showM2mTables": "Toon M2M-tabellen",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Door deze stapel te verwijderen wordt ook de selectieoptie `{stackToBeDeleted}` van de `{groupingField}` verwijderd. De records worden verplaatst naar de ongecategoriseerde stapel.",
       "computedFieldEditWarning": "Berekend veld: de inhoud is alleen leesbaar. Gebruik het kolombewerkingsmenu om opnieuw te configureren",
       "computedFieldDeleteWarning": "Berekend veld: inhoud is alleen-lezen. Kan inhoud niet wissen.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "De naam moet beginnen met een alfabet of _",
       "followingCharactersAreNotAllowed": "De volgende tekens zijn niet toegestaan",
       "columnNameRequired": "Kolomnaam is verplicht",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Projectnaam meer dan 50 tekens",
       "projectNameCannotStartWithSpace": "Projectnaam kan niet beginnen met een spatie",
       "requiredField": "Verplicht veld",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Kolom succesvol gedupliceerd",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "UI ACL voor tabellen met succes bijgewerkt",
       "pluginUninstalled": "Plugin succesvol verwijderd",
       "pluginSettingsSaved": "Plugin-instellingen succesvol opgeslagen",

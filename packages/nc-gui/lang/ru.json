@@ -74,7 +74,8 @@
     "insertBefore": "Вставить перед",
     "hideField": "Скрыть поле",
     "sortAsc": "По Возрастанию",
-    "sortDesc": "По убыванию"
+    "sortDesc": "По убыванию",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Проект",
@@ -98,7 +99,8 @@
       "gallery": "Галерея",
       "form": "Форма",
       "kanban": "Канбан",
-      "calendar": "Календарь"
+      "calendar": "Календарь",
+      "map": "Map"
     },
     "user": "Пользователь",
     "users": "Пользователи",
@@ -136,6 +138,7 @@
     "Currency": "Валюта",
     "Percent": "Процент",
     "Duration": "Интервал времени",
+    "GeoData": "GeoData",
     "Rating": "Рейтинг",
     "Formula": "Формула",
     "Rollup": "Итоги (Rollup)",
@@ -232,6 +235,7 @@
     "action": "Действие",
     "actions": "Действия",
     "operation": "Операция",
+    "operationSub": "Sub Operation",
     "operationType": "Тип операции",
     "operationSubType": "Подтип операции",
     "description": "Описание",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Формат штрих-кода",
     "qrCodeValueTooLong": "Слишком много символов для QR-кода",
     "barcodeValueTooLong": "Слишком много символов для штрихкода",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Агрегатная функция",
     "dbCreateIfNotExists": "База данных: создать, если не существует",
     "clientKey": "Ключ клиента",
@@ -380,13 +387,14 @@
     "renameTable": "Переименовать таблицу",
     "deleteTable": "Удалить таблицу",
     "addField": "Добавить новое поле в эту таблицу",
-    "setPrimary": "Установить в качестве основного значения",
+    "setDisplay": "Set as Display value",
     "addRow": "Добавить новую строку",
     "saveRow": "Сохранить строку",
     "saveAndExit": "Сохранить и выйти",
     "saveAndStay": "Сохранить и остаться",
     "insertRow": "Вставить новую строку",
     "deleteRow": "Удалить строку",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Удалить выбранные строки",
     "importExcel": "Импорт из Excel",
     "importCSV": "Импорт CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Группировка по",
       "chooseGroupingField": "Выберите поле группировки",
       "addOrEditStack": "Добавление / редактирование стека"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Создатель может создавать новые проекты и получать доступ к любому приглашенному проекту.",
         "orgViewer": "Наблюдатель не может создавать новые проекты, но может получить доступ к любому проекту по приглашению."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Количество строк на странице",
       "upload": "Выберите файл для загрузки",
@@ -599,6 +616,7 @@
         "gallery": "Добавить представление галерея",
         "form": "Добавить представление форма",
         "kanban": "Добавить представление Канбан",
+        "map": "Add Map View",
         "calendar": "Добавить представление календарь"
       },
       "tablesMetadataInSync": "Таблицы метаданные синхронизируются",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Вы действительно хотите удалить это представление?",
       "deleteTableConfirmation": "Вы действительно хотите удалить эту таблицу",
       "showM2mTables": "Показать таблицы M2M",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Удаление этого стека также удалит опцию выбора `{stackToBeDeleted}` из `{groupingField}`. Записи переместятся в стек без категории.",
       "computedFieldEditWarning": "Вычисляемое поле: содержимое доступно только для чтения. Используйте меню редактирования столбцов для изменения конфигурации",
       "computedFieldDeleteWarning": "Вычисляемое поле: содержимое доступно только для чтения. Невозможно очистить содержимое.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Имя должно начинаться с алфавита или _",
       "followingCharactersAreNotAllowed": "Нельзя использовать следующие символы",
       "columnNameRequired": "Требуется название столбца",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Название проекта превышает 50 символов",
       "projectNameCannotStartWithSpace": "Название проекта не может начинаться с пробела",
       "requiredField": "Обязательное поле",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Столбец успешно скопирован",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Успешно обновлен пользовательский интерфейс ACL для таблиц",
       "pluginUninstalled": "Плагин успешно удален",
       "pluginSettingsSaved": "Настройки плагина сохранены",

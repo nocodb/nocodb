@@ -74,7 +74,8 @@
     "insertBefore": "Infoga före",
     "hideField": "Dölj fältet",
     "sortAsc": "Sortera i stigande riktning",
-    "sortDesc": "Sortera fallande"
+    "sortDesc": "Sortera fallande",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekt",
@@ -98,7 +99,8 @@
       "gallery": "Galleri",
       "form": "Formulär",
       "kanban": "Kanban",
-      "calendar": "Kalender"
+      "calendar": "Kalender",
+      "map": "Map"
     },
     "user": "Användare",
     "users": "Användare",
@@ -136,6 +138,7 @@
     "Currency": "Valuta",
     "Percent": "Procent",
     "Duration": "Varaktighet",
+    "GeoData": "GeoData",
     "Rating": "Betyg",
     "Formula": "Formel",
     "Rollup": "Rulla upp",
@@ -232,6 +235,7 @@
     "action": "Handling",
     "actions": "Handlingar",
     "operation": "Drift",
+    "operationSub": "Sub Operation",
     "operationType": "Driftstyp",
     "operationSubType": "Driftstyp",
     "description": "Beskrivning",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Streckkodsformat",
     "qrCodeValueTooLong": "För många tecken för en QR-kod",
     "barcodeValueTooLong": "För många tecken för en streckkod",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Aggregatfunktion",
     "dbCreateIfNotExists": "Databas: Skapa om det inte finns",
     "clientKey": "Klientnyckel",
@@ -380,13 +387,14 @@
     "renameTable": "Bordsbyte",
     "deleteTable": "Bord radera",
     "addField": "Lägg till nytt fält till den här tabellen",
-    "setPrimary": "Ange som primärt värde",
+    "setDisplay": "Set as Display value",
     "addRow": "Lägg till ny rad",
     "saveRow": "Spara rad",
     "saveAndExit": "Spara och avsluta",
     "saveAndStay": "Spara och stanna",
     "insertRow": "Infoga ny rad",
     "deleteRow": "Radera raden",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Ta bort valda rader",
     "importExcel": "Import excel",
     "importCSV": "Importera CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Staplade av",
       "chooseGroupingField": "Välj ett grupperingsfält",
       "addOrEditStack": "Lägg till/redigera stacken"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Skaparen kan skapa nya projekt och få tillgång till alla inbjudna projekt.",
         "orgViewer": "Visaren får inte skapa nya projekt, men kan få tillgång till alla inbjudna projekt."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Rader per sida",
       "upload": "Välj fil för att ladda upp",
@@ -599,6 +616,7 @@
         "gallery": "Lägg till Gallery View",
         "form": "Lägg till formulärvy",
         "kanban": "Lägg till Kanban View",
+        "map": "Add Map View",
         "calendar": "Lägg till kalendervisning"
       },
       "tablesMetadataInSync": "Tabeller Metadata är synkroniserad",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Är du säker på att du vill ta bort den här vyn?",
       "deleteTableConfirmation": "Vill du radera tabellen?",
       "showM2mTables": "Visa M2M-tabeller",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Om du raderar denna stapel kommer även alternativet \"{stackToBeDeleted}\" att tas bort från \"{groupingField}\". Posterna kommer att flyttas till stapeln \"uncategorized\".",
       "computedFieldEditWarning": "Beräknat fält: innehållet är skrivskyddat. Använd kolumnredigeringsmenyn för att konfigurera om.",
       "computedFieldDeleteWarning": "Beräknat fält: innehållet är skrivskyddat. Det går inte att rensa innehållet.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Namnet ska börja med ett alfabet eller _",
       "followingCharactersAreNotAllowed": "Följande tecken är inte tillåtna",
       "columnNameRequired": "Kolumnnamn krävs",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Projektnamnet har mer än 50 tecken",
       "projectNameCannotStartWithSpace": "Projektnamnet kan inte börja med ett mellanslag",
       "requiredField": "Obligatoriskt fält",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Kolumnen duplicerades framgångsrikt",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Uppdaterade UI ACL för tabeller framgångsrikt",
       "pluginUninstalled": "Plugin avinstallerades framgångsrikt",
       "pluginSettingsSaved": "Plugin-inställningarna har sparats framgångsrikt",

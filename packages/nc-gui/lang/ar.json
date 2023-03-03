@@ -74,7 +74,8 @@
     "insertBefore": "Insert Before",
     "hideField": "Hide Field",
     "sortAsc": "Sort Ascending",
-    "sortDesc": "Sort Descending"
+    "sortDesc": "Sort Descending",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "مشروع",
@@ -98,7 +99,8 @@
       "gallery": "معرض صور",
       "form": "نموذج",
       "kanban": "كانبان",
-      "calendar": "تقويم"
+      "calendar": "تقويم",
+      "map": "Map"
     },
     "user": "مستخدم",
     "users": "مستخدمين",
@@ -136,6 +138,7 @@
     "Currency": "عملة",
     "Percent": "نسبة مؤية",
     "Duration": "مدة",
+    "GeoData": "GeoData",
     "Rating": "تقييم",
     "Formula": "معادلة",
     "Rollup": "جمع البيانات",
@@ -232,6 +235,7 @@
     "action": "إجراء",
     "actions": "إجراءات",
     "operation": "عملية",
+    "operationSub": "Sub Operation",
     "operationType": "نوع العملية",
     "operationSubType": "نوع العملية الفرعية",
     "description": "وصف",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "وظيفة التجميع",
     "dbCreateIfNotExists": "قاعدة البيانات: إنشاء إذا لم يكن موجودا",
     "clientKey": "مفتاح العميل",
@@ -380,13 +387,14 @@
     "renameTable": "إعادة تسمية الجدول",
     "deleteTable": "حذف الجدول",
     "addField": "إضافة حقل جديد إلى هذا الجدول",
-    "setPrimary": "تعيين كقيمة أساسية",
+    "setDisplay": "Set as Display value",
     "addRow": "إضافة صف جديد",
     "saveRow": "حفظ الصف",
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "إدراج صف جديد",
     "deleteRow": "حذف الصف",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "حذف الصفوف المحددة",
     "importExcel": "استيراد Excel",
     "importCSV": "استيراد CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Creator can create new projects and access any invited project.",
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "الصفوف لكل صفحة",
       "upload": "حدد الملف المراد رفعه",
@@ -599,6 +616,7 @@
         "gallery": "إضافة عرض المعرض",
         "form": "إضافة عرض النموذج",
         "kanban": "إضافة عرض كانبان",
+        "map": "Add Map View",
         "calendar": "إضافة طريقة عرض التقويم"
       },
       "tablesMetadataInSync": "تزامن البيانات الوصفية للجداول",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "هل أنت متأكد من أنك تريد حذف هذا العرض؟",
       "deleteTableConfirmation": "هل تريد حذف الجدول",
       "showM2mTables": "إظهار جداول M2M",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
       "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Project name exceeds 50 characters",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
       "requiredField": "Required field",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "تم تحديث ACL واجهة المستخدم للجداول بنجاح",
       "pluginUninstalled": "تم إلغاء تثبيت الإضافة بنجاح",
       "pluginSettingsSaved": "تم حفظ إعدادات الإضافة بنجاح",

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
-import { h, onMounted, timeAgo, useI18n, useNuxtApp, useProject } from '#imports'
+import { h, onMounted, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
 
 const { $api } = useNuxtApp()
 
@@ -16,7 +16,10 @@ let audits = $ref<null | Array<AuditType>>(null)
 let totalRows = $ref(0)
 
 const currentPage = $ref(1)
+
 const currentLimit = $ref(25)
+
+const { appInfo } = useGlobal()
 
 async function loadAudits(page = currentPage, limit = currentLimit) {
   try {
@@ -86,9 +89,10 @@ const columns = [
 
 <template>
   <div class="flex flex-col gap-4 w-full">
+    <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
     <div class="flex flex-row justify-between items-center">
       <a-button class="self-start" @click="loadAudits">
-        <!--        Reload -->
+        <!-- Reload -->
         <div class="flex items-center gap-2 text-gray-600 font-light">
           <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
 

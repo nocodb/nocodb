@@ -55,27 +55,32 @@ export default class FormViewColumn implements FormColumnType {
   }
 
   static async insert(column: Partial<FormViewColumn>, ncMeta = Noco.ncMeta) {
-    const insertObj: Partial<FormViewColumn> = {
-      fk_view_id: column.fk_view_id,
-      fk_column_id: column.fk_column_id,
-      order: await ncMeta.metaGetNextOrder(MetaTable.FORM_VIEW_COLUMNS, {
-        fk_view_id: column.fk_view_id,
-      }),
-      show: column.show,
-      project_id: column.project_id,
-      base_id: column.base_id,
-      label: column.label,
-      help: column.help,
-      description: column.description,
-      required: column.required,
-    };
+    const insertObj = extractProps(column, [
+      'fk_view_id',
+      'fk_column_id',
+      'show',
+      'project_id',
+      'base_id',
+      'label',
+      'help',
+      'description',
+      'required',
+      'meta',
+    ]);
 
-    if (column.meta) {
-      insertObj.meta = serializeJSON(column.meta);
+    insertObj.order = await ncMeta.metaGetNextOrder(
+      MetaTable.FORM_VIEW_COLUMNS,
+      {
+        fk_view_id: insertObj.fk_view_id,
+      }
+    );
+
+    if (insertObj.meta) {
+      insertObj.meta = serializeJSON(insertObj.meta);
     }
 
-    if (!(column.project_id && column.base_id)) {
-      const viewRef = await View.get(column.fk_view_id, ncMeta);
+    if (!(insertObj.project_id && insertObj.base_id)) {
+      const viewRef = await View.get(insertObj.fk_view_id, ncMeta);
       insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
     }
@@ -150,7 +155,7 @@ export default class FormViewColumn implements FormColumnType {
     body: Partial<FormViewColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = extractProps(body, [
+    const updateObj = extractProps(body, [
       'label',
       'help',
       'description',
@@ -164,13 +169,13 @@ export default class FormViewColumn implements FormColumnType {
     const key = `${CacheScope.FORM_VIEW_COLUMN}:${columnId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {
-      Object.assign(o, insertObj);
+      Object.assign(o, updateObj);
       // set cache
       await NocoCache.set(key, o);
     }
 
-    if (insertObj.meta) {
-      insertObj.meta = serializeJSON(insertObj.meta);
+    if (updateObj.meta) {
+      updateObj.meta = serializeJSON(updateObj.meta);
     }
 
     // update meta
@@ -178,7 +183,7 @@ export default class FormViewColumn implements FormColumnType {
       null,
       null,
       MetaTable.FORM_VIEW_COLUMNS,
-      insertObj,
+      updateObj,
       columnId
     );
   }

@@ -116,6 +116,9 @@ const sharedViewUrl = computed(() => {
     case ViewTypes.GALLERY:
       viewType = 'gallery'
       break
+    case ViewTypes.MAP:
+      viewType = 'map'
+      break
     default:
       viewType = 'view'
   }
@@ -186,10 +189,14 @@ function onChangeTheme(color: string) {
 
 const copyLink = async () => {
   if (sharedViewUrl.value) {
-    await copy(sharedViewUrl.value)
+    try {
+      await copy(sharedViewUrl.value)
 
-    // Copied to clipboard
-    message.success(t('msg.info.copiedToClipboard'))
+      // Copied to clipboard
+      message.success(t('msg.info.copiedToClipboard'))
+    } catch (e) {
+      message.error(e.message)
+    }
   }
 }
 
@@ -217,10 +224,14 @@ const iframeCode = computed(() => {
 
 const copyIframeCode = async () => {
   if (iframeCode.value) {
-    await copy(iframeCode.value)
+    try {
+      await copy(iframeCode.value)
 
-    // Copied to clipboard
-    message.success(t('msg.info.copiedToClipboard'))
+      // Copied to clipboard
+      message.success(t('msg.info.copiedToClipboard'))
+    } catch (e) {
+      message.error(e.message)
+    }
   }
 }
 </script>
@@ -268,7 +279,8 @@ const copyIframeCode = async () => {
         class="flex gap-1 items-center pb-1 text-gray-500 cursor-pointer font-weight-medium mb-2 mt-4 pl-1"
         @click="copyIframeCode"
       >
-        <MdiCodeTags class="text-gray-500" /> Embed this view in your site
+        <MdiCodeTags class="text-gray-500" />
+        Embed this view in your site
       </div>
 
       <div class="px-1 mt-2 flex flex-col gap-3">
@@ -341,7 +353,11 @@ const copyIframeCode = async () => {
 
           <div
             v-if="
-              shared && (shared.type === ViewTypes.GRID || shared.type === ViewTypes.KANBAN || shared.type === ViewTypes.GALLERY)
+              shared &&
+              (shared.type === ViewTypes.GRID ||
+                shared.type === ViewTypes.KANBAN ||
+                shared.type === ViewTypes.GALLERY ||
+                shared.type === ViewTypes.MAP)
             "
           >
             <!-- Allow Download -->

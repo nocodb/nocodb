@@ -74,7 +74,8 @@
     "insertBefore": "Вставити перед",
     "hideField": "Приховати поле",
     "sortAsc": "За зростанням",
-    "sortDesc": "За спаданням"
+    "sortDesc": "За спаданням",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Проєкт",
@@ -98,7 +99,8 @@
       "gallery": "Галерея",
       "form": "Форма",
       "kanban": "Канбан",
-      "calendar": "Календар"
+      "calendar": "Календар",
+      "map": "Map"
     },
     "user": "Користувач",
     "users": "Користувачі",
@@ -136,6 +138,7 @@
     "Currency": "Валюта",
     "Percent": "Відсоток",
     "Duration": "Тривалість",
+    "GeoData": "GeoData",
     "Rating": "Рейтинг",
     "Formula": "Формула",
     "Rollup": "Накопичення",
@@ -232,6 +235,7 @@
     "action": "Дія",
     "actions": "Дії",
     "operation": "Операція",
+    "operationSub": "Sub Operation",
     "operationType": "Тип операції",
     "operationSubType": "Підтип операції",
     "description": "Опис",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Формат штрих-коду",
     "qrCodeValueTooLong": "Забагато символів для QR-коду",
     "barcodeValueTooLong": "Забагато символів для штрих-коду",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Агрегатна функція",
     "dbCreateIfNotExists": "База даних: створити, якщо не існує",
     "clientKey": "Ключ клієнта",
@@ -380,13 +387,14 @@
     "renameTable": "Перейменувати таблицю",
     "deleteTable": "Видалити таблицю",
     "addField": "Додати нове поле до цієї таблиці",
-    "setPrimary": "Встановити як основне значення",
+    "setDisplay": "Set as Display value",
     "addRow": "Додати новий рядок",
     "saveRow": "Зберегти рядок",
     "saveAndExit": "Зберегти та вийти",
     "saveAndStay": "Зберегти та залишитись",
     "insertRow": "Вставити новий рядок",
     "deleteRow": "Видалити рядок",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Видалити вибрані рядки",
     "importExcel": "Імпортувати з Excel",
     "importCSV": "Імпортувати з CSV",
@@ -451,6 +459,10 @@
       "stackedBy": "Групувати по",
       "chooseGroupingField": "Виберіть поле групування",
       "addOrEditStack": "Додавання/Редагування Стеку"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Розробник може створювати нові проєкти та мати доступ до будь-якого відкритого проєкту.",
         "orgViewer": "Глядач не може створювати нові проєкти, але він може отримати доступ до будь-якого відкритого проєкту."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "Рядків на сторінці",
       "upload": "Виберіть файл для завантаження",
@@ -599,6 +616,7 @@
         "gallery": "Додати вигляд галереї",
         "form": "Додати вигляд форми",
         "kanban": "Додати вигляд Kanban",
+        "map": "Add Map View",
         "calendar": "Додати вигляд календаря"
       },
       "tablesMetadataInSync": "Таблиці метаданих синхронізуються",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Ви впевнені, що хочете видалити цей вигляд?",
       "deleteTableConfirmation": "Ви хочете видалити таблицю",
       "showM2mTables": "Показати M2M таблиці",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Видалення цього стека також вилучить опцію вибору `{stackToBeDeleted}` зі стека `{groupingField}`. Записи буде переміщено до не категоризованого стека.",
       "computedFieldEditWarning": "Обчислюване поле: вміст доступний лише для читання. Використовуйте меню редагування стовпця для зміни конфігурації",
       "computedFieldDeleteWarning": "Обчислюване поле: вміст доступний лише для читання. Не вдалося очистити вміст.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Ім'я повинно починатися з літери або _",
       "followingCharactersAreNotAllowed": "Наступні символи не допускаються",
       "columnNameRequired": "Ім'я стовпця є обов'язковим",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Назва проєкту перевищує 50 символів",
       "projectNameCannotStartWithSpace": "Назва проєкту не може починатися з пробілу",
       "requiredField": "Обов'язкове поле",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Стовпець успішно продубльовано",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Успішно оновлено UI ACL для таблиць",
       "pluginUninstalled": "Плагін успішно видалено",
       "pluginSettingsSaved": "Налаштування плагіну успішно збережено",

@@ -44,19 +44,16 @@ Click on three-dot menu adjacent to `BASES`. Pick required database option from 
 <alert type="success">
 Tip: If you are running NocoDB on Docker and your local DB is running on your host machine, your Host Address would be host.docker.internal instead of localhost.
 </alert>
-  
-  
-<!-- <img width="1500" alt="image" src="https://user-images.githubusercontent.com/35857179/194793497-3b740bf2-ffc7-48bf-836e-e4cd26631568.png"> -->
+
 ![Screenshot 2022-12-29 at 2 55 39 PM](https://user-images.githubusercontent.com/86527202/209933294-9327ff16-21db-4aca-bf16-8cea8a1eb415.png)
   
 Above menu is also accessible from `Team & Settings` > `Data Sources`. Click on `New` button to add existing database. 
   
-  
-![Screenshot 2022-12-29 at 3 16 36 PM](https://user-images.githubusercontent.com/86527202/209936942-f82a293f-2e91-48da-b9cd-79ec143d7d6f.png)
-  
+![image](https://user-images.githubusercontent.com/35857179/219841162-6456c5cf-fd26-4a88-8de6-e8742c043607.png)
+
 You need to specify the project name, API type, and other database parameters.
   
-![Screenshot 2022-12-29 at 2 56 25 PM](https://user-images.githubusercontent.com/86527202/209933326-e76eee13-4942-4ba8-b184-a28099c089ab.png)
+![image](https://user-images.githubusercontent.com/35857179/219841283-1a42f9f6-4677-4e25-8ca9-a060753d1e1e.png)
   
 Currently it supports MySQL, Postgres, MSSQL and SQLite.
 

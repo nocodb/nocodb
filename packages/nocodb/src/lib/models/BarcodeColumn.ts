@@ -14,16 +14,17 @@ export default class BarcodeColumn {
   }
 
   public static async insert(
-    data: Partial<BarcodeColumn>,
+    barcodeColumn: Partial<BarcodeColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_BARCODE, {
-      fk_column_id: data.fk_column_id,
-      fk_barcode_value_column_id: data.fk_barcode_value_column_id,
-      barcode_format: data.barcode_format,
-    });
+    const insertObj = extractProps(barcodeColumn, [
+      'fk_column_id',
+      'fk_barcode_value_column_id',
+      'barcode_format',
+    ]);
+    await ncMeta.metaInsert2(null, null, MetaTable.COL_BARCODE, insertObj);
 
-    return this.read(data.fk_column_id, ncMeta);
+    return this.read(barcodeColumn.fk_column_id, ncMeta);
   }
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {
     let column =

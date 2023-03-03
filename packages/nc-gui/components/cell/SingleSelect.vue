@@ -18,6 +18,7 @@ import {
   inject,
   isDrawerOrModalExist,
   ref,
+  useEventListener,
   useRoles,
   useSelectedCellKeyupListener,
   watch,
@@ -26,9 +27,10 @@ import {
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
+  disableOptionCreation?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -245,12 +247,12 @@ useEventListener(document, 'click', handleClose, true)
     <a-select
       ref="aselect"
       v-model:value="vModel"
-      class="w-full"
+      class="w-full overflow-hidden"
       :class="{ 'caret-transparent': !hasEditRoles }"
       :allow-clear="!column.rqd && editAllowed"
       :bordered="false"
-      :open="isOpen && (active || editable)"
-      :disabled="readOnly || !(active || editable)"
+      :open="isOpen && editAllowed"
+      :disabled="readOnly || !editAllowed"
       :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
       :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && (active || editable) ? 'active' : ''}`"
       :show-search="isOpen && (active || editable)"
@@ -263,6 +265,7 @@ useEventListener(document, 'click', handleClose, true)
         :key="op.title"
         :value="op.title"
         :data-testid="`select-option-${column.title}-${rowIndex}`"
+        :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
         <a-tag class="rounded-tag" :color="op.color">
@@ -280,7 +283,13 @@ useEventListener(document, 'click', handleClose, true)
         </a-tag>
       </a-select-option>
       <a-select-option
-        v-if="searchVal && isOptionMissing && !isPublic && (hasRole('owner', true) || hasRole('creator', true))"
+        v-if="
+          searchVal &&
+          isOptionMissing &&
+          !isPublic &&
+          !disableOptionCreation &&
+          (hasRole('owner', true) || hasRole('creator', true))
+        "
         :key="searchVal"
         :value="searchVal"
       >
@@ -317,6 +326,12 @@ useEventListener(document, 'click', handleClose, true)
 
 :deep(.ant-select-selector) {
   @apply !px-0;
+}
+
+:deep(.ant-select-selection-search) {
+  // following a-select with mode = multiple | tags
+  // initial width will block @mouseover in Grid.vue
+  @apply !w-[5px];
 }
 
 :deep(.ant-select-selection-search-input) {

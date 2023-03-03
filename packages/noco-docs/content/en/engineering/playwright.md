@@ -189,7 +189,7 @@ This a method which will reset/clear all the filters. Since this is an action me
 ```js
 async resetFilter() {
   await this.waitForResponse({
-    uiAction: this.get().locator('.nc-filter-item-remove-btn').click(),
+    uiAction: () => this.get().locator('.nc-filter-item-remove-btn').click(),
     httpMethodsToMatch: ['DELETE'],
     requestUrlPathToMatch: '/api/v1/db/meta/filters/',
   });

@@ -74,7 +74,8 @@
     "insertBefore": "Ievietot pirms",
     "hideField": "Slēpt lauku",
     "sortAsc": "Kārtot augošā secībā",
-    "sortDesc": "Kārtot dilstošā secībā"
+    "sortDesc": "Kārtot dilstošā secībā",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Projekts",
@@ -98,7 +99,8 @@
       "gallery": "Galerija",
       "form": "Forma",
       "kanban": "Kanban",
-      "calendar": "Kalendārs"
+      "calendar": "Kalendārs",
+      "map": "Map"
     },
     "user": "Lietotājs",
     "users": "Lietotāji",
@@ -136,6 +138,7 @@
     "Currency": "Valūta",
     "Percent": "Procenti",
     "Duration": "Ilgums",
+    "GeoData": "GeoData",
     "Rating": "Vērtējums",
     "Formula": "Formula",
     "Rollup": "Apkopojums",
@@ -232,6 +235,7 @@
     "action": "Darbība",
     "actions": "Darbības",
     "operation": "Operācija",
+    "operationSub": "Sub Operation",
     "operationType": "Operācijas tips",
     "operationSubType": "Operācijas apakštips",
     "description": "Apraksts",
@@ -253,6 +257,9 @@
     "barcodeFormat": "Svītrkoda formāts",
     "qrCodeValueTooLong": "Pārāk daudz rakstzīmju QR kodam",
     "barcodeValueTooLong": "Pārāk daudz zīmju svītrkodam",
+    "yourLocation": "Your Location",
+    "lng": "Lng",
+    "lat": "Lat",
     "aggregateFunction": "Agregācijas funkcija",
     "dbCreateIfNotExists": "Datubāze : izveidotm ja neeksistē",
     "clientKey": "Klienta atslēga",
@@ -380,13 +387,14 @@
     "renameTable": "Tabulas pārdēvēšana",
     "deleteTable": "Tabulas dzēšana",
     "addField": "Jauna lauka pievienošana",
-    "setPrimary": "Uzstādīt kā primāro atslēgu",
+    "setDisplay": "Set as Display value",
     "addRow": "Pievienot ierakstu",
     "saveRow": "Saglabāt ierakstu",
     "saveAndExit": "Saglabāt un iziet",
     "saveAndStay": "Saglabāt un palikt",
     "insertRow": "Pievienot jaunu ierakstu",
     "deleteRow": "Dzēst ierakstu",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Dzēst izvēlētos ierakstus",
     "importExcel": "Importēt Excel",
     "importCSV": "CSV importēšana",
@@ -451,6 +459,10 @@
       "stackedBy": "Sakrautas ar",
       "chooseGroupingField": "Izvēlieties grupēšanas lauku",
       "addOrEditStack": "Pievienot / rediģēt kaudzi"
+    },
+    "map": {
+      "mappedBy": "Mapped By",
+      "chooseMappingField": "Choose a Mapping Field"
     }
   },
   "tooltip": {
@@ -516,6 +528,11 @@
       "roles": {
         "orgCreator": "Radītājs var izveidot jaunus projektus un piekļūt jebkuram uzaicinātajam projektam.",
         "orgViewer": "Skatītājs nedrīkst veidot jaunus projektus, bet var piekļūt jebkuram uzaicinātajam projektam."
+      },
+      "map": {
+        "overLimit": "You're over the limit.",
+        "closeLimit": "You're getting close to the limit.",
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "footerInfo": "ieraksti lapā",
       "upload": "Izvēlēties datni augšupielādei",
@@ -599,6 +616,7 @@
         "gallery": "Pievienot galerijas skatu",
         "form": "Pievienot formas skatu",
         "kanban": "Pievienot Kanban skatu",
+        "map": "Add Map View",
         "calendar": "Pievienot kalendāra skatu"
       },
       "tablesMetadataInSync": "Tabulu metadati ir sinhronizācijā",
@@ -630,6 +648,11 @@
       "deleteViewConfirmation": "Vai esat pārliecināts, ka vēlaties dzēst šo skatījumu?",
       "deleteTableConfirmation": "Vai vēlaties izdzēst tabulu",
       "showM2mTables": "Rādīt M2M tabulas",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Dzēšot šo kaudzīti, no `{groupingField}` tiks noņemta arī atlases opcija `{stackToBeDeleted}`. Ieraksti tiks pārvietoti uz neklasificēto kaudzi.",
       "computedFieldEditWarning": "Izrēķināts lauks: saturs ir tikai lasāms. Izmantojiet kolonnas rediģēšanas izvēlni, lai mainītu konfigurāciju",
       "computedFieldDeleteWarning": "Izrēķināts lauks: saturs ir tikai lasāms. Nevar dzēst saturu.",
@@ -684,6 +707,7 @@
       "nameShouldStartWithAnAlphabetOr_": "Vārdam jāsākas ar alfabētu vai _",
       "followingCharactersAreNotAllowed": "Šādas rakstzīmes nav atļautas",
       "columnNameRequired": "Slejas nosaukums ir obligāts",
+      "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
       "projectNameExceeds50Characters": "Projekta nosaukums pārsniedz 50 rakstzīmes",
       "projectNameCannotStartWithSpace": "Projekta nosaukums nedrīkst sākties ar atstarpi",
       "requiredField": "Obligātais lauks",
@@ -716,6 +740,7 @@
     },
     "success": {
       "columnDuplicated": "Sekmīgi dublēta sleja",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Veiksmīgi atjaunināts UI ACL tabulām",
       "pluginUninstalled": "Spraudnis veiksmīgi atinstalēts",
       "pluginSettingsSaved": "Veiksmīgi saglabāti spraudņa iestatījumi",

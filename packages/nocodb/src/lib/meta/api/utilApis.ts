@@ -53,7 +53,8 @@ export async function appInfo(req: Request, res: Response) {
     ),
     timezone: defaultConnectionConfig.timezone,
     ncMin: !!process.env.NC_MIN,
-    teleEnabled: !process.env.NC_DISABLE_TELE,
+    teleEnabled: process.env.NC_DISABLE_TELE === 'true' ? false : true,
+    auditEnabled: process.env.NC_DISABLE_AUDIT === 'true' ? false : true,
     ncSiteUrl: (req as any).ncSiteUrl,
     ee: Noco.isEE(),
     ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
@@ -320,8 +321,8 @@ export async function aggregatedMetaInfo(_req: Request, res: Response) {
               project.getBases().then(async (bases) => {
                 return extractResultOrNull(
                   await Promise.allSettled(
-                    bases.map((base) =>
-                      NcConnectionMgrv2.getSqlClient(base)
+                    bases.map(async (base) =>
+                      (await NcConnectionMgrv2.getSqlClient(base))
                         .totalRecords?.()
                         ?.then((result) => result?.data)
                     )

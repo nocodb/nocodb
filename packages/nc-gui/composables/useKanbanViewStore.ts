@@ -1,15 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type {
-  Api,
-  AttachmentType,
-  ColumnType,
-  KanbanType,
-  SelectOptionType,
-  SelectOptionsType,
-  TableType,
-  ViewType,
-} from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import {
   IsPublicInj,
@@ -25,7 +15,6 @@ import {
   ref,
   useApi,
   useFieldQuery,
-  useGlobal,
   useI18n,
   useInjectionState,
   useNuxtApp,
@@ -54,8 +43,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const { project } = useProject()
 
     const { $e, $api } = useNuxtApp()
-
-    const { appInfo } = useGlobal()
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -90,10 +77,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
       return where
     })
-
-    const attachmentColumns = computed(() =>
-      (meta.value?.columns as ColumnType[])?.filter((c) => c.uidt === UITypes.Attachment).map((c) => c.title),
-    )
 
     provide(SharedViewPasswordInj, password)
 
@@ -144,27 +127,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         rowMeta: {},
       }))
 
-    async function getAttachmentUrl(item: AttachmentType) {
-      const path = item?.path
-      // if path doesn't exist, use `item.url`
-      if (path) {
-        // try ${appInfo.value.ncSiteUrl}/${item.path} first
-        const url = `${appInfo.value.ncSiteUrl}/${item.path}`
-        try {
-          const res = await fetch(url)
-          if (res.ok) {
-            // use `url` if it is accessible
-            return Promise.resolve(url)
-          }
-        } catch {
-          // for some cases, `url` is not accessible as expected
-          // do nothing here
-        }
-      }
-      // if it fails, use the original url
-      return Promise.resolve(item.url)
-    }
-
     async function loadKanbanData() {
       if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
         return
@@ -193,28 +155,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
 
       for (const data of groupData) {
-        const records = []
         const key = data.key
-        // TODO: optimize
-        // reconstruct the url
-        // See /packages/nocodb/src/lib/version-upgrader/ncAttachmentUpgrader.ts for the details
-        for (const record of data.value.list) {
-          for (const attachmentColumn of attachmentColumns.value) {
-            // attachment column can be hidden
-            if (!record[attachmentColumn!]) continue
-            const oldAttachment = JSON.parse(record[attachmentColumn!])
-            const newAttachment = []
-            for (const attachmentObj of oldAttachment) {
-              newAttachment.push({
-                ...attachmentObj,
-                url: await getAttachmentUrl(attachmentObj),
-              })
-            }
-            record[attachmentColumn!] = newAttachment
-          }
-          records.push(record)
-        }
-        formattedData.value.set(key, formatData(records))
+        formattedData.value.set(key, formatData(data.value.list))
         countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
       }
     }

@@ -1,6 +1,6 @@
 import Base from './/Base';
 import Noco from '../Noco';
-import { ProjectType } from 'nocodb-sdk';
+import { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -16,9 +16,9 @@ export default class Project implements ProjectType {
   public prefix: string;
   public status: string;
   public description: string;
-  public meta: string;
+  public meta: MetaType;
   public color: string;
-  public deleted: string;
+  public deleted: BoolType;
   public order: number;
   public is_meta = false;
   public bases?: Base[];
@@ -36,25 +36,27 @@ export default class Project implements ProjectType {
   }
 
   public static async createProject(
-    projectBody: ProjectType & {
+    project: ProjectType & {
       created_at?;
       updated_at?;
     },
     ncMeta = Noco.ncMeta
   ): Promise<Project> {
+    const insertObj = extractProps(project, [
+      'id',
+      'title',
+      'prefix',
+      'description',
+      'is_meta',
+      'created_at',
+      'updated_at',
+    ]);
+
     const { id: projectId } = await ncMeta.metaInsert2(
       null,
       null,
       MetaTable.PROJECT,
-      {
-        id: projectBody?.id,
-        title: projectBody.title,
-        prefix: projectBody.prefix,
-        description: projectBody.description,
-        is_meta: projectBody.is_meta,
-        created_at: projectBody.created_at,
-        updated_at: projectBody.updated_at,
-      }
+      insertObj
     );
 
     await NocoCache.appendToList(
@@ -63,7 +65,7 @@ export default class Project implements ProjectType {
       `${CacheScope.PROJECT}:${projectId}`
     );
 
-    for (const base of projectBody.bases) {
+    for (const base of project.bases) {
       await Base.createBase(
         {
           type: base.config?.client,

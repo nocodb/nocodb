@@ -10,9 +10,7 @@ menuTitle: 'Column Types'
 
 | Type | Description |
 |---|---|
-| [ID](#id) | Primary column of the table |
 | [LinkToAnotherRecord](#linktoanotherrecord) | Has Many or Many To Many columns |
-| [ForeignKey](#foreignkey)|  Belongs To relation  |
 | [SingleLineText](#singlelinetext) |  For short text |
 | [LongText](#longtext) | For lengthy string content |
 | [Attachment](#attachment) | File attachment column |
@@ -26,28 +24,24 @@ menuTitle: 'Column Types'
 | [Email](#email) | Email field |
 | [URL](#url) | Valid URL field |
 | [Number](#number) | Any type of number |
-|[Decimal](#decimal)| Fractional number |
-|[Currency](#currency)| Currency value |
-|[Percent](#percent)| Percentage |
-|[Duration](#duration)|  Duration |
-|[Rating](#rating)| Rating |
-|[Formula](#formula)|  Formula based generated column |
-|[QR Code](#qr-code)|  QR Code visualization of another referenced column |
-|[Barcode](#barcode)|  Barcode visualization of another referenced column |
-| [Count](#count) | |
-|[DateTime](#datetime)| Date & Time selector |
-|[CreateTime](#createtime)| |
-|[AutoNumber](#autonumber)| |
-|[Geometry](#geometry)|  Geometry column |
-|[SpecificDBType](#specificdbtype)| Custom DB type option |
-
-
-
+| [Decimal](#decimal)| Fractional number |
+| [Currency](#currency)| Currency value |
+| [Percent](#percent)| Percentage |
+| [Duration](#duration)|  Duration |
+| [Rating](#rating)| Rating |
+| [Formula](#formula)|  Formula based generated column |
+| [Rollup](#rollup)| Performs calculations and aggregations |
+| [DateTime](#datetime)| Date & Time selector |
+| [QR Code](#qr-code)|  QR Code visualization of another referenced column |
+| [Barcode](#barcode)|  Barcode visualization of another referenced column |
+| [Geometry](#geometry)|  Geometry column |
+| [GeoData](#geodata)|  GeoData column |
+| [Json](#json)|  Json column |
+| [SpecificDBType](#specificdbtype)| Custom DB type option |
 
 ## Database Types
 
-
-### ID
+<!-- ### ID
 
 #### Available Database Types
 
@@ -56,20 +50,20 @@ menuTitle: 'Column Types'
 |**MySQL**|_All types are available_|int|
 |**PostgreSQL**|_All types are available_|int4|
 |**SQL Server**|_All types are available_|int|
-|**SQLite**|_All types are available_|integer|
+|**SQLite**|_All types are available_|integer| -->
 
 ### LinkToAnotherRecord
 
-N/A
+For more about Link To Another Record, please visit [here](./link-to-another-record).
 
-### ForeignKey
+<!-- ### ForeignKey
 #### Available Database Types
 |Database| Types|
 |-----|----------|
 |**MySQL**|_All types are available_|
 |**PostgreSQL**|_All types are available_|
 |**SQL Server**|_All types are available_|
-|**SQLite**|_All types are available_|
+|**SQLite**|_All types are available_| -->
 
 
 ### SingleLineText
@@ -292,16 +286,10 @@ Encodes the value of a reference column as Barcode. Supported barcode formats: C
 * Email
 
 Since it's a virtual column, the cell content (Barcode) cannot be changed directly.
-### Count
 
-#### Available Database Types
+### Rollup
 
-|Database| Types| Default Type|
-|-----|----------|----------|
-|**MySQL**|int, smallint, mediumint, bigint, serial|int|
-|**PostgreSQL**|int, integer, bigint, bigserial, int2, int4, int8, serial, serial2, serial8, smallint, smallserial|int8|
-|**SQL Server**|int, bigint, smallint, tinyint|int|
-|**SQLite**|int, integer, tinyint, smallint, mediumint, bigint, int2, int8|integer|
+For more about rollup, please visit [here](./rollup).
 
 ### DateTime
 
@@ -314,7 +302,7 @@ Since it's a virtual column, the cell content (Barcode) cannot be changed direct
 |**SQL Server**|datetime, datetime2, datetimeoffset|datetime|
 |**SQLite**|datetime, timestamp|datetime|
 
-### CreateTime
+<!-- ### CreateTime
 
 #### Available Database Types
 
@@ -323,7 +311,7 @@ Since it's a virtual column, the cell content (Barcode) cannot be changed direct
 |**MySQL**|datetime, timestamp, varchar|datetime|
 |**PostgreSQL**|timestamp, timestamp without time zone, timestamptz, timestamp with time zone|datetime|
 |**SQL Server**|datetime, datetime2, datetimeoffset|datetime|
-|**SQLite**|datetime, timestamp|datetime|
+|**SQLite**|datetime, timestamp|datetime| -->
 
 
 ### Geometry
@@ -336,6 +324,20 @@ Since it's a virtual column, the cell content (Barcode) cannot be changed direct
 |**PostgreSQL**|polygon, point, circle, box, line, lseg, path, circle|
 |**SQL Server**|geometry|
 |**SQLite**|text|
+
+<!-- TODO: add GeoData -->
+
+### JSON
+
+#### Available Database Types
+|Database| Types|
+|-----|----------|
+|**MySQL**|json|
+|**PostgreSQL**|json|
+|**SQL Server**|text, ntext|
+|**SQLite**|text|
+
+
 
 ### SpecificDBType
 

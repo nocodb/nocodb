@@ -27,7 +27,8 @@ interface ValidationsObj {
 
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
   (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
-    const { sqlUis, isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc } = useProject()
+    const { project, sqlUis, isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc } = useProject()
+
     const { $api } = useNuxtApp()
 
     const { getMeta } = useMetas()
@@ -93,6 +94,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               })
             },
           },
+          fieldLengthValidator(project.value?.bases?.[0].type || ClientType.MYSQL),
         ],
         uidt: [
           {

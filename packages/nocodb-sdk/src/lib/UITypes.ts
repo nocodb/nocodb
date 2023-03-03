@@ -16,6 +16,7 @@ enum UITypes {
   Year = 'Year',
   Time = 'Time',
   PhoneNumber = 'PhoneNumber',
+  GeoData = 'GeoData',
   Email = 'Email',
   URL = 'URL',
   Number = 'Number',
@@ -37,6 +38,28 @@ enum UITypes {
   Barcode = 'Barcode',
   QrCode = 'QrCode',
   Button = 'Button',
+}
+
+export const numericUITypes = [
+  UITypes.Duration,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Rating,
+  UITypes.Rollup,
+];
+
+export function isNumericCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return numericUITypes.includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
 }
 
 export function isVirtualCol(

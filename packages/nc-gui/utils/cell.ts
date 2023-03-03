@@ -27,6 +27,7 @@ export const isCurrency = (column: ColumnType) => column.uidt === UITypes.Curren
 export const isPhoneNumber = (column: ColumnType) => column.uidt === UITypes.PhoneNumber
 export const isDecimal = (column: ColumnType) => column.uidt === UITypes.Decimal
 export const isDuration = (column: ColumnType) => column.uidt === UITypes.Duration
+export const isGeoData = (column: ColumnType) => column.uidt === UITypes.GeoData
 export const isPercent = (column: ColumnType) => column.uidt === UITypes.Percent
 export const isSpecificDBType = (column: ColumnType) => column.uidt === UITypes.SpecificDBType
 export const isAutoSaved = (column: ColumnType) =>
@@ -43,6 +44,7 @@ export const isAutoSaved = (column: ColumnType) =>
     UITypes.AutoNumber,
     UITypes.SpecificDBType,
     UITypes.Geometry,
+    UITypes.GeoData,
     UITypes.Duration,
   ].includes(column.uidt as UITypes)
 

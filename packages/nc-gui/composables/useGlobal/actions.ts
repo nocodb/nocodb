@@ -3,9 +3,15 @@ import { message, useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
   /** Sign out by deleting the token from localStorage */
-  const signOut: Actions['signOut'] = () => {
+  const signOut: Actions['signOut'] = async () => {
     state.token.value = null
     state.user.value = null
+    try {
+      if (state.token.value) {
+        const nuxtApp = useNuxtApp()
+        await nuxtApp.$api.auth.signout()
+      }
+    } catch {}
   }
 
   /** Sign in by setting the token in localStorage */
@@ -28,19 +34,22 @@ export function useGlobalActions(state: State): Actions {
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
 
-    nuxtApp.$api.instance
-      .post('/auth/token/refresh', null, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        if (response.data?.token) {
-          signIn(response.data.token)
-        }
-      })
-      .catch((err) => {
-        message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
-        signOut()
-      })
+    return new Promise((resolve) => {
+      nuxtApp.$api.instance
+        .post('/auth/token/refresh', null, {
+          withCredentials: true,
+        })
+        .then((response) => {
+          if (response.data?.token) {
+            signIn(response.data.token)
+          }
+        })
+        .catch(async (err) => {
+          message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
+          await signOut()
+        })
+        .finally(resolve)
+    })
   }
 
   const loadAppInfo = async () => {

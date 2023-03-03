@@ -13,9 +13,10 @@ import {
 
 interface Props {
   modelValue: number | string | null | undefined
+  showValidationError: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, showValidationError = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -99,7 +100,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
     <span v-else> {{ localState }}</span>
 
-    <div v-if="showWarningMessage" class="duration-warning">
+    <div v-if="showWarningMessage && showValidationError" class="duration-warning">
       <!-- TODO: i18n -->
       Please enter a number
     </div>

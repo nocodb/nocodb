@@ -1,17 +1,9 @@
 import { Request, Response, Router } from 'express';
-import DOMPurify from 'isomorphic-dompurify';
 import { TableListType, TableReqType, TableType } from 'nocodb-sdk';
-import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { NcError } from '../meta/helpers/catchError';
-import getTableNameAlias from '../meta/helpers/getTableName';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import Model from '../models/Model';
-import Project from '../models/Project';
-import { T } from 'nc-help';
 import { tableService } from '../services';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 
 export async function tableList(req: Request, res: Response<TableListType>) {
   res.json(

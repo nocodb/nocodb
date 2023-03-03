@@ -1,5 +1,9 @@
-import publicDataApis from './publicDataApis';
-import publicDataExportApis from './publicDataExportApis';
-import publicMetaApis from './publicMetaApis';
+import publicDataController from './publicDataApis';
+import publicDataExportController from './publicDataExportApis';
+import publicMetaController from './publicMetaApis';
 
-export { publicDataApis, publicDataExportApis, publicMetaApis };
+export {
+  publicDataController,
+  publicDataExportController,
+  publicMetaController,
+};

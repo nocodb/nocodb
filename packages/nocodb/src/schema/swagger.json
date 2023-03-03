@@ -9675,71 +9675,188 @@
         "description": "Model for Hook",
         "examples": [
           {
-            "active": true,
-            "async": true,
-            "description": "string",
-            "env": "string",
+            "active": 0,
+            "async": 0,
+            "description": "This is my hook description",
+            "env": "all",
             "event": "after",
-            "fk_model_id": "string",
+            "fk_model_id": "md_rsu68aqjsbyqtl",
             "id": "string",
-            "notification": "string",
+            "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+            "null": null,
             "operation": "insert",
-            "retries": 0,
-            "retry_interval": 0,
-            "timeout": 0,
-            "title": "string",
-            "type": "string"
+            "retries": 10,
+            "retry_interval": 60000,
+            "timeout": 60000,
+            "title": "My Webhook"
           }
         ],
+        "title": "Hook Model",
+        "type": "object",
         "properties": {
           "active": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the hook active?"
           },
           "async": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the hook aysnc?"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "Hook Description",
+            "example": "This is my hook description"
           },
           "env": {
-            "type": "string"
+            "type": "string",
+            "example": "all",
+            "description": "Environment for the hook"
           },
           "event": {
             "enum": ["after", "before"],
-            "type": "string"
+            "type": "string",
+            "description": "Event Type for the operation",
+            "example": "after"
           },
           "fk_model_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Foreign Key to Model",
+            "example": "md_rsu68aqjsbyqtl"
           },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
           "notification": {
-            "type": "string"
+            "type": "string",
+            "description": "Hook Notification including info such as type, payload, method, body, and etc"
           },
           "operation": {
             "enum": ["delete", "insert", "update"],
-            "type": "string"
+            "type": "string",
+            "description": "Hook Operation",
+            "example": "insert"
           },
           "retries": {
-            "type": "number"
+            "type": "number",
+            "description": "Retry Count",
+            "example": 10
           },
           "retry_interval": {
-            "type": "number"
+            "type": "number",
+            "description": "Retry Interval",
+            "example": 60000
           },
           "timeout": {
-            "type": "number"
+            "type": "number",
+            "example": 60000,
+            "description": "Timeout"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "Hook Title",
+            "example": "My Webhook"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "description": "Hook Type"
+          }
+        }
+      },
+      "HookReq": {
+        "description": "Model for Hook",
+        "x-stoplight": {
+          "id": "8yxb4tz9u2ahz"
+        },
+        "examples": [
+          {
+            "active": 0,
+            "async": 0,
+            "description": "This is my hook description",
+            "env": "all",
+            "event": "after",
+            "fk_model_id": "md_rsu68aqjsbyqtl",
+            "id": "string",
+            "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+            "null": null,
+            "operation": "insert",
+            "retries": 10,
+            "retry_interval": 60000,
+            "timeout": 60000,
+            "title": "My Webhook"
+          }
+        ],
+        "title": "Hook Request Model",
+        "type": "object",
+        "properties": {
+          "active": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the hook active?"
+          },
+          "async": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the hook aysnc?"
+          },
+          "description": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Hook Description"
+          },
+          "env": {
+            "type": "string",
+            "example": "all",
+            "description": "Environment for the hook"
+          },
+          "event": {
+            "enum": ["after", "before"],
+            "type": "string",
+            "description": "Event Type for the operation",
+            "example": "after"
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Foreign Key to Model",
+            "example": "md_rsu68aqjsbyqtl"
+          },
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "notification": {
+            "type": "string",
+            "description": "Hook Notification including info such as type, payload, method, body, and etc"
+          },
+          "operation": {
+            "enum": ["delete", "insert", "update"],
+            "type": "string",
+            "description": "Hook Operation",
+            "example": "insert"
+          },
+          "retries": {
+            "type": "number",
+            "description": "Retry Count",
+            "example": 10
+          },
+          "retry_interval": {
+            "type": "number",
+            "description": "Retry Interval",
+            "example": 60000
+          },
+          "timeout": {
+            "type": "number",
+            "example": 60000,
+            "description": "Timeout"
+          },
+          "title": {
+            "type": "string",
+            "description": "Hook Title",
+            "example": "My Webhook"
+          },
+          "type": {
+            "type": "string",
+            "description": "Hook Type"
           }
         },
-        "title": "Hook Model",
-        "type": "object"
+        "required": ["event", "notification", "operation", "title"]
       },
       "HookList": {
         "description": "Model for Hook List",
@@ -9755,19 +9872,6 @@
             }
           }
         ],
-        "properties": {
-          "list": {
-            "items": {
-              "type": "object"
-            },
-            "minItems": 1,
-            "type": "array",
-            "uniqueItems": true
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/Paginated"
-          }
-        },
         "title": "Hook List Model",
         "type": "object",
         "x-examples": {
@@ -9797,6 +9901,19 @@
                 "totalRows": 0
               }
             }
+          }
+        },
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/Hook"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
           }
         }
       },
@@ -9886,123 +10003,56 @@
         "title": "Hook Log Model",
         "type": "object"
       },
-      "HookReq": {
-        "description": "Model for Hook Request",
-        "examples": [
-          {
-            "active": true,
-            "async": true,
-            "description": "string",
-            "env": "string",
-            "event": "after",
-            "fk_model_id": "string",
-            "notification": null,
-            "operation": "insert",
-            "retries": 0,
-            "retry_interval": 0,
-            "timeout": 1,
-            "title": "string"
-          }
-        ],
-        "properties": {
-          "active": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "async": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "description": {
-            "$ref": "#/components/schemas/StringOrNull"
-          },
-          "env": {
-            "maxLength": 255,
-            "type": "string"
-          },
-          "event": {
-            "enum": ["after", "before"],
-            "type": "string"
-          },
-          "fk_model_id": {
-            "type": "string"
-          },
-          "notification": {},
-          "operation": {
-            "enum": ["delete", "insert", "update"],
-            "type": "string"
-          },
-          "retries": {
-            "oneOf": [
-              {
-                "minimum": 0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "retry_interval": {
-            "oneOf": [
-              {
-                "minimum": 0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "timeout": {
-            "oneOf": [
-              {
-                "minimum": 1,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "title": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "required": ["event", "notification", "operation", "title"],
-        "title": "Hook Request Model",
-        "type": "object"
-      },
       "HookTestReq": {
         "description": "Model for Hook Test Request",
         "examples": [
           {
             "hook": {
-              "active": true,
-              "async": true,
-              "description": "string",
-              "env": "string",
+              "active": 0,
+              "async": 0,
+              "description": "This is my hook description",
+              "env": "all",
               "event": "after",
-              "fk_model_id": "string",
-              "notification": null,
+              "fk_model_id": "md_rsu68aqjsbyqtl",
+              "id": "string",
+              "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+              "null": null,
               "operation": "insert",
-              "retries": 0,
-              "retry_interval": 0,
-              "timeout": 1,
-              "title": "string"
+              "retries": 10,
+              "retry_interval": 60000,
+              "timeout": 60000,
+              "title": "My Webhook"
             },
-            "payload": null
+            "payload": {
+              "data": {
+                "Id": 1,
+                "Title": "Sample Text",
+                "CreatedAt": "2023-03-03T10:03:06.484Z",
+                "UpdatedAt": "2023-03-03T10:03:06.484Z",
+                "attachment": [
+                  {
+                    "url": "https://nocodb.com/dummy.png",
+                    "title": "image.png",
+                    "mimetype": "image/png",
+                    "size": 0
+                  }
+                ],
+                "f": "Sample Output"
+              }
+            }
           }
         ],
+        "title": "Hook Test Request Model",
+        "type": "object",
         "properties": {
           "hook": {
             "$ref": "#/components/schemas/HookReq"
           },
-          "payload": {}
+          "payload": {
+            "description": "Payload to be sent"
+          }
         },
-        "required": ["hook", "payload"],
-        "title": "Hook Test Request Model",
-        "type": "object"
+        "required": ["hook", "payload"]
       },
       "Id": {
         "description": "Model for ID",

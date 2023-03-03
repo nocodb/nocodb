@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import { Modal as AModal, latLongToJoinedString, useVModel } from '#imports'
+import { Modal as AModal, ReadonlyInj, latLongToJoinedString, useVModel } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -15,6 +15,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
+
+const readonly = inject(ReadonlyInj)
 
 let isExpanded = $ref(false)
 
@@ -84,7 +86,7 @@ const onClickSetCurrentLocation = () => {
       </div>
     </div>
     <div v-else data-testid="nc-geo-data-lat-long-set">{{ latLongStr }}</div>
-    <template #overlay>
+    <template v-if="!readonly" #overlay>
       <a-form :model="formState" class="flex flex-col w-max-58" @finish="handleFinish">
         <a-form-item>
           <div class="flex mt-4 items-center mx-2">

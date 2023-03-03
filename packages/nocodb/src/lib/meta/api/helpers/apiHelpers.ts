@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import Ajv, { ErrorObject } from 'ajv';
+import addFormats from "ajv-formats";
 // @ts-ignore
 import swagger from '../../../../schema/swagger.json';
 
@@ -11,6 +12,7 @@ export function parseHrtimeToSeconds(hrtime) {
 const ajv = new Ajv({ strictSchema: false, strict: false }); // Initialize AJV
 
 ajv.addSchema(swagger, 'swagger.json');
+addFormats(ajv)
 
 // A middleware generator to validate the request body
 export const getAjvValidatorMw = (schema) => {

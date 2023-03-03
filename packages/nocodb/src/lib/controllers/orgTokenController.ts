@@ -1,13 +1,15 @@
 import { Request, Response, Router } from 'express';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import getHandler from '../meta/helpers/getHandler';
+import { getConditionalHandler } from '../meta/helpers/getHandler';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { apiTokenListEE } from '../meta/api/ee/orgTokenApis';
-import { orgTokenService } from '../services';
+import { orgTokenService, orgTokenServiceEE } from '../services';
 
 async function apiTokenList(req, res) {
   res.json(
-    await orgTokenService.apiTokenList({
+    await getConditionalHandler(
+      orgTokenService.apiTokenList,
+      orgTokenServiceEE.apiTokenListEE
+    )({
       query: req.query,
       user: req['user'],
     })
@@ -37,7 +39,7 @@ const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/tokens',
   metaApiMetrics,
-  ncMetaAclMw(getHandler(apiTokenList, apiTokenListEE), 'apiTokenList', {
+  ncMetaAclMw(apiTokenList, 'apiTokenList', {
     // allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,
   })

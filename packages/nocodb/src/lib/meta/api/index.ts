@@ -43,10 +43,10 @@ import {
   oldDataApis,
 } from '../../controllers/dataApis';
 import {
-  publicDataApis,
-  publicDataExportApis,
-  publicMetaApis,
-} from '../../controllers/publicApis';
+  publicDataController,
+  publicDataExportController,
+  publicMetaController,
+} from '../../controllers/publiController';
 import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 
@@ -81,9 +81,9 @@ export default function (router: Router, server) {
   router.use(viewColumnApis);
   router.use(gridViewApis);
   router.use(formViewColumnApis);
-  router.use(publicDataApis);
-  router.use(publicDataExportApis);
-  router.use(publicMetaApis);
+  router.use(publicDataController);
+  router.use(publicDataExportController);
+  router.use(publicMetaController);
   router.use(gridViewColumnApis);
   router.use(tableApis);
   router.use(galleryViewApis);

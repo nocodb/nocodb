@@ -32,10 +32,12 @@ const setIcon = async (icon: string) => {
 
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.title],
-  async ([oldPageId], [newPageId]) => {
+  async ([oldPageId, oldPageTitle], [newPageId, newPageTitle]) => {
     if (isPublic.value) return
+    if (!openedPage.value) return
 
     if (oldPageId !== newPageId) return
+    if (oldPageTitle === newPageTitle) return
 
     await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any })
   },
@@ -92,7 +94,7 @@ watch(
     <a-textarea
       ref="titleInputRef"
       v-model:value="title"
-      class="!text-5xl font-semibold !px-1.5 !mb-6"
+      class="!text-5xl font-semibold !px-1.5"
       :bordered="false"
       :readonly="isPublic"
       :placeholder="openedPage?.title"

@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
+import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
 import type { PageSidebarNode } from '~~/lib'
 
 const { project } = useProject()
+useShortcuts()
 
 const {
   openedPage,
@@ -20,11 +22,6 @@ const {
   isFetching,
 } = useDocs()
 
-// Page opened in the Page component, which is updated to the server debounce-ly
-// Main reason is to speed up the page opening, as data from sidebar might take time
-// And the page content is not available in the sidebar, so we need to parallelly fetch it
-// const localPage = ref<PageSidebarNode | undefined>()
-
 const wrapperRef = ref<HTMLDivElement | undefined>()
 
 const content = computed(() => openedPage.value?.content || '')
@@ -35,6 +32,7 @@ const breadCrumbs = computed(() => {
       title: page.title,
       href: nestedUrl(page.id!),
       icon: page.icon,
+      id: page.id,
     }))
     .reverse()
   return [...pagesBreadcrumbs]
@@ -100,12 +98,17 @@ watch(
   openedPageId,
   async () => {
     if (!openedPageId.value) return
+    if (openedPage.value?.new) return
 
+    isFetching.value.page = true
     openedPage.value = undefined
 
-    openedPage.value = (await fetchPage()) as any
+    const newPage = (await fetchPage()) as any
+    if (newPage?.id !== openedPageId.value) return
 
-    if (openedPageInSidebar.value?.new) openedPage.value!.new = true
+    openedPage.value = newPage
+
+    isFetching.value.page = false
   },
   {
     immediate: true,
@@ -131,14 +134,14 @@ watch(
 
 <template>
   <a-layout-content>
-    <div v-if="openedPage" ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
+    <div ref="wrapperRef" class="nc-docs-page h-full flex flex-row relative">
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center pl-6 pt-2.5">
           <div class="flex flex-row h-6">
             <template
               v-if="!isFetching.nestedPages &&(!isPublic || (project.meta as any)?.isPublic || nestedPublicParentPage?.is_nested_published)"
             >
-              <div v-for="({ href, title, icon }, index) of breadCrumbs" :key="href" class="flex">
+              <div v-for="({ href, title, icon, id }, index) of breadCrumbs" :key="id" class="flex">
                 <NuxtLink
                   class="text-sm !hover:text-black docs-breadcrumb-item !underline-transparent"
                   :to="href"
@@ -152,10 +155,10 @@ watch(
                       v-if="icon"
                       :key="icon"
                       :data-testid="`nc-doc-page-icon-${icon}`"
-                      class="text-sm"
+                      class="text-sm pop-in-animation"
                       :icon="icon"
                     ></IconifyIcon>
-                    <div>
+                    <div class="pop-in-animation">
                       {{ title }}
                     </div>
                   </div>
@@ -173,11 +176,25 @@ watch(
             maxWidth: '45vw',
           }"
         >
-          <DocsPageTitle v-if="openedPage" @focus-editor="focusEditor" />
+          <a-skeleton-input
+            v-if="isFetching.page && !isPublic"
+            :active="true"
+            size="large"
+            class="docs-page-title-skelton !mt-4 !max-w-156 mb-3 -ml-3"
+          />
+          <DocsPageTitle v-else-if="openedPage" @focus-editor="focusEditor" />
+          <div class="flex !mb-6"></div>
 
           <DocsPageSelectedBubbleMenu v-if="editor" :editor="editor" />
           <DocsPageLinkOptions v-if="editor" :editor="editor" />
+          <a-skeleton-input
+            v-if="isFetching.page && !isPublic"
+            :active="true"
+            size="small"
+            class="docs-page-title-skelton !max-w-102 mb-3 mt-1 -ml-3"
+          />
           <EditorContent
+            v-else
             :editor="editor"
             class="px-2"
             :class="{
@@ -186,8 +203,8 @@ watch(
             }"
           />
           <div
-            v-if="(openedPageInSidebar?.children ?? []).length > 0"
-            class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6"
+            v-if="(openedPageInSidebar?.children ?? []).length > 0 && !isFetching.page"
+            class="flex flex-col py-12 border-b-1 border-t-1 border-gray-200 mt-12 mb-4 gap-y-6 pop-in-animation"
           >
             <div
               v-for="page of openedPageInSidebar?.children"
@@ -195,16 +212,16 @@ watch(
               class="flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
               @click="openPage(page)"
             >
-              <MdiFileDocumentOutline class="flex" />
-              <div class="font-semibold text-base">
+              <MdiFileDocumentOutline class="flex pop-in-animation" />
+              <div class="font-semibold text-base pop-in-animation">
                 {{ page.title }}
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="sticky top-0 pt-1.5 flex flex-col mr-3 min-w-8">
-        <DocsPageOutline :wrapper-ref="wrapperRef" />
+      <div class="sticky top-0 pt-1.5 flex flex-col mr-3">
+        <DocsPageOutline v-if="openedPage" :wrapper-ref="wrapperRef" />
       </div>
     </div>
   </a-layout-content>
@@ -220,6 +237,12 @@ watch(
 ::selection {
   color: black;
   background-color: #1c26b820;
+}
+
+.docs-page-title-skelton {
+  .ant-skeleton-input {
+    @apply !rounded-md;
+  }
 }
 
 .nc-docs-page {
@@ -345,6 +368,14 @@ watch(
   .nc-docs-list-item > p {
     margin-top: 0.25rem !important;
     margin-bottom: 0.25rem !important;
+  }
+
+  p,
+  h1,
+  h2,
+  h3 {
+    -webkit-animation: pop-in 0.1s cubic-bezier(0, 0, 0.22, 0.58);
+    animation: pop-in 0.1s cubic-bezier(0, 0, 0.22, 0.58);
   }
 
   p {

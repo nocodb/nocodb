@@ -117,7 +117,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-row justify-end cursor-pointer rounded-md">
     <div
-      class="flex p-1 cursor-pointer rounded-md"
+      class="flex p-1 cursor-pointer rounded-md pop-in-animation-med-delay"
       :class="{
         'bg-gray-100 hover:bg-gray-200': showPageSubHeadings,
         'bg-white hover:bg-gray-100': !showPageSubHeadings,
@@ -127,14 +127,25 @@ onMounted(() => {
       <AlignRightIcon />
     </div>
   </div>
-  <div v-if="showPageSubHeadings" class="pt-20 mr-24 flex flex-col w-full w-54">
-    <div class="mb-2 text-gray-400 text-xs font-semibold">Content</div>
-    <div v-if="!isFirstTimePopulatingSubHeadings && pageSubHeadings.length === 0">No content</div>
+  <div
+    class="pt-20 flex flex-col w-full mr-12 overflow-hidden"
+    :class="{
+      'w-0 opacity-0': !showPageSubHeadings,
+      'w-54': showPageSubHeadings,
+    }"
+    :style="{
+      transition: showPageSubHeadings ? 'width 0.2s ease-in-out, opacity 0.5s ease-in-out' : 'width 0.2s ease-in-out',
+    }"
+  >
+    <div class="mb-2 text-gray-400 text-xs font-semibold pop-in-animation-med-delay">Content</div>
+    <div v-if="!isFirstTimePopulatingSubHeadings && pageSubHeadings.length === 0" class="pop-in-animation-med-delay">
+      No content
+    </div>
     <a
       v-for="(subHeading, index) in pageSubHeadings"
       :key="index"
       :href="`#${subHeading.text}`"
-      class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all"
+      class="flex py-1 !hover:text-primary !underline-transparent max-w-full break-all pop-in-animation-med-delay"
       :class="{
         'font-semibold text-primary': subHeading.active,
         '!text-gray-700': !subHeading.active,

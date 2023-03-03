@@ -141,20 +141,20 @@ watch(
       @click.self="navigateToHome"
     >
       <div
-        class="flex flex-row text-xs font-semibold items-center gap-x-3"
+        class="flex flex-row text-xs font-semibold items-center gap-x-3 h-6.5"
         :class="{ 'text-primary': isNoPageOpen }"
         @click="navigateToHome"
       >
-        <div class="flex">
+        <div v-if="project.title" class="flex pop-in-animation">
           <MdiBookOpenOutline />
         </div>
-        <div class="flex text-sm">
+        <div v-if="project.title" class="flex text-sm pop-in-animation">
           {{ project.title }}
         </div>
       </div>
-      <div class="flex flex-row justify-between items-center">
+      <div v-if="project.title" class="flex flex-row justify-between items-center">
         <div
-          class="flex select-none p-1 rounded-md hover:(text-primary/100 !bg-gray-200 !bg-opacity-60) cursor-pointer"
+          class="flex select-none p-1 rounded-md hover:(text-primary/100 !bg-gray-200 !bg-opacity-60) cursor-pointer pop-in-animation"
           @click="() => addNewPage()"
         >
           <MdiPlus />

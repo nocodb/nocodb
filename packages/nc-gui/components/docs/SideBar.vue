@@ -121,6 +121,12 @@ watch(
     immediate: true,
   },
 )
+
+onKeyStroke('Enter', () => {
+  if (deleteModalOpen.value) {
+    onDeletePage()
+  }
+})
 </script>
 
 <template>

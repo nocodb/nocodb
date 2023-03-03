@@ -62,6 +62,22 @@ const [setup, use] = useInjectionState(() => {
     return findPage(nestedPages.value, isNestedPublicPage.value ? routePageSlugs.value[2] : routePageSlugs.value[0])
   })
 
+  watch(
+    openedPageInSidebar,
+    () => {
+      if (!openedPage.value) return
+
+      openedPage.value = {
+        ...openedPageInSidebar.value,
+        content: openedPage.value.content,
+        title: openedPage.value.title,
+      } as PageSidebarNode
+    },
+    {
+      deep: true,
+    },
+  )
+
   const flattenedNestedPages = computed(() => {
     if (nestedPages.value.length === 0) return []
 
@@ -191,6 +207,7 @@ const [setup, use] = useInjectionState(() => {
         })
       }
 
+      openedPage.value = findPage(nestedPages.value, createdPageData.id!)
       await navigateTo(nestedUrl(createdPageData.id!))
 
       if (!openedTabs.value.includes(createdPageData.id!)) {
@@ -325,6 +342,7 @@ const [setup, use] = useInjectionState(() => {
   const updatePage = async ({ pageId, page }: { pageId: string; page: Partial<PageSidebarNode> }) => {
     const foundPage = findPage(nestedPages.value, pageId)!
     if (page.title) foundPage.title = page.title
+    if (page?.title?.length === 0) page.title = foundPage.title
 
     const updatedPage = await $api.nocoDocs.updatePage(pageId, {
       attributes: page as any,
@@ -553,6 +571,7 @@ const [setup, use] = useInjectionState(() => {
     getPageWithParents,
     nestedPublicParentPage,
     parentWhichIsNestedPublished,
+    findPage,
   }
 }, 'useDocs')
 

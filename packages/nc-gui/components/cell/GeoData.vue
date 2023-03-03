@@ -85,7 +85,7 @@ const onClickSetCurrentLocation = () => {
     </div>
     <div v-else data-testid="nc-geo-data-lat-long-set">{{ latLongStr }}</div>
     <template #overlay>
-      <a-form :model="formState" class="flex flex-col" @finish="handleFinish">
+      <a-form :model="formState" class="flex flex-col w-max-58" @finish="handleFinish">
         <a-form-item>
           <div class="flex mt-4 items-center mx-2">
             <div class="mr-2">{{ $t('labels.lat') }}:</div>

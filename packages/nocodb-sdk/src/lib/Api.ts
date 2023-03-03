@@ -38,6 +38,7 @@ export interface ApiTokenReqType {
  * Model for Attachment
  */
 export interface AttachmentType {
+  /** Data for uploading */
   data?: any;
   icon?: string;
   mimetype?: string;

@@ -37,7 +37,7 @@ const opSubTypes = <const>[
   'EXPORT_TO_ZIP',
   'UPDATED',
   'SIGNIN',
-  'SIGN',
+  'SIGNUP',
   'PASSWORD_RESET',
   'PASSWORD_FORGOT',
   'PASSWORD_CHANGE',

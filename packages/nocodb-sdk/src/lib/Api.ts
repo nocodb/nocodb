@@ -13,20 +13,24 @@
  * Model for API Token
  */
 export interface ApiTokenType {
-  created_at?: any;
-  description?: string;
-  fk_user_id?: string;
-  /** Unique ID */
+  /** Unique API Token ID */
   id?: IdType;
+  /** Foreign Key to User */
+  fk_user_id?: IdType;
+  /** API Token Description */
+  description?: string;
+  /** API Token */
   token?: string;
-  updated_at?: any;
 }
 
 /**
  * Model for API Token Request
  */
 export interface ApiTokenReqType {
-  /** Description of the API token */
+  /**
+   * Description of the API token
+   * @example This API Token is for ABC application
+   */
   description?: string;
 }
 

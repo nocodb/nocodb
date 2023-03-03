@@ -52,6 +52,7 @@ export enum Altered {
 }
 
 export async function columnUpdate(param: {
+  req?: any;
   columnId: string;
   column: ColumnReqType & { colOptions?: any };
   cookie?: any;
@@ -812,9 +813,9 @@ export async function columnUpdate(param: {
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.UPDATED,
-    // user: (req as any)?.user?.email,
+    user: param.req?.user?.email,
     description: `updated column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
-    // ip: (req as any).clientIp,
+    ip: param.req?.clientIp,
   }).then(() => {});
 
   await table.getColumns();
@@ -833,6 +834,7 @@ export async function columnSetAsPrimary(param: { columnId: string }) {
 }
 
 export async function columnAdd(param: {
+  req?: any;
   tableId: string;
   column: ColumnReqType;
 }) {
@@ -1107,9 +1109,9 @@ export async function columnAdd(param: {
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.CREATED,
-    // user: (req as any)?.user?.email,
+    user: param?.req?.user?.email,
     description: `created column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name}`,
-    // ip: (req as any).clientIp,
+    ip: param?.req.clientIp,
   }).then(() => {});
 
   T.emit('evt', { evt_type: 'column:created' });
@@ -1117,7 +1119,7 @@ export async function columnAdd(param: {
   return table;
 }
 
-export async function columnDelete(param: { columnId: string }) {
+export async function columnDelete(param: { req?: any; columnId: string }) {
   const column = await Column.get({ colId: param.columnId });
   const table = await Model.getWithInfo({
     id: column.fk_model_id,
@@ -1319,9 +1321,9 @@ export async function columnDelete(param: { columnId: string }) {
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.DELETED,
-    // user: (req as any)?.user?.email,
+    user: param?.req?.user?.email,
     description: `deleted column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
-    // ip: (req as any).clientIp,
+    ip: param?.req.clientIp,
   }).then(() => {});
 
   await table.getColumns();

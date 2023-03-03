@@ -16,6 +16,7 @@ export async function columnAdd(
     await columnService.columnAdd({
       tableId: req.params.tableId,
       column: req.body,
+      req,
     })
   );
 }
@@ -31,12 +32,15 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
     await columnService.columnUpdate({
       columnId: req.params.columnId,
       column: req.body,
+      req,
     })
   );
 }
 
 export async function columnDelete(req: Request, res: Response<TableType>) {
-  res.json(await columnService.columnDelete({ columnId: req.params.columnId }));
+  res.json(
+    await columnService.columnDelete({ columnId: req.params.columnId, req })
+  );
 }
 
 const router = Router({ mergeParams: true });

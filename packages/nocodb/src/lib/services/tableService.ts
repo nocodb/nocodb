@@ -197,7 +197,11 @@ export async function tableDelete(param: { tableId: string; user: User }) {
   return table.delete();
 }
 
-export async function tableUpdate(param: { tableId: string; table: TableReqType; projectId?:string }) {
+export async function tableUpdate(param: {
+  tableId: string;
+  table: TableReqType;
+  projectId?: string;
+}) {
   const model = await Model.get(param.tableId);
 
   const project = await Project.getWithInfo(

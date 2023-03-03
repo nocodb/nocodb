@@ -7532,42 +7532,44 @@
             "updated_at": null
           }
         ],
+        "title": "API Token Model",
+        "type": "object",
         "properties": {
-          "created_at": {},
-          "description": {
-            "type": "string"
-          },
-          "fk_user_id": {
-            "type": "string"
-          },
           "id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
+            "description": "Unique API Token ID"
+          },
+          "fk_user_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to User"
+          },
+          "description": {
+            "type": "string",
+            "description": "API Token Description"
           },
           "token": {
-            "type": "string"
-          },
-          "updated_at": {}
-        },
-        "title": "API Token Model",
-        "type": "object"
+            "type": "string",
+            "description": "API Token"
+          }
+        }
       },
       "ApiTokenReq": {
         "description": "Model for API Token Request",
         "examples": [
           {
-            "description": "string"
+            "description": "This API token is for ABC application"
           }
         ],
+        "title": "API Token Request Model",
+        "type": "object",
         "properties": {
           "description": {
             "description": "Description of the API token",
             "maxLength": 255,
-            "type": "string"
+            "type": "string",
+            "example": "This API Token is for ABC application"
           }
-        },
-        "title": "API Token Request Model",
-        "type": "object"
+        }
       },
       "Attachment": {
         "description": "Model for Attachment",

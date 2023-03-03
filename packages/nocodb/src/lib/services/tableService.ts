@@ -1,4 +1,3 @@
-// @ts-ignore
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
@@ -27,6 +26,112 @@ import User from '../models/User';
 import View from '../models/View';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { T } from 'nc-help';
+
+export async function tableUpdate(param: {
+  tableId: any;
+  table: TableReqType & { project_id?: string };
+  projectId?: string;
+}) {
+  const model = await Model.get(param.tableId);
+
+  const project = await Project.getWithInfo(
+    param.table.project_id || param.projectId
+  );
+  const base = project.bases.find((b) => b.id === model.base_id);
+
+  if (model.project_id !== project.id) {
+    NcError.badRequest('Model does not belong to project');
+  }
+
+  // if meta present update meta and return
+  // todo: allow user to update meta  and other prop in single api call
+  if ('meta' in param.table) {
+    await Model.updateMeta(param.tableId, param.table.meta);
+
+    return { msg: 'success' }
+  }
+
+  if (!param.table.table_name) {
+    NcError.badRequest(
+      'Missing table name `table_name` property in request body'
+    );
+  }
+
+  if (base.is_meta && project.prefix) {
+    if (!param.table.table_name.startsWith(project.prefix)) {
+      param.table.table_name = `${project.prefix}${param.table.table_name}`;
+    }
+  }
+
+  param.table.table_name = DOMPurify.sanitize(param.table.table_name);
+
+  // validate table name
+  if (/^\s+|\s+$/.test(param.table.table_name)) {
+    NcError.badRequest(
+      'Leading or trailing whitespace not allowed in table names'
+    );
+  }
+
+  if (
+    !(await Model.checkTitleAvailable({
+      table_name: param.table.table_name,
+      project_id: project.id,
+      base_id: base.id,
+    }))
+  ) {
+    NcError.badRequest('Duplicate table name');
+  }
+
+  if (!param.table.title) {
+    param.table.title = getTableNameAlias(
+      param.table.table_name,
+      project.prefix,
+      base
+    );
+  }
+
+  if (
+    !(await Model.checkAliasAvailable({
+      title: param.table.title,
+      project_id: project.id,
+      base_id: base.id,
+    }))
+  ) {
+    NcError.badRequest('Duplicate table alias');
+  }
+
+  const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+  const sqlClient = await NcConnectionMgrv2.getSqlClient(base);
+
+  let tableNameLengthLimit = 255;
+  const sqlClientType = sqlClient.knex.clientType();
+  if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+    tableNameLengthLimit = 64;
+  } else if (sqlClientType === 'pg') {
+    tableNameLengthLimit = 63;
+  } else if (sqlClientType === 'mssql') {
+    tableNameLengthLimit = 128;
+  }
+
+  if (param.table.table_name.length > tableNameLengthLimit) {
+    NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+  }
+
+  await Model.updateAliasAndTableName(
+    param.tableId,
+    param.table.title,
+    param.table.table_name
+  );
+
+  await sqlMgr.sqlOpPlus(base, 'tableRename', {
+    ...param.table,
+    tn: param.table.table_name,
+    tn_old: model.table_name,
+  });
+
+  T.emit('evt', { evt_type: 'table:updated' });
+  return true;
+}
 
 export function reorderTable(param: { tableId: string; order: any }) {
   return Model.updateOrder(param.tableId, param.order);
@@ -100,7 +205,7 @@ export async function getTableWithAccessibleViews(param: {
   // todo: optimise
   const viewList = <View[]>await xcVisibilityMetaGet(table.project_id, [table]);
 
-  //await View.list(req.params.tableId)
+  //await View.list(param.tableId)
   table.views = viewList.filter((table: any) => {
     return Object.keys(param.user?.roles).some(
       (role) => param.user?.roles[role] && !table.disabled[role]

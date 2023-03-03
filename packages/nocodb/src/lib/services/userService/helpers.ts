@@ -1,7 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import User from '../../models/User';
 import { NcConfig } from '../../../interface/config';
-import { User } from '../../models';
 
 export function genJwt(user: User, config: NcConfig) {
   return jwt.sign(

@@ -22,12 +22,12 @@ import hookApis from '../../controllers/hookController';
 import pluginApis from '../../controllers/pluginController';
 import gridViewColumnApis from '../../controllers/gridViewColumnController';
 import kanbanViewApis from '../../controllers/kanbanViewController';
-import { userApis } from '../../controllers/userApi';
+import { userController } from '../../controllers/userController';
 // import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
 import utilApis from '../../controllers/utilController';
 import projectUserApis from '../../controllers/projectUserController';
 import sharedBaseApis from '../../controllers/sharedBaseController';
-import { initStrategies } from '../../controllers/userApi/initStrategies';
+import { initStrategies } from '../../controllers/userController/initStrategies';
 import modelVisibilityApis from '../../controllers/modelVisibilityController';
 import metaDiffApis from '../../controllers/metaDiffController';
 import cacheApis from '../../controllers/cacheController';
@@ -51,9 +51,9 @@ import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 
 import crypto from 'crypto';
-import swaggerApis from '../../controllers/swagger/swaggerApis';
-import importApis from '../../controllers/sync/importApis';
-import syncSourceApis from '../../controllers/sync/syncSourceApis';
+import swaggerApis from '../../controllers/swaggerController';
+import importApis from '../../controllers/syncController/importApis';
+import syncSourceApis from '../../controllers/syncController';
 import mapViewApis from '../../controllers/mapViewController';
 
 const clients: { [id: string]: Socket } = {};
@@ -108,7 +108,7 @@ export default function (router: Router, server) {
   router.use(kanbanViewApis);
   router.use(mapViewApis);
 
-  userApis(router);
+  userController(router);
 
   const io = new Server(server, {
     cors: {

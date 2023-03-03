@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { TableListType, TableReqType, TableType } from 'nocodb-sdk';
 import { getAjvValidatorMw } from '../meta/api/helpers';
-import { tableUpdate } from '../meta/api/tableApis';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
@@ -57,6 +56,17 @@ export async function tableReorder(req: Request, res: Response) {
       order: req.body.order,
     })
   );
+}
+
+
+
+export async function tableUpdate(req: Request<any, any>, res) {
+  tableService.tableUpdate({
+    tableId: req.params.tableId,
+    table: req.body,
+  })
+
+  res.json({ msg: 'success' })
 }
 
 const router = Router({ mergeParams: true });

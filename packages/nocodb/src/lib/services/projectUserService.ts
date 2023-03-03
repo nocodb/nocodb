@@ -282,7 +282,7 @@ export async function sendInviteEmail(
 ): Promise<any> {
   try {
     const template = (
-      await import('../meta/api/userApi/ui/emailTemplates/invite')
+      await import('./userService/ui/emailTemplates/invite')
     ).default;
 
     const emailAdapter = await NcPluginMgrv2.emailAdapter();

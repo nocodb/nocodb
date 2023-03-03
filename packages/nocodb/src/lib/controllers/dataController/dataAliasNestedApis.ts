@@ -7,7 +7,7 @@ import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import {
   getColumnByIdOrName,
   getViewAndModelFromRequestByAliasOrId,
-} from '../../meta/api/dataApis/helpers';
+} from '../dataApis/helpers';
 import { NcError } from '../../meta/helpers/catchError';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 

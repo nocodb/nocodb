@@ -1,19 +1,19 @@
-import Project from '../../../models/Project';
-import Model from '../../../models/Model';
-import View from '../../../models/View';
-import { NcError } from '../../helpers/catchError';
+import { NcError } from '../../meta/helpers/catchError';
+import Project from '../../models/Project';
+import Model from '../../models/Model';
+import View from '../../models/View';
 import { Request } from 'express';
-import Base from '../../../models/Base';
-import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
+import Base from '../../models/Base';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 
 import * as XLSX from 'xlsx';
-import Column from '../../../models/Column';
-import LookupColumn from '../../../models/LookupColumn';
-import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
+import Column from '../../models/Column';
+import LookupColumn from '../../models/LookupColumn';
+import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 
 import papaparse from 'papaparse';
-import { dataService } from '../../../services';
+import { dataService } from '../../services';
 export async function getViewAndModelFromRequestByAliasOrId(
   req:
     | Request<{ projectName: string; tableName: string; viewName?: string }>

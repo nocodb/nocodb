@@ -9245,76 +9245,73 @@
         "description": "Model for Formula",
         "examples": [
           {
-            "deleted": "string",
-            "fk_column_id": "string",
-            "formula": "string",
-            "formula_raw": "string",
-            "id": "string",
-            "order": "string",
-            "type": "string",
-            "virtual": true
+            "id": "fm_1lo8wqtvvipdns",
+            "fk_column_id": "cl_h2micb4jdnmsh1",
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "error": "Error Message shows here"
           }
         ],
+        "title": "Formula Model",
+        "type": "object",
         "properties": {
-          "deleted": {
-            "type": "string"
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
           },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
           },
           "formula": {
-            "type": "string"
+            "type": "string",
+            "description": "Formula with column ID replaced",
+            "example": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})"
           },
           "formula_raw": {
-            "type": "string"
+            "type": "string",
+            "description": "Original Formula inputted in UI",
+            "example": "CONCAT(\"FOO\", {Title})"
           },
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "order": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "virtual": {
-            "$ref": "#/components/schemas/Bool"
+          "error": {
+            "type": "string",
+            "description": "Error Message"
           }
-        },
-        "title": "Formula Model",
-        "type": "object"
+        }
       },
       "FormulaColumnReq": {
         "description": "Model for Formula Column Request",
         "examples": [
           {
-            "formula": "string",
-            "formula_raw": "string",
-            "title": "string",
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "title": "Formula",
             "uidt": "Formula"
           }
         ],
+        "title": "Formula Column Request Model",
+        "type": "object",
         "properties": {
           "formula": {
-            "type": "string"
+            "type": "string",
+            "description": "Formula with column ID replaced"
           },
           "formula_raw": {
-            "type": "string"
+            "type": "string",
+            "description": "Original Formula inputted in UI"
           },
           "title": {
             "maxLength": 255,
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Formula Title"
           },
           "uidt": {
             "enum": ["Formula"],
-            "type": "string"
+            "type": "string",
+            "description": "UI Data Type"
           }
-        },
-        "title": "Formula Column Request Model",
-        "type": "object"
+        }
       },
       "Gallery": {
         "description": "Model for Gallery",

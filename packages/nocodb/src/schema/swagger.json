@@ -7406,11 +7406,15 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "files": {},
-                  "json": {
-                    "type": "string"
+                "$ref": "#/components/schemas/AttachmentReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "mimetype": "image/jpeg",
+                    "path": "download/noco/jango_fett/Table1/attachment/uVbjPVQxC_SSfs8Ctx.jpg",
+                    "size": 13052,
+                    "title": "22bc-kavypmq4869759 (1).jpg"
                   }
                 }
               }
@@ -7421,11 +7425,13 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "download/noco/jango_fett/Table1/attachment/uVbjPVQxC_SSfs8Ctx.jpg"
             },
             "name": "path",
             "in": "query",
-            "required": true
+            "required": true,
+            "description": "Target File Path"
           }
         ],
         "description": "Upload attachment"
@@ -7443,33 +7449,22 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "type": "object",
-                  "properties": {
-                    "url": {
-                      "type": "string"
-                    },
-                    "fileName": {
-                      "type": "string"
-                    },
-                    "mimetype": {
-                      "type": "string"
-                    },
-                    "size": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/AttachmentReq"
                 }
-              }
+              },
+              "examples": {}
             }
           }
         },
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "download/noco/jango_fett/Table1/attachment/c7z_UF8sZBgJUxMjpN.jpg"
             },
             "name": "path",
             "in": "query",
+            "description": "Target File Path",
             "required": true
           }
         ],
@@ -7576,37 +7571,74 @@
         "examples": [
           {
             "data": null,
-            "icon": "string",
-            "mimetype": "string",
-            "path": "string",
-            "size": "string",
-            "title": "string",
-            "url": "string"
+            "mimetype": "image/jpeg",
+            "path": "download/noco/jango_fett/Table1/attachment/c7z_UF8sZBgJUxMjpN.jpg",
+            "size": 12345,
+            "title": "kavypmq4869759.jpg"
           }
         ],
+        "title": "Attachment Model",
+        "type": "object",
         "properties": {
-          "data": {},
-          "icon": {
-            "type": "string"
+          "data": {
+            "description": "Data for uploading"
           },
           "mimetype": {
-            "type": "string"
+            "type": "string",
+            "description": "The mimetype of the attachment"
           },
           "path": {
-            "type": "string"
+            "type": "string",
+            "description": "File Path"
           },
           "size": {
-            "type": "string"
+            "type": "number",
+            "description": "Attachment Size"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "The title of the attachment. Used in UI."
           },
           "url": {
-            "type": "string"
+            "type": "string",
+            "description": "Attachment URL"
+          }
+        }
+      },
+      "AttachmentReq": {
+        "description": "Model for Attachment Request",
+        "type": "object",
+        "x-examples": {
+          "Example 1": {
+            "mimetype": "image/jpeg",
+            "path": "download/noco/jango_fett/Table1/attachment/uVbjPVQxC_SSfs8Ctx.jpg",
+            "size": 13052,
+            "title": "22bc-kavypmq4869759 (1).jpg"
           }
         },
-        "title": "Attachment Model",
-        "type": "object"
+        "title": "Attachment Request Model",
+        "properties": {
+          "mimetype": {
+            "type": "string",
+            "description": "The mimetype of the attachment"
+          },
+          "path": {
+            "type": "string",
+            "description": "The file path of the attachment"
+          },
+          "size": {
+            "type": "number",
+            "description": "The size of the attachment"
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the attachment used in UI"
+          },
+          "url": {
+            "type": "string",
+            "description": "Attachment URL to be uploaded via upload-by-url"
+          }
+        }
       },
       "Audit": {
         "description": "Model for Audit",

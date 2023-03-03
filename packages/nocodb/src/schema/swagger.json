@@ -9140,25 +9140,74 @@
       "Column": {
         "title": "Column Model",
         "type": "object",
+        "description": "Model for Column",
+        "examples": [
+          {
+            "id": "cl_0j9gv0oi8vjy46",
+            "base_id": "ds_krsappzu9f8vmo",
+            "project_id": "p_01clqvzik3izk6",
+            "fk_model_id": "md_yvwvbt2i78rgcm",
+            "title": "Title",
+            "column_name": "title",
+            "uidt": "SingleLineText",
+            "dt": "varchar",
+            "np": null,
+            "ns": null,
+            "clen": "45",
+            "cop": "2",
+            "pk": 0,
+            "pv": 1,
+            "rqd": 0,
+            "un": 0,
+            "ct": "varchar(45)",
+            "ai": 0,
+            "unique": 0,
+            "cdf": null,
+            "cc": "",
+            "csn": "utf8mb4",
+            "dtx": "specificType",
+            "dtxp": "45",
+            "dtxs": null,
+            "au": 0,
+            "validate": null,
+            "virtual": null,
+            "deleted": null,
+            "system": 0,
+            "order": 2,
+            "created_at": "2023-03-02 13:14:16",
+            "updated_at": "2023-03-02 13:14:16",
+            "meta": null
+          }
+        ],
         "properties": {
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
           "base_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Base ID that this column belongs to",
+            "example": "ds_krsappzu9f8vmo"
           },
           "fk_model_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Model ID that this column belongs to",
+            "example": "md_yvwvbt2i78rgcm"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "Column Title",
+            "example": "Title"
           },
           "uidt": {
-            "type": "string"
+            "type": "string",
+            "description": "The data type in UI",
+            "example": "SingleLineText"
           },
           "dt": {
-            "type": "string"
+            "type": "string",
+            "description": "Data Type in DB",
+            "example": "varchar"
           },
           "np": {
             "oneOf": [
@@ -9171,7 +9220,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Numeric Precision"
           },
           "ns": {
             "oneOf": [
@@ -9184,7 +9234,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Numeric Scale"
           },
           "clen": {
             "oneOf": [
@@ -9197,46 +9248,64 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Character Maximum Length"
           },
           "cop": {
-            "type": "string"
+            "type": "string",
+            "description": "Column Ordinal Position"
           },
           "pk": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is Primary Key?"
           },
           "pv": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is Primary Value?"
           },
           "rqd": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is Required?"
           },
           "column_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Column Name",
+            "example": "title"
           },
           "un": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is Unsigned?"
           },
           "ct": {
-            "type": "string"
+            "type": "string",
+            "description": "Column Type",
+            "example": "varchar(45)"
           },
           "ai": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is Auto-Increment?"
           },
           "unique": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is unique?"
           },
           "cdf": {
-            "type": "string"
+            "type": "string",
+            "description": "Column Default"
           },
           "cc": {
-            "type": "string"
+            "type": "string",
+            "description": "Column Comment"
           },
           "csn": {
-            "type": "string"
+            "type": "string",
+            "description": "Character Set Name",
+            "example": "utf8mb4"
           },
           "dtx": {
-            "type": "string"
+            "type": "string",
+            "description": "Data Type X",
+            "example": "specificType"
           },
           "dtxp": {
             "oneOf": [
@@ -9249,7 +9318,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Data Type X Precision"
           },
           "dtxs": {
             "oneOf": [
@@ -9262,25 +9332,32 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Data Type X Scale"
           },
           "au": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Auto Update Timestamp"
           },
           "deleted": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is Deleted?"
           },
           "visible": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is Visible?"
           },
           "order": {
-            "type": "number"
+            "type": "number",
+            "description": "The order of the list of columns"
           },
           "system": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is System Colun?"
           },
           "meta": {
-            "$ref": "#/components/schemas/Meta"
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info"
           },
           "colOptions": {
             "anyOf": [
@@ -9302,61 +9379,10 @@
               {
                 "type": "object"
               }
-            ]
+            ],
+            "description": "Column Options"
           }
-        },
-        "description": "Model for Column",
-        "examples": [
-          {
-            "id": "string",
-            "base_id": "string",
-            "fk_model_id": "string",
-            "title": "string",
-            "uidt": "string",
-            "dt": "string",
-            "np": "string",
-            "ns": "string",
-            "clen": "string",
-            "cop": "string",
-            "pk": true,
-            "pv": true,
-            "rqd": true,
-            "column_name": "string",
-            "un": true,
-            "ct": "string",
-            "ai": true,
-            "unique": true,
-            "cdf": "string",
-            "cc": "string",
-            "csn": "string",
-            "dtx": "string",
-            "dtxp": "string",
-            "dtxs": "string",
-            "au": true,
-            "deleted": true,
-            "visible": true,
-            "order": 0,
-            "system": true,
-            "meta": {},
-            "colOptions": {
-              "id": "string",
-              "type": "string",
-              "virtual": true,
-              "fk_column_id": "string",
-              "fk_child_column_id": "string",
-              "fk_parent_column_id": "string",
-              "fk_mm_model_id": "string",
-              "fk_related_model_id": "string",
-              "fk_mm_child_column_id": "string",
-              "fk_mm_parent_column_id": "string",
-              "ur": "string",
-              "dr": "string",
-              "fk_index_name": "string",
-              "deleted": "string",
-              "order": "string"
-            }
-          }
-        ]
+        }
       },
       "ColumnList": {
         "description": "Model for Column List",
@@ -9413,52 +9439,64 @@
             "columns": {
               "list": [
                 {
-                  "id": "string",
-                  "base_id": "string",
-                  "fk_model_id": "string",
-                  "title": "string",
-                  "uidt": "string",
-                  "dt": "string",
-                  "np": "string",
-                  "ns": "string",
-                  "clen": "string",
-                  "cop": "string",
-                  "pk": true,
-                  "pv": true,
-                  "rqd": true,
-                  "column_name": "string",
-                  "un": true,
-                  "ct": "string",
-                  "ai": true,
-                  "unique": true,
-                  "cdf": "string",
-                  "cc": "string",
-                  "csn": "string",
-                  "dtx": "string",
-                  "dtxp": "string",
-                  "dtxs": "string",
-                  "au": true,
-                  "deleted": true,
-                  "visible": true,
-                  "order": 0,
-                  "system": true,
+                  "id": "cl_vnrvdzwnk6uuov",
+                  "base_id": "ds_krsappzu9f8vmo",
+                  "project_id": "p_01clqvzik3izk6",
+                  "fk_model_id": "md_yvwvbt2i78rgcm",
+                  "title": "SingleSelect",
+                  "column_name": "SingleSelect",
+                  "uidt": "SingleSelect",
+                  "dt": "enum",
+                  "np": null,
+                  "ns": null,
+                  "clen": "1",
+                  "cop": "5",
+                  "pk": 0,
+                  "pv": null,
+                  "rqd": 0,
+                  "un": 0,
+                  "ct": "enum('a','b','c')",
+                  "ai": 0,
+                  "unique": 0,
+                  "cdf": null,
+                  "cc": "",
+                  "csn": "utf8mb4",
+                  "dtx": "specificType",
+                  "dtxp": "'a','b','c'",
+                  "dtxs": null,
+                  "au": 0,
+                  "validate": null,
+                  "virtual": null,
+                  "deleted": null,
+                  "system": 0,
+                  "order": null,
+                  "created_at": "2023-03-03 11:32:59",
+                  "updated_at": "2023-03-03 11:32:59",
                   "meta": {},
                   "colOptions": {
-                    "id": "string",
-                    "type": "string",
-                    "virtual": true,
-                    "fk_column_id": "string",
-                    "fk_child_column_id": "string",
-                    "fk_parent_column_id": "string",
-                    "fk_mm_model_id": "string",
-                    "fk_related_model_id": "string",
-                    "fk_mm_child_column_id": "string",
-                    "fk_mm_parent_column_id": "string",
-                    "ur": "string",
-                    "dr": "string",
-                    "fk_index_name": "string",
-                    "deleted": "string",
-                    "order": "string"
+                    "options": [
+                      {
+                        "id": "sl_mb8fkdvgudzu3r",
+                        "fk_column_id": "cl_vnrvdzwnk6uuov",
+                        "title": "a",
+                        "color": "#cfdffe",
+                        "order": 1
+                      },
+                      {
+                        "id": "sl_31uj9j02qacl7c",
+                        "fk_column_id": "cl_vnrvdzwnk6uuov",
+                        "title": "b",
+                        "color": "#d0f1fd",
+                        "order": 2
+                      },
+                      {
+                        "id": "sl_uabhxfapw4frlg",
+                        "fk_column_id": "cl_vnrvdzwnk6uuov",
+                        "title": "c",
+                        "color": "#c2f5e8",
+                        "order": 3
+                      }
+                    ]
                   }
                 }
               ]

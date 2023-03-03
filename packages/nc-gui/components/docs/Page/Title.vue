@@ -7,12 +7,36 @@ const { updatePage, isPublic, openedPage } = useDocs()
 
 const titleInputRef = ref<HTMLInputElement>()
 
-const title = computed({
-  get: () => (openedPage.value!.new ? '' : openedPage.value?.title || ''),
-  set: (value) => {
+const title = ref('')
+
+watch(
+  () => openedPage.value?.id,
+  (oldId, newId) => {
+    if (!openedPage.value) return
+    if (oldId === newId) return
+
+    title.value = openedPage.value.new ? '' : openedPage.value?.title || ''
+
+    if (openedPage.value?.new) {
+      nextTick(() => {
+        titleInputRef.value?.focus()
+      })
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+watch(
+  title,
+  (value) => {
     openedPage.value = { ...openedPage.value!, title: value, new: false }
   },
-})
+  {
+    immediate: true,
+  },
+)
 
 const onTitleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
@@ -44,20 +68,6 @@ watchDebounced(
   {
     debounce: 100,
     maxWait: 300,
-  },
-)
-
-watch(
-  titleInputRef,
-  () => {
-    if (!openedPage.value?.new) {
-      return
-    }
-
-    titleInputRef.value?.focus()
-  },
-  {
-    immediate: true,
   },
 )
 </script>
@@ -97,7 +107,7 @@ watch(
       class="!text-5xl font-semibold !px-1.5"
       :bordered="false"
       :readonly="isPublic"
-      :placeholder="openedPage?.title"
+      placeholder="Title"
       auto-size
       @keydown="onTitleKeyDown"
     />

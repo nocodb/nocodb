@@ -20,6 +20,8 @@ const {
   isPublic,
   nestedPublicParentPage,
   isFetching,
+  findPage,
+  nestedPages,
 } = useDocs()
 
 const wrapperRef = ref<HTMLDivElement | undefined>()
@@ -69,6 +71,13 @@ const focusEditor = () => {
   editor?.value?.commands.focus('start')
 }
 
+const removeNewFlagFromNewPage = (pageId: string) => {
+  const page = findPage(nestedPages.value, pageId)
+  if (page?.new) {
+    page.new = false
+  }
+}
+
 watch(
   () => content.value,
   () => {
@@ -96,9 +105,11 @@ watchDebounced(
 
 watch(
   openedPageId,
-  async () => {
+  async (_, oldId) => {
     if (!openedPageId.value) return
     if (openedPage.value?.new) return
+
+    if (oldId) removeNewFlagFromNewPage(oldId)
 
     isFetching.value.page = true
     openedPage.value = undefined
@@ -112,22 +123,6 @@ watch(
   },
   {
     immediate: true,
-  },
-)
-
-watch(
-  openedPageInSidebar,
-  () => {
-    if (!openedPage.value) return
-
-    openedPage.value = {
-      ...openedPageInSidebar.value,
-      content: openedPage.value.content,
-      title: openedPage.value.title,
-    } as PageSidebarNode
-  },
-  {
-    deep: true,
   },
 )
 </script>

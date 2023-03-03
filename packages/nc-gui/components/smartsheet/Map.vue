@@ -3,24 +3,13 @@ import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
-// import * as Vue from 'vue'
-// import MyPopupComponent from './MyPopupComponent'
-// import { defineComponent, ref } from 'vue'
-// import Vue from 'vue'
 import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
 import type { Row, Row as RowType } from '~/lib'
-// import { LazySmartsheetMyPopupComponent } from '~~/.nuxt/components'
-
-// Vue.config.ignoredElements.push('my-popup-component')
-
 const route = useRoute()
 
-// const popupIsOpen = ref(false)
 const popupIsOpen = ref(false)
-const popupContainer = ref()
 const popUpRow = ref<Row>()
 const fields = inject(FieldsInj, ref([]))
-console.log('FOO fields', fields)
 
 const router = useRouter()
 
@@ -97,7 +86,6 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-// const addMarker = (lat: number, long: number, row: RowType, popupContent: string) => {
 const addMarker = (lat: number, long: number, row: RowType) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Marker cluster is null')
@@ -113,36 +101,6 @@ const addMarker = (lat: number, long: number, row: RowType) => {
     }
   })
   markersClusterGroupRef.value?.addLayer(newMarker)
-
-  // if (newMarker && isPublic.value) {
-  //   // newMarker.setPopupContent(popupContainer.value!)
-
-  //   popUpRow.value = row
-
-  //   newMarker.bindPopup(popupContainer.value!)
-  //   // newMarker.bindPopup(popupContent)
-  //   // const vm = new Vue({
-  //   //   render: (h: any) =>
-  //   //     h(LazySmartsheetMyPopupComponent, {
-  //   //       props: {
-  //   //         title: 'Marker Title',
-  //   //         description: 'Marker Description',
-  //   //       },
-  //   //     }),
-  //   // })
-
-  //   // newMarker.bindPopup(vm.$el, { maxWidth: 300 })
-
-  //   newMarker.on('popupopen', () => {
-  //     popupIsOpen.value = true
-  //     // vm.$mount()
-  //   })
-
-  //   newMarker.on('popupclose', () => {
-  //     popupIsOpen.value = false
-  //     // vm.$destroy()
-  //   })
-  // }
 }
 
 const resetZoomAndCenterBasedOnLocalStorage = () => {
@@ -238,25 +196,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
     if (primaryGeoDataValue == null) {
       return
     }
-
-    // const listItems = Object.entries(row.row)
-    //   .filter(([key, val]) => val !== null && key !== 'Id')
-    //   .map(([key, val]) => {
-    //     let prettyVal = val
-    //     if (val !== null && (typeof val === 'object' || Array.isArray(val))) {
-    //       prettyVal = JSON.stringify(val)
-    //     } else if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
-    //       prettyVal = `<a href="${val}" target="_blank">${val}</a>`
-    //     }
-    //     return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
-    //   })
-    //   .join('')
-
-    // const popupContent = `<ul class="popup-content">${listItems}</ul>`
-
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
-
-    // addMarker(lat, long, row, popupContent)
     addMarker(lat, long, row)
   })
 })
@@ -268,22 +208,12 @@ watch(view, async (nextView) => {
   }
 })
 
-// @cancel="emit('closed')"
 const count = computed(() => paginationData.value.totalRows)
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="popupIsOpen"
-    :class="{ active: popupIsOpen }"
-    :footer="null"
-    centered
-    :closable="false"
-    @close="popupIsOpen = false"
-  >
-    <!-- <div v-if="popupIsOpen" ref="popupContainer"> -->
-    <LazySmartsheetMyPopupComponent v-if="popUpRow" :fields="fields" :row="popUpRow"></LazySmartsheetMyPopupComponent>
-    <!-- </div> -->
+  <a-modal v-model:visible="popupIsOpen" :footer="null" centered :closable="false" @close="popupIsOpen = false">
+    <LazySmartsheetSharedMapMarkerPopup v-if="popUpRow" :fields="fields" :row="popUpRow"></LazySmartsheetSharedMapMarkerPopup>
   </a-modal>
 
   <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">

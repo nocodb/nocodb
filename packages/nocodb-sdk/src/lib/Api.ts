@@ -776,26 +776,35 @@ export interface FormReqType {
  * Model for Formula
  */
 export interface FormulaType {
-  deleted?: string;
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  formula?: string;
-  formula_raw?: string;
   /** Unique ID */
   id?: IdType;
-  order?: string;
-  type?: string;
-  /** Model for Bool */
-  virtual?: BoolType;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /**
+   * Formula with column ID replaced
+   * @example CONCAT("FOO", {{cl_c5knoi4xs4sfpt}})
+   */
+  formula?: string;
+  /**
+   * Original Formula inputted in UI
+   * @example CONCAT("FOO", {Title})
+   */
+  formula_raw?: string;
+  /** Error Message */
+  error?: string;
 }
 
 /**
  * Model for Formula Column Request
  */
 export interface FormulaColumnReqType {
+  /** Formula with column ID replaced */
   formula?: string;
+  /** Original Formula inputted in UI */
   formula_raw?: string;
+  /** Formula Title */
   title?: string;
+  /** UI Data Type */
   uidt?: 'Formula';
 }
 
@@ -955,22 +964,118 @@ export interface GridReqType {
  * Model for Hook
  */
 export interface HookType {
-  /** Model for Bool */
+  /** Is the hook active? */
   active?: BoolType;
-  /** Model for Bool */
+  /** Is the hook aysnc? */
   async?: BoolType;
+  /**
+   * Hook Description
+   * @example This is my hook description
+   */
   description?: string;
+  /**
+   * Environment for the hook
+   * @example all
+   */
   env?: string;
+  /**
+   * Event Type for the operation
+   * @example after
+   */
   event?: 'after' | 'before';
+  /**
+   * Foreign Key to Model
+   * @example md_rsu68aqjsbyqtl
+   */
   fk_model_id?: string;
   /** Unique ID */
   id?: IdType;
+  /** Hook Notification including info such as type, payload, method, body, and etc */
   notification?: string;
+  /**
+   * Hook Operation
+   * @example insert
+   */
   operation?: 'delete' | 'insert' | 'update';
+  /**
+   * Retry Count
+   * @example 10
+   */
   retries?: number;
+  /**
+   * Retry Interval
+   * @example 60000
+   */
   retry_interval?: number;
+  /**
+   * Timeout
+   * @example 60000
+   */
   timeout?: number;
+  /**
+   * Hook Title
+   * @example My Webhook
+   */
   title?: string;
+  /** Hook Type */
+  type?: string;
+}
+
+/**
+ * Model for Hook
+ */
+export interface HookReqType {
+  /** Is the hook active? */
+  active?: BoolType;
+  /** Is the hook aysnc? */
+  async?: BoolType;
+  /** Hook Description */
+  description?: StringOrNullType;
+  /**
+   * Environment for the hook
+   * @example all
+   */
+  env?: string;
+  /**
+   * Event Type for the operation
+   * @example after
+   */
+  event: 'after' | 'before';
+  /**
+   * Foreign Key to Model
+   * @example md_rsu68aqjsbyqtl
+   */
+  fk_model_id?: string;
+  /** Unique ID */
+  id?: IdType;
+  /** Hook Notification including info such as type, payload, method, body, and etc */
+  notification: string;
+  /**
+   * Hook Operation
+   * @example insert
+   */
+  operation: 'delete' | 'insert' | 'update';
+  /**
+   * Retry Count
+   * @example 10
+   */
+  retries?: number;
+  /**
+   * Retry Interval
+   * @example 60000
+   */
+  retry_interval?: number;
+  /**
+   * Timeout
+   * @example 60000
+   */
+  timeout?: number;
+  /**
+   * Hook Title
+   * @example My Webhook
+   */
+  title: string;
+  /** Hook Type */
   type?: string;
 }
 
@@ -978,7 +1083,7 @@ export interface HookType {
  * Model for Hook List
  */
 export interface HookListType {
-  list?: object[];
+  list?: HookType[];
   /** Model for Paginated */
   pageInfo?: PaginatedType;
 }
@@ -1012,32 +1117,12 @@ export interface HookLogType {
 }
 
 /**
- * Model for Hook Request
- */
-export interface HookReqType {
-  /** Model for Bool */
-  active?: BoolType;
-  /** Model for Bool */
-  async?: BoolType;
-  /** Model for StringOrNull */
-  description?: StringOrNullType;
-  env?: string;
-  event: 'after' | 'before';
-  fk_model_id?: string;
-  notification: any;
-  operation: 'delete' | 'insert' | 'update';
-  retries?: number | null;
-  retry_interval?: number | null;
-  timeout?: number | null;
-  title: string;
-}
-
-/**
  * Model for Hook Test Request
  */
 export interface HookTestReqType {
-  /** Model for Hook Request */
+  /** Model for Hook */
   hook: HookReqType;
+  /** Payload to be sent */
   payload: any;
 }
 
@@ -1417,25 +1502,62 @@ export interface PasswordResetReqType {
  * Model for Plugin
  */
 export interface PluginType {
-  /** Model for Bool */
+  /** Is plguin active? */
   active?: BoolType;
+  /**
+   * Plugin Category
+   * @example Storage
+   */
   category?: string;
+  /** Plugin Creator (Not in use) */
   creator?: string;
+  /** Plugin Creator website (Not in use) */
   creator_website?: string;
+  /**
+   * Plugin Description
+   * @example Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance.
+   */
   description?: string;
+  /** Documentation of plugin (Not in use) */
   docs?: string;
+  /** Plugin Icon (Not in use) */
   icon?: string;
   /** Unique ID */
   id?: IdType;
+  /** Plugin Input */
   input?: StringOrNullType | number;
+  /**
+   * Plugin Input Schema
+   *
+   */
   input_schema?: string;
+  /**
+   * Plugin logo
+   * @example plugins/s3.png
+   */
   logo?: string;
+  /** Plugin Price (Not in use) */
   price?: string;
+  /** Plugin Rating (Not in use) */
   rating?: number;
+  /**
+   * Plugin Status
+   * @example install
+   */
   status?: string;
+  /** Not in use */
   status_details?: string;
+  /**
+   * Plugin tags
+   * @example Storage
+   */
   tags?: string;
+  /** Plugin Title */
   title?: string;
+  /**
+   * Plugin Version
+   * @example 0.0.1
+   */
   version?: string;
 }
 
@@ -1443,17 +1565,20 @@ export interface PluginType {
  * Model for Plugin Request
  */
 export interface PluginReqType {
-  /** Model for Bool */
+  /** Is Plugin Active? */
   active?: BoolType;
-  input?: any;
+  /** Plugin Input */
+  input?: string;
 }
 
 /**
  * Model for Plugin Test Request
  */
 export interface PluginTestReqType {
-  input: any;
+  /** Plugin Title */
   title: string;
+  /** Plugin Input */
+  input: string;
 }
 
 /**
@@ -1686,15 +1811,28 @@ export interface SignUpReqType {
  * Model for Sort
  */
 export interface SortType {
-  base_id?: string;
-  direction?: string;
+  /** Unique ID */
+  id?: IdType;
   /** Model for ID */
   fk_column_id?: IdType;
   /** Model for ID */
   fk_model_id?: IdType;
-  /** Unique ID */
-  id?: IdType;
+  /**
+   * Base ID
+   * @example ds_3l9qx8xqksenrl
+   */
+  base_id?: string;
+  /**
+   * Sort direction
+   * @example desc
+   */
+  direction?: 'asc' | 'desc';
+  /** @example 1 */
   order?: number;
+  /**
+   * Project ID
+   * @example p_9sx43moxhqtjm3
+   */
   project_id?: string;
 }
 
@@ -1703,7 +1841,7 @@ export interface SortType {
  */
 export interface SortListType {
   sorts: {
-    list: SharedViewType[];
+    list: SortType[];
   };
 }
 
@@ -1711,10 +1849,10 @@ export interface SortListType {
  * Model for Sort Request
  */
 export interface SortReqType {
-  /** Sort direction */
-  direction?: 'asc' | 'desc';
   /** Foreign Key to Column */
   fk_column_id?: IdType;
+  /** Sort direction */
+  direction?: 'asc' | 'desc';
 }
 
 /**

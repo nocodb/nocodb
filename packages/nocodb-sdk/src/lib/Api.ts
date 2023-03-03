@@ -2063,14 +2063,36 @@ export interface ViewListType {
  * Model for View Request
  */
 export interface ViewReqType {
-  lock_type?: 'collaborative' | 'locked' | 'personal';
-  /** Model for Meta */
-  meta?: MetaType;
-  /** @min 0 */
-  order?: number;
-  /** Model for Bool */
-  show_system_fields?: BoolType;
+  /**
+   * View Title
+   * @example Grid View 1
+   */
   title?: string;
+  /**
+   * View UUID. Used in Shared View.
+   * @example e2457bbf-e29c-4fec-866e-fe3b01dba57f
+   */
+  uuid?: string;
+  /**
+   * View Password. Used in Shared View.
+   * @example password123
+   */
+  password?: string;
+  /**
+   * Lock type of View.
+   * @example collaborative
+   */
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  /** Meta info used in View. */
+  meta?: MetaType;
+  /**
+   * The order of the list of views.
+   * @min 0
+   * @example 1
+   */
+  order?: number;
+  /** Should this view show system fields? */
+  show_system_fields?: BoolType;
 }
 
 /**
@@ -2092,16 +2114,6 @@ export type VisibilityRuleReqType = {
     viewer?: BoolType;
   };
 }[];
-
-/**
- * Model for Webhook
- */
-export interface WebhookType {
-  /** Unique ID */
-  id?: IdType;
-  title?: string;
-  type?: string;
-}
 
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 

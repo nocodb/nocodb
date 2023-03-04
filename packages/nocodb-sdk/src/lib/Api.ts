@@ -2026,7 +2026,7 @@ export interface TableReqType {
    * Table title
    * @example My Table
    */
-  title: string;
+  title?: string;
 }
 
 /**

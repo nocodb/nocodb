@@ -13581,11 +13581,11 @@
             "description": "Table title",
             "example": "My Table",
             "maxLength": 255,
-            "minLength": 1,
+            "minLength": 0,
             "type": "string"
           }
         },
-        "required": ["columns", "table_name", "title"],
+        "required": ["columns", "table_name"],
         "title": "Table Request Model",
         "type": "object"
       },

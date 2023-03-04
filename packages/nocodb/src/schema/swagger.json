@@ -151,7 +151,8 @@
                   "type": "object",
                   "properties": {
                     "msg": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Error Message"
                     }
                   }
                 }
@@ -215,7 +216,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/Id"
             },
             "in": "query",
             "name": "project_id",
@@ -264,7 +265,8 @@
                   "type": "object",
                   "properties": {
                     "msg": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Success Message"
                     }
                   }
                 },
@@ -286,7 +288,8 @@
                   "type": "object",
                   "properties": {
                     "msg": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Error Message"
                     }
                   }
                 },
@@ -345,7 +348,8 @@
         {
           "schema": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
           },
           "name": "token",
           "in": "path",
@@ -370,7 +374,8 @@
         {
           "schema": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
           },
           "name": "token",
           "in": "path",
@@ -404,7 +409,8 @@
         {
           "schema": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
           },
           "name": "token",
           "in": "path",
@@ -426,7 +432,8 @@
                   "type": "object",
                   "properties": {
                     "token": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "New access token for user"
                     }
                   }
                 }
@@ -554,7 +561,8 @@
                   "type": "object",
                   "properties": {
                     "key": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Application license key"
                     }
                   }
                 }
@@ -607,7 +615,9 @@
                   "type": "object",
                   "properties": {
                     "invite_only_signup": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "description": "Status of invite only signup",
+                      "example": true
                     }
                   }
                 }
@@ -634,7 +644,9 @@
                 "type": "object",
                 "properties": {
                   "invite_only_signup": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Status of invite only signup",
+                    "example": true
                   }
                 }
               },
@@ -646,8 +658,7 @@
                 }
               }
             }
-          },
-          "description": ""
+          }
         },
         "tags": ["Org App Settings"],
         "description": "Update the application settings. Exclusive for super admin."
@@ -823,10 +834,12 @@
                   "type": "object",
                   "properties": {
                     "reset_password_token": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Password Reset Token for the user"
                     },
                     "reset_password_url": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Password Reset URL for the user"
                     }
                   }
                 }
@@ -948,28 +961,44 @@
                   "type": "object",
                   "properties": {
                     "Node": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Node version",
+                      "example": "v12.16.1"
                     },
                     "Arch": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Architecture type",
+                      "example": "x64"
                     },
                     "Platform": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Platform type",
+                      "example": "linux"
                     },
                     "Docker": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "description": "Is docker",
+                      "example": false
                     },
                     "Database": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Database type",
+                      "example": "postgres"
                     },
                     "ProjectOnRootDB": {
-                      "type": "string"
+                      "type": "boolean",
+                      "description": "Is project on rootdb",
+                      "example": false
                     },
                     "RootDB": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Root database type",
+                      "example": "postgres"
                     },
                     "PackageVersion": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Package version",
+                      "example": "1.0.0"
                     }
                   }
                 }
@@ -1129,27 +1158,6 @@
         "parameters": [
           {
             "schema": {
-              "type": "number"
-            },
-            "in": "query",
-            "name": "page"
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "in": "query",
-            "name": "pageSize"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
               "type": "string"
             },
             "in": "header",
@@ -1187,7 +1195,8 @@
                     "properties": {
                       "external": {
                         "type": "boolean",
-                        "default": false
+                        "default": false,
+                        "description": "If true, the project will us an external database else it will use the root database"
                       }
                     }
                   }
@@ -1528,13 +1537,17 @@
                   "type": "object",
                   "properties": {
                     "uuid": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
                     },
                     "url": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uri"
                     },
                     "roles": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "viewer"
                     }
                   }
                 }
@@ -1609,13 +1622,17 @@
                   "type": "object",
                   "properties": {
                     "uuid": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
                     },
                     "url": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uri"
                     },
                     "roles": {
-                      "type": "string"
+                      "type": "string",
+                      "example": "viewer"
                     }
                   }
                 }
@@ -2540,13 +2557,19 @@
                 "type": "object",
                 "properties": {
                   "table_name": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Table name",
+                    "example": "users"
                   },
                   "title": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Table title",
+                    "example": "Users"
                   },
                   "project_id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Project ID",
+                    "example": "p_124hhlkbeasewh"
                   },
                   "meta": {
                     "$ref": "#/components/schemas/Meta"
@@ -3255,7 +3278,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string",
+            "$ref": "#/components/schemas/Id",
             "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
@@ -3300,7 +3323,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string",
+            "$ref": "#/components/schemas/Id",
             "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
@@ -3334,7 +3357,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string",
+            "$ref": "#/components/schemas/Id",
             "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
@@ -3573,7 +3596,8 @@
       "parameters": [
         {
           "schema": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "example": "vw_wtdg2meyig5l4q"
           },
           "name": "viewId",
           "in": "path",
@@ -3685,7 +3709,9 @@
                     "type": "object",
                     "properties": {
                       "push_to_top": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "example": true,
+                        "description": "Push the sort to the top of the list"
                       }
                     }
                   }
@@ -3847,7 +3873,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string",
+            "$ref": "#/components/schemas/Id",
             "example": "hk_0063k4o1frnxbr"
           },
           "name": "hookId",
@@ -3904,7 +3930,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string",
+            "$ref": "#/components/schemas/Id",
             "pattern": "fi_pgfuo11uhn2xeo"
           },
           "name": "filterId",
@@ -3967,7 +3993,9 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id",
+            "example": "fi_pgfuo11uhn2xeo",
+            "description": "Filter Group ID"
           },
           "name": "filterGroupId",
           "in": "path",
@@ -4113,7 +4141,7 @@
       "parameters": [
         {
           "schema": {
-            "type": "string",
+            "$ref": "#/components/schemas/Id",
             "example": "vw_6fqln9vdytdv8q"
           },
           "name": "formViewId",
@@ -4320,8 +4348,7 @@
         {
           "schema": {
             "$ref": "#/components/schemas/Id",
-            "example": "md_w9gpnaousnfss1",
-            "type": "string"
+            "example": "md_w9gpnaousnfss1"
           },
           "name": "tableId",
           "in": "path",
@@ -6128,7 +6155,8 @@
               "nc-export-offset": {
                 "schema": {
                   "type": "integer"
-                }
+                },
+                "description": "The starting offset of the next set of rows"
               }
             }
           }
@@ -6189,7 +6217,8 @@
               "nc-export-offset": {
                 "schema": {
                   "type": "integer"
-                }
+                },
+                "description": "The starting offset of the next set of rows"
               }
             }
           }
@@ -6802,7 +6831,9 @@
             "schema": {
               "type": "string"
             },
-            "in": "header"
+            "in": "header",
+            "name": "xc-password",
+            "description": "Shared view password"
           }
         ],
         "description": "Create a new row for the target shared view"
@@ -6969,7 +7000,8 @@
               "nc-export-offset": {
                 "schema": {
                   "type": "integer"
-                }
+                },
+                "description": "The starting offset of the next set of rows"
               }
             }
           }
@@ -7891,6 +7923,16 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
         "description": "Extract XC URL From JDBC and parse to connection config"
       }
     },
@@ -8008,62 +8050,80 @@
                             "type": "object",
                             "properties": {
                               "table": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Table Count"
                               },
                               "view": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "View Count"
                               }
                             }
                           },
                           "external": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "External Project",
+                            "default": false
                           },
                           "viewCount": {
                             "type": "object",
                             "properties": {
                               "formCount": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Form Count"
                               },
                               "gridCount": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Grid Count"
                               },
                               "galleryCount": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Gallery Count"
                               },
                               "kanbanCount": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Kanban Count"
                               },
                               "total": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Total View Count"
                               },
                               "sharedFormCount": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Shared Form Count"
                               },
                               "sharedGridCount": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Shared Grid Count"
                               },
                               "sharedGalleryCount": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Shared Gallery Count"
                               },
                               "sharedKanbanCount": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Shared Kanban Count"
                               },
                               "sharedTotal": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Shared Total View Count"
                               },
                               "sharedLockedCount": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "Shared Locked View Count"
                               }
                             }
                           },
                           "webhookCount": {
-                            "type": "integer"
+                            "type": "integer",
+                            "description": "Webhook Count"
                           },
                           "filterCount": {
-                            "type": "integer"
+                            "type": "integer",
+                            "description": "Filter Count"
                           },
                           "sortCount": {
-                            "type": "integer"
+                            "type": "integer",
+                            "description": "Sort Count"
                           },
                           "rowCount": {
                             "type": "array",
@@ -8074,19 +8134,23 @@
                                   "type": "string"
                                 }
                               }
-                            }
+                            },
+                            "description": "Row Count"
                           },
                           "userCount": {
-                            "type": "integer"
+                            "type": "integer",
+                            "description": "Total project user Count"
                           }
                         }
                       }
                     },
                     "userCount": {
-                      "type": "integer"
+                      "type": "integer",
+                        "description": "Total user Count"
                     },
                     "sharedBaseCount": {
-                      "type": "integer"
+                      "type": "integer",
+                      "description": "Total shared base Count"
                     }
                   },
                   "x-examples": {
@@ -8139,139 +8203,6 @@
                             "view": 0
                           },
                           "external": false,
-                          "viewCount": {
-                            "formCount": 0,
-                            "gridCount": 3,
-                            "galleryCount": 0,
-                            "kanbanCount": 0,
-                            "total": 3,
-                            "sharedFormCount": 0,
-                            "sharedGridCount": 0,
-                            "sharedGalleryCount": 0,
-                            "sharedKanbanCount": 0,
-                            "sharedTotal": 0,
-                            "sharedLockedCount": 0
-                          },
-                          "webhookCount": 0,
-                          "filterCount": 0,
-                          "sortCount": 0,
-                          "rowCount": [
-                            {
-                              "TotalRecords": "76"
-                            }
-                          ],
-                          "userCount": 1
-                        }
-                      ],
-                      "userCount": 1,
-                      "sharedBaseCount": 0
-                    }
-                  }
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "projectCount": {
-                      "type": "integer"
-                    },
-                    "projects": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "tableCount": {
-                            "type": "object",
-                            "properties": {
-                              "table": {
-                                "type": "integer"
-                              },
-                              "view": {
-                                "type": "integer"
-                              }
-                            }
-                          },
-                          "viewCount": {
-                            "type": "object",
-                            "properties": {
-                              "formCount": {
-                                "type": "integer"
-                              },
-                              "gridCount": {
-                                "type": "integer"
-                              },
-                              "galleryCount": {
-                                "type": "integer"
-                              },
-                              "kanbanCount": {
-                                "type": "integer"
-                              },
-                              "total": {
-                                "type": "integer"
-                              },
-                              "sharedFormCount": {
-                                "type": "integer"
-                              },
-                              "sharedGridCount": {
-                                "type": "integer"
-                              },
-                              "sharedGalleryCount": {
-                                "type": "integer"
-                              },
-                              "sharedKanbanCount": {
-                                "type": "integer"
-                              },
-                              "sharedTotal": {
-                                "type": "integer"
-                              },
-                              "sharedLockedCount": {
-                                "type": "integer"
-                              }
-                            }
-                          },
-                          "webhookCount": {
-                            "type": "integer"
-                          },
-                          "filterCount": {
-                            "type": "integer"
-                          },
-                          "sortCount": {
-                            "type": "integer"
-                          },
-                          "rowCount": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "TotalRecords": {
-                                  "type": "string"
-                                }
-                              }
-                            }
-                          },
-                          "userCount": {
-                            "type": "integer"
-                          }
-                        }
-                      }
-                    },
-                    "userCount": {
-                      "type": "integer"
-                    },
-                    "sharedBaseCount": {
-                      "type": "integer"
-                    }
-                  },
-                  "x-examples": {
-                    "Example 1": {
-                      "projectCount": 1,
-                      "projects": [
-                        {
-                          "tableCount": {
-                            "table": 3,
-                            "view": 0
-                          },
                           "viewCount": {
                             "formCount": 0,
                             "gridCount": 3,
@@ -10238,7 +10169,8 @@
             "description": "Foreign Key to Column"
           },
           "fk_view_id": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to View"
           },
           "help": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -10457,13 +10389,16 @@
             "$ref": "#/components/schemas/Bool"
           },
           "fk_cover_image_col_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Foreign Key to Cover Image Column"
           },
           "fk_model_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Foreign Key to Model"
           },
           "fk_view_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Foreign Key to View"
           },
           "lock_type": {
             "enum": ["collaborative", "locked", "personal"],
@@ -10473,7 +10408,8 @@
             "$ref": "#/components/schemas/Bool"
           },
           "order": {
-            "type": "number"
+            "type": "number",
+            "description": "Order of Gallery"
           },
           "prev_enabled": {
             "$ref": "#/components/schemas/Bool"
@@ -11309,26 +11245,32 @@
         ],
         "properties": {
           "childId": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to chhild column"
           },
           "parentId": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to parent column"
           },
           "title": {
             "maxLength": 255,
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "The title of the virtual column"
           },
           "type": {
             "enum": ["bt", "hm", "mm"],
-            "type": "string"
+            "type": "string",
+            "description": "The type of the relationship"
           },
           "uidt": {
             "enum": ["LinkToAnotherRecord"],
-            "type": "string"
+            "type": "string",
+            "description": "Abstract type of the relationship"
           },
           "virtual": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this relationship virtual?"
           }
         },
         "required": ["childId", "parentId", "title", "type", "uidt"],
@@ -11689,30 +11631,37 @@
         ],
         "properties": {
           "ai": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column auto-incremented?"
           },
           "au": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column auto-updated datetime field?"
           },
           "cc": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Column Comment"
           },
           "cdf": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Column Default Value"
           },
           "column_name": {
             "maxLength": 255,
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Column Name"
           },
           "csn": {
             "$ref": "#/components/schemas/StringOrNull"
           },
           "dt": {
-            "type": "string"
+            "type": "string",
+            "description": "Data Type"
           },
           "dtx": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Data Type Extra"
           },
           "dtxp": {
             "oneOf": [
@@ -11722,7 +11671,8 @@
               {
                 "type": "number"
               }
-            ]
+            ],
+            "description": "Data Type Extra Precision"
           },
           "dtxs": {
             "oneOf": [
@@ -11732,7 +11682,8 @@
               {
                 "type": "number"
               }
-            ]
+            ],
+            "description": "Data Type Extra Scale"
           },
           "np": {
             "oneOf": [
@@ -11742,7 +11693,8 @@
               {
                 "type": "integer"
               }
-            ]
+            ],
+            "description": "Numeric Precision"
           },
           "ns": {
             "oneOf": [
@@ -11752,20 +11704,25 @@
               {
                 "type": "integer"
               }
-            ]
+            ],
+            "description": "Numeric Scale"
           },
           "pk": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column a primary key?"
           },
           "pv": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column a primary value?"
           },
           "rqd": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column required?"
           },
           "title": {
             "maxLength": 255,
-            "type": "string"
+            "type": "string",
+            "description": "Column Title"
           },
           "uidt": {
             "enum": [
@@ -11807,13 +11764,16 @@
               "Year",
               "QrCode"
             ],
-            "type": "string"
+            "type": "string",
+            "description": "UI Data Type"
           },
           "un": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column unique?"
           },
           "unique": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column unique?"
           }
         },
         "title": "Normal Column Request Model",
@@ -11835,7 +11795,8 @@
           },
           "roles": {
             "enum": ["org-level-creator", "org-level-viewer"],
-            "type": "string"
+            "type": "string",
+            "description": "Roles for the project user"
           }
         },
         "title": "Organisation User Request Model",

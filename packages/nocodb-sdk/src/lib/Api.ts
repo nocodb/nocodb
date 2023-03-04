@@ -800,7 +800,7 @@ export interface FormColumnType {
   description?: StringOrNullType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
-  /** Model for ID */
+  /** Foreign Key to View */
   fk_view_id?: IdType;
   /** Form Column Help Text */
   help?: StringOrNullType;
@@ -887,12 +887,16 @@ export interface GalleryType {
   cover_image_idx?: number;
   /** Model for Bool */
   deleted?: BoolType;
+  /** Foreign Key to Cover Image Column */
   fk_cover_image_col_id?: string;
+  /** Foreign Key to Model */
   fk_model_id?: string;
+  /** Foreign Key to View */
   fk_view_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Model for Bool */
   next_enabled?: BoolType;
+  /** Order of Gallery */
   order?: number;
   /** Model for Bool */
   prev_enabled?: BoolType;
@@ -1264,14 +1268,17 @@ export interface LicenseReqType {
  * Model for LinkToAnotherColumn Request
  */
 export interface LinkToAnotherColumnReqType {
-  /** Model for ID */
+  /** Foreign Key to chhild column */
   childId: IdType;
-  /** Model for ID */
+  /** Foreign Key to parent column */
   parentId: IdType;
+  /** The title of the virtual column */
   title: string;
+  /** The type of the relationship */
   type: 'bt' | 'hm' | 'mm';
+  /** Abstract type of the relationship */
   uidt: 'LinkToAnotherRecord';
-  /** Model for Bool */
+  /** Is this relationship virtual? */
   virtual?: BoolType;
 }
 
@@ -1439,31 +1446,39 @@ export interface ModelRoleVisibilityType {
  * Model for Normal Column Request
  */
 export interface NormalColumnRequestType {
-  /** Model for Bool */
+  /** Is this column auto-incremented? */
   ai?: BoolType;
-  /** Model for Bool */
+  /** Is this column auto-updated datetime field? */
   au?: BoolType;
-  /** Model for StringOrNull */
+  /** Column Comment */
   cc?: StringOrNullType;
-  /** Model for StringOrNull */
+  /** Column Default Value */
   cdf?: StringOrNullType;
+  /** Column Name */
   column_name: string;
   /** Model for StringOrNull */
   csn?: StringOrNullType;
+  /** Data Type */
   dt?: string;
-  /** Model for StringOrNull */
+  /** Data Type Extra */
   dtx?: StringOrNullType;
+  /** Data Type Extra Precision */
   dtxp?: StringOrNullType | number;
+  /** Data Type Extra Scale */
   dtxs?: StringOrNullType | number;
+  /** Numeric Precision */
   np?: StringOrNullType | number;
+  /** Numeric Scale */
   ns?: StringOrNullType | number;
-  /** Model for Bool */
+  /** Is this column a primary key? */
   pk?: BoolType;
-  /** Model for Bool */
+  /** Is this column a primary value? */
   pv?: BoolType;
-  /** Model for Bool */
+  /** Is this column required? */
   rqd?: BoolType;
+  /** Column Title */
   title?: string;
+  /** UI Data Type */
   uidt?:
     | 'Attachment'
     | 'AutoNumber'
@@ -1502,9 +1517,9 @@ export interface NormalColumnRequestType {
     | 'URL'
     | 'Year'
     | 'QrCode';
-  /** Model for Bool */
+  /** Is this column unique? */
   un?: BoolType;
-  /** Model for Bool */
+  /** Is this column unique? */
   unique?: BoolType;
 }
 
@@ -1514,6 +1529,7 @@ export interface NormalColumnRequestType {
 export interface OrgUserReqType {
   /** @format email */
   email?: string;
+  /** Roles for the project user */
   roles?: 'org-level-creator' | 'org-level-viewer';
 }
 
@@ -2477,6 +2493,7 @@ export class Api<
 
 }` OK
  * @response `400` `{
+  \** Error Message *\
   msg?: string,
 
 }` Bad Request
@@ -2488,6 +2505,7 @@ export class Api<
           token?: string;
         },
         {
+          /** Error Message */
           msg?: string;
         }
       >({
@@ -2511,7 +2529,7 @@ export class Api<
     me: (
       query?: {
         /** Pass project id to get project specific roles along with user info */
-        project_id?: string;
+        project_id?: IdType;
       },
       params: RequestParams = {}
     ) =>
@@ -2550,10 +2568,12 @@ export class Api<
  * @summary Change Password
  * @request POST:/api/v1/auth/password/change
  * @response `200` `{
+  \** Success Message *\
   msg?: string,
 
 }` OK
  * @response `400` `{
+  \** Error Message *\
   msg?: string,
 
 }` Bad request
@@ -2561,9 +2581,11 @@ export class Api<
     passwordChange: (data: PasswordChangeReqType, params: RequestParams = {}) =>
       this.request<
         {
+          /** Success Message */
           msg?: string;
         },
         {
+          /** Error Message */
           msg?: string;
         }
       >({
@@ -2637,6 +2659,7 @@ export class Api<
  * @summary Refresh Token
  * @request POST:/api/v1/auth/token/refresh
  * @response `200` `{
+  \** New access token for user *\
   token?: string,
 
 }` OK
@@ -2644,6 +2667,7 @@ export class Api<
     tokenRefresh: (params: RequestParams = {}) =>
       this.request<
         {
+          /** New access token for user */
           token?: string;
         },
         any
@@ -2860,6 +2884,7 @@ export class Api<
  * @summary Get App License
  * @request GET:/api/v1/license
  * @response `200` `{
+  \** Application license key *\
   key?: string,
 
 }` OK
@@ -2867,6 +2892,7 @@ export class Api<
     get: (params: RequestParams = {}) =>
       this.request<
         {
+          /** Application license key */
           key?: string;
         },
         any
@@ -2904,6 +2930,10 @@ export class Api<
  * @summary Get App Settings
  * @request GET:/api/v1/app-settings
  * @response `200` `{
+  \**
+   * Status of invite only signup
+   * @example true
+   *\
   invite_only_signup?: boolean,
 
 }` OK
@@ -2911,6 +2941,10 @@ export class Api<
     get: (params: RequestParams = {}) =>
       this.request<
         {
+          /**
+           * Status of invite only signup
+           * @example true
+           */
           invite_only_signup?: boolean;
         },
         any
@@ -2932,6 +2966,10 @@ export class Api<
      */
     set: (
       data: {
+        /**
+         * Status of invite only signup
+         * @example true
+         */
         invite_only_signup?: boolean;
       },
       params: RequestParams = {}
@@ -3060,7 +3098,9 @@ export class Api<
  * @summary Generate Organisation User Password Reset Token
  * @request POST:/api/v1/users/{userId}/generate-reset-url
  * @response `200` `{
+  \** Password Reset Token for the user *\
   reset_password_token?: string,
+  \** Password Reset URL for the user *\
   reset_password_url?: string,
 
 }` OK
@@ -3068,7 +3108,9 @@ export class Api<
     generatePasswordResetToken: (userId: IdType, params: RequestParams = {}) =>
       this.request<
         {
+          /** Password Reset Token for the user */
           reset_password_token?: string;
+          /** Password Reset URL for the user */
           reset_password_url?: string;
         },
         any
@@ -3088,13 +3130,45 @@ export class Api<
  * @summary Get Project info
  * @request GET:/api/v1/db/meta/projects/{projectId}/info
  * @response `200` `{
+  \**
+   * Node version
+   * @example v12.16.1
+   *\
   Node?: string,
+  \**
+   * Architecture type
+   * @example x64
+   *\
   Arch?: string,
+  \**
+   * Platform type
+   * @example linux
+   *\
   Platform?: string,
+  \**
+   * Is docker
+   * @example false
+   *\
   Docker?: boolean,
+  \**
+   * Database type
+   * @example postgres
+   *\
   Database?: string,
-  ProjectOnRootDB?: string,
+  \**
+   * Is project on rootdb
+   * @example false
+   *\
+  ProjectOnRootDB?: boolean,
+  \**
+   * Root database type
+   * @example postgres
+   *\
   RootDB?: string,
+  \**
+   * Package version
+   * @example 1.0.0
+   *\
   PackageVersion?: string,
 
 }` OK
@@ -3102,13 +3176,45 @@ export class Api<
     metaGet: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
         {
+          /**
+           * Node version
+           * @example v12.16.1
+           */
           Node?: string;
+          /**
+           * Architecture type
+           * @example x64
+           */
           Arch?: string;
+          /**
+           * Platform type
+           * @example linux
+           */
           Platform?: string;
+          /**
+           * Is docker
+           * @example false
+           */
           Docker?: boolean;
+          /**
+           * Database type
+           * @example postgres
+           */
           Database?: string;
-          ProjectOnRootDB?: string;
+          /**
+           * Is project on rootdb
+           * @example false
+           */
+          ProjectOnRootDB?: boolean;
+          /**
+           * Root database type
+           * @example postgres
+           */
           RootDB?: string;
+          /**
+           * Package version
+           * @example 1.0.0
+           */
           PackageVersion?: string;
         },
         any
@@ -3175,18 +3281,10 @@ export class Api<
      * @request GET:/api/v1/db/meta/projects/
      * @response `201` `ProjectListType`
      */
-    list: (
-      query?: {
-        page?: number;
-        pageSize?: number;
-        sort?: string;
-      },
-      params: RequestParams = {}
-    ) =>
+    list: (params: RequestParams = {}) =>
       this.request<ProjectListType, any>({
         path: `/api/v1/db/meta/projects/`,
         method: 'GET',
-        query: query,
         ...params,
       }),
 
@@ -3201,6 +3299,7 @@ export class Api<
      */
     create: (
       data: ProjectType & {
+        /** If true, the project will us an external database else it will use the root database */
         external?: boolean;
       },
       params: RequestParams = {}
@@ -3273,8 +3372,14 @@ export class Api<
  * @summary Get Project Shared Base
  * @request GET:/api/v1/db/meta/projects/{projectId}/shared
  * @response `200` `{
+  \**
+   * @format uuid
+   * @example a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+   *\
   uuid?: string,
+  \** @format uri *\
   url?: string,
+  \** @example viewer *\
   roles?: string,
 
 }` OK
@@ -3282,8 +3387,14 @@ export class Api<
     sharedBaseGet: (projectId: IdType, params: RequestParams = {}) =>
       this.request<
         {
+          /**
+           * @format uuid
+           * @example a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+           */
           uuid?: string;
+          /** @format uri */
           url?: string;
+          /** @example viewer */
           roles?: string;
         },
         any
@@ -3355,8 +3466,14 @@ export class Api<
  * @summary Update Project Shared Base
  * @request PATCH:/api/v1/db/meta/projects/{projectId}/shared
  * @response `200` `{
+  \**
+   * @format uuid
+   * @example a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+   *\
   uuid?: string,
+  \** @format uri *\
   url?: string,
+  \** @example viewer *\
   roles?: string,
 
 }` OK
@@ -3368,8 +3485,14 @@ export class Api<
     ) =>
       this.request<
         {
+          /**
+           * @format uuid
+           * @example a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+           */
           uuid?: string;
+          /** @format uri */
           url?: string;
+          /** @example viewer */
           roles?: string;
         },
         any
@@ -3760,8 +3883,20 @@ export class Api<
     update: (
       tableId: IdType,
       data: {
+        /**
+         * Table name
+         * @example users
+         */
         table_name?: string;
+        /**
+         * Table title
+         * @example Users
+         */
         title?: string;
+        /**
+         * Project ID
+         * @example p_124hhlkbeasewh
+         */
         project_id?: string;
         /** Model for Meta */
         meta?: MetaType;
@@ -3937,7 +4072,7 @@ export class Api<
      * @request PATCH:/api/v1/db/meta/views/{viewId}
      * @response `200` `void` OK
      */
-    update: (viewId: string, data: ViewReqType, params: RequestParams = {}) =>
+    update: (viewId: IdType, data: ViewReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/views/${viewId}`,
         method: 'PATCH',
@@ -3955,7 +4090,7 @@ export class Api<
      * @request DELETE:/api/v1/db/meta/views/{viewId}
      * @response `200` `void` OK
      */
-    delete: (viewId: string, params: RequestParams = {}) =>
+    delete: (viewId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/views/${viewId}`,
         method: 'DELETE',
@@ -3972,7 +4107,7 @@ export class Api<
      * @response `200` `void` OK
      */
     showAllColumn: (
-      viewId: string,
+      viewId: IdType,
       query?: {
         ignoreIds?: any[];
       },
@@ -3995,7 +4130,7 @@ export class Api<
      * @response `200` `void` OK
      */
     hideAllColumn: (
-      viewId: string,
+      viewId: IdType,
       query?: {
         ignoreIds?: any[];
       },
@@ -4064,7 +4199,7 @@ export class Api<
      * @response `200` `void` OK
      */
     formUpdate: (
-      formViewId: string,
+      formViewId: IdType,
       data: FormReqType,
       params: RequestParams = {}
     ) =>
@@ -4085,7 +4220,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/forms/{formViewId}
      * @response `200` `FormType` OK
      */
-    formRead: (formViewId: string, params: RequestParams = {}) =>
+    formRead: (formViewId: IdType, params: RequestParams = {}) =>
       this.request<FormType, any>({
         path: `/api/v1/db/meta/forms/${formViewId}`,
         method: 'GET',
@@ -4531,6 +4666,10 @@ export class Api<
     create: (
       viewId: string,
       data: SortReqType & {
+        /**
+         * Push the sort to the top of the list
+         * @example true
+         */
         push_to_top?: boolean;
       },
       params: RequestParams = {}
@@ -4640,7 +4779,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/filters/{filterId}
      * @response `200` `FilterType` OK
      */
-    get: (filterId: string, params: RequestParams = {}) =>
+    get: (filterId: IdType, params: RequestParams = {}) =>
       this.request<FilterType, any>({
         path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'GET',
@@ -4658,7 +4797,7 @@ export class Api<
      * @response `200` `void` OK
      */
     update: (
-      filterId: string,
+      filterId: IdType,
       data: FilterReqType,
       params: RequestParams = {}
     ) =>
@@ -4679,7 +4818,7 @@ export class Api<
      * @request DELETE:/api/v1/db/meta/filters/{filterId}
      * @response `200` `void` OK
      */
-    delete: (filterId: string, params: RequestParams = {}) =>
+    delete: (filterId: IdType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/filters/${filterId}`,
         method: 'DELETE',
@@ -4695,7 +4834,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
      * @response `200` `(FilterType)[]` OK
      */
-    childrenRead: (filterGroupId: string, params: RequestParams = {}) =>
+    childrenRead: (filterGroupId: IdType, params: RequestParams = {}) =>
       this.request<FilterType[], any>({
         path: `/api/v1/db/meta/filters/${filterGroupId}/children`,
         method: 'GET',
@@ -4713,7 +4852,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `FilterListType`
      */
-    read: (hookId: string, params: RequestParams = {}) =>
+    read: (hookId: IdType, params: RequestParams = {}) =>
       this.request<FilterListType, any>({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'GET',
@@ -4729,7 +4868,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `void` OK
      */
-    create: (hookId: string, data: FilterReqType, params: RequestParams = {}) =>
+    create: (hookId: IdType, data: FilterReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'POST',
@@ -6036,6 +6175,7 @@ export class Api<
      * @name UrlToConfig
      * @summary Convert JDBC URL to Config
      * @request POST:/api/v1/url_to_config
+     * @response `200` `any` OK
      */
     urlToConfig: (data: any, params: RequestParams = {}) =>
       this.request<any, any>({
@@ -6043,6 +6183,7 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -6127,36 +6268,57 @@ export class Api<
   projectCount?: number,
   projects?: ({
   tableCount?: {
+  \** Table Count *\
   table?: number,
+  \** View Count *\
   view?: number,
 
 },
+  \** External Project *\
   external?: boolean,
   viewCount?: {
+  \** Form Count *\
   formCount?: number,
+  \** Grid Count *\
   gridCount?: number,
+  \** Gallery Count *\
   galleryCount?: number,
+  \** Kanban Count *\
   kanbanCount?: number,
+  \** Total View Count *\
   total?: number,
+  \** Shared Form Count *\
   sharedFormCount?: number,
+  \** Shared Grid Count *\
   sharedGridCount?: number,
+  \** Shared Gallery Count *\
   sharedGalleryCount?: number,
+  \** Shared Kanban Count *\
   sharedKanbanCount?: number,
+  \** Shared Total View Count *\
   sharedTotal?: number,
+  \** Shared Locked View Count *\
   sharedLockedCount?: number,
 
 },
+  \** Webhook Count *\
   webhookCount?: number,
+  \** Filter Count *\
   filterCount?: number,
+  \** Sort Count *\
   sortCount?: number,
+  \** Row Count *\
   rowCount?: ({
   TotalRecords?: string,
 
 })[],
+  \** Total project user Count *\
   userCount?: number,
 
 })[],
+  \** Total user Count *\
   userCount?: number,
+  \** Total shared base Count *\
   sharedBaseCount?: number,
 
 }` OK
@@ -6167,32 +6329,53 @@ export class Api<
           projectCount?: number;
           projects?: {
             tableCount?: {
+              /** Table Count */
               table?: number;
+              /** View Count */
               view?: number;
             };
+            /** External Project */
             external?: boolean;
             viewCount?: {
+              /** Form Count */
               formCount?: number;
+              /** Grid Count */
               gridCount?: number;
+              /** Gallery Count */
               galleryCount?: number;
+              /** Kanban Count */
               kanbanCount?: number;
+              /** Total View Count */
               total?: number;
+              /** Shared Form Count */
               sharedFormCount?: number;
+              /** Shared Grid Count */
               sharedGridCount?: number;
+              /** Shared Gallery Count */
               sharedGalleryCount?: number;
+              /** Shared Kanban Count */
               sharedKanbanCount?: number;
+              /** Shared Total View Count */
               sharedTotal?: number;
+              /** Shared Locked View Count */
               sharedLockedCount?: number;
             };
+            /** Webhook Count */
             webhookCount?: number;
+            /** Filter Count */
             filterCount?: number;
+            /** Sort Count */
             sortCount?: number;
+            /** Row Count */
             rowCount?: {
               TotalRecords?: string;
             }[];
+            /** Total project user Count */
             userCount?: number;
           }[];
+          /** Total user Count */
           userCount?: number;
+          /** Total shared base Count */
           sharedBaseCount?: number;
         },
         any

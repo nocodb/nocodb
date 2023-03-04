@@ -3389,8 +3389,50 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {}
+                  "$ref": "#/components/schemas/SharedViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "created_at": "2023-03-02 17:46:31",
+                          "fk_model_id": "md_mhs9z4r2ak98x0",
+                          "id": "vw_lg052cnc1c26kf",
+                          "is_default": 1,
+                          "lock_type": "collaborative",
+                          "meta": {},
+                          "order": 1,
+                          "password": null,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "show": 1,
+                          "show_system_fields": null,
+                          "title": "Sheet-1",
+                          "type": 3,
+                          "updated_at": "2023-03-02 17:46:31",
+                          "uuid": null,
+                          "view": {
+                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "created_at": "2023-03-02 17:46:31",
+                            "fk_view_id": "vw_lg052cnc1c26kf",
+                            "meta": null,
+                            "project_id": "p_xm3thidrblw4n7",
+                            "row_height": null,
+                            "updated_at": "2023-03-02 17:46:31",
+                            "uuid": null
+                          }
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -12485,10 +12527,32 @@
           {
             "list": [
               {
-                "deleted": "string",
-                "fk_view_id": "string",
-                "id": "string",
-                "password": "string"
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "created_at": "2023-03-02 17:46:31",
+                "fk_model_id": "md_mhs9z4r2ak98x0",
+                "id": "vw_lg052cnc1c26kf",
+                "is_default": 1,
+                "lock_type": "collaborative",
+                "meta": {},
+                "order": 1,
+                "password": null,
+                "project_id": "p_xm3thidrblw4n7",
+                "show": 1,
+                "show_system_fields": null,
+                "title": "Sheet-1",
+                "type": 3,
+                "updated_at": "2023-03-02 17:46:31",
+                "uuid": null,
+                "view": {
+                  "base_id": "ds_g4ccx6e77h1dmi",
+                  "created_at": "2023-03-02 17:46:31",
+                  "fk_view_id": "vw_lg052cnc1c26kf",
+                  "meta": null,
+                  "project_id": "p_xm3thidrblw4n7",
+                  "row_height": null,
+                  "updated_at": "2023-03-02 17:46:31",
+                  "uuid": null
+                }
               }
             ],
             "pageInfo": {

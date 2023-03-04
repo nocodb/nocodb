@@ -9311,7 +9311,7 @@
           },
           "system": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Is System Colun?"
+            "description": "Is System Column?"
           },
           "title": {
             "description": "Column Title",
@@ -9321,6 +9321,42 @@
           "uidt": {
             "description": "The data type in UI",
             "example": "SingleLineText",
+            "enum": [
+              "Attachment",
+              "AutoNumber",
+              "Barcode",
+              "Button",
+              "Checkbox",
+              "Collaborator",
+              "Count",
+              "CreateTime",
+              "Currency",
+              "Date",
+              "DateTime",
+              "Decimal",
+              "Duration",
+              "Email",
+              "Formula",
+              "GeoData",
+              "Geometry",
+              "ID",
+              "JSON",
+              "LastModifiedTime",
+              "LongText",
+              "LinkToAnotherRecord",
+              "MultiSelect",
+              "Number",
+              "Percent",
+              "PhoneNumber",
+              "Rating",
+              "SingleLineText",
+              "SingleSelect",
+              "SpecificDBType",
+              "Time",
+              "URL",
+              "Year",
+              "QrCode"
+            ],
             "type": "string"
           },
           "un": {
@@ -11747,6 +11783,7 @@
               "ID",
               "JSON",
               "LastModifiedTime",
+              "LinkToAnotherRecord",
               "LongText",
               "MultiSelect",
               "Number",
@@ -14041,7 +14078,7 @@
         },
         "examples": [
           {
-            "fk_column_id": "cl_m4wkaqgqqjzoeh",
+            "fk_column_id": "cl_5jestblzneb649",
             "show": 0,
             "order": 1
           }

@@ -14,7 +14,7 @@ import {
 import Column from '../models/Column';
 import LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import NcHelp from '../utils/NcHelp';
-import RollupColumn from '../models/RollupColumn';
+import RollupColumn, { ROLLUP_FUNCTIONS } from '../models/RollupColumn';
 import View from '../models/View';
 import GridView from '../models/GridView';
 import KanbanView from '../models/KanbanView';
@@ -613,7 +613,8 @@ async function migrateProjectModels(
 
               const colBody: Partial<RollupColumn & Column> = {
                 title: columnMeta._cn,
-                rollup_function: columnMeta.rl.fn,
+                rollup_function: columnMeta.rl
+                  .fn as typeof ROLLUP_FUNCTIONS[number],
               };
 
               colBody.fk_rollup_column_id =

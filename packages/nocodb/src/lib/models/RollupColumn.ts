@@ -5,19 +5,22 @@ import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
 import type { RollupType } from 'nocodb-sdk';
 
+export const ROLLUP_FUNCTIONS = <const>[
+  'count',
+  'min',
+  'max',
+  'avg',
+  'countDistinct',
+  'sumDistinct',
+  'avgDistinct',
+];
+
 export default class RollupColumn implements RollupType {
   id: string;
   fk_column_id;
   fk_relation_column_id;
   fk_rollup_column_id;
-  rollup_function:
-    | 'count'
-    | 'min'
-    | 'max'
-    | 'avg'
-    | 'countDistinct'
-    | 'sumDistinct'
-    | 'avgDistinct';
+  rollup_function: typeof ROLLUP_FUNCTIONS[number];
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);

@@ -100,8 +100,6 @@ export default class Model implements TableType {
     baseId,
     model: Partial<TableReqType> & {
       mm?: BoolType;
-      created_at?: any;
-      updated_at?: any;
       type?: ModelTypes;
     },
     ncMeta = Noco.ncMeta
@@ -112,8 +110,6 @@ export default class Model implements TableType {
       'mm',
       'order',
       'type',
-      'created_at',
-      'updated_at',
       'id',
     ]);
 
@@ -152,8 +148,6 @@ export default class Model implements TableType {
         title: model.title || model.table_name,
         is_default: true,
         type: ViewTypes.GRID,
-        created_at: model.created_at,
-        updated_at: model.updated_at,
       },
       ncMeta
     );

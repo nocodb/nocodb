@@ -32,8 +32,6 @@ export default class Base implements BaseType {
   type?: typeof DB_TYPES[number];
   is_meta?: BoolType;
   config?: string;
-  created_at?: string;
-  updated_at?: string;
   inflection_column?: string;
   inflection_table?: string;
   order?: number;
@@ -53,8 +51,6 @@ export default class Base implements BaseType {
       'config',
       'type',
       'is_meta',
-      'created_at',
-      'updated_at',
       'inflection_column',
       'inflection_table',
       'order',
@@ -91,8 +87,6 @@ export default class Base implements BaseType {
     base: BaseType & {
       id: string;
       projectId: string;
-      created_at?;
-      updated_at?;
     },
     ncMeta = Noco.ncMeta
   ) {
@@ -111,8 +105,6 @@ export default class Base implements BaseType {
       'config',
       'type',
       'is_meta',
-      'created_at',
-      'updated_at',
       'inflection_column',
       'inflection_table',
       'order',

@@ -7839,7 +7839,6 @@
           {
             "alias": null,
             "config": "<ENCRYPTED>",
-            "created_at": "2023-03-01 16:31:49",
             "enabled": 1,
             "id": "ds_krsappzu9f8vmo",
             "inflection_column": "camelize",
@@ -7848,10 +7847,11 @@
             "meta": null,
             "order": 1,
             "project_id": "p_01clqvzik3izk6",
-            "type": "mysql2",
-            "updated_at": "2023-03-02 11:28:17"
+            "type": "mysql2"
           }
         ],
+        "title": "Base Model",
+        "type": "object",
         "properties": {
           "alias": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -7859,12 +7859,6 @@
           },
           "config": {
             "description": "Base Configuration"
-          },
-          "created_at": {
-            "description": "The datatime this base is created at",
-            "example": "2023-03-01 14:27:36",
-            "format": "date-time",
-            "type": "string"
           },
           "enabled": {
             "$ref": "#/components/schemas/Bool",
@@ -7910,16 +7904,8 @@
             ],
             "example": "mysql2",
             "type": "string"
-          },
-          "updated_at": {
-            "description": "The datatime this base is updated at",
-            "example": "2023-03-01 14:27:36",
-            "format": "date-time",
-            "type": "string"
           }
-        },
-        "title": "Base Model",
-        "type": "object"
+        }
       },
       "BaseList": {
         "description": "Model for Base List",
@@ -9952,7 +9938,6 @@
           {
             "base_id": "string",
             "conditions": "string",
-            "created_at": "string",
             "error": "string",
             "error_code": "string",
             "error_message": "string",
@@ -9967,18 +9952,16 @@
             "response": "string",
             "test_call": true,
             "triggered_by": "string",
-            "type": "string",
-            "updated_at": "string"
+            "type": "string"
           }
         ],
+        "title": "Hook Log Model",
+        "type": "object",
         "properties": {
           "base_id": {
             "type": "string"
           },
           "conditions": {
-            "type": "string"
-          },
-          "created_at": {
             "type": "string"
           },
           "error": {
@@ -10024,13 +10007,8 @@
           },
           "type": {
             "type": "string"
-          },
-          "updated_at": {
-            "type": "string"
           }
-        },
-        "title": "Hook Log Model",
-        "type": "object"
+        }
       },
       "HookTestReq": {
         "description": "Model for Hook Test Request",
@@ -11054,7 +11032,6 @@
               {
                 "alias": "string",
                 "config": null,
-                "created_at": "2023-03-01 14:27:36",
                 "enabled": true,
                 "id": "string",
                 "inflection_column": "camelize",
@@ -11076,27 +11053,22 @@
             "order": 0,
             "prefix": "nc_vm5q__",
             "status": "string",
-            "title": "my-project",
-            "updated_at": "2023-03-01 14:27:36"
+            "title": "my-project"
           }
         ],
+        "title": "Project Model",
+        "type": "object",
         "properties": {
           "bases": {
             "description": "List of base models",
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/Base"
-            },
-            "type": "array"
+            }
           },
           "color": {
             "description": "Primary Theme Color",
             "example": "#24716E",
-            "type": "string"
-          },
-          "created_at": {
-            "description": "The created time of the record",
-            "example": "2023-03-01 14:27:36",
-            "format": "date-time",
             "type": "string"
           },
           "deleted": {
@@ -11136,16 +11108,8 @@
             "description": "Project Title",
             "example": "my-project",
             "type": "string"
-          },
-          "updated_at": {
-            "description": "The updated time of the record",
-            "example": "2023-03-01 14:27:36",
-            "format": "date-time",
-            "type": "string"
           }
-        },
-        "title": "Project Model",
-        "type": "object"
+        }
       },
       "ProjectList": {
         "description": "Model for Project List",
@@ -12527,23 +12491,18 @@
         "description": "Model for User",
         "examples": [
           {
-            "created_at": "2023-03-01 11:36:49",
             "email": "user@example.com",
             "email_verified": true,
             "firstName": "Alice",
             "id": "us_8kugj628ebjngs",
             "lastName": "Smith",
-            "roles": "org-level-viewer",
-            "updated_at": "2023-03-01 11:36:49"
+            "roles": "org-level-viewer"
           }
         ],
+        "title": "User Model",
+        "type": "object",
+        "x-internal": false,
         "properties": {
-          "created_at": {
-            "description": "The date that the user was created.",
-            "example": "2023-03-01 11:36:49",
-            "format": "date-time",
-            "type": "string"
-          },
           "email": {
             "description": "The email of the user",
             "example": "user@example.com",
@@ -12573,18 +12532,9 @@
             "description": "The roles of the user",
             "example": "org-level-viewer",
             "type": "string"
-          },
-          "updated_at": {
-            "description": "The date that the user was created.",
-            "example": "2023-03-01 11:36:49",
-            "format": "date-time",
-            "type": "string"
           }
         },
-        "required": ["email", "email_verified", "firstname", "id", "lastname"],
-        "title": "User Model",
-        "type": "object",
-        "x-internal": false
+        "required": ["email", "email_verified", "firstname", "id", "lastname"]
       },
       "UserInfo": {
         "description": "Model for User Info",

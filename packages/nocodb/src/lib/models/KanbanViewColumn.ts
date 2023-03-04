@@ -3,11 +3,12 @@ import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import { BoolType } from 'nocodb-sdk';
 
 export default class KanbanViewColumn {
   id: string;
   title?: string;
-  show?: boolean;
+  show?: BoolType;
   order?: number;
 
   fk_view_id: string;

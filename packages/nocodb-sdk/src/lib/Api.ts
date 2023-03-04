@@ -2142,6 +2142,20 @@ export interface ViewReqType {
 }
 
 /**
+ * Model for View Column Request
+ */
+export interface ViewColumnReqType {
+  /** View Title */
+  show?: BoolType;
+  /**
+   * The order of the list of views.
+   * @min 0
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
  * Model for Visibility Rule Request
  */
 export type VisibilityRuleReqType = {
@@ -4289,10 +4303,10 @@ export class Api<
      * @name List
      * @summary List Shared Views
      * @request GET:/api/v1/db/meta/tables/{tableId}/share
-     * @response `200` `(any)[]` OK
+     * @response `200` `SharedViewListType` OK
      */
     list: (tableId: IdType, params: RequestParams = {}) =>
-      this.request<any[], any>({
+      this.request<SharedViewListType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/share`,
         method: 'GET',
         format: 'json',
@@ -4380,7 +4394,7 @@ export class Api<
      * @request POST:/api/v1/db/meta/views/{viewId}/columns
      * @response `200` `void` OK
      */
-    create: (viewId: string, data: any, params: RequestParams = {}) =>
+    create: (viewId: string, data: ColumnReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/views/${viewId}/columns`,
         method: 'POST',
@@ -4401,7 +4415,7 @@ export class Api<
     update: (
       viewId: IdType,
       columnId: IdType,
-      data: any,
+      data: ViewColumnReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({

@@ -3552,43 +3552,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ColumnReq"
+                "$ref": "#/components/schemas/ViewColumnReq"
               },
               "examples": {
                 "Example 1": {
                   "value": {
-                    "ai": 0,
-                    "au": 0,
-                    "base_id": "ds_krsappzu9f8vmo",
-                    "cc": "",
-                    "cdf": null,
-                    "clen": "45",
-                    "column_name": "title",
-                    "cop": "2",
-                    "csn": "utf8mb4",
-                    "ct": "varchar(45)",
-                    "deleted": null,
-                    "dt": "varchar",
-                    "dtx": "specificType",
-                    "dtxp": "45",
-                    "dtxs": null,
-                    "fk_model_id": "md_yvwvbt2i78rgcm",
-                    "id": "cl_0j9gv0oi8vjy46",
-                    "meta": null,
-                    "np": null,
-                    "ns": null,
-                    "order": 2,
-                    "pk": 0,
-                    "project_id": "p_01clqvzik3izk6",
-                    "pv": 1,
-                    "rqd": 0,
-                    "system": 0,
-                    "title": "Title",
-                    "uidt": "SingleLineText",
-                    "un": 0,
-                    "unique": 0,
-                    "validate": null,
-                    "virtual": null
+                    "fk_column_id": "cl_m4wkaqgqqjzoeh",
+                    "show": 0,
+                    "order": 1
                   }
                 }
               }
@@ -3633,7 +3604,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ColumnReq"
+                "$ref": "#/components/schemas/ViewColumnUpdateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "show": 0,
+                    "order": 1
+                  }
+                }
               }
             }
           }
@@ -14023,6 +14002,72 @@
           "show_system_fields": {
             "$ref": "#/components/schemas/Bool",
             "description": "Should this view show system fields?"
+          }
+        }
+      },
+      "ViewColumnUpdateReq": {
+        "description": "Model for View Column Update Request",
+        "x-stoplight": {
+          "id": "xyhyykbk7kw0a"
+        },
+        "examples": [
+          {
+            "show": 0,
+            "order": 1
+          }
+        ],
+        "title": "View Column Update Request Model",
+        "type": "object",
+        "properties": {
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "View Title",
+            "x-stoplight": {
+              "id": "coxius73ejq5x"
+            }
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the list of views.",
+            "example": 1,
+            "minimum": 0
+          }
+        }
+      },
+      "ViewColumnReq": {
+        "description": "Model for View Column Request",
+        "x-stoplight": {
+          "id": "94h1qcjiv7yex"
+        },
+        "examples": [
+          {
+            "fk_column_id": "cl_m4wkaqgqqjzoeh",
+            "show": 0,
+            "order": 1
+          }
+        ],
+        "title": "View Column Request Model",
+        "type": "object",
+        "properties": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "rxd07wvp9hf6s"
+            },
+            "description": "Foreign Key to Column"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "View Title",
+            "x-stoplight": {
+              "id": "coxius73ejq5x"
+            }
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the list of views.",
+            "example": 1,
+            "minimum": 0
           }
         }
       },

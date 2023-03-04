@@ -1681,28 +1681,39 @@ export interface ProjectUserReqType {
  * Model for Rollup
  */
 export interface RollupType {
-  deleted?: string;
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  fk_relation_column_id?: string;
-  fk_rollup_column_id?: string;
   /** Unique ID */
   id?: IdType;
-  order?: string;
-  rollup_function?: string;
-  type?: string;
-  /** Model for Bool */
-  virtual?: BoolType;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /** Foreign to Relation Column */
+  fk_relation_column_id?: IdType;
+  /** Foreign to Rollup Column */
+  fk_rollup_column_id?: IdType;
+  /**
+   * Rollup Function
+   * @example count
+   */
+  rollup_function?:
+    | 'count'
+    | 'min'
+    | 'max'
+    | 'avg'
+    | 'countDistinct'
+    | 'sumDistinct'
+    | 'avgDistinct';
 }
 
 /**
  * Model for Rollup Column Request
  */
 export interface RollupColumnReqType {
-  /** Model for ID */
+  /** Foreign Key to Relation Column */
   fk_relation_column_id: IdType;
-  /** Model for ID */
+  /** Foreign Key to Rollup Column */
   fk_rollup_column_id: IdType;
+  /** Rollup Column Title */
+  title: string;
+  /** Rollup Function */
   rollup_function:
     | 'avg'
     | 'avgDistinct'
@@ -1712,7 +1723,7 @@ export interface RollupColumnReqType {
     | 'min'
     | 'sum'
     | 'sumDistinct';
-  title: string;
+  /** UI DataType */
   uidt: 'Rollup';
 }
 
@@ -1720,19 +1731,33 @@ export interface RollupColumnReqType {
  * Model for SelectOption
  */
 export interface SelectOptionType {
-  color?: string;
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
   /** Unique ID */
   id?: IdType;
-  order?: number;
+  /**
+   * Option Title
+   *
+   * @example Option A
+   */
   title?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /**
+   * Option Color
+   * @example #cfdffe
+   */
+  color?: string;
+  /**
+   * The order among the options
+   * @example 1
+   */
+  order?: number;
 }
 
 /**
  * Model for SelectOptions
  */
 export interface SelectOptionsType {
+  /** Array of select options */
   options: SelectOptionType[];
 }
 
@@ -1740,20 +1765,22 @@ export interface SelectOptionsType {
  * Model for Shared Base Request
  */
 export interface SharedBaseReqType {
+  /**
+   * Password to protect the base
+   * @example password123
+   */
   password?: string;
+  /**
+   * The role given the target user
+   * @example editor
+   */
   roles?: 'commenter' | 'editor' | 'viewer';
 }
 
 /**
  * Model for Shared View
  */
-export interface SharedViewType {
-  deleted?: string;
-  fk_view_id?: string;
-  /** Unique ID */
-  id?: IdType;
-  password?: string;
-}
+export type SharedViewType = ViewType;
 
 /**
  * Model for Shared View List

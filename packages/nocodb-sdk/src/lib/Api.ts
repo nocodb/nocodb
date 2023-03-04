@@ -1195,7 +1195,7 @@ export interface KanbanColumnType {
  * Model for Kanban Request
  */
 export interface KanbanReqType {
-  /** Model for StringOrNull */
+  /** Grouping Column ID */
   fk_grp_col_id?: StringOrNullType;
   /**
    * The title of the kanban
@@ -4300,24 +4300,16 @@ export class Api<
       }),
 
     /**
- * @description Create a shared view in a given View..
- * 
- * @tags DB View Share
- * @name Create
- * @summary Create Shared View
- * @request POST:/api/v1/db/meta/views/{viewId}/share
- * @response `200` `{
-  uuid?: string,
-
-}` OK
- */
+     * @description Create a shared view in a given View..
+     *
+     * @tags DB View Share
+     * @name Create
+     * @summary Create Shared View
+     * @request POST:/api/v1/db/meta/views/{viewId}/share
+     * @response `200` `SharedViewReqType` OK
+     */
     create: (viewId: string, params: RequestParams = {}) =>
-      this.request<
-        {
-          uuid?: string;
-        },
-        any
-      >({
+      this.request<SharedViewReqType, any>({
         path: `/api/v1/db/meta/views/${viewId}/share`,
         method: 'POST',
         format: 'json',
@@ -6204,10 +6196,10 @@ export class Api<
      * @name Create
      * @summary Create Table Hook
      * @request POST:/api/v1/db/meta/tables/{tableId}/hooks
-     * @response `200` `AuditType` OK
+     * @response `200` `HookReqType` OK
      */
     create: (tableId: IdType, data: AuditType, params: RequestParams = {}) =>
-      this.request<AuditType, any>({
+      this.request<HookReqType, any>({
         path: `/api/v1/db/meta/tables/${tableId}/hooks`,
         method: 'POST',
         body: data,

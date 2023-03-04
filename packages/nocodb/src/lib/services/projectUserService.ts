@@ -252,7 +252,6 @@ export async function projectUserInviteResend(param: {
     NcError.badRequest(`User with id '${param.userId}' not found`);
   }
 
-  param.projectUser.roles = user.roles;
   const invite_token = uuidv4();
 
   await User.update(user.id, {

@@ -1,10 +1,10 @@
-import {
-  AuditRowUpdatePayloadType,
-  CommentRowPayloadType,
-} from 'nocodb-sdk/build/main/lib/CustomAPI';
 import { validatePayload } from '../meta/api/helpers';
 import Audit from '../models/Audit';
-import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  AuditRowUpdateReqType,
+} from 'nocodb-sdk';
 import Model from '../models/Model';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 
@@ -12,7 +12,7 @@ import DOMPurify from 'isomorphic-dompurify';
 
 export async function commentRow(param: {
   rowId: string;
-  body: CommentRowPayloadType;
+  body: AuditRowUpdateReqType;
   user: any;
 }) {
   await validatePayload(
@@ -29,7 +29,7 @@ export async function commentRow(param: {
 
 export async function auditRowUpdate(param: {
   rowId: string;
-  body: AuditRowUpdatePayloadType;
+  body: AuditRowUpdateReqType;
 }) {
   await validatePayload(
     'swagger.json#/components/schemas/AuditRowUpdateReq',

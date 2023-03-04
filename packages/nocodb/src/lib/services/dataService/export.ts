@@ -1,9 +1,5 @@
-import {
-  getViewAndModelByAliasOrId,
-  PathParams,
-} from './helpers';
+import { getViewAndModelByAliasOrId, PathParams } from './helpers';
 import { View } from '../../models';
-
 
 // Todo: bring logic from controller
 export async function excelDataExport(

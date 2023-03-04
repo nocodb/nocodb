@@ -1,4 +1,4 @@
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import orgLicenseController from '../../controllers/orgLicenseController';
 import orgTokenController from '../../controllers/orgTokenController';
 import orgUserController from '../../controllers/orgUserController';
@@ -133,15 +133,15 @@ export default function (router: Router, server) {
   }).on('connection', (socket) => {
     clients[socket.id] = socket;
     const id = getHash(
-      (process.env.NC_SERVER_UUID || Tele.id) +
+      (process.env.NC_SERVER_UUID || T.id) +
         (socket?.handshake as any)?.user?.id
     );
 
     socket.on('page', (args) => {
-      Tele.page({ ...args, id });
+      T.page({ ...args, id });
     });
     socket.on('event', (args) => {
-      Tele.event({ ...args, id });
+      T.event({ ...args, id });
     });
     socket.on('subscribe', (room) => {
       if (room in jobs) {

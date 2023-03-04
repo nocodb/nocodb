@@ -9,9 +9,7 @@ export async function commentRow(req: Request<any, any>, res) {
     await auditService.commentRow({
       rowId: req.params.rowId,
       user: (req as any).user,
-      body: {
-        ...req.body,
-      },
+      body: req.body,
     })
   );
 }
@@ -20,9 +18,7 @@ export async function auditRowUpdate(req: Request<any, any>, res) {
   res.json(
     await auditService.auditRowUpdate({
       rowId: req.params.rowId,
-      body: {
-        ...req.body,
-      },
+      body: req.body,
     })
   );
 }

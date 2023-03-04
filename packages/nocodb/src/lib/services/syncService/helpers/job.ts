@@ -679,8 +679,6 @@ export default async (
       );
     }
 
-    // debug
-    // console.log(JSON.stringify(tables, null, 2));
     return tables;
   }
 
@@ -1413,7 +1411,7 @@ export default async (
         case UITypes.DateTime:
         case UITypes.CreateTime:
         case UITypes.LastModifiedTime:
-          rec[key] = dayjs(value).utc().format('YYYY-MM-DD HH:mm');
+          rec[key] = dayjs(value).format('YYYY-MM-DD HH:mm');
           break;
 
         case UITypes.Date:
@@ -1422,7 +1420,7 @@ export default async (
             rec[key] = null;
             logBasic(`:: Invalid date ${value}`);
           } else {
-            rec[key] = dayjs(value).utc().format('YYYY-MM-DD');
+            rec[key] = dayjs(value).format('YYYY-MM-DD');
           }
           break;
 

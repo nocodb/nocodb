@@ -1,9 +1,7 @@
 import { Request, Response, Router } from 'express';
-import { bulkDataService } from '../../services'
+import { bulkDataService } from '../../services';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import apiMetrics from '../../meta/helpers/apiMetrics';
-
-
 
 async function bulkDataInsert(req: Request, res: Response) {
   res.json(
@@ -62,7 +60,6 @@ async function bulkDataDeleteAll(req: Request, res: Response) {
     })
   );
 }
-
 
 const router = Router({ mergeParams: true });
 

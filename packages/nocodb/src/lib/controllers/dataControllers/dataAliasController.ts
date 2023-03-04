@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { dataService } from '../../services'
+import { dataService } from '../../services';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 import { parseHrtimeToSeconds } from '../../meta/api/helpers';

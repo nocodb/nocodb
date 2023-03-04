@@ -137,13 +137,13 @@ export async function signup(req: Request, res: Response<TableType>) {
 }
 
 async function successfulSignIn({
-                                  user,
-                                  err,
-                                  info,
-                                  req,
-                                  res,
-                                  auditDescription,
-                                }) {
+  user,
+  err,
+  info,
+  req,
+  res,
+  auditDescription,
+}) {
   try {
     if (!user || !user.email) {
       if (err) {

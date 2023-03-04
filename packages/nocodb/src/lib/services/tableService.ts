@@ -51,7 +51,7 @@ export async function tableUpdate(param: {
   if ('meta' in param.table) {
     await Model.updateMeta(param.tableId, param.table.meta);
 
-    return { msg: 'success' }
+    return true;
   }
 
   if (!param.table.table_name) {
@@ -200,7 +200,6 @@ export async function tableDelete(param: {
 
   return table.delete();
 }
-
 
 export async function getTableWithAccessibleViews(param: {
   tableId: string;

@@ -7,7 +7,7 @@ import {
   extractCsvData,
   extractXlsxData,
 } from '../../services/dataService/helpers';
-import { getViewAndModelFromRequestByAliasOrId } from './helpers'
+import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 
 async function excelDataExport(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);

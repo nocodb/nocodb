@@ -502,6 +502,13 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ApiTokenReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "description": "This API token is for ABC application"
+                  }
+                }
               }
             }
           }
@@ -572,6 +579,13 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LicenseReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "key": "1234567890"
+                  }
+                }
               }
             }
           }
@@ -623,9 +637,17 @@
                     "type": "boolean"
                   }
                 }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "invite_only_signup": true
+                  }
+                }
               }
             }
-          }
+          },
+          "description": ""
         },
         "tags": ["Org App Settings"],
         "description": "Update the application settings. Exclusive for super admin."
@@ -688,6 +710,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/OrgUserReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com",
+                    "roles": "org-level-creator"
+                  }
+                }
               }
             }
           }
@@ -876,6 +906,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ProjectUserReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com",
+                    "roles": "owner"
+                  }
+                }
               }
             }
           }
@@ -1154,6 +1192,39 @@
                     }
                   }
                 ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "bases": [
+                      {
+                        "alias": "string",
+                        "config": null,
+                        "enabled": true,
+                        "id": "string",
+                        "inflection_column": "camelize",
+                        "inflection_table": "camelize",
+                        "is_meta": true,
+                        "order": 1,
+                        "project_id": "string",
+                        "type": "mysql2",
+                        "updated_at": "2023-03-01 14:27:36"
+                      }
+                    ],
+                    "color": "#24716E",
+                    "created_at": "2023-03-01 14:27:36",
+                    "deleted": true,
+                    "description": "This is my project description",
+                    "id": "p_124hhlkbeasewh",
+                    "is_meta": true,
+                    "meta": {},
+                    "order": 0,
+                    "prefix": "nc_vm5q__",
+                    "status": "string",
+                    "title": "my-project",
+                    "external": false
+                  }
+                }
               }
             }
           }
@@ -1393,6 +1464,24 @@
                     }
                   }
                 ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "alias": null,
+                    "config": "<ENCRYPTED>",
+                    "enabled": 1,
+                    "id": "ds_krsappzu9f8vmo",
+                    "inflection_column": "camelize",
+                    "inflection_table": "camelize",
+                    "is_meta": 1,
+                    "meta": null,
+                    "order": 1,
+                    "project_id": "p_01clqvzik3izk6",
+                    "type": "mysql2",
+                    "external": false
+                  }
+                }
               }
             }
           }
@@ -1616,6 +1705,364 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Table"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "columns": [
+                        {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "clen": null,
+                          "column_name": "updated_at",
+                          "cop": "4",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "timestamp",
+                          "deleted": null,
+                          "dt": "timestamp",
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 4,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "UpdatedAt",
+                          "uidt": "DateTime",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "clen": null,
+                          "column_name": "created_at",
+                          "cop": "3",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "timestamp",
+                          "deleted": null,
+                          "dt": "timestamp",
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 3,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "CreatedAt",
+                          "uidt": "DateTime",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": null,
+                          "clen": "45",
+                          "column_name": "title",
+                          "cop": "2",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": "utf8mb4",
+                          "ct": "varchar(45)",
+                          "deleted": null,
+                          "dt": "varchar",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 2,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": 1,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "Title",
+                          "uidt": "SingleLineText",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        {
+                          "ai": 1,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": null,
+                          "clen": null,
+                          "column_name": "id",
+                          "cop": "1",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "int unsigned",
+                          "deleted": null,
+                          "dt": "int",
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "meta": null,
+                          "np": "10",
+                          "ns": "0",
+                          "order": 1,
+                          "pk": 1,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 1,
+                          "system": 0,
+                          "title": "Id",
+                          "uidt": "ID",
+                          "un": 1,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        }
+                      ],
+                      "columnsById": {
+                        "cl_c5knoi4xs4sfpt": {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": null,
+                          "clen": "45",
+                          "column_name": "title",
+                          "cop": "2",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": "utf8mb4",
+                          "ct": "varchar(45)",
+                          "deleted": null,
+                          "dt": "varchar",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 2,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": 1,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "Title",
+                          "uidt": "SingleLineText",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        "cl_jpl0qu4gj4rexq": {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "clen": null,
+                          "column_name": "created_at",
+                          "cop": "3",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "timestamp",
+                          "deleted": null,
+                          "dt": "timestamp",
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 3,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "CreatedAt",
+                          "uidt": "DateTime",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        "cl_m4wkaqgqqjzoeh": {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "clen": null,
+                          "column_name": "updated_at",
+                          "cop": "4",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "timestamp",
+                          "deleted": null,
+                          "dt": "timestamp",
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 4,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "UpdatedAt",
+                          "uidt": "DateTime",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        "cl_phvuuwjrzcdo0g": {
+                          "ai": 1,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": null,
+                          "clen": null,
+                          "column_name": "id",
+                          "cop": "1",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "int unsigned",
+                          "deleted": null,
+                          "dt": "int",
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "meta": null,
+                          "np": "10",
+                          "ns": "0",
+                          "order": 1,
+                          "pk": 1,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 1,
+                          "system": 0,
+                          "title": "Id",
+                          "uidt": "ID",
+                          "un": 1,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        }
+                      },
+                      "created_at": "2023-03-02 17:04:06",
+                      "deleted": null,
+                      "enabled": 1,
+                      "id": "md_rsu68aqjsbyqtl",
+                      "meta": null,
+                      "mm": 0,
+                      "order": 1,
+                      "pinned": null,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "schema": null,
+                      "table_name": "nc_vm5q___Table1",
+                      "tags": null,
+                      "title": "Table1",
+                      "type": "table",
+                      "updated_at": "2023-03-02 17:04:08",
+                      "views": [
+                        {
+                          "_ptn": "Table1",
+                          "_tn": "Table1",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "created_at": "2023-03-02 17:04:06",
+                          "disabled": {
+                            "commenter": false,
+                            "creator": false,
+                            "editor": false,
+                            "guest": false,
+                            "owner": false,
+                            "viewer": false
+                          },
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "vw_p2jcatxz4mvcfw",
+                          "is_default": 1,
+                          "lock_type": "collaborative",
+                          "meta": {},
+                          "order": 1,
+                          "password": null,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "ptn": "nc_vm5q___Table1",
+                          "ptype": "table",
+                          "show": 1,
+                          "show_system_fields": null,
+                          "table_meta": null,
+                          "title": "Table1",
+                          "tn": "Table1",
+                          "type": 3,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "uuid": null,
+                          "view": {
+                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "created_at": "2023-03-02 17:04:06",
+                            "fk_view_id": "vw_p2jcatxz4mvcfw",
+                            "meta": null,
+                            "project_id": "p_xm3thidrblw4n7",
+                            "row_height": null,
+                            "updated_at": "2023-03-02 17:04:06",
+                            "uuid": null
+                          }
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -2205,6 +2652,364 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Table"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "columns": [
+                        {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "clen": null,
+                          "column_name": "updated_at",
+                          "cop": "4",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "timestamp",
+                          "deleted": null,
+                          "dt": "timestamp",
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 4,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "UpdatedAt",
+                          "uidt": "DateTime",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "clen": null,
+                          "column_name": "created_at",
+                          "cop": "3",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "timestamp",
+                          "deleted": null,
+                          "dt": "timestamp",
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 3,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "CreatedAt",
+                          "uidt": "DateTime",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": null,
+                          "clen": "45",
+                          "column_name": "title",
+                          "cop": "2",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": "utf8mb4",
+                          "ct": "varchar(45)",
+                          "deleted": null,
+                          "dt": "varchar",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 2,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": 1,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "Title",
+                          "uidt": "SingleLineText",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        {
+                          "ai": 1,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": null,
+                          "clen": null,
+                          "column_name": "id",
+                          "cop": "1",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "int unsigned",
+                          "deleted": null,
+                          "dt": "int",
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "meta": null,
+                          "np": "10",
+                          "ns": "0",
+                          "order": 1,
+                          "pk": 1,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 1,
+                          "system": 0,
+                          "title": "Id",
+                          "uidt": "ID",
+                          "un": 1,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        }
+                      ],
+                      "columnsById": {
+                        "cl_c5knoi4xs4sfpt": {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": null,
+                          "clen": "45",
+                          "column_name": "title",
+                          "cop": "2",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": "utf8mb4",
+                          "ct": "varchar(45)",
+                          "deleted": null,
+                          "dt": "varchar",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 2,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": 1,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "Title",
+                          "uidt": "SingleLineText",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        "cl_jpl0qu4gj4rexq": {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": "CURRENT_TIMESTAMP",
+                          "clen": null,
+                          "column_name": "created_at",
+                          "cop": "3",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "timestamp",
+                          "deleted": null,
+                          "dt": "timestamp",
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_jpl0qu4gj4rexq",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 3,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "CreatedAt",
+                          "uidt": "DateTime",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        "cl_m4wkaqgqqjzoeh": {
+                          "ai": 0,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": "CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP",
+                          "clen": null,
+                          "column_name": "updated_at",
+                          "cop": "4",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "timestamp",
+                          "deleted": null,
+                          "dt": "timestamp",
+                          "dtx": "specificType",
+                          "dtxp": "0",
+                          "dtxs": null,
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_m4wkaqgqqjzoeh",
+                          "meta": null,
+                          "np": null,
+                          "ns": null,
+                          "order": 4,
+                          "pk": 0,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 0,
+                          "system": 0,
+                          "title": "UpdatedAt",
+                          "uidt": "DateTime",
+                          "un": 0,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        },
+                        "cl_phvuuwjrzcdo0g": {
+                          "ai": 1,
+                          "au": 0,
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "cc": "",
+                          "cdf": null,
+                          "clen": null,
+                          "column_name": "id",
+                          "cop": "1",
+                          "created_at": "2023-03-02 17:04:06",
+                          "csn": null,
+                          "ct": "int unsigned",
+                          "deleted": null,
+                          "dt": "int",
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "meta": null,
+                          "np": "10",
+                          "ns": "0",
+                          "order": 1,
+                          "pk": 1,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "pv": null,
+                          "rqd": 1,
+                          "system": 0,
+                          "title": "Id",
+                          "uidt": "ID",
+                          "un": 1,
+                          "unique": 0,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "validate": null,
+                          "virtual": null
+                        }
+                      },
+                      "created_at": "2023-03-02 17:04:06",
+                      "deleted": null,
+                      "enabled": 1,
+                      "id": "md_rsu68aqjsbyqtl",
+                      "meta": null,
+                      "mm": 0,
+                      "order": 1,
+                      "pinned": null,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "schema": null,
+                      "table_name": "nc_vm5q___Table1",
+                      "tags": null,
+                      "title": "Table1",
+                      "type": "table",
+                      "updated_at": "2023-03-02 17:04:08",
+                      "views": [
+                        {
+                          "_ptn": "Table1",
+                          "_tn": "Table1",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "created_at": "2023-03-02 17:04:06",
+                          "disabled": {
+                            "commenter": false,
+                            "creator": false,
+                            "editor": false,
+                            "guest": false,
+                            "owner": false,
+                            "viewer": false
+                          },
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "id": "vw_p2jcatxz4mvcfw",
+                          "is_default": 1,
+                          "lock_type": "collaborative",
+                          "meta": {},
+                          "order": 1,
+                          "password": null,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "ptn": "nc_vm5q___Table1",
+                          "ptype": "table",
+                          "show": 1,
+                          "show_system_fields": null,
+                          "table_meta": null,
+                          "title": "Table1",
+                          "tn": "Table1",
+                          "type": 3,
+                          "updated_at": "2023-03-02 17:04:06",
+                          "uuid": null,
+                          "view": {
+                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "created_at": "2023-03-02 17:04:06",
+                            "fk_view_id": "vw_p2jcatxz4mvcfw",
+                            "meta": null,
+                            "project_id": "p_xm3thidrblw4n7",
+                            "row_height": null,
+                            "updated_at": "2023-03-02 17:04:06",
+                            "uuid": null
+                          }
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -2290,6 +3095,46 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ColumnReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "ai": 0,
+                    "au": 0,
+                    "base_id": "ds_krsappzu9f8vmo",
+                    "cc": "",
+                    "cdf": null,
+                    "clen": "45",
+                    "column_name": "title",
+                    "cop": "2",
+                    "created_at": "2023-03-02 13:14:16",
+                    "csn": "utf8mb4",
+                    "ct": "varchar(45)",
+                    "deleted": null,
+                    "dt": "varchar",
+                    "dtx": "specificType",
+                    "dtxp": "45",
+                    "dtxs": null,
+                    "fk_model_id": "md_yvwvbt2i78rgcm",
+                    "id": "cl_0j9gv0oi8vjy46",
+                    "meta": null,
+                    "np": null,
+                    "ns": null,
+                    "order": 2,
+                    "pk": 0,
+                    "project_id": "p_01clqvzik3izk6",
+                    "pv": 1,
+                    "rqd": 0,
+                    "system": 0,
+                    "title": "Title",
+                    "uidt": "SingleLineText",
+                    "un": 0,
+                    "unique": 0,
+                    "updated_at": "2023-03-02 13:14:16",
+                    "validate": null,
+                    "virtual": null
+                  }
+                }
               }
             }
           }
@@ -2577,10 +3422,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "uuid": {
-                      "type": "string"
+                  "$ref": "#/components/schemas/SharedViewReq"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "meta": {},
+                      "password": "123456789"
                     }
                   }
                 }
@@ -2895,6 +3743,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Filter"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "comparison_op": "eq",
+                      "comparison_sub_op": null,
+                      "created_at": "2023-03-02 18:18:05",
+                      "fk_column_id": "cl_d7ah9n2qfupgys",
+                      "fk_hook_id": null,
+                      "fk_parent_id": null,
+                      "fk_view_id": "vw_b739e29vqmrxnf",
+                      "id": "fi_xn647tpmdq8fu8",
+                      "is_group": null,
+                      "logical_op": "and",
+                      "order": 1,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "updated_at": "2023-03-02 18:18:05",
+                      "value": "foo"
+                    }
+                  }
                 }
               }
             }
@@ -2951,6 +3820,18 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/FilterReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "comparison_op": "eq",
+                    "comparison_sub_op": null,
+                    "fk_column_id": "cl_d7ah9n2qfupgys",
+                    "is_group": false,
+                    "logical_op": "and",
+                    "value": "foo"
+                  }
+                }
               }
             }
           }
@@ -3089,6 +3970,16 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/GridReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "lock_type": "collaborative",
+                    "order": 1,
+                    "row_height": 1,
+                    "title": "My Grid"
+                  }
+                }
               }
             }
           }
@@ -3493,6 +4384,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/KanbanReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "fk_grp_col_id": "cl_phvuuwjrzcdo0g",
+                    "title": "My Kanban"
+                  }
+                }
               }
             }
           }
@@ -3588,9 +4487,35 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Map"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "base_id": "ds_g4ccx6e77h1dmi",
+                    "columns": [
+                      {
+                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "fk_column_id": "cl_8iw2o4ejzvdyna",
+                        "fk_view_id": "vw_qjt7klod1p9kyv",
+                        "id": "nc_46xcacqn4rc9xf",
+                        "order": 1,
+                        "project_id": "p_xm3thidrblw4n7",
+                        "show": 1
+                      }
+                    ],
+                    "fk_geo_data_col_id": "cl_8iw2o4ejzvdyna",
+                    "fk_view_id": "vw_qjt7klod1p9kyv",
+                    "meta": {},
+                    "order": 0,
+                    "project_id": "p_xm3thidrblw4n7",
+                    "show": true,
+                    "title": "My Map"
+                  }
+                }
               }
             }
-          }
+          },
+          "description": ""
         },
         "description": "Create a new Map View"
       }
@@ -6277,7 +7202,7 @@
           {
             "schema": {
               "type": "boolean",
-              "example": "true"
+              "example": true
             },
             "in": "query",
             "name": "comments_only",
@@ -6504,7 +7429,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Audit"
+                  "$ref": "#/components/schemas/HookReq"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "active": 0,
+                      "async": 0,
+                      "description": "This is my hook description",
+                      "env": "all",
+                      "event": "after",
+                      "fk_model_id": "md_rsu68aqjsbyqtl",
+                      "id": "string",
+                      "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+                      "null": null,
+                      "operation": "insert",
+                      "retries": 10,
+                      "retry_interval": 60000,
+                      "timeout": 60000,
+                      "title": "My Webhook"
+                    }
+                  }
                 }
               }
             }
@@ -7375,9 +8320,17 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ApiTokenReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "description": "This API token is for ABC application"
+                  }
+                }
               }
             }
-          }
+          },
+          "description": ""
         },
         "tags": ["API Token"],
         "description": "Create API Token in a project"
@@ -8495,17 +9448,40 @@
         "description": "Model for Column Request",
         "examples": [
           {
-            "childId": "string",
-            "column_name": "string",
-            "column_order": {
-              "order": 0,
-              "view_id": "string"
-            },
-            "parentId": "string",
-            "title": "string",
-            "type": "hm",
-            "uidt": "LinkToAnotherRecord",
-            "virtual": true
+            "ai": 0,
+            "au": 0,
+            "base_id": "ds_krsappzu9f8vmo",
+            "cc": "",
+            "cdf": null,
+            "clen": "45",
+            "column_name": "title",
+            "cop": "2",
+            "created_at": "2023-03-02 13:14:16",
+            "csn": "utf8mb4",
+            "ct": "varchar(45)",
+            "deleted": null,
+            "dt": "varchar",
+            "dtx": "specificType",
+            "dtxp": "45",
+            "dtxs": null,
+            "fk_model_id": "md_yvwvbt2i78rgcm",
+            "id": "cl_0j9gv0oi8vjy46",
+            "meta": null,
+            "np": null,
+            "ns": null,
+            "order": 2,
+            "pk": 0,
+            "project_id": "p_01clqvzik3izk6",
+            "pv": 1,
+            "rqd": 0,
+            "system": 0,
+            "title": "Title",
+            "uidt": "SingleLineText",
+            "un": 0,
+            "unique": 0,
+            "updated_at": "2023-03-02 13:14:16",
+            "validate": null,
+            "virtual": null
           }
         ],
         "title": "Column Request Model",
@@ -10161,13 +11137,16 @@
         "description": "Model for Kanban Request",
         "examples": [
           {
-            "fk_grp_col_id": "string",
+            "fk_grp_col_id": "cl_phvuuwjrzcdo0g",
             "title": "My Kanban"
           }
         ],
+        "title": "Kanban Request Model",
+        "type": "object",
         "properties": {
           "fk_grp_col_id": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Grouping Column ID"
           },
           "title": {
             "description": "The title of the kanban",
@@ -10177,9 +11156,7 @@
             "type": "string"
           }
         },
-        "required": ["title"],
-        "title": "Kanban Request Model",
-        "type": "object"
+        "required": ["title"]
       },
       "KanbanUpdateReq": {
         "description": "Model for Kanban Update Request",

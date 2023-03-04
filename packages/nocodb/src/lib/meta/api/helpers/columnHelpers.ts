@@ -77,9 +77,7 @@ export async function createHmAndBtColumn(
   }
 }
 
-export async function validateRollupPayload(
-  payload: ColumnReqType
-) {
+export async function validateRollupPayload(payload: ColumnReqType) {
   validateParams(
     [
       'title',

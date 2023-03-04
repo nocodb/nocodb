@@ -41,12 +41,12 @@ import {
   dataAliasNestedController,
   dataController,
   oldDataController,
-} from '../../controllers/dataApis';
+} from '../../controllers/dataControllers';
 import {
   publicDataController,
   publicDataExportController,
   publicMetaController,
-} from '../../controllers/public';
+} from '../../controllers/publicControllers';
 import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 

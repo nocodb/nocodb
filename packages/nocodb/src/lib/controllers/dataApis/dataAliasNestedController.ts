@@ -1,223 +1,79 @@
 import { Request, Response, Router } from 'express';
-import Model from '../../models/Model';
-import Base from '../../models/Base';
-import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2'
-import {
-  getColumnByIdOrName,
-  getViewAndModelFromRequestByAliasOrId,
-} from './helpers';
-import { NcError } from '../../meta/helpers/catchError';
 import apiMetrics from '../../meta/helpers/apiMetrics';
+import { dataAliasNestedService } from '../../services';
 
 // todo: handle case where the given column is not ltar
-export async function mmList(req: Request, res: Response, next) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-
-  if (!model) return next(new Error('Table not found'));
-
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  const column = await getColumnByIdOrName(req.params.columnName, model);
-
-  const data = await baseModel.mmList(
-    {
-      colId: column.id,
-      parentId: req.params.rowId,
-    },
-    req.query as any
-  );
-  const count: any = await baseModel.mmListCount({
-    colId: column.id,
-    parentId: req.params.rowId,
-  });
-
+export async function mmList(req: Request, res: Response) {
   res.json(
-    new PagedResponseImpl(data, {
-      count,
-      ...req.query,
+    await dataAliasNestedService.mmList({
+      query: req.query,
+      columnName: req.params.columnName,
+      rowId: req.params.rowId,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
     })
   );
 }
 
-export async function mmExcludedList(req: Request, res: Response, next) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  if (!model) return next(new Error('Table not found'));
-
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-  const column = await getColumnByIdOrName(req.params.columnName, model);
-
-  const data = await baseModel.getMmChildrenExcludedList(
-    {
-      colId: column.id,
-      pid: req.params.rowId,
-    },
-    req.query
-  );
-
-  const count = await baseModel.getMmChildrenExcludedListCount(
-    {
-      colId: column.id,
-      pid: req.params.rowId,
-    },
-    req.query
-  );
-
+export async function mmExcludedList(req: Request, res: Response) {
   res.json(
-    new PagedResponseImpl(data, {
-      count,
-      ...req.query,
+    await dataAliasNestedService.mmExcludedList({
+      query: req.query,
+      columnName: req.params.columnName,
+      rowId: req.params.rowId,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
     })
   );
 }
 
-export async function hmExcludedList(req: Request, res: Response, next) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-
-  if (!model) return next(new Error('Table not found'));
-
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  const column = await getColumnByIdOrName(req.params.columnName, model);
-
-  const data = await baseModel.getHmChildrenExcludedList(
-    {
-      colId: column.id,
-      pid: req.params.rowId,
-    },
-    req.query
-  );
-
-  const count = await baseModel.getHmChildrenExcludedListCount(
-    {
-      colId: column.id,
-      pid: req.params.rowId,
-    },
-    req.query
-  );
-
+export async function hmExcludedList(req: Request, res: Response) {
   res.json(
-    new PagedResponseImpl(data, {
-      count,
-      ...req.query,
+    await dataAliasNestedService.hmExcludedList({
+      query: req.query,
+      columnName: req.params.columnName,
+      rowId: req.params.rowId,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
     })
   );
 }
 
-export async function btExcludedList(req: Request, res: Response, next) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  if (!model) return next(new Error('Table not found'));
-
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  const column = await getColumnByIdOrName(req.params.columnName, model);
-
-  const data = await baseModel.getBtChildrenExcludedList(
-    {
-      colId: column.id,
-      cid: req.params.rowId,
-    },
-    req.query
-  );
-
-  const count = await baseModel.getBtChildrenExcludedListCount(
-    {
-      colId: column.id,
-      cid: req.params.rowId,
-    },
-    req.query
-  );
-
+export async function btExcludedList(req: Request, res: Response) {
   res.json(
-    new PagedResponseImpl(data, {
-      count,
-      ...req.query,
+    await dataAliasNestedService.btExcludedList({
+      query: req.query,
+      columnName: req.params.columnName,
+      rowId: req.params.rowId,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
     })
   );
 }
 
 // todo: handle case where the given column is not ltar
-export async function hmList(req: Request, res: Response, next) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  if (!model) return next(new Error('Table not found'));
-
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  const column = await getColumnByIdOrName(req.params.columnName, model);
-
-  const data = await baseModel.hmList(
-    {
-      colId: column.id,
-      id: req.params.rowId,
-    },
-    req.query
-  );
-
-  const count = await baseModel.hmListCount({
-    colId: column.id,
-    id: req.params.rowId,
-  });
-
+export async function hmList(req: Request, res: Response) {
   res.json(
-    new PagedResponseImpl(data, {
-      count,
-      ...req.query,
-    } as any)
+    await dataAliasNestedService.hmList({
+      query: req.query,
+      columnName: req.params.columnName,
+      rowId: req.params.rowId,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
+    })
   );
 }
 
 //@ts-ignore
 async function relationDataRemove(req, res) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-
-  if (!model) NcError.notFound('Table not found');
-
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  const column = await getColumnByIdOrName(req.params.columnName, model);
-
-  await baseModel.removeChild({
-    colId: column.id,
-    childId: req.params.refRowId,
+  await dataAliasNestedService.relationDataRemove({
+    columnName: req.params.columnName,
     rowId: req.params.rowId,
+    projectName: req.params.projectName,
+    tableName: req.params.tableName,
     cookie: req,
+    refRowId: req.params.refRowId,
   });
 
   res.json({ msg: 'success' });
@@ -226,23 +82,13 @@ async function relationDataRemove(req, res) {
 //@ts-ignore
 // todo: Give proper error message when reference row is already related and handle duplicate ref row id in hm
 async function relationDataAdd(req, res) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  if (!model) NcError.notFound('Table not found');
-
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-
-  const column = await getColumnByIdOrName(req.params.columnName, model);
-  await baseModel.addChild({
-    colId: column.id,
-    childId: req.params.refRowId,
+  await dataAliasNestedService.relationDataAdd({
+    columnName: req.params.columnName,
     rowId: req.params.rowId,
+    projectName: req.params.projectName,
+    tableName: req.params.tableName,
     cookie: req,
+    refRowId: req.params.refRowId,
   });
 
   res.json({ msg: 'success' });

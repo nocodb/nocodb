@@ -1,46 +1,46 @@
 import { Tele } from 'nc-help';
-import orgLicenseApis from '../../controllers/orgLicenseController';
-import orgTokenApis from '../../controllers/orgTokenController';
-import orgUserApis from '../../controllers/orgUserController';
-import projectApis from '../../controllers/projectController';
-import baseApis from '../../controllers/baseController';
-import tableApis from '../../controllers/tableController';
-import columnApis from '../../controllers/columnController';
+import orgLicenseController from '../../controllers/orgLicenseController';
+import orgTokenController from '../../controllers/orgTokenController';
+import orgUserController from '../../controllers/orgUserController';
+import projectController from '../../controllers/projectController';
+import baseController from '../../controllers/baseController';
+import tableController from '../../controllers/tableController';
+import columnController from '../../controllers/columnController';
 import { Router } from 'express';
-import sortApis from '../../controllers/sortController';
-import filterApis from '../../controllers/filterController';
-import viewColumnApis from '../../controllers/viewColumnController';
-import gridViewApis from '../../controllers/gridViewController';
-import viewApis from '../../controllers/viewController';
-import galleryViewApis from '../../controllers/galleryViewController';
-import formViewApis from '../../controllers/formViewController';
-import formViewColumnApis from '../../controllers/formViewColumnController';
-import attachmentApis from '../../controllers/attachmentController';
-import exportApis from '../../controllers/exportController';
-import auditApis from '../../controllers/auditController';
-import hookApis from '../../controllers/hookController';
-import pluginApis from '../../controllers/pluginController';
-import gridViewColumnApis from '../../controllers/gridViewColumnController';
-import kanbanViewApis from '../../controllers/kanbanViewController';
+import sortController from '../../controllers/sortController';
+import filterController from '../../controllers/filterController';
+import viewColumnController from '../../controllers/viewColumnController';
+import gridViewController from '../../controllers/gridViewController';
+import viewController from '../../controllers/viewController';
+import galleryViewController from '../../controllers/galleryViewController';
+import formViewController from '../../controllers/formViewController';
+import formViewColumnController from '../../controllers/formViewColumnController';
+import attachmentController from '../../controllers/attachmentController';
+import exportController from '../../controllers/exportController';
+import auditController from '../../controllers/auditController';
+import hookController from '../../controllers/hookController';
+import pluginController from '../../controllers/pluginController';
+import gridViewColumnController from '../../controllers/gridViewColumnController';
+import kanbanViewController from '../../controllers/kanbanViewController';
 import { userController } from '../../controllers/userController';
 // import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
-import utilApis from '../../controllers/utilController';
-import projectUserApis from '../../controllers/projectUserController';
-import sharedBaseApis from '../../controllers/sharedBaseController';
+import utilController from '../../controllers/utilController';
+import projectUserController from '../../controllers/projectUserController';
+import sharedBaseController from '../../controllers/sharedBaseController';
 import { initStrategies } from '../../controllers/userController/initStrategies';
-import modelVisibilityApis from '../../controllers/modelVisibilityController';
-import metaDiffApis from '../../controllers/metaDiffController';
-import cacheApis from '../../controllers/cacheController';
-import apiTokenApis from '../../controllers/apiTokenController';
-import hookFilterApis from '../../controllers/hookFilterController';
-import testApis from '../../controllers/testController';
+import modelVisibilityController from '../../controllers/modelVisibilityController';
+import metaDiffController from '../../controllers/metaDiffController';
+import cacheController from '../../controllers/cacheController';
+import apiTokenController from '../../controllers/apiTokenController';
+import hookFilterController from '../../controllers/hookFilterController';
+import testController from '../../controllers/testController';
 import {
-  bulkDataAliasApis,
-  dataAliasApis,
-  dataAliasExportApis,
-  dataAliasNestedApis,
-  dataApis,
-  oldDataApis,
+  bulkDataAliasController,
+  dataAliasController,
+  dataAliasExportController,
+  dataAliasNestedController,
+  dataController,
+  oldDataController,
 } from '../../controllers/dataApis';
 import {
   publicDataController,
@@ -51,62 +51,62 @@ import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 
 import crypto from 'crypto';
-import swaggerApis from '../../controllers/swaggerController';
-import importApis from '../../controllers/syncController/importApis';
-import syncSourceApis from '../../controllers/syncController';
-import mapViewApis from '../../controllers/mapViewController';
+import swaggerController from '../../controllers/swaggerController';
+import importController from '../../controllers/syncController/importApis';
+import syncSourceController from '../../controllers/syncController';
+import mapViewController from '../../controllers/mapViewController';
 
 const clients: { [id: string]: Socket } = {};
 const jobs: { [id: string]: { last_message: any } } = {};
 
 export default function (router: Router, server) {
   initStrategies(router);
-  projectApis(router);
-  baseApis(router);
-  utilApis(router);
+  projectController(router);
+  baseController(router);
+  utilController(router);
 
   if (process.env['PLAYWRIGHT_TEST'] === 'true') {
-    router.use(testApis);
+    router.use(testController);
   }
-  router.use(columnApis);
-  router.use(exportApis);
-  router.use(dataApis);
-  router.use(bulkDataAliasApis);
-  router.use(dataAliasApis);
-  router.use(dataAliasNestedApis);
-  router.use(dataAliasExportApis);
-  router.use(oldDataApis);
-  router.use(sortApis);
-  router.use(filterApis);
-  router.use(viewColumnApis);
-  router.use(gridViewApis);
-  router.use(formViewColumnApis);
+  router.use(columnController);
+  router.use(exportController);
+  router.use(dataController);
+  router.use(bulkDataAliasController);
+  router.use(dataAliasController);
+  router.use(dataAliasNestedController);
+  router.use(dataAliasExportController);
+  router.use(oldDataController);
+  router.use(sortController);
+  router.use(filterController);
+  router.use(viewColumnController);
+  router.use(gridViewController);
+  router.use(formViewColumnController);
   router.use(publicDataController);
   router.use(publicDataExportController);
   router.use(publicMetaController);
-  router.use(gridViewColumnApis);
-  router.use(tableApis);
-  router.use(galleryViewApis);
-  router.use(formViewApis);
-  router.use(viewApis);
-  router.use(attachmentApis);
-  router.use(auditApis);
-  router.use(hookApis);
-  router.use(pluginApis);
-  router.use(projectUserApis);
-  router.use(orgUserApis);
-  router.use(orgTokenApis);
-  router.use(orgLicenseApis);
-  router.use(sharedBaseApis);
-  router.use(modelVisibilityApis);
-  router.use(metaDiffApis);
-  router.use(cacheApis);
-  router.use(apiTokenApis);
-  router.use(hookFilterApis);
-  router.use(swaggerApis);
-  router.use(syncSourceApis);
-  router.use(kanbanViewApis);
-  router.use(mapViewApis);
+  router.use(gridViewColumnController);
+  router.use(tableController);
+  router.use(galleryViewController);
+  router.use(formViewController);
+  router.use(viewController);
+  router.use(attachmentController);
+  router.use(auditController);
+  router.use(hookController);
+  router.use(pluginController);
+  router.use(projectUserController);
+  router.use(orgUserController);
+  router.use(orgTokenController);
+  router.use(orgLicenseController);
+  router.use(sharedBaseController);
+  router.use(modelVisibilityController);
+  router.use(metaDiffController);
+  router.use(cacheController);
+  router.use(apiTokenController);
+  router.use(hookFilterController);
+  router.use(swaggerController);
+  router.use(syncSourceController);
+  router.use(kanbanViewController);
+  router.use(mapViewController);
 
   userController(router);
 
@@ -152,7 +152,7 @@ export default function (router: Router, server) {
     });
   });
 
-  importApis(router, io, jobs);
+  importController(router, io, jobs);
 }
 
 function getHash(str) {

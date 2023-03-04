@@ -1,15 +1,15 @@
-import dataApis from './dataApis';
-import oldDataApis from './oldDataApis';
-import dataAliasApis from './dataAliasApis';
-import bulkDataAliasApis from './bulkDataAliasApis';
-import dataAliasNestedApis from '../../controllers/dataController/dataAliasNestedApis';
-import dataAliasExportApis from './dataAliasExportApis';
+import dataController from './dataController';
+import oldDataController from './oldDataController';
+import dataAliasController from './dataAliasController';
+import bulkDataAliasController from './bulkDataAliasController';
+import dataAliasNestedController from './dataAliasNestedController';
+import dataAliasExportController from './dataAliasExportController';
 
 export {
-  dataApis,
-  oldDataApis,
-  dataAliasApis,
-  bulkDataAliasApis,
-  dataAliasNestedApis,
-  dataAliasExportApis,
+  dataController,
+  oldDataController,
+  dataAliasController,
+  bulkDataAliasController,
+  dataAliasNestedController,
+  dataAliasExportController,
 };

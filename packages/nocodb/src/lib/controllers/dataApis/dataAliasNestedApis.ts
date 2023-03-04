@@ -1,9 +1,9 @@
 import { Request, Response, Router } from 'express';
 import Model from '../../models/Model';
 import Base from '../../models/Base';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2'
 import {
   getColumnByIdOrName,
   getViewAndModelFromRequestByAliasOrId,

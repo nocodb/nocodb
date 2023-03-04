@@ -1,75 +1,69 @@
 import { Request, Response, Router } from 'express';
-import { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
-import Model from '../../models/Model';
-import Base from '../../models/Base';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import { bulkDataService } from '../../services'
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
-import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 
-type BulkOperation =
-  | 'bulkInsert'
-  | 'bulkUpdate'
-  | 'bulkUpdateAll'
-  | 'bulkDelete'
-  | 'bulkDeleteAll';
 
-async function getModelViewBase(req: Request) {
-  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-
-  const base = await Base.get(model.base_id);
-  return { model, view, base };
-}
-
-async function executeBulkOperation<T extends BulkOperation>(
-  req: Request,
-  res: Response,
-  operation: T,
-  options: Parameters<typeof BaseModelSqlv2.prototype[T]>
-) {
-  const { model, view, base } = await getModelViewBase(req);
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
-  });
-  res.json(await baseModel[operation].apply(null, options));
-}
 
 async function bulkDataInsert(req: Request, res: Response) {
-  await executeBulkOperation(req, res, 'bulkInsert', [
-    req.body,
-    { cookie: req },
-  ]);
+  res.json(
+    await bulkDataService.bulkDataInsert({
+      body: req.body,
+      cookie: req,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
+    })
+  );
 }
 
 async function bulkDataUpdate(req: Request, res: Response) {
-  await executeBulkOperation(req, res, 'bulkUpdate', [
-    req.body,
-    { cookie: req },
-  ]);
+  res.json(
+    await bulkDataService.bulkDataUpdate({
+      body: req.body,
+      cookie: req,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
+    })
+  );
 }
 
 // todo: Integrate with filterArrJson bulkDataUpdateAll
 async function bulkDataUpdateAll(req: Request, res: Response) {
-  await executeBulkOperation(req, res, 'bulkUpdateAll', [
-    req.query,
-    req.body,
-    { cookie: req },
-  ]);
+  res.json(
+    await bulkDataService.bulkDataUpdateAll({
+      body: req.body,
+      cookie: req,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
+      query: req.query,
+    })
+  );
 }
 
 async function bulkDataDelete(req: Request, res: Response) {
-  await executeBulkOperation(req, res, 'bulkDelete', [
-    req.body,
-    { cookie: req },
-  ]);
+  res.json(
+    await bulkDataService.bulkDataDelete({
+      body: req.body,
+      cookie: req,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
+    })
+  );
 }
 
 // todo: Integrate with filterArrJson bulkDataDeleteAll
 async function bulkDataDeleteAll(req: Request, res: Response) {
-  await executeBulkOperation(req, res, 'bulkDeleteAll', [req.query]);
+  res.json(
+    await bulkDataService.bulkDataDeleteAll({
+      // cookie: req,
+      projectName: req.params.projectName,
+      tableName: req.params.tableName,
+      query: req.query,
+    })
+  );
 }
+
+
 const router = Router({ mergeParams: true });
 
 router.post(

@@ -46,7 +46,7 @@ import {
   publicDataController,
   publicDataExportController,
   publicMetaController,
-} from '../../controllers/publc';
+} from '../../controllers/public';
 import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 

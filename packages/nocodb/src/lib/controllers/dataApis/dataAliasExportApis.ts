@@ -1,13 +1,13 @@
 import { Request, Response, Router } from 'express';
 import * as XLSX from 'xlsx';
+import apiMetrics from '../../meta/helpers/apiMetrics';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
+import { View } from '../../models';
 import {
   extractCsvData,
   extractXlsxData,
-  getViewAndModelFromRequestByAliasOrId,
-} from './helpers';
-import apiMetrics from '../../meta/helpers/apiMetrics';
-import View from '../../models/View';
+} from '../../services/dataService/helpers';
+import { getViewAndModelFromRequestByAliasOrId } from './helpers'
 
 async function excelDataExport(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
@@ -15,11 +15,7 @@ async function excelDataExport(req: Request, res: Response) {
   if (!targetView) {
     targetView = await View.getDefaultView(model.id);
   }
-  const { offset, elapsed, data } = await extractXlsxData({
-    view: targetView,
-    query: req.query,
-    siteUrl: (req as any).ncSiteUrl,
-  });
+  const { offset, elapsed, data } = await extractXlsxData(targetView, req);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, data, targetView.title);
   const buf = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });

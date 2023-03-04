@@ -6,7 +6,7 @@ import { View } from '../../models';
 import {
   extractCsvData,
   extractXlsxData,
-} from '../../services/dataService/helpers';
+} from '../../services/dbData/helpers';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 
 async function excelDataExport(req: Request, res: Response) {

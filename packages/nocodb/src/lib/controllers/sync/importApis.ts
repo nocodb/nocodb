@@ -7,7 +7,7 @@ import NocoJobs from '../../jobs/NocoJobs';
 import { SyncSource } from '../../models';
 import Noco from '../../Noco';
 import { syncService, userService } from '../../services';
-import { AirtableSyncConfig } from '../../services/syncService/helpers/job';
+import { AirtableSyncConfig } from '../../services/sync/helpers/job';
 
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
 const AIRTABLE_PROGRESS_JOB = 'AIRTABLE_PROGRESS_JOB';

@@ -22,12 +22,12 @@ import hookController from '../../controllers/hookController';
 import pluginController from '../../controllers/pluginController';
 import gridViewColumnController from '../../controllers/gridViewColumnController';
 import kanbanViewController from '../../controllers/kanbanViewController';
-import { userController } from '../../controllers/userController';
+import { userController } from '../../controllers/user';
 // import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
 import utilController from '../../controllers/utilController';
 import projectUserController from '../../controllers/projectUserController';
 import sharedBaseController from '../../controllers/sharedBaseController';
-import { initStrategies } from '../../controllers/userController/initStrategies';
+import { initStrategies } from '../../controllers/user/initStrategies';
 import modelVisibilityController from '../../controllers/modelVisibilityController';
 import metaDiffController from '../../controllers/metaDiffController';
 import cacheController from '../../controllers/cacheController';
@@ -41,7 +41,7 @@ import {
   dataAliasNestedController,
   dataController,
   oldDataController,
-} from '../../controllers/dataControllers';
+} from '../../controllers/dbData';
 import {
   publicDataController,
   publicDataExportController,
@@ -51,9 +51,9 @@ import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 
 import crypto from 'crypto';
-import swaggerController from '../../controllers/swaggerController';
-import importController from '../../controllers/syncController/importApis';
-import syncSourceController from '../../controllers/syncController';
+import swaggerController from '../../controllers/apiDocs';
+import importController from '../../controllers/sync/importApis';
+import syncSourceController from '../../controllers/sync';
 import mapViewController from '../../controllers/mapViewController';
 
 const clients: { [id: string]: Socket } = {};

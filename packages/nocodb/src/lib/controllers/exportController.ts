@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import View from '../models/View';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { extractCsvData } from './dataControllers/helpers';
+import { extractCsvData } from './dbData/helpers';
 
 async function exportCsv(req: Request, res: Response) {
   const view = await View.get(req.params.viewId);

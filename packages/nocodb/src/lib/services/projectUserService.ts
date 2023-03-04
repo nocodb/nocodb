@@ -291,7 +291,7 @@ export async function sendInviteEmail(
   req: any
 ): Promise<any> {
   try {
-    const template = (await import('./userService/ui/emailTemplates/invite'))
+    const template = (await import('./user/ui/emailTemplates/invite'))
       .default;
 
     const emailAdapter = await NcPluginMgrv2.emailAdapter();

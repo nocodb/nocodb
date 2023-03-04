@@ -17,7 +17,7 @@ import {
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '../../utils/mimeTypes';
 import { sanitizeUrlPath } from '../attachmentService';
-import { getColumnByIdOrName } from '../dataService/helpers';
+import { getColumnByIdOrName } from '../dbData/helpers';
 
 export async function dataList(param: {
   sharedViewUuid: string;

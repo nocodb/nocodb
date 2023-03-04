@@ -3,15 +3,21 @@ import Column from './Column';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import type { RollupType } from 'nocodb-sdk';
 
-export default class RollupColumn {
+export default class RollupColumn implements RollupType {
+  id: string;
   fk_column_id;
   fk_relation_column_id;
   fk_rollup_column_id;
-
-  rollup_function: string;
-
-  id: string;
+  rollup_function:
+    | 'count'
+    | 'min'
+    | 'max'
+    | 'avg'
+    | 'countDistinct'
+    | 'sumDistinct'
+    | 'avgDistinct';
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);

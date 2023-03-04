@@ -51,7 +51,10 @@ export async function shareViewUpdate(param: {
   viewId: string;
   sharedView: SharedViewReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/SharedViewReq', param.sharedView);
+  validatePayload(
+    'swagger.json#/components/schemas/SharedViewReq',
+    param.sharedView
+  );
   T.emit('evt', { evt_type: 'sharedView:updated' });
   return await View.update(param.viewId, param.sharedView);
 }

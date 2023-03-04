@@ -141,6 +141,7 @@ router.post(
 );
 router.patch(
   '/api/v1/db/meta/views/:viewId/share',
+  getAjvValidatorMw('swagger.json#/components/schemas/SharedViewReq'),
   metaApiMetrics,
   ncMetaAclMw(shareViewUpdate, 'shareViewUpdate')
 );

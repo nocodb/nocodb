@@ -3,7 +3,6 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import { Icon as IconifyIcon } from '@iconify/vue'
 import { useShortcuts } from '../utils'
 import tiptapExtensions from '~~/utils/tiptapExtensions'
-import type { PageSidebarNode } from '~~/lib'
 
 const { project } = useProject()
 useShortcuts()
@@ -165,6 +164,7 @@ watch(
           <div v-if="!isPublic" class="flex flex-row items-center"></div>
         </div>
         <div
+          :key="openedPageId"
           class="mx-auto pr-6 pt-16 flex flex-col"
           :style="{
             width: '64rem',

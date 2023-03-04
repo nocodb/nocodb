@@ -11270,19 +11270,21 @@
             "roles": "owner"
           }
         ],
+        "title": "Project User Request Model",
+        "type": "object",
         "properties": {
           "email": {
             "format": "email",
-            "type": "string"
+            "type": "string",
+            "description": "Project User Email"
           },
           "roles": {
             "enum": ["commenter", "editor", "guest", "owner", "viewer"],
-            "type": "string"
+            "type": "string",
+            "description": "Project User Role"
           }
         },
-        "required": ["email", "roles"],
-        "title": "Project User Request Model",
-        "type": "object"
+        "required": ["email", "roles"]
       },
       "Rollup": {
         "description": "Model for Rollup",

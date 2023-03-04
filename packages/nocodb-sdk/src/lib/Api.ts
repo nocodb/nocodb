@@ -1254,11 +1254,11 @@ export interface LookupType {
  */
 export interface LookupColumnReqType {
   /** Model for ID */
-  fk_lookup_column_id: IdType;
+  fk_lookup_column_id?: IdType;
   /** Model for ID */
-  fk_relation_column_id: IdType;
-  title: string;
-  uidt: 'Lookup';
+  fk_relation_column_id?: IdType;
+  title?: string;
+  uidt?: 'Lookup';
 }
 
 /**
@@ -1405,6 +1405,7 @@ export interface NormalColumnRequestType {
     | 'Decimal'
     | 'Duration'
     | 'Email'
+    | 'Formula'
     | 'GeoData'
     | 'Geometry'
     | 'ID'
@@ -1421,7 +1422,8 @@ export interface NormalColumnRequestType {
     | 'SpecificDBType'
     | 'Time'
     | 'URL'
-    | 'Year';
+    | 'Year'
+    | 'QrCode';
   /** Model for Bool */
   un?: BoolType;
   /** Model for Bool */
@@ -1712,13 +1714,13 @@ export interface RollupType {
  */
 export interface RollupColumnReqType {
   /** Foreign Key to Relation Column */
-  fk_relation_column_id: IdType;
+  fk_relation_column_id?: IdType;
   /** Foreign Key to Rollup Column */
-  fk_rollup_column_id: IdType;
+  fk_rollup_column_id?: IdType;
   /** Rollup Column Title */
-  title: string;
+  title?: string;
   /** Rollup Function */
-  rollup_function:
+  rollup_function?:
     | 'avg'
     | 'avgDistinct'
     | 'count'
@@ -1728,7 +1730,7 @@ export interface RollupColumnReqType {
     | 'sum'
     | 'sumDistinct';
   /** UI DataType */
-  uidt: 'Rollup';
+  uidt?: 'Rollup';
 }
 
 /**

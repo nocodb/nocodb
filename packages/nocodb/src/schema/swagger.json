@@ -6115,6 +6115,7 @@
         "operationId": "db-view-row-export",
         "description": "Export Table View Rows by CSV or Excel",
         "tags": ["DB View Row"],
+        "wrapped": true,
         "responses": {
           "200": {
             "description": "OK",
@@ -6175,6 +6176,7 @@
         "operationId": "db-table-row-csv-export",
         "description": "Export Table View Rows by CSV or Excel",
         "tags": ["DB Table Row"],
+        "wrapped": true,
         "responses": {
           "200": {
             "description": "OK",
@@ -6954,6 +6956,7 @@
         "summary": "Export Rows in Share View",
         "operationId": "public-csv-export",
         "description": "Export all rows in Share View in a CSV / Excel Format",
+        "wrapped": true,
         "responses": {
           "200": {
             "description": "OK",

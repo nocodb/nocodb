@@ -5152,6 +5152,7 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/export/${type}`,
         method: 'GET',
+        wrapped: true,
         ...params,
       }),
 
@@ -5776,6 +5777,7 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
         method: 'GET',
+        wrapped: true,
         ...params,
       }),
 

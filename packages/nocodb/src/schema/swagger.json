@@ -8914,7 +8914,7 @@
               "oracledb",
               "pg",
               "snowflake",
-              "sqlite"
+              "sqlite3"
             ],
             "example": "mysql2",
             "type": "string"

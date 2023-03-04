@@ -238,7 +238,7 @@ export interface BaseType {
     | 'oracledb'
     | 'pg'
     | 'snowflake'
-    | 'sqlite';
+    | 'sqlite3';
 }
 
 /**
@@ -378,7 +378,7 @@ export interface ColumnType {
   pv?: BoolType;
   /** Is Required? */
   rqd?: BoolType;
-  /** Is System Colun? */
+  /** Is System Column? */
   system?: BoolType;
   /**
    * Column Title
@@ -389,7 +389,44 @@ export interface ColumnType {
    * The data type in UI
    * @example SingleLineText
    */
-  uidt?: string;
+  uidt?:
+    | 'Attachment'
+    | 'AutoNumber'
+    | 'Barcode'
+    | 'Button'
+    | 'Checkbox'
+    | 'Collaborator'
+    | 'Count'
+    | 'CreateTime'
+    | 'Currency'
+    | 'Date'
+    | 'DateTime'
+    | 'Decimal'
+    | 'Duration'
+    | 'Email'
+    | 'Formula'
+    | 'ForeignKey'
+    | 'GeoData'
+    | 'Geometry'
+    | 'ID'
+    | 'JSON'
+    | 'LastModifiedTime'
+    | 'LongText'
+    | 'LinkToAnotherRecord'
+    | 'Lookup'
+    | 'MultiSelect'
+    | 'Number'
+    | 'Percent'
+    | 'PhoneNumber'
+    | 'Rating'
+    | 'Rollup'
+    | 'SingleLineText'
+    | 'SingleSelect'
+    | 'SpecificDBType'
+    | 'Time'
+    | 'URL'
+    | 'Year'
+    | 'QrCode';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -1443,17 +1480,21 @@ export interface NormalColumnRequestType {
     | 'Duration'
     | 'Email'
     | 'Formula'
+    | 'ForeignKey'
     | 'GeoData'
     | 'Geometry'
     | 'ID'
     | 'JSON'
     | 'LastModifiedTime'
     | 'LongText'
+    | 'LinkToAnotherRecord'
+    | 'Lookup'
     | 'MultiSelect'
     | 'Number'
     | 'Percent'
     | 'PhoneNumber'
     | 'Rating'
+    | 'Rollup'
     | 'SingleLineText'
     | 'SingleSelect'
     | 'SpecificDBType'
@@ -2142,9 +2183,25 @@ export interface ViewReqType {
 }
 
 /**
+ * Model for View Column Update Request
+ */
+export interface ViewColumnUpdateReqType {
+  /** View Title */
+  show?: BoolType;
+  /**
+   * The order of the list of views.
+   * @min 0
+   * @example 1
+   */
+  order?: number;
+}
+
+/**
  * Model for View Column Request
  */
 export interface ViewColumnReqType {
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   /** View Title */
   show?: BoolType;
   /**
@@ -4395,7 +4452,11 @@ export class Api<
      * @request POST:/api/v1/db/meta/views/{viewId}/columns
      * @response `200` `void` OK
      */
-    create: (viewId: string, data: ColumnReqType, params: RequestParams = {}) =>
+    create: (
+      viewId: string,
+      data: ViewColumnReqType,
+      params: RequestParams = {}
+    ) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/views/${viewId}/columns`,
         method: 'POST',
@@ -4416,7 +4477,7 @@ export class Api<
     update: (
       viewId: IdType,
       columnId: IdType,
-      data: ViewColumnReqType,
+      data: ViewColumnUpdateReqType,
       params: RequestParams = {}
     ) =>
       this.request<void, any>({

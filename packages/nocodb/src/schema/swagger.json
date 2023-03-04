@@ -10332,54 +10332,46 @@
         "description": "Model for Lookup",
         "examples": [
           {
-            "deleted": "string",
-            "fk_column_id": "string",
-            "fk_lookup_column_id": "string",
-            "fk_relation_column_id": "string",
-            "id": "string",
-            "order": "string",
-            "type": "string",
-            "virtual": true
+            "id": "lk_mngsu0e45njbxr",
+            "fk_column_id": "cl_vdiy9bz7h11kdm",
+            "fk_relation_column_id": "cl_5jestblzneb649",
+            "fk_lookup_column_id": "cl_4cm47dtjphgqkv",
+            "order": 1
           }
         ],
+        "title": "Lookup Model",
+        "type": "object",
         "properties": {
-          "deleted": {
-            "type": "string"
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
           },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
           },
           "fk_lookup_column_id": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Lookup Column"
           },
           "fk_relation_column_id": {
-            "type": "string"
-          },
-          "id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
+            "description": "Foreign Key to Relation Column"
           },
           "order": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "virtual": {
-            "$ref": "#/components/schemas/Bool"
+            "type": "number",
+            "description": "The order among the list",
+            "example": 1
           }
-        },
-        "title": "Lookup Model",
-        "type": "object"
+        }
       },
       "LookupColumnReq": {
         "description": "Model for Lookup Column Request",
         "examples": [
           {
-            "fk_lookup_column_id": "string",
-            "fk_relation_column_id": "string",
-            "title": "string",
+            "fk_relation_column_id": "cl_5jestblzneb649",
+            "fk_lookup_column_id": "cl_4cm47dtjphgqkv",
+            "title": "My Lookup",
             "uidt": "Lookup"
           }
         ],
@@ -10387,18 +10379,23 @@
         "type": "object",
         "properties": {
           "fk_lookup_column_id": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Lookup Column"
           },
           "fk_relation_column_id": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Relation Column"
           },
           "title": {
             "maxLength": 255,
-            "type": "string"
+            "type": "string",
+            "description": "Lookup Title",
+            "example": "My Lookup"
           },
           "uidt": {
             "enum": ["Lookup"],
-            "type": "string"
+            "type": "string",
+            "description": "UI DataType"
           }
         }
       },

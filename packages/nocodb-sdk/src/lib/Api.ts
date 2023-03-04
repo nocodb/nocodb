@@ -204,12 +204,6 @@ export interface BaseType {
   alias?: StringOrNullType;
   /** Base Configuration */
   config?: any;
-  /**
-   * The datatime this base is created at
-   * @format date-time
-   * @example 2023-03-01 14:27:36
-   */
-  created_at?: string;
   /** Is this base enabled */
   enabled?: BoolType;
   /** Unique Base ID */
@@ -245,12 +239,6 @@ export interface BaseType {
     | 'pg'
     | 'snowflake'
     | 'sqlite';
-  /**
-   * The datatime this base is updated at
-   * @format date-time
-   * @example 2023-03-01 14:27:36
-   */
-  updated_at?: string;
 }
 
 /**
@@ -1138,7 +1126,6 @@ export interface HookListType {
 export interface HookLogType {
   base_id?: string;
   conditions?: string;
-  created_at?: string;
   error?: string;
   error_code?: string;
   error_message?: string;
@@ -1157,7 +1144,6 @@ export interface HookLogType {
   test_call?: BoolType;
   triggered_by?: string;
   type?: string;
-  updated_at?: string;
 }
 
 /**
@@ -1280,28 +1266,35 @@ export interface LinkToAnotherRecordType {
  * Model for Lookup
  */
 export interface LookupType {
-  deleted?: string;
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  fk_lookup_column_id?: string;
-  fk_relation_column_id?: string;
   /** Unique ID */
   id?: IdType;
-  order?: string;
-  type?: string;
-  /** Model for Bool */
-  virtual?: BoolType;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /** Foreign Key to Lookup Column */
+  fk_lookup_column_id?: IdType;
+  /** Foreign Key to Relation Column */
+  fk_relation_column_id?: IdType;
+  /**
+   * The order among the list
+   * @example 1
+   */
+  order?: number;
 }
 
 /**
  * Model for Lookup Column Request
  */
 export interface LookupColumnReqType {
-  /** Model for ID */
+  /** Foreign Key to Lookup Column */
   fk_lookup_column_id?: IdType;
-  /** Model for ID */
+  /** Foreign Key to Relation Column */
   fk_relation_column_id?: IdType;
+  /**
+   * Lookup Title
+   * @example My Lookup
+   */
   title?: string;
+  /** UI DataType */
   uidt?: 'Lookup';
 }
 
@@ -1638,12 +1631,6 @@ export interface ProjectType {
    * @example #24716E
    */
   color?: string;
-  /**
-   * The created time of the record
-   * @format date-time
-   * @example 2023-03-01 14:27:36
-   */
-  created_at?: string;
   /** Is the project deleted */
   deleted?: BoolType;
   /**
@@ -1673,12 +1660,6 @@ export interface ProjectType {
    * @example my-project
    */
   title?: string;
-  /**
-   * The updated time of the record
-   * @format date-time
-   * @example 2023-03-01 14:27:36
-   */
-  updated_at?: string;
 }
 
 /**
@@ -2012,12 +1993,6 @@ export interface TableReqType {
  */
 export interface UserType {
   /**
-   * The date that the user was created.
-   * @format date-time
-   * @example 2023-03-01 11:36:49
-   */
-  created_at?: string;
-  /**
    * The email of the user
    * @format email
    * @example user@example.com
@@ -2045,12 +2020,6 @@ export interface UserType {
    * @example org-level-viewer
    */
   roles?: string;
-  /**
-   * The date that the user was created.
-   * @format date-time
-   * @example 2023-03-01 11:36:49
-   */
-  updated_at?: string;
 }
 
 /**

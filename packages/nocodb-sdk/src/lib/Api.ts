@@ -991,7 +991,7 @@ export interface HookType {
   /** Unique ID */
   id?: IdType;
   /** Hook Notification including info such as type, payload, method, body, and etc */
-  notification?: string;
+  notification?: object | string;
   /**
    * Hook Operation
    * @example insert
@@ -1049,7 +1049,7 @@ export interface HookReqType {
   /** Unique ID */
   id?: IdType;
   /** Hook Notification including info such as type, payload, method, body, and etc */
-  notification: string;
+  notification: object | string;
   /**
    * Hook Operation
    * @example insert
@@ -1672,8 +1672,12 @@ export interface ProjectReqType {
  * Model for Project User Request
  */
 export interface ProjectUserReqType {
-  /** @format email */
+  /**
+   * Project User Email
+   * @format email
+   */
   email: string;
+  /** Project User Role */
   roles: 'commenter' | 'editor' | 'guest' | 'owner' | 'viewer';
 }
 

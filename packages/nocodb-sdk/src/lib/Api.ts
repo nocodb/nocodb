@@ -4703,17 +4703,17 @@ export class Api<
         ...params,
       }),
   };
-  dbTableHookFilter = {
+  dbTableWebhookFilter = {
     /**
      * @description Get the filter data in a given Hook
      *
-     * @tags DB Table Hook Filter
-     * @name DbTableWebhookFilterRead
+     * @tags DB Table Webhook Filter
+     * @name Read
      * @summary Get Hook Filter
      * @request GET:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `FilterListType`
      */
-    dbTableWebhookFilterRead: (hookId: string, params: RequestParams = {}) =>
+    read: (hookId: string, params: RequestParams = {}) =>
       this.request<FilterListType, any>({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'GET',
@@ -4723,17 +4723,13 @@ export class Api<
     /**
      * @description Create filter(s) in a given Hook
      *
-     * @tags DB Table Hook Filter
-     * @name DbTableWebhookFilterCreate
+     * @tags DB Table Webhook Filter
+     * @name Create
      * @summary Create Hook Filter
      * @request POST:/api/v1/db/meta/hooks/{hookId}/filters
      * @response `200` `void` OK
      */
-    dbTableWebhookFilterCreate: (
-      hookId: string,
-      data: FilterReqType,
-      params: RequestParams = {}
-    ) =>
+    create: (hookId: string, data: FilterReqType, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/db/meta/hooks/${hookId}/filters`,
         method: 'POST',
@@ -5600,6 +5596,7 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/export/${type}`,
         method: 'GET',
+        wrapped: true,
         ...params,
       }),
   };

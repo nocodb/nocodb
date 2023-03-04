@@ -3864,7 +3864,7 @@
             "$ref": "#/components/responses/FilterList"
           }
         },
-        "tags": ["DB Table Hook Filter"],
+        "tags": ["DB Table Webhook Filter"],
         "description": "Get the filter data in a given Hook"
       },
       "post": {
@@ -3875,7 +3875,7 @@
             "description": "OK"
           }
         },
-        "tags": ["DB Table Hook Filter"],
+        "tags": ["DB Table Webhook Filter"],
         "requestBody": {
           "content": {
             "application/json": {

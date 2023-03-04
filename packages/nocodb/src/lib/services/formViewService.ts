@@ -12,7 +12,7 @@ export async function formViewCreate(param: {
   tableId: string;
   body: FormReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/FormCreateReq', param.body);
+  validatePayload('swagger.json#/components/schemas/FormReq', param.body);
 
   T.emit('evt', { evt_type: 'vtable:created', show_as: 'form' });
   const view = await View.insert({

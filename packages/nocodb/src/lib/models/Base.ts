@@ -16,7 +16,7 @@ import SyncSource from './SyncSource';
 
 export const DB_TYPES = <const>[
   'mysql2',
-  'sqlite',
+  'sqlite3',
   'mysql',
   'mssql',
   'snowflake',

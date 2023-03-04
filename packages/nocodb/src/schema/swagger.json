@@ -9852,7 +9852,7 @@
             "example": "My Webhook"
           },
           "type": {
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Hook Type"
           }
         },

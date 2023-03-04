@@ -1076,7 +1076,7 @@ export interface HookReqType {
    */
   title: string;
   /** Hook Type */
-  type?: string;
+  type?: string | null;
 }
 
 /**

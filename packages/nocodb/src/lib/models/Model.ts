@@ -5,9 +5,9 @@ import NocoCache from '../cache/NocoCache';
 import { XKnex } from '../db/sql-data-mapper';
 import { BaseModelSqlv2 } from '../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import {
+  BoolType,
   isVirtualCol,
   ModelTypes,
-  BoolType,
   TableReqType,
   TableType,
   UITypes,
@@ -27,7 +27,6 @@ import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
-  created_at: Date | number | string;
   base_id: 'db' | string;
   deleted: BoolType;
   enabled: BoolType;
@@ -42,7 +41,6 @@ export default class Model implements TableType {
   show_all_fields: boolean;
   tags: string;
   type: ModelTypes;
-  updated_at: Date | number | string;
 
   table_name: string;
   title: string;
@@ -100,8 +98,6 @@ export default class Model implements TableType {
     baseId,
     model: Partial<TableReqType> & {
       mm?: BoolType;
-      created_at?: any;
-      updated_at?: any;
       type?: ModelTypes;
     },
     ncMeta = Noco.ncMeta
@@ -112,8 +108,6 @@ export default class Model implements TableType {
       'mm',
       'order',
       'type',
-      'created_at',
-      'updated_at',
       'id',
     ]);
 
@@ -152,8 +146,6 @@ export default class Model implements TableType {
         title: model.title || model.table_name,
         is_default: true,
         type: ViewTypes.GRID,
-        created_at: model.created_at,
-        updated_at: model.updated_at,
       },
       ncMeta
     );

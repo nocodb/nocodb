@@ -90,7 +90,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // since `blank`, `empty`, `null` doesn't require value,
     // hence remove the previous value
     filter.value = null
-    filter.comparison_sub_op = ''
+    filter.comparison_sub_op = null
   } else if ([UITypes.Date, UITypes.DateTime].includes(col.uidt as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
@@ -177,7 +177,7 @@ const selectFilterField = (filter: Filter, index: number) => {
     }
   } else {
     // reset
-    filter.comparison_sub_op = ''
+    filter.comparison_sub_op = null
   }
 
   // reset filter value as well

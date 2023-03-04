@@ -1,4 +1,4 @@
-import Base from './/Base';
+import Base, { DB_TYPES } from './/Base';
 import Noco from '../Noco';
 import { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import {
@@ -68,7 +68,7 @@ export default class Project implements ProjectType {
     for (const base of project.bases) {
       await Base.createBase(
         {
-          type: base.config?.client,
+          type: base.config?.client as typeof DB_TYPES[number],
           ...base,
           projectId,
         },

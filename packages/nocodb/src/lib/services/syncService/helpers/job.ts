@@ -2078,7 +2078,7 @@ export default async (
         const _perfStart = recordPerfStart();
         await api.dbTableSort.create(viewId, {
           fk_column_id: columnId,
-          direction: s.sortSet[i].ascending ? 'asc' : 'dsc',
+          direction: s.sortSet[i].ascending ? 'asc' : 'desc',
         });
         recordPerfStats(_perfStart, 'dbTableSort.create');
       }

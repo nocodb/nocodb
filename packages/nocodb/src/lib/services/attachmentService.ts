@@ -11,6 +11,7 @@ export async function upload(param: {
   // todo: proper type
   files: unknown[];
 }) {
+  // TODO: add getAjvValidatorMw
   const filePath = sanitizeUrlPath(param.path?.toString()?.split('/') || ['']);
   const destPath = path.join('nc', 'uploads', ...filePath);
 
@@ -59,6 +60,7 @@ export async function uploadViaURL(param: {
     size?: string | number;
   }[];
 }) {
+  // TODO: add getAjvValidatorMw
   const filePath = sanitizeUrlPath(param?.path?.toString()?.split('/') || ['']);
   const destPath = path.join('nc', 'uploads', ...filePath);
 

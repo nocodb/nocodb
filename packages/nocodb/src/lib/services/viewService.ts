@@ -1,4 +1,5 @@
-import { SharedViewType, ViewType } from 'nocodb-sdk';
+import { SharedViewReqType, ViewReqType } from 'nocodb-sdk';
+import { validatePayload } from '../meta/api/helpers';
 import { Model, View } from '../models';
 import { T } from 'nc-help';
 import { xcVisibilityMetaGet } from './modelVisibilityService';
@@ -33,8 +34,8 @@ export async function shareView(param: { viewId: string }) {
   return await View.share(param.viewId);
 }
 
-// todo: type correctly
-export async function viewUpdate(param: { viewId: string; view: ViewType }) {
+export async function viewUpdate(param: { viewId: string; view: ViewReqType }) {
+  validatePayload('swagger.json#/components/schemas/ViewReq', param.view);
   const result = await View.update(param.viewId, param.view);
   T.emit('evt', { evt_type: 'vtable:updated', show_as: result.type });
   return result;
@@ -48,9 +49,12 @@ export async function viewDelete(param: { viewId: string }) {
 
 export async function shareViewUpdate(param: {
   viewId: string;
-  // todo: type correctly
-  sharedView: SharedViewType;
+  sharedView: SharedViewReqType;
 }) {
+  validatePayload(
+    'swagger.json#/components/schemas/SharedViewReq',
+    param.sharedView
+  );
   T.emit('evt', { evt_type: 'sharedView:updated' });
   return await View.update(param.viewId, param.sharedView);
 }

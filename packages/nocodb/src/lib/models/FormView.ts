@@ -25,7 +25,6 @@ export default class FormView implements FormType {
 
   fk_view_id: string;
   columns?: FormViewColumn[];
-
   project_id?: string;
   base_id?: string;
   meta?: string | Record<string, any>;

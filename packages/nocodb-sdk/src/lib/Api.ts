@@ -17,9 +17,15 @@ export interface ApiTokenType {
   id?: IdType;
   /** Foreign Key to User */
   fk_user_id?: IdType;
-  /** API Token Description */
+  /**
+   * API Token Description
+   * @example This API Token is for ABC application
+   */
   description?: string;
-  /** API Token */
+  /**
+   * API Token
+   * @example DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2
+   */
   token?: string;
 }
 
@@ -661,30 +667,101 @@ export interface FilterReqType {
  * Model for Form
  */
 export interface FormType {
-  /** Model for StringOrNull */
-  banner_image_url?: StringOrNullType;
-  columns?: FormColumnType[];
-  /** Model for StringOrNull */
-  email?: StringOrNullType;
-  fk_model_id?: string;
-  heading?: string;
   /** Unique ID */
   id?: IdType;
+  /** Banner Image URL. Not in use currently. */
+  banner_image_url?: StringOrNullType;
+  /** Form Columns */
+  columns?: FormColumnType[];
+  /** Email to sned after form is submitted */
+  email?: StringOrNullType;
+  /**
+   * Foreign Key to Model
+   * @example md_rsu68aqjsbyqtl
+   */
+  fk_model_id?: string;
+  /**
+   * Base I
+   * @example md_rsu68aqjsbyqtl
+   */
+  base_id?: string;
+  /**
+   * The heading of the form
+   * @example My Form
+   */
+  heading?: string;
+  /**
+   * Lock Type of this view
+   * @example collaborative
+   */
   lock_type?: 'collaborative' | 'locked' | 'personal';
-  /** Model for StringOrNull */
+  /** Logo URL. Not in use currently. */
   logo_url?: StringOrNullType;
-  /** Model for Meta */
+  /** Meta Info for this view */
   meta?: MetaType;
-  /** Model for StringOrNull */
+  /** The numbers of seconds to redirect after form submission */
   redirect_after_secs?: StringOrNullType;
-  /** Model for StringOrNull */
+  /** URL to redirect after submission */
   redirect_url?: StringOrNullType;
-  /** Model for Bool */
+  /** Show `Blank Form` after 5 seconds */
   show_blank_form?: BoolType;
+  /**
+   * The subheading of the form
+   * @example My Form Subheading
+   */
   subheading?: string;
-  /** Model for Bool */
+  /** Show `Submit Another Form` button */
   submit_another_form?: BoolType;
-  success_msg?: string;
+  /** Custom message after the form is successfully submitted */
+  success_msg?: StringOrNullType;
+  /**
+   * Form View Title
+   * @example Form View 1
+   */
+  title?: string;
+}
+
+/**
+ * Model for Form Request
+ */
+export interface FormReqType {
+  /** Banner Image URL. Not in use currently. */
+  banner_image_url?: StringOrNullType;
+  /** Email to sned after form is submitted */
+  email?: StringOrNullType;
+  /**
+   * The heading of the form
+   * @example My Form
+   */
+  heading?: string;
+  /**
+   * Lock Type of this view
+   * @example collaborative
+   */
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  /** Logo URL. Not in use currently. */
+  logo_url?: StringOrNullType;
+  /** Meta Info for this view */
+  meta?: MetaType;
+  /** The numbers of seconds to redirect after form submission */
+  redirect_after_secs?: StringOrNullType;
+  /** URL to redirect after submission */
+  redirect_url?: StringOrNullType;
+  /** Show `Blank Form` after 5 seconds */
+  show_blank_form?: BoolType;
+  /**
+   * The subheading of the form
+   * @example My Form Subheading
+   */
+  subheading?: string;
+  /** Show `Submit Another Form` button */
+  submit_another_form?: BoolType;
+  /** Custom message after the form is successfully submitted */
+  success_msg?: StringOrNullType;
+  /**
+   * The title of the form
+   * @example My Form
+   */
   title?: string;
 }
 
@@ -731,46 +808,6 @@ export interface FormColumnReqType {
  * Model for Form Create
  */
 export type FormCreateReqType = FormReqType;
-
-/**
- * Model for Form Request
- */
-export interface FormReqType {
-  /** Banner Image URL. Not in use currently. */
-  banner_image_url?: StringOrNullType;
-  /** Model for StringOrNull */
-  email?: StringOrNullType;
-  /**
-   * The heading of the form
-   * @example My Form
-   */
-  heading?: string;
-  lock_type?: 'collaborative' | 'locked' | 'personal';
-  /** Logo URL. Not in use currently. */
-  logo_url?: StringOrNullType;
-  /** Meta Info for this view */
-  meta?: MetaType;
-  /** The numbers of seconds to redirect after form submission */
-  redirect_after_secs?: StringOrNullType;
-  /** URL to redirect after submission */
-  redirect_url?: StringOrNullType;
-  /** Show `Blank Form` after 5 seconds */
-  show_blank_form?: BoolType;
-  /**
-   * The subheading of the form
-   * @example My Form Subheading
-   */
-  subheading?: string;
-  /** Show `Submit Another Form` button */
-  submit_another_form?: BoolType;
-  /** Custom message after the form is successfully submitted */
-  success_msg?: StringOrNullType;
-  /**
-   * The title of the form
-   * @example My Form
-   */
-  title?: string;
-}
 
 /**
  * Model for Formula
@@ -1680,7 +1717,7 @@ export interface ProjectUserReqType {
    */
   email: string;
   /** Project User Role */
-  roles: 'commenter' | 'editor' | 'guest' | 'owner' | 'viewer';
+  roles: 'commenter' | 'editor' | 'guest' | 'owner' | 'viewer' | 'creator';
 }
 
 /**

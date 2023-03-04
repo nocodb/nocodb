@@ -8463,9 +8463,6 @@
           },
           {
             "properties": {
-              "column_name": {
-                "type": "string"
-              },
               "column_order": {
                 "description": "Column order in a specific view",
                 "properties": {
@@ -8484,7 +8481,7 @@
                 "type": "string"
               }
             },
-            "required": ["column_name", "title"]
+            "required": ["title"]
           }
         ],
         "description": "Model for Column Request",
@@ -10730,7 +10727,10 @@
           }
         },
         "title": "Normal Column Request Model",
-        "type": "object"
+        "type": "object",
+        "required": [
+          "column_name"
+        ]
       },
       "OrgUserReq": {
         "description": "Model for Organisation User Update Request",

@@ -428,7 +428,6 @@ export type ColumnReqType = (
       NormalColumnRequestType &
       RollupColumnReqType)
 ) & {
-  column_name: string;
   /** Column order in a specific view */
   column_order?: {
     order?: number;
@@ -1373,7 +1372,7 @@ export interface NormalColumnRequestType {
   cc?: StringOrNullType;
   /** Model for StringOrNull */
   cdf?: StringOrNullType;
-  column_name?: string;
+  column_name: string;
   /** Model for StringOrNull */
   csn?: StringOrNullType;
   dt?: string;

@@ -69,23 +69,18 @@ const insertLink = () => {
     return
   }
 
-  let url
-  try {
-    url = new URL(linkUrl.value)
-  } catch (e) {
+  if (isLinkInputFormType.value !== 'externalContent' && getExternalContentType(linkUrl.value) !== isLinkInputFormType.value) {
     isLinkInputFormErrored.value = true
     return
   }
 
-  if (isLinkInputFormType.value !== 'externalContent' && getExternalContentType(url) !== isLinkInputFormType.value) {
-    isLinkInputFormErrored.value = true
-    return
-  }
-
-  editor.chain().focus().setExternalContent({
-    url: linkUrl.value,
-    type: isLinkInputFormType.value,
-  })
+  editor
+    .chain()
+    .focus()
+    .setExternalContent({
+      url: urlToEmbedUrl(linkUrl.value),
+      type: getExternalContentType(isLinkInputFormType.value)!,
+    })
   isLinkInputFormState.value = false
 }
 

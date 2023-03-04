@@ -741,8 +741,8 @@ export default class View implements ViewType {
     viewId: string,
     fkColId: string,
     colData: {
-      order: number;
-      show: boolean;
+      order?: number;
+      show?: BoolType;
     },
     ncMeta = Noco.ncMeta
   ): Promise<

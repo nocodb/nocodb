@@ -29,7 +29,7 @@ const { isEmail } = require('validator');
 import axios from 'axios';
 
 import IEmailAdapter from '../../../interface/IEmailAdapter';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import XcCache from '../plugins/adapters/cache/XcCache';
 
 passport.serializeUser(function (
@@ -130,7 +130,7 @@ export default class RestAuthCtrl {
     await this.createAuthTableIfNotExists();
 
     await this.initStrategies();
-    Tele.emit('evt_app_started', await this.users.count('id as count').first());
+    T.emit('evt_app_started', await this.users.count('id as count').first());
     this.app.router.use(passport.initialize());
 
     const jwtMiddleware = passport.authenticate('jwt', { session: false });
@@ -406,7 +406,7 @@ export default class RestAuthCtrl {
             const token = req.query.state;
 
             if (token) {
-              Tele.emit('evt_subscribe', email);
+              T.emit('evt_subscribe', email);
               await this.users
                 .update({
                   // firstname, lastname,
@@ -431,7 +431,7 @@ export default class RestAuthCtrl {
                   return cb({ msg: `Account not found!` });
                 }
 
-                Tele.emit('evt_subscribe', email);
+                T.emit('evt_subscribe', email);
                 const salt = await promisify(bcrypt.genSalt)(10);
                 user = await this.users.insert({
                   email: profile.emails[0].value,
@@ -513,7 +513,7 @@ export default class RestAuthCtrl {
             const token = req.query?.state?.replace('github|', '');
 
             if (token) {
-              Tele.emit('evt_subscribe', email);
+              T.emit('evt_subscribe', email);
               await this.users
                 .update({
                   // firstname, lastname,
@@ -538,7 +538,7 @@ export default class RestAuthCtrl {
                   return cb({ msg: `Account not found!` });
                 }
 
-                Tele.emit('evt_subscribe', email);
+                T.emit('evt_subscribe', email);
                 const salt = await promisify(bcrypt.genSalt)(10);
                 user = await this.users.insert({
                   email: profile.emails[0].value,
@@ -900,7 +900,7 @@ export default class RestAuthCtrl {
       const email_verification_token = uuidv4();
 
       if (!ignore_subscribe) {
-        Tele.emit('evt_subscribe', email);
+        T.emit('evt_subscribe', email);
       }
 
       if (user) {
@@ -928,7 +928,7 @@ export default class RestAuthCtrl {
         if (!(await this.users.first())) {
           // todo: update in nc_store
           // roles = 'owner,creator,editor'
-          Tele.emit('evt', { evt_type: 'project:invite', count: 1 });
+          T.emit('evt', { evt_type: 'project:invite', count: 1 });
         } else {
           if (process.env.NC_INVITE_ONLY_SIGNUP) {
             return next(
@@ -1289,7 +1289,7 @@ export default class RestAuthCtrl {
       }
     }
 
-    Tele.emit('evt', { evt_type: 'project:invite', count: count?.count });
+    T.emit('evt', { evt_type: 'project:invite', count: count?.count });
     this.xcMeta.audit(req.body.project_id, null, 'nc_audit', {
       op_type: 'AUTHENTICATION',
       op_sub_type: 'INVITE',

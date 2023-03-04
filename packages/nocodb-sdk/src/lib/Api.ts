@@ -871,6 +871,7 @@ export interface UserInfoType {
 }
 
 export type VisibilityRuleReqType = {
+  id?: string | null;
   disabled?: {
     commenter?: BoolType;
     creator?: BoolType;

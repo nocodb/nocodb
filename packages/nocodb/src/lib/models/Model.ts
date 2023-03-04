@@ -102,6 +102,7 @@ export default class Model implements TableType {
       mm?: BoolType;
       created_at?: any;
       updated_at?: any;
+      type?: ModelTypes;
     },
     ncMeta = Noco.ncMeta
   ) {

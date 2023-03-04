@@ -2,7 +2,7 @@ import { NcConfig } from '../../interface/config';
 
 import debug from 'debug';
 import NcMetaIO from '../meta/NcMetaIO';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
 import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
@@ -107,14 +107,14 @@ export default class NcUpgrader {
         }
       }
       await ctx.ncMeta.commit();
-      Tele.emit('evt', {
+      T.emit('evt', {
         evt_type: 'appMigration:upgraded',
         from: oldVersion,
         to: process.env.NC_VERSION,
       });
     } catch (e) {
       await ctx.ncMeta.rollback(e);
-      Tele.emit('evt', {
+      T.emit('evt', {
         evt_type: 'appMigration:failed',
         from: oldVersion,
         to: process.env.NC_VERSION,

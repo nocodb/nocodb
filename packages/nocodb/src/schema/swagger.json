@@ -8463,6 +8463,9 @@
           },
           {
             "properties": {
+              "column_name": {
+                "type": "string"
+              },
               "column_order": {
                 "description": "Column order in a specific view",
                 "properties": {

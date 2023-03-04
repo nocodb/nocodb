@@ -428,6 +428,7 @@ export type ColumnReqType = (
       NormalColumnRequestType &
       RollupColumnReqType)
 ) & {
+  column_name?: string;
   /** Column order in a specific view */
   column_order?: {
     order?: number;

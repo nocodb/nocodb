@@ -111,7 +111,6 @@ export function getExternalContentType(url: any) {
 }
 
 export const urlToEmbedUrl = (url: string, type?: string) => {
-  console.log('type', type)
   if (!type) {
     type = getExternalContentType(url)
   }

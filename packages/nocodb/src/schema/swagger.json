@@ -9728,8 +9728,8 @@
             "description": "Unique ID"
           },
           "notification": {
-            "type": "string",
-            "description": "Hook Notification including info such as type, payload, method, body, and etc"
+            "description": "Hook Notification including info such as type, payload, method, body, and etc",
+            "type": ["object", "string"]
           },
           "operation": {
             "enum": ["delete", "insert", "update"],
@@ -9822,8 +9822,8 @@
             "description": "Unique ID"
           },
           "notification": {
-            "type": "string",
-            "description": "Hook Notification including info such as type, payload, method, body, and etc"
+            "description": "Hook Notification including info such as type, payload, method, body, and etc",
+            "type": ["object", "string"]
           },
           "operation": {
             "enum": ["delete", "insert", "update"],
@@ -10058,7 +10058,7 @@
         "description": "Model for ID",
         "examples": ["string"],
         "maxLength": 20,
-        "minLength": 1,
+        "minLength": 0,
         "title": "ID Model",
         "type": "string"
       },

@@ -7534,12 +7534,10 @@
         "description": "Model for API Token",
         "examples": [
           {
-            "created_at": null,
-            "description": "string",
-            "fk_user_id": "string",
-            "id": "string",
-            "token": "string",
-            "updated_at": null
+            "id": "1",
+            "fk_user_id": "us_b3xo2i44nx5y9l",
+            "description": "This API Token is for ABC application",
+            "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
           }
         ],
         "title": "API Token Model",
@@ -7555,11 +7553,13 @@
           },
           "description": {
             "type": "string",
-            "description": "API Token Description"
+            "description": "API Token Description",
+            "example": "This API Token is for ABC application"
           },
           "token": {
             "type": "string",
-            "description": "API Token"
+            "description": "API Token",
+            "example": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
           }
         }
       },
@@ -10731,9 +10731,7 @@
         },
         "title": "Normal Column Request Model",
         "type": "object",
-        "required": [
-          "column_name"
-        ]
+        "required": ["column_name"]
       },
       "OrgUserReq": {
         "description": "Model for Organisation User Update Request",
@@ -11279,7 +11277,14 @@
             "description": "Project User Email"
           },
           "roles": {
-            "enum": ["commenter", "editor", "guest", "owner", "viewer", "creator"],
+            "enum": [
+              "commenter",
+              "editor",
+              "guest",
+              "owner",
+              "viewer",
+              "creator"
+            ],
             "type": "string",
             "description": "Project User Role"
           }

@@ -11,16 +11,15 @@ export async function columnAdd(param: {
   columnId: string;
   column: ViewColumnReqType;
 }) {
-
-  validatePayload('swagger.json#/components/schemas/ViewColumnReq', param.column);
+  validatePayload(
+    'swagger.json#/components/schemas/ViewColumnReq',
+    param.column
+  );
 
   const viewColumn = await View.insertOrUpdateColumn(
     param.viewId,
     param.columnId,
-    {
-      ...param.column,
-      view_id: param.viewId,
-    }
+    param.column
   );
   T.emit('evt', { evt_type: 'viewColumn:inserted' });
 

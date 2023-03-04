@@ -11279,7 +11279,7 @@
             "description": "Project User Email"
           },
           "roles": {
-            "enum": ["commenter", "editor", "guest", "owner", "viewer"],
+            "enum": ["commenter", "editor", "guest", "owner", "viewer", "creator"],
             "type": "string",
             "description": "Project User Role"
           }

@@ -8,9 +8,6 @@ import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
 
 export default class FormView implements FormType {
-  show: boolean;
-  is_default: boolean;
-  order: number;
   title?: string;
   heading?: string;
   subheading?: string;
@@ -25,7 +22,6 @@ export default class FormView implements FormType {
 
   fk_view_id: string;
   columns?: FormViewColumn[];
-
   project_id?: string;
   base_id?: string;
   meta?: string | Record<string, any>;

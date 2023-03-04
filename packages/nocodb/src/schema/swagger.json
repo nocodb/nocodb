@@ -3131,7 +3131,26 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FormCreateReq"
+                "$ref": "#/components/schemas/FormReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "banner_image_url": null,
+                    "email": "user@example.com",
+                    "heading": "My Form",
+                    "lock_type": "collaborative",
+                    "logo_url": null,
+                    "meta": null,
+                    "redirect_after_secs": null,
+                    "redirect_url": null,
+                    "show_blank_form": 0,
+                    "subheading": "My Form Subheading",
+                    "submit_another_form": 0,
+                    "success_msg": "Thank you for the submission.",
+                    "title": "Form View 1"
+                  }
+                }
               }
             }
           }
@@ -8961,7 +8980,7 @@
           },
           "base_id": {
             "type": "string",
-            "description": "Base I",
+            "description": "Base ID",
             "example": "md_rsu68aqjsbyqtl",
             "x-stoplight": {
               "id": "kfz7tve8nzj6f"
@@ -9107,66 +9126,19 @@
         "description": "Model for Form Column",
         "examples": [
           {
-            "created_at": "string",
-            "description": "string",
-            "fk_column_id": "string",
-            "fk_view_id": "string",
-            "help": null,
-            "id": "string",
-            "label": "string",
-            "meta": {},
-            "order": 0,
-            "required": true,
-            "show": true,
-            "updated_at": "string",
+            "id": "fvc_1m9b0aub791d4m",
+            "description": null,
+            "fk_column_id": "cl_ah9zavkn25ihyd",
+            "fk_view_id": "vw_6fqln9vdytdv8q",
+            "help": "This is a help text",
+            "label": "Form Label",
+            "meta": null,
+            "order": 1,
+            "required": 0,
+            "show": 0,
             "uuid": null
           }
         ],
-        "properties": {
-          "created_at": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "description": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column",
-            "minLength": 1
-          },
-          "fk_view_id": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "help": {},
-          "id": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "label": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta"
-          },
-          "order": {
-            "type": "number"
-          },
-          "required": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "updated_at": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "uuid": {}
-        },
         "title": "Form Column Model",
         "type": "object",
         "x-examples": {
@@ -9186,47 +9158,67 @@
             "updated_at": "2022-02-15 12:39:16",
             "uuid": null
           }
+        },
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "description": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form Column Description (Not in use)"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "help": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form Column Help Text"
+          },
+          "label": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form Column Label"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among all the columns in the form",
+            "example": 1
+          },
+          "required": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this form column required in submission?"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown in Form?"
+          },
+          "uuid": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form Column UUID (Not in use)"
+          }
         }
       },
       "FormColumnReq": {
         "description": "Model for Form Column Request",
         "examples": [
           {
-            "description": "string",
-            "help": "string",
-            "label": "string",
-            "meta": {},
-            "order": 0,
-            "required": true,
-            "show": true
+            "description": null,
+            "help": "This is a help text",
+            "label": "Form Label",
+            "meta": null,
+            "order": 1,
+            "required": 0,
+            "show": 0
           }
         ],
-        "properties": {
-          "description": {
-            "maxLength": 255,
-            "type": "string"
-          },
-          "help": {
-            "maxLength": 255
-          },
-          "label": {
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta"
-          },
-          "order": {
-            "type": "number"
-          },
-          "required": {
-            "$ref": "#/components/schemas/Bool"
-          },
-          "show": {
-            "$ref": "#/components/schemas/Bool"
-          }
-        },
         "title": "Form Column Request Model",
         "type": "object",
         "x-examples": {
@@ -9246,33 +9238,37 @@
             "updated_at": "2022-02-15 12:39:16",
             "uuid": null
           }
+        },
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form Column Description (Not in use)"
+          },
+          "help": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form Column Help Text"
+          },
+          "label": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Form Column Label"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info"
+          },
+          "order": {
+            "type": "number",
+            "description": "The order among all the columns in the form"
+          },
+          "required": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this form column required in submission?"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown in Form?"
+          }
         }
-      },
-      "FormCreateReq": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/FormReq"
-          }
-        ],
-        "description": "Model for Form Create",
-        "examples": [
-          {
-            "banner_image_url": "string",
-            "email": "string",
-            "heading": "My Form",
-            "lock_type": "collaborative",
-            "logo_url": "string",
-            "meta": {},
-            "redirect_after_secs": "string",
-            "redirect_url": "string",
-            "show_blank_form": true,
-            "subheading": "My Form Subheading",
-            "submit_another_form": true,
-            "success_msg": "string",
-            "title": "My Form"
-          }
-        ],
-        "title": "Form Create Model"
       },
       "Formula": {
         "description": "Model for Formula",

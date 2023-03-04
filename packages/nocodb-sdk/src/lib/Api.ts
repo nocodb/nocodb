@@ -681,7 +681,7 @@ export interface FormType {
    */
   fk_model_id?: string;
   /**
-   * Base I
+   * Base ID
    * @example md_rsu68aqjsbyqtl
    */
   base_id?: string;
@@ -769,45 +769,52 @@ export interface FormReqType {
  * Model for Form Column
  */
 export interface FormColumnType {
-  created_at?: string;
-  description?: string;
+  /** Unique ID */
+  id?: IdType;
+  /** Form Column Description (Not in use) */
+  description?: StringOrNullType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
-  fk_view_id?: string;
-  help?: any;
-  id?: string;
-  label?: string;
-  /** Model for Meta */
+  /** Model for ID */
+  fk_view_id?: IdType;
+  /** Form Column Help Text */
+  help?: StringOrNullType;
+  /** Form Column Label */
+  label?: StringOrNullType;
+  /** Meta Info */
   meta?: MetaType;
+  /**
+   * The order among all the columns in the form
+   * @example 1
+   */
   order?: number;
-  /** Model for Bool */
+  /** Is this form column required in submission? */
   required?: BoolType;
-  /** Model for Bool */
+  /** Is this column shown in Form? */
   show?: BoolType;
-  updated_at?: string;
-  uuid?: any;
+  /** Form Column UUID (Not in use) */
+  uuid?: StringOrNullType;
 }
 
 /**
  * Model for Form Column Request
  */
 export interface FormColumnReqType {
-  description?: string;
-  help?: any;
-  label?: string;
-  /** Model for Meta */
+  /** Form Column Description (Not in use) */
+  description?: StringOrNullType;
+  /** Form Column Help Text */
+  help?: StringOrNullType;
+  /** Form Column Label */
+  label?: StringOrNullType;
+  /** Meta Info */
   meta?: MetaType;
+  /** The order among all the columns in the form */
   order?: number;
-  /** Model for Bool */
+  /** Is this form column required in submission? */
   required?: BoolType;
-  /** Model for Bool */
+  /** Is this column shown in Form? */
   show?: BoolType;
 }
-
-/**
- * Model for Form Create
- */
-export type FormCreateReqType = FormReqType;
 
 /**
  * Model for Formula
@@ -3994,7 +4001,7 @@ export class Api<
      */
     formCreate: (
       tableId: IdType,
-      data: FormCreateReqType,
+      data: FormReqType,
       params: RequestParams = {}
     ) =>
       this.request<FormType, any>({

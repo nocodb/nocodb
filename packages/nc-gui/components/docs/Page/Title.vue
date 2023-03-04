@@ -3,7 +3,7 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 
 const emit = defineEmits(['focusEditor'])
 
-const { updatePage, isPublic, openedPage } = useDocs()
+const { updatePage, isPublic, openedPage, findPage, nestedPages } = useDocs()
 
 const titleInputRef = ref<HTMLInputElement>()
 
@@ -56,18 +56,24 @@ const setIcon = async (icon: string) => {
 
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.title],
-  async ([oldPageId, oldPageTitle], [newPageId, newPageTitle]) => {
+  async ([oldPageId], [newPageId]) => {
     if (isPublic.value) return
     if (!openedPage.value) return
 
     if (oldPageId !== newPageId) return
-    if (oldPageTitle === newPageTitle) return
+
+    if (
+      findPage(nestedPages.value, openedPage.value.id!) &&
+      findPage(nestedPages.value, openedPage.value.id!)?.title === openedPage.value.title
+    ) {
+      return
+    }
 
     await updatePage({ pageId: openedPage.value!.id!, page: { title: openedPage.value?.title } as any })
   },
   {
-    debounce: 100,
-    maxWait: 300,
+    debounce: 500,
+    maxWait: 700,
   },
 )
 </script>

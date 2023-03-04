@@ -11387,34 +11387,40 @@
         "description": "Model for SelectOption",
         "examples": [
           {
-            "color": "string",
-            "fk_column_id": "string",
-            "id": "string",
-            "order": 1,
-            "title": "string"
+            "id": "sl_hvfeuagqtlzzbk",
+            "title": "Option A",
+            "fk_column_id": "cl_35zmvi2tezfipw",
+            "color": "#cfdffe",
+            "order": 1
           }
         ],
+        "title": "SelectOption Model",
+        "type": "object",
         "properties": {
-          "color": {
-            "type": "string"
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Option Title\n",
+            "example": "Option A"
           },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
           },
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
+          "color": {
+            "type": "string",
+            "description": "Option Color",
+            "example": "#cfdffe"
           },
           "order": {
-            "type": "number"
-          },
-          "title": {
-            "type": "string"
+            "type": "number",
+            "description": "The order among the options",
+            "example": 1
           }
-        },
-        "title": "SelectOption Model",
-        "type": "object"
+        }
       },
       "SelectOptions": {
         "description": "Model for SelectOptions",
@@ -11422,75 +11428,87 @@
           {
             "options": [
               {
-                "color": "string",
-                "fk_column_id": "string",
-                "id": "string",
-                "order": 1,
-                "title": "string"
+                "id": "sl_hvfeuagqtlzzbk",
+                "title": "Option A",
+                "fk_column_id": "cl_35zmvi2tezfipw",
+                "color": "#cfdffe",
+                "order": 1
               }
             ]
           }
         ],
+        "title": "SelectOptions Model",
+        "type": "object",
         "properties": {
           "options": {
+            "type": "array",
+            "description": "Array of select options",
             "items": {
               "$ref": "#/components/schemas/SelectOption"
-            },
-            "type": "array"
+            }
           }
         },
-        "required": ["options"],
-        "title": "SelectOptions Model",
-        "type": "object"
+        "required": ["options"]
       },
       "SharedBaseReq": {
         "description": "Model for Shared Base Request",
         "examples": [
           {
-            "password": "stringst",
+            "password": "password123",
             "roles": "editor"
           }
         ],
+        "title": "Shared Base Request Model",
+        "type": "object",
         "properties": {
           "password": {
             "minLength": 8,
-            "type": "string"
+            "type": "string",
+            "description": "Password to protect the base",
+            "example": "password123"
           },
           "roles": {
             "enum": ["commenter", "editor", "viewer"],
-            "type": "string"
+            "type": "string",
+            "description": "The role given the target user",
+            "example": "editor"
           }
-        },
-        "title": "Shared Base Request Model",
-        "type": "object"
+        }
       },
       "SharedView": {
+        "$ref": "#/components/schemas/View",
         "description": "Model for Shared View",
+        "title": "SharedView",
         "examples": [
           {
-            "deleted": "string",
-            "fk_view_id": "string",
-            "id": "string",
-            "password": "string"
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "created_at": "2023-03-02 17:46:31",
+            "fk_model_id": "md_mhs9z4r2ak98x0",
+            "id": "vw_lg052cnc1c26kf",
+            "is_default": 1,
+            "lock_type": "collaborative",
+            "meta": {},
+            "order": 1,
+            "password": null,
+            "project_id": "p_xm3thidrblw4n7",
+            "show": 1,
+            "show_system_fields": null,
+            "title": "Sheet-1",
+            "type": 3,
+            "updated_at": "2023-03-02 17:46:31",
+            "uuid": null,
+            "view": {
+              "base_id": "ds_g4ccx6e77h1dmi",
+              "created_at": "2023-03-02 17:46:31",
+              "fk_view_id": "vw_lg052cnc1c26kf",
+              "meta": null,
+              "project_id": "p_xm3thidrblw4n7",
+              "row_height": null,
+              "updated_at": "2023-03-02 17:46:31",
+              "uuid": null
+            }
           }
-        ],
-        "properties": {
-          "deleted": {
-            "type": "string"
-          },
-          "fk_view_id": {
-            "type": "string"
-          },
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "password": {
-            "type": "string"
-          }
-        },
-        "title": "Shared View Model",
-        "type": "object"
+        ]
       },
       "SharedViewList": {
         "description": "Model for Shared View List",

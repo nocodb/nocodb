@@ -11288,68 +11288,74 @@
         "description": "Model for Rollup",
         "examples": [
           {
-            "deleted": "string",
-            "fk_column_id": "string",
-            "fk_relation_column_id": "string",
-            "fk_rollup_column_id": "string",
-            "id": "string",
-            "order": "string",
-            "rollup_function": "string",
-            "type": "string",
-            "virtual": true
+            "id": "rl_kc19pbdkij8wly",
+            "fk_column_id": "cl_588b63mneri2yi",
+            "fk_relation_column_id": "cl_c09q6eu6hsvn4s",
+            "fk_rollup_column_id": "cl_m62i1vyl23n8co",
+            "rollup_function": "count"
           }
         ],
+        "title": "Rollup Model",
+        "type": "object",
         "properties": {
-          "deleted": {
-            "type": "string"
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
           },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
           },
           "fk_relation_column_id": {
-            "type": "string"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign to Relation Column"
           },
           "fk_rollup_column_id": {
-            "type": "string"
-          },
-          "id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "order": {
-            "type": "string"
+            "description": "Foreign to Rollup Column"
           },
           "rollup_function": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "virtual": {
-            "$ref": "#/components/schemas/Bool"
+            "type": "string",
+            "description": "Rollup Function",
+            "example": "count",
+            "enum": [
+              "count",
+              "min",
+              "max",
+              "avg",
+              "countDistinct",
+              "sumDistinct",
+              "avgDistinct"
+            ]
           }
-        },
-        "title": "Rollup Model",
-        "type": "object"
+        }
       },
       "RollupColumnReq": {
         "description": "Model for Rollup Column Request",
         "examples": [
           {
-            "fk_relation_column_id": "string",
-            "fk_rollup_column_id": "string",
-            "rollup_function": "count",
-            "title": "string",
+            "fk_relation_column_id": "cl_c09q6eu6hsvn4s",
+            "fk_rollup_column_id": "cl_m62i1vyl23n8co",
+            "title": "Rollup Column",
+            "rollup_function": "avg",
             "uidt": "Rollup"
           }
         ],
+        "title": "Rollup Column Request Model",
+        "type": "object",
         "properties": {
           "fk_relation_column_id": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Relation Column"
           },
           "fk_rollup_column_id": {
-            "$ref": "#/components/schemas/Id"
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Rollup Column"
+          },
+          "title": {
+            "maxLength": 255,
+            "type": "string",
+            "description": "Rollup Column Title"
           },
           "rollup_function": {
             "enum": [
@@ -11362,26 +11368,22 @@
               "sum",
               "sumDistinct"
             ],
-            "type": "string"
-          },
-          "title": {
-            "maxLength": 255,
-            "type": "string"
+            "type": "string",
+            "description": "Rollup Function"
           },
           "uidt": {
             "enum": ["Rollup"],
-            "type": "string"
+            "type": "string",
+            "description": "UI DataType"
           }
         },
         "required": [
           "fk_relation_column_id",
           "fk_rollup_column_id",
-          "rollup_function",
           "title",
+          "rollup_function",
           "uidt"
-        ],
-        "title": "Rollup Column Request Model",
-        "type": "object"
+        ]
       },
       "SelectOption": {
         "description": "Model for SelectOption",

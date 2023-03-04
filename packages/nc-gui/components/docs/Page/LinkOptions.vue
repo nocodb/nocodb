@@ -154,7 +154,12 @@ watch(isLinkOptionsVisible, (value, oldValue) => {
 </script>
 
 <template>
-  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }" :should-show="(checkLinkMark as any)">
+  <BubbleMenu
+    :editor="editor"
+    :update-delay="500"
+    :tippy-options="{ duration: 100, maxWidth: 600 }"
+    :should-show="(checkLinkMark as any)"
+  >
     <div
       v-if="!justDeleted"
       ref="wrapperRef"

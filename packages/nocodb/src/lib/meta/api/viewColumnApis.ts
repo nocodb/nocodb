@@ -3,6 +3,7 @@ import View from '../../models/View';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers';
 
 export async function columnList(req: Request, res: Response) {
   res.json(await View.getColumns(req.params.viewId));
@@ -40,11 +41,13 @@ router.get(
 router.post(
   '/api/v1/db/meta/views/:viewId/columns/',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/ViewColumnReq'),
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
 router.patch(
   '/api/v1/db/meta/views/:viewId/columns/:columnId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/ViewColumnUpdateReq'),
   ncMetaAclMw(columnUpdate, 'viewColumnUpdate')
 );
 export default router;

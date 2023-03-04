@@ -8893,97 +8893,215 @@
         "description": "Model for Form",
         "examples": [
           {
-            "banner_image_url": "string",
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "banner_image_url": null,
             "columns": [
               {
-                "created_at": "string",
-                "description": "string",
-                "fk_column_id": "string",
-                "fk_view_id": "string",
+                "id": "fvc_ugj9zo5bzocxtl",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_view_id": "vw_kdf5cr7qmhksek",
+                "fk_column_id": "cl_phvuuwjrzcdo0g",
+                "uuid": null,
+                "label": null,
                 "help": null,
-                "id": "string",
-                "label": "string",
-                "meta": {},
-                "order": 0,
-                "required": true,
-                "show": true,
-                "updated_at": "string",
-                "uuid": null
+                "description": null,
+                "required": null,
+                "show": 0,
+                "order": 1,
+                "created_at": "2023-03-04 16:40:47",
+                "updated_at": "2023-03-04 16:40:47",
+                "meta": {}
               }
             ],
-            "email": "string",
-            "fk_model_id": "string",
-            "heading": "string",
-            "id": "string",
+            "email": "user@example.com",
+            "fk_model_id": "md_rsu68aqjsbyqtl",
+            "heading": "My Form",
             "lock_type": "collaborative",
-            "logo_url": "string",
-            "meta": {},
-            "redirect_after_secs": "string",
-            "redirect_url": "string",
-            "show_blank_form": true,
-            "subheading": "string",
-            "submit_another_form": true,
-            "success_msg": "string",
-            "title": "string"
+            "logo_url": null,
+            "meta": null,
+            "redirect_after_secs": null,
+            "redirect_url": null,
+            "show_blank_form": 0,
+            "subheading": "My Form Subheading",
+            "submit_another_form": 0,
+            "success_msg": "Thank you for the submission.",
+            "title": "Form View 1"
           }
         ],
+        "title": "Form Model",
+        "type": "object",
         "properties": {
-          "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull"
-          },
-          "columns": {
-            "items": {
-              "$ref": "#/components/schemas/FormColumn"
-            },
-            "type": "array"
-          },
-          "email": {
-            "$ref": "#/components/schemas/StringOrNull"
-          },
-          "fk_model_id": {
-            "type": "string"
-          },
-          "heading": {
-            "type": "string"
-          },
           "id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
+            "description": "Unique ID",
+            "x-stoplight": {
+              "id": "z6wjvs00d3qfk"
+            }
+          },
+          "banner_image_url": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Banner Image URL. Not in use currently."
+          },
+          "columns": {
+            "type": "array",
+            "description": "Form Columns",
+            "items": {
+              "$ref": "#/components/schemas/FormColumn"
+            }
+          },
+          "email": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Email to sned after form is submitted"
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Foreign Key to Model",
+            "example": "md_rsu68aqjsbyqtl"
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Base I",
+            "example": "md_rsu68aqjsbyqtl",
+            "x-stoplight": {
+              "id": "kfz7tve8nzj6f"
+            }
+          },
+          "heading": {
+            "type": "string",
+            "description": "The heading of the form",
+            "example": "My Form"
           },
           "lock_type": {
             "enum": ["collaborative", "locked", "personal"],
-            "type": "string"
+            "type": "string",
+            "description": "Lock Type of this view",
+            "example": "collaborative"
           },
           "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Logo URL. Not in use currently."
           },
           "meta": {
-            "$ref": "#/components/schemas/Meta"
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info for this view"
           },
           "redirect_after_secs": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "The numbers of seconds to redirect after form submission"
           },
           "redirect_url": {
-            "$ref": "#/components/schemas/StringOrNull"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "URL to redirect after submission"
           },
           "show_blank_form": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show `Blank Form` after 5 seconds"
           },
           "subheading": {
+            "type": "string",
+            "description": "The subheading of the form",
+            "example": "My Form Subheading"
+          },
+          "submit_another_form": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show `Submit Another Form` button"
+          },
+          "success_msg": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Custom message after the form is successfully submitted"
+          },
+          "title": {
+            "type": "string",
+            "description": "Form View Title",
+            "example": "Form View 1"
+          }
+        }
+      },
+      "FormReq": {
+        "description": "Model for Form Request",
+        "examples": [
+          {
+            "banner_image_url": null,
+            "email": "user@example.com",
+            "heading": "My Form",
+            "lock_type": "collaborative",
+            "logo_url": null,
+            "meta": null,
+            "redirect_after_secs": null,
+            "redirect_url": null,
+            "show_blank_form": 0,
+            "subheading": "My Form Subheading",
+            "submit_another_form": 0,
+            "success_msg": "Thank you for the submission.",
+            "title": "Form View 1"
+          }
+        ],
+        "title": "Form Request Model",
+        "type": "object",
+        "properties": {
+          "banner_image_url": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Banner Image URL. Not in use currently."
+          },
+          "email": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Email to sned after form is submitted"
+          },
+          "heading": {
+            "description": "The heading of the form",
+            "example": "My Form",
+            "maxLength": 255,
+            "type": "string"
+          },
+          "lock_type": {
+            "enum": ["collaborative", "locked", "personal"],
+            "type": "string",
+            "description": "Lock Type of this view",
+            "example": "collaborative"
+          },
+          "logo_url": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Logo URL. Not in use currently."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info for this view"
+          },
+          "redirect_after_secs": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "The numbers of seconds to redirect after form submission"
+          },
+          "redirect_url": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "URL to redirect after submission"
+          },
+          "show_blank_form": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show `Blank Form` after 5 seconds"
+          },
+          "subheading": {
+            "description": "The subheading of the form",
+            "example": "My Form Subheading",
+            "maxLength": 255,
             "type": "string"
           },
           "submit_another_form": {
-            "$ref": "#/components/schemas/Bool"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show `Submit Another Form` button"
           },
           "success_msg": {
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Custom message after the form is successfully submitted"
           },
           "title": {
+            "description": "The title of the form",
+            "example": "My Form",
+            "maxLength": 255,
+            "minLength": 1,
             "type": "string"
           }
-        },
-        "title": "Form Model",
-        "type": "object"
+        }
       },
       "FormColumn": {
         "description": "Model for Form Column",
@@ -9134,9 +9252,6 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/FormReq"
-          },
-          {
-            "required": ["title"]
           }
         ],
         "description": "Model for Form Create",
@@ -9158,88 +9273,6 @@
           }
         ],
         "title": "Form Create Model"
-      },
-      "FormReq": {
-        "description": "Model for Form Request",
-        "examples": [
-          {
-            "banner_image_url": "string",
-            "email": "string",
-            "heading": "My Form",
-            "lock_type": "collaborative",
-            "logo_url": "string",
-            "meta": {},
-            "redirect_after_secs": "string",
-            "redirect_url": "string",
-            "show_blank_form": true,
-            "subheading": "My Form Subheading",
-            "submit_another_form": true,
-            "success_msg": "string",
-            "title": "My Form"
-          }
-        ],
-        "properties": {
-          "banner_image_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Banner Image URL. Not in use currently."
-          },
-          "email": {
-            "$ref": "#/components/schemas/StringOrNull"
-          },
-          "heading": {
-            "description": "The heading of the form",
-            "example": "My Form",
-            "maxLength": 255,
-            "type": "string"
-          },
-          "lock_type": {
-            "enum": ["collaborative", "locked", "personal"],
-            "type": "string"
-          },
-          "logo_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Logo URL. Not in use currently."
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta",
-            "description": "Meta Info for this view"
-          },
-          "redirect_after_secs": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "The numbers of seconds to redirect after form submission"
-          },
-          "redirect_url": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "URL to redirect after submission"
-          },
-          "show_blank_form": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Show `Blank Form` after 5 seconds"
-          },
-          "subheading": {
-            "description": "The subheading of the form",
-            "example": "My Form Subheading",
-            "maxLength": 255,
-            "type": "string"
-          },
-          "submit_another_form": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Show `Submit Another Form` button"
-          },
-          "success_msg": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Custom message after the form is successfully submitted"
-          },
-          "title": {
-            "description": "The title of the form",
-            "example": "My Form",
-            "maxLength": 255,
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "title": "Form Request Model",
-        "type": "object"
       },
       "Formula": {
         "description": "Model for Formula",

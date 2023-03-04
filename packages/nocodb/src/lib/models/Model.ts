@@ -27,7 +27,6 @@ import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
-  created_at: Date | number | string;
   base_id: 'db' | string;
   deleted: BoolType;
   enabled: BoolType;
@@ -42,7 +41,6 @@ export default class Model implements TableType {
   show_all_fields: boolean;
   tags: string;
   type: ModelTypes;
-  updated_at: Date | number | string;
 
   table_name: string;
   title: string;

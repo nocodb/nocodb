@@ -14089,6 +14089,16 @@
         ],
         "items": {
           "properties": {
+            "id": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "disabled": {
               "properties": {
                 "commenter": {

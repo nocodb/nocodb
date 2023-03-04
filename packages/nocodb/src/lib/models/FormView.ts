@@ -1,6 +1,6 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { FormType } from 'nocodb-sdk';
+import { BoolType, FormType } from 'nocodb-sdk';
 import { deserializeJSON, serializeJSON } from '../utils/serialize';
 import FormViewColumn from './FormViewColumn';
 import View from './View';
@@ -8,6 +8,9 @@ import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
 
 export default class FormView implements FormType {
+  show: BoolType;
+  is_default: BoolType;
+  order: number;
   title?: string;
   heading?: string;
   subheading?: string;
@@ -17,8 +20,8 @@ export default class FormView implements FormType {
   email?: string;
   banner_image_url?: string;
   logo_url?: string;
-  submit_another_form?: boolean;
-  show_blank_form?: boolean;
+  submit_another_form?: BoolType;
+  show_blank_form?: BoolType;
 
   fk_view_id: string;
   columns?: FormViewColumn[];

@@ -2159,6 +2159,7 @@ export interface ViewColumnReqType {
  * Model for Visibility Rule Request
  */
 export type VisibilityRuleReqType = {
+  id?: string | null;
   disabled?: {
     /** Model for Bool */
     commenter?: BoolType;

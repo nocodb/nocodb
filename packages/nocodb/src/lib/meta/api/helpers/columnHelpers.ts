@@ -1,9 +1,9 @@
 import { customAlphabet } from 'nanoid';
 import {
+  BoolType,
   ColumnReqType,
   LinkToAnotherRecordType,
   LookupColumnReqType,
-  BoolType,
   RelationTypes,
   RollupColumnReqType,
   TableType,
@@ -77,7 +77,7 @@ export async function createHmAndBtColumn(
   }
 }
 
-export async function validateRollupPayload(payload: ColumnReqType) {
+export async function validateRollupPayload(payload: ColumnReqType | Column) {
   validateParams(
     [
       'title',

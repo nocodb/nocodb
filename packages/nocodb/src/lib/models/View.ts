@@ -15,6 +15,7 @@ import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
 import Filter from './Filter';
 import {
+  BoolType,
   ColumnReqType,
   isSystemColumn,
   UITypes,
@@ -942,7 +943,7 @@ export default class View implements ViewType {
     body: {
       title?: string;
       order?: number;
-      show_system_fields?: boolean;
+      show_system_fields?: BoolType;
       lock_type?: string;
       password?: string;
       uuid?: string;

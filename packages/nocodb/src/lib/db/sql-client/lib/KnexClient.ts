@@ -1,6 +1,6 @@
 /* eslint-disable no-constant-condition */
 import { knex, Knex } from 'knex';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';
@@ -620,7 +620,7 @@ class KnexClient extends SqlClient {
         KnexClient.___ext = await this._validateInput();
       }
       if (!KnexClient.___ext) {
-        Tele.emit('evt', {
+        T.emit('evt', {
           evt_type: 'project:external',
           payload: null,
           check: true,

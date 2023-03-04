@@ -70,7 +70,8 @@ After the click, it will show a menu and you can enter the column name and choos
 
 You can also click `Show more` for additional menu options.
 
-<img width="445" alt="image" src="https://user-images.githubusercontent.com/35857179/189075678-d18b799f-df13-4f78-a5a5-813e8d3277ae.png">
+![Screenshot 2023-03-03 at 8 13 07 PM](https://user-images.githubusercontent.com/86527202/222749857-0e793db2-a5d2-4b54-8d23-2a0cbbec8f5d.png)
+<!-- <img width="445" alt="image" src="https://user-images.githubusercontent.com/35857179/189075678-d18b799f-df13-4f78-a5a5-813e8d3277ae.png"> -->
 
 Click `Save` button to create the new column. 
 

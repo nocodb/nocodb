@@ -217,7 +217,7 @@ export default class ProjectUser {
 
   static async getProjectsList(
     userId: string,
-    _params: any,
+    _params?: any,
     ncMeta = Noco.ncMeta
   ): Promise<ProjectType[]> {
     // todo: pagination

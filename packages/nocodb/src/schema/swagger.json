@@ -10376,6 +10376,8 @@
             "uidt": "Lookup"
           }
         ],
+        "title": "Lookup Column Request Model",
+        "type": "object",
         "properties": {
           "fk_lookup_column_id": {
             "$ref": "#/components/schemas/Id"
@@ -10391,15 +10393,7 @@
             "enum": ["Lookup"],
             "type": "string"
           }
-        },
-        "required": [
-          "fk_lookup_column_id",
-          "fk_relation_column_id",
-          "title",
-          "uidt"
-        ],
-        "title": "Lookup Column Request Model",
-        "type": "object"
+        }
       },
       "Map": {
         "description": "Model for Map",
@@ -10705,6 +10699,7 @@
               "Decimal",
               "Duration",
               "Email",
+              "Formula",
               "GeoData",
               "Geometry",
               "ID",
@@ -10721,7 +10716,9 @@
               "SpecificDBType",
               "Time",
               "URL",
-              "Year"
+              "Year",
+              "QrCode",
+              "GeoData"
             ],
             "type": "string"
           },
@@ -11378,14 +11375,7 @@
             "type": "string",
             "description": "UI DataType"
           }
-        },
-        "required": [
-          "fk_relation_column_id",
-          "fk_rollup_column_id",
-          "title",
-          "rollup_function",
-          "uidt"
-        ]
+        }
       },
       "SelectOption": {
         "description": "Model for SelectOption",

@@ -165,7 +165,8 @@ onMounted(async () => {
               </span>
             </button>
           </div>
-      </a-form>
+        </a-form>
+      </div>
     </div>
   </NuxtLayout>
 </template>

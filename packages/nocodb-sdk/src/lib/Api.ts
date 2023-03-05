@@ -114,8 +114,8 @@ export interface ProjectType {
   deleted?: BoolType;
   order?: number;
   bases?: BaseType[];
-  type?: string;
   is_meta?: BoolType;
+  type?: string;
   prefix?: string;
   created_at?: any;
   updated_at?: any;
@@ -140,8 +140,8 @@ export interface BaseType {
   inflection_column?: string;
   inflection_table?: string;
   order?: number;
-  erd_uuid?: string;
   enabled?: BoolType;
+  erd_uuid?: string;
 }
 
 export interface BaseReqType {
@@ -771,10 +771,6 @@ export interface PasswordChangeReqType {
   newPassword: string;
 }
 
-export interface ApiTokenReqType {
-  description?: StringOrNullType;
-}
-
 export interface PluginType {
   id?: string;
   title?: string;
@@ -813,6 +809,10 @@ export interface ApiTokenType {
   fk_user_id?: string;
   created_at?: any;
   updated_at?: any;
+}
+
+export interface ApiTokenReqType {
+  description?: StringOrNullType;
 }
 
 export interface HookLogType {
@@ -1201,30 +1201,6 @@ export class Api<
      * No description
      *
      * @tags Noco docs
-     * @name ListDraftPages
-     * @summary list draft pages
-     * @request GET:/api/v1/docs/page-drafts
-     * @response `200` `(DocsPageType)[]` OK
-     */
-    listDraftPages: (
-      query: {
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<DocsPageType[], any>({
-        path: `/api/v1/docs/page-drafts`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Noco docs
      * @name ListPublicPages
      * @summary list public pages
      * @request GET:/api/v1/public/docs/pages
@@ -1515,32 +1491,6 @@ export class Api<
       }),
 
     /**
-     * @description Get page by nested slug
-     *
-     * @tags Noco docs
-     * @name GetPageBySlug
-     * @summary Get page by slug
-     * @request GET:/api/v1/docs/page-slug
-     * @response `200` `DocsPageType` OK
-     */
-    getPageBySlug: (
-      query: {
-        /** Project id */
-        projectId: string;
-        /** Nested Slug */
-        nestedSlug: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<DocsPageType, any>({
-        path: `/api/v1/docs/page-slug`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
      * @description Get page
      *
      * @tags Noco docs
@@ -1614,31 +1564,6 @@ export class Api<
         body: data,
         type: ContentType.Json,
         format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Batch publish pages
-     *
-     * @tags Noco docs
-     * @name BatchPublishPages
-     * @summary Batch publish pages
-     * @request POST:/api/v1/docs/page/batch-publish
-     * @response `200` `void` OK
-     */
-    batchPublishPages: (
-      data: {
-        pageIds?: string[];
-        /** Project id */
-        projectId: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<void, any>({
-        path: `/api/v1/docs/page/batch-publish`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
         ...params,
       }),
 

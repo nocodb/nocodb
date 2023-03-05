@@ -11,7 +11,7 @@ async function get(
 ) {
   try {
     const project = await Project.getWithInfo(req.query?.projectId as string);
-    const projectMeta = JSON.parse(project.meta);
+    const projectMeta = (typeof project.meta === 'string' ? JSON.parse(project.meta as string) : project.meta);
 
     const page = await Page.get({
       id: req.params.id,
@@ -55,7 +55,7 @@ async function list(
 ) {
   try {
     const project = await Project.getWithInfo(req.query?.projectId as string);
-    const projectMeta = JSON.parse(project.meta);
+    const projectMeta = JSON.parse(project.meta as string);
 
     if (!projectMeta?.isPublic && !req.query?.parent_page_id)
       throw new Error('Project is not found');

@@ -250,6 +250,8 @@ async function oidcSignin(req, res, next) {
   )(req, res, next);
 }
 
+const REFRESH_TOKEN_COOKIE_KEY = 'refresh_token';
+
 function setTokenCookie(res, token): void {
   // create http only cookie with refresh token that expires in 7 days
   const cookieOptions = {

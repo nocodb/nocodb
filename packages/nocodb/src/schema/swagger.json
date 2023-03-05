@@ -231,7 +231,7 @@
                     "type": "string",
                     "description": "Project id",
                     "required": true
-                  },
+                  }
                 }
               }
             }
@@ -1782,8 +1782,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {
-                }
+                "schema": {}
               }
             }
           }
@@ -6813,8 +6812,7 @@
         "tags": [
           "Public"
         ],
-        "parameters": [
-        ],
+        "parameters": [],
         "description": ""
       }
     },
@@ -9579,8 +9577,7 @@
                 }
               }
             ],
-            "columnByIds": {
-            }
+            "columnByIds": {}
           }
         ],
         "properties": {
@@ -9713,8 +9710,7 @@
                 }
               }
             ],
-            "columnByIds": {
-            }
+            "columnByIds": {}
           }
         ],
         "properties": {
@@ -11226,7 +11222,6 @@
           "success_msg": {
             "type": "string"
           },
-
           "redirect_url": {
             "$ref": "#/components/schemas/StringOrNull"
           },
@@ -11674,8 +11669,7 @@
             "type": "number"
           },
           "deleted_at": {},
-          "created_at": {
-          },
+          "created_at": {},
           "updated_at": {}
         }
       },
@@ -12055,8 +12049,7 @@
             "type": "string"
           },
           "created_at": {},
-          "updated_at": {
-          }
+          "updated_at": {}
         }
       },
       "ApiTokenReq": {
@@ -12425,8 +12418,7 @@
           "display_name": {
             "type": "string"
           },
-          "roles": {
-          }
+          "roles": {}
         }
       },
       "Follower": {
@@ -12464,8 +12456,7 @@
           "output": {
             "type": "string"
           },
-          "meta": {
-          },
+          "meta": {},
           "is_read": {
             "type": "boolean"
           },

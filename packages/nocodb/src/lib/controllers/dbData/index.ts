@@ -1,9 +1,9 @@
-import dataController from './dataController';
-import oldDataController from './oldDataController';
-import dataAliasController from './dataAliasController';
-import bulkDataAliasController from './bulkDataAliasController';
-import dataAliasNestedController from './dataAliasNestedController';
-import dataAliasExportController from './dataAliasExportController';
+import dataController from './data.ctl';
+import oldDataController from './oldData.ctl';
+import dataAliasController from './dataAlias.ctl';
+import bulkDataAliasController from './bulkDataAlias.ctl';
+import dataAliasNestedController from './dataAliasNested.ctl';
+import dataAliasExportController from './dataAliasExport.ctl';
 
 export {
   dataController,

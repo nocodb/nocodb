@@ -1,6 +1,6 @@
-import publicDataController from './publicDataController';
-import publicDataExportController from './publicDataExportController';
-import publicMetaController from './publicMetaController';
+import publicDataController from './publicData.ctl';
+import publicDataExportController from './publicDataExport.ctl';
+import publicMetaController from './publicMeta.ctl';
 
 export {
   publicDataController,

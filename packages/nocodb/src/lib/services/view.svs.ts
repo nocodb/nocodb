@@ -2,7 +2,7 @@ import { SharedViewReqType, ViewReqType } from 'nocodb-sdk';
 import { validatePayload } from '../meta/api/helpers';
 import { Model, View } from '../models';
 import { T } from 'nc-help';
-import { xcVisibilityMetaGet } from './modelVisibilityService';
+import { xcVisibilityMetaGet } from './modelVisibility.svs';
 
 export async function viewList(param: {
   tableId: string;

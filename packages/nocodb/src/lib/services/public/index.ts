@@ -1,5 +1,5 @@
-import * as publicDataService from './publicDataService';
-import * as publicDataExportApis from './publicDataExportService';
-import * as publicMetaService from './publicMetaservice';
+import * as publicDataService from './publicData.svs';
+import * as publicDataExportApis from './publicDataExport.svs';
+import * as publicMetaService from './publicMeta.svs';
 
 export { publicDataService, publicDataExportApis, publicMetaService };

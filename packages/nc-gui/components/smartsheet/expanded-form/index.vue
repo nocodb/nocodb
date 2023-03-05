@@ -64,7 +64,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 provide(MetaInj, meta)
 
-const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow,save } = useProvideExpandedFormStore(meta, row)
+const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow, save } = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
 

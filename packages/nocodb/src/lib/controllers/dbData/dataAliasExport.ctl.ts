@@ -3,10 +3,7 @@ import * as XLSX from 'xlsx';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { View } from '../../models';
-import {
-  extractCsvData,
-  extractXlsxData,
-} from '../../services/dbData/helpers';
+import { extractCsvData, extractXlsxData } from '../../services/dbData/helpers';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 
 async function excelDataExport(req: Request, res: Response) {

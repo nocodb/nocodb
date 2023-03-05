@@ -8146,7 +8146,7 @@
                     },
                     "userCount": {
                       "type": "integer",
-                        "description": "Total user Count"
+                      "description": "Total user Count"
                     },
                     "sharedBaseCount": {
                       "type": "integer",

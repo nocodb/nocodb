@@ -4,8 +4,8 @@ import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import AWS from 'aws-sdk';
 import request from 'request';
 import {
-  waitForStreamClose,
   generateTempFilePath,
+  waitForStreamClose,
 } from '../../utils/pluginUtils';
 
 export default class ScalewayObjectStorage implements IStorageAdapterV2 {

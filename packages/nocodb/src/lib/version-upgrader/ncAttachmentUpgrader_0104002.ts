@@ -135,7 +135,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
                       corruptedAttachment.length - 1
                     )}]`
                   );
-                  let newAttachmentMeta = [];
+                  const newAttachmentMeta = [];
                   for (const attachment of corruptedAttachment) {
                     newAttachmentMeta.push(JSON.parse(attachment));
                   }

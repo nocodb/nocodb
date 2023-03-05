@@ -16,7 +16,7 @@ import {
 } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '../../utils/mimeTypes';
-import { sanitizeUrlPath } from '../attachment.svs';
+import { sanitizeUrlPath } from '../attachment.svc';
 import { getColumnByIdOrName } from '../dbData/helpers';
 
 export async function dataList(param: {

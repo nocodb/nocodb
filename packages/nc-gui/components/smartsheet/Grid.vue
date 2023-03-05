@@ -1064,6 +1064,9 @@ function openGenerateDialog(target: any) {
                 v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
                 class="text-left pointer nc-grid-add-new-cell cursor-pointer"
+                :class="{
+                  '!border-r-2 !border-r-gray-300': visibleColLength === 1,
+                }"
                 @click="addEmptyRow()"
               >
                 <div class="px-2 w-full flex items-center text-gray-500">

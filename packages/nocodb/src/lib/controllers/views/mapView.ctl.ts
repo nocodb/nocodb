@@ -1,8 +1,8 @@
 import { Request, Response, Router } from 'express';
 import { MapType } from 'nocodb-sdk';
-import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { mapViewService } from '../services';
+import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../../meta/helpers/apiMetrics';
+import { mapViewService } from '../../services';
 
 export async function mapViewGet(req: Request, res: Response<MapType>) {
   res.json(

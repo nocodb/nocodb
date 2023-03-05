@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
-import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { gridViewColumnService } from '../services';
+import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../../meta/helpers/apiMetrics';
+import { gridViewColumnService } from '../../services';
 
 export async function columnList(req: Request, res: Response) {
   res.json(

@@ -1,7 +1,7 @@
 import { Request, Router } from 'express';
-import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { gridViewService } from '../services';
+import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../../meta/helpers/apiMetrics';
+import { gridViewService } from '../../services';
 
 export async function gridViewCreate(req: Request<any>, res) {
   const view = await gridViewService.gridViewCreate({

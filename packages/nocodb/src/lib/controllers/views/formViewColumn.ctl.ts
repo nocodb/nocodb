@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
-import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-import { formViewColumnService } from '../services';
+import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../../meta/helpers/apiMetrics';
+import { formViewColumnService } from '../../services';
 
 export async function columnUpdate(req: Request, res: Response) {
   res.json(

@@ -1,7 +1,7 @@
 import { MapType, ViewTypes } from 'nocodb-sdk';
-import View from '../models/View';
+import View from '../../models/View';
 import { T } from 'nc-help';
-import MapView from '../models/MapView';
+import MapView from '../../models/MapView';
 
 export async function mapViewGet(param: { mapViewId: string }) {
   return await MapView.get(param.mapViewId);

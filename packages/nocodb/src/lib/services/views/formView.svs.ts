@@ -1,7 +1,7 @@
 import { T } from 'nc-help';
 import { FormReqType, ViewTypes } from 'nocodb-sdk';
-import { validatePayload } from '../meta/api/helpers';
-import { FormView, View } from '../models';
+import { validatePayload } from '../../meta/api/helpers';
+import { FormView, View } from '../../models';
 
 export async function formViewGet(param: { formViewId: string }) {
   const formViewData = await FormView.getWithInfo(param.formViewId);

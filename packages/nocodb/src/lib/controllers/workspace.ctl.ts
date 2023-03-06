@@ -1,56 +1,28 @@
 import { Request, Response, Router } from 'express';
-import { Workspace } from '../models/Workspace';
-import { ProjectRoles, WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk';
-import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
+import { UserType, WorkspaceType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import { WorkspaceUser } from '../models/WorkspaceUser';
-import { NcError } from '../meta/helpers/catchError';
-import validator from 'validator';
-import User from '../models/User';
 
-import { v4 as uuidv4 } from 'uuid';
-import Project from '../models/Project';
-import validateParams from '../meta/helpers/validateParams';
-import ProjectUser from '../models/ProjectUser';
+import { workspaceService } from '../services';
 
 const workspaceCreate = async (
   req: Request<any, WorkspaceType, WorkspaceType>,
   res
 ) => {
-  const workspacePayloads = Array.isArray(req.body) ? req.body : [req.body];
+  const result = await workspaceService.workspaceCreate({
+    workspaces: req.body,
+    user: (req as any)?.session?.passport?.user as UserType,
+  });
 
-  for (const workspacePayload of workspacePayloads) {
-    validateParams(['title'], workspacePayload);
-  }
-
-  const workspaces = [];
-
-  for (const workspacePayload of workspacePayloads) {
-    const workspace = await Workspace.insert({
-      ...workspacePayload,
-      title: workspacePayload.title.trim(),
-      // todo : extend request type
-      fk_user_id: (req as any).user.id,
-    });
-
-    await WorkspaceUser.insert({
-      fk_workspace_id: workspace.id,
-      fk_user_id: (req as any).user.id,
-      roles: WorkspaceUserRoles.OWNER,
-    });
-
-    workspaces.push(workspace);
-  }
-  res.json(Array.isArray(req.body) ? workspaces : workspaces[0]);
+  res.json(result);
 };
 
 const workspaceGet = async (
   req: Request<{ workspaceId: string }>,
   res: Response<WorkspaceType>
 ) => {
-  const workspace = await Workspace.get(req.params.workspaceId);
-
-  if (!workspace) NcError.notFound('Workspace not found');
+  const workspace = await workspaceService.workspaceGet({
+    workspaceId: req.params.workspaceId,
+  });
 
   res.json(workspace);
 };
@@ -60,35 +32,22 @@ const workspaceList = async (
   // todo: replace type with paginated type
   res: Response
 ) => {
-  const workspaces = await WorkspaceUser.workspaceList({
-    fk_user_id: (req as any).user?.id,
+  const workspaces = await workspaceService.workspaceList({
+    userId: (req as any).user?.id,
   });
 
-  // todo: pagination
-  res.json(
-    new PagedResponseImpl<WorkspaceType>(workspaces, {
-      count: workspaces.length,
-    })
-  );
+  res.json(workspaces);
 };
 
 const workspaceUpdate = async (
   req: Request<{ workspaceId: string }, any, Partial<WorkspaceType>>,
   res: Response
 ) => {
-  // todo: allow order update for all user
-  //       and block rest of the options
-  if ('order' in req.body) {
-    await WorkspaceUser.update(req.params.workspaceId, req['user']?.id, {
-      order: req.body.order,
-    });
-    delete req.body.order;
-  }
-
-  // todo: validate params
-  // validateParams(['title', 'description'], req.body);
-
-  const workspace = await Workspace.update(req.params.workspaceId, req.body);
+  const workspace = await workspaceService.workspaceUpdate({
+    workspaceId: req.params.workspaceId,
+    body: req.body,
+    userId: (req as any).user?.id,
+  });
 
   res.json(workspace);
 };
@@ -96,293 +55,90 @@ const workspaceDelete = async (
   req: Request<{ workspaceId: string }>,
   res: Response
 ) => {
-  // todo: avoid removing owner
-
-  // block unauthorized user form deleting
-
-  // todo: unlink any project linked
-  res.json(await Workspace.delete(req.params.workspaceId));
+  await workspaceService.workspaceDelete({
+    workspaceId: req.params.workspaceId,
+  });
+  res.json({
+    msg: 'Workspace deleted',
+  });
 };
 
 const workspaceUserList = async (req, res) => {
-  const users = await WorkspaceUser.userList({
-    fk_workspace_id: req.params.workspaceId,
+  const users = workspaceService.workspaceUserList({
+    workspaceId: req.params.workspaceId,
   });
 
   // todo: pagination
-  res.json(
-    new PagedResponseImpl<WorkspaceType>(users, {
-      count: users.length,
-    })
-  );
+  res.json(users);
 };
-const workspaceUserGet = (_req, _res) => {
+const workspaceUserGet = (_req, res) => {
   // todo
+  res.json({});
 };
 const workspaceUserUpdate = async (req, res) => {
-  // validateParams(['roles'], req.body);
+  const result = await workspaceService.workspaceUserUpdate({
+    workspaceId: req.params.workspaceId,
+    userId: req.params.userId,
+    body: req.body,
+  });
 
-  // todo
-  const { workspaceId, userId } = req.params;
-  const { roles } = req.body;
-
-  res.json(await WorkspaceUser.update(workspaceId, userId, { roles }));
+  res.json(result);
 };
 const workspaceUserDelete = async (req, res) => {
-  // todo
-  const { workspaceId, userId } = req.params;
+  await workspaceService.workspaceUserDelete({
+    workspaceId: req.params.workspaceId,
+    userId: req.params.userId,
+  });
 
-  res.json(await WorkspaceUser.delete(workspaceId, userId));
+  res.json({
+    msg: 'User deleted',
+  });
 };
 
 const workspaceInvite = async (req, res) => {
-  validateParams(['email', 'roles'], req.body);
+  const result = await workspaceService.workspaceInvite({
+    workspaceId: req.params.workspaceId,
+    body: req.body,
+  });
 
-  const { workspaceId } = req.params;
-  const { email, roles } = req.body;
-
-  if (roles?.split(',').length > 1) {
-    NcError.badRequest('Only one role can be assigned');
-  }
-
-  if (
-    roles !== WorkspaceUserRoles.CREATOR &&
-    roles !== WorkspaceUserRoles.VIEWER
-  ) {
-    NcError.badRequest('Invalid role');
-  }
-
-  const emails = (email || '')
-    .toLowerCase()
-    .split(/\s*,\s*/)
-    .map((v) => v.trim());
-
-  // check for invalid emails
-  const invalidEmails = emails.filter((v) => !validator.isEmail(v));
-  if (!emails.length) {
-    return NcError.badRequest('Invalid email address');
-  }
-  if (invalidEmails.length) {
-    NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
-  }
-
-  const invite_token = uuidv4();
-  const error = [];
-
-  for (const email of emails) {
-    // add user to project if user already exist
-    const user = await User.getByEmail(email);
-
-    if (user) {
-      // check if this user has been added to this project
-      const workspaceUser = await WorkspaceUser.get(workspaceId, user.id);
-      if (workspaceUser) {
-        NcError.badRequest(
-          `${user.email} with role ${workspaceUser.roles} already exists in this project`
-        );
-      }
-
-      await WorkspaceUser.insert({
-        fk_workspace_id: workspaceId,
-        fk_user_id: user.id,
-        roles: roles || 'editor',
-      });
-
-      // const cachedUser = await NocoCache.get(
-      //   `${CacheScope.USER}:${email}___${req.params.projectId}`,
-      //   CacheGetType.TYPE_OBJECT
-      // );
-      //
-      // if (cachedUser) {
-      //   cachedUser.roles = req.body.roles || 'editor';
-      //   await NocoCache.set(
-      //     `${CacheScope.USER}:${email}___${req.params.projectId}`,
-      //     cachedUser
-      //   );
-      // }
-
-      // await Audit.insert({
-      //   project_id: req.params.projectId,
-      //   op_type: 'AUTHENTICATION',
-      //   op_sub_type: 'INVITE',
-      //   user: req.user.email,
-      //   description: `invited ${email} to ${req.params.projectId} project `,
-      //   ip: req.clientIp,
-      // });
-    } else {
-      // todo: send invite email
-      NcError.badRequest(`${email} is not registerd in noco`);
-      // try {
-      //   // create new user with invite token
-      //   const {id} = await User.insert({
-      //     invite_token,
-      //     invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      //     email,
-      //     roles: OrgUserRoles.VIEWER,
-      //     token_version: randomTokenString(),
-      //   });
-      //
-      //   // add user to project
-      //   await ProjectUser.insert({
-      //     project_id: req.params.projectId,
-      //     fk_user_id: id,
-      //     roles: req.body.roles,
-      //   });
-      //
-      //   const count = await User.count();
-      //   Tele.emit('evt', {evt_type: 'project:invite', count});
-      //
-      //   await Audit.insert({
-      //     project_id: req.params.projectId,
-      //     op_type: 'AUTHENTICATION',
-      //     op_sub_type: 'INVITE',
-      //     user: req.user.email,
-      //     description: `invited ${email} to ${req.params.projectId} project `,
-      //     ip: req.clientIp,
-      //   });
-      //   // in case of single user check for smtp failure
-      //   // and send back token if failed
-      //   if (
-      //     emails.length === 1 &&
-      //     !(await sendInviteEmail(email, invite_token, req))
-      //   ) {
-      //     return res.json({invite_token, email});
-      //   } else {
-      //     sendInviteEmail(email, invite_token, req);
-      //   }
-      // } catch (e) {
-      //   console.log(e);
-      //   if (emails.length === 1) {
-      //     return next(e);
-      //   } else {
-      //     error.push({email, error: e.message});
-      //   }
-      // }
-    }
-  }
-
-  if (emails.length === 1) {
-    res.json({
-      msg: 'success',
-    });
-  } else {
-    return res.json({ invite_token, emails, error });
-  }
-
-  // check if user exists
-  // if not, create user
-  // create workspace user
-  // send email
+  res.json(result);
 };
 
 const workspaceProjectList = async (req, res) => {
-  const projects = await Project.listByWorkspaceAndUser(
-    req.params.workspaceId,
-    req.user?.id
-  );
+  const paginatedProjectList = await workspaceService.workspaceProjectList({
+    workspaceId: req.params.workspaceId,
+    userId: req.user?.id,
+  });
 
-  res.json(
-    new PagedResponseImpl<WorkspaceType>(projects, {
-      count: projects.length,
-    })
-  );
+  res.json(paginatedProjectList);
 };
-
-/*
-const workspaceInvitationGet = (_req, _res) => {
-  // todo
-};
-const workspaceInvitationUpdate = (_req, _res) => {
-  // todo
-};
-const workspaceInvitationDelete = (_req, _res) => {
-  // todo
-};*/
 
 const workspaceInvitationAccept = async (req, res) => {
-  const workspaceUser = await WorkspaceUser.getByToken(
-    req.params.invitationToken,
-    req.params.userId
-  );
-  if (!workspaceUser) {
-    NcError.badRequest('Invitation not found');
-  }
+  const response = await workspaceService.workspaceInvitationAccept({
+    invitationToken: req.params.invitationToken,
+    userId: req.params.userId,
+  });
 
-  res.json(
-    await WorkspaceUser.update(
-      workspaceUser.fk_workspace_id,
-      workspaceUser.fk_user_id,
-      {
-        invite_accepted: true,
-        invite_token: null,
-      }
-    )
-  );
+  res.json(response);
 };
 const workspaceInvitationReject = async (req, res) => {
-  const workspaceUser = await WorkspaceUser.getByToken(
-    req.params.invitationToken,
-    req.params.userId
-  );
-  if (!workspaceUser) {
-    NcError.badRequest('Invitation not found');
-  }
+  const response = await workspaceService.workspaceInvitationReject({
+    invitationToken: req.params.invitationToken,
+    userId: req.params.userId,
+  });
 
-  res.json(
-    await WorkspaceUser.update(
-      workspaceUser.fk_workspace_id,
-      workspaceUser.fk_user_id,
-      {
-        invite_accepted: false,
-        invite_token: null,
-      }
-    )
-  );
+  res.json(response);
 };
 
 const moveProjectToWorkspace = async (req, res) => {
-  // verify user is current project owner or workspace owner
-
-  const project = await Project.get(req.params.projectId);
-
-  const projectUser = await ProjectUser.get(
-    req.params.projectId,
-    req['user']?.id
-  );
-  const currentWorkspaceUser = await WorkspaceUser.get(
-    project.fk_workspace_id,
-    req['user']?.id
-  );
-
-  if (
-    projectUser?.roles !== ProjectRoles.OWNER &&
-    currentWorkspaceUser?.roles !== WorkspaceUserRoles.OWNER
-  ) {
-    NcError.forbidden('You are not the project owner');
-  }
-
-  // verify user is workaggerspace owner
-
-  const destWorkspaceUser = await WorkspaceUser.get(
-    req.params.workspaceId,
-    req['user']?.id
-  );
-
-  if (destWorkspaceUser?.roles !== WorkspaceUserRoles.OWNER) {
-    NcError.forbidden('You are not the workspace owner');
-  }
-
-  // update the project workspace id
-  await Project.update(req.params.projectId, {
-    fk_workspace_id: req.params.workspaceId,
+  await workspaceService.moveProjectToWorkspace({
+    projectId: req.params.projectId,
+    workspaceId: req.params.workspaceId,
+    userId: req.user?.id,
   });
 
   res.json({ msg: 'success' });
 };
-
-/*const workspaceInvitationTokenRead = (_req, _res) => {
-  // todo
-};*/
 
 const router = Router({ mergeParams: true });
 router.post(

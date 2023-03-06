@@ -114,6 +114,12 @@ const onPageClick = (page: any) => {
 
   onChange()
 
+  const selectedNode = editor?.state?.selection?.$from?.nodeBefore || editor?.state?.selection?.$from?.nodeAfter
+
+  if (selectedNode?.text && selectedNode.text.length > 0) {
+    return
+  }
+
   editor.chain().focus().insertContent(page.title).run()
 }
 

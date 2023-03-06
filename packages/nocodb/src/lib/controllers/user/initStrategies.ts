@@ -17,12 +17,19 @@ const jwtOptions = {
 
 import bcrypt from 'bcryptjs';
 import NocoCache from '../../cache/NocoCache';
-import { ApiToken, Base, Plugin, Project, ProjectUser, User, WorkspaceUser } from '../../models';
+import {
+  ApiToken,
+  Base,
+  Plugin,
+  Project,
+  ProjectUser,
+  User,
+  WorkspaceUser,
+} from '../../models';
 import Noco from '../../Noco';
-import { CacheGetType, CacheScope } from '../../utils/globals';
+import { CacheGetType } from '../../utils/globals';
 import { userService } from '../../services';
 import { v4 as uuidv4 } from 'uuid';
-import { registerNewUserIfAllowed } from './helpers';
 
 export function initStrategies(router): void {
   passport.use(
@@ -293,7 +300,9 @@ export function initStrategies(router): void {
         let sharedProject = null;
 
         if (!sharedProject) {
-          const sharedBase = await Base.getByUUID(req.headers['xc-shared-erd-id']);
+          const sharedBase = await Base.getByUUID(
+            req.headers['xc-shared-erd-id']
+          );
           sharedProject = await Project.getByTitleOrId(sharedBase?.project_id);
         }
         user = {
@@ -437,15 +446,16 @@ export function initStrategies(router): void {
             } else {
               // if user not found create new user
               const salt = await promisify(bcrypt.genSalt)(10);
-              registerNewUserIfAllowed({
-                email,
-                password: '',
-                email_verification_token: null,
-                avatar: null,
-                user_name: null,
-                display_name: profile._json?.name,
-                salt,
-              })
+              await userService
+                .registerNewUserIfAllowed({
+                  email,
+                  password: '',
+                  email_verification_token: null,
+                  avatar: null,
+                  user_name: null,
+                  display_name: profile._json?.name,
+                  salt,
+                })
                 .then((user) => {
                   done(null, { ...user, provider: 'openid' });
                 })

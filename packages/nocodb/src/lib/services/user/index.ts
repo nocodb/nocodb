@@ -4,6 +4,7 @@ import {
   PasswordResetReqType,
   UserType,
   validatePassword,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { T } from 'nc-help';
@@ -16,7 +17,7 @@ import { NC_APP_SETTINGS } from '../../constants';
 import { validatePayload } from '../../meta/api/helpers';
 import { NcError } from '../../meta/helpers/catchError';
 import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
-import { Audit, Store, User } from '../../models';
+import { Audit, Store, User, Workspace, WorkspaceUser } from '../../models';
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
 import { randomTokenString } from './helpers';
@@ -24,19 +25,23 @@ import { randomTokenString } from './helpers';
 const { v4: uuidv4 } = require('uuid');
 
 export async function registerNewUserIfAllowed({
-  firstname,
-  lastname,
+  avatar,
+  user_name,
+  display_name,
   email,
   salt,
   password,
   email_verification_token,
+  email_verified,
 }: {
-  firstname;
-  lastname;
+  avatar;
+  user_name;
+  display_name;
   email: string;
   salt: any;
   password;
   email_verification_token;
+  email_verified?;
 }) {
   let roles: string = OrgUserRoles.CREATOR;
 
@@ -58,21 +63,46 @@ export async function registerNewUserIfAllowed({
       NcError.badRequest('Not allowed to signup, contact super admin.');
     } else {
       roles = OrgUserRoles.VIEWER;
+      // roles = OrgUserRoles.VIEWER;
+      // todo: handle in self-hosted
     }
   }
 
   const token_version = randomTokenString();
 
-  return await User.insert({
-    firstname,
-    lastname,
+  const user = await User.insert({
+    avatar,
+    display_name,
+    user_name,
     email,
     salt,
     password,
     email_verification_token,
     roles,
     token_version,
+    email_verified,
   });
+
+  await createDefaultWorkspace(user);
+  return user;
+}
+
+export async function createDefaultWorkspace(user: User) {
+  const title = `${user.email?.split('@')?.[0]}`;
+  // create new workspace for user
+  const workspace = await Workspace.insert({
+    title,
+    description: 'Default workspace',
+    fk_user_id: user.id,
+  });
+
+  await WorkspaceUser.insert({
+    fk_user_id: user.id,
+    fk_workspace_id: workspace.id,
+    roles: WorkspaceUserRoles.OWNER,
+  });
+
+  return workspace;
 }
 
 export async function passwordChange(param: {

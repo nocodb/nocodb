@@ -307,7 +307,7 @@ export interface ColumnType {
   /** Column Comment */
   cc?: string;
   /** Column Default */
-  cdf?: string;
+  cdf?: StringOrNullType;
   /** Character Maximum Length */
   clen?: number | null | string;
   /** Column Options */
@@ -331,11 +331,8 @@ export interface ColumnType {
   column_name?: string;
   /** Column Ordinal Position */
   cop?: string;
-  /**
-   * Character Set Name
-   * @example utf8mb4
-   */
-  csn?: string;
+  /** Character Set Name */
+  csn?: StringOrNullType;
   /**
    * Column Type
    * @example varchar(45)
@@ -965,28 +962,53 @@ export interface GeoLocationType {
  * Model for Grid
  */
 export interface GridType {
-  alias?: string;
-  /** Model for Bool */
-  deleted?: BoolType;
   /** Unique ID */
   id?: IdType;
-  lock_type?: 'collaborative' | 'locked' | 'personal';
-  order?: number;
+  /** Project ID */
+  project_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /**
+   * Row Height
+   * @example 1
+   */
   row_height?: number;
-  title?: string;
+  /** Meta info for Grid Model */
+  meta?: MetaType;
+  /** Grid View Columns */
+  columns?: GridColumnType[];
 }
 
 /**
  * Model for Grid Column
  */
 export interface GridColumnType {
+  /** Unique ID */
+  id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
-  help?: string;
-  /** Unique ID of Grid Column */
-  id?: string;
-  label?: string;
+  /** Project ID */
+  project_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** Model for Bool */
+  show?: BoolType;
+  /**
+   * Grid Column Order
+   * @example 1
+   */
+  order?: number;
+  /**
+   * Column Width
+   * @example 200px
+   */
   width?: string;
+  /** Column Help Text */
+  help?: StringOrNullType;
 }
 
 /**
@@ -1206,16 +1228,22 @@ export type IdType = string;
  * Model for Kanban
  */
 export interface KanbanType {
-  alias?: string;
-  columns?: KanbanColumnType[];
-  fk_cover_image_col_id?: string;
-  /** Model for StringOrNull */
-  fk_grp_col_id?: StringOrNullType;
-  fk_model_id?: string;
   /** Unique ID */
   id?: IdType;
-  /** Model for Meta */
+  /** Grouping Field Column ID */
+  fk_grp_col_id?: StringOrNullType;
+  /** View ID */
+  fk_view_id?: IdType;
+  /** Cover Image Column ID */
+  fk_cover_image_col_id?: IdType;
+  /** Kanban Columns */
+  columns?: KanbanColumnType[];
+  /** Meta Info for Kanban */
   meta?: MetaType;
+  /**
+   * Kanban Title
+   * @example My Kanban
+   */
   title?: string;
 }
 
@@ -1223,13 +1251,28 @@ export interface KanbanType {
  * Model for Kanban Column
  */
 export interface KanbanColumnType {
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  fk_kanban_id?: string;
-  help?: string;
   /** Unique ID */
   id?: IdType;
-  label?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /**
+   * Baes ID
+   *
+   */
+  base_id?: IdType;
+  /** Project ID */
+  project_id?: IdType;
+  /** Project ID */
+  title?: string;
+  /** Is this column shown? */
+  show?: BoolType;
+  /**
+   * Column Order
+   * @example 1
+   */
+  order?: number;
 }
 
 /**
@@ -1885,11 +1928,8 @@ export interface SharedViewListType {
 export interface SharedViewReqType {
   /** Meta data passing to Shared View such as if download is allowed or not. */
   meta?: MetaType;
-  /**
-   * Password to restrict access
-   * @example 123456789
-   */
-  password?: string;
+  /** Password to restrict access */
+  password?: StringOrNullType;
 }
 
 /**
@@ -2004,7 +2044,7 @@ export interface TableType {
   /** Table Name. Prefix will be added for XCDB projects. */
   table_name: string;
   /** Currently not in use */
-  tags?: string;
+  tags?: StringOrNullType;
   /** Table Title */
   title: string;
   /** Table Type */
@@ -2142,7 +2182,7 @@ export interface ViewType {
   /** View Type */
   type: number;
   /** UUID of the view */
-  uuid?: string;
+  uuid?: StringOrNullType;
   /** Associated View Model */
   view?:
     | FormType
@@ -3320,10 +3360,10 @@ export class Api<
      * @name Read
      * @summary Get Project
      * @request GET:/api/v1/db/meta/projects/{projectId}
-     * @response `200` `object` OK
+     * @response `200` `ProjectType` OK
      */
     read: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<ProjectType, any>({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'GET',
         format: 'json',
@@ -3620,10 +3660,10 @@ export class Api<
      * @name Read
      * @summary Get Base
      * @request GET:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
-     * @response `200` `object` OK
+     * @response `200` `BaseType` OK
      */
     read: (projectId: IdType, baseId: string, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<BaseType, any>({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
         method: 'GET',
         format: 'json',

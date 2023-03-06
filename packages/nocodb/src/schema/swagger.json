@@ -5,6 +5,42 @@
     "version": "1.0",
     "description": "NocoDB API Documentation"
   },
+  "x-tagGroups": [
+    {
+      "name": "Auth APIs",
+      "tags": ["Auth", "API Token"]
+    },
+    {
+      "name": "Public APIs",
+      "tags": ["Public"]
+    },
+    {
+      "name": "Data APIs",
+      "tags": ["DB Table Row", "DB View Row", "Storage"]
+    },
+    {
+      "name": "Meta APIs",
+      "tags": [
+        "Base",
+        "DB Table",
+        "DB Table Column",
+        "DB Table Filter",
+        "DB Table Sort",
+        "DB Table Webhook",
+        "DB Table Webhook Filter",
+        "DB View",
+        "DB View Column",
+        "DB View Share",
+        "Plugin",
+        "Project",
+        "Utils"
+      ]
+    },
+    {
+      "name": "Organisation APIs",
+      "tags": ["Org App Settings", "Org License", "Org Tokens", "Org Users"]
+    }
+  ],
   "servers": [
     {
       "url": "http://localhost:8080"
@@ -88,6 +124,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SignUpReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com",
+                    "password": "password123456789"
+                  }
+                }
               }
             }
           }
@@ -137,6 +181,13 @@
                     "token": {
                       "type": "string",
                       "description": "The signed JWT token for information exchange"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYjN4bzJpNDRueDV5OWwiLCJyb2xlcyI6Im9yZy1sZXZlbC1jcmVhdG9yLHN1cGVyIiwidG9rZW5fdmVyc2lvbiI6ImJmMTc3ZGUzYjk3YjAzMjY4YjU0NGZmMjMzNGU5YjFhMGUzYzgxM2NiYzliOTJkYWMwYmM5NTRiNmUzN2ZjMTJjYmFkNDM2NmIwYzExZTdjIiwiaWF0IjoxNjc4MDc4NDMyLCJleHAiOjE2NzgxMTQ0MzJ9.gzwp_svZlbA5PV_eawYV-9UFjZVjniy-tCDce16xrkI"
                     }
                   }
                 }
@@ -244,6 +295,13 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PasswordForgotReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com"
+                  }
+                }
               }
             }
           },
@@ -400,6 +458,13 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PasswordResetReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "password": "newpassword"
+                  }
+                }
               }
             }
           }
@@ -436,7 +501,8 @@
                       "description": "New access token for user"
                     }
                   }
-                }
+                },
+                "examples": {}
               }
             }
           }
@@ -485,6 +551,30 @@
                         }
                       },
                       "required": ["list", "pageInfo"]
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "users": {
+                        "list": [
+                          {
+                            "id": "1",
+                            "fk_user_id": "us_b3xo2i44nx5y9l",
+                            "description": "This API Token is for ABC application",
+                            "token": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2",
+                            "created_by": "string"
+                          }
+                        ],
+                        "pageInfo": {
+                          "isFirstPage": true,
+                          "isLastPage": true,
+                          "page": 1,
+                          "pageSize": 10,
+                          "totalRows": 1
+                        }
+                      }
                     }
                   }
                 }
@@ -565,6 +655,13 @@
                       "description": "Application license key"
                     }
                   }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "key": "195f7bcc-c3e1-43c5-b23c-8d8127280e7d"
+                    }
+                  }
                 }
               }
             }
@@ -618,6 +715,13 @@
                       "type": "boolean",
                       "description": "Status of invite only signup",
                       "example": true
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "invite_only_signup": true
                     }
                   }
                 }
@@ -694,6 +798,31 @@
                       "required": ["list", "pageInfo"]
                     }
                   }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "users": {
+                        "list": [
+                          {
+                            "email": "user@example.com",
+                            "email_verified": true,
+                            "firstname": "Alice",
+                            "id": "us_8kugj628ebjngs",
+                            "lastname": "Smith",
+                            "roles": "org-level-viewer"
+                          }
+                        ],
+                        "pageInfo": {
+                          "isFirstPage": true,
+                          "isLastPage": true,
+                          "page": 1,
+                          "pageSize": 10,
+                          "totalRows": 1
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -765,6 +894,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/OrgUserReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com",
+                    "roles": "org-level-creator"
+                  }
+                }
               }
             }
           },
@@ -842,7 +979,8 @@
                       "description": "Password Reset URL for the user"
                     }
                   }
-                }
+                },
+                "examples": {}
               }
             }
           }
@@ -878,6 +1016,31 @@
                         }
                       },
                       "required": ["list", "pageInfo"]
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "users": {
+                        "list": [
+                          {
+                            "email": "user@example.com",
+                            "email_verified": true,
+                            "firstname": "Alice",
+                            "id": "us_8kugj628ebjngs",
+                            "lastname": "Smith",
+                            "roles": "org-level-viewer"
+                          }
+                        ],
+                        "pageInfo": {
+                          "isFirstPage": true,
+                          "isLastPage": true,
+                          "page": 1,
+                          "pageSize": 10,
+                          "totalRows": 1
+                        }
+                      }
                     }
                   }
                 }
@@ -999,6 +1162,20 @@
                       "type": "string",
                       "description": "Package version",
                       "example": "1.0.0"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Node": "v12.16.1",
+                      "Arch": "x64",
+                      "Platform": "linux",
+                      "Docker": false,
+                      "Database": "postgres",
+                      "ProjectOnRootDB": false,
+                      "RootDB": "postgres",
+                      "PackageVersion": "1.0.0"
                     }
                   }
                 }
@@ -1277,8 +1454,39 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {}
+                  "$ref": "#/components/schemas/Project"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "bases": [
+                        {
+                          "alias": "string",
+                          "config": null,
+                          "enabled": true,
+                          "id": "string",
+                          "inflection_column": "camelize",
+                          "inflection_table": "camelize",
+                          "is_meta": true,
+                          "order": 1,
+                          "project_id": "string",
+                          "type": "mysql2",
+                          "updated_at": "2023-03-01 14:27:36"
+                        }
+                      ],
+                      "color": "#24716E",
+                      "created_at": "2023-03-01 14:27:36",
+                      "deleted": true,
+                      "description": "This is my project description",
+                      "id": "p_124hhlkbeasewh",
+                      "is_meta": true,
+                      "meta": {},
+                      "order": 0,
+                      "prefix": "nc_vm5q__",
+                      "status": "string",
+                      "title": "my-project"
+                    }
+                  }
                 }
               }
             }
@@ -1360,8 +1568,24 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {}
+                  "$ref": "#/components/schemas/Base"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": null,
+                      "config": "<ENCRYPTED>",
+                      "enabled": 1,
+                      "id": "ds_krsappzu9f8vmo",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "is_meta": 1,
+                      "meta": null,
+                      "order": 1,
+                      "project_id": "p_01clqvzik3izk6",
+                      "type": "mysql2"
+                    }
+                  }
                 }
               }
             }
@@ -1550,6 +1774,15 @@
                       "example": "viewer"
                     }
                   }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "uuid": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                      "url": "http://example.com",
+                      "roles": "viewer"
+                    }
+                  }
                 }
               }
             }
@@ -1645,6 +1878,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SharedBaseReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "password": "password123",
+                    "roles": "editor"
+                  }
+                }
               }
             }
           }
@@ -3083,6 +3324,13 @@
                     "type": "number"
                   }
                 }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "order": 0
+                  }
+                }
               }
             }
           }
@@ -3300,6 +3548,19 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ViewReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Grid View 1",
+                    "uuid": "e2457bbf-e29c-4fec-866e-fe3b01dba57f",
+                    "password": "password123",
+                    "lock_type": "collaborative",
+                    "meta": "{\"allowCSVDownload\":true}",
+                    "order": 1,
+                    "show_system_fields": 0
+                  }
+                }
               }
             }
           }
@@ -3425,7 +3686,6 @@
                           "lock_type": "collaborative",
                           "meta": {},
                           "order": 1,
-                          "password": null,
                           "project_id": "p_xm3thidrblw4n7",
                           "show": 1,
                           "show_system_fields": null,
@@ -3680,6 +3940,25 @@
                       }
                     }
                   }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "sorts": {
+                        "list": [
+                          {
+                            "id": "so_xd4t51uv60ghzl",
+                            "fk_column_id": "cl_l11b769pe2j1ce",
+                            "fk_model_id": "md_ehn5izr99m7d45",
+                            "base_id": "ds_3l9qx8xqksenrl",
+                            "direction": "desc",
+                            "order": 1,
+                            "project_id": "p_9sx43moxhqtjm3"
+                          }
+                        ]
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -3746,6 +4025,19 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Sort"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "so_xd4t51uv60ghzl",
+                      "fk_column_id": "cl_l11b769pe2j1ce",
+                      "fk_model_id": "md_ehn5izr99m7d45",
+                      "base_id": "ds_3l9qx8xqksenrl",
+                      "direction": "desc",
+                      "order": 1,
+                      "project_id": "p_9sx43moxhqtjm3"
+                    }
+                  }
                 }
               }
             }
@@ -3768,6 +4060,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SortReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "direction": "asc",
+                    "fk_column_id": "cl_l11b769pe2j1ce"
+                  }
+                }
               }
             }
           }
@@ -3811,6 +4111,29 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/Filter"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "comparison_op": "eq",
+                        "comparison_sub_op": null,
+                        "created_at": "2023-03-02 18:18:05",
+                        "fk_column_id": "cl_d7ah9n2qfupgys",
+                        "fk_hook_id": null,
+                        "fk_parent_id": null,
+                        "fk_view_id": "vw_b739e29vqmrxnf",
+                        "id": "fi_xn647tpmdq8fu8",
+                        "is_group": null,
+                        "logical_op": "and",
+                        "order": 1,
+                        "project_id": "p_xm3thidrblw4n7",
+                        "updated_at": "2023-03-02 18:18:05",
+                        "value": "foo"
+                      }
+                    ]
                   }
                 }
               }
@@ -3862,6 +4185,18 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/FilterReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "comparison_op": "eq",
+                    "comparison_sub_op": null,
+                    "fk_column_id": "cl_d7ah9n2qfupgys",
+                    "is_group": false,
+                    "logical_op": "and",
+                    "value": "foo"
+                  }
+                }
               }
             }
           }
@@ -3949,6 +4284,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Filter"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "comparison_op": "eq",
+                      "comparison_sub_op": null,
+                      "created_at": "2023-03-02 18:18:05",
+                      "fk_column_id": "cl_d7ah9n2qfupgys",
+                      "fk_hook_id": null,
+                      "fk_parent_id": null,
+                      "fk_view_id": "vw_b739e29vqmrxnf",
+                      "id": "fi_xn647tpmdq8fu8",
+                      "is_group": null,
+                      "logical_op": "and",
+                      "order": 1,
+                      "project_id": "p_xm3thidrblw4n7",
+                      "updated_at": "2023-03-02 18:18:05",
+                      "value": "foo"
+                    }
+                  }
                 }
               }
             }
@@ -4014,6 +4370,29 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/Filter"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "comparison_op": "eq",
+                        "comparison_sub_op": null,
+                        "created_at": "2023-03-02 18:18:05",
+                        "fk_column_id": "cl_d7ah9n2qfupgys",
+                        "fk_hook_id": null,
+                        "fk_parent_id": null,
+                        "fk_view_id": "vw_b739e29vqmrxnf",
+                        "id": "fi_xn647tpmdq8fu8",
+                        "is_group": null,
+                        "logical_op": "and",
+                        "order": 1,
+                        "project_id": "p_xm3thidrblw4n7",
+                        "updated_at": "2023-03-02 18:18:05",
+                        "value": "foo"
+                      }
+                    ]
                   }
                 }
               }
@@ -4180,6 +4559,46 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Form"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "base_id": "ds_g4ccx6e77h1dmi",
+                      "banner_image_url": null,
+                      "columns": [
+                        {
+                          "id": "fvc_ugj9zo5bzocxtl",
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "project_id": "p_xm3thidrblw4n7",
+                          "fk_view_id": "vw_kdf5cr7qmhksek",
+                          "fk_column_id": "cl_phvuuwjrzcdo0g",
+                          "uuid": null,
+                          "label": null,
+                          "help": null,
+                          "description": null,
+                          "required": null,
+                          "show": 0,
+                          "order": 1,
+                          "created_at": "2023-03-04 16:40:47",
+                          "updated_at": "2023-03-04 16:40:47",
+                          "meta": {}
+                        }
+                      ],
+                      "email": "user@example.com",
+                      "fk_model_id": "md_rsu68aqjsbyqtl",
+                      "heading": "My Form",
+                      "lock_type": "collaborative",
+                      "logo_url": null,
+                      "meta": null,
+                      "redirect_after_secs": null,
+                      "redirect_url": null,
+                      "show_blank_form": 0,
+                      "subheading": "My Form Subheading",
+                      "submit_another_form": 0,
+                      "success_msg": "Thank you for the submission.",
+                      "title": "Form View 1"
+                    }
+                  }
                 }
               }
             }
@@ -4213,6 +4632,19 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FormColumnReq"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "description": null,
+                      "help": "This is a help text",
+                      "label": "Form Label",
+                      "meta": null,
+                      "order": 1,
+                      "required": 0,
+                      "show": 0
+                    }
+                  }
                 }
               }
             }
@@ -4263,6 +4695,55 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Grid"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "project_id": "p_xm3thidrblw4n7",
+                    "base_id": "ds_g4ccx6e77h1dmi",
+                    "fk_view_id": "vw_p2jcatxz4mvcfw",
+                    "row_height": 1,
+                    "meta": null,
+                    "columns": [
+                      {
+                        "id": "cl_phvuuwjrzcdo0g",
+                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "project_id": "p_xm3thidrblw4n7",
+                        "fk_model_id": "md_rsu68aqjsbyqtl",
+                        "title": "Id",
+                        "column_name": "id",
+                        "uidt": "ID",
+                        "dt": "int",
+                        "np": "10",
+                        "ns": "0",
+                        "clen": null,
+                        "cop": "1",
+                        "pk": 1,
+                        "pv": null,
+                        "rqd": 1,
+                        "un": 1,
+                        "ct": "int unsigned",
+                        "ai": 1,
+                        "unique": 0,
+                        "cdf": null,
+                        "cc": "",
+                        "csn": null,
+                        "dtx": "specificType",
+                        "dtxp": "",
+                        "dtxs": "0",
+                        "au": 0,
+                        "validate": null,
+                        "virtual": null,
+                        "deleted": null,
+                        "system": 0,
+                        "order": 1,
+                        "created_at": "2023-03-02 17:04:06",
+                        "updated_at": "2023-03-02 17:04:06",
+                        "meta": null
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
@@ -4293,6 +4774,23 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/GridColumn"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "id": "nc_c8jz4kxe6xvh11",
+                        "fk_view_id": "vw_p2jcatxz4mvcfw",
+                        "fk_column_id": "cl_c5knoi4xs4sfpt",
+                        "project_id": "p_xm3thidrblw4n7",
+                        "base_id": "ds_g4ccx6e77h1dmi",
+                        "show": 0,
+                        "order": 1,
+                        "width": "200px",
+                        "help": null
+                      }
+                    ]
                   }
                 }
               }
@@ -4336,6 +4834,15 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/GridColumnReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "fk_column_id": "cl_c5knoi4xs4sfpt",
+                    "label": "My Column",
+                    "width": "200px"
+                  }
+                }
               }
             }
           }
@@ -6967,20 +7474,24 @@
       "parameters": [
         {
           "schema": {
-            "type": "string"
+            "type": "string",
+            "example": "76d44b86-bc65-4500-8956-ab512c80ab25"
           },
           "name": "sharedViewUuid",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Shared View UUID"
         },
         {
           "schema": {
             "type": "string",
-            "enum": ["csv", "excel"]
+            "enum": ["csv", "excel"],
+            "example": "csv"
           },
           "name": "type",
           "in": "path",
-          "required": true
+          "required": true,
+          "description": "Export Type"
         }
       ],
       "get": {
@@ -9066,6 +9577,8 @@
             "virtual": null
           }
         ],
+        "title": "Column Model",
+        "type": "object",
         "properties": {
           "ai": {
             "$ref": "#/components/schemas/Bool",
@@ -9085,8 +9598,8 @@
             "type": "string"
           },
           "cdf": {
-            "description": "Column Default",
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Column Default"
           },
           "clen": {
             "description": "Character Maximum Length",
@@ -9135,9 +9648,8 @@
             "type": "string"
           },
           "csn": {
-            "description": "Character Set Name",
-            "example": "utf8mb4",
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Character Set Name"
           },
           "ct": {
             "description": "Column Type",
@@ -9308,9 +9820,7 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is Visible?"
           }
-        },
-        "title": "Column Model",
-        "type": "object"
+        }
       },
       "ColumnList": {
         "description": "Model for Column List",
@@ -10556,82 +11066,195 @@
         "description": "Model for Grid",
         "examples": [
           {
-            "alias": "string",
-            "deleted": true,
-            "id": "string",
-            "lock_type": "collaborative",
-            "order": 0,
-            "row_height": 0,
-            "title": "string"
+            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "fk_view_id": "vw_p2jcatxz4mvcfw",
+            "row_height": 1,
+            "meta": null,
+            "columns": [
+              {
+                "id": "cl_phvuuwjrzcdo0g",
+                "base_id": "ds_g4ccx6e77h1dmi",
+                "project_id": "p_xm3thidrblw4n7",
+                "fk_model_id": "md_rsu68aqjsbyqtl",
+                "title": "Id",
+                "column_name": "id",
+                "uidt": "ID",
+                "dt": "int",
+                "np": "10",
+                "ns": "0",
+                "clen": null,
+                "cop": "1",
+                "pk": 1,
+                "pv": null,
+                "rqd": 1,
+                "un": 1,
+                "ct": "int unsigned",
+                "ai": 1,
+                "unique": 0,
+                "cdf": null,
+                "cc": "",
+                "csn": null,
+                "dtx": "specificType",
+                "dtxp": "",
+                "dtxs": "0",
+                "au": 0,
+                "validate": null,
+                "virtual": null,
+                "deleted": null,
+                "system": 0,
+                "order": 1,
+                "created_at": "2023-03-02 17:04:06",
+                "updated_at": "2023-03-02 17:04:06",
+                "meta": null
+              }
+            ]
           }
         ],
+        "title": "Grid Model",
+        "type": "object",
         "properties": {
-          "alias": {
-            "type": "string"
-          },
-          "deleted": {
-            "$ref": "#/components/schemas/Bool"
-          },
           "id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
+            "description": "Unique ID",
+            "x-stoplight": {
+              "id": "e3ti3fc0ocjyu"
+            }
           },
-          "lock_type": {
-            "enum": ["collaborative", "locked", "personal"],
-            "type": "string"
+          "project_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Project ID",
+            "x-stoplight": {
+              "id": "e3ti3fc0ocjyu"
+            }
           },
-          "order": {
-            "type": "number"
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "m8v3iyf1tidy9"
+            }
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to View",
+            "x-stoplight": {
+              "id": "m8v3iyf1tidy9"
+            }
           },
           "row_height": {
-            "type": "number"
+            "type": "number",
+            "example": 1,
+            "description": "Row Height"
           },
-          "title": {
-            "type": "string"
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "x-stoplight": {
+              "id": "n8cud3jyqw5yv"
+            },
+            "description": "Meta info for Grid Model"
+          },
+          "columns": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "22y0gipx2jdf8"
+            },
+            "description": "Grid View Columns",
+            "items": {
+              "$ref": "#/components/schemas/GridColumn",
+              "x-stoplight": {
+                "id": "nmzp6w3o6b24u"
+              }
+            }
           }
-        },
-        "title": "Grid Model",
-        "type": "object"
+        }
       },
       "GridColumn": {
         "description": "Model for Grid Column",
         "examples": [
           {
-            "fk_column_id": "string",
-            "help": "string",
-            "id": "string",
-            "label": "string",
-            "width": "string"
+            "id": "nc_c8jz4kxe6xvh11",
+            "fk_view_id": "vw_p2jcatxz4mvcfw",
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
+            "project_id": "p_xm3thidrblw4n7",
+            "base_id": "ds_g4ccx6e77h1dmi",
+            "show": 0,
+            "order": 1,
+            "width": "200px",
+            "help": null
           }
         ],
+        "title": "Grid Column Model",
+        "type": "object",
         "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID",
+            "x-stoplight": {
+              "id": "jc14yojp52rqj"
+            }
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to View",
+            "x-stoplight": {
+              "id": "vl18dbt5c2r8r"
+            }
+          },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
+            "description": "Foreign Key to Column",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
           },
-          "help": {
-            "type": "string"
+          "project_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Project ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
           },
-          "id": {
-            "description": "Unique ID of Grid Column",
-            "type": "string"
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
           },
-          "label": {
-            "type": "string"
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "d47eer13oa8yr"
+            }
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "d47eer13oa8yr"
+            },
+            "example": 1,
+            "description": "Grid Column Order"
           },
           "width": {
-            "type": "string"
+            "type": "string",
+            "description": "Column Width",
+            "example": "200px"
+          },
+          "help": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Column Help Text",
+            "x-stoplight": {
+              "id": "azwh6zn37qzkc"
+            }
           }
-        },
-        "title": "Grid Column Model",
-        "type": "object"
+        }
       },
       "GridColumnReq": {
         "description": "Model for Grid Column Request",
         "examples": [
           {
-            "fk_column_id": "string",
-            "help": "string",
+            "fk_column_id": "cl_c5knoi4xs4sfpt",
             "label": "My Column",
             "width": "200px"
           }
@@ -11088,89 +11711,135 @@
         "description": "Model for Kanban",
         "examples": [
           {
-            "alias": "string",
+            "id": "vw_wqs4zheuo5lgdy",
+            "fk_grp_col_id": "cl_3704cxcbqt7sj7",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "fk_cover_image_col_id": null,
             "columns": [
               {
-                "fk_column_id": "string",
-                "fk_kanban_id": "string",
-                "help": "string",
-                "id": "string",
-                "label": "string"
+                "id": "kvc_2skkg5mi1eb37f",
+                "fk_column_id": "cl_hzos4ghyncqi4k",
+                "fk_view_id": "vw_wqs4zheuo5lgdy",
+                "base_id": "ds_hd4ojj0xpquaam",
+                "project_id": "p_kzfl5lb0t3tcok",
+                "title": "string",
+                "show": 0,
+                "order": "1"
               }
             ],
-            "fk_cover_image_col_id": "string",
-            "fk_grp_col_id": "string",
-            "fk_model_id": "string",
-            "id": "string",
-            "meta": {},
-            "title": "string"
+            "meta": null,
+            "title": "My Kanban"
           }
         ],
+        "title": "Kanban Model",
+        "type": "object",
         "properties": {
-          "alias": {
-            "type": "string"
-          },
-          "columns": {
-            "items": {
-              "$ref": "#/components/schemas/KanbanColumn"
-            },
-            "type": "array"
-          },
-          "fk_cover_image_col_id": {
-            "type": "string"
-          },
-          "fk_grp_col_id": {
-            "$ref": "#/components/schemas/StringOrNull"
-          },
-          "fk_model_id": {
-            "type": "string"
-          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
+          "fk_grp_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Grouping Field Column ID"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "1kgw1w06b97nl"
+            },
+            "description": "View ID"
+          },
+          "fk_cover_image_col_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Cover Image Column ID"
+          },
+          "columns": {
+            "type": "array",
+            "description": "Kanban Columns",
+            "items": {
+              "$ref": "#/components/schemas/KanbanColumn"
+            }
+          },
           "meta": {
-            "$ref": "#/components/schemas/Meta"
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info for Kanban"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "Kanban Title",
+            "example": "My Kanban"
           }
-        },
-        "title": "Kanban Model",
-        "type": "object"
+        }
       },
       "KanbanColumn": {
         "description": "Model for Kanban Column",
         "examples": [
           {
-            "fk_column_id": "string",
-            "fk_kanban_id": "string",
-            "help": "string",
-            "id": "string",
-            "label": "string"
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "base_id": "ds_hd4ojj0xpquaam",
+            "project_id": "p_kzfl5lb0t3tcok",
+            "title": "string",
+            "show": 0,
+            "order": "1"
           }
         ],
+        "title": "Kanban Column Model",
+        "type": "object",
         "properties": {
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "fk_kanban_id": {
-            "type": "string"
-          },
-          "help": {
-            "type": "string"
-          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
-          "label": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "t1fy4zy561ih8"
+            },
+            "description": "Foreign Key to View"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Baes ID\n"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Project ID"
+          },
+          "title": {
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Project ID",
             "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown?"
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "pbnchzgci5dwa"
+            },
+            "example": 1,
+            "description": "Column Order"
           }
-        },
-        "title": "Kanban Column Model",
-        "type": "object"
+        }
       },
       "KanbanReq": {
         "description": "Model for Kanban Request",
@@ -12642,20 +13311,18 @@
             "password": "123456789"
           }
         ],
+        "title": "Shared View Request Model",
+        "type": "object",
         "properties": {
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Meta data passing to Shared View such as if download is allowed or not."
           },
           "password": {
-            "description": "Password to restrict access",
-            "example": "123456789",
-            "minLength": 8,
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Password to restrict access"
           }
-        },
-        "title": "Shared View Request Model",
-        "type": "object"
+        }
       },
       "SignInReq": {
         "description": "Model for Signin Request",
@@ -13219,6 +13886,8 @@
             ]
           }
         ],
+        "title": "Table Model",
+        "type": "object",
         "properties": {
           "base_id": {
             "description": "Unique Base ID",
@@ -13226,10 +13895,10 @@
           },
           "columns": {
             "description": "The columns included in this table",
+            "type": "array",
             "items": {
               "$ref": "#/components/schemas/Column"
-            },
-            "type": "array"
+            }
           },
           "columnsById": {
             "description": "Column Models grouped by IDs",
@@ -13271,8 +13940,8 @@
             "type": "string"
           },
           "tags": {
-            "description": "Currently not in use",
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Currently not in use"
           },
           "title": {
             "description": "Table Title",
@@ -13283,9 +13952,7 @@
             "type": "string"
           }
         },
-        "required": ["table_name", "title"],
-        "title": "Table Model",
-        "type": "object"
+        "required": ["table_name", "title"]
       },
       "TableList": {
         "description": "Model for Table List",
@@ -13556,9 +14223,9 @@
           {
             "email": "user@example.com",
             "email_verified": true,
-            "firstName": "Alice",
+            "firstname": "Alice",
             "id": "us_8kugj628ebjngs",
-            "lastName": "Smith",
+            "lastname": "Smith",
             "roles": "org-level-viewer"
           }
         ],
@@ -13747,6 +14414,8 @@
             }
           }
         ],
+        "title": "View Model",
+        "type": "object",
         "properties": {
           "base_id": {
             "$ref": "#/components/schemas/Id",
@@ -13798,8 +14467,8 @@
             "type": "number"
           },
           "uuid": {
-            "description": "UUID of the view",
-            "type": "string"
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "UUID of the view"
           },
           "view": {
             "anyOf": [
@@ -13822,9 +14491,7 @@
             "description": "Associated View Model"
           }
         },
-        "required": ["fk_model_id", "show", "title", "type"],
-        "title": "View Model",
-        "type": "object"
+        "required": ["fk_model_id", "show", "title", "type"]
       },
       "ViewList": {
         "description": "Model for View List",

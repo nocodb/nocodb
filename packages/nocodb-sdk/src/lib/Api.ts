@@ -307,7 +307,7 @@ export interface ColumnType {
   /** Column Comment */
   cc?: string;
   /** Column Default */
-  cdf?: string;
+  cdf?: StringOrNullType;
   /** Character Maximum Length */
   clen?: number | null | string;
   /** Column Options */
@@ -331,11 +331,8 @@ export interface ColumnType {
   column_name?: string;
   /** Column Ordinal Position */
   cop?: string;
-  /**
-   * Character Set Name
-   * @example utf8mb4
-   */
-  csn?: string;
+  /** Character Set Name */
+  csn?: StringOrNullType;
   /**
    * Column Type
    * @example varchar(45)
@@ -1885,11 +1882,8 @@ export interface SharedViewListType {
 export interface SharedViewReqType {
   /** Meta data passing to Shared View such as if download is allowed or not. */
   meta?: MetaType;
-  /**
-   * Password to restrict access
-   * @example 123456789
-   */
-  password?: string;
+  /** Password to restrict access */
+  password?: StringOrNullType;
 }
 
 /**
@@ -2004,7 +1998,7 @@ export interface TableType {
   /** Table Name. Prefix will be added for XCDB projects. */
   table_name: string;
   /** Currently not in use */
-  tags?: string;
+  tags?: StringOrNullType;
   /** Table Title */
   title: string;
   /** Table Type */
@@ -2142,7 +2136,7 @@ export interface ViewType {
   /** View Type */
   type: number;
   /** UUID of the view */
-  uuid?: string;
+  uuid?: StringOrNullType;
   /** Associated View Model */
   view?:
     | FormType

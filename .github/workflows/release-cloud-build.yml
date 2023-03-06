@@ -17,16 +17,16 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
     steps:
-      - name: Set outputs
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 16.15.0
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: build nocodb-sdk
         run: |
@@ -67,7 +67,7 @@ jobs:
 #        name: Upload to S3
 #        working-directory: ./packages/nc-gui
 
-      - Move files to a folder
+      - name: Move files to a folder
         run: |
           mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.sha_short }}
           mv packages/nc-gui/dist/* packages/nc-gui/build/${{ steps.vars.outputs.sha_short }}

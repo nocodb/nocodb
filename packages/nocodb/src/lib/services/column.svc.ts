@@ -51,36 +51,14 @@ export enum Altered {
   UPDATE_COLUMN = 8,
 }
 
-export async function columnSetAsPrimary(req: Request, res: Response) {
-  const column = await Column.get({ colId: req.params.columnId });
-  res.json(await Model.updatePrimaryColumn(column.fk_model_id, column.id));
-}
-
-async function updateRollupOrLookup(colBody: any, column: Column<any>) {
-  if (
-    UITypes.Lookup === column.uidt &&
-    validateRequiredField(colBody, [
-      'fk_lookup_column_id',
-      'fk_relation_column_id',
-    ])
-  ) {
-    await validateLookupPayload(colBody, column.id);
-    await Column.update(column.id, colBody);
-  } else if (
-    UITypes.Rollup === column.uidt &&
-    validateRequiredField(colBody, [
-      'fk_relation_column_id',
-      'fk_rollup_column_id',
-      'rollup_function',
-    ])
-  ) {
-    await validateRollupPayload(colBody);
-    await Column.update(column.id, colBody);
-  }
-}
-
-export async function columnUpdate(req: Request, res: Response<TableType>) {
-  const column = await Column.get({ colId: req.params.columnId });
+export async function columnUpdate(param: {
+  req?: any;
+  columnId: string;
+  column: ColumnReqType & { colOptions?: any };
+  cookie?: any;
+}) {
+  const { cookie } = param;
+  const column = await Column.get({ colId: param.columnId });
 
   const table = await Model.getWithInfo({
     id: column.fk_model_id,
@@ -863,52 +841,54 @@ export async function columnAdd(param: {
   validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
   const table = await Model.getWithInfo({
-    id: req.params.tableId,
+    id: param.tableId,
   });
 
   const base = await Base.get(table.base_id);
 
   const project = await base.getProject();
 
-  if (req.body.title || req.body.column_name) {
+  if (param.column.title || param.column.column_name) {
     const dbDriver = await NcConnectionMgrv2.get(base);
 
     const sqlClientType = dbDriver.clientType();
 
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
-    if ((req.body.title || req.body.column_name).length > mxColumnLength) {
+    if (
+      (param.column.title || param.column.column_name).length > mxColumnLength
+    ) {
       NcError.badRequest(
         `Column name ${
-          req.body.title || req.body.column_name
+          param.column.title || param.column.column_name
         } exceeds ${mxColumnLength} characters`
       );
     }
   }
 
   if (
-    !isVirtualCol(req.body) &&
+    !isVirtualCol(param.column) &&
     !(await Column.checkTitleAvailable({
-      column_name: req.body.column_name,
-      fk_model_id: req.params.tableId,
+      column_name: param.column.column_name,
+      fk_model_id: param.tableId,
     }))
   ) {
     NcError.badRequest('Duplicate column name');
   }
   if (
     !(await Column.checkAliasAvailable({
-      title: req.body.title || req.body.column_name,
-      fk_model_id: req.params.tableId,
+      title: param.column.title || param.column.column_name,
+      fk_model_id: param.tableId,
     }))
   ) {
     NcError.badRequest('Duplicate column alias');
   }
 
-  let colBody: any = req.body;
+  let colBody: any = param.column;
   switch (colBody.uidt) {
     case UITypes.Rollup:
       {
-        await validateRollupPayload(req.body);
+        await validateRollupPayload(param.column);
 
         await Column.insert({
           ...colBody,
@@ -918,7 +898,7 @@ export async function columnAdd(param: {
       break;
     case UITypes.Lookup:
       {
-        await validateLookupPayload(req.body);
+        await validateLookupPayload(param.column);
 
         await Column.insert({
           ...colBody,
@@ -928,292 +908,8 @@ export async function columnAdd(param: {
       break;
 
     case UITypes.LinkToAnotherRecord:
-      {
-        validateParams(['parentId', 'childId', 'type'], req.body);
-
-        // get parent and child models
-        const parent = await Model.getWithInfo({
-          id: (req.body as LinkToAnotherColumnReqType).parentId,
-        });
-        const child = await Model.getWithInfo({
-          id: (req.body as LinkToAnotherColumnReqType).childId,
-        });
-        let childColumn: Column;
-
-        const sqlMgr = await ProjectMgrv2.getSqlMgr({
-          id: base.project_id,
-        });
-        if (
-          (req.body as LinkToAnotherColumnReqType).type === 'hm' ||
-          (req.body as LinkToAnotherColumnReqType).type === 'bt'
-        ) {
-          // populate fk column name
-          const fkColName = getUniqueColumnName(
-            await child.getColumns(),
-            `${parent.table_name}_id`
-          );
-
-          let foreignKeyName;
-          {
-            // create foreign key
-            const newColumn = {
-              cn: fkColName,
-
-              title: fkColName,
-              column_name: fkColName,
-              rqd: false,
-              pk: false,
-              ai: false,
-              cdf: null,
-              dt: parent.primaryKey.dt,
-              dtxp: parent.primaryKey.dtxp,
-              dtxs: parent.primaryKey.dtxs,
-              un: parent.primaryKey.un,
-              altered: Altered.NEW_COLUMN,
-            };
-            const tableUpdateBody = {
-              ...child,
-              tn: child.table_name,
-              originalColumns: child.columns.map((c) => ({
-                ...c,
-                cn: c.column_name,
-              })),
-              columns: [
-                ...child.columns.map((c) => ({
-                  ...c,
-                  cn: c.column_name,
-                })),
-                newColumn,
-              ],
-            };
-
-            await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
-
-            const { id } = await Column.insert({
-              ...newColumn,
-              uidt: UITypes.ForeignKey,
-              fk_model_id: child.id,
-            });
-
-            childColumn = await Column.get({ colId: id });
-
-            // ignore relation creation if virtual
-            if (!(req.body as LinkToAnotherColumnReqType).virtual) {
-              foreignKeyName = generateFkName(parent, child);
-              // create relation
-              await sqlMgr.sqlOpPlus(base, 'relationCreate', {
-                childColumn: fkColName,
-                childTable: child.table_name,
-                parentTable: parent.table_name,
-                onDelete: 'NO ACTION',
-                onUpdate: 'NO ACTION',
-                type: 'real',
-                parentColumn: parent.primaryKey.column_name,
-                foreignKeyName,
-              });
-            }
-
-            // todo: create index for virtual relations as well
-            // create index for foreign key in pg
-            if (base.type === 'pg') {
-              await createColumnIndex({
-                column: new Column({
-                  ...newColumn,
-                  fk_model_id: child.id,
-                }),
-                base,
-                sqlMgr,
-              });
-            }
-          }
-          await createHmAndBtColumn(
-            child,
-            parent,
-            childColumn,
-            (req.body as LinkToAnotherColumnReqType).type as RelationTypes,
-            (req.body as LinkToAnotherColumnReqType).title,
-            foreignKeyName,
-            (req.body as LinkToAnotherColumnReqType).virtual
-          );
-        } else if ((req.body as LinkToAnotherColumnReqType).type === 'mm') {
-          const aTn = `${project?.prefix ?? ''}_nc_m2m_${randomID()}`;
-          const aTnAlias = aTn;
-
-          const parentPK = parent.primaryKey;
-          const childPK = child.primaryKey;
-
-          const associateTableCols = [];
-
-          const parentCn = 'table1_id';
-          const childCn = 'table2_id';
-
-          associateTableCols.push(
-            {
-              cn: childCn,
-              column_name: childCn,
-              title: childCn,
-              rqd: true,
-              pk: true,
-              ai: false,
-              cdf: null,
-              dt: childPK.dt,
-              dtxp: childPK.dtxp,
-              dtxs: childPK.dtxs,
-              un: childPK.un,
-              altered: 1,
-              uidt: UITypes.ForeignKey,
-            },
-            {
-              cn: parentCn,
-              column_name: parentCn,
-              title: parentCn,
-              rqd: true,
-              pk: true,
-              ai: false,
-              cdf: null,
-              dt: parentPK.dt,
-              dtxp: parentPK.dtxp,
-              dtxs: parentPK.dtxs,
-              un: parentPK.un,
-              altered: 1,
-              uidt: UITypes.ForeignKey,
-            }
-          );
-
-          await sqlMgr.sqlOpPlus(base, 'tableCreate', {
-            tn: aTn,
-            _tn: aTnAlias,
-            columns: associateTableCols,
-          });
-
-          const assocModel = await Model.insert(project.id, base.id, {
-            table_name: aTn,
-            title: aTnAlias,
-            // todo: sanitize
-            mm: true,
-            columns: associateTableCols,
-          });
-
-          let foreignKeyName1;
-          let foreignKeyName2;
-
-          if (!(req.body as LinkToAnotherColumnReqType).virtual) {
-            foreignKeyName1 = generateFkName(parent, child);
-            foreignKeyName2 = generateFkName(parent, child);
-
-            const rel1Args = {
-              ...req.body,
-              childTable: aTn,
-              childColumn: parentCn,
-              parentTable: parent.table_name,
-              parentColumn: parentPK.column_name,
-              type: 'real',
-              foreignKeyName: foreignKeyName1,
-            };
-            const rel2Args = {
-              ...req.body,
-              childTable: aTn,
-              childColumn: childCn,
-              parentTable: child.table_name,
-              parentColumn: childPK.column_name,
-              type: 'real',
-              foreignKeyName: foreignKeyName2,
-            };
-
-            await sqlMgr.sqlOpPlus(base, 'relationCreate', rel1Args);
-            await sqlMgr.sqlOpPlus(base, 'relationCreate', rel2Args);
-          }
-          const parentCol = (await assocModel.getColumns())?.find(
-            (c) => c.column_name === parentCn
-          );
-          const childCol = (await assocModel.getColumns())?.find(
-            (c) => c.column_name === childCn
-          );
-
-          await createHmAndBtColumn(
-            assocModel,
-            child,
-            childCol,
-            null,
-            null,
-            foreignKeyName1,
-            (req.body as LinkToAnotherColumnReqType).virtual,
-            true
-          );
-          await createHmAndBtColumn(
-            assocModel,
-            parent,
-            parentCol,
-            null,
-            null,
-            foreignKeyName2,
-            (req.body as LinkToAnotherColumnReqType).virtual,
-            true
-          );
-
-          await Column.insert({
-            title: getUniqueColumnAliasName(
-              await child.getColumns(),
-              `${parent.title} List`
-            ),
-            uidt: UITypes.LinkToAnotherRecord,
-            type: 'mm',
-
-            // ref_db_alias
-            fk_model_id: child.id,
-            // db_type:
-
-            fk_child_column_id: childPK.id,
-            fk_parent_column_id: parentPK.id,
-
-            fk_mm_model_id: assocModel.id,
-            fk_mm_child_column_id: childCol.id,
-            fk_mm_parent_column_id: parentCol.id,
-            fk_related_model_id: parent.id,
-          });
-          await Column.insert({
-            title: getUniqueColumnAliasName(
-              await parent.getColumns(),
-              req.body.title ?? `${child.title} List`
-            ),
-
-            uidt: UITypes.LinkToAnotherRecord,
-            type: 'mm',
-
-            fk_model_id: parent.id,
-
-            fk_child_column_id: parentPK.id,
-            fk_parent_column_id: childPK.id,
-
-            fk_mm_model_id: assocModel.id,
-            fk_mm_child_column_id: parentCol.id,
-            fk_mm_parent_column_id: childCol.id,
-            fk_related_model_id: child.id,
-          });
-
-          // todo: create index for virtual relations as well
-          // create index for foreign key in pg
-          if (base.type === 'pg') {
-            await createColumnIndex({
-              column: new Column({
-                ...associateTableCols[0],
-                fk_model_id: assocModel.id,
-              }),
-              base,
-              sqlMgr,
-            });
-            await createColumnIndex({
-              column: new Column({
-                ...associateTableCols[1],
-                fk_model_id: assocModel.id,
-              }),
-              base,
-              sqlMgr,
-            });
-          }
-        }
-      }
-      Tele.emit('evt', { evt_type: 'relation:created' });
+      await createLTARColumn({ ...param, base, project });
+      T.emit('evt', { evt_type: 'relation:created' });
       break;
 
     case UITypes.QrCode:
@@ -1251,7 +947,7 @@ export async function columnAdd(param: {
       break;
     default:
       {
-        colBody = await getColumnPropsFromUIDT(colBody, base);
+        colBody = getColumnPropsFromUIDT(colBody, base);
         if (colBody.uidt === UITypes.Duration) {
           colBody.dtxp = '20';
           // by default, colBody.dtxs is 2
@@ -1413,9 +1109,9 @@ export async function columnAdd(param: {
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.CREATED,
-    user: (req as any)?.user?.email,
+    user: param?.req?.user?.email,
     description: `created column ${colBody.column_name} with alias ${colBody.title} from table ${table.table_name}`,
-    ip: (req as any).clientIp,
+    ip: param?.req.clientIp,
   }).then(() => {});
 
   T.emit('evt', { evt_type: 'column:created' });
@@ -1423,7 +1119,229 @@ export async function columnAdd(param: {
   return table;
 }
 
-const deleteHmOrBtRelation = async (
+export async function columnDelete(param: { req?: any; columnId: string }) {
+  const column = await Column.get({ colId: param.columnId });
+  const table = await Model.getWithInfo({
+    id: column.fk_model_id,
+  });
+  const base = await Base.get(table.base_id);
+
+  // const ncMeta = await Noco.ncMeta.startTransaction();
+  // const sql-mgr = await ProjectMgrv2.getSqlMgrTrans(
+  //   { id: base.project_id },
+  //   ncMeta,
+  //   base
+  // );
+
+  const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+
+  switch (column.uidt) {
+    case UITypes.Lookup:
+    case UITypes.Rollup:
+    case UITypes.QrCode:
+    case UITypes.Barcode:
+    case UITypes.Formula:
+      await Column.delete(param.columnId);
+      break;
+    case UITypes.LinkToAnotherRecord:
+      {
+        const relationColOpt =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+        const childColumn = await relationColOpt.getChildColumn();
+        const childTable = await childColumn.getModel();
+
+        const parentColumn = await relationColOpt.getParentColumn();
+        const parentTable = await parentColumn.getModel();
+
+        switch (relationColOpt.type) {
+          case 'bt':
+          case 'hm':
+            {
+              await deleteHmOrBtRelation({
+                relationColOpt,
+                base,
+                childColumn,
+                childTable,
+                parentColumn,
+                parentTable,
+                sqlMgr,
+                // ncMeta
+              });
+            }
+            break;
+          case 'mm':
+            {
+              const mmTable = await relationColOpt.getMMModel();
+              const mmParentCol = await relationColOpt.getMMParentColumn();
+              const mmChildCol = await relationColOpt.getMMChildColumn();
+
+              await deleteHmOrBtRelation(
+                {
+                  relationColOpt: null,
+                  parentColumn: parentColumn,
+                  childTable: mmTable,
+                  sqlMgr,
+                  parentTable: parentTable,
+                  childColumn: mmParentCol,
+                  base,
+                  // ncMeta
+                },
+                true
+              );
+
+              await deleteHmOrBtRelation(
+                {
+                  relationColOpt: null,
+                  parentColumn: childColumn,
+                  childTable: mmTable,
+                  sqlMgr,
+                  parentTable: childTable,
+                  childColumn: mmChildCol,
+                  base,
+                  // ncMeta
+                },
+                true
+              );
+              const columnsInRelatedTable: Column[] = await relationColOpt
+                .getRelatedTable()
+                .then((m) => m.getColumns());
+
+              for (const c of columnsInRelatedTable) {
+                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                const colOpt =
+                  await c.getColOptions<LinkToAnotherRecordColumn>();
+                if (
+                  colOpt.type === 'mm' &&
+                  colOpt.fk_parent_column_id === childColumn.id &&
+                  colOpt.fk_child_column_id === parentColumn.id &&
+                  colOpt.fk_mm_model_id === mmTable.id &&
+                  colOpt.fk_mm_parent_column_id === mmChildCol.id &&
+                  colOpt.fk_mm_child_column_id === mmParentCol.id
+                ) {
+                  await Column.delete(c.id);
+                  break;
+                }
+              }
+
+              await Column.delete(relationColOpt.fk_column_id);
+
+              // delete bt columns in m2m table
+              await mmTable.getColumns();
+              for (const c of mmTable.columns) {
+                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                const colOpt =
+                  await c.getColOptions<LinkToAnotherRecordColumn>();
+                if (colOpt.type === 'bt') {
+                  await Column.delete(c.id);
+                }
+              }
+
+              // delete hm columns in parent table
+              await parentTable.getColumns();
+              for (const c of parentTable.columns) {
+                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                const colOpt =
+                  await c.getColOptions<LinkToAnotherRecordColumn>();
+                if (colOpt.fk_related_model_id === mmTable.id) {
+                  await Column.delete(c.id);
+                }
+              }
+
+              // delete hm columns in child table
+              await childTable.getColumns();
+              for (const c of childTable.columns) {
+                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                const colOpt =
+                  await c.getColOptions<LinkToAnotherRecordColumn>();
+                if (colOpt.fk_related_model_id === mmTable.id) {
+                  await Column.delete(c.id);
+                }
+              }
+
+              // retrieve columns in m2m table again
+              await mmTable.getColumns();
+
+              // ignore deleting table if it has more than 2 columns
+              // the expected 2 columns would be table1_id & table2_id
+              if (mmTable.columns.length === 2) {
+                await mmTable.delete();
+              }
+            }
+            break;
+        }
+      }
+      T.emit('evt', { evt_type: 'raltion:deleted' });
+      break;
+    case UITypes.ForeignKey: {
+      NcError.notImplemented();
+      break;
+    }
+    // @ts-ignore
+    case UITypes.SingleSelect: {
+      if (column.uidt === UITypes.SingleSelect) {
+        if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {
+          NcError.badRequest(
+            `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`
+          );
+        }
+      }
+      /* falls through to default */
+    }
+    default: {
+      const tableUpdateBody = {
+        ...table,
+        tn: table.table_name,
+        originalColumns: table.columns.map((c) => ({
+          ...c,
+          cn: c.column_name,
+          cno: c.column_name,
+        })),
+        columns: table.columns.map((c) => {
+          if (c.id === param.columnId) {
+            return {
+              ...c,
+              cn: c.column_name,
+              cno: c.column_name,
+              altered: Altered.DELETE_COLUMN,
+            };
+          } else {
+            (c as any).cn = c.column_name;
+          }
+          return c;
+        }),
+      };
+
+      await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+
+      await Column.delete(param.columnId);
+    }
+  }
+
+  await Audit.insert({
+    project_id: base.project_id,
+    op_type: AuditOperationTypes.TABLE_COLUMN,
+    op_sub_type: AuditOperationSubTypes.DELETED,
+    user: param?.req?.user?.email,
+    description: `deleted column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
+    ip: param?.req.clientIp,
+  }).then(() => {});
+
+  await table.getColumns();
+
+  const displayValueColumn = mapDefaultDisplayValue(table.columns);
+  if (displayValueColumn) {
+    await Model.updatePrimaryColumn(
+      displayValueColumn.fk_model_id,
+      displayValueColumn.id
+    );
+  }
+
+  T.emit('evt', { evt_type: 'column:deleted' });
+
+  return table;
+}
+
+async function deleteHmOrBtRelation(
   {
     relationColOpt,
     base,
@@ -1444,7 +1362,7 @@ const deleteHmOrBtRelation = async (
     ncMeta?: NcMetaIO;
   },
   ignoreFkDelete = false
-) => {
+) {
   let foreignKeyName;
 
   // if relationColOpt is not provided, extract it from child table
@@ -1535,7 +1453,7 @@ const deleteHmOrBtRelation = async (
   }
   // delete foreign key column
   await Column.delete(childColumn.id, ncMeta);
-};
+}
 
 async function createLTARColumn(param: {
   tableId: string;

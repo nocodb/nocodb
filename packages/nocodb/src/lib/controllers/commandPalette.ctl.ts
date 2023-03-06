@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 // import Model from '../../models/Model';
-import Project from '../../models/Project';
-import { WorkspaceUser } from '../../models/WorkspaceUser';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
+import Project from '../models/Project';
+import { WorkspaceUser } from '../models/WorkspaceUser';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
 
 export async function commandPalette(req: Request, res: Response) {

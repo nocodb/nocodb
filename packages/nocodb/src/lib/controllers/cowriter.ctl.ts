@@ -1,15 +1,15 @@
 import { Request, Response, Router } from 'express';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { NcError } from '../helpers/catchError';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { NcError } from '../meta/helpers/catchError';
 import { CowriterListType, CowriterType, UITypes } from 'nocodb-sdk';
-import Cowriter from '../../models/Cowriter';
-import Column from '../../models/Column';
-import Model from '../../models/Model';
-import Base from '../../models/Base';
-import Project from '../../models/Project';
-import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
+import Cowriter from '../models/Cowriter';
+import Column from '../models/Column';
+import Model from '../models/Model';
+import Base from '../models/Base';
+import Project from '../models/Project';
+import { getUniqueColumnAliasName } from '../meta/helpers/getUniqueName';
+import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
+import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import { Altered } from './columnApis';
 
 const { Configuration, OpenAIApi } = require('openai');

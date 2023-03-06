@@ -1,17 +1,17 @@
 import { Request, Response, Router } from 'express';
-import { Workspace } from '../../models/Workspace';
+import { Workspace } from '../models/Workspace';
 import { ProjectRoles, WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { WorkspaceUser } from '../../models/WorkspaceUser';
-import { NcError } from '../helpers/catchError';
+import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { WorkspaceUser } from '../models/WorkspaceUser';
+import { NcError } from '../meta/helpers/catchError';
 import validator from 'validator';
-import User from '../../models/User';
+import User from '../models/User';
 
 import { v4 as uuidv4 } from 'uuid';
-import Project from '../../models/Project';
-import validateParams from '../helpers/validateParams';
-import ProjectUser from '../../models/ProjectUser';
+import Project from '../models/Project';
+import validateParams from '../meta/helpers/validateParams';
+import ProjectUser from '../models/ProjectUser';
 
 const workspaceCreate = async (
   req: Request<any, WorkspaceType, WorkspaceType>,

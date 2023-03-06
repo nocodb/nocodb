@@ -1,18 +1,18 @@
 import { Request, Response, Router } from 'express';
 import DOMPurify from 'isomorphic-dompurify';
 import { AuditOperationTypes, AuditOperationSubTypes, ModelTypes } from 'nocodb-sdk';
-import Project from '../../models/Project';
-import Model from '../../models/Model';
-import Column from '../../models/Column';
-import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { metaApiMetrics } from '../helpers/apiMetrics';
-import { NcError } from '../helpers/catchError';
-import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
-import Audit from '../../models/Audit';
-import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import getColumnUiType from '../helpers/getColumnUiType';
-import mapDefaultDisplayValue from '../helpers/mapDefaultDisplayValue';
+import Project from '../models/Project';
+import Model from '../models/Model';
+import Column from '../models/Column';
+import getTableNameAlias, { getColumnNameAlias } from '../meta/helpers/getTableName';
+import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { metaApiMetrics } from '../meta/helpers/apiMetrics';
+import { NcError } from '../meta/helpers/catchError';
+import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
+import Audit from '../models/Audit';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
+import getColumnUiType from '../meta/helpers/getColumnUiType';
+import mapDefaultDisplayValue from '../meta/helpers/mapDefaultDisplayValue';
 
 export async function sqlViewCreate(
   req: Request<any, any, any>,

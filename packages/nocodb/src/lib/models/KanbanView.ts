@@ -1,5 +1,5 @@
 import Noco from '../Noco';
-import { BoolType, KanbanType, UITypes } from 'nocodb-sdk';
+import { BoolType, KanbanType, MetaType, UITypes } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
@@ -12,7 +12,7 @@ export default class KanbanView implements KanbanType {
   base_id?: string;
   fk_grp_col_id?: string;
   fk_cover_image_col_id?: string;
-  meta?: string | Record<string, any>;
+  meta?: MetaType;
 
   // below fields are not in use at this moment
   // keep them for time being

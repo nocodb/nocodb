@@ -62,7 +62,7 @@ jobs:
         with:
           folder: packages/nc-gui/dist/
           bucket: nocohubcdn
-          dist-id: E2DUKTIYPVG73B
+          dist-id: E2OCMQZYE8WVJ7
           invalidation: / *
 
       - name: Login to Amazon ECR

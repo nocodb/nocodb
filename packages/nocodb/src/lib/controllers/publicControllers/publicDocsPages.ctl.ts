@@ -1,8 +1,8 @@
 import { Request, Response, Router } from 'express';
-import apiMetrics from '../../helpers/apiMetrics';
-import Page from '../../../models/Page';
-import catchError from '../../helpers/catchError';
-import Project from '../../../models/Project';
+import apiMetrics from '../../meta/helpers/apiMetrics';
+import Page from '../../models/Page';
+import catchError from '../../meta/helpers/catchError';
+import Project from '../../models/Project';
 
 async function get(
   req: Request<any> & { user: { id: string; roles: string } },

@@ -5,6 +5,7 @@ import KanbanView from '../../models/KanbanView';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers';
 
 export async function kanbanViewGet(req: Request, res: Response<KanbanType>) {
   res.json(await KanbanView.get(req.params.kanbanViewId));
@@ -31,11 +32,13 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/kanbans',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/KanbanReq'),
   ncMetaAclMw(kanbanViewCreate, 'kanbanViewCreate')
 );
 router.patch(
   '/api/v1/db/meta/kanbans/:kanbanViewId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/KanbanUpdateReq'),
   ncMetaAclMw(kanbanViewUpdate, 'kanbanViewUpdate')
 );
 router.get(

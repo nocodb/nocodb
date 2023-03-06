@@ -15,6 +15,7 @@ import {
   isDuration,
   isEmail,
   isFloat,
+  isGeoData,
   isInt,
   isJSON,
   isPercent,
@@ -44,6 +45,7 @@ import CalendarIcon from '~icons/mdi/calendar'
 import SingleSelectIcon from '~icons/mdi/arrow-down-drop-circle'
 import MultiSelectIcon from '~icons/mdi/format-list-bulleted-square'
 import DatetimeIcon from '~icons/mdi/calendar-clock'
+import GeoDataIcon from '~icons/mdi/map-marker'
 import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
 import NumericIcon from '~icons/mdi/numeric'
@@ -58,12 +60,16 @@ import DurationIcon from '~icons/mdi/timer-outline'
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
     return KeyIcon
+  } else if (isSpecificDBType(column)) {
+    return SpecificDBTypeIcon
   } else if (isJSON(column)) {
     return JSONIcon
   } else if (isDate(column, abstractType)) {
     return CalendarIcon
   } else if (isDateTime(column, abstractType)) {
     return DatetimeIcon
+  } else if (isGeoData(column)) {
+    return GeoDataIcon
   } else if (isSet(column)) {
     return MultiSelectIcon
   } else if (isSingleSelect(column)) {
@@ -98,8 +104,6 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     return NumericIcon
   } else if (isString(column, abstractType)) {
     return StringIcon
-  } else if (isSpecificDBType(column)) {
-    return SpecificDBTypeIcon
   } else {
     return GenericIcon
   }

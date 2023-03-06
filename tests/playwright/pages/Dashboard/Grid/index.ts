@@ -212,8 +212,8 @@ export class GridPage extends BasePage {
       recordCnt = records[0].split(' ')[0];
 
       // to ensure page loading is complete
-      await this.rootPage.waitForTimeout(500);
       i++;
+      await this.rootPage.waitForTimeout(100 * i);
     }
     expect(parseInt(recordCnt)).toEqual(count);
   }

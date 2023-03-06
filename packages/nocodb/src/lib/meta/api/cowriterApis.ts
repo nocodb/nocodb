@@ -33,7 +33,7 @@ export async function cowriterCreate(
   const formState = req.body;
 
   const promptStatement =
-    (typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta)
+    (typeof project.meta === 'string' ? JSON.parse(project.meta as string) : project.meta)
       .prompt_statement || '';
 
   // translate prompt statment by replacing {{col}} in the given template

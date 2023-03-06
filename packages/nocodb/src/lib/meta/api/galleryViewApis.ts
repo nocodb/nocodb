@@ -5,6 +5,7 @@ import GalleryView from '../../models/GalleryView';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { getAjvValidatorMw } from './helpers';
 export async function galleryViewGet(req: Request, res: Response<GalleryType>) {
   res.json(await GalleryView.get(req.params.galleryViewId));
 }
@@ -29,11 +30,13 @@ const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/galleries',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/GalleryReq'),
   ncMetaAclMw(galleryViewCreate, 'galleryViewCreate')
 );
 router.patch(
   '/api/v1/db/meta/galleries/:galleryViewId',
   metaApiMetrics,
+  getAjvValidatorMw('swagger.json#/components/schemas/GalleryReq'),
   ncMetaAclMw(galleryViewUpdate, 'galleryViewUpdate')
 );
 router.get(

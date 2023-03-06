@@ -53,6 +53,7 @@ const formState = reactive({
 })
 
 const route = useRoute()
+const creating = ref(false)
 
 const createProject = async () => {
   $e('a:project:create:xcdb')
@@ -64,6 +65,8 @@ const createProject = async () => {
     const complement = tcolor.complement()
 
     // todo: provide proper project type
+    creating.value = true
+
     const result = await api.project.create({
       title: formState.title,
       fk_workspace_id: route.query.workspaceId,
@@ -107,6 +110,8 @@ const createProject = async () => {
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    creating.value = false
   }
 }
 
@@ -152,7 +157,8 @@ onMounted(async () => {
           </a-form-item>
 
           <div class="text-center">
-            <button class="scaling-btn bg-opacity-100" type="submit">
+            <a-spin v-if="creating" spinning />
+            <button v-else class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <MaterialSymbolsRocketLaunchOutline />
                 {{ $t('general.create') }}

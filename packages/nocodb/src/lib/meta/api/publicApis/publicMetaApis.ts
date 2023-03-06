@@ -112,7 +112,7 @@ async function getPublicProject(req, res): Promise<any> {
     NcError.forbidden('Not allowed');
   }
 
-  const projectMeta = project?.meta ? JSON.parse(project.meta) : {};
+  const projectMeta = project?.meta ? (typeof project.meta === 'string' ? JSON.parse(project.meta as string) : project.meta) : {};
 
   res.json({ title: project.title, id: project.id, meta: projectMeta });
 }

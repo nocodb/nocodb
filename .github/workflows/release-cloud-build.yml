@@ -17,9 +17,9 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
     steps:
-      - name: log
-        run: |
-           echo "key id: ${{ secrets.AWS_ACCESS_KEY_ID }}" | sed 's/./& /g'
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -35,6 +35,8 @@ jobs:
           cd packages/nocodb-sdk &&
           npm ci && npm run build
       - name: build nc-gui and copy to nocodb
+        env:
+          VERSION: ${{ steps.vars.outputs.sha_short }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           # generate static build of nc-gui
@@ -65,14 +67,19 @@ jobs:
 #        name: Upload to S3
 #        working-directory: ./packages/nc-gui
 
+      - Move files to a folder
+        run: |
+          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.sha_short }}
+          mv packages/nc-gui/dist/* packages/nc-gui/build/${{ steps.vars.outputs.sha_short }}
+
 
       - name: Deploy
         uses: lbertenasco/s3-deploy@v1
         with:
-          folder: packages/nc-gui/dist/
+          folder: packages/nc-gui/build/
           bucket: nocohubcdn
           dist-id: E2OCMQZYE8WVJ7
-          invalidation: / *
+          invalidation: /${{ steps.vars.outputs.sha_short }}/*
 
       - name: Login to Amazon ECR
         id: login-ecr

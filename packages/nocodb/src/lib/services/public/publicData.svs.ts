@@ -49,7 +49,7 @@ export async function dataList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const listArgs: any = { ...param.query };
@@ -130,7 +130,7 @@ async function getGroupedDataList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({ model, query: param.query, view });
@@ -208,7 +208,7 @@ export async function dataInsert(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   await view.getViewWithInfo();
@@ -306,7 +306,7 @@ export async function relDataList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({
@@ -362,7 +362,7 @@ export async function publicMmList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: view.fk_model_id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const key = `List`;
@@ -427,7 +427,7 @@ export async function publicHmList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: view.fk_model_id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const key = `List`;

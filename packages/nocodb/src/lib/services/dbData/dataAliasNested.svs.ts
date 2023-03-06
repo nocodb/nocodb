@@ -25,7 +25,7 @@ export async function mmList(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(param.columnName, model);
@@ -63,7 +63,7 @@ export async function mmExcludedList(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
   const column = await getColumnByIdOrName(param.columnName, model);
 
@@ -105,7 +105,7 @@ export async function hmExcludedList(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(param.columnName, model);
@@ -147,7 +147,7 @@ export async function btExcludedList(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(param.columnName, model);
@@ -191,7 +191,7 @@ export async function hmList(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(param.columnName, model);
@@ -232,7 +232,7 @@ export async function relationDataRemove(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(param.columnName, model);
@@ -265,7 +265,7 @@ export async function relationDataAdd(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(param.columnName, model);

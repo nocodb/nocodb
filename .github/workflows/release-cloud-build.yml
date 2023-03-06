@@ -57,6 +57,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
+      - run: aws s3 sync ./dist s3://nocohubcdn --cache-control 'no-cache'
+        working-directory: ./packages/nc-gui
+
+
       - name: Deploy
         uses: lbertenasco/s3-deploy@v1
         with:

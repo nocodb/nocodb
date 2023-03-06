@@ -20,7 +20,7 @@ export default class ProjectUser {
   }
 
   public static async insert(
-    projectUser: Partial<ProjectUser & { created_at?: any; updated_at?: any }>,
+    projectUser: Partial<ProjectUser>,
     ncMeta = Noco.ncMeta
   ) {
     const insertObject = extractProps(projectUser, [

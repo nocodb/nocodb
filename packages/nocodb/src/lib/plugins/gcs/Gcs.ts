@@ -4,8 +4,8 @@ import { Storage, StorageOptions } from '@google-cloud/storage';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
 import {
-  waitForStreamClose,
   generateTempFilePath,
+  waitForStreamClose,
 } from '../../utils/pluginUtils';
 
 export default class Gcs implements IStorageAdapterV2 {

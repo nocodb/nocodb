@@ -21,7 +21,7 @@ import { UITypes } from 'nocodb-sdk';
 //   - add `exact date` in comparison_sub_op for existing filters `eq` and `neq`
 
 function removeLikeAndNlikeFilters(filter: Filter, ncMeta: NcMetaIO) {
-  let actions = [];
+  const actions = [];
   // remove `is like` and `is not like`
   if (['like', 'nlike'].includes(filter.comparison_op)) {
     actions.push(Filter.delete(filter.id, ncMeta));
@@ -30,7 +30,7 @@ function removeLikeAndNlikeFilters(filter: Filter, ncMeta: NcMetaIO) {
 }
 
 function migrateEqAndNeqFilters(filter: Filter, ncMeta: NcMetaIO) {
-  let actions = [];
+  const actions = [];
   // remove `is like` and `is not like`
   if (['eq', 'neq'].includes(filter.comparison_op)) {
     actions.push(
@@ -47,7 +47,7 @@ function migrateEqAndNeqFilters(filter: Filter, ncMeta: NcMetaIO) {
 }
 
 function migrateEmptyAndNullFilters(filter: Filter, ncMeta: NcMetaIO) {
-  let actions = [];
+  const actions = [];
   // remove `is like` and `is not like`
   if (['empty', 'null'].includes(filter.comparison_op)) {
     // migrate to blank

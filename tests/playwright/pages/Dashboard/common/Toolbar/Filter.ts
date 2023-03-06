@@ -123,7 +123,7 @@ export class ToolbarFilterPage extends BasePage {
           for (let i = 0; i < v.length; i++) {
             await this.rootPage
               .locator(`.nc-dropdown-multi-select-cell`)
-              .locator(`.nc-select-option-MultiSelect-${v[i]}`)
+              .locator(`[data-testid="select-option-MultiSelect-filter"].nc-select-option-MultiSelect-${v[i]}`)
               .click();
           }
           break;

@@ -2,8 +2,10 @@ import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
+import type { SelectOptionType } from 'nocodb-sdk';
 
-export default class SelectOption {
+export default class SelectOption implements SelectOptionType {
+  id: string;
   title: string;
   fk_column_id: string;
   color: string;
@@ -110,6 +112,4 @@ export default class SelectOption {
 
     return data && new SelectOption(data);
   }
-
-  id: string;
 }

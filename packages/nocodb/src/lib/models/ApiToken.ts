@@ -7,8 +7,9 @@ import {
 import Noco from '../Noco';
 import { nanoid } from 'nanoid';
 import NocoCache from '../cache/NocoCache';
+import type { ApiTokenType } from 'nocodb-sdk';
 
-export default class ApiToken {
+export default class ApiToken implements ApiTokenType {
   project_id?: string;
   db_alias?: string;
   fk_user_id?: string;
@@ -18,7 +19,7 @@ export default class ApiToken {
   expiry?: string;
   enabled?: boolean;
 
-  constructor(audit: Partial<ApiToken>) {
+  constructor(audit: Partial<ApiToken | ApiTokenType>) {
     Object.assign(this, audit);
   }
 

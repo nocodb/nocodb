@@ -254,7 +254,7 @@ export default class Filter {
     const result: FilterType = {
       is_group: true,
       children: [],
-      logical_op: 'AND',
+      logical_op: 'and',
     };
 
     const grouped = {};

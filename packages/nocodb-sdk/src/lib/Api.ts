@@ -10,159 +10,6 @@
  */
 
 /**
- * Model for User
- */
-export interface UserType {
-  /**
-   * The email of the user
-   * @format email
-   * @example user@example.com
-   */
-  email: string;
-  /** Set to true if the user's email has been verified. */
-  email_verified: boolean;
-  user_name?: string;
-  display_name?: string;
-  /**
-   * The roles of the user
-   * @example org-level-viewer
-   */
-  roles?: string;
-}
-
-export interface WorkspaceUserType {
-  /** @format email */
-  email?: string;
-  roles?: string;
-  fk_user_id?: string;
-  invite_token?: string;
-  invite_accepted?: boolean;
-}
-
-export interface WorkspaceUserInviteType {
-  /** @format email */
-  email?: string;
-  roles?: string;
-}
-
-/**
- * Page of Noco docs
- */
-export interface DocsPageType {
-  /** Unique identifier for the given page. */
-  id?: string;
-  title: string;
-  published_title?: string;
-  description?: string;
-  content: string;
-  order?: number;
-  published_content?: string;
-  slug?: string;
-  parent_page_id?: string;
-  is_parent?: boolean;
-  is_published?: boolean;
-  is_nested_published?: boolean;
-  /** @format date */
-  last_published_date?: string;
-  last_published_by_id?: string;
-  /** @format date */
-  updated_at?: string;
-  last_updated_by_id?: string;
-  /** @format date */
-  created_at?: string;
-  created_by_id?: string;
-  /** @format date */
-  archived_date?: string;
-  archived_by_id?: string;
-  icon?: string;
-  metaJson?: string | object;
-}
-
-export interface PageReqQueryParamsType {
-  offset?: number;
-  limit?: number;
-  query?: string;
-}
-
-/**
- * Model for User List
- */
-export interface UserListType {
-  /** users includes `list` and `pageInfo` */
-  users: {
-    /** List of User objects */
-    list: UserType;
-    /** Pagination info */
-    pageInfo: PaginatedType;
-  };
-}
-
-/**
- * Model for Project Request
- */
-export interface ProjectReqType {
-  /** Array of Bases */
-  bases?: BaseReqType[];
-  /**
-   * Primary Theme Color
-   * @example #24716E
-   */
-  color?: string;
-  /**
-   * Project Description
-   * @example This is my project description
-   */
-  description?: string;
-  /**
-   * Project Title
-   * @example My Project
-   */
-  title: string;
-}
-
-/**
- * Model for Project
- */
-export interface ProjectType {
-  /** List of base models */
-  bases?: BaseType[];
-  /**
-   * Primary Theme Color
-   * @example #24716E
-   */
-  color?: string;
-  /** Is the project deleted */
-  deleted?: BoolType;
-  /**
-   * Project Description
-   * @example This is my project description
-   */
-  description?: string;
-  /**
-   * Unique Project ID
-   * @example p_124hhlkbeasewh
-   */
-  id?: string;
-  /** Model for Bool */
-  is_meta?: BoolType;
-  /** Meta Info such as theme colors */
-  meta?: MetaType;
-  /** The order in project list */
-  order?: number;
-  /**
-   * Project prefix. Used in XCDB only.
-   * @example nc_vm5q__
-   */
-  prefix?: string;
-  status?: string;
-  /**
-   * Project Title
-   * @example my-project
-   */
-  title?: string;
-}
-
-/**
  * Model for API Token Request
  */
 export interface ApiTokenReqType {
@@ -174,13 +21,13 @@ export interface ApiTokenReqType {
 }
 
 export interface AttachmentType {
-  url?: string;
-  title?: string;
-  mimetype?: string;
-  size?: string;
-  icon?: string;
-  path?: string;
   data?: any;
+  icon?: string;
+  mimetype?: string;
+  path?: string;
+  size?: string;
+  title?: string;
+  url?: string;
 }
 
 /**
@@ -200,18 +47,18 @@ export interface AttachmentReqType {
 }
 
 export interface AuditType {
-  id?: string;
-  user?: string;
-  ip?: string;
   base_id?: string;
-  project_id?: string;
-  fk_model_id?: string;
-  row_id?: string;
-  op_type?: string;
-  op_sub_type?: string;
-  status?: string;
   description?: string;
   details?: string;
+  fk_model_id?: string;
+  id?: string;
+  ip?: string;
+  op_sub_type?: string;
+  op_type?: string;
+  project_id?: string;
+  row_id?: string;
+  status?: string;
+  user?: string;
 }
 
 /**
@@ -228,13 +75,13 @@ export interface AuditRowUpdateReqType {
    * @example md_ehn5izr99m7d45
    */
   fk_model_id?: string;
+  /** The previous value before the action */
+  prev_value?: any;
   /**
    * Row ID
    * @example rec0Adp9PMG9o7uJy
    */
   row_id?: string;
-  /** The previous value before the action */
-  prev_value?: any;
   /** The current value after the action */
   value?: any;
 }
@@ -250,6 +97,17 @@ export interface BaseType {
   /** Model for Bool */
   enabled?: BoolType;
   erd_uuid?: string;
+}
+
+/**
+ * Model for Base List
+ */
+export interface BaseListType {
+  bases: {
+    list: BaseType[];
+    /** Model for Paginated */
+    pageInfo: PaginatedType;
+  };
 }
 
 /**
@@ -287,17 +145,6 @@ export interface BaseReqType {
 }
 
 /**
- * Model for Base List
- */
-export interface BaseListType {
-  bases: {
-    list: BaseType[];
-    /** Model for Paginated */
-    pageInfo: PaginatedType;
-  };
-}
-
-/**
  * Model for Bool
  */
 export type BoolType = number | boolean | null;
@@ -310,6 +157,8 @@ export interface ColumnType {
   ai?: BoolType;
   /** Auto Update Timestamp */
   au?: BoolType;
+  /** Model for StringOrNull */
+  banner_image_url?: StringOrNullType;
   /**
    * Base ID that this column belongs to
    * @example ds_krsappzu9f8vmo
@@ -362,421 +211,20 @@ export interface ColumnType {
    */
   dtx?: string;
   /** Model for StringOrNull */
-  redirect_url?: StringOrNullType;
+  email?: StringOrNullType;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  /** Model for StringOrNull */
+  logo_url?: StringOrNullType;
+  /** Model for Meta */
+  meta?: MetaType;
   /** Model for StringOrNull */
   redirect_after_secs?: StringOrNullType;
   /** Model for StringOrNull */
-  email?: StringOrNullType;
-  /** Model for StringOrNull */
-  banner_image_url?: StringOrNullType;
-  /** Model for StringOrNull */
-  logo_url?: StringOrNullType;
-  /** Model for Bool */
-  submit_another_form?: BoolType;
+  redirect_url?: StringOrNullType;
   /** Model for Bool */
   show_blank_form?: BoolType;
-  lock_type?: 'collaborative' | 'locked' | 'personal';
-  /** Model for Meta */
-  meta?: MetaType;
-}
-
-export type FormCreateReqType = FormReqType;
-
-/**
- * Model for Form Column
- */
-export interface FormColumnType {
-  /** Unique ID */
-  id?: IdType;
-  /** Form Column Description (Not in use) */
-  description?: StringOrNullType;
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  /** Foreign Key to View */
-  fk_view_id?: IdType;
-  /** Form Column Help Text */
-  help?: StringOrNullType;
-  /** Form Column Label */
-  label?: StringOrNullType;
-  /** Meta Info */
-  meta?: MetaType;
-  /**
-   * The order among all the columns in the form
-   * @example 1
-   */
-  order?: number;
-  /** Is this form column required in submission? */
-  required?: BoolType;
-  /** Is this column shown in Form? */
-  show?: BoolType;
-  /** Form Column UUID (Not in use) */
-  uuid?: StringOrNullType;
-}
-
-/**
- * Model for Form Column Request
- */
-export interface FormColumnReqType {
-  /** Form Column Description (Not in use) */
-  description?: StringOrNullType;
-  /** Form Column Help Text */
-  help?: StringOrNullType;
-  /** Form Column Label */
-  label?: StringOrNullType;
-  /** Meta Info */
-  meta?: MetaType;
-  /** The order among all the columns in the form */
-  order?: number;
-  /** Is this form column required in submission? */
-  required?: BoolType;
-  /** Is this column shown in Form? */
-  show?: BoolType;
-}
-
-/**
- * Model for Paginated
- */
-export interface PaginatedType {
-  /** Is the current page the first page */
-  isFirstPage?: boolean;
-  /** Is the current page the last page */
-  isLastPage?: boolean;
-  /**
-   * The current page
-   * @example 1
-   */
-  page?: number;
-  /**
-   * The number of pages
-   * @example 10
-   */
-  pageSize?: number;
-  /**
-   * The number of rows in the given result
-   * @example 1
-   */
-  totalRows?: number;
-}
-
-/**
- * Model for Hook List
- */
-export interface HookListType {
-  list?: HookType[];
-  /** Model for Paginated */
-  pageInfo?: PaginatedType;
-}
-
-/**
- * Model for Shared View
- */
-export type SharedViewType = ViewType;
-
-/**
- * Model for Shared View List
- */
-export interface SharedViewListType {
-  list?: SharedViewType[];
-  /** Model for Paginated */
-  pageInfo?: PaginatedType;
-}
-
-/**
- * Model for View List
- */
-export interface ViewListType {
-  list?: ViewType[];
-  /** Model for Paginated */
-  pageInfo?: PaginatedType;
-}
-
-export interface WorkspaceListType {
-  list?: WorkspaceType[];
-  /** Model for Paginated */
-  pageInfo?: PaginatedType;
-}
-
-export interface CowriterListType {
-  list?: CowriterType[];
-  /** Model for Paginated */
-  pageInfo?: PaginatedType;
-}
-
-export interface WorkspaceUserListType {
-  list?: WorkspaceUserType[];
-  /** Model for Paginated */
-  pageInfo?: PaginatedType;
-}
-
-export interface WorkspaceType {
-  id?: string;
-  title?: string;
-  description?: string;
-  meta?: any;
-  fk_user_id?: string;
-  deleted?: boolean;
-  order?: number;
-  deleted_at?: any;
-  created_at?: any;
-  updated_at?: any;
-}
-
-export interface WebhookType {
-  id?: string;
-  title?: string;
-  type?: string;
-}
-
-/**
- * Model for Hook
- */
-export interface HookType {
-  /** Is the hook active? */
-  active?: BoolType;
-  /** Is the hook aysnc? */
-  async?: BoolType;
-  /**
-   * Hook Description
-   * @example This is my hook description
-   */
-  description?: string;
-  /**
-   * Environment for the hook
-   * @example all
-   */
-  env?: string;
-  /**
-   * Event Type for the operation
-   * @example after
-   */
-  event?: 'after' | 'before';
-  /**
-   * Foreign Key to Model
-   * @example md_rsu68aqjsbyqtl
-   */
-  fk_model_id?: string;
-  /** Unique ID */
-  id?: IdType;
-  /** Hook Notification including info such as type, payload, method, body, and etc */
-  notification?: object | string;
-  /**
-   * Hook Operation
-   * @example insert
-   */
-  operation?: 'delete' | 'insert' | 'update';
-  /**
-   * Retry Count
-   * @example 10
-   */
-  retries?: number;
-  /**
-   * Retry Interval
-   * @example 60000
-   */
-  retry_interval?: number;
-  /**
-   * Timeout
-   * @example 60000
-   */
-  timeout?: number;
-  /**
-   * Hook Title
-   * @example My Webhook
-   */
-  title?: string;
-  /** Hook Type */
-  type?: string;
-}
-
-/**
- * Model for Hook
- */
-export interface HookReqType {
-  /** Is the hook active? */
-  active?: BoolType;
-  /** Is the hook aysnc? */
-  async?: BoolType;
-  /** Hook Description */
-  description?: StringOrNullType;
-  /**
-   * Environment for the hook
-   * @example all
-   */
-  env?: string;
-  /**
-   * Event Type for the operation
-   * @example after
-   */
-  event: 'after' | 'before';
-  /**
-   * Foreign Key to Model
-   * @example md_rsu68aqjsbyqtl
-   */
-  fk_model_id?: string;
-  /** Unique ID */
-  id?: IdType;
-  /** Hook Notification including info such as type, payload, method, body, and etc */
-  notification: object | string;
-  /**
-   * Hook Operation
-   * @example insert
-   */
-  operation: 'delete' | 'insert' | 'update';
-  /**
-   * Retry Count
-   * @example 10
-   */
-  retries?: number;
-  /**
-   * Retry Interval
-   * @example 60000
-   */
-  retry_interval?: number;
-  /**
-   * Timeout
-   * @example 60000
-   */
-  timeout?: number;
-  /**
-   * Hook Title
-   * @example My Webhook
-   */
-  title: string;
-  /** Hook Type */
-  type?: string | null;
-}
-
-/**
- * Model for Hook Test Request
- */
-export interface HookTestReqType {
-  /** Model for Hook */
-  hook: HookReqType;
-  /** Payload to be sent */
-  payload: any;
-}
-
-/**
- * Model for Signup Request
- */
-export interface SignUpReqType {
-  /**
-   * Email address of the user
-   * @format email
-   * @example user@example.com
-   */
-  email: string;
-  /**
-   * Password of the user
-   * @example password123456789
-   */
-  password: string;
-}
-
-/**
- * Model for Signin Request
- */
-export interface SignInReqType {
-  /**
-   * Email address of the user
-   * @format email
-   */
-  email: string;
-  /** Password of the user */
-  password: string;
-}
-
-/**
- * Model for Password Forgot Request
- */
-export interface PasswordForgotReqType {
-  /**
-   * Email address of the user
-   * @format email
-   */
-  email: string;
-}
-
-/**
- * Model for Password Reset Request
- */
-export interface PasswordResetReqType {
-  /**
-   * New password
-   * @example newpassword
-   */
-  password: string;
-}
-
-/**
- * Model for Password Change Request
- */
-export interface PasswordChangeReqType {
-  currentPassword: string;
-  newPassword: string;
-}
-
-/**
- * Model for Plugin
- */
-export interface PluginType {
-  /** Is plguin active? */
-  active?: BoolType;
-  /**
-   * Plugin Category
-   * @example Storage
-   */
-  category?: string;
-  /** Plugin Creator (Not in use) */
-  creator?: string;
-  /** Plugin Creator website (Not in use) */
-  creator_website?: string;
-  /**
-   * Plugin Description
-   * @example Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance.
-   */
-  description?: string;
-  /** Documentation of plugin (Not in use) */
-  docs?: string;
-  /** Plugin Icon (Not in use) */
-  icon?: string;
-  /** Unique ID */
-  id?: IdType;
-  /** Plugin Input */
-  input?: StringOrNullType | number;
-  /**
-   * Plugin Input Schema
-   *
-   */
-  input_schema?: string;
-  /**
-   * Plugin logo
-   * @example plugins/s3.png
-   */
-  logo?: string;
-  /** Plugin Price (Not in use) */
-  price?: string;
-  /** Plugin Rating (Not in use) */
-  rating?: number;
-  /**
-   * Plugin Status
-   * @example install
-   */
-  status?: string;
-  /** Not in use */
-  status_details?: string;
-  /**
-   * Plugin tags
-   * @example Storage
-   */
-  tags?: string;
-  /** Plugin Title */
-  title?: string;
-  /**
-   * Plugin Version
-   * @example 0.0.1
-   */
-  version?: string;
+  /** Model for Bool */
+  submit_another_form?: BoolType;
 }
 
 /**
@@ -831,6 +279,61 @@ export interface CommentReqType {
    * @example 3
    */
   row_id: string;
+}
+
+/**
+ * Cowriter Model
+ */
+export interface CowriterType {
+  created_at?: string;
+  created_by?: string;
+  fk_model_id?: string;
+  id?: string;
+  is_read?: boolean;
+  meta?: any;
+  output?: string;
+  prompt_statement?: string;
+  prompt_statement_template?: string;
+  updated_at?: string;
+}
+
+export interface CowriterListType {
+  list?: CowriterType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
+}
+
+/**
+ * Page of Noco docs
+ */
+export interface DocsPageType {
+  archived_by_id?: string;
+  /** @format date */
+  archived_date?: string;
+  content: string;
+  /** @format date */
+  created_at?: string;
+  created_by_id?: string;
+  description?: string;
+  icon?: string;
+  /** Unique identifier for the given page. */
+  id?: string;
+  is_nested_published?: boolean;
+  is_parent?: boolean;
+  is_published?: boolean;
+  last_published_by_id?: string;
+  /** @format date */
+  last_published_date?: string;
+  last_updated_by_id?: string;
+  metaJson?: object | string;
+  order?: number;
+  parent_page_id?: string;
+  published_content?: string;
+  published_title?: string;
+  slug?: string;
+  title: string;
+  /** @format date */
+  updated_at?: string;
 }
 
 /**
@@ -1032,14 +535,21 @@ export interface FilterReqType {
   value?: any;
 }
 
+export interface FollowerType {
+  fk_follower_id?: string;
+}
+
 /**
  * Model for Form
  */
 export interface FormType {
-  /** Unique ID */
-  id?: IdType;
   /** Banner Image URL. Not in use currently. */
   banner_image_url?: StringOrNullType;
+  /**
+   * Base ID
+   * @example md_rsu68aqjsbyqtl
+   */
+  base_id?: string;
   /** Form Columns */
   columns?: FormColumnType[];
   /** Email to sned after form is submitted */
@@ -1050,15 +560,12 @@ export interface FormType {
    */
   fk_model_id?: string;
   /**
-   * Base ID
-   * @example md_rsu68aqjsbyqtl
-   */
-  base_id?: string;
-  /**
    * The heading of the form
    * @example My Form
    */
   heading?: string;
+  /** Unique ID */
+  id?: IdType;
   /**
    * Lock Type of this view
    * @example collaborative
@@ -1089,6 +596,59 @@ export interface FormType {
    */
   title?: string;
 }
+
+/**
+ * Model for Form Column
+ */
+export interface FormColumnType {
+  /** Form Column Description (Not in use) */
+  description?: StringOrNullType;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /** Form Column Help Text */
+  help?: StringOrNullType;
+  /** Unique ID */
+  id?: IdType;
+  /** Form Column Label */
+  label?: StringOrNullType;
+  /** Meta Info */
+  meta?: MetaType;
+  /**
+   * The order among all the columns in the form
+   * @example 1
+   */
+  order?: number;
+  /** Is this form column required in submission? */
+  required?: BoolType;
+  /** Is this column shown in Form? */
+  show?: BoolType;
+  /** Form Column UUID (Not in use) */
+  uuid?: StringOrNullType;
+}
+
+/**
+ * Model for Form Column Request
+ */
+export interface FormColumnReqType {
+  /** Form Column Description (Not in use) */
+  description?: StringOrNullType;
+  /** Form Column Help Text */
+  help?: StringOrNullType;
+  /** Form Column Label */
+  label?: StringOrNullType;
+  /** Meta Info */
+  meta?: MetaType;
+  /** The order among all the columns in the form */
+  order?: number;
+  /** Is this form column required in submission? */
+  required?: BoolType;
+  /** Is this column shown in Form? */
+  show?: BoolType;
+}
+
+export type FormCreateReqType = FormReqType;
 
 /**
  * Model for Form Request
@@ -1138,8 +698,8 @@ export interface FormReqType {
  * Model for Formula
  */
 export interface FormulaType {
-  /** Unique ID */
-  id?: IdType;
+  /** Error Message */
+  error?: string;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /**
@@ -1152,8 +712,8 @@ export interface FormulaType {
    * @example CONCAT("FOO", {Title})
    */
   formula_raw?: string;
-  /** Error Message */
-  error?: string;
+  /** Unique ID */
+  id?: IdType;
 }
 
 /**
@@ -1258,53 +818,53 @@ export interface GeoLocationType {
  * Model for Grid
  */
 export interface GridType {
-  /** Unique ID */
-  id?: IdType;
-  /** Project ID */
-  project_id?: IdType;
   /** Base ID */
   base_id?: IdType;
+  /** Grid View Columns */
+  columns?: GridColumnType[];
   /** Foreign Key to View */
   fk_view_id?: IdType;
+  /** Unique ID */
+  id?: IdType;
+  /** Meta info for Grid Model */
+  meta?: MetaType;
+  /** Project ID */
+  project_id?: IdType;
   /**
    * Row Height
    * @example 1
    */
   row_height?: number;
-  /** Meta info for Grid Model */
-  meta?: MetaType;
-  /** Grid View Columns */
-  columns?: GridColumnType[];
 }
 
 /**
  * Model for Grid Column
  */
 export interface GridColumnType {
-  /** Unique ID */
-  id?: IdType;
-  /** Foreign Key to View */
-  fk_view_id?: IdType;
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  /** Project ID */
-  project_id?: IdType;
   /** Base ID */
   base_id?: IdType;
-  /** Model for Bool */
-  show?: BoolType;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /** Column Help Text */
+  help?: StringOrNullType;
+  /** Unique ID */
+  id?: IdType;
   /**
    * Grid Column Order
    * @example 1
    */
   order?: number;
+  /** Project ID */
+  project_id?: IdType;
+  /** Model for Bool */
+  show?: BoolType;
   /**
    * Column Width
    * @example 200px
    */
   width?: string;
-  /** Column Help Text */
-  help?: StringOrNullType;
 }
 
 /**
@@ -1352,6 +912,76 @@ export interface GridReqType {
 }
 
 /**
+ * Model for Hook
+ */
+export interface HookType {
+  /** Is the hook active? */
+  active?: BoolType;
+  /** Is the hook aysnc? */
+  async?: BoolType;
+  /**
+   * Hook Description
+   * @example This is my hook description
+   */
+  description?: string;
+  /**
+   * Environment for the hook
+   * @example all
+   */
+  env?: string;
+  /**
+   * Event Type for the operation
+   * @example after
+   */
+  event?: 'after' | 'before';
+  /**
+   * Foreign Key to Model
+   * @example md_rsu68aqjsbyqtl
+   */
+  fk_model_id?: string;
+  /** Unique ID */
+  id?: IdType;
+  /** Hook Notification including info such as type, payload, method, body, and etc */
+  notification?: object | string;
+  /**
+   * Hook Operation
+   * @example insert
+   */
+  operation?: 'delete' | 'insert' | 'update';
+  /**
+   * Retry Count
+   * @example 10
+   */
+  retries?: number;
+  /**
+   * Retry Interval
+   * @example 60000
+   */
+  retry_interval?: number;
+  /**
+   * Timeout
+   * @example 60000
+   */
+  timeout?: number;
+  /**
+   * Hook Title
+   * @example My Webhook
+   */
+  title?: string;
+  /** Hook Type */
+  type?: string;
+}
+
+/**
+ * Model for Hook List
+ */
+export interface HookListType {
+  list?: HookType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
+}
+
+/**
  * Model for Hook Log
  */
 export interface HookLogType {
@@ -1378,6 +1008,74 @@ export interface HookLogType {
 }
 
 /**
+ * Model for Hook
+ */
+export interface HookReqType {
+  /** Is the hook active? */
+  active?: BoolType;
+  /** Is the hook aysnc? */
+  async?: BoolType;
+  /** Hook Description */
+  description?: StringOrNullType;
+  /**
+   * Environment for the hook
+   * @example all
+   */
+  env?: string;
+  /**
+   * Event Type for the operation
+   * @example after
+   */
+  event: 'after' | 'before';
+  /**
+   * Foreign Key to Model
+   * @example md_rsu68aqjsbyqtl
+   */
+  fk_model_id?: string;
+  /** Unique ID */
+  id?: IdType;
+  /** Hook Notification including info such as type, payload, method, body, and etc */
+  notification: object | string;
+  /**
+   * Hook Operation
+   * @example insert
+   */
+  operation: 'delete' | 'insert' | 'update';
+  /**
+   * Retry Count
+   * @example 10
+   */
+  retries?: number;
+  /**
+   * Retry Interval
+   * @example 60000
+   */
+  retry_interval?: number;
+  /**
+   * Timeout
+   * @example 60000
+   */
+  timeout?: number;
+  /**
+   * Hook Title
+   * @example My Webhook
+   */
+  title: string;
+  /** Hook Type */
+  type?: null | string;
+}
+
+/**
+ * Model for Hook Test Request
+ */
+export interface HookTestReqType {
+  /** Model for Hook */
+  hook: HookReqType;
+  /** Payload to be sent */
+  payload: any;
+}
+
+/**
  * Model for ID
  */
 export type IdType = string;
@@ -1386,16 +1084,16 @@ export type IdType = string;
  * Model for Kanban
  */
 export interface KanbanType {
-  /** Unique ID */
-  id?: IdType;
+  /** Kanban Columns */
+  columns?: KanbanColumnType[];
+  /** Cover Image Column ID */
+  fk_cover_image_col_id?: IdType;
   /** Grouping Field Column ID */
   fk_grp_col_id?: StringOrNullType;
   /** View ID */
   fk_view_id?: IdType;
-  /** Cover Image Column ID */
-  fk_cover_image_col_id?: IdType;
-  /** Kanban Columns */
-  columns?: KanbanColumnType[];
+  /** Unique ID */
+  id?: IdType;
   /** Meta Info for Kanban */
   meta?: MetaType;
   /**
@@ -1409,28 +1107,28 @@ export interface KanbanType {
  * Model for Kanban Column
  */
 export interface KanbanColumnType {
-  /** Unique ID */
-  id?: IdType;
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  /** Foreign Key to View */
-  fk_view_id?: IdType;
   /**
    * Baes ID
    *
    */
   base_id?: IdType;
-  /** Project ID */
-  project_id?: IdType;
-  /** Project ID */
-  title?: string;
-  /** Is this column shown? */
-  show?: BoolType;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /** Unique ID */
+  id?: IdType;
   /**
    * Column Order
    * @example 1
    */
   order?: number;
+  /** Project ID */
+  project_id?: IdType;
+  /** Is this column shown? */
+  show?: BoolType;
+  /** Project ID */
+  title?: string;
 }
 
 /**
@@ -1511,14 +1209,14 @@ export interface LinkToAnotherRecordType {
  * Model for Lookup
  */
 export interface LookupType {
-  /** Unique ID */
-  id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Foreign Key to Lookup Column */
   fk_lookup_column_id?: IdType;
   /** Foreign Key to Relation Column */
   fk_relation_column_id?: IdType;
+  /** Unique ID */
+  id?: IdType;
   /**
    * The order among the list
    * @example 1
@@ -1695,20 +1393,21 @@ export interface NormalColumnRequestType {
     | 'Decimal'
     | 'Duration'
     | 'Email'
-    | 'Formula'
     | 'ForeignKey'
+    | 'Formula'
     | 'GeoData'
     | 'Geometry'
     | 'ID'
     | 'JSON'
     | 'LastModifiedTime'
-    | 'LongText'
     | 'LinkToAnotherRecord'
+    | 'LongText'
     | 'Lookup'
     | 'MultiSelect'
     | 'Number'
     | 'Percent'
     | 'PhoneNumber'
+    | 'QrCode'
     | 'Rating'
     | 'Rollup'
     | 'SingleLineText'
@@ -1716,8 +1415,7 @@ export interface NormalColumnRequestType {
     | 'SpecificDBType'
     | 'Time'
     | 'URL'
-    | 'Year'
-    | 'QrCode';
+    | 'Year';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -1734,11 +1432,135 @@ export interface OrgUserReqType {
   roles?: 'org-level-creator' | 'org-level-viewer';
 }
 
+export interface PageReqQueryParamsType {
+  limit?: number;
+  offset?: number;
+  query?: string;
+}
+
+/**
+ * Model for Paginated
+ */
+export interface PaginatedType {
+  /** Is the current page the first page */
+  isFirstPage?: boolean;
+  /** Is the current page the last page */
+  isLastPage?: boolean;
+  /**
+   * The current page
+   * @example 1
+   */
+  page?: number;
+  /**
+   * The number of pages
+   * @example 10
+   */
+  pageSize?: number;
+  /**
+   * The number of rows in the given result
+   * @example 1
+   */
+  totalRows?: number;
+}
+
 /**
  * Model for Password
  * @example password123456789
  */
 export type PasswordType = string;
+
+/**
+ * Model for Password Change Request
+ */
+export interface PasswordChangeReqType {
+  currentPassword: string;
+  newPassword: string;
+}
+
+/**
+ * Model for Password Forgot Request
+ */
+export interface PasswordForgotReqType {
+  /**
+   * Email address of the user
+   * @format email
+   */
+  email: string;
+}
+
+/**
+ * Model for Password Reset Request
+ */
+export interface PasswordResetReqType {
+  /**
+   * New password
+   * @example newpassword
+   */
+  password: string;
+}
+
+/**
+ * Model for Plugin
+ */
+export interface PluginType {
+  /** Is plguin active? */
+  active?: BoolType;
+  /**
+   * Plugin Category
+   * @example Storage
+   */
+  category?: string;
+  /** Plugin Creator (Not in use) */
+  creator?: string;
+  /** Plugin Creator website (Not in use) */
+  creator_website?: string;
+  /**
+   * Plugin Description
+   * @example Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance.
+   */
+  description?: string;
+  /** Documentation of plugin (Not in use) */
+  docs?: string;
+  /** Plugin Icon (Not in use) */
+  icon?: string;
+  /** Unique ID */
+  id?: IdType;
+  /** Plugin Input */
+  input?: StringOrNullType | number;
+  /**
+   * Plugin Input Schema
+   *
+   */
+  input_schema?: string;
+  /**
+   * Plugin logo
+   * @example plugins/s3.png
+   */
+  logo?: string;
+  /** Plugin Price (Not in use) */
+  price?: string;
+  /** Plugin Rating (Not in use) */
+  rating?: number;
+  /**
+   * Plugin Status
+   * @example install
+   */
+  status?: string;
+  /** Not in use */
+  status_details?: string;
+  /**
+   * Plugin tags
+   * @example Storage
+   */
+  tags?: string;
+  /** Plugin Title */
+  title?: string;
+  /**
+   * Plugin Version
+   * @example 0.0.1
+   */
+  version?: string;
+}
 
 /**
  * Model for Plugin Request
@@ -1754,10 +1576,52 @@ export interface PluginReqType {
  * Model for Plugin Test Request
  */
 export interface PluginTestReqType {
-  /** Plugin Title */
-  title: string;
   /** Plugin Input */
   input: string;
+  /** Plugin Title */
+  title: string;
+}
+
+/**
+ * Model for Project
+ */
+export interface ProjectType {
+  /** List of base models */
+  bases?: BaseType[];
+  /**
+   * Primary Theme Color
+   * @example #24716E
+   */
+  color?: string;
+  /** Is the project deleted */
+  deleted?: BoolType;
+  /**
+   * Project Description
+   * @example This is my project description
+   */
+  description?: string;
+  /**
+   * Unique Project ID
+   * @example p_124hhlkbeasewh
+   */
+  id?: string;
+  /** Model for Bool */
+  is_meta?: BoolType;
+  /** Meta Info such as theme colors */
+  meta?: MetaType;
+  /** The order in project list */
+  order?: number;
+  /**
+   * Project prefix. Used in XCDB only.
+   * @example nc_vm5q__
+   */
+  prefix?: string;
+  status?: string;
+  /**
+   * Project Title
+   * @example my-project
+   */
+  title?: string;
 }
 
 /**
@@ -1771,6 +1635,29 @@ export interface ProjectListType {
 }
 
 /**
+ * Model for Project Request
+ */
+export interface ProjectReqType {
+  /** Array of Bases */
+  bases?: BaseReqType[];
+  /**
+   * Primary Theme Color
+   * @example #24716E
+   */
+  color?: string;
+  /**
+   * Project Description
+   * @example This is my project description
+   */
+  description?: string;
+  /**
+   * Project Title
+   * @example My Project
+   */
+  title: string;
+}
+
+/**
  * Model for Project User Request
  */
 export interface ProjectUserReqType {
@@ -1780,33 +1667,33 @@ export interface ProjectUserReqType {
    */
   email: string;
   /** Project User Role */
-  roles: 'commenter' | 'editor' | 'guest' | 'owner' | 'viewer' | 'creator';
+  roles: 'commenter' | 'creator' | 'editor' | 'guest' | 'owner' | 'viewer';
 }
 
 /**
  * Model for Rollup
  */
 export interface RollupType {
-  /** Unique ID */
-  id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
   /** Foreign to Relation Column */
   fk_relation_column_id?: IdType;
   /** Foreign to Rollup Column */
   fk_rollup_column_id?: IdType;
+  /** Unique ID */
+  id?: IdType;
   /**
    * Rollup Function
    * @example count
    */
   rollup_function?:
-    | 'count'
-    | 'min'
-    | 'max'
     | 'avg'
+    | 'avgDistinct'
+    | 'count'
     | 'countDistinct'
-    | 'sumDistinct'
-    | 'avgDistinct';
+    | 'max'
+    | 'min'
+    | 'sumDistinct';
 }
 
 /**
@@ -1817,8 +1704,6 @@ export interface RollupColumnReqType {
   fk_relation_column_id?: IdType;
   /** Foreign Key to Rollup Column */
   fk_rollup_column_id?: IdType;
-  /** Rollup Column Title */
-  title?: string;
   /** Rollup Function */
   rollup_function?:
     | 'avg'
@@ -1829,6 +1714,8 @@ export interface RollupColumnReqType {
     | 'min'
     | 'sum'
     | 'sumDistinct';
+  /** Rollup Column Title */
+  title?: string;
   /** UI DataType */
   uidt?: 'Rollup';
 }
@@ -1837,26 +1724,26 @@ export interface RollupColumnReqType {
  * Model for SelectOption
  */
 export interface SelectOptionType {
+  /**
+   * Option Color
+   * @example #cfdffe
+   */
+  color?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
   /** Unique ID */
   id?: IdType;
+  /**
+   * The order among the options
+   * @example 1
+   */
+  order?: number;
   /**
    * Option Title
    *
    * @example Option A
    */
   title?: string;
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  /**
-   * Option Color
-   * @example #cfdffe
-   */
-  color?: string;
-  /**
-   * The order among the options
-   * @example 1
-   */
-  order?: number;
 }
 
 /**
@@ -1884,6 +1771,20 @@ export interface SharedBaseReqType {
 }
 
 /**
+ * Model for Shared View
+ */
+export type SharedViewType = ViewType;
+
+/**
+ * Model for Shared View List
+ */
+export interface SharedViewListType {
+  list?: SharedViewType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
+}
+
+/**
  * Model for Shared View Request
  */
 export interface SharedViewReqType {
@@ -1894,15 +1795,39 @@ export interface SharedViewReqType {
 }
 
 /**
+ * Model for Signin Request
+ */
+export interface SignInReqType {
+  /**
+   * Email address of the user
+   * @format email
+   */
+  email: string;
+  /** Password of the user */
+  password: string;
+}
+
+/**
+ * Model for Signup Request
+ */
+export interface SignUpReqType {
+  /**
+   * Email address of the user
+   * @format email
+   * @example user@example.com
+   */
+  email: string;
+  /**
+   * Password of the user
+   * @example password123456789
+   */
+  password: string;
+}
+
+/**
  * Model for Sort
  */
 export interface SortType {
-  /** Unique ID */
-  id?: IdType;
-  /** Model for ID */
-  fk_column_id?: IdType;
-  /** Model for ID */
-  fk_model_id?: IdType;
   /**
    * Base ID
    * @example ds_3l9qx8xqksenrl
@@ -1913,6 +1838,12 @@ export interface SortType {
    * @example desc
    */
   direction?: 'asc' | 'desc';
+  /** Model for ID */
+  fk_column_id?: IdType;
+  /** Model for ID */
+  fk_model_id?: IdType;
+  /** Unique ID */
+  id?: IdType;
   /** @example 1 */
   order?: number;
   /**
@@ -1935,10 +1866,10 @@ export interface SortListType {
  * Model for Sort Request
  */
 export interface SortReqType {
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
   /** Sort direction */
   direction?: 'asc' | 'desc';
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
 }
 
 /**
@@ -2017,6 +1948,27 @@ export interface TableReqType {
 }
 
 /**
+ * Model for User
+ */
+export interface UserType {
+  display_name?: string;
+  /**
+   * The email of the user
+   * @format email
+   * @example user@example.com
+   */
+  email: string;
+  /** Set to true if the user's email has been verified. */
+  email_verified: boolean;
+  /**
+   * The roles of the user
+   * @example org-level-viewer
+   */
+  roles?: string;
+  user_name?: string;
+}
+
+/**
  * Model for User Info
  */
 export interface UserInfoType {
@@ -2035,6 +1987,19 @@ export interface UserInfoType {
   lastname?: string;
   /** The roles of the user */
   roles?: any;
+}
+
+/**
+ * Model for User List
+ */
+export interface UserListType {
+  /** users includes `list` and `pageInfo` */
+  users: {
+    /** List of User objects */
+    list: UserType;
+    /** Pagination info */
+    pageInfo: PaginatedType;
+  };
 }
 
 /**
@@ -2078,24 +2043,48 @@ export interface ViewType {
 }
 
 /**
+ * Model for View Column Request
+ */
+export interface ViewColumnReqType {
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /**
+   * The order of the list of views.
+   * @min 0
+   * @example 1
+   */
+  order?: number;
+  /** View Title */
+  show?: BoolType;
+}
+
+/**
+ * Model for View Column Update Request
+ */
+export interface ViewColumnUpdateReqType {
+  /**
+   * The order of the list of views.
+   * @min 0
+   * @example 1
+   */
+  order?: number;
+  /** View Title */
+  show?: BoolType;
+}
+
+/**
+ * Model for View List
+ */
+export interface ViewListType {
+  list?: ViewType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
+}
+
+/**
  * Model for View Request
  */
 export interface ViewReqType {
-  /**
-   * View Title
-   * @example Grid View 1
-   */
-  title?: string;
-  /**
-   * View UUID. Used in Shared View.
-   * @example e2457bbf-e29c-4fec-866e-fe3b01dba57f
-   */
-  uuid?: string;
-  /**
-   * View Password. Used in Shared View.
-   * @example password123
-   */
-  password?: string;
   /**
    * Lock type of View.
    * @example collaborative
@@ -2109,65 +2098,29 @@ export interface ViewReqType {
    * @example 1
    */
   order?: number;
+  /**
+   * View Password. Used in Shared View.
+   * @example password123
+   */
+  password?: string;
   /** Should this view show system fields? */
   show_system_fields?: BoolType;
-}
-
-/**
- * Model for View Column Update Request
- */
-export interface ViewColumnUpdateReqType {
-  /** View Title */
-  show?: BoolType;
   /**
-   * The order of the list of views.
-   * @min 0
-   * @example 1
+   * View Title
+   * @example Grid View 1
    */
-  order?: number;
-}
-
-/**
- * Model for View Column Request
- */
-export interface ViewColumnReqType {
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  /** View Title */
-  show?: BoolType;
+  title?: string;
   /**
-   * The order of the list of views.
-   * @min 0
-   * @example 1
+   * View UUID. Used in Shared View.
+   * @example e2457bbf-e29c-4fec-866e-fe3b01dba57f
    */
-  order?: number;
-}
-
-export interface FollowerType {
-  fk_follower_id?: string;
-}
-
-/**
- * Cowriter Model
- */
-export interface CowriterType {
-  id?: string;
-  fk_model_id?: string;
-  prompt_statement?: string;
-  prompt_statement_template?: string;
-  output?: string;
-  meta?: any;
-  is_read?: boolean;
-  created_by?: string;
-  created_at?: string;
-  updated_at?: string;
+  uuid?: string;
 }
 
 /**
  * Model for Visibility Rule Request
  */
 export type VisibilityRuleReqType = {
-  id?: string | null;
   disabled?: {
     /** Model for Bool */
     commenter?: BoolType;
@@ -2182,7 +2135,54 @@ export type VisibilityRuleReqType = {
     /** Model for Bool */
     viewer?: BoolType;
   };
+  id?: null | string;
 }[];
+
+export interface WebhookType {
+  id?: string;
+  title?: string;
+  type?: string;
+}
+
+export interface WorkspaceType {
+  created_at?: any;
+  deleted?: boolean;
+  deleted_at?: any;
+  description?: string;
+  fk_user_id?: string;
+  id?: string;
+  meta?: any;
+  order?: number;
+  title?: string;
+  updated_at?: any;
+}
+
+export interface WorkspaceListType {
+  list?: WorkspaceType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
+}
+
+export interface WorkspaceUserType {
+  /** @format email */
+  email?: string;
+  fk_user_id?: string;
+  invite_accepted?: boolean;
+  invite_token?: string;
+  roles?: string;
+}
+
+export interface WorkspaceUserInviteType {
+  /** @format email */
+  email?: string;
+  roles?: string;
+}
+
+export interface WorkspaceUserListType {
+  list?: WorkspaceUserType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
+}
 
 import axios, { AxiosInstance, AxiosRequestConfig, ResponseType } from 'axios';
 

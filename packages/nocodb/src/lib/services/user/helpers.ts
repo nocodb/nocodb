@@ -1,13 +1,10 @@
 import * as jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import User from '../../../models/User';
-import { NcConfig } from '../../../../interface/config';
-import { Workspace } from '../../../models/Workspace';
-import { WorkspaceUser } from '../../../models/WorkspaceUser';
+import { NcConfig } from '../../../interface/config';
 import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
-import Store from '../../../models/Store';
-import { NC_APP_SETTINGS } from '../../../constants';
-import { NcError } from '../../helpers/catchError';
+import { Store, User, Workspace, WorkspaceUser } from '../../models';
+import { NC_APP_SETTINGS } from '../../constants';
+import { NcError } from '../../meta/helpers/catchError';
 import { T } from 'nc-help';
 
 export function genJwt(user: User, config: NcConfig) {

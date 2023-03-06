@@ -1813,6 +1813,7 @@ export interface ProjectType {
    * @example nc_vm5q__
    */
   prefix?: string;
+  type?: string;
   status?: string;
   /**
    * Project Title

@@ -11233,7 +11233,7 @@
             "x-stoplight": {
               "id": "d47eer13oa8yr"
             },
-            "example": "1",
+            "example": 1,
             "description": "Grid Column Order"
           },
           "width": {
@@ -11836,7 +11836,7 @@
             "x-stoplight": {
               "id": "pbnchzgci5dwa"
             },
-            "example": "1",
+            "example": 1,
             "description": "Column Order"
           }
         }

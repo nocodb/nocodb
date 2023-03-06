@@ -185,12 +185,7 @@ const onMouseOver = (e: any, index: number) => {
 </script>
 
 <template>
-  <BubbleMenu
-    :editor="editor"
-    :update-delay="500"
-    :tippy-options="{ duration: 100, maxWidth: 600 }"
-    :should-show="(checkLinkMark as any)"
-  >
+  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }" :should-show="(checkLinkMark as any)">
     <div
       v-if="!justDeleted"
       ref="wrapperRef"
@@ -206,7 +201,7 @@ const onMouseOver = (e: any, index: number) => {
           <a-input
             ref="inputRef"
             v-model:value="href"
-            class="flex-1 !w-96 !mx-0.5 !py-0.5 !rounded-md z-10"
+            class="docs-link-option-input flex-1 !w-96 !mx-0.5 !py-0.5 !rounded-md z-10"
             :bordered="false"
             placeholder="Search for pages or enter a link"
             @change="onChange"
@@ -226,7 +221,7 @@ const onMouseOver = (e: any, index: number) => {
       </div>
       <div v-if="filteredPages.length > 0" class="absolute w-full -bottom-62 left-0 h-64">
         <div
-          class="bubble-menu flex flex-col -bottom-22 space-y-1 bg-gray-50 w-full mt-2 pt-4 px-4 rounded-b-lg py-2 h-full docs-links-search-pages-list"
+          class="bubble-menu flex flex-col -bottom-22 space-y-1 bg-gray-50 w-full mt-2 pt-4 px-4 rounded-b-lg docs-links-search-pages-list max-h-64 !pb-1"
         >
           <div
             v-for="(page, index) of filteredPages"

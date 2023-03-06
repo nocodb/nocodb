@@ -13987,7 +13987,8 @@
           }
         },
         "required": ["hook", "payload"]
-      },"Id": {
+      },
+      "Id": {
         "description": "Model for ID",
         "examples": ["string"],
         "maxLength": 20,
@@ -14758,7 +14759,8 @@
         },
         "title": "Organisation User Request Model",
         "type": "object"
-      },"Paginated": {
+      },
+      "Paginated": {
         "description": "Model for Paginated",
         "examples": [
           {
@@ -15280,7 +15282,7 @@
           }
         },
         "required": ["email", "roles"]
-      },,
+      },
       "Rollup": {
         "description": "Model for Rollup",
         "examples": [
@@ -16503,7 +16505,8 @@
         "required": ["columns", "table_name"],
         "title": "Table Request Model",
         "type": "object"
-      },"User": {
+      },
+      "User": {
         "description": "Model for User",
         "examples": [
           {

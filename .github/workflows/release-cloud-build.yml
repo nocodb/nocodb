@@ -61,9 +61,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - run: aws s3 sync ./dist s3://nocohubcdn --cache-control 'no-cache'
-        name: Upload to S3
-        working-directory: ./packages/nc-gui
+#      - run: aws s3 sync ./dist s3://nocohubcdn --cache-control 'no-cache'
+#        name: Upload to S3
+#        working-directory: ./packages/nc-gui
 
 
       - name: Deploy

@@ -1228,16 +1228,22 @@ export type IdType = string;
  * Model for Kanban
  */
 export interface KanbanType {
-  alias?: string;
-  columns?: KanbanColumnType[];
-  fk_cover_image_col_id?: string;
-  /** Model for StringOrNull */
-  fk_grp_col_id?: StringOrNullType;
-  fk_model_id?: string;
   /** Unique ID */
   id?: IdType;
-  /** Model for Meta */
+  /** Grouping Field Column ID */
+  fk_grp_col_id?: StringOrNullType;
+  /** View ID */
+  fk_view_id?: IdType;
+  /** Cover Image Column ID */
+  fk_cover_image_col_id?: IdType;
+  /** Kanban Columns */
+  columns?: KanbanColumnType[];
+  /** Meta Info for Kanban */
   meta?: MetaType;
+  /**
+   * Kanban Title
+   * @example My Kanban
+   */
   title?: string;
 }
 
@@ -1245,13 +1251,28 @@ export interface KanbanType {
  * Model for Kanban Column
  */
 export interface KanbanColumnType {
-  /** Foreign Key to Column */
-  fk_column_id?: IdType;
-  fk_kanban_id?: string;
-  help?: string;
   /** Unique ID */
   id?: IdType;
-  label?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /**
+   * Baes ID
+   *
+   */
+  base_id?: IdType;
+  /** Project ID */
+  project_id?: IdType;
+  /** Project ID */
+  title?: string;
+  /** Is this column shown? */
+  show?: BoolType;
+  /**
+   * Column Order
+   * @example 1
+   */
+  order?: number;
 }
 
 /**

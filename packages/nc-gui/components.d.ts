@@ -93,6 +93,7 @@ declare module '@vue/runtime-core' {
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
     EvaEmailOutline: typeof import('~icons/eva/email-outline')['default']
     GgInsertBelow: typeof import('~icons/gg/insert-below')['default']
+    IcBaselineArrowOutward: typeof import('~icons/ic/baseline-arrow-outward')['default']
     IcBaselineDragIndicator: typeof import('~icons/ic/baseline-drag-indicator')['default']
     IcBaselineErrorOutline: typeof import('~icons/ic/baseline-error-outline')['default']
     IcBaselineKeyboardDoubleArrowDown: typeof import('~icons/ic/baseline-keyboard-double-arrow-down')['default']

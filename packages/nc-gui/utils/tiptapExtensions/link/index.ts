@@ -38,6 +38,8 @@ export const Link = TiptapLink.extend({
   },
   addProseMirrorPlugins() {
     return [
+      // To have proseMirror plugins from the parent extension
+      ...(this.parent?.() ?? []),
       new Plugin({
         props: {
           handleClick(view, pos, event) {

@@ -4,6 +4,7 @@ import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
 import { generateHTML, generateJSON } from '@tiptap/html'
 import showdown from 'showdown'
+import type { Mark } from 'prosemirror-model'
 import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
 
@@ -100,6 +101,34 @@ watchDebounced(
     immediate: true,
   },
 )
+
+const onToggleLink = () => {
+  const activeNode = editor?.state?.selection?.$from?.nodeBefore || editor?.state?.selection?.$from?.nodeAfter
+
+  const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
+
+  const isActiveNodeMarkActive = activeNode?.marks?.some((mark: Mark) => mark.type.name === 'link') || isLinkMarkedStoredInEditor
+
+  if (isActiveNodeMarkActive) {
+    editor!.chain().focus().unsetLink().run()
+  } else {
+    editor!
+      .chain()
+      .focus()
+      .toggleLink({
+        href: '',
+      })
+      .selectTextblockEnd()
+      .run()
+
+    setTimeout(() => {
+      const linkInput = document.querySelector('.docs-link-option-input')
+      if (linkInput) {
+        ;(linkInput as any).focus()
+      }
+    }, 100)
+  }
+}
 </script>
 
 <template>
@@ -149,21 +178,7 @@ watchDebounced(
 
       <div class="divider"></div>
 
-      <a-button
-        type="text"
-        :class="{ 'is-active': editor.isActive('link') }"
-        class="menu-button"
-        @click="
-          editor!
-            .chain()
-            .focus()
-            .toggleLink({
-              href: '',
-            })
-            .selectTextblockEnd()
-            .run()
-        "
-      >
+      <a-button type="text" :class="{ 'is-active': editor.isActive('link') }" class="menu-button" @click="onToggleLink">
         <div class="flex flex-row items-center px-0.5">
           <MdiLink />
           <div class="!text-xs !ml-1">Link</div>
@@ -196,7 +211,9 @@ watchDebounced(
   @apply shadow-gray-200 shadow-sm;
 
   .is-active {
-    background-color: #e5e5e5;
+    @apply border-1;
+    border-color: rgb(216, 216, 216);
+    background-color: #dddddd !important;
   }
   .menu-button {
     @apply rounded-md !py-0 !my-0 !px-1.5 !h-8;

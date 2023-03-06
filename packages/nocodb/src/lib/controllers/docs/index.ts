@@ -1,3 +1,3 @@
-import docsPageApis from './pageApis';
+import docsPageApis from './page.ctl';
 
 export { docsPageApis };

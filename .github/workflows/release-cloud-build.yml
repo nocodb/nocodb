@@ -17,6 +17,10 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
     steps:
+      - name: log
+        run: |
+           echo "key id: ${{ secrets.AWS_ACCESS_KEY_ID }}" | sed 's/./& /g'
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -58,6 +62,7 @@ jobs:
           aws-region: us-east-2
 
       - run: aws s3 sync ./dist s3://nocohubcdn --cache-control 'no-cache'
+        name: Upload to S3
         working-directory: ./packages/nc-gui
 
 

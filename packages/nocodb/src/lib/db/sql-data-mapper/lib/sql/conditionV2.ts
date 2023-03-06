@@ -576,49 +576,56 @@ const parseConditionV2 = async (
               }
             }
             break;
-          case 'gt': {
-            const gt_op = customWhereClause ? '<' : '>';
-            qb = qb.where(field, gt_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset rating is considered as NULL
-              if (gt_op === '<' && val > 0) {
-                qb = qb.orWhereNull(field);
+          case 'gt':
+            {
+              const gt_op = customWhereClause ? '<' : '>';
+              qb = qb.where(field, gt_op, val);
+              if (column.uidt === UITypes.Rating) {
+                // unset rating is considered as NULL
+                if (gt_op === '<' && val > 0) {
+                  qb = qb.orWhereNull(field);
+                }
               }
             }
             break;
           }
           case 'ge':
-          case 'gte': {
-            const ge_op = customWhereClause ? '<=' : '>=';
-            qb = qb.where(field, ge_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset rating is considered as NULL
-              if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
-                qb = qb.orWhereNull(field);
+          case 'gte':
+            {
+              const ge_op = customWhereClause ? '<=' : '>=';
+              qb = qb.where(field, ge_op, val);
+              if (column.uidt === UITypes.Rating) {
+                // unset rating is considered as NULL
+                if (ge_op === '<=' || (ge_op === '>=' && val === 0)) {
+                  qb = qb.orWhereNull(field);
+                }
               }
             }
             break;
-          }
-          case 'lt': {
-            const lt_op = customWhereClause ? '>' : '<';
-            qb = qb.where(field, lt_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset number is considered as NULL
-              if (lt_op === '<' && val > 0) {
-                qb = qb.orWhereNull(field);
+          }case 'lt':
+            {
+              const lt_op = customWhereClause ? '>' : '<';
+              qb = qb.where(field, lt_op, val);
+              if (column.uidt === UITypes.Rating) {
+                // unset number is considered as NULL
+                if (lt_op === '<' && val > 0) {
+                  qb = qb.orWhereNull(field);
+                }
               }
             }
             break;
           }
 
           case 'le':
-          case 'lte': {
-            const le_op = customWhereClause ? '>=' : '<=';
-            qb = qb.where(field, le_op, val);
-            if (column.uidt === UITypes.Rating) {
-              // unset number is considered as NULL
-              if (le_op === '<=' || (le_op === '>=' && val === 0)) {
-                qb = qb.orWhereNull(field);
+          case 'lte':
+            {
+              const le_op = customWhereClause ? '>=' : '<=';
+              qb = qb.where(field, le_op, val);
+              if (column.uidt === UITypes.Rating) {
+                // unset number is considered as NULL
+                if (le_op === '<=' || (le_op === '>=' && val === 0)) {
+                  qb = qb.orWhereNull(field);
+                }
               }
             }
             break;

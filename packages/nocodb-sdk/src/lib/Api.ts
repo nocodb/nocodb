@@ -2148,34 +2148,29 @@ export interface TableReqType {
  * Model for User
  */
 export interface UserType {
-  /**
-   * The email of the user
-   * @format email
-   * @example user@example.com
-   */
+  /** Unique identifier for the given user. */
+  id: string;
+  /** @format email */
   email: string;
+  roles?: string;
   /** Set to true if the user's email has been verified. */
   email_verified: boolean;
   /**
-   * The first name of the user
-   * @example Alice
+   * The date that the user was created.
+   * @format date
    */
-  firstname: string;
+  created_at?: string;
   /**
-   * Unique identifier for the given user.
-   * @example us_8kugj628ebjngs
+   * The date that the user was created.
+   * @format date
    */
-  id: string;
-  /**
-   * The last name of the user
-   * @example Smith
-   */
-  lastname: string;
-  /**
-   * The roles of the user
-   * @example org-level-viewer
-   */
-  roles?: string;
+  updated_at?: string;
+  display_name?: string;
+  user_name?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  avatar?: string;
 }
 
 /**

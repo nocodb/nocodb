@@ -962,28 +962,53 @@ export interface GeoLocationType {
  * Model for Grid
  */
 export interface GridType {
-  alias?: string;
-  /** Model for Bool */
-  deleted?: BoolType;
   /** Unique ID */
   id?: IdType;
-  lock_type?: 'collaborative' | 'locked' | 'personal';
-  order?: number;
+  /** Project ID */
+  project_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
+  /**
+   * Row Height
+   * @example 1
+   */
   row_height?: number;
-  title?: string;
+  /** Meta info for Grid Model */
+  meta?: MetaType;
+  /** Grid View Columns */
+  columns?: GridColumnType[];
 }
 
 /**
  * Model for Grid Column
  */
 export interface GridColumnType {
+  /** Unique ID */
+  id?: IdType;
+  /** Foreign Key to View */
+  fk_view_id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
-  help?: string;
-  /** Unique ID of Grid Column */
-  id?: string;
-  label?: string;
+  /** Project ID */
+  project_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** Model for Bool */
+  show?: BoolType;
+  /**
+   * Grid Column Order
+   * @example 1
+   */
+  order?: number;
+  /**
+   * Column Width
+   * @example 200px
+   */
   width?: string;
+  /** Column Help Text */
+  help?: StringOrNullType;
 }
 
 /**
@@ -3314,10 +3339,10 @@ export class Api<
      * @name Read
      * @summary Get Project
      * @request GET:/api/v1/db/meta/projects/{projectId}
-     * @response `200` `object` OK
+     * @response `200` `ProjectType` OK
      */
     read: (projectId: IdType, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<ProjectType, any>({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'GET',
         format: 'json',
@@ -3614,10 +3639,10 @@ export class Api<
      * @name Read
      * @summary Get Base
      * @request GET:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
-     * @response `200` `object` OK
+     * @response `200` `BaseType` OK
      */
     read: (projectId: IdType, baseId: string, params: RequestParams = {}) =>
-      this.request<object, any>({
+      this.request<BaseType, any>({
         path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
         method: 'GET',
         format: 'json',

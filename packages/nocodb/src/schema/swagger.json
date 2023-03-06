@@ -11711,89 +11711,135 @@
         "description": "Model for Kanban",
         "examples": [
           {
-            "alias": "string",
+            "id": "vw_wqs4zheuo5lgdy",
+            "fk_grp_col_id": "cl_3704cxcbqt7sj7",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "fk_cover_image_col_id": null,
             "columns": [
               {
-                "fk_column_id": "string",
-                "fk_kanban_id": "string",
-                "help": "string",
-                "id": "string",
-                "label": "string"
+                "id": "kvc_2skkg5mi1eb37f",
+                "fk_column_id": "cl_hzos4ghyncqi4k",
+                "fk_view_id": "vw_wqs4zheuo5lgdy",
+                "base_id": "ds_hd4ojj0xpquaam",
+                "project_id": "p_kzfl5lb0t3tcok",
+                "title": "string",
+                "show": 0,
+                "order": "1"
               }
             ],
-            "fk_cover_image_col_id": "string",
-            "fk_grp_col_id": "string",
-            "fk_model_id": "string",
-            "id": "string",
-            "meta": {},
-            "title": "string"
+            "meta": null,
+            "title": "My Kanban"
           }
         ],
+        "title": "Kanban Model",
+        "type": "object",
         "properties": {
-          "alias": {
-            "type": "string"
-          },
-          "columns": {
-            "items": {
-              "$ref": "#/components/schemas/KanbanColumn"
-            },
-            "type": "array"
-          },
-          "fk_cover_image_col_id": {
-            "type": "string"
-          },
-          "fk_grp_col_id": {
-            "$ref": "#/components/schemas/StringOrNull"
-          },
-          "fk_model_id": {
-            "type": "string"
-          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
+          "fk_grp_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Grouping Field Column ID"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "1kgw1w06b97nl"
+            },
+            "description": "View ID"
+          },
+          "fk_cover_image_col_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Cover Image Column ID"
+          },
+          "columns": {
+            "type": "array",
+            "description": "Kanban Columns",
+            "items": {
+              "$ref": "#/components/schemas/KanbanColumn"
+            }
+          },
           "meta": {
-            "$ref": "#/components/schemas/Meta"
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta Info for Kanban"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "Kanban Title",
+            "example": "My Kanban"
           }
-        },
-        "title": "Kanban Model",
-        "type": "object"
+        }
       },
       "KanbanColumn": {
         "description": "Model for Kanban Column",
         "examples": [
           {
-            "fk_column_id": "string",
-            "fk_kanban_id": "string",
-            "help": "string",
-            "id": "string",
-            "label": "string"
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "base_id": "ds_hd4ojj0xpquaam",
+            "project_id": "p_kzfl5lb0t3tcok",
+            "title": "string",
+            "show": 0,
+            "order": "1"
           }
         ],
+        "title": "Kanban Column Model",
+        "type": "object",
         "properties": {
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
-          },
-          "fk_kanban_id": {
-            "type": "string"
-          },
-          "help": {
-            "type": "string"
-          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
           },
-          "label": {
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "fk_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "t1fy4zy561ih8"
+            },
+            "description": "Foreign Key to View"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Baes ID\n"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/Id",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Project ID"
+          },
+          "title": {
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Project ID",
             "type": "string"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown?"
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "pbnchzgci5dwa"
+            },
+            "example": "1",
+            "description": "Column Order"
           }
-        },
-        "title": "Kanban Column Model",
-        "type": "object"
+        }
       },
       "KanbanReq": {
         "description": "Model for Kanban Request",

@@ -8,6 +8,7 @@ import Text from '@tiptap/extension-text'
 import DropCursor from '@tiptap/extension-dropcursor'
 import ListItem from '@tiptap/extension-list-item'
 import Bold from '@tiptap/extension-bold'
+import Italic from '@tiptap/extension-italic'
 import Strike from '@tiptap/extension-strike'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
@@ -43,6 +44,7 @@ const tiptapExtensions = (): Extensions => {
     Heading,
     ListItem,
     Bold,
+    Italic,
     DropCursor.configure({
       width: 2,
       class: 'titap-dropcursor',

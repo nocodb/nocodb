@@ -194,11 +194,9 @@ export async function projectUserUpdate(param: {
     NcError.forbidden('Insufficient privilege to add super admin role.');
   }
 
-  await ProjectUser.update(
-    param.projectId,
-    param.userId,
-    param.projectUser.roles
-  );
+  await ProjectUser.update(param.projectId, param.userId, {
+    roles: param.projectUser.roles,
+  });
 
   await Audit.insert({
     op_type: 'AUTHENTICATION',

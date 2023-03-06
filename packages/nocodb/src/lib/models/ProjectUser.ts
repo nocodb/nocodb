@@ -189,7 +189,12 @@ export default class ProjectUser {
     projectUser: Partial<ProjectUser>,
     ncMeta = Noco.ncMeta
   ) {
-    const updateObj = extractProps(projectUser, ['starred', 'hidden', 'order']);
+    const updateObj = extractProps(projectUser, [
+      'roles',
+      'starred',
+      'hidden',
+      'order',
+    ]);
 
     // get existing cache
     const key = `${CacheScope.PROJECT_USER}:${projectId}:${userId}`;

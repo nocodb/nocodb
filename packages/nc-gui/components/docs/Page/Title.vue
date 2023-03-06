@@ -3,6 +3,8 @@ import { Icon as IconifyIcon } from '@iconify/vue'
 
 const emit = defineEmits(['focusEditor'])
 
+const MAX_TITLE_LENGTH = 150
+
 const { updatePage, isPublic, openedPage, findPage, nestedPages } = useDocs()
 
 const titleInputRef = ref<HTMLInputElement>()
@@ -31,6 +33,11 @@ watch(
 watch(
   title,
   (value) => {
+    if (title.value.length > MAX_TITLE_LENGTH) {
+      title.value = title.value.slice(0, MAX_TITLE_LENGTH)
+      return
+    }
+
     openedPage.value = { ...openedPage.value!, title: value, new: false }
   },
   {

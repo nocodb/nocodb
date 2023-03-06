@@ -39,3 +39,4 @@ export * as orgTokenServiceEE from './ee/orgToken.svs';
 export * as docsPageService from './docs/page.svc';
 export * as commandPaletteService from './commandPalette.svc';
 export * as workspaceService from './workspace.svc';
+export * as cowriterService from './cowriter.svc';

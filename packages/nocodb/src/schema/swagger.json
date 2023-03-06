@@ -15100,6 +15100,9 @@
             "example": "nc_vm5q__",
             "type": "string"
           },
+          "type": {
+            "type": "string"
+          },
           "status": {
             "type": "string"
           },

@@ -160,7 +160,7 @@ const onInputBoxEnter = () => {
 }
 
 const handleInputBoxKeyDown = (e: any) => {
-  if (e.key === 'ArrowDown' && filteredPages.value.length === 0) {
+  if ((e.key === 'ArrowDown' || e.key === 'Escape') && filteredPages.value.length === 0) {
     editor.chain().focus().run()
   }
 }
@@ -199,6 +199,12 @@ const onMouseOver = (e: any, index: number) => {
   cursorPos.value = { x: e.clientX, y: e.clientY }
   selectedIndex.value = index
 }
+
+const openLink = () => {
+  if (href.value) {
+    window.open(href.value, '_blank')
+  }
+}
 </script>
 
 <template>
@@ -206,7 +212,7 @@ const onMouseOver = (e: any, index: number) => {
     <div
       v-if="!justDeleted"
       ref="wrapperRef"
-      class="relative bubble-menu flex flex-col bg-gray-50 py-1 px-1"
+      class="relative bubble-menu docs-link-options flex flex-col bg-gray-50 py-1 px-1"
       :class="{
         'rounded-lg': filteredPages.length === 0,
         'rounded-t-lg': filteredPages.length > 0,
@@ -226,9 +232,24 @@ const onMouseOver = (e: any, index: number) => {
             @keydown="handleInputBoxKeyDown"
           />
         </div>
-        <div class="flex mr-0.5 p-1.5 rounded-md cursor-pointer !hover:bg-gray-200 hover:text-red-400" @click="onDelete">
-          <MdiDeleteOutline />
-        </div>
+        <a-popover overlay-class-name="docs-link-options">
+          <template #content> Open link </template>
+          <div
+            class="flex ml-0.5 p-0.5 my-0.5 rounded-md cursor-pointer text-gray-600 hover:text-black"
+            :class="{
+              '!text-gray-400 cursor-not-allowed': href.length === 0,
+            }"
+            @click="openLink"
+          >
+            <IcBaselineArrowOutward />
+          </div>
+        </a-popover>
+        <a-popover overlay-class-name="docs-link-options">
+          <template #content> Delete link </template>
+          <div class="flex mr-1 p-0.5 my-0.5 rounded-md cursor-pointer hover:text-red-400" @click="onDelete">
+            <MdiDeleteOutline />
+          </div>
+        </a-popover>
         <div class="absolute -bottom-1.5 left-0 right-0 w-full flex flex-row justify-center">
           <div
             class="flex h-2.5 w-2.5 bg-gray-50 border-gray-100 border-r-1 border-b-1"
@@ -269,6 +290,21 @@ const onMouseOver = (e: any, index: number) => {
 .bubble-menu {
   // shadow
   @apply shadow-gray-200 shadow-sm;
+}
+
+.docs-link-options {
+  .ant-popover-inner-content {
+    @apply !shadow-none !p-0;
+  }
+  .ant-popover-arrow {
+    @apply !shadow-none;
+    .ant-popover-arrow-content {
+      @apply !shadow-none !bg-gray-100;
+    }
+  }
+  .ant-popover-inner {
+    @apply !shadow-none !bg-gray-100 py-1.5 px-2.5 text-xs !rounded-sm;
+  }
 }
 
 .docs-links-search-pages-list {

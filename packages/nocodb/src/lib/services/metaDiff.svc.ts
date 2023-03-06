@@ -780,17 +780,12 @@ export async function metaDiffSync(param: { projectId: string }) {
   return true;
 }
 
-export async function baseMetaDiffSync(req, res) {
-  await baseMetaDiffFN(req.params.projectId, req.params.baseId);
-
-  T.emit('evt', { evt_type: 'baseMetaDiff:synced' });
-
-  res.json({ msg: 'success' });
-}
-
-export async function baseMetaDiffFN(projectId: string, baseId: string) {
-  const project = await Project.getWithInfo(projectId);
-  const base = await Base.get(baseId);
+export async function baseMetaDiffSync(param: {
+  projectId: string;
+  baseId: string;
+}) {
+  const project = await Project.getWithInfo(param.projectId);
+  const base = await Base.get(param.baseId);
 
   const virtualColumnInsert: Array<() => Promise<void>> = [];
 

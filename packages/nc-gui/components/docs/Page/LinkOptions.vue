@@ -167,6 +167,17 @@ const handleInputBoxKeyDown = (e: any) => {
 
 watch(href, () => {
   selectedIndex.value = 0
+
+  if (
+    isLinkOptionsVisible.value &&
+    isValidURL(href.value) &&
+    href.value.length > 0 &&
+    !href.value.startsWith('/') &&
+    !href.value.startsWith('http')
+  ) {
+    href.value = `https://${href.value}`
+    onChange()
+  }
 })
 
 watch(isLinkOptionsVisible, (value, oldValue) => {

@@ -5,6 +5,51 @@
     "version": "1.0",
     "description": "NocoDB API Documentation"
   },
+  "x-tagGroups": [
+    {
+      "name": "Auth APIs",
+      "tags": ["Auth", "API Token"]
+    },
+    {
+      "name": "Public APIs",
+      "tags": ["Public"]
+    },
+    {
+      "name": "Data APIs",
+      "tags": [
+        "DB Table Row",
+        "DB View Row",
+        "Storage"
+      ]
+    },
+    {
+      "name": "Meta APIs",
+      "tags": [
+        "Base",
+        "DB Table",
+        "DB Table Column",
+        "DB Table Filter",
+        "DB Table Sort",
+        "DB Table Webhook",
+        "DB Table Webhook Filter",
+        "DB View",
+        "DB View Column",
+        "DB View Share",
+        "Plugin",
+        "Project",
+        "Utils"
+      ]
+    },
+    {
+      "name": "Organisation APIs",
+      "tags": [
+        "Org App Settings",
+        "Org License",
+        "Org Tokens",
+        "Org Users"
+      ]
+    }
+  ],
   "servers": [
     {
       "url": "http://localhost:8080"

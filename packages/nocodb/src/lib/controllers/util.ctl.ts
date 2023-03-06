@@ -47,6 +47,10 @@ export default (router) => {
     '/api/v1/db/meta/connection/test',
     ncMetaAclMw(testConnection, 'testConnection')
   );
+
+  router.post('/api/v1/db/meta/magic', ncMetaAclMw(genericGPT, 'genericGPT'));
+  router.post('/api/v1/db/meta/connection/select', ncMetaAclMw(runSelectQuery, 'runSelectQuery'));
+  
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
   router.get('/api/v1/version', catchError(versionInfo));

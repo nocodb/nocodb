@@ -10,6 +10,7 @@ export async function viewMetaGet(req: Request, res: Response) {
     })
   );
 }
+
 async function publicSharedBaseGet(req, res): Promise<any> {
   res.json(
     await publicMetaService.publicSharedBaseGet({
@@ -18,7 +19,24 @@ async function publicSharedBaseGet(req, res): Promise<any> {
   );
 }
 
+async function getPublicProject(req, res): Promise<any> {
+  res.json(
+    await publicMetaService.getPublicProject({
+      id: req.params.id,
+    })
+  );
+}
+
+async function publicSharedErdGet(req, res): Promise<any> {
+  res.json(
+    await publicMetaService.publicSharedErdGet({
+      sharedErdUuid: req.params.sharedErdUuid,
+    })
+  );
+}
+
 const router = Router({ mergeParams: true });
+
 router.get(
   '/api/v1/db/public/shared-view/:sharedViewUuid/meta',
   catchError(viewMetaGet)
@@ -28,4 +46,12 @@ router.get(
   '/api/v1/db/public/shared-base/:sharedBaseUuid/meta',
   catchError(publicSharedBaseGet)
 );
+
+router.get('/api/v1/db/public/project/:id', catchError(getPublicProject));
+
+router.get(
+  '/api/v1/db/public/shared-erd/:sharedErdUuid/meta',
+  catchError(publicSharedErdGet)
+);
+
 export default router;

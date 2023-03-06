@@ -34,12 +34,10 @@ export async function get(param: {
 }
 
 export async function list(param: { projectId: string }) {
-  const pages = await Page.nestedList({
+  return await Page.nestedList({
     projectId: param.projectId as string,
     fetchAll: true,
   });
-
-  return pages;
 }
 
 export async function create(param: {
@@ -47,8 +45,7 @@ export async function create(param: {
   projectId: string;
   user: UserType;
 }) {
-  const page = await Page.create(param);
-  return page;
+  return await Page.create(param);
 }
 
 export async function update(param: {
@@ -57,9 +54,7 @@ export async function update(param: {
   user: UserType;
   pageId: string;
 }) {
-  const page = await Page.update(param);
-
-  return page;
+  return await Page.update(param);
 }
 
 export async function search(param: {
@@ -67,10 +62,8 @@ export async function search(param: {
   query: string;
   pageNumber: number;
 }) {
-  const pages = await Page.search(param);
-
   // todo: pagination
-  return pages;
+  return await Page.search(param);
 }
 
 export async function deletePage(param: { id: string; projectId: string }) {
@@ -120,13 +113,13 @@ export async function magicExpand(param: {
 
     if (response.data.choices.length === 0)
       NcError.badRequest('Could not generate data');
-
-    return { text: response.data?.choices[0]?.text };
   } catch (e) {
     console.log(response?.data?.choices[0]?.text);
     console.log(e);
     NcError.badRequest('Could not generate data');
   }
+
+  return { text: response.data?.choices[0]?.text };
 }
 
 export async function magicOutline(param: {
@@ -167,15 +160,13 @@ export async function magicOutline(param: {
 
     if (response.data.choices.length === 0)
       NcError.badRequest('Could not generate data');
-
-    console.log(response);
-
-    return { text: response.data?.choices[0]?.text };
   } catch (e) {
     console.log(response?.data?.choices[0]?.text);
     console.log(e);
     NcError.badRequest('Could not generate data');
   }
+
+  return { text: response.data?.choices[0]?.text };
 }
 
 export async function paginate(param: {
@@ -200,7 +191,7 @@ export async function paginate(param: {
   if (sortOrder && sortOrder !== 'asc' && sortOrder !== 'desc')
     throw new Error('sortOrder must be asc or desc');
 
-  const data = await Page.paginate({
+  return await Page.paginate({
     projectId,
     pageNumber: pageNumber,
     perPage: perPage,
@@ -208,19 +199,18 @@ export async function paginate(param: {
     order: sortOrder as any,
     orderBy: sortField,
   });
-
-  return data;
 }
 
-export async function pageParents(param: { pageId: string; projectId: string }) {
+export async function pageParents(param: {
+  pageId: string;
+  projectId: string;
+}) {
   const { pageId, projectId } = param;
 
-  const data = await Page.parents({
+  return await Page.parents({
     pageId,
     projectId,
   });
-
-  return data;
 }
 
 export async function handlePageJSON(
@@ -281,13 +271,12 @@ export async function magicCreatePages(param: {
     for (const page of pages) {
       await handlePageJSON(page, undefined, user as UserType, projectId);
     }
-
-    return true;
   } catch (e) {
     console.log(response?.data?.choices[0]?.text);
     console.log(e);
     NcError.badRequest('Failed to parse schema');
   }
+  return true;
 }
 
 export async function directoryImport(param: {
@@ -330,10 +319,9 @@ export async function directoryImport(param: {
         projectId as string
       );
     }
-
-    return true;
   } catch (e) {
     console.log(e);
     NcError.badRequest('Failed to parse schema');
   }
+  return true;
 }

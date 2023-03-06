@@ -23,8 +23,9 @@ import { userService } from '../../services';
 export async function signup(req: Request, res: Response<TableType>) {
   const {
     email: _email,
-    firstname,
-    lastname,
+    avatar,
+    user_name,
+    display_name,
     token,
     ignore_subscribe,
   } = req.body;
@@ -70,8 +71,9 @@ export async function signup(req: Request, res: Response<TableType>) {
   if (user) {
     if (token) {
       await User.update(user.id, {
-        firstname,
-        lastname,
+        avatar,
+        user_name,
+        display_name,
         salt,
         password,
         email_verification_token,
@@ -84,8 +86,9 @@ export async function signup(req: Request, res: Response<TableType>) {
     }
   } else {
     await userService.registerNewUserIfAllowed({
-      firstname,
-      lastname,
+      avatar,
+      user_name,
+      display_name,
       email,
       salt,
       password,

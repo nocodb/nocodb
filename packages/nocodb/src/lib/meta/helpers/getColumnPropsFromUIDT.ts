@@ -1,14 +1,17 @@
 import {
   ColumnReqType,
   NormalColumnRequestType,
+  SqlUIColumn,
   SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
 import Base from '../../models/Base';
 import Column from '../../models/Column';
 
-export default function getColumnPropsFromUIDT(
-  column: SqlUIColumn & { uidt: UITypes } & ColumnReqType & { altered?: number },
+export default async function getColumnPropsFromUIDT(
+  column: SqlUIColumn & { uidt: UITypes } & ColumnReqType & {
+      altered?: number;
+    },
   base: Base
 ) {
   const sqlUi = SqlUiFactory.create(await base.getConnectionConfig());

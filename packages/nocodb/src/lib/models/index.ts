@@ -34,3 +34,5 @@ export { default as SyncLogs } from './SyncLogs';
 export { default as SyncSource } from './SyncSource';
 export { default as User } from './User';
 export { default as View } from './View';
+export { default as Workspace } from './Workspace';
+export { default as WorkspaceUser } from './WorkspaceUser';

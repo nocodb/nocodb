@@ -87,6 +87,11 @@ You will be able to edit column name & associated datatype using pop-up modal.  
   
 <img width="497" alt="image" src="https://user-images.githubusercontent.com/35857179/189077270-7acdc818-3747-4307-93fb-e970cb7936f9.png">
 
+Prior to v0.104.3, Advanced menu by default displayed developer specific database configuration options. To avoid unintended tweaks from user, these are now hidden under an easter egg menu. To enable, double click on `show all`/`hide all` button in column edit modal.
+
+![Screenshot 2023-03-06 at 10 45 26 AM](https://user-images.githubusercontent.com/86527202/223024810-85dac1c6-87ef-4193-90cb-3a05be8ccc1d.png)
+
+
 ### Column Delete
 
 To delete a column, click the down arrow, select `Delete` from the menu.  

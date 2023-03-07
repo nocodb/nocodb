@@ -1716,7 +1716,7 @@ export interface PluginReqType {
 export interface PluginTestReqType {
   /** Plugin Title */
   title: string;
-  /** Plugin Input */
+  /** Plugin Input as JSON string */
   input: string;
 }
 

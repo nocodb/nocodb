@@ -12728,8 +12728,15 @@
             "description": "Plugin Title"
           },
           "input": {
-            "type": "string",
-            "description": "Plugin Input"
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "Plugin Input as JSON string"
+              },
+              {
+                "description": "Plugin Input"
+              }
+            ]
           }
         },
         "required": ["title", "input"]

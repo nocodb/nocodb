@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TableType, validatePassword } from 'nocodb-sdk';
 import { T } from 'nc-help';
-import catchError, { NcError } from '../../helpers/catchError';
+import catchError, { NcError } from '../../meta/helpers/catchError';
 
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';
@@ -12,8 +12,7 @@ import { promisify } from 'util';
 const { v4: uuidv4 } = require('uuid');
 
 import passport from 'passport';
-import { getAjvValidatorMw, registerNewUserIfAllowed } from '../../meta/api/helpers';
-import { MetaTable } from '../../../utils/globals';
+import { getAjvValidatorMw } from '../../meta/api/helpers';
 import extractProjectIdAndAuthenticate from '../../meta/helpers/extractProjectIdAndAuthenticate';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
@@ -91,7 +90,7 @@ export async function signup(req: Request, res: Response<TableType>) {
       NcError.badRequest('User already exist');
     }
   } else {
-    await registerNewUserIfAllowed({
+    await userService.registerNewUserIfAllowed({
       avatar,
       user_name,
       display_name,
@@ -248,9 +247,7 @@ async function oidcSignin(req, res, next) {
   )(req, res, next);
 }
 
-const REFRESH_TOKEN_COOKIE_KEY = 'refresh_token';
-
-function setTokenCookie(res, token): void {
+function setTokenCookie(res: Response, token): void {
   // create http only cookie with refresh token that expires in 7 days
   const cookieOptions = {
     httpOnly: true,

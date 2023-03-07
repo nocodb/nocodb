@@ -17,16 +17,24 @@ import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 
 const { v4: uuidv4 } = require('uuid');
 
+export const DB_TYPES = <const>[
+  'mysql2',
+  'sqlite3',
+  'mysql',
+  'mssql',
+  'snowflake',
+  'oracledb',
+  'pg',
+];
+
 // todo: hide credentials
 export default class Base implements BaseType {
   id?: string;
   project_id?: string;
   alias?: string;
-  type?: string;
+  type?: typeof DB_TYPES[number];
   is_meta?: BoolType;
-  config?: any;
-  created_at?: any;
-  updated_at?: any;
+  config?: string;
   inflection_column?: string;
   inflection_table?: string;
   order?: number;
@@ -47,8 +55,6 @@ export default class Base implements BaseType {
       'config',
       'type',
       'is_meta',
-      'created_at',
-      'updated_at',
       'inflection_column',
       'inflection_table',
       'order',
@@ -85,8 +91,6 @@ export default class Base implements BaseType {
     base: BaseType & {
       id: string;
       projectId: string;
-      created_at?;
-      updated_at?;
     },
     ncMeta = Noco.ncMeta
   ) {
@@ -105,8 +109,6 @@ export default class Base implements BaseType {
       'config',
       'type',
       'is_meta',
-      'created_at',
-      'updated_at',
       'inflection_column',
       'inflection_table',
       'order',

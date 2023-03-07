@@ -1,6 +1,11 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { FormColumnType } from 'nocodb-sdk';
+import {
+  BoolType,
+  FormColumnType,
+  MetaType,
+  StringOrNullType,
+} from 'nocodb-sdk';
 import { deserializeJSON, serializeJSON } from '../utils/serialize';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
@@ -8,24 +13,22 @@ import { extractProps } from '../meta/helpers/extractProps';
 
 export default class FormViewColumn implements FormColumnType {
   id?: string;
-  label?: string;
-  help?: string;
-  description?: string;
-  required?: boolean;
-  show?: boolean;
-  order?: number;
-
   fk_view_id?: string;
   fk_column_id?: string;
   project_id?: string;
   base_id?: string;
-  meta?: string | Record<string, any>;
+  label?: StringOrNullType;
+  help?: StringOrNullType;
+  description?: StringOrNullType;
+  required?: BoolType;
+  uuid?: StringOrNullType;
+  show?: BoolType;
+  order?: number;
+  meta?: MetaType;
 
   constructor(data: FormViewColumn) {
     Object.assign(this, data);
   }
-
-  uuid?: any;
 
   public static async get(formViewColumnId: string, ncMeta = Noco.ncMeta) {
     let viewColumn =
@@ -187,7 +190,4 @@ export default class FormViewColumn implements FormColumnType {
       columnId
     );
   }
-
-  created_at?: string;
-  updated_at?: string;
 }

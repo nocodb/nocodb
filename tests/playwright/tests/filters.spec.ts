@@ -86,8 +86,6 @@ async function verifyFilter(param: {
     return;
   }
 
-  console.log(`Verifying filter: ${param.opType} ${param.opSubType}`);
-
   await toolbar.clickFilter();
   await toolbar.filter.add({
     columnTitle: param.column,

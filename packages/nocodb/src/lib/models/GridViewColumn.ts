@@ -1,13 +1,13 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { GridColumnType } from 'nocodb-sdk';
+import { BoolType, GridColumnType } from 'nocodb-sdk';
 import { extractProps } from '../meta/helpers/extractProps';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
 
 export default class GridViewColumn implements GridColumnType {
   id: string;
-  show: boolean;
+  show: BoolType;
   order: number;
   width?: string;
 

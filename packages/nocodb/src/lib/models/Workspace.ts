@@ -4,7 +4,7 @@ import { MetaTable } from '../utils/globals';
 
 import { WorkspaceType } from 'nocodb-sdk';
 
-export class Workspace implements WorkspaceType {
+export default class Workspace implements WorkspaceType {
   id?: string;
   title?: string;
   description?: string;

@@ -64,7 +64,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 provide(MetaInj, meta)
 
-const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
+const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow, save } = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
 
@@ -126,6 +126,11 @@ const onDuplicateRow = () => {
   }, 500)
 }
 
+const onNext = async () => {
+  await save()
+  emits('next')
+}
+
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
 
 // override reload trigger and use it to reload grid and the form itself
@@ -180,7 +185,7 @@ export default {
               <template #title>
                 {{ $t('labels.nextRow') }}
               </template>
-              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
+              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="onNext" />
             </a-tooltip>
             <a-tooltip placement="bottom">
               <template #title>

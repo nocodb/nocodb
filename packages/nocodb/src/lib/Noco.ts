@@ -21,7 +21,7 @@ import { NC_LICENSE_KEY } from './constants';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
 import Store from './models/Store';
 import NcConfigFactory from './utils/NcConfigFactory';
-import { Tele } from 'nc-help';
+import { T } from 'nc-help';
 
 import NcProjectBuilderCE from './v1-legacy/NcProjectBuilder';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilderEE';
@@ -45,7 +45,7 @@ import User from './models/User';
 import * as http from 'http';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
-import initAdminFromEnv from './meta/api/userApi/initAdminFromEnv';
+import initAdminFromEnv from './services/user/initAdminFromEnv';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -275,10 +275,10 @@ export default class Noco {
       }
       next();
     });
-    Tele.init({
+    T.init({
       instance: getInstance,
     });
-    Tele.emit('evt_app_started', await User.count());
+    T.emit('evt_app_started', await User.count());
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
     weAreHiring();
     return this.router;
@@ -531,7 +531,7 @@ export default class Noco {
     if (!serverId) {
       await Noco._ncMeta.metaInsert('', '', 'nc_store', {
         key: 'nc_server_id',
-        value: (serverId = Tele.id),
+        value: (serverId = T.id),
       });
     }
     process.env.NC_SERVER_UUID = serverId;

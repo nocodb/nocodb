@@ -232,8 +232,7 @@ test.describe('Verify shortcuts', () => {
       });
 
       await api.dbTableRow.bulkCreate('noco', context.project.id, table.id, [record]);
-      const records = await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 1 });
-      console.log(records);
+      await api.dbTableRow.list('noco', context.project.id, table.id, { limit: 1 });
     } catch (e) {
       console.error(e);
     }

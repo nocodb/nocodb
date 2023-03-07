@@ -3,8 +3,9 @@ import Column from './Column';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import type { LookupType } from 'nocodb-sdk';
 
-export default class LookupColumn {
+export default class LookupColumn implements LookupType {
   fk_relation_column_id: string;
   fk_lookup_column_id: string;
   fk_column_id: string;

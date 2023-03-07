@@ -16,7 +16,7 @@ const [setup, use] = useInjectionState(() => {
   })
 
   watch(
-    isPublic,
+    [isPublic, isEditAllowed],
     () => {
       if (!isEditAllowed.value) {
         visibility.value = 'none'
@@ -25,17 +25,7 @@ const [setup, use] = useInjectionState(() => {
 
       visibility.value = isPublic.value ? 'public' : 'private'
     },
-    { immediate: true },
-  )
-
-  watch(
-    isEditAllowed,
-    () => {
-      if (!isEditAllowed.value) {
-        visibility.value = 'none'
-      }
-    },
-    { immediate: true },
+    { immediate: true, deep: true },
   )
 
   return {

@@ -36,7 +36,7 @@ jobs:
           npm ci && npm run build
       - name: build nc-gui and copy to nocodb
         env:
-          NC_CDN_URL: "https://cdn.nocohub.ai/${{ steps.vars.outputs.release_version }}"
+          NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           # generate static build of nc-gui
@@ -73,8 +73,8 @@ jobs:
         uses: lbertenasco/s3-deploy@v1
         with:
           folder: packages/nc-gui/build/
-          bucket: nocohubcdn
-          dist-id: E2OCMQZYE8WVJ7
+          bucket: ${{ secrets.CDN_BUCKET }}
+          dist-id: ${{ secrets.CDN_DIST_ID }}
           invalidation: /${{ steps.vars.outputs.release_version }}/*
 
       - name: Login to Amazon ECR

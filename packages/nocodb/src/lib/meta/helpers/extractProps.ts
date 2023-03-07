@@ -1,6 +1,6 @@
 import DOMPurify from 'isomorphic-dompurify';
 
-export function extractProps<T extends object>(
+export function extractProps<T extends Record<string, unknown>>(
   body: T,
   props: string[]
 ): Partial<T> {
@@ -11,7 +11,7 @@ export function extractProps<T extends object>(
   }, {});
 }
 
-export function extractPropsAndSanitize<T extends object>(
+export function extractPropsAndSanitize<T extends Record<string, unknown>>(
   body: T,
   props: string[]
 ): Partial<T> {

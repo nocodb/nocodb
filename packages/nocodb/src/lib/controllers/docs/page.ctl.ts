@@ -206,16 +206,16 @@ router.post(
 router.get(
   '/api/v1/docs/pages/paginate',
   apiMetrics,
-  ncMetaAclMw(paginate, 'paginate')
+  ncMetaAclMw(paginate, 'pagePaginate')
 );
 router.post(
   '/api/v1/docs/pages/magic',
   apiMetrics,
-  ncMetaAclMw(magicCreatePages, 'magicCreatePages')
+  ncMetaAclMw(magicCreatePages, 'pageMagicCreate')
 );
 router.post(
   '/api/v1/docs/pages/import',
   apiMetrics,
-  ncMetaAclMw(directoryImport, 'directoryImport')
+  ncMetaAclMw(directoryImport, 'pageDirectoryImport')
 );
 export default router;

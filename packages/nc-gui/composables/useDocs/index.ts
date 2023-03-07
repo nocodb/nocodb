@@ -3,6 +3,7 @@ import type { DocsPageType } from 'nocodb-sdk'
 import gh from 'parse-github-url'
 import { extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 import type { PageSidebarNode } from '~~/lib'
+import { ProjectRole } from '~/lib/enums'
 
 export const PAGES_PER_PAGE_LIST = 10
 
@@ -10,7 +11,18 @@ const [setup, use] = useInjectionState(() => {
   const route = useRoute()
   const { $api } = useNuxtApp()
   const { appInfo } = $(useGlobal())
+  const { projectRoles } = useRoles()
+
   const isPublic = computed<boolean>(() => !!route.meta.public)
+  const isEditAllowed = computed<boolean>(
+    () =>
+      !isPublic.value &&
+      !!(
+        projectRoles.value[ProjectRole.Creator] ||
+        projectRoles.value[ProjectRole.Owner] ||
+        projectRoles.value[ProjectRole.Editor]
+      ),
+  )
 
   const projectId = $(computed(() => route.params.projectId as string))
 
@@ -625,6 +637,7 @@ const [setup, use] = useInjectionState(() => {
     nestedPublicParentPage,
     parentWhichIsNestedPublished,
     findPage,
+    isEditAllowed,
   }
 }, 'useDocs')
 

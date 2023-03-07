@@ -11,3 +11,5 @@ export const projectRoleTagColors = {
 }
 
 export const projectRoles = [ProjectRole.Creator, ProjectRole.Editor, ProjectRole.Commenter, ProjectRole.Viewer]
+
+export const docsProjectRoles = [ProjectRole.Editor, ProjectRole.Viewer]

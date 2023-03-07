@@ -21,6 +21,7 @@ const {
   projectUrl,
   expandTabOfOpenedPage,
   isPublic,
+  isEditAllowed,
 } = useDocs()
 
 const deleteModalOpen = ref(false)
@@ -160,7 +161,7 @@ onKeyStroke('Enter', () => {
           {{ project.title }}
         </div>
       </div>
-      <div v-if="project.title" class="flex flex-row justify-between items-center">
+      <div v-if="project.title && isEditAllowed" class="flex flex-row justify-between items-center">
         <div
           class="flex select-none p-1 rounded-md hover:(text-primary/100 !bg-gray-200 !bg-opacity-60) cursor-pointer pop-in-animation"
           @click="() => addNewPage()"
@@ -175,7 +176,7 @@ onKeyStroke('Enter', () => {
       v-model:selectedKeys="openPageTabKeys"
       :load-data="onLoadData"
       :tree-data="(nestedPages as any)"
-      :draggable="!isPublic"
+      :draggable="isEditAllowed"
       :on-drop="onDrop"
       class="!w-full h-full overflow-y-scroll !overflow-x-hidden pb-20"
       @dragenter="onDragEnter"
@@ -190,7 +191,7 @@ onKeyStroke('Enter', () => {
             <div class="flex flex-shrink-0">
               <a-popover placement="bottom" overlay-class-name="docs-page-icon-change-popover" color="#000000">
                 <template #content> Change Icon </template>
-                <a-dropdown v-if="!isPublic" placement="bottom" trigger="click">
+                <a-dropdown v-if="isEditAllowed" placement="bottom" trigger="click">
                   <div class="flex px-0.5 pt-0.75 text-gray-500 rounded-md hover:bg-gray-200 cursor-pointer">
                     <IconifyIcon
                       v-if="icon"
@@ -227,7 +228,7 @@ onKeyStroke('Enter', () => {
               {{ title }}
             </span>
           </div>
-          <div v-if="!isPublic" class="flex flex-row justify-start items-center pl-2 gap-x-1 h-3">
+          <div v-if="isEditAllowed" class="flex flex-row justify-start items-center pl-2 gap-x-1 h-3">
             <a-dropdown placement="bottom" trigger="click">
               <div
                 class="nc-docs-sidebar-page-options flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"

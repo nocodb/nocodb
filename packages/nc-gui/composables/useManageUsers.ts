@@ -85,12 +85,18 @@ const [setup, use] = useInjectionState(() => {
       await Promise.all(
         _editedUsers.map(async (user) => {
           await api.auth.projectUserUpdate(project.value!.id!, user.id, {
+            email: user.email,
             roles: user.roles,
             project_id: project.value.id,
             projectName: project.value.title,
           })
+          const savedUser = users.value?.find((u) => u.id === user.id)
+          if (savedUser) {
+            savedUser.roles = user.roles
+          }
         }),
       )
+      lastFetchedUsers.value = JSON.parse(JSON.stringify(users.value))
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {

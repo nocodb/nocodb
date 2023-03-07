@@ -259,10 +259,10 @@ export default class Page {
     ncMeta = Noco.ncMeta
   ): Promise<DocsPageType> {
     // const now = new Date();
-    const previousPage = await this.get({ id: pageId, projectId });
-    if (!previousPage) throw new Error('Page not found');
+    const oldPage = await this.get({ id: pageId, projectId });
+    if (!oldPage) throw new Error('Page not found');
 
-    if (attributes.title === previousPage.title) delete attributes.title;
+    if (attributes.title === oldPage.title) delete attributes.title;
 
     if (attributes.title) {
       if (attributes.title.length === 0) {
@@ -271,7 +271,7 @@ export default class Page {
 
       const uniqueSlug = await this.uniqueSlug({
         projectId,
-        parent_page_id: previousPage.parent_page_id,
+        parent_page_id: oldPage.parent_page_id,
         title: attributes.title,
       });
 
@@ -282,7 +282,7 @@ export default class Page {
       // todo: Set published date
       // attributes.last_published_date = now.toISOString();
       attributes.last_published_by_id = user.id;
-      attributes.published_content = attributes.content || previousPage.content;
+      attributes.published_content = attributes.content || oldPage.content;
     }
 
     attributes.last_updated_by_id = user.id;
@@ -296,20 +296,28 @@ export default class Page {
       ncMeta
     );
 
-    // if parent page is changed, update is_parent flag of previous parent page
+    if (attributes.order) {
+      await this.reorder({
+        projectId,
+        parent_page_id: attributes.parent_page_id,
+        keepPageId: pageId,
+      });
+    }
+
+    // if old parent page is changed, update is_parent flag of previous parent page
     if (
       'parent_page_id' in attributes &&
-      previousPage.parent_page_id &&
-      attributes.parent_page_id !== previousPage.parent_page_id
+      oldPage.parent_page_id &&
+      attributes.parent_page_id !== oldPage.parent_page_id
     ) {
       const previousParentChildren = await this.getChildPages({
-        parent_page_id: previousPage.parent_page_id,
+        parent_page_id: oldPage.parent_page_id,
         projectId,
       });
       if (previousParentChildren.length === 0) {
         await this._updatePage(
           {
-            pageId: previousPage.parent_page_id,
+            pageId: oldPage.parent_page_id,
             projectId,
             attributes: {
               is_parent: false,
@@ -318,14 +326,6 @@ export default class Page {
           ncMeta
         );
       }
-    }
-
-    if (attributes.order) {
-      await this.reorder({
-        projectId,
-        parent_page_id: attributes.parent_page_id,
-        keepPageId: pageId,
-      });
     }
 
     if (attributes.parent_page_id) {
@@ -710,6 +710,31 @@ export default class Page {
   }
 
   static async isParent({
+    projectId,
+    pageId,
+  }: {
+    projectId: string;
+    pageId: string;
+  }) {
+    const page = await this.get({ projectId, id: pageId });
+
+    if (!page) throw new Error('Page not found');
+
+    const count = await Noco.ncMeta.metaCount(
+      null,
+      null,
+      Page.tableName({ projectId }),
+      {
+        condition: {
+          parent_page_id: pageId,
+        },
+      }
+    );
+
+    return count > 0;
+  }
+
+  static async hasParent({
     projectId,
     pageId,
     parentId,

@@ -78,6 +78,57 @@ const [setup, use] = useInjectionState(() => {
     },
   )
 
+  // verify if the levels of nested pages are correct
+  // if not, set the correct level
+  watch(
+    nestedPages,
+    () => {
+      if (nestedPages.value.length === 0) return
+
+      let isTreeCorrect = true
+      const verifyLevelAndIsLeaf = (tree: PageSidebarNode[], level: number) => {
+        tree.forEach((node) => {
+          if (node.level !== level) {
+            isTreeCorrect = false
+          }
+
+          if (node.isLeaf === false && node.children && node.children.length > 0) {
+            isTreeCorrect = false
+          }
+
+          if (node.children && node.children.length === 0 && node.isLeaf !== true) {
+            isTreeCorrect = false
+          }
+
+          if (node.children) {
+            verifyLevelAndIsLeaf(node.children, level + 1)
+          }
+        })
+      }
+
+      verifyLevelAndIsLeaf(nestedPages.value, 0)
+
+      if (isTreeCorrect) return
+
+      const traverse = (tree: PageSidebarNode[], level: number) => {
+        tree.forEach((node) => {
+          node.level = level
+          if (node.children && node.children.length > 0) {
+            traverse(node.children, level + 1)
+            node.isLeaf = false
+          } else {
+            node.isLeaf = true
+          }
+        })
+      }
+
+      traverse(nestedPages.value, 0)
+    },
+    {
+      deep: true,
+    },
+  )
+
   const flattenedNestedPages = computed(() => {
     if (nestedPages.value.length === 0) return []
 
@@ -132,17 +183,18 @@ const [setup, use] = useInjectionState(() => {
           })
 
       // traverse tree and add `isLeaf` and `key` properties
-      const traverse = (parentNode: any, pages: PageSidebarNode[]) => {
+      const traverse = (parentNode: any, pages: PageSidebarNode[], level: number) => {
         pages.forEach((p) => {
           p.isLeaf = !p.is_parent
           p.key = p.id!
           p.parentNodeId = parentNode?.id
+          p.level = level
 
-          if (p.children) traverse(p, p.children)
+          if (p.children) traverse(p, p.children, level + 1)
         })
       }
 
-      traverse(undefined, nestedDocTree as any)
+      traverse(undefined, nestedDocTree as any, 0)
 
       nestedPages.value = nestedDocTree as any
 
@@ -194,6 +246,7 @@ const [setup, use] = useInjectionState(() => {
           isLeaf: !createdPageData.is_parent,
           key: createdPageData.id!,
           parentNodeId: parentPage.id,
+          level: Number(parentPage.level) + 1,
           children: [],
         })
         parentPage.isLeaf = false

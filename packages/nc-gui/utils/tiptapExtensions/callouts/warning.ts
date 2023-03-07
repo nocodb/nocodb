@@ -16,7 +16,7 @@ export const WarningCallout = Node.create<WarningCalloutOptions>({
       },
     }
   },
-  content: 'inline*',
+  content: 'block*',
 
   group: 'block',
 

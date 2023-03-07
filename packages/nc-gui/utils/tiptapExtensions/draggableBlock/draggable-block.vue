@@ -60,6 +60,10 @@ const optionWrapperStyle = computed(() => {
     return {
       marginTop: '1.25rem',
     }
+  } else if (content[0].type.name === 'horizontalRule') {
+    return {
+      marginTop: '0.55rem',
+    }
   } else {
     return {
       marginTop: '0.7rem',

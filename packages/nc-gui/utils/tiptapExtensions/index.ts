@@ -1,5 +1,4 @@
 import BulletList from '@tiptap/extension-bullet-list'
-import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
 import Underline from '@tiptap/extension-underline'
@@ -15,6 +14,7 @@ import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
 import OrderedList from '@tiptap/extension-ordered-list'
+import { HorizontalRule } from './horizontalRule'
 import { Link } from './link'
 import { TableCell } from './table/cell'
 import { TableRow } from './table/row'
@@ -72,11 +72,7 @@ const tiptapExtensions = (): Extensions => {
     TaskItem.configure({
       nested: true,
     }),
-    HorizontalRule.configure({
-      HTMLAttributes: {
-        class: 'nc-docs-horizontal-rule',
-      },
-    }),
+    HorizontalRule,
     Code,
     CodeBlock,
     createImageExtension(async (image: any) => {

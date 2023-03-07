@@ -282,7 +282,15 @@ const items = [
     title: 'Divider',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      ;(editor.chain().focus().deleteRange(range).setNode('horizontalRule').focus() as any).setHorizontalRule().run()
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .setNode('horizontalRule')
+        .focus()
+        .setHorizontalRule()
+        .setTextSelection(range.from + 3)
+        .run()
     },
     icon: MdiMinus,
     iconClass: '',

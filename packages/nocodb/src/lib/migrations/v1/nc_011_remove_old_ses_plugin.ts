@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import ses from '../../v1-legacy/plugins/ses';
 
 const up = async (knex: Knex) => {

@@ -7,7 +7,8 @@ import {
   MetaTable,
 } from '../utils/globals';
 import Model from './Model';
-import { BaseType, BoolType, UITypes } from 'nocodb-sdk';
+import type { BaseType, BoolType } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import CryptoJS from 'crypto-js';
 import { extractProps } from '../meta/helpers/extractProps';

@@ -2,9 +2,9 @@ import View from '../../models/View';
 import Column from '../../models/Column';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import Model from '../../models/Model';
-import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
-import LookupColumn from '../../models/LookupColumn';
-import SelectOption from '../../models/SelectOption';
+import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
+import type LookupColumn from '../../models/LookupColumn';
+import type SelectOption from '../../models/SelectOption';
 
 export default async function populateSamplePayload(
   viewOrModel: View | Model,

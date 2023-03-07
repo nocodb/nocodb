@@ -1,4 +1,4 @@
-import FormulaColumn from '../../models/FormulaColumn';
+import type FormulaColumn from '../../models/FormulaColumn';
 import jsep from 'jsep';
 
 export default function addFormulaErrorIfMissingColumn({

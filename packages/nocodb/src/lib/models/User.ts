@@ -1,4 +1,4 @@
-import { UserType } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
 import { NcError } from '../meta/helpers/catchError';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';

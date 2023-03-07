@@ -1,4 +1,4 @@
-import {
+import type {
   IEmailAdapter,
   IStorageAdapterV2,
   IWebhookNotificationAdapter,

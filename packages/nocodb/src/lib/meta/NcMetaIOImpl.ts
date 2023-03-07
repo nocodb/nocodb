@@ -1,9 +1,10 @@
 import CryptoJS from 'crypto-js';
 import { customAlphabet } from 'nanoid';
 
-import { NcConfig } from '../../interface/config';
-import { Knex, XKnex } from '../db/sql-data-mapper';
-import Noco from '../Noco';
+import type { NcConfig } from '../../interface/config';
+import type { Knex } from '../db/sql-data-mapper';
+import { XKnex } from '../db/sql-data-mapper';
+import type Noco from '../Noco';
 import XcMigrationSource from '../migrations/XcMigrationSource';
 
 import NcMetaIO, { META_TABLES } from './NcMetaIO';

@@ -1,4 +1,5 @@
-import { GalleryReqType, ViewTypes } from 'nocodb-sdk';
+import type { GalleryReqType } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../../meta/api/helpers';
 import { GalleryView, View } from '../../models';

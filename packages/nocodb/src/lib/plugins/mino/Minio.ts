@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import { Client as MinioClient } from 'minio';
-import { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
 import {
   generateTempFilePath,

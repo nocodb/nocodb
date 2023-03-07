@@ -7,13 +7,8 @@ import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { NcError } from '../../meta/helpers/catchError';
 import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
-import {
-  Base,
-  Column,
-  LinkToAnotherRecordColumn,
-  Model,
-  View,
-} from '../../models';
+import type { LinkToAnotherRecordColumn } from '../../models';
+import { Base, Column, Model, View } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '../../utils/mimeTypes';
 import { sanitizeUrlPath } from '../attachment.svc';

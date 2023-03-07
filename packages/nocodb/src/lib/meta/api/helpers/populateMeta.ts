@@ -1,14 +1,14 @@
-import Project from '../../../models/Project';
+import type Project from '../../../models/Project';
 import Column from '../../../models/Column';
 import Model from '../../../models/Model';
 import NcHelp from '../../../utils/NcHelp';
-import Base from '../../../models/Base';
+import type Base from '../../../models/Base';
 import View from '../../../models/View';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import getTableNameAlias, {
   getColumnNameAlias,
 } from '../../helpers/getTableName';
-import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
+import type LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import getColumnUiType from '../../helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../../helpers/mapDefaultDisplayValue';
 import { extractAndGenerateManyToManyRelations } from '../../../services/metaDiff.svc';

@@ -1,4 +1,5 @@
-import { Request, Router } from 'express';
+import type { Request } from 'express';
+import { Router } from 'express';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../../meta/helpers/apiMetrics';
 import { gridViewService } from '../../services';

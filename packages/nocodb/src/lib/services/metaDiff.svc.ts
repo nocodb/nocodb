@@ -3,13 +3,8 @@
 import { T } from 'nc-help';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
-import {
-  Base,
-  Column,
-  LinkToAnotherRecordColumn,
-  Model,
-  Project,
-} from '../models';
+import type { LinkToAnotherRecordColumn } from '../models';
+import { Base, Column, Model, Project } from '../models';
 import ModelXcMetaFactory from '../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import { getUniqueColumnAliasName } from '../meta/helpers/getUniqueName';
 import NcHelp from '../utils/NcHelp';

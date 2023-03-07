@@ -4,22 +4,22 @@ import debug from 'debug';
 import { Router } from 'express';
 import inflection from 'inflection';
 // import Knex from "knex";
-import {
+import type {
   MysqlClient,
   PgClient,
   SqlClient,
   // SqlClientFactory,
 } from 'nc-help';
 
-import XcDynamicChanges from '../../../interface/XcDynamicChanges';
-import { Acls, DbConfig, NcConfig } from '../../../interface/config';
-import { BaseModelSql, XKnex } from '../../db/sql-data-mapper';
+import type XcDynamicChanges from '../../../interface/XcDynamicChanges';
+import type { Acls, DbConfig, NcConfig } from '../../../interface/config';
+import type { BaseModelSql, XKnex } from '../../db/sql-data-mapper';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import ExpressXcPolicy from '../../db/sql-mgr/code/policies/xc/ExpressXcPolicy';
 import NcHelp from '../NcHelp';
-import NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
-import Noco from '../../Noco';
-import NcMetaIO from '../../meta/NcMetaIO';
+import type NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
+import type Noco from '../../Noco';
+import type NcMetaIO from '../../meta/NcMetaIO';
 import XcCache from '../../v1-legacy/plugins/adapters/cache/XcCache';
 import { T } from 'nc-help';
 

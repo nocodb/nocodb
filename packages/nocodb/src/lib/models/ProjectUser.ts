@@ -1,4 +1,4 @@
-import { ProjectType } from 'nocodb-sdk';
+import type { ProjectType } from 'nocodb-sdk';
 import {
   // CacheDelDirection,
   CacheGetType,

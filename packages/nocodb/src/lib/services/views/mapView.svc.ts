@@ -1,4 +1,5 @@
-import { MapType, ViewTypes } from 'nocodb-sdk';
+import type { MapType } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import View from '../../models/View';
 import { T } from 'nc-help';
 import MapView from '../../models/MapView';

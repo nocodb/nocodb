@@ -1,7 +1,7 @@
 import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { Plugin } from '../models';
-import { PluginTestReqType, PluginType } from 'nocodb-sdk';
+import type { PluginTestReqType, PluginType } from 'nocodb-sdk';
 import NcPluginMgrv2 from '../meta/helpers/NcPluginMgrv2';
 
 export async function pluginList() {

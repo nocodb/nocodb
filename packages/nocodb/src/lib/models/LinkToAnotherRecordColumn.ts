@@ -1,4 +1,4 @@
-import { BoolType } from 'nocodb-sdk';
+import type { BoolType } from 'nocodb-sdk';
 import Noco from '../Noco';
 import Column from './Column';
 import Model from './Model';

@@ -1,5 +1,6 @@
 import DOMPurify from 'isomorphic-dompurify';
-import { OrgUserRoles, ProjectReqType } from 'nocodb-sdk';
+import type { ProjectReqType } from 'nocodb-sdk';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { promisify } from 'util';
 import { populateMeta, validatePayload } from '../meta/api/helpers';
 import { extractPropsAndSanitize } from '../meta/helpers/extractProps';

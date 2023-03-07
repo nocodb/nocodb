@@ -1,7 +1,7 @@
-import { NcConfig } from '../../interface/config';
+import type { NcConfig } from '../../interface/config';
 
 import debug from 'debug';
-import NcMetaIO from '../meta/NcMetaIO';
+import type NcMetaIO from '../meta/NcMetaIO';
 import { T } from 'nc-help';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';

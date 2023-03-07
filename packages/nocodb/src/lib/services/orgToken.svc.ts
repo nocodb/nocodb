@@ -1,6 +1,7 @@
-import { ApiTokenReqType, OrgUserRoles } from 'nocodb-sdk';
+import type { ApiTokenReqType } from 'nocodb-sdk';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { validatePayload } from '../meta/api/helpers';
-import { User } from '../models';
+import type { User } from '../models';
 import ApiToken from '../models/ApiToken';
 import { T } from 'nc-help';
 import { NcError } from '../meta/helpers/catchError';

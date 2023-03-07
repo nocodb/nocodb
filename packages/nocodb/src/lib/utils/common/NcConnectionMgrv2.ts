@@ -4,7 +4,7 @@ import {
   defaultConnectionConfig,
   defaultConnectionOptions,
 } from '../NcConfigFactory';
-import Base from '../../models/Base';
+import type Base from '../../models/Base';
 import Noco from '../../Noco';
 
 export default class NcConnectionMgrv2 {

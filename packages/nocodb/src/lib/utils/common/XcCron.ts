@@ -1,9 +1,9 @@
 import { CronJob } from 'cron';
 
-import { NcConfig } from '../../../interface/config';
-import Noco from '../../Noco';
+import type { NcConfig } from '../../../interface/config';
+import type Noco from '../../Noco';
 
-import BaseApiBuilder from './BaseApiBuilder';
+import type BaseApiBuilder from './BaseApiBuilder';
 
 // import * as tsc from "typescript";
 

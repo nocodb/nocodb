@@ -1,5 +1,6 @@
 import { T } from 'nc-help';
-import { GridReqType, ViewTypes } from 'nocodb-sdk';
+import type { GridReqType } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../meta/api/helpers';
 import { View } from '../../models';
 import { GridView } from '../../models';

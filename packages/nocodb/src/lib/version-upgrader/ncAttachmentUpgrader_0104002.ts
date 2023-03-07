@@ -1,11 +1,12 @@
-import { Knex } from 'knex';
-import { NcUpgraderCtx } from './NcUpgrader';
+import type { Knex } from 'knex';
+import type { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
 import Base from '../models/Base';
 import Model from '../models/Model';
-import { XKnex } from '../db/sql-data-mapper/index';
+import type { XKnex } from '../db/sql-data-mapper/index';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { BaseType, UITypes } from 'nocodb-sdk';
+import type { BaseType } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import { throwTimeoutError } from './ncUpgradeErrors';
 
 // after 0101002 upgrader, the attachment object would become broken when

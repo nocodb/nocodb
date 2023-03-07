@@ -1,6 +1,7 @@
-import Base, { DB_TYPES } from './/Base';
+import type { DB_TYPES } from './/Base';
+import Base from './/Base';
 import Noco from '../Noco';
-import { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
+import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,

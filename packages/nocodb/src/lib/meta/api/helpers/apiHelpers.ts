@@ -1,5 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
-import Ajv, { ErrorObject } from 'ajv';
+import type { NextFunction, Request, Response } from 'express';
+import type { ErrorObject } from 'ajv';
+import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 // @ts-ignore
 import swagger from '../../../../schema/swagger.json';

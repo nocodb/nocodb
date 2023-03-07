@@ -27,7 +27,7 @@ export async function executeBulkOperation<T extends BulkOperation>(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
   return await baseModel[param.operation].apply(null, param.options);
 }

@@ -238,12 +238,22 @@ function createNewBlockOnEnteringOnEmptyLine(editor: Editor) {
     return handleCodeblockLastLineEnter(editor)
   }
 
-  if (parentType !== 'blockquote' && parentType !== 'infoCallout') {
+  if (
+    parentType !== 'blockquote' &&
+    parentType !== 'infoCallout' &&
+    parentType !== 'warningCallout' &&
+    parentType !== 'tipCallout'
+  ) {
     return false
   }
 
   const node = state.selection.$from.node()
-  if (node?.textContent?.length !== 0) return false
+  if (node?.textContent?.length === 0) {
+    editor
+      .chain()
+      .insertContentAt(state.selection.$from.pos - 1, { type: 'paragraph', text: '\n' })
+      .run()
+  }
 
   const nextNodePos = state.selection.$from.pos + node.nodeSize + 1
   const nextNode = state.doc.nodeAt(nextNodePos)
@@ -269,6 +279,11 @@ function handleCodeblockLastLineEnter(editor: Editor) {
 
   const nextNodePos = editor.state.selection.$from.pos + 2
   const nextNode = editor.state.doc.nodeAt(nextNodePos)
+
+  if (currentNode.textContent.length === 0) {
+    editor.chain().insertContentAt(editor.state.selection.$from.pos, { text: '\n' }).run()
+    return true
+  }
 
   if (currentNode.textContent[currentNode.textContent.length - 1] !== '\n') return false
   if (nextNode?.type.name !== 'dBlock') return false

@@ -31,7 +31,7 @@ export async function get(param: {
 
     if (
       page.id !== parentPage.id &&
-      !Page.isParent({
+      !Page.hasParent({
         parentId: parentPage.id,
         pageId: page.id,
         projectId: param.projectId,

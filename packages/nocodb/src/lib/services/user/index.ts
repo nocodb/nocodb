@@ -2,8 +2,8 @@ import {
   PasswordChangeReqType,
   PasswordForgotReqType,
   PasswordResetReqType,
-  UserType,
   SignUpReqType,
+  UserType,
   validatePassword,
 } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';

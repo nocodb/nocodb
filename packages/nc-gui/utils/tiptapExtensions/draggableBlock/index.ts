@@ -247,13 +247,14 @@ function createNewBlockOnEnteringOnEmptyLine(editor: Editor) {
     return false
   }
 
-  const node = state.selection.$from.node()
-  if (node?.textContent?.length === 0) {
+  if (parentNode?.textContent?.length === 0) {
     editor
       .chain()
       .insertContentAt(state.selection.$from.pos - 1, { type: 'paragraph', text: '\n' })
       .run()
   }
+
+  const node = state.selection.$from.node()
 
   const nextNodePos = state.selection.$from.pos + node.nodeSize + 1
   const nextNode = state.doc.nodeAt(nextNodePos)

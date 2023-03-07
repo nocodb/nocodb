@@ -418,7 +418,7 @@ watch(
     font-family: 'JetBrainsMono', monospace;
     padding: 1rem;
     border-radius: 0.5rem;
-    @apply overflow-auto;
+    @apply overflow-auto mt-3;
   }
 
   code {

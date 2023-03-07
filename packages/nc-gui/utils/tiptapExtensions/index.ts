@@ -10,6 +10,7 @@ import ListItem from '@tiptap/extension-list-item'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
 import Strike from '@tiptap/extension-strike'
+import Code from '@tiptap/extension-code'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
@@ -76,6 +77,7 @@ const tiptapExtensions = (): Extensions => {
         class: 'nc-docs-horizontal-rule',
       },
     }),
+    Code,
     CodeBlock,
     createImageExtension(async (image: any) => {
       return uploadFile(image)

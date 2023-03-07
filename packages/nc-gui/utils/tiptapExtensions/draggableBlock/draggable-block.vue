@@ -36,6 +36,14 @@ const optionWrapperStyle = computed(() => {
     return {
       marginTop: '0.5rem',
     }
+  } else if (content[0].type.name === 'blockquote') {
+    return {
+      marginTop: '0.8rem',
+    }
+  } else if (content[0].type.name === 'codeBlock') {
+    return {
+      marginTop: '1.2rem',
+    }
   } else if (
     content[0].type.name === 'bulletList' ||
     content[0].type.name === 'orderedList' ||

@@ -410,11 +410,13 @@ export async function tableCreate(param: {
     }
   }
 
-  tableCreatePayLoad.columns = param.table.columns?.map((c) => ({
-    ...getColumnPropsFromUIDT(c as any, base),
-    cn: c.column_name,
-    column_name: c.column_name,
-  }));
+  tableCreatePayLoad.columns = await Promise.all(
+    param.table.columns?.map(async (c) => ({
+      ...(await getColumnPropsFromUIDT(c as any, base)),
+      cn: c.column_name,
+      column_name: c.column_name,
+    }))
+  );
   await sqlMgr.sqlOpPlus(base, 'tableCreate', {
     ...tableCreatePayLoad,
     tn: param.table.table_name,

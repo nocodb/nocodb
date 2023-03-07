@@ -33,8 +33,6 @@ import metaDiffController from '../../controllers/metaDiff.ctl';
 import cacheController from '../../controllers/cache.ctl';
 import apiTokenController from '../../controllers/apiToken.ctl';
 import hookFilterController from '../../controllers/hookFilter.ctl';
-// TODO:
-// import commandPaletteController from '../../controllers/CommandPalette.ctl';
 import testController from '../../controllers/test.ctl';
 import {
   bulkDataAliasController,
@@ -57,6 +55,10 @@ import swaggerController from '../../controllers/apiDocs';
 import importController from '../../controllers/sync/importApis';
 import syncSourceController from '../../controllers/sync';
 import mapViewController from '../../controllers/views/mapView.ctl';
+import commandPaletteController from '../../controllers/CommandPalette.ctl';
+import workspaceController from '../../controllers/workspace.ctl';
+import cowriterController from '../../controllers/cowriter.ctl';
+import { docsPageController } from '../../controllers/docs';
 
 const clients: { [id: string]: Socket } = {};
 const jobs: { [id: string]: { last_message: any } } = {};
@@ -66,7 +68,6 @@ export default function (router: Router, server) {
   projectController(router);
   baseController(router);
   utilController(router);
-  // commandPaletteController(router);
 
   if (process.env['PLAYWRIGHT_TEST'] === 'true') {
     router.use(testController);
@@ -110,6 +111,10 @@ export default function (router: Router, server) {
   router.use(syncSourceController);
   router.use(kanbanViewController);
   router.use(mapViewController);
+  router.use(commandPaletteController);
+  router.use(workspaceController);
+  router.use(cowriterController);
+  router.use(docsPageController);
 
   userController(router);
 

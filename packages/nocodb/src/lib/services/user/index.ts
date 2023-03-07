@@ -2,6 +2,7 @@ import {
   PasswordChangeReqType,
   PasswordForgotReqType,
   PasswordResetReqType,
+  SignUpReqType,
   UserType,
   validatePassword,
 } from 'nocodb-sdk';
@@ -19,9 +20,10 @@ import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
 import { Audit, Store, User } from '../../models';
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
-import { randomTokenString } from './helpers';
+import { genJwt, randomTokenString, setTokenCookie } from './helpers';
 
 const { v4: uuidv4 } = require('uuid');
+const { isEmail } = require('validator');
 
 export async function registerNewUserIfAllowed({
   firstname,
@@ -136,7 +138,7 @@ export async function passwordForgot(param: {
   req: any;
 }): Promise<any> {
   validatePayload(
-    'swagger.json#/components/schemas/ForgotPasswordReq',
+    'swagger.json#/components/schemas/PasswordForgotReq',
     param.body
   );
 
@@ -294,6 +296,164 @@ export async function emailVerification(param: {
   });
 
   return true;
+}
+
+export async function refreshToken(param: {
+  body: SignUpReqType;
+  req: any;
+  res: any;
+}): Promise<any> {
+  try {
+    if (!param.req?.cookies?.refresh_token) {
+      NcError.badRequest(`Missing refresh token`);
+    }
+
+    const user = await User.getByRefreshToken(param.req.cookies.refresh_token);
+
+    if (!user) {
+      NcError.badRequest(`Invalid refresh token`);
+    }
+
+    const refreshToken = randomTokenString();
+
+    await User.update(user.id, {
+      email: user.email,
+      refresh_token: refreshToken,
+    });
+
+    setTokenCookie(param.res, refreshToken);
+
+    return {
+      token: genJwt(user, Noco.getConfig()),
+    } as any;
+  } catch (e) {
+    NcError.badRequest(e.message);
+  }
+}
+
+export async function signup(param: {
+  body: SignUpReqType;
+  req: any;
+  res: any;
+}): Promise<any> {
+  validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
+
+  const {
+    email: _email,
+    firstname,
+    lastname,
+    token,
+    ignore_subscribe,
+  } = param.req.body;
+
+  let { password } = param.req.body;
+
+  // validate password and throw error if password is satisfying the conditions
+  const { valid, error } = validatePassword(password);
+  if (!valid) {
+    NcError.badRequest(`Password : ${error}`);
+  }
+
+  if (!isEmail(_email)) {
+    NcError.badRequest(`Invalid email`);
+  }
+
+  const email = _email.toLowerCase();
+
+  let user = await User.getByEmail(email);
+
+  if (user) {
+    if (token) {
+      if (token !== user.invite_token) {
+        NcError.badRequest(`Invalid invite url`);
+      } else if (user.invite_token_expires < new Date()) {
+        NcError.badRequest(
+          'Expired invite url, Please contact super admin to get a new invite url'
+        );
+      }
+    } else {
+      // todo : opening up signup for timebeing
+      // return next(new Error(`Email '${email}' already registered`));
+    }
+  }
+
+  const salt = await promisify(bcrypt.genSalt)(10);
+  password = await promisify(bcrypt.hash)(password, salt);
+  const email_verification_token = uuidv4();
+
+  if (!ignore_subscribe) {
+    T.emit('evt_subscribe', email);
+  }
+
+  if (user) {
+    if (token) {
+      await User.update(user.id, {
+        firstname,
+        lastname,
+        salt,
+        password,
+        email_verification_token,
+        invite_token: null,
+        invite_token_expires: null,
+        email: user.email,
+      });
+    } else {
+      NcError.badRequest('User already exist');
+    }
+  } else {
+    await registerNewUserIfAllowed({
+      firstname,
+      lastname,
+      email,
+      salt,
+      password,
+      email_verification_token,
+    });
+  }
+  user = await User.getByEmail(email);
+
+  try {
+    const template = (await import('./ui/emailTemplates/verify')).default;
+    await (
+      await NcPluginMgrv2.emailAdapter()
+    ).mailSend({
+      to: email,
+      subject: 'Verify email',
+      html: ejs.render(template, {
+        verifyLink:
+          (param.req as any).ncSiteUrl +
+          `/email/verify/${user.email_verification_token}`,
+      }),
+    });
+  } catch (e) {
+    console.log(
+      'Warning : `mailSend` failed, Please configure emailClient configuration.'
+    );
+  }
+  await promisify((param.req as any).login.bind(param.req))(user);
+
+  const refreshToken = randomTokenString();
+
+  await User.update(user.id, {
+    refresh_token: refreshToken,
+    email: user.email,
+  });
+
+  setTokenCookie(param.res, refreshToken);
+
+  user = (param.req as any).user;
+
+  await Audit.insert({
+    op_type: 'AUTHENTICATION',
+    op_sub_type: 'SIGNUP',
+    user: user.email,
+    description: `signed up `,
+    ip: (param.req as any).clientIp,
+  });
+
+  return {
+    token: genJwt(user, Noco.getConfig()),
+  } as any;
 }
 
 export * from './helpers';

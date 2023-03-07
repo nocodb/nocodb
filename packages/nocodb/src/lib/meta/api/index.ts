@@ -52,8 +52,7 @@ import passport from 'passport';
 
 import crypto from 'crypto';
 import swaggerController from '../../controllers/apiDocs';
-import importController from '../../controllers/sync/importApis';
-import syncSourceController from '../../controllers/sync';
+import { importController, syncSourceController } from '../../controllers/sync';
 import mapViewController from '../../controllers/views/mapView.ctl';
 
 const clients: { [id: string]: Socket } = {};

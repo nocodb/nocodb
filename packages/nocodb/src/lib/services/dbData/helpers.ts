@@ -58,7 +58,7 @@ export async function extractXlsxData(view: View, req: Request) {
   const baseModel = await Model.getBaseModelSQL({
     id: view.model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const { offset, dbRows, elapsed } = await getDbRows({
@@ -93,7 +93,7 @@ export async function extractCsvData(view: View, req: Request) {
   const baseModel = await Model.getBaseModelSQL({
     id: view.model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const { offset, dbRows, elapsed } = await getDbRows({

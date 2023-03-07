@@ -17,7 +17,7 @@ export async function dataList(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({
@@ -50,7 +50,7 @@ export async function dataCount(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const listArgs: any = { ...req.query };
@@ -73,7 +73,7 @@ async function dataInsert(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   res.json(await baseModel.insert(req.body, null, req));
@@ -86,7 +86,7 @@ async function dataUpdate(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   res.json(await baseModel.updateByPk(req.params.rowId, req.body, null, req));
@@ -98,7 +98,7 @@ async function dataDelete(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
@@ -128,7 +128,7 @@ async function dataRead(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   res.json(

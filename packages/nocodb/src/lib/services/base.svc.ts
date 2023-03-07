@@ -8,7 +8,7 @@ import { populateMeta, validatePayload } from '../meta/api/helpers';
 export async function baseGetWithConfig(param: { baseId: any }) {
   const base = await Base.get(param.baseId);
 
-  base.config = base.getConnectionConfig();
+  base.config = await base.getConnectionConfig();
 
   return base;
 }

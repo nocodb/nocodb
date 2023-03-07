@@ -9,7 +9,7 @@ import { rowMixedValue } from '../setup/xcdb-records';
 let dashboard: DashboardPage, toolbar: ToolbarPage;
 let context: any;
 let api: Api<any>;
-let records = [];
+let records: Record<string, any>;
 
 const skipList = {
   Number: ['is null', 'is not null'],

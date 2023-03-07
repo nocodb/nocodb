@@ -30,7 +30,7 @@ export async function dataCount(param: PathParams & { query: any }) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const countArgs: any = { ...param.query };
@@ -53,7 +53,7 @@ export async function dataInsert(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   return await baseModel.insert(param.body, null, param.cookie);
@@ -68,7 +68,7 @@ export async function dataUpdate(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   return await baseModel.updateByPk(
@@ -87,7 +87,7 @@ export async function dataDelete(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   // todo: Should have error http status code
@@ -110,7 +110,7 @@ export async function getDataList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({ model, query, view });
@@ -158,7 +158,7 @@ export async function getFindOne(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const args: any = { ...query };
@@ -192,7 +192,7 @@ export async function getDataGroupBy(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const listArgs: any = { ...query };
@@ -215,7 +215,7 @@ export async function dataRead(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const row = await baseModel.readByPk(param.rowId);
@@ -242,7 +242,7 @@ export async function dataExist(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   return await baseModel.exist(param.rowId);
@@ -275,7 +275,7 @@ export async function getGroupedDataList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({ model, query, view });
@@ -353,7 +353,7 @@ export async function mmList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const key = `${model.title}List`;
@@ -411,7 +411,7 @@ export async function mmExcludedList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const key = 'List';
@@ -472,7 +472,7 @@ export async function hmExcludedList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const key = 'List';
@@ -533,7 +533,7 @@ export async function btExcludedList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const key = 'List';
@@ -594,7 +594,7 @@ export async function hmList(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const key = `${model.title}List`;
@@ -646,7 +646,7 @@ export async function dataReadByViewId(param: {
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
-      dbDriver: NcConnectionMgrv2.get(base),
+      dbDriver: await NcConnectionMgrv2.get(base),
     });
 
     return await nocoExecute(
@@ -677,7 +677,7 @@ export async function dataInsertByViewId(param: {
 
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   return await baseModel.insert(param.body, null, param.cookie);
@@ -698,7 +698,7 @@ export async function dataUpdateByViewId(param: {
 
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   return await baseModel.updateByPk(
@@ -723,7 +723,7 @@ export async function dataDeleteByViewId(param: {
 
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   return await baseModel.delByPk(param.rowId, null, param.cookie);
@@ -749,7 +749,7 @@ export async function relationDataDelete(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   await baseModel.removeChild({
@@ -782,7 +782,7 @@ export async function relationDataAdd(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   await baseModel.addChild({

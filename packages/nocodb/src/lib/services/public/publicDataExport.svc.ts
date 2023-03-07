@@ -45,7 +45,7 @@ export async function getDbRows(param: {
   const baseModel = await Model.getBaseModelSQL({
     id: param.model.id,
     viewId: param.view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: await NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({

@@ -2,6 +2,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  ColumnType,
   isVirtualCol,
   ModelTypes,
   NormalColumnRequestType,
@@ -314,6 +315,12 @@ export async function tableCreate(param: {
 }) {
   validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
+  const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
+    columns: (Omit<ColumnType, 'column_name' | 'title'> & { cn?: string })[];
+  } = {
+    ...param.table,
+  };
+
   const project = await Project.getWithInfo(param.projectId);
   let base = project.bases[0];
 
@@ -322,8 +329,8 @@ export async function tableCreate(param: {
   }
 
   if (
-    !param.table.table_name ||
-    (project.prefix && project.prefix === param.table.table_name)
+    !tableCreatePayLoad.table_name ||
+    (project.prefix && project.prefix === tableCreatePayLoad.table_name)
   ) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
@@ -331,15 +338,17 @@ export async function tableCreate(param: {
   }
 
   if (base.is_meta && project.prefix) {
-    if (!param.table.table_name.startsWith(project.prefix)) {
-      param.table.table_name = `${project.prefix}_${param.table.table_name}`;
+    if (!tableCreatePayLoad.table_name.startsWith(project.prefix)) {
+      tableCreatePayLoad.table_name = `${project.prefix}_${tableCreatePayLoad.table_name}`;
     }
   }
 
-  param.table.table_name = DOMPurify.sanitize(param.table.table_name);
+  tableCreatePayLoad.table_name = DOMPurify.sanitize(
+    tableCreatePayLoad.table_name
+  );
 
   // validate table name
-  if (/^\s+|\s+$/.test(param.table.table_name)) {
+  if (/^\s+|\s+$/.test(tableCreatePayLoad.table_name)) {
     NcError.badRequest(
       'Leading or trailing whitespace not allowed in table names'
     );
@@ -347,7 +356,7 @@ export async function tableCreate(param: {
 
   if (
     !(await Model.checkTitleAvailable({
-      table_name: param.table.table_name,
+      table_name: tableCreatePayLoad.table_name,
       project_id: project.id,
       base_id: base.id,
     }))
@@ -355,9 +364,9 @@ export async function tableCreate(param: {
     NcError.badRequest('Duplicate table name');
   }
 
-  if (!param.table.title) {
-    param.table.title = getTableNameAlias(
-      param.table.table_name,
+  if (!tableCreatePayLoad.title) {
+    tableCreatePayLoad.title = getTableNameAlias(
+      tableCreatePayLoad.table_name,
       project.prefix,
       base
     );
@@ -365,7 +374,7 @@ export async function tableCreate(param: {
 
   if (
     !(await Model.checkAliasAvailable({
-      title: param.table.title,
+      title: tableCreatePayLoad.title,
       project_id: project.id,
       base_id: base.id,
     }))
@@ -387,7 +396,7 @@ export async function tableCreate(param: {
     tableNameLengthLimit = 128;
   }
 
-  if (param.table.table_name.length > tableNameLengthLimit) {
+  if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
     NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
   }
 
@@ -401,13 +410,16 @@ export async function tableCreate(param: {
     }
   }
 
-  param.table.columns = param.table.columns?.map((c) => ({
-    ...getColumnPropsFromUIDT(c as any, base),
-    cn: c.column_name,
-  }));
+  tableCreatePayLoad.columns = await Promise.all(
+    param.table.columns?.map(async (c) => ({
+      ...(await getColumnPropsFromUIDT(c as any, base)),
+      cn: c.column_name,
+      column_name: c.column_name,
+    }))
+  );
   await sqlMgr.sqlOpPlus(base, 'tableCreate', {
-    ...param.table,
-    tn: param.table.table_name,
+    ...tableCreatePayLoad,
+    tn: tableCreatePayLoad.table_name,
   });
 
   const columns: Array<
@@ -415,7 +427,8 @@ export async function tableCreate(param: {
       cn: string;
       system?: boolean;
     }
-  > = (await sqlClient.columnList({ tn: param.table.table_name }))?.data?.list;
+  > = (await sqlClient.columnList({ tn: tableCreatePayLoad.table_name }))?.data
+    ?.list;
 
   const tables = await Model.list({
     project_id: project.id,
@@ -428,7 +441,7 @@ export async function tableCreate(param: {
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.CREATED,
     user: param.user?.email,
-    description: `created table ${param.table.table_name} with alias ${param.table.title}  `,
+    description: `created table ${tableCreatePayLoad.table_name} with alias ${tableCreatePayLoad.title}  `,
     ip: param.req?.clientIp,
   }).then(() => {});
 
@@ -438,7 +451,7 @@ export async function tableCreate(param: {
 
   // todo: type correction
   const result = await Model.insert(project.id, base.id, {
-    ...param.table,
+    ...tableCreatePayLoad,
     columns: columns.map((c, i) => {
       const colMetaFromReq = param.table?.columns?.find(
         (c1) => c.cn === c1.column_name

@@ -44,6 +44,14 @@ const optionWrapperStyle = computed(() => {
     return {
       marginTop: '0.15rem',
     }
+  } else if (
+    content[0].type.name === 'infoCallout' ||
+    content[0].type.name === 'warningCallout' ||
+    content[0].type.name === 'tipCallout'
+  ) {
+    return {
+      marginTop: '1.25rem',
+    }
   } else {
     return {
       marginTop: '0.7rem',

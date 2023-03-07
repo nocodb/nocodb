@@ -1,4 +1,5 @@
 import { Node, mergeAttributes } from '@tiptap/core'
+import type { Editor } from '@tiptap/vue-3'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { Plugin, TextSelection } from 'prosemirror-state'
 import DraggableBlockComponent from './draggable-block.vue'
@@ -127,14 +128,18 @@ export const DraggableBlock = Node.create<DBlockOptions>({
     return {
       'Mod-Alt-0': () => this.editor.commands.setDBlock(),
       'Enter': ({ editor }) => {
+        if (createNewBlockOnEnteringOnEmptyLine(editor as any)) return true
+
         const {
           selection: { $head, from, to },
           doc,
         } = editor.state
 
         const parent = $head.node($head.depth - 1)
-
         if (parent.type.name !== 'dBlock') return false
+
+        const currentNode = $head.node($head.depth)
+        if (currentNode.type.name === 'codeBlock') return false
 
         const activeNodeText: string | undefined = parent.firstChild?.content?.content?.[0]?.text
         if (activeNodeText?.startsWith('/')) return false
@@ -216,4 +221,63 @@ function focusCurrentDraggableBlock(state) {
       dbBlockDom[i].classList.add('focused')
     }
   }
+}
+
+function createNewBlockOnEnteringOnEmptyLine(editor: Editor) {
+  const state = editor.state
+  const { from, to } = editor.state.selection
+
+  if (from !== to) return false
+  const parentNode = state.selection.$from.node(-1)
+  const currentNode = state.selection.$from.node()
+
+  const parentType = parentNode?.type.name
+  const currentNodeType = currentNode?.type.name
+
+  if (currentNodeType === 'codeBlock') {
+    return handleCodeblockLastLineEnter(editor)
+  }
+
+  if (parentType !== 'blockquote' && parentType !== 'infoCallout') {
+    return false
+  }
+
+  const node = state.selection.$from.node()
+  if (node?.textContent?.length !== 0) return false
+
+  const nextNodePos = state.selection.$from.pos + node.nodeSize + 1
+  const nextNode = state.doc.nodeAt(nextNodePos)
+
+  if (nextNode?.type.name !== 'dBlock') return false
+
+  editor
+    .chain()
+    .setNodeSelection(from - 1)
+    .deleteSelection()
+    .focus(nextNodePos)
+    .run()
+  return true
+}
+
+function handleCodeblockLastLineEnter(editor: Editor) {
+  const { from, to } = editor.state.selection
+
+  if (from !== to) return false
+
+  const currentNode = editor.state.selection.$from.node()
+  if (currentNode?.type.name !== 'codeBlock') return false
+
+  const nextNodePos = editor.state.selection.$from.pos + 2
+  const nextNode = editor.state.doc.nodeAt(nextNodePos)
+
+  if (currentNode.textContent[currentNode.textContent.length - 1] !== '\n') return false
+  if (nextNode?.type.name !== 'dBlock') return false
+
+  editor
+    .chain()
+    .setTextSelection({ from: from - 1, to: from })
+    .deleteSelection()
+    .focus(nextNodePos + 1)
+    .run()
+  return true
 }

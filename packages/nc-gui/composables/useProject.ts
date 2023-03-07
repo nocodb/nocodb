@@ -124,6 +124,7 @@ export const useProject = createSharedComposable(() => {
     if (projectId) {
       project.value = await api.project.read(projectId)
     }
+    await loadProjectRoles(project.value.id!)
   }
 
   async function loadBookPublicProject(projectId?: string) {

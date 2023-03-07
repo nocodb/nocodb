@@ -26,6 +26,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div
+    v-if="visibility !== 'none'"
     class="my-auto h-7.5 flex flex-row items-center gap-x-1.5 bg-primary text-white hover:bg-opacity-80 py-1.5 px-2.5 rounded-md mr-2 cursor-pointer"
     @click="showModal = true"
   >

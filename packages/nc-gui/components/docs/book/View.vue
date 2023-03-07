@@ -17,6 +17,7 @@ const {
   openPage,
   isFetching,
   openChildPageTabsOfRootPages,
+  isEditAllowed,
 } = useDocs()
 
 const indicator = h(Loading3QuartersOutlined, {
@@ -252,7 +253,7 @@ const closeMagicModal = () => {
         <div class="flex flex-row justify-between mt-2 items-center">
           <div class="flex flex-row gap-x-6 items-center">
             <div class="flex text-4xl font-semibold">{{ project?.title }}</div>
-            <a-dropdown overlay-class-name="nc-docs-menu" trigger="click">
+            <a-dropdown v-if="isEditAllowed" overlay-class-name="nc-docs-menu" trigger="click">
               <div
                 class="flex flex-row !bg-gray-50 rounded-md hover:( !bg-gray-200 !bg-opacity-60) cursor-pointer select-none p-1.5 h-8 items-center"
                 @click.prevent
@@ -272,7 +273,7 @@ const closeMagicModal = () => {
               </template>
             </a-dropdown>
           </div>
-          <div class="flex flex-row gap-x-1 h-10 justify-end">
+          <div v-if="isEditAllowed" class="flex flex-row gap-x-1 h-10 justify-end">
             <a-dropdown trigger="click" placement="bottomLeft">
               <div
                 class="my-1 pl-3 pr-1.5 rounded-md border-gray-100 border-1 flex flex-row max-w-28 mr-2 justify-between items-center gap-x-1 hover:cursor-pointer hover:bg-gray-100"

@@ -1,7 +1,7 @@
 const [setup, use] = useInjectionState(() => {
-  const visibility = ref<'public' | 'private'>('private')
+  const visibility = ref<'public' | 'private' | 'none'>('none')
   const { project } = useProject()
-  const { openedPage, parentWhichIsNestedPublished } = useDocs()
+  const { openedPage, parentWhichIsNestedPublished, isEditAllowed } = useDocs()
 
   const isPublic = computed(() => {
     const projectMeta = project.value?.meta as any
@@ -18,7 +18,22 @@ const [setup, use] = useInjectionState(() => {
   watch(
     isPublic,
     () => {
+      if (!isEditAllowed.value) {
+        visibility.value = 'none'
+        return
+      }
+
       visibility.value = isPublic.value ? 'public' : 'private'
+    },
+    { immediate: true },
+  )
+
+  watch(
+    isEditAllowed,
+    () => {
+      if (!isEditAllowed.value) {
+        visibility.value = 'none'
+      }
     },
     { immediate: true },
   )

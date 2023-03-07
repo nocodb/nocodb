@@ -5,7 +5,7 @@ const emit = defineEmits(['focusEditor'])
 
 const MAX_TITLE_LENGTH = 150
 
-const { updatePage, isPublic, openedPage, findPage, nestedPages } = useDocs()
+const { updatePage, isPublic, openedPage, findPage, nestedPages, isEditAllowed } = useDocs()
 
 const titleInputRef = ref<HTMLInputElement>()
 
@@ -64,7 +64,7 @@ const setIcon = async (icon: string) => {
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.title],
   async ([oldPageId], [newPageId]) => {
-    if (isPublic.value) return
+    if (!isEditAllowed.value) return
     if (!openedPage.value) return
 
     if (oldPageId !== newPageId) return

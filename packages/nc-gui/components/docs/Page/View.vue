@@ -17,6 +17,7 @@ const {
   openPage,
   openedPageId,
   isPublic,
+  isEditAllowed,
   nestedPublicParentPage,
   isFetching,
   findPage,
@@ -63,7 +64,7 @@ const editor = useEditor({
       return false
     },
   },
-  editable: !isPublic.value,
+  editable: isEditAllowed.value,
 })
 
 const focusEditor = () => {
@@ -76,6 +77,18 @@ const removeNewFlagFromNewPage = (pageId: string) => {
     page.new = false
   }
 }
+
+watch(
+  isEditAllowed,
+  () => {
+    editor.value?.setOptions({
+      editable: isEditAllowed.value,
+    })
+  },
+  {
+    immediate: true,
+  },
+)
 
 watch(
   () => content.value,
@@ -95,7 +108,7 @@ watch(
 watchDebounced(
   () => [openedPage.value?.id, openedPage.value?.content],
   ([newId, newContent], [oldId, oldContent]) => {
-    if (!isPublic.value && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
+    if (isEditAllowed && openedPage.value?.id && newId === oldId && newContent !== oldContent) {
       updateContent({ pageId: openedPage.value?.id, content: openedPage.value!.content })
     }
   },
@@ -196,8 +209,8 @@ watch(
             :editor="editor"
             class="px-2"
             :class="{
-              '-ml-1': isPublic,
-              '-ml-12.5': !isPublic,
+              '-ml-1': !isEditAllowed,
+              '-ml-12.5': isEditAllowed,
             }"
           />
           <div

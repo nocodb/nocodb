@@ -83,7 +83,7 @@ onMounted(async () => {
                 class="!rounded-md p-0.5 !bg-gray-200"
                 dropdown-class-name="nc-dropdown-user-role !rounded-md"
               >
-                <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
+                <a-select-option v-for="(role, index) in docsProjectRoles" :key="index" :value="role" class="nc-role-option">
                   <div class="flex flex-row h-full justify-start items-center">
                     <div
                       class="px-2 py-1 flex rounded-full text-xs capitalize"

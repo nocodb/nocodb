@@ -45,6 +45,7 @@ import {
 import {
   publicDataController,
   publicDataExportController,
+  publicDocsPagesController,
   publicMetaController,
 } from '../../controllers/publicControllers';
 import { Server, Socket } from 'socket.io';
@@ -88,6 +89,7 @@ export default function (router: Router, server) {
   router.use(publicDataController);
   router.use(publicDataExportController);
   router.use(publicMetaController);
+  router.use(publicDocsPagesController);
   router.use(gridViewColumnController);
   router.use(tableController);
   router.use(galleryViewController);

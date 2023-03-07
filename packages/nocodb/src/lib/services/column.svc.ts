@@ -167,7 +167,7 @@ export async function columnUpdate(param: {
   } else if (
     [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
   ) {
-    colBody = getColumnPropsFromUIDT(colBody, base);
+    colBody = await getColumnPropsFromUIDT(colBody, base);
 
     const baseModel = await Model.getBaseModelSQL({
       id: table.id,
@@ -750,7 +750,7 @@ export async function columnUpdate(param: {
       ...colBody,
     });
   } else {
-    colBody = getColumnPropsFromUIDT(colBody, base);
+    colBody = await getColumnPropsFromUIDT(colBody, base);
     const tableUpdateBody = {
       ...table,
       tn: table.table_name,
@@ -947,7 +947,7 @@ export async function columnAdd(param: {
       break;
     default:
       {
-        colBody = getColumnPropsFromUIDT(colBody, base);
+        colBody = await getColumnPropsFromUIDT(colBody, base);
         if (colBody.uidt === UITypes.Duration) {
           colBody.dtxp = '20';
           // by default, colBody.dtxs is 2

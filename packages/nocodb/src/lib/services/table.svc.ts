@@ -410,7 +410,7 @@ export async function tableCreate(param: {
     }
   }
 
-  tableCreatePayLoad.columns = param.table.columns?.map((c) => ({
+  tableCreatePayLoad.columns = param.table.columns?.map(async (c) => ({
     ...getColumnPropsFromUIDT(c as any, base),
     cn: c.column_name,
     column_name: c.column_name,

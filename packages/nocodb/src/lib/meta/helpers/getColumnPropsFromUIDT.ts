@@ -7,11 +7,11 @@ import {
 import Base from '../../models/Base';
 import Column from '../../models/Column';
 
-export default function getColumnPropsFromUIDT(
+export default async function getColumnPropsFromUIDT(
   column: ColumnReqType & { altered?: number },
   base: Base
 ) {
-  const sqlUi = SqlUiFactory.create(base.getConnectionConfig());
+  const sqlUi = SqlUiFactory.create(await base.getConnectionConfig());
 
   const colProp = sqlUi.getDataTypeForUiType(
     column as Column,

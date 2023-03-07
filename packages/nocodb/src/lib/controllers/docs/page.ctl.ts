@@ -8,7 +8,7 @@ async function get(
   req: Request<any> & { user: { id: string; roles: string } },
   res: Response
 ) {
-  const page = docsPageService.get({
+  const page = await docsPageService.get({
     fields: req.query?.fields as string[] | string,
     projectId: req.query?.projectId as string,
     id: req.params.id,
@@ -100,7 +100,7 @@ async function magicOutline(
   req: Request<any> & { user: { id: string; roles: string } },
   res: Response
 ) {
-  const response = docsPageService.magicOutline({
+  const response = await docsPageService.magicOutline({
     projectId: req.body.projectId,
     pageId: req.body.pageId,
   });

@@ -419,6 +419,10 @@ watch(
     padding: 1rem;
     border-radius: 0.5rem;
     @apply overflow-auto mt-3;
+
+    code {
+      @apply !px-0;
+    }
   }
 
   code {

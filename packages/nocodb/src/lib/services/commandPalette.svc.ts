@@ -6,8 +6,8 @@ import { NcError } from '../meta/helpers/catchError';
 import { tableService } from '.';
 
 export async function commandPalette(param: { body: any; user: UserType }) {
+  const cmdData = [];
   try {
-    const cmdData = [];
     const { scope, data } = param.body;
     switch (scope) {
       case 'workspace':
@@ -126,14 +126,10 @@ export async function commandPalette(param: { body: any; user: UserType }) {
           }
         }
         break;
-      default:
-        return NcError.badRequest('Invalid scope!');
-        break;
     }
-    return cmdData;
   } catch (e) {
     console.log(e);
-
     NcError.internalServerError('Unable to process request, please try again!');
   }
+  return cmdData;
 }

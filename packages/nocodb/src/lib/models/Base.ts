@@ -234,14 +234,15 @@ export default class Base implements BaseType {
     }
   }
 
-  public getConnectionConfig(): any {
+  // NC_DATA_DB is not available in community version
+  // make it return Promise to avoid conflicts
+  public getConnectionConfig(): Promise<any> {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;
       const config = { ...metaConfig };
       if (config.client === 'sqlite3') {
         config.connection = metaConfig;
       }
-
       return config;
     }
 

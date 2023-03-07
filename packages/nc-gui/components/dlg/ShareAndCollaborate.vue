@@ -58,12 +58,12 @@ watch(formStatus, (val) => {
     :centered="true"
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
-    <div v-if="formStatus === 'collaborateSaving'" class="flex flex-row w-full px-5 justify-between">
-      <div class="flex text-lg" :style="{ fontWeight: 500 }">Adding Collaborators</div>
+    <div v-if="formStatus === 'collaborateSaving'" class="flex flex-row w-full px-5 justify-between items-center py-0.5">
+      <div class="flex text-base" :style="{ fontWeight: 500 }">Adding Collaborators</div>
       <a-spin :indicator="indicator" />
     </div>
-    <div v-else-if="formStatus === 'collaborateSaved'" class="flex flex-row w-full px-5 justify-between items-center">
-      <div class="flex text-lg" :style="{ fontWeight: 500 }">Collaborators added</div>
+    <div v-else-if="formStatus === 'collaborateSaved'" class="flex flex-row w-full px-5 justify-between items-center py-0.5">
+      <div class="flex text-base" :style="{ fontWeight: 500 }">Collaborators added</div>
       <div class="flex"><MdiCheck /></div>
     </div>
     <div v-else class="flex flex-col">
@@ -109,7 +109,7 @@ watch(formStatus, (val) => {
 <style lang="scss">
 .nc-modal-share-collaborate {
   .ant-modal-content {
-    @apply !rounded-2xl;
+    @apply !rounded-lg;
   }
   .ant-modal-body {
     @apply !py-2.5 !px-1;

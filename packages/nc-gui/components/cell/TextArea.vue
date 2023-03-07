@@ -21,7 +21,7 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
 
 <template>
   <textarea
-    v-if="editEnabled"
+    v-if="true || editEnabled"
     :ref="focus"
     v-model="vModel"
     rows="4"
@@ -45,3 +45,8 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
 
   <span v-else>{{ vModel }}</span>
 </template>
+<style>
+textarea:focus {
+  box-shadow: none;
+}
+</style>

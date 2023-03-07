@@ -3,9 +3,8 @@ import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { syncService } from '../../services';
 
 export async function syncSourceList(req: Request, res: Response) {
-  // todo: pagination
   res.json(
-    syncService.syncSourceList({
+    await syncService.syncSourceList({
       projectId: req.params.projectId,
     })
   );

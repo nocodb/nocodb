@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import * as ejs from 'ejs';
 import { promisify } from 'util';
 
@@ -9,10 +9,21 @@ import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { Audit, User } from '../../models';
 import Noco from '../../Noco';
 import { userService } from '../../services';
+import { setTokenCookie } from '../../services/user/helpers';
 
 export async function signup(req: Request<any, any>, res): Promise<any> {
   res.json(
     await userService.signup({
+      body: req.body,
+      req,
+      res,
+    })
+  );
+}
+
+export async function refreshToken(req: Request<any, any>, res): Promise<any> {
+  res.json(
+    await userService.refreshToken({
       body: req.body,
       req,
       res,
@@ -40,6 +51,7 @@ async function successfulSignIn({
     }
 
     await promisify((req as any).login.bind(req))(user);
+
     const refreshToken = userService.randomTokenString();
 
     if (!user.token_version) {

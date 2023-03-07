@@ -129,7 +129,11 @@
                 "Example 1": {
                   "value": {
                     "email": "user@example.com",
-                    "password": "password123456789"
+                    "password": "password123456789",
+                    "firstname": "Alice",
+                    "lastname": "Smith",
+                    "token": null,
+                    "ignore_subscribe": 0
                   }
                 }
               }
@@ -13352,9 +13356,15 @@
         "examples": [
           {
             "email": "user@example.com",
-            "password": "password123456789"
+            "password": "password123456789",
+            "firstname": "Alice",
+            "lastname": "Smith",
+            "token": null,
+            "ignore_subscribe": 0
           }
         ],
+        "title": "Signup Request Model",
+        "type": "object",
         "properties": {
           "email": {
             "description": "Email address of the user",
@@ -13367,11 +13377,35 @@
             "example": "password123456789",
             "minLength": 8,
             "type": "string"
+          },
+          "firstname": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "x-stoplight": {
+              "id": "lblivgs8wcsm1"
+            }
+          },
+          "lastname": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "x-stoplight": {
+              "id": "d4341r35tucq3"
+            }
+          },
+          "token": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "x-stoplight": {
+              "id": "otw9jgnr9n7c4"
+            },
+            "description": "Sign Up Token. Used for invitation."
+          },
+          "ignore_subscribe": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "g7ge6mc6vdsds"
+            },
+            "description": "Ignore Subscription"
           }
         },
-        "required": ["email", "password"],
-        "title": "Signup Request Model",
-        "type": "object"
+        "required": ["email", "password"]
       },
       "Sort": {
         "description": "Model for Sort",

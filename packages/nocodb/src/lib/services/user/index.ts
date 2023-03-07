@@ -138,7 +138,7 @@ export async function passwordForgot(param: {
   req: any;
 }): Promise<any> {
   validatePayload(
-    'swagger.json#/components/schemas/ForgotPasswordReq',
+    'swagger.json#/components/schemas/PasswordForgotReq',
     param.body
   );
 

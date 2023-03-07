@@ -63,7 +63,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Move files to a folder
+      - name: Move files to release version folder
         run: |
           mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
           mv packages/nc-gui/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
@@ -90,6 +90,7 @@ jobs:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb &&
-          docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
+          docker build -f Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

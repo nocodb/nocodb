@@ -34,7 +34,7 @@ export default defineNuxtConfig({
 
     /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
     cdnURL:
-      process.env.NODE_ENV === 'production' ? `https://d13mcbt6a41d0f.cloudfront.net/${process.env.RELEASE_VERSION}` : undefined,
+      process.env.NODE_ENV === 'production' ? `https://cdn.nocohub.ai/${process.env.RELEASE_VERSION}` : undefined,
   },
 
   css: [

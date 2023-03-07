@@ -36,6 +36,14 @@ const optionWrapperStyle = computed(() => {
     return {
       marginTop: '0.5rem',
     }
+  } else if (content[0].type.name === 'blockquote') {
+    return {
+      marginTop: '0.8rem',
+    }
+  } else if (content[0].type.name === 'codeBlock') {
+    return {
+      marginTop: '1.2rem',
+    }
   } else if (
     content[0].type.name === 'bulletList' ||
     content[0].type.name === 'orderedList' ||
@@ -43,6 +51,18 @@ const optionWrapperStyle = computed(() => {
   ) {
     return {
       marginTop: '0.15rem',
+    }
+  } else if (
+    content[0].type.name === 'infoCallout' ||
+    content[0].type.name === 'warningCallout' ||
+    content[0].type.name === 'tipCallout'
+  ) {
+    return {
+      marginTop: '1.25rem',
+    }
+  } else if (content[0].type.name === 'horizontalRule') {
+    return {
+      marginTop: '0.55rem',
     }
   } else {
     return {

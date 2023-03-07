@@ -4,6 +4,8 @@ import type { TreeProps } from 'ant-design-vue'
 import type { AntTreeNodeDropEvent } from 'ant-design-vue/lib/tree'
 import { Icon as IconifyIcon } from '@iconify/vue'
 
+const MAX_NESTED_LEVEL = 5
+
 const { project } = useProject()
 const {
   nestedPages,
@@ -179,7 +181,7 @@ onKeyStroke('Enter', () => {
       @dragenter="onDragEnter"
       @select="onTabSelect"
     >
-      <template #title="{ title, id, icon }">
+      <template #title="{ title, id, icon, level }">
         <div class="flex flex-row items-center justify-between group pt-1">
           <div
             class="flex flex-row gap-x-1 text-ellipsis overflow-clip min-w-0 transition-all duration-200 ease-in-out"
@@ -253,6 +255,7 @@ onKeyStroke('Enter', () => {
               </template>
             </a-dropdown>
             <div
+              v-if="level < MAX_NESTED_LEVEL"
               class="flex px-0.5 hover:( !bg-gray-300 !bg-opacity-30 rounded-md) cursor-pointer select-none hidden group-hover:block"
               @click="() => addNewPage(id)"
             >

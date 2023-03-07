@@ -16,7 +16,7 @@ export const TipCallout = Node.create<TipCalloutOptions>({
       },
     }
   },
-  content: 'inline*',
+  content: 'block*',
 
   group: 'block',
 

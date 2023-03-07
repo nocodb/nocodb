@@ -16,7 +16,7 @@ export const InfoCallout = Node.create<InfoCalloutOptions>({
       },
     }
   },
-  content: 'inline*',
+  content: 'block*',
 
   group: 'block',
 

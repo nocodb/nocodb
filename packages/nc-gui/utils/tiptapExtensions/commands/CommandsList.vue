@@ -137,7 +137,7 @@ const items = [
     title: 'Quote',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('blockquote').run()
+      editor.chain().focus().deleteRange(range).setBlockquote().run()
     },
     icon: MdiFormatQuoteOpen,
     iconClass: '',
@@ -197,7 +197,20 @@ const items = [
     title: 'Info notice',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('infoCallout').run()
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({
+          type: 'infoCallout',
+          content: [
+            {
+              type: 'paragraph',
+              text: '',
+            },
+          ],
+        })
+        .run()
     },
     icon: IcOutlineInfo,
     iconClass: '',
@@ -206,7 +219,20 @@ const items = [
     title: 'Tip notice',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('tipCallout').run()
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({
+          type: 'tipCallout',
+          content: [
+            {
+              type: 'paragraph',
+              text: '',
+            },
+          ],
+        })
+        .run()
     },
     icon: IcRoundStar,
     iconClass: '',
@@ -215,7 +241,20 @@ const items = [
     title: 'Warning notice',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('warningCallout').run()
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent({
+          type: 'warningCallout',
+          content: [
+            {
+              type: 'paragraph',
+              text: '',
+            },
+          ],
+        })
+        .run()
     },
     icon: IcRoundWarning,
     iconClass: '',
@@ -243,7 +282,15 @@ const items = [
     title: 'Divider',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      ;(editor.chain().focus().deleteRange(range).setNode('horizontalRule').focus() as any).setHorizontalRule().run()
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .setNode('horizontalRule')
+        .focus()
+        .setHorizontalRule()
+        .setTextSelection(range.from + 3)
+        .run()
     },
     icon: MdiMinus,
     iconClass: '',

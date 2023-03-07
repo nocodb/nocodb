@@ -1960,6 +1960,14 @@ export interface SignUpReqType {
    * @example password123456789
    */
   password: string;
+  /** Model for StringOrNull */
+  firstname?: StringOrNullType;
+  /** Model for StringOrNull */
+  lastname?: StringOrNullType;
+  /** Sign Up Token. Used for invitation. */
+  token?: StringOrNullType;
+  /** Ignore Subscription */
+  ignore_subscribe?: BoolType;
 }
 
 /**

@@ -83,6 +83,9 @@ watch(
     if (!editor.value) return
 
     if (content.value !== editor.value?.getHTML()) {
+      ;(editor.value.state as any).history$.prevRanges = null
+      ;(editor.value.state as any).history$.done.eventCount = 0
+
       const selection = editor.value.view.state.selection
       editor.value.chain().setContent(content.value).setTextSelection(selection.to).run()
     }

@@ -26,7 +26,7 @@ jobs:
 
       - name: Set outputs
         id: vars
-        run: echo "release_version=$(date +%s)" >> $GITHUB_OUTPUT
+        run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
       - name: build nocodb-sdk
         run: |
@@ -36,7 +36,7 @@ jobs:
           npm ci && npm run build
       - name: build nc-gui and copy to nocodb
         env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.release_version }}
+          NC_CDN_URL: "https://cdn.nocohub.ai/${{ steps.vars.outputs.release_version }}"
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           # generate static build of nc-gui

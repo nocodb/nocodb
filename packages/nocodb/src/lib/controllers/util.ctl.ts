@@ -42,6 +42,23 @@ export async function urlToDbConfig(req: Request, res: Response) {
   );
 }
 
+export async function genericGPT(req: Request, res: Response) {
+  res.json(
+    await utilService.genericGPT({
+      body: req.body,
+    })
+  );
+}
+
+export async function runSelectQuery(req: Request, res: Response) {
+  res.json(
+    await utilService.runSelectQuery({
+      baseId: req.body.baseId,
+      query: req.body.query,
+    })
+  );
+}
+
 export default (router) => {
   router.post(
     '/api/v1/db/meta/connection/test',
@@ -49,8 +66,11 @@ export default (router) => {
   );
 
   router.post('/api/v1/db/meta/magic', ncMetaAclMw(genericGPT, 'genericGPT'));
-  router.post('/api/v1/db/meta/connection/select', ncMetaAclMw(runSelectQuery, 'runSelectQuery'));
-  
+  router.post(
+    '/api/v1/db/meta/connection/select',
+    ncMetaAclMw(runSelectQuery, 'runSelectQuery')
+  );
+
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
   router.get('/api/v1/version', catchError(versionInfo));

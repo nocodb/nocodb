@@ -3,7 +3,7 @@ import axios from 'axios';
 import JSON5 from 'json5';
 import { identify } from 'sql-query-identifier';
 import { ViewTypes } from 'nocodb-sdk';
-import { Project, User, Base } from '../models';
+import { Base, Project, User } from '../models';
 import { NcError } from '../meta/helpers/catchError';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
@@ -45,7 +45,7 @@ export async function appInfo(param: { req: { ncSiteUrl: string } }) {
   const oidcProviderName = oidcAuthEnabled
     ? process.env.NC_OIDC_PROVIDER_NAME ?? 'OpenID Connect'
     : null;
-  const result = {
+  return {
     authType: 'jwt',
     projectHasAdmin,
     firstUser: !projectHasAdmin,
@@ -78,8 +78,6 @@ export async function appInfo(param: { req: { ncSiteUrl: string } }) {
     ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
     ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
   };
-
-  return result;
 }
 
 export async function versionInfo() {
@@ -107,12 +105,10 @@ export async function versionInfo() {
     versionCache.lastFetched = Date.now();
   }
 
-  const response = {
+  return {
     currentVersion: packageVersion,
     releaseVersion: versionCache.releaseVersion,
   };
-
-  return response;
 }
 
 export async function appHealth() {
@@ -207,8 +203,7 @@ export async function urlToDbConfig(param: {
 }) {
   const { url } = param.body;
   try {
-    const connectionConfig = NcConfigFactory.extractXcUrlFromJdbc(url, true);
-    return connectionConfig;
+    return NcConfigFactory.extractXcUrlFromJdbc(url, true);
   } catch (error) {
     return NcError.internalServerError();
   }
@@ -399,11 +394,14 @@ const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
   });
 };
 
-// TODO: move to ctl
-async function selectOptionsMagic(req: Request, res: Response) {
+async function selectOptionsMagic(param: {
+  table: string;
+  schema: string;
+  title: string;
+}) {
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: `return select options for '${req.body.data.title}' column for '${req.body.data.table}' table in '${req.body.data.schema}' schema as Array<string> in json`,
+    prompt: `return select options for '${param.title}' column for '${param.table}' table in '${param.schema}' schema as Array<string> in json`,
     temperature: 0.7,
     max_tokens: 500,
     top_p: 1,
@@ -412,21 +410,16 @@ async function selectOptionsMagic(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-    return;
+    NcError.internalServerError('Unable to process request, please try again!');
   }
 
-  const options = JSON5.parse(response.data.choices[0].text);
-
-  res.json(options);
+  return JSON5.parse(response.data.choices[0].text);
 }
 
-async function predictColumnType(req: Request, res: Response) {
+async function predictColumnType(param: { data: any }) {
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: `Within types: ID,LinkToAnotherRecord,ForeignKey,SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry select most appropiate type for '${req.body.data.title}' column:`,
+    prompt: `Within types: ID,LinkToAnotherRecord,ForeignKey,SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry select most appropiate type for '${param.data.title}' column:`,
     temperature: 0.7,
     max_tokens: 200,
     top_p: 1,
@@ -435,25 +428,26 @@ async function predictColumnType(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-    return;
+    NcError.internalServerError('Unable to process request, please try again!');
   }
 
-  const resObject = {
+  return {
     data: response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim(),
   };
-
-  res.json(resObject);
 }
 
-async function predictFormula(req: Request, res: Response) {
-  const colPrompt = req.body.data.columns.map((col) => `'${col}'`).join(', ');
+async function predictFormula(param: {
+  table: string;
+  data: {
+    columns: string[];
+    title: string;
+  };
+}) {
+  const colPrompt = param.data.columns.map((col) => `'${col}'`).join(', ');
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: `'${req.body.data.table}' table has ${colPrompt} columns
-    write formula for '${req.body.data.title}' using basic arithmetics and wrapping each column name with {}`,
+    prompt: `'${param.table}' table has ${colPrompt} columns
+    write formula for '${param.data.title}' using basic arithmetics and wrapping each column name with {}`,
     temperature: 0.7,
     max_tokens: 1000,
     top_p: 1,
@@ -462,27 +456,22 @@ async function predictFormula(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-    return;
+    NcError.internalServerError('Unable to process request, please try again!');
   }
 
-  const resObject = {
+  return {
     data: response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim(),
   };
-
-  res.json(resObject);
 }
 
-async function predictNextColumn(req: Request, res: Response) {
-  const colPrompt = req.body.data.columns.length
-    ? req.body.data.columns.map((col) => `'${col}'`).join(', ')
+async function predictNextColumn(param: { columns: any; table: any }) {
+  const colPrompt = param.columns.length
+    ? param.columns.map((col) => `'${col}'`).join(', ')
     : 'no';
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
     prompt: `Using types: SingleLineText,LongText,Attachment,Checkbox,MultiSelect,SingleSelect,Date,Year,Time,PhoneNumber,Email,URL,Number,Decimal,Currency,Percent,Duration,Rating,Formula,QR,Barcode,Count,DateTime,CreateTime,AutoNumber,Geometry
-    Predict next 5 column for '${req.body.data.table}' table which have ${colPrompt} columns and return as json { title: string; type: string }[]`,
+    Predict next 5 column for '${param.table}' table which have ${colPrompt} columns and return as json { title: string; type: string }[]`,
     temperature: 0.7,
     max_tokens: 200,
     top_p: 1,
@@ -491,28 +480,23 @@ async function predictNextColumn(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-    return;
+    NcError.internalServerError('Unable to process request, please try again!');
   }
 
-  const resObject = {
+  return {
     data: JSON5.parse(
       response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim()
     ),
   };
-
-  res.json(resObject);
 }
 
-async function predictNextFormulas(req: Request, res: Response) {
-  const colPrompt = req.body.data.columns.length
-    ? req.body.data.columns.map((col) => `'${col}'`).join(', ')
+async function predictNextFormulas(param: { columns: any; table: any }) {
+  const colPrompt = param.columns.length
+    ? param.columns.map((col) => `'${col}'`).join(', ')
     : 'no';
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: `${req.body.data.table} table has ${colPrompt} columns
+    prompt: `${param.table} table has ${colPrompt} columns
     write possible formulas using basic arithmetic operators and wrapping each column name with {} and return as json { title: string, formula: string }[]
     `,
     temperature: 0.7,
@@ -523,25 +507,20 @@ async function predictNextFormulas(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-    return;
+    NcError.internalServerError('Unable to process request, please try again!');
   }
 
-  const resObject = {
+  return {
     data: JSON5.parse(
       response.data.choices[0].text.replace(/\r?\n|\r/g, '').trim()
     ),
   };
-
-  res.json(resObject);
 }
 
-async function generateSinglePrompt(req: Request, res: Response) {
+async function generateSinglePrompt(param: { prompt: string }) {
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: `${req.body.data.prompt}`,
+    prompt: `${param.prompt}`,
     temperature: 0.7,
     max_tokens: 1000,
     top_p: 1,
@@ -550,27 +529,22 @@ async function generateSinglePrompt(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-    return;
+    NcError.internalServerError('Unable to process request, please try again!');
   }
 
-  const resObject = { data: response.data.choices[0].text };
-
-  res.json(resObject);
+  return { data: response.data.choices[0].text };
 }
 
-async function generateSQL(req: Request, res: Response) {
-  let schemaPrompt = ''
-  for (const table of req.body.data.base.tables) {
+async function generateSQL(param: { prompt: string; base: any }) {
+  let schemaPrompt = '';
+  for (const table of param.base.tables) {
     const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
     schemaPrompt += `Table '${table.title}', columns = [${colPrompt}]\n`;
   }
 
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: `${schemaPrompt}\n\nGenerate SQL (${req.body.data.base.type}) SELECT query for '${req.body.data.prompt}' return in form of Object<{ data: Array<{ description: string; query: string }> }> with escaped new lines as parsable JSON:`,
+    prompt: `${schemaPrompt}\n\nGenerate SQL (${param.base.type}) SELECT query for '${param.prompt}' return in form of Object<{ data: Array<{ description: string; query: string }> }> with escaped new lines as parsable JSON:`,
     temperature: 0.7,
     max_tokens: 1500,
     top_p: 1,
@@ -579,33 +553,24 @@ async function generateSQL(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-    return;
+    NcError.internalServerError('Unable to process request, please try again!');
   }
 
-  try {
-    const resObject = { data: JSON5.parse(response.data.choices[0].text)?.data || [] };
-    res.json(resObject);
-  } catch (e) {
-    console.log(response.data.choices[0].text)
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-  }
+  return {
+    data: JSON5.parse(response.data.choices[0].text)?.data || [],
+  };
 }
 
-async function repairSQL(req: Request, res: Response) {
-  let schemaPrompt = ''
-  for (const table of req.body.data.base.tables) {
+async function repairSQL(param: { sql: string; base: any }) {
+  let schemaPrompt = '';
+  for (const table of param.base.tables) {
     const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
     schemaPrompt += `Table '${table.title}', columns = [${colPrompt}]\n`;
   }
 
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: `${schemaPrompt}\n\nFix following query using SQL (${req.body.data.base.type})\n\`${req.body.data.sql}\`\nreturn fixed query in form of Object<{ data: { query: string } }> with escaped new lines as parsable JSON:\n`,
+    prompt: `${schemaPrompt}\n\nFix following query using SQL (${param.base.type})\n\`${param.sql}\`\nreturn fixed query in form of Object<{ data: { query: string } }> with escaped new lines as parsable JSON:\n`,
     temperature: 0.7,
     max_tokens: 1500,
     top_p: 1,
@@ -614,33 +579,34 @@ async function repairSQL(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-    return;
+    NcError.internalServerError('Unable to process request, please try again!');
   }
 
-  try {
-    const resObject = { data: JSON5.parse(response.data.choices[0].text)?.data || [] };
-    res.json(resObject);
-  } catch (e) {
-    console.log(response.data.choices[0].text)
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-  }
+  return {
+    data: JSON5.parse(response.data.choices[0].text)?.data || [],
+  };
 }
 
-async function generateQueryPrompt(req: Request, res: Response) {
-  let schemaPrompt = ''
-  for (const table of req.body.data.base.tables) {
+async function generateQueryPrompt(param: {
+  prompt: string;
+  max: number;
+  base: any;
+}) {
+  let schemaPrompt = '';
+  for (const table of param.base.tables) {
     const colPrompt = table.columns.map((col) => `'${col.title}'`).join(', ');
     schemaPrompt += `Table '${table.title}', columns = [${colPrompt}]\n`;
   }
 
   const response = await openai.createCompletion({
     model: 'text-davinci-003',
-    prompt: `${schemaPrompt}\n\nPossible ${req.body.data.prompt} queries using JOIN, GROUP BY and HAVING using SQL (${req.body.data.base.type}) (maximum ${req.body.data.max || 5}) in form of Object<{ data: Array<{ description: string; query: string }> }> with escaped new lines as parsable JSON:\n`,
+    prompt: `${schemaPrompt}\n\nPossible ${
+      param.prompt
+    } queries using JOIN, GROUP BY and HAVING using SQL (${
+      param.base.type
+    }) (maximum ${
+      param.max || 5
+    }) in form of Object<{ data: Array<{ description: string; query: string }> }> with escaped new lines as parsable JSON:\n`,
     temperature: 0.7,
     max_tokens: 1500,
     top_p: 1,
@@ -649,100 +615,95 @@ async function generateQueryPrompt(req: Request, res: Response) {
   });
 
   if (response.data.choices.length === 0) {
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-    return;
+    NcError.internalServerError('Unable to process request, please try again!');
   }
 
-  try {
-    const resObject = { data: JSON5.parse(response.data.choices[0].text)?.data || [] };
-    res.json(resObject);
-  } catch (e) {
-    console.log(response.data.choices[0].text)
-    res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
-  }
+  return {
+    data: JSON5.parse(response.data.choices[0].text)?.data || [],
+  };
 }
 
-export async function genericGPT(req: Request, res: Response) {
+export async function genericGPT(param: { body: any }) {
   // req.body.operation
   // req.body.data
 
   try {
-    switch (req.body.operation) {
+    switch (param.body.operation) {
       case 'selectOptions':
         // req.body.data.table, req.body.data.schema, req.body.data.title
-        return await selectOptionsMagic(req, res);
+        return await selectOptionsMagic(param.body.data);
       case 'predictColumnType':
         // req.body.data.title
-        return await predictColumnType(req, res);
+        return await predictColumnType(param.body.data);
       case 'predictFormula':
         // req.body.data.columns, req.body.table, req.body.data.title
-        return await predictFormula(req, res);
+        return await predictFormula(param.body);
       case 'predictNextColumn':
         // req.body.data.columns, req.body.data.table
-        return await predictNextColumn(req, res);
+        return await predictNextColumn(param.body.data);
       case 'predictNextFormulas':
         // req.body.data.columns, req.body.data.table
-        return await predictNextFormulas(req, res);
+        return await predictNextFormulas(param.body.data);
       case 'generateSinglePrompt':
         // req.body.data.prompt
-        return await generateSinglePrompt(req, res);
+        return await generateSinglePrompt(param.body.data);
       case 'generateSQL':
         // req.body.data.prompt req.body.data.base (type, tables (title, columns))
-        return await generateSQL(req, res);
+        return await generateSQL(param.body.data);
       case 'repairSQL':
         // req.body.data.sql req.body.data.base (type, tables (title, columns))
-        return await repairSQL(req, res);
+        return await repairSQL(param.body.data);
       case 'generateQueryPrompt':
         // req.body.data.prompt req.body.data.max req.body.data.base (type, tables (title, columns))
-        return await generateQueryPrompt(req, res);
+        return await generateQueryPrompt(param.body.data);
       default:
-        return res.status(500).json({ msg: 'Unknown operation' });
+        return NcError.internalServerError('Unknown operation');
     }
   } catch (e) {
     console.log(e);
-    return res
-      .status(500)
-      .json({ msg: 'Unable to process request, please try again!' });
+    return NcError.internalServerError(
+      'Unable to process request, please try again!'
+    );
   }
 }
 
-export async function runSelectQuery(req: Request, res: Response) {
+export async function runSelectQuery(param: { baseId: string; query: string }) {
   // req.body.baseId
   // req.body.query
 
-  const base = await Base.get(req.body.baseId);
+  const base = await Base.get(param.baseId);
   if (!base) return NcError.internalServerError('Base not found');
-  
+
   try {
-    const statements = identify(req.body.query);
-    if (statements.length === 0) return NcError.internalServerError('Please provide a query');
-    if (statements.length > 1) return NcError.internalServerError('Only single query is supported');
-    if (statements[0].type !== 'SELECT') return NcError.internalServerError('Only SELECT queries are supported');
+    const statements = identify(param.query);
+    if (statements.length === 0)
+      return NcError.internalServerError('Please provide a query');
+    if (statements.length > 1)
+      return NcError.internalServerError('Only single query is supported');
+    if (statements[0].type !== 'SELECT')
+      return NcError.internalServerError('Only SELECT queries are supported');
   } catch (e) {
     return NcError.internalServerError(e);
   }
 
   const baseDriver = (await NcConnectionMgrv2.getSqlClient(base))?.knex;
 
-  if (!baseDriver) return NcError.internalServerError('Unable to connect to base');
+  if (!baseDriver)
+    return NcError.internalServerError('Unable to connect to base');
 
   try {
     const sqlClientType = baseDriver.clientType();
 
-    const result = await baseDriver.raw(req.body.query);
+    const result = await baseDriver.raw(param.query);
 
     if (sqlClientType === 'mysql' || sqlClientType === 'mysql2') {
-      return res.json({ data: result[0] });
+      return { data: result[0] };
     } else if (sqlClientType === 'pg') {
-      return res.json({ data: result.rows });
+      return { data: result.rows };
     } else if (sqlClientType === 'snowflake') {
-      return res.json({ data: result.rows });
+      return { data: result.rows };
     } else {
-      return res.json({ data: result });
+      return { data: result };
     }
   } catch (e) {
     return NcError.internalServerError(e.message);

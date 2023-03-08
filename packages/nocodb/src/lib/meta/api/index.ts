@@ -55,7 +55,7 @@ import crypto from 'crypto';
 import swaggerController from '../../controllers/apiDocs';
 import { importController, syncSourceController } from '../../controllers/sync';
 import mapViewController from '../../controllers/views/mapView.ctl';
-import commandPaletteController from '../../controllers/CommandPalette.ctl';
+import commandPaletteController from '../../controllers/commandPalette.ctl';
 import workspaceController from '../../controllers/workspace.ctl';
 import cowriterController from '../../controllers/cowriter.ctl';
 import { docsPageController } from '../../controllers/docs';

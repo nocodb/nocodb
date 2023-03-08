@@ -1,4 +1,4 @@
-import { NcContextV2 } from '../NcMetaMgrv2';
+import type { NcContextV2 } from '../NcMetaMgrv2';
 import Model from '../../models/Model';
 
 export default async function (this: NcContextV2, { args }: any) {

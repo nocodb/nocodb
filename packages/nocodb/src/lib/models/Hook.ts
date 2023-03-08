@@ -1,4 +1,4 @@
-import { BoolType, HookReqType, HookType } from 'nocodb-sdk';
+import type { BoolType, HookReqType, HookType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,

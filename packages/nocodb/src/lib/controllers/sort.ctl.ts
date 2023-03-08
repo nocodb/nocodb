@@ -1,6 +1,7 @@
-import { Request, Response, Router } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import { SortListType, SortReqType } from 'nocodb-sdk';
+import type { SortListType, SortReqType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 

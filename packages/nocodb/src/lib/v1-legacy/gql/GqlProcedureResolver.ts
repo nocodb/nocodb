@@ -3,7 +3,7 @@ import autoBind from 'auto-bind';
 import BaseProcedure from '../../utils/common/BaseProcedure';
 import XcProcedure from '../../utils/common/XcProcedure';
 
-import { GqlApiBuilder } from './GqlApiBuilder';
+import type { GqlApiBuilder } from './GqlApiBuilder';
 import GqlBaseResolver from './GqlBaseResolver';
 
 export class GqlProcedureResolver extends BaseProcedure {

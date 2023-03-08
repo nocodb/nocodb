@@ -16,7 +16,7 @@ import {
   whereParam,
 } from './params';
 import { csvExportResponseHeader } from './headers';
-import { SwaggerColumn } from '../getSwaggerColumnMetas';
+import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 
 export const getModelPaths = async (ctx: {
   tableName: string;

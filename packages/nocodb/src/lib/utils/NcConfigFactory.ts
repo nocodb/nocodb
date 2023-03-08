@@ -3,7 +3,7 @@ import parseDbUrl from 'parse-database-url';
 import { URL } from 'url';
 import { promisify } from 'util';
 
-import {
+import type {
   AuthConfig,
   DbConfig,
   MailerConfig,

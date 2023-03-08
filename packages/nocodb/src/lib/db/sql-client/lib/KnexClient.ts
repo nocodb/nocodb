@@ -1,5 +1,6 @@
 /* eslint-disable no-constant-condition */
-import { knex, Knex } from 'knex';
+import type { Knex } from 'knex';
+import { knex } from 'knex';
 import { T } from 'nc-help';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';

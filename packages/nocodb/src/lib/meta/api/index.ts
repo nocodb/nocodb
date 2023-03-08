@@ -6,7 +6,7 @@ import projectController from '../../controllers/project.ctl';
 import baseController from '../../controllers/base.ctl';
 import tableController from '../../controllers/table.ctl';
 import columnController from '../../controllers/column.ctl';
-import { Router } from 'express';
+import type { Router } from 'express';
 import sortController from '../../controllers/sort.ctl';
 import filterController from '../../controllers/filter.ctl';
 import viewColumnController from '../../controllers/viewColumn.ctl';
@@ -48,7 +48,8 @@ import {
   publicDocsPagesController,
   publicMetaController,
 } from '../../controllers/publicControllers';
-import { Server, Socket } from 'socket.io';
+import type { Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import passport from 'passport';
 
 import crypto from 'crypto';

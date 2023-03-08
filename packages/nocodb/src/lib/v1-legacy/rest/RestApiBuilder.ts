@@ -10,7 +10,7 @@ import { glob } from 'glob';
 import mkdirp from 'mkdirp';
 
 import { URL } from 'url';
-import { DbConfig, NcConfig } from '../../../interface/config';
+import type { DbConfig, NcConfig } from '../../../interface/config';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import SwaggerXc from '../../db/sql-mgr/code/routers/xc-ts/SwaggerXc';
 import SwaggerXcBt from '../../db/sql-mgr/code/routers/xc-ts/SwaggerXcBt';
@@ -19,14 +19,16 @@ import ExpressXcTsRoutes from '../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRou
 import ExpressXcTsRoutesBt from '../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutesBt';
 import ExpressXcTsRoutesHm from '../../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutesHm';
 import NcHelp from '../../utils/NcHelp';
-import NcProjectBuilder from '../NcProjectBuilder';
-import Noco from '../../Noco';
-import BaseApiBuilder, {
-  IGNORE_TABLES,
+import type NcProjectBuilder from '../NcProjectBuilder';
+import type Noco from '../../Noco';
+import type {
   NcMetaData,
   XcTablesPopulateParams,
 } from '../../utils/common/BaseApiBuilder';
-import NcMetaIO from '../../meta/NcMetaIO';
+import BaseApiBuilder, {
+  IGNORE_TABLES,
+} from '../../utils/common/BaseApiBuilder';
+import type NcMetaIO from '../../meta/NcMetaIO';
 
 import { RestCtrl } from './RestCtrl';
 import { RestCtrlBelongsTo } from './RestCtrlBelongsTo';

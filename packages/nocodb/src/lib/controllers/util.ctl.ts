@@ -1,5 +1,5 @@
 // // Project CRUD
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import catchError from '../meta/helpers/catchError';
 import { utilService } from '../services';

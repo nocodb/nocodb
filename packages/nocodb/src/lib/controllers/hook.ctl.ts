@@ -1,6 +1,7 @@
 import catchError from '../meta/helpers/catchError';
-import { Request, Response, Router } from 'express';
-import { HookListType, HookType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
+import type { HookListType, HookType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';

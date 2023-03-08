@@ -8,7 +8,7 @@ import {
   MetaTable,
 } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
-import { SortType } from 'nocodb-sdk';
+import type { SortType } from 'nocodb-sdk';
 import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Sort {

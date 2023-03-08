@@ -1,7 +1,7 @@
 import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { Hook, Model } from '../models';
-import { HookReqType, HookTestReqType } from 'nocodb-sdk';
+import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
 
 import { invokeWebhook } from '../meta/helpers/webhookHelpers';
 import populateSamplePayload from '../meta/helpers/populateSamplePayload';

@@ -1,4 +1,4 @@
-import { SharedViewReqType, ViewReqType } from 'nocodb-sdk';
+import type { SharedViewReqType, ViewReqType } from 'nocodb-sdk';
 import { validatePayload } from '../meta/api/helpers';
 import { Model, View } from '../models';
 import { T } from 'nc-help';

@@ -1,6 +1,6 @@
-import { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
-import NcMetaIO from '../meta/NcMetaIO';
+import type NcMetaIO from '../meta/NcMetaIO';
 import Column from '../models/Column';
 import Filter from '../models/Filter';
 import { UITypes } from 'nocodb-sdk';

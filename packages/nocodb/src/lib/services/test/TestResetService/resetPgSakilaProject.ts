@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 // const exec = util.promisify(require('child_process').exec);
 
 import Audit from '../../../models/Audit';
-import Project from '../../../models/Project';
+import type Project from '../../../models/Project';
 
 const config = {
   client: 'pg',

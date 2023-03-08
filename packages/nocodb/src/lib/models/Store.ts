@@ -2,7 +2,7 @@ import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
-import { SortType } from 'nocodb-sdk';
+import type { SortType } from 'nocodb-sdk';
 
 // Store is used for storing key value pairs
 export default class Store {

@@ -1,25 +1,26 @@
-import { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from './NcUpgrader';
 import Noco from '../Noco';
 import User from '../models/User';
 import Project from '../models/Project';
 import ProjectUser from '../models/ProjectUser';
 import Model from '../models/Model';
+import type { ViewType } from 'nocodb-sdk';
 import {
   ModelTypes,
   substituteColumnAliasWithIdInFormula,
   UITypes,
-  ViewType,
   ViewTypes,
 } from 'nocodb-sdk';
 import Column from '../models/Column';
-import LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import NcHelp from '../utils/NcHelp';
-import RollupColumn, { ROLLUP_FUNCTIONS } from '../models/RollupColumn';
+import type { ROLLUP_FUNCTIONS } from '../models/RollupColumn';
+import type RollupColumn from '../models/RollupColumn';
 import View from '../models/View';
-import GridView from '../models/GridView';
-import KanbanView from '../models/KanbanView';
-import FormView from '../models/FormView';
-import GalleryView from '../models/GalleryView';
+import type GridView from '../models/GridView';
+import type KanbanView from '../models/KanbanView';
+import type FormView from '../models/FormView';
+import type GalleryView from '../models/GalleryView';
 import Sort from '../models/Sort';
 import Filter from '../models/Filter';
 import ModelRoleVisibility from '../models/ModelRoleVisibility';

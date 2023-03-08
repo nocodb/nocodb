@@ -1,18 +1,13 @@
-import { Request, Response, Router } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import * as XLSX from 'xlsx';
 import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
 import { ErrorMessages, isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
 import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import catchError, { NcError } from '../../meta/helpers/catchError';
-import {
-  Base,
-  Column,
-  LinkToAnotherRecordColumn,
-  LookupColumn,
-  Model,
-  View,
-} from '../../models';
+import type { LinkToAnotherRecordColumn, LookupColumn } from '../../models';
+import { Base, Column, Model, View } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 
 async function exportExcel(req: Request, res: Response) {

@@ -1,12 +1,14 @@
 import DOMPurify from 'isomorphic-dompurify';
+import type {
+  ColumnType,
+  NormalColumnRequestType,
+  TableReqType,
+} from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  ColumnType,
   isVirtualCol,
   ModelTypes,
-  NormalColumnRequestType,
-  TableReqType,
   UITypes,
 } from 'nocodb-sdk';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
@@ -18,16 +20,8 @@ import getTableNameAlias, {
   getColumnNameAlias,
 } from '../meta/helpers/getTableName';
 import mapDefaultDisplayValue from '../meta/helpers/mapDefaultDisplayValue';
-import {
-  Audit,
-  Column,
-  LinkToAnotherRecordColumn,
-  Model,
-  ModelRoleVisibility,
-  Project,
-  User,
-  View,
-} from '../models';
+import type { LinkToAnotherRecordColumn, User, View } from '../models';
+import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { T } from 'nc-help';
 

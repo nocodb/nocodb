@@ -1,9 +1,9 @@
 import SqlMgrv2 from './SqlMgrv2';
-import Base from '../../../models/Base';
+import type Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-import { Knex } from 'knex';
-import { XKnex } from '../../sql-data-mapper';
-import NcMetaIO from '../../../meta/NcMetaIO';
+import type { Knex } from 'knex';
+import type { XKnex } from '../../sql-data-mapper';
+import type NcMetaIO from '../../../meta/NcMetaIO';
 import KnexMigratorv2Tans from '../../sql-migrator/lib/KnexMigratorv2Tans';
 
 export default class SqlMgrv2Trans extends SqlMgrv2 {

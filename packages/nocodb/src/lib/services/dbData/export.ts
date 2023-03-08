@@ -1,4 +1,5 @@
-import { getViewAndModelByAliasOrId, PathParams } from './helpers';
+import type { PathParams } from './helpers';
+import { getViewAndModelByAliasOrId } from './helpers';
 import { View } from '../../models';
 
 // Todo: bring logic from controller

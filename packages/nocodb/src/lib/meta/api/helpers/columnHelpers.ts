@@ -1,5 +1,5 @@
 import { customAlphabet } from 'nanoid';
-import {
+import type {
   BoolType,
   ColumnReqType,
   LinkToAnotherRecordType,
@@ -7,12 +7,12 @@ import {
   RelationTypes,
   RollupColumnReqType,
   TableType,
-  UITypes,
 } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import Column from '../../../models/Column';
-import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
-import LookupColumn from '../../../models/LookupColumn';
-import Model from '../../../models/Model';
+import type LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
+import type LookupColumn from '../../../models/LookupColumn';
+import type Model from '../../../models/Model';
 import { getUniqueColumnAliasName } from '../../helpers/getUniqueName';
 import validateParams from '../../helpers/validateParams';
 

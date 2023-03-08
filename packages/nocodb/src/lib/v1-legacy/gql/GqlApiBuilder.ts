@@ -6,18 +6,17 @@ import { GraphQLJSON } from 'graphql-type-json';
 import _ from 'lodash';
 import { BaseType } from 'xc-core-ts';
 
-import XcMetaMgr from '../../../interface/XcMetaMgr';
-import { DbConfig, NcConfig } from '../../../interface/config';
+import type XcMetaMgr from '../../../interface/XcMetaMgr';
+import type { DbConfig, NcConfig } from '../../../interface/config';
 import ExpressXcTsPolicyGql from '../../db/sql-mgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql';
 import GqlXcSchemaFactory from '../../db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import NcHelp from '../../utils/NcHelp';
-import NcProjectBuilder from '../NcProjectBuilder';
-import Noco from '../../Noco';
-import BaseApiBuilder, {
-  XcTablesPopulateParams,
-} from '../../utils/common/BaseApiBuilder';
-import NcMetaIO from '../../meta/NcMetaIO';
+import type NcProjectBuilder from '../NcProjectBuilder';
+import type Noco from '../../Noco';
+import type { XcTablesPopulateParams } from '../../utils/common/BaseApiBuilder';
+import BaseApiBuilder from '../../utils/common/BaseApiBuilder';
+import type NcMetaIO from '../../meta/NcMetaIO';
 
 import { m2mNotChildren, m2mNotChildrenCount } from './GqlCommonResolvers';
 import GqlMiddleware from './GqlMiddleware';

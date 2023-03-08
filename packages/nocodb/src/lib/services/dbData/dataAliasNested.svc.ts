@@ -1,11 +1,8 @@
 import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
 import { Base, Model } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import {
-  getColumnByIdOrName,
-  getViewAndModelByAliasOrId,
-  PathParams,
-} from './helpers';
+import type { PathParams } from './helpers';
+import { getColumnByIdOrName, getViewAndModelByAliasOrId } from './helpers';
 import { NcError } from '../../meta/helpers/catchError';
 
 // todo: handle case where the given column is not ltar

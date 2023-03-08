@@ -1,4 +1,4 @@
-import { ErrorObject } from 'ajv';
+import type { ErrorObject } from 'ajv';
 
 enum DBError {
   TABLE_EXIST = 'TABLE_EXIST',

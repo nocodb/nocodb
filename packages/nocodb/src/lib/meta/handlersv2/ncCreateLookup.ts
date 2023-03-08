@@ -1,4 +1,4 @@
-import { NcContextV2 } from '../NcMetaMgrv2';
+import type { NcContextV2 } from '../NcMetaMgrv2';
 import Column from '../../models/Column';
 import { UITypes } from 'nocodb-sdk';
 

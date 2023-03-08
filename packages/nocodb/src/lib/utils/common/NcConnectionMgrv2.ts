@@ -4,9 +4,9 @@ import NcConfigFactory, {
   defaultConnectionConfig,
   defaultConnectionOptions,
 } from '../NcConfigFactory';
-import Base from '../../models/Base';
-import { Knex } from 'knex';
+import type Base from '../../models/Base';
 import Noco from '../../Noco';
+import { Knex } from 'knex';
 
 export default class NcConnectionMgrv2 {
   private static connectionRefs: {

@@ -1,10 +1,10 @@
 import autoBind from 'auto-bind';
-import { Handler, NextFunction, Request, Response, Router } from 'express';
+import type { Handler, NextFunction, Request, Response, Router } from 'express';
 
 import BaseProcedure from '../../utils/common/BaseProcedure';
 import XcProcedure from '../../utils/common/XcProcedure';
 
-import { RestApiBuilder } from './RestApiBuilder';
+import type { RestApiBuilder } from './RestApiBuilder';
 
 export class RestCtrlProcedure extends BaseProcedure {
   private acls: { [aclName: string]: { [role: string]: boolean } };

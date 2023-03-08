@@ -73,6 +73,8 @@ export default class GridViewColumn implements GridColumnType {
       'show',
       'project_id',
       'base_id',
+      'order',
+      'width',
     ]);
 
     insertObj.order =

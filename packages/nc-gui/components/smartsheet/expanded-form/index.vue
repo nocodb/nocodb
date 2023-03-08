@@ -283,7 +283,7 @@ export default {
 
                 <GeneralShortcutLabel class="justify-center" :keys="['Alt', '←']" />
               </template>
-              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
+              <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
             </a-tooltip>
 
             <a-tooltip v-if="!props.lastRow" placement="bottom">
@@ -291,7 +291,7 @@ export default {
                 {{ $t('labels.nextRow') }}
                 <GeneralShortcutLabel class="justify-center" :keys="['Alt', '→']" />
               </template>
-              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
+              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="onNext" />
             </a-tooltip>
           </template>
           <div class="w-[500px] mx-auto">

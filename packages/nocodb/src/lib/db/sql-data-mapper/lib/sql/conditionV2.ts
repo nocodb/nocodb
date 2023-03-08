@@ -576,7 +576,7 @@ const parseConditionV2 = async (
               }
             }
             break;
-          case 'gt':
+          case 'gt': {
             const gt_op = customWhereClause ? '<' : '>';
             qb = qb.where(field, gt_op, val);
             if (column.uidt === UITypes.Rating) {
@@ -586,8 +586,9 @@ const parseConditionV2 = async (
               }
             }
             break;
+          }
           case 'ge':
-          case 'gte':
+          case 'gte': {
             const ge_op = customWhereClause ? '<=' : '>=';
             qb = qb.where(field, ge_op, val);
             if (column.uidt === UITypes.Rating) {
@@ -597,7 +598,8 @@ const parseConditionV2 = async (
               }
             }
             break;
-          case 'lt':
+          }
+          case 'lt': {
             const lt_op = customWhereClause ? '>' : '<';
             qb = qb.where(field, lt_op, val);
             if (column.uidt === UITypes.Rating) {
@@ -607,8 +609,10 @@ const parseConditionV2 = async (
               }
             }
             break;
+          }
+
           case 'le':
-          case 'lte':
+          case 'lte': {
             const le_op = customWhereClause ? '>=' : '<=';
             qb = qb.where(field, le_op, val);
             if (column.uidt === UITypes.Rating) {
@@ -618,6 +622,7 @@ const parseConditionV2 = async (
               }
             }
             break;
+          }
           case 'in':
             qb = qb.whereIn(
               field,
@@ -720,7 +725,7 @@ const parseConditionV2 = async (
           case 'nbtw':
             qb = qb.whereNotBetween(field, val.split(','));
             break;
-          case 'isWithin':
+          case 'isWithin': {
             let now = dayjs(new Date()).format(dateFormat).toString();
             now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
             switch (filter.comparison_sub_op) {
@@ -737,6 +742,7 @@ const parseConditionV2 = async (
                 qb = qb.whereBetween(field, [now, val]);
                 break;
             }
+          }
         }
       };
     }

@@ -15,10 +15,9 @@ export async function syncCreate(param: {
   projectId: string;
   baseId?: string;
   userId: string;
-  // todo: define type
   syncPayload: Partial<SyncSource>;
 }) {
-  T.emit('evt', { evt_type: 'webhooks:created' });
+  T.emit('evt', { evt_type: 'syncSource:created' });
   const project = await Project.getWithInfo(param.projectId);
 
   const sync = await SyncSource.insert({
@@ -31,7 +30,7 @@ export async function syncCreate(param: {
 }
 
 export async function syncDelete(param: { syncId: string }) {
-  T.emit('evt', { evt_type: 'webhooks:deleted' });
+  T.emit('evt', { evt_type: 'syncSource:deleted' });
   return await SyncSource.delete(param.syncId);
 }
 
@@ -39,7 +38,7 @@ export async function syncUpdate(param: {
   syncId: string;
   syncPayload: Partial<SyncSource>;
 }) {
-  T.emit('evt', { evt_type: 'webhooks:updated' });
+  T.emit('evt', { evt_type: 'syncSource:updated' });
 
   return await SyncSource.update(param.syncId, param.syncPayload);
 }

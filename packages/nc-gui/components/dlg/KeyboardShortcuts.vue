@@ -15,6 +15,9 @@ const dialogShow = computed({
 const renderCmdOrCtrlKey = () => {
   return isMac() ? '⌘' : 'CTRL'
 }
+const renderAltOrOptlKey = () => {
+  return isMac() ? '⌥' : 'ALT'
+}
 
 const shortcutList = [
   {
@@ -196,6 +199,22 @@ const shortcutList = [
       {
         keys: [renderCmdOrCtrlKey(), 'Enter'],
         behaviour: 'Save current expanded form item',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '→'],
+        behaviour: 'Switch to next row',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '←'],
+        behaviour: 'Switch to previous row',
+      },
+      {
+        keys: [renderAltOrOptlKey(), 'S'],
+        behaviour: 'Save current expanded form item',
+      },
+      {
+        keys: [renderAltOrOptlKey(), 'N'],
+        behaviour: 'Create a new row',
       },
     ],
   },

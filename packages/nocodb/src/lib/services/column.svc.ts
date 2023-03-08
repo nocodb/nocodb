@@ -947,7 +947,7 @@ export async function columnAdd(param: {
       break;
     default:
       {
-        colBody = getColumnPropsFromUIDT(colBody, base);
+        colBody = await getColumnPropsFromUIDT(colBody, base);
         if (colBody.uidt === UITypes.Duration) {
           colBody.dtxp = '20';
           // by default, colBody.dtxs is 2

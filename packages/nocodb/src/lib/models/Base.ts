@@ -257,7 +257,6 @@ export default class Base implements BaseType {
       if (config.client === 'sqlite3') {
         config.connection = metaConfig;
       }
-
       return config;
     }
 

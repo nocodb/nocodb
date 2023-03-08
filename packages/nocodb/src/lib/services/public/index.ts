@@ -1,6 +1,6 @@
-import * as publicDataService from './publicData.svs';
-import * as publicDataExportApis from './publicDataExport.svs';
-import * as publicMetaService from './publicMeta.svs';
+import * as publicDataService from './publicData.svc';
+import * as publicDataExportApis from './publicDataExport.svc';
+import * as publicMetaService from './publicMeta.svc';
 import * as publicDocsPagesService from './publicDocsPages.svs';
 
 export {

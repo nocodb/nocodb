@@ -410,14 +410,16 @@ export async function tableCreate(param: {
     }
   }
 
-  tableCreatePayLoad.columns = param.table.columns?.map((c) => ({
-    ...getColumnPropsFromUIDT(c as any, base),
-    cn: c.column_name,
-    column_name: c.column_name,
-  }));
+  tableCreatePayLoad.columns = await Promise.all(
+    param.table.columns?.map(async (c) => ({
+      ...(await getColumnPropsFromUIDT(c as any, base)),
+      cn: c.column_name,
+      column_name: c.column_name,
+    }))
+  );
   await sqlMgr.sqlOpPlus(base, 'tableCreate', {
     ...tableCreatePayLoad,
-    tn: param.table.table_name,
+    tn: tableCreatePayLoad.table_name,
   });
 
   const columns: Array<
@@ -425,7 +427,8 @@ export async function tableCreate(param: {
       cn: string;
       system?: boolean;
     }
-  > = (await sqlClient.columnList({ tn: param.table.table_name }))?.data?.list;
+  > = (await sqlClient.columnList({ tn: tableCreatePayLoad.table_name }))?.data
+    ?.list;
 
   const tables = await Model.list({
     project_id: project.id,
@@ -438,7 +441,7 @@ export async function tableCreate(param: {
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.CREATED,
     user: param.user?.email,
-    description: `created table ${param.table.table_name} with alias ${param.table.title}  `,
+    description: `created table ${tableCreatePayLoad.table_name} with alias ${tableCreatePayLoad.title}  `,
     ip: param.req?.clientIp,
   }).then(() => {});
 
@@ -448,7 +451,7 @@ export async function tableCreate(param: {
 
   // todo: type correction
   const result = await Model.insert(project.id, base.id, {
-    ...param.table,
+    ...tableCreatePayLoad,
     columns: columns.map((c, i) => {
       const colMetaFromReq = param.table?.columns?.find(
         (c1) => c.cn === c1.column_name

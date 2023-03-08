@@ -26,7 +26,7 @@ export default class Hook implements HookType {
   url?: string;
   headers?: string;
   condition?: BoolType;
-  notification?: string | object;
+  notification?: string | Record<string, any>;
   retries?: number;
   retry_interval?: number;
   timeout?: number;

@@ -1,10 +1,5 @@
 import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '../../db/sql-data-mapper';
-// import { NcConfig } from '../../../interface/config';
-// import fs from 'fs';
-// import Knex from 'knex';
-
-// import NcMetaIO from '../meta/NcMetaIO';
 import NcConfigFactory, {
   defaultConnectionConfig,
   defaultConnectionOptions,
@@ -93,7 +88,6 @@ export default class NcConnectionMgrv2 {
         },
       },
     } as any);
-
     return this.connectionRefs[base.project_id][base.id];
   }
 

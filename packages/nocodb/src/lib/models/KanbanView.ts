@@ -1,5 +1,6 @@
 import Noco from '../Noco';
-import { BoolType, KanbanType, MetaType, UITypes } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
+import type { BoolType, KanbanType, MetaType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';

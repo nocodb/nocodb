@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { nextTick } from '@vue/runtime-core'
 import type { ColumnType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -22,13 +23,24 @@ const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+const { sorts, saveOrUpdate, loadSorts, addSort:_addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+
+const removeIcon = ref<HTMLElement>()
+
+const addSort = () => {
+  _addSort()
+  nextTick(() => {
+    console.log(removeIcon.value)
+    removeIcon.value?.[removeIcon.value?.length - 1]?.$el?.scrollIntoView()
+  })
+}
 
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.SORT_RELOAD) {
     loadSorts()
   }
 })
+
 
 const columns = computed(() => meta.value?.columns || [])
 
@@ -56,6 +68,8 @@ watch(
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
+
+
 </script>
 
 <template>
@@ -78,9 +92,9 @@ useMenuCloseOnEsc(open)
         class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border"
         data-testid="nc-sorts-menu"
       >
-        <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
+        <div v-if="sorts?.length" class="sort-grid mb-2 max-h-420px overflow-y-auto" @click.stop>
           <template v-for="(sort, i) of sorts" :key="i">
-            <MdiCloseBox class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
+            <MdiCloseBox ref="removeIcon" class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
 
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"
@@ -92,6 +106,7 @@ useMenuCloseOnEsc(open)
             />
 
             <a-select
+              ref=""
               v-model:value="sort.direction"
               class="shrink grow-0 nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"

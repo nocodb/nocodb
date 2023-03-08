@@ -1,9 +1,9 @@
 import DOMPurify from 'isomorphic-dompurify';
+import type { UserType } from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
   ModelTypes,
-  UserType,
 } from 'nocodb-sdk';
 import Project from '../models/Project';
 import Model from '../models/Model';

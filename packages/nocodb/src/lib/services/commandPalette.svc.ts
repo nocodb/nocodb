@@ -1,7 +1,7 @@
 // import Model from '../../models/Model';
 import Project from '../models/Project';
 import { WorkspaceUser } from '../models';
-import { UserType } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
 import { NcError } from '../meta/helpers/catchError';
 import { tableService } from '.';
 

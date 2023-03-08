@@ -105,7 +105,11 @@ export default async (req, res, next) => {
 
     const user = await new Promise((resolve, _reject) => {
       passport.authenticate('jwt', { session: false }, (_err, user, _info) => {
-        if (user && !req.headers['xc-shared-base-id'] && !req.headers['xc-shared-erd-id']) {
+        if (
+          user &&
+          !req.headers['xc-shared-base-id'] &&
+          !req.headers['xc-shared-erd-id']
+        ) {
           if (
             req.path.indexOf('/user/me') === -1 &&
             req.header('xc-preview') &&

@@ -1,10 +1,6 @@
 import { Workspace } from '../models';
-import {
-  ProjectRoles,
-  UserType,
-  WorkspaceType,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk';
+import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { WorkspaceUser } from '../models';
 import { NcError } from '../meta/helpers/catchError';
@@ -16,7 +12,10 @@ import Project from '../models/Project';
 import validateParams from '../meta/helpers/validateParams';
 import ProjectUser from '../models/ProjectUser';
 
-export const workspaceCreate = async (param: { workspaces: WorkspaceType; user: UserType }) => {
+export const workspaceCreate = async (param: {
+  workspaces: WorkspaceType;
+  user: UserType;
+}) => {
   const workspacePayloads = Array.isArray(param.workspaces)
     ? param.workspaces
     : [param.workspaces];

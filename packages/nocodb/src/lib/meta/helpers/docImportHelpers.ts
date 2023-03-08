@@ -7,7 +7,7 @@ async function listDirectory(
   repository: string,
   ref: string,
   dir: string,
-  token: string = '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'
+  token = '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'
 ) {
   const files = await listContent.viaTreesApi({
     user,
@@ -61,7 +61,7 @@ export async function fetchGHDocs(
   repository: string,
   ref: string,
   dir: string,
-  type: string = 'md'
+  type = 'md'
 ) {
   const files = await listDirectory(user, repository, ref, dir);
   const markdownFiles = await getMarkdownFiles(files);
@@ -76,7 +76,7 @@ export async function fetchGHDocs(
       let activePath = docs;
 
       for (const pathPart of pathParts) {
-        let fnd = activePath.find((page) => page.title === pathPart);
+        const fnd = activePath.find((page) => page.title === pathPart);
         if (!fnd) {
           activePath.push({
             title: pathPart,
@@ -150,7 +150,7 @@ export async function fetchGHDocs(
 
 function processContent(content: string, type: string): any {
   switch (type) {
-    case 'nuxt':
+    case 'nuxt': {
       const metaObj = {};
       if (content.startsWith('---')) {
         const meta = content.split('---')[1];
@@ -178,6 +178,7 @@ function processContent(content: string, type: string): any {
         );
 
       return tempArgs;
+    }
     case 'md':
     default:
       return {

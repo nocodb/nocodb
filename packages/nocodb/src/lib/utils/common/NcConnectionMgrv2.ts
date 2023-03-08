@@ -6,7 +6,7 @@ import NcConfigFactory, {
 } from '../NcConfigFactory';
 import type Base from '../../models/Base';
 import Noco from '../../Noco';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 
 export default class NcConnectionMgrv2 {
   private static connectionRefs: {

@@ -13,6 +13,7 @@ import {
   reactive,
   ref,
   useApi,
+  useGlobal,
   useI18n,
   useNuxtApp,
   watch,
@@ -31,6 +32,8 @@ const { t } = useI18n()
 const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
+
+const { appInfo } = $(useGlobal())
 
 const meta = inject(MetaInj, ref())
 
@@ -170,16 +173,20 @@ const eventList = [
   { text: ['After', 'Delete'], value: ['after', 'delete'] },
 ]
 
-const notificationList = [
-  { type: 'URL' },
-  { type: 'Email' },
-  { type: 'Slack' },
-  { type: 'Microsoft Teams' },
-  { type: 'Discord' },
-  { type: 'Mattermost' },
-  { type: 'Twilio' },
-  { type: 'Whatsapp Twilio' },
-]
+const notificationList = computed(() => {
+  return appInfo.isCloud
+    ? [{ type: 'URL' }]
+    : [
+        { type: 'URL' },
+        { type: 'Email' },
+        { type: 'Slack' },
+        { type: 'Microsoft Teams' },
+        { type: 'Discord' },
+        { type: 'Mattermost' },
+        { type: 'Twilio' },
+        { type: 'Whatsapp Twilio' },
+      ]
+})
 
 const methodList = [
   { title: 'GET' },
@@ -414,7 +421,9 @@ watch(
   { immediate: true },
 )
 
-onMounted(loadPluginList)
+onMounted(() => {
+  if (!appInfo.isCoud) loadPluginList()
+})
 </script>
 
 <template>

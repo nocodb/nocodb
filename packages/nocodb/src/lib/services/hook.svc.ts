@@ -1,10 +1,25 @@
 import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
+import { NcError } from '../meta/helpers/catchError';
 import { Hook, Model } from '../models';
 
 import { invokeWebhook } from '../meta/helpers/webhookHelpers';
 import populateSamplePayload from '../meta/helpers/populateSamplePayload';
 import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
+
+function validateHookPayload(notificationJsonOrObject: string | object) {
+  let notification: { type?: string } = {};
+  try {
+    notification =
+      typeof notificationJsonOrObject === 'string'
+        ? JSON.parse(notificationJsonOrObject)
+        : notificationJsonOrObject;
+  } catch {}
+
+  if (notification.type !== 'URL' && process.env.NC_CLOUD) {
+    NcError.badRequest('Only URL notification is supported');
+  }
+}
 
 export async function hookList(param: { tableId: string }) {
   // todo: pagination
@@ -16,6 +31,8 @@ export async function hookCreate(param: {
   hook: HookReqType;
 }) {
   validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+
+  validateHookPayload(param.hook.notification);
 
   T.emit('evt', { evt_type: 'webhooks:created' });
   // todo: type correction
@@ -37,6 +54,8 @@ export async function hookUpdate(param: { hookId: string; hook: HookReqType }) {
 
   T.emit('evt', { evt_type: 'webhooks:updated' });
 
+  validateHookPayload(param.hook.notification);
+
   // todo: correction in swagger
   return await Hook.update(param.hookId, param.hook as any);
 }
@@ -49,6 +68,8 @@ export async function hookTest(param: {
     'swagger.json#/components/schemas/HookTestReq',
     param.hookTest
   );
+
+  validateHookPayload(param.hookTest.hook?.notification);
 
   const model = await Model.getByIdOrName({ id: param.tableId });
 
@@ -69,6 +90,7 @@ export async function hookTest(param: {
 
   return true;
 }
+
 export async function tableSampleData(param: {
   tableId: string;
   operation: 'insert' | 'update';

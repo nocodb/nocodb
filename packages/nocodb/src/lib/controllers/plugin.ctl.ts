@@ -35,35 +35,41 @@ export async function isPluginActive(req: Request, res: Response) {
   );
 }
 
-const router = Router({ mergeParams: true });
-router.use((_req, res, next) => {
+const blockInCloudMw = (_req, res, next) => {
   if (process.env.NC_CLOUD) {
     res.status(403).send('Not allowed');
   } else next();
-});
+}
+
+const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/plugins',
+  blockInCloudMw,
   metaApiMetrics,
   ncMetaAclMw(pluginList, 'pluginList')
 );
 router.post(
   '/api/v1/db/meta/plugins/test',
   metaApiMetrics,
+  blockInCloudMw,
   ncMetaAclMw(pluginTest, 'pluginTest')
 );
 router.get(
   '/api/v1/db/meta/plugins/:pluginId',
   metaApiMetrics,
+  blockInCloudMw,
   ncMetaAclMw(pluginRead, 'pluginRead')
 );
 router.patch(
   '/api/v1/db/meta/plugins/:pluginId',
   metaApiMetrics,
+  blockInCloudMw,
   ncMetaAclMw(pluginUpdate, 'pluginUpdate')
 );
 router.get(
   '/api/v1/db/meta/plugins/:pluginTitle/status',
   metaApiMetrics,
+  blockInCloudMw,
   ncMetaAclMw(isPluginActive, 'isPluginActive')
 );
 export default router;

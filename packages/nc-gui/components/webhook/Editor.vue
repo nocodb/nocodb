@@ -313,6 +313,7 @@ async function onEventChange() {
 }
 
 async function loadPluginList() {
+  if (appInfo.isCloud) return
   try {
     const plugins = (await api.plugin.list()).list!
 
@@ -421,9 +422,7 @@ watch(
   { immediate: true },
 )
 
-onMounted(() => {
-  if (!appInfo.isCoud) loadPluginList()
-})
+onMounted(loadPluginList)
 </script>
 
 <template>

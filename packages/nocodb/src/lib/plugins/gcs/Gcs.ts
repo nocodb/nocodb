@@ -1,7 +1,8 @@
 import fs from 'fs';
 import { promisify } from 'util';
-import { Storage, StorageOptions } from '@google-cloud/storage';
-import { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import type { StorageOptions } from '@google-cloud/storage';
+import { Storage } from '@google-cloud/storage';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
 import {
   generateTempFilePath,

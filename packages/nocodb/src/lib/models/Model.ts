@@ -2,17 +2,10 @@ import Noco from '../Noco';
 import { parseMetaProp } from '../utils/modelUtils';
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
-import { XKnex } from '../db/sql-data-mapper';
+import type { XKnex } from '../db/sql-data-mapper';
 import { BaseModelSqlv2 } from '../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
-import {
-  BoolType,
-  isVirtualCol,
-  ModelTypes,
-  TableReqType,
-  TableType,
-  UITypes,
-  ViewTypes,
-} from 'nocodb-sdk';
+import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
+import { isVirtualCol, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,

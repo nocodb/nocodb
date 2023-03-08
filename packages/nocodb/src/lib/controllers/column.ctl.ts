@@ -1,5 +1,6 @@
-import { Request, Response, Router } from 'express';
-import { ColumnReqType, TableType, UITypes } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
+import type { ColumnReqType, TableType, UITypes } from 'nocodb-sdk';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { columnService } from '../services';

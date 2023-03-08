@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import Model from '../../models/Model';
 import { nocoExecute } from 'nc-help';
 import Base from '../../models/Base';

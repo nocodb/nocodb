@@ -57,46 +57,7 @@
     "no-useless-catch": "off",
     "no-empty": "off",
     "@typescript-eslint/no-empty-function": "off",
-    "import/order": "off"
-
-
-//    "@typescript-eslint/member-ordering": [
-//    "warn"  ,
-//      {
-//        "default": {
-//          "memberTypes": [ "static-field",
-//            "public-field",
-//            "instance-field",
-//            "protected-field",
-//            "private-field",
-//            "abstract-field",
-//
-//            "public-static-field",
-//            "protected-static-field",
-//            "private-static-field",
-//            "public-instance-field",
-//            "public-decorated-field",
-//            "public-abstract-field",
-//            "protected-instance-field",
-//            "protected-decorated-field",
-//            "protected-abstract-field",
-//            "private-instance-field",
-//            "private-decorated-field",
-//            "private-abstract-field",
-//
-//
-//
-//            "constructor",
-//
-//            "public-static-method",
-//            "protected-static-method",
-//            "private-static-method",
-//            "public-method",
-//            "protected-method",
-//            "private-method"
-//          ]
-//        }
-//      }
-//    ]
+    "import/order": "off",
+    "@typescript-eslint/consistent-type-imports": "warn"
   }
 }

@@ -1,4 +1,4 @@
-import { IWebhookNotificationAdapter } from 'nc-plugin';
+import type { IWebhookNotificationAdapter } from 'nc-plugin';
 import twilio from 'twilio';
 
 export default class Twilio implements IWebhookNotificationAdapter {

@@ -1,4 +1,5 @@
-import { XcActionType, XcForm, XcType } from 'nocodb-sdk';
+import type { XcForm } from 'nocodb-sdk';
+import { XcActionType, XcType } from 'nocodb-sdk';
 
 const input: XcForm = {
   title: 'Configure Azure Storage',

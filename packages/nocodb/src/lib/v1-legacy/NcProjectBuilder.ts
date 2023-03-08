@@ -5,11 +5,11 @@ import { promisify } from 'util';
 import axios from 'axios';
 import { Router } from 'express';
 
-import { NcConfig } from '../../interface/config';
+import type { NcConfig } from '../../interface/config';
 import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 import Migrator from '../db/sql-migrator/lib/KnexMigrator';
 
-import Noco from '../Noco';
+import type Noco from '../Noco';
 import { T } from 'nc-help';
 import { GqlApiBuilder } from './gql/GqlApiBuilder';
 import { XCEeError } from '../meta/NcMetaMgr';

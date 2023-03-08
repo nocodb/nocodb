@@ -1,9 +1,10 @@
-import { ApiTokenReqType, OrgUserRoles } from 'nocodb-sdk';
+import type { ApiTokenReqType } from 'nocodb-sdk';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
 import ApiToken from '../models/ApiToken';
-import User from '../models/User';
+import type User from '../models/User';
 
 export async function apiTokenList(param: { userId: string }) {
   return ApiToken.list(param.userId);

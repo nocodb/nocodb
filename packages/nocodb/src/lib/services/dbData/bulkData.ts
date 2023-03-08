@@ -1,7 +1,8 @@
-import { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
+import type { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import { Base, Model } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { getViewAndModelByAliasOrId, PathParams } from './helpers';
+import type { PathParams } from './helpers';
+import { getViewAndModelByAliasOrId } from './helpers';
 
 type BulkOperation =
   | 'bulkInsert'

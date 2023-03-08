@@ -1,11 +1,7 @@
-import {
-  ColumnReqType,
-  NormalColumnRequestType,
-  SqlUiFactory,
-  UITypes,
-} from 'nocodb-sdk';
-import Base from '../../models/Base';
-import Column from '../../models/Column';
+import type { ColumnReqType, NormalColumnRequestType } from 'nocodb-sdk';
+import { SqlUiFactory, UITypes } from 'nocodb-sdk';
+import type Base from '../../models/Base';
+import type Column from '../../models/Column';
 
 export default async function getColumnPropsFromUIDT(
   column: ColumnReqType & { altered?: number },

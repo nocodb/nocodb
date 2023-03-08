@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
-import { Knex } from 'knex';
-import Filter from '../../../models/Filter';
-import Sort from '../../../models/Sort';
+import type { Knex } from 'knex';
+import type Filter from '../../../models/Filter';
+import type Sort from '../../../models/Sort';
 
 const autoBind = require('auto-bind');
 const _ = require('lodash');

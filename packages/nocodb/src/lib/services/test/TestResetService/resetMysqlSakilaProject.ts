@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { Knex, knex } from 'knex';
+import type { Knex } from 'knex';
+import { knex } from 'knex';
 
 import { promises as fs } from 'fs';
 import Audit from '../../../models/Audit';
-import Project from '../../../models/Project';
+import type Project from '../../../models/Project';
 
 const config = {
   client: 'mysql2',

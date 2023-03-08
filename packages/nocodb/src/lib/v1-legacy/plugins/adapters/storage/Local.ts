@@ -4,7 +4,7 @@ import { promisify } from 'util';
 
 import mkdirp from 'mkdirp';
 
-import { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import NcConfigFactory from '../../../../utils/NcConfigFactory';
 
 import axios from 'axios';

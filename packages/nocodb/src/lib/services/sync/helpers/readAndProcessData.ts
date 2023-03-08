@@ -1,5 +1,6 @@
-import { AirtableBase } from 'airtable/lib/airtable_base';
-import { Api, RelationTypes, TableType, UITypes } from 'nocodb-sdk';
+import type { AirtableBase } from 'airtable/lib/airtable_base';
+import type { Api, TableType } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 import EntityMap from './EntityMap';
 
 const BULK_DATA_BATCH_SIZE = 500;

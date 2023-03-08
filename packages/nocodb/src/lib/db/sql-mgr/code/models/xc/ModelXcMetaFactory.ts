@@ -1,4 +1,4 @@
-import BaseModelXcMeta from './BaseModelXcMeta';
+import type BaseModelXcMeta from './BaseModelXcMeta';
 import ModelXcMetaMssql from './ModelXcMetaMssql';
 import ModelXcMetaMysql from './ModelXcMetaMysql';
 import ModelXcMetaOracle from './ModelXcMetaOracle';

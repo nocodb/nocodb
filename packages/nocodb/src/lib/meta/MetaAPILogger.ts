@@ -1,5 +1,5 @@
 import { XKnex } from '../db/sql-data-mapper';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 export default class MetaAPILogger {
   static _instance: MetaAPILogger;

@@ -10,9 +10,9 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import validator from 'validator';
 
-import { DbConfig, NcConfig } from '../../../interface/config';
-import { Knex } from '../../db/sql-data-mapper';
-import Noco from '../../Noco';
+import type { DbConfig, NcConfig } from '../../../interface/config';
+import type { Knex } from '../../db/sql-data-mapper';
+import type Noco from '../../Noco';
 
 const autoBind = require('auto-bind');
 const PassportLocalStrategy = require('passport-local').Strategy;
@@ -22,13 +22,13 @@ const { v4: uuidv4 } = require('uuid');
 
 import * as crypto from 'crypto';
 
-import NcMetaIO from '../../meta/NcMetaIO';
+import type NcMetaIO from '../../meta/NcMetaIO';
 
 const { isEmail } = require('validator');
 
 import axios from 'axios';
 
-import IEmailAdapter from '../../../interface/IEmailAdapter';
+import type IEmailAdapter from '../../../interface/IEmailAdapter';
 import { T } from 'nc-help';
 import XcCache from '../plugins/adapters/cache/XcCache';
 

@@ -2,14 +2,14 @@ import autoBind from 'auto-bind';
 import _ from 'lodash';
 
 import Model from '../../../../models/Model';
-import SelectOption from '../../../../models/SelectOption';
-import { XKnex } from '../../index';
-import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import RollupColumn from '../../../../models/RollupColumn';
-import LookupColumn from '../../../../models/LookupColumn';
+import type SelectOption from '../../../../models/SelectOption';
+import type { XKnex } from '../../index';
+import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import type RollupColumn from '../../../../models/RollupColumn';
+import type LookupColumn from '../../../../models/LookupColumn';
 import DataLoader from 'dataloader';
 import Column from '../../../../models/Column';
-import { XcFilter, XcFilterWithAlias } from '../BaseModel';
+import type { XcFilter, XcFilterWithAlias } from '../BaseModel';
 import conditionV2 from './conditionV2';
 import Filter, {
   COMPARISON_OPS,
@@ -18,17 +18,17 @@ import Filter, {
 } from '../../../../models/Filter';
 import sortV2 from './sortV2';
 import Sort from '../../../../models/Sort';
-import FormulaColumn from '../../../../models/FormulaColumn';
+import type FormulaColumn from '../../../../models/FormulaColumn';
 import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import View from '../../../../models/View';
+import type { SortType } from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
   isVirtualCol,
   RelationTypes,
-  SortType,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -48,8 +48,8 @@ import { NcError } from '../../../../meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
-import QrCodeColumn from '../../../../models/QrCodeColumn';
-import BarcodeColumn from '../../../../models/BarcodeColumn';
+import type QrCodeColumn from '../../../../models/QrCodeColumn';
+import type BarcodeColumn from '../../../../models/BarcodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 

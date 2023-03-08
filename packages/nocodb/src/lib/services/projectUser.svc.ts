@@ -1,4 +1,5 @@
-import { OrgUserRoles, ProjectUserReqType } from 'nocodb-sdk';
+import type { ProjectUserReqType } from 'nocodb-sdk';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';

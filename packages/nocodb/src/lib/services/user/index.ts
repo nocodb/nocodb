@@ -1,11 +1,11 @@
-import {
+import type {
   PasswordChangeReqType,
   PasswordForgotReqType,
   PasswordResetReqType,
   SignUpReqType,
   UserType,
-  validatePassword,
 } from 'nocodb-sdk';
+import { validatePassword } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { T } from 'nc-help';
 

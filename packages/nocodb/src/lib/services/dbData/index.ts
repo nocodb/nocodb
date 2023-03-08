@@ -4,7 +4,8 @@ import { NcError } from '../../meta/helpers/catchError';
 import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
 import { Base, Model, View } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { getViewAndModelByAliasOrId, PathParams } from './helpers';
+import type { PathParams } from './helpers';
+import { getViewAndModelByAliasOrId } from './helpers';
 
 export async function dataList(param: PathParams & { query: any }) {
   const { model, view } = await getViewAndModelByAliasOrId(param);

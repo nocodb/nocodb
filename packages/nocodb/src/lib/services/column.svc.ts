@@ -1,18 +1,20 @@
-import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
+import type {
   ColumnReqType,
-  isVirtualCol,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
   RelationTypes,
+} from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  isVirtualCol,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
 } from 'nocodb-sdk';
 import formulaQueryBuilderv2 from '../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
-import SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
+import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import {
   createHmAndBtColumn,
   generateFkName,
@@ -30,15 +32,15 @@ import {
 } from '../meta/helpers/getUniqueName';
 import mapDefaultDisplayValue from '../meta/helpers/mapDefaultDisplayValue';
 import validateParams from '../meta/helpers/validateParams';
-import NcMetaIO from '../meta/NcMetaIO';
+import type NcMetaIO from '../meta/NcMetaIO';
 import Audit from '../models/Audit';
 import Base from '../models/Base';
 import Column from '../models/Column';
 import FormulaColumn from '../models/FormulaColumn';
 import KanbanView from '../models/KanbanView';
-import LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import Model from '../models/Model';
-import Project from '../models/Project';
+import type Project from '../models/Project';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 

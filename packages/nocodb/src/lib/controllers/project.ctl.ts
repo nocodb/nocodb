@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import { ProjectType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
+import type { ProjectType } from 'nocodb-sdk';
 import Project from '../models/Project';
-import { ProjectListType } from 'nocodb-sdk';
+import type { ProjectListType } from 'nocodb-sdk';
 import { packageVersion } from '../utils/packageVersion';
 import { T } from 'nc-help';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';

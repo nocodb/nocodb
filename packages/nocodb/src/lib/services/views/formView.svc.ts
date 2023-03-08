@@ -1,5 +1,6 @@
 import { T } from 'nc-help';
-import { FormReqType, ViewTypes } from 'nocodb-sdk';
+import type { FormReqType } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../meta/api/helpers';
 import { FormView, View } from '../../models';
 

@@ -1,4 +1,5 @@
-import { IEmailAdapter, XcEmailPlugin } from 'nc-plugin';
+import type { IEmailAdapter } from 'nc-plugin';
+import { XcEmailPlugin } from 'nc-plugin';
 
 import SES from './SES';
 

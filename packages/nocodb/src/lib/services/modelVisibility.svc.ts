@@ -1,4 +1,4 @@
-import { VisibilityRuleReqType } from 'nocodb-sdk';
+import type { VisibilityRuleReqType } from 'nocodb-sdk';
 import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
 import ModelRoleVisibility from '../models/ModelRoleVisibility';

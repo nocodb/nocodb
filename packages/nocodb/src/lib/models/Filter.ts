@@ -9,7 +9,8 @@ import {
   MetaTable,
 } from '../utils/globals';
 import View from './View';
-import { BoolType, FilterType, UITypes } from 'nocodb-sdk';
+import type { BoolType, FilterType } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';

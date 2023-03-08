@@ -1,4 +1,4 @@
-import { SortReqType } from 'nocodb-sdk';
+import type { SortReqType } from 'nocodb-sdk';
 import { validatePayload } from '../meta/api/helpers';
 import Sort from '../models/Sort';
 import { T } from 'nc-help';

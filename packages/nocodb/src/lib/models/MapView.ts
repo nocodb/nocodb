@@ -1,5 +1,5 @@
 import Noco from '../Noco';
-import { MapType } from 'nocodb-sdk';
+import type { MapType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';

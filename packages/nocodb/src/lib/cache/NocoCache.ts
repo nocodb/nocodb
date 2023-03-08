@@ -1,4 +1,4 @@
-import CacheMgr from './CacheMgr';
+import type CacheMgr from './CacheMgr';
 import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
 import { CacheGetType } from '../utils/globals';

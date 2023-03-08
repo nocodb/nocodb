@@ -2,15 +2,15 @@ import { NcError } from '../../meta/helpers/catchError';
 import Project from '../../models/Project';
 import Model from '../../models/Model';
 import View from '../../models/View';
-import { Request } from 'express';
+import type { Request } from 'express';
 import Base from '../../models/Base';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 
 import * as XLSX from 'xlsx';
 import Column from '../../models/Column';
-import LookupColumn from '../../models/LookupColumn';
-import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
+import type LookupColumn from '../../models/LookupColumn';
+import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 
 import papaparse from 'papaparse';
 import { dataService } from '../../services';

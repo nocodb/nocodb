@@ -8,7 +8,8 @@ import {
   MetaTable,
 } from '../utils/globals';
 import View from './View';
-import { FilterType, UITypes } from 'nocodb-sdk';
+import type { FilterType } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
 

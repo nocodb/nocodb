@@ -223,7 +223,15 @@ watch(
               class="flex flex-row items-center gap-x-2 cursor-pointer text-gray-600 hover:text-black"
               @click="openPage(page)"
             >
-              <MdiFileDocumentOutline class="flex pop-in-animation" />
+              <div v-if="page.icon" class="flex">
+                <IconifyIcon
+                  :key="page.icon"
+                  :data-testid="`nc-doc-page-icon-${page.icon}`"
+                  class="flex text-lg pop-in-animation"
+                  :icon="page.icon"
+                ></IconifyIcon>
+              </div>
+              <MdiFileDocumentOutline v-else class="flex pop-in-animation ml-0.25" />
               <div class="font-semibold text-base pop-in-animation">
                 {{ page.title }}
               </div>

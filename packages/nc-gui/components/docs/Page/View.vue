@@ -207,7 +207,7 @@ watch(
           <EditorContent
             v-else
             :editor="editor"
-            class="px-2"
+            class="px-2 !mb-48"
             :class="{
               '-ml-1': !isEditAllowed,
               '-ml-12.5': isEditAllowed,

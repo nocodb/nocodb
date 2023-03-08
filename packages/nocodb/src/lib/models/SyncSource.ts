@@ -65,12 +65,7 @@ export default class SyncSource {
   }
 
   public static async insert(
-    syncSource: Partial<
-      SyncSource & {
-        created_at?;
-        updated_at?;
-      }
-    >,
+    syncSource: Partial<SyncSource>,
     ncMeta = Noco.ncMeta
   ) {
     const insertObj = extractProps(syncSource, [

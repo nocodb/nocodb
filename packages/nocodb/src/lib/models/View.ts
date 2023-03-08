@@ -246,8 +246,6 @@ export default class View implements ViewType {
       Partial<FormView | GridView | GalleryView | KanbanView | MapView> & {
         copy_from_id?: string;
         fk_grp_col_id?: string;
-        created_at?;
-        updated_at?;
       },
     ncMeta = Noco.ncMeta
   ) {
@@ -259,8 +257,6 @@ export default class View implements ViewType {
       'fk_model_id',
       'project_id',
       'base_id',
-      'created_at',
-      'updated_at',
       'meta',
     ]);
 

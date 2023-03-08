@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 import { dataAliasNestedService } from '../../services';
+import type { Request, Response } from 'express';
 
 // todo: handle case where the given column is not ltar
 export async function mmList(req: Request, res: Response) {

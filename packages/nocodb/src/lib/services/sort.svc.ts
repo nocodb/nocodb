@@ -1,7 +1,7 @@
-import type { SortReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import Sort from '../models/Sort';
-import { T } from 'nc-help';
+import type { SortReqType } from 'nocodb-sdk';
 
 export async function sortGet(param: { sortId: string }) {
   return Sort.get(param.sortId);

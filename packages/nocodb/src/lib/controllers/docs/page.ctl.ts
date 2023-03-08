@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import apiMetrics from '../../meta/helpers/apiMetrics';
-import type { UserType } from 'nocodb-sdk';
 import { docsPageService } from '../../services';
+import type { UserType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 async function get(
   req: Request<any> & { user: { id: string; roles: string } },

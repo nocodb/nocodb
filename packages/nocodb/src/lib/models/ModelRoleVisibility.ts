@@ -1,4 +1,3 @@
-import type { ModelRoleVisibilityType } from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
   CacheDelDirection,
@@ -7,8 +6,9 @@ import {
   MetaTable,
 } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
-import View from './View';
 import { extractProps } from '../meta/helpers/extractProps';
+import View from './View';
+import type { ModelRoleVisibilityType } from 'nocodb-sdk';
 
 export default class ModelRoleVisibility implements ModelRoleVisibilityType {
   id?: string;

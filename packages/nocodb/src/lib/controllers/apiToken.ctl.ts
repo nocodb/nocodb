@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { apiTokenService } from '../services';
+import type { Request, Response } from 'express';
 
 export async function apiTokenList(req: Request, res: Response) {
   res.json(await apiTokenService.apiTokenList({ userId: req['user'].id }));

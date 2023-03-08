@@ -1,5 +1,5 @@
-import catchError from '../meta/helpers/catchError';
 import { Router } from 'express';
+import catchError from '../meta/helpers/catchError';
 import { cacheService } from '../services';
 
 export async function cacheGet(_, res) {

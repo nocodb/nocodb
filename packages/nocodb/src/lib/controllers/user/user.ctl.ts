@@ -1,6 +1,5 @@
-import type { Request } from 'express';
-import * as ejs from 'ejs';
 import { promisify } from 'util';
+import * as ejs from 'ejs';
 
 import passport from 'passport';
 import catchError, { NcError } from '../../meta/helpers/catchError';
@@ -10,6 +9,7 @@ import { Audit, User } from '../../models';
 import Noco from '../../Noco';
 import { userService } from '../../services';
 import { setTokenCookie } from '../../services/user/helpers';
+import type { Request } from 'express';
 
 export async function signup(req: Request<any, any>, res): Promise<any> {
   res.json(

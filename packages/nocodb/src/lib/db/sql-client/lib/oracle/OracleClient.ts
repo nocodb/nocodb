@@ -1,9 +1,9 @@
 import knex from 'knex';
+import mapKeys from 'lodash/mapKeys';
+import find from 'lodash/find';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
-import mapKeys from 'lodash/mapKeys';
-import find from 'lodash/find';
 
 const log = new Debug('OracleClient');
 

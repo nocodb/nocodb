@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { dataService } from '../../services';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 import { parseHrtimeToSeconds } from '../../meta/api/helpers';
+import type { Request, Response } from 'express';
 
 // todo: Handle the error case where view doesnt belong to model
 async function dataList(req: Request, res: Response) {

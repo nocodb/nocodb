@@ -1,9 +1,4 @@
 import DOMPurify from 'isomorphic-dompurify';
-import type {
-  ColumnType,
-  NormalColumnRequestType,
-  TableReqType,
-} from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -11,6 +6,7 @@ import {
   ModelTypes,
   UITypes,
 } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
@@ -20,10 +16,14 @@ import getTableNameAlias, {
   getColumnNameAlias,
 } from '../meta/helpers/getTableName';
 import mapDefaultDisplayValue from '../meta/helpers/mapDefaultDisplayValue';
-import type { LinkToAnotherRecordColumn, User, View } from '../models';
 import { Audit, Column, Model, ModelRoleVisibility, Project } from '../models';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
-import { T } from 'nc-help';
+import type { LinkToAnotherRecordColumn, User, View } from '../models';
+import type {
+  ColumnType,
+  NormalColumnRequestType,
+  TableReqType,
+} from 'nocodb-sdk';
 
 export async function tableUpdate(param: {
   tableId: any;

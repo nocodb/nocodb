@@ -1,5 +1,4 @@
 import DOMPurify from 'isomorphic-dompurify';
-import type { UserType } from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -17,6 +16,7 @@ import Audit from '../models/Audit';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import getColumnUiType from '../meta/helpers/getColumnUiType';
 import mapDefaultDisplayValue from '../meta/helpers/mapDefaultDisplayValue';
+import type { UserType } from 'nocodb-sdk';
 
 export async function sqlViewCreate(param: {
   clientIp: string;

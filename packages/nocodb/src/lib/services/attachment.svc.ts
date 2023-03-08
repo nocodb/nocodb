@@ -1,8 +1,8 @@
-import { nanoid } from 'nanoid';
 import path from 'path';
+import { nanoid } from 'nanoid';
 import slash from 'slash';
-import mimetypes, { mimeIcons } from '../utils/mimeTypes';
 import { T } from 'nc-help';
+import mimetypes, { mimeIcons } from '../utils/mimeTypes';
 import NcPluginMgrv2 from '../meta/helpers/NcPluginMgrv2';
 import Local from '../v1-legacy/plugins/adapters/storage/Local';
 

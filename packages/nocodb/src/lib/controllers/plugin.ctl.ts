@@ -1,10 +1,10 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import type { PluginType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { pluginService } from '../services';
+import type { PluginType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 export async function pluginList(_req: Request, res: Response) {
   res.json(new PagedResponseImpl(await pluginService.pluginList()));

@@ -1,7 +1,6 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
-import type { XcPluginConfig } from 'nc-plugin';
-
 import TwilioWhatsappPlugin from './TwilioWhatsappPlugin';
+import type { XcPluginConfig } from 'nc-plugin';
 
 const config: XcPluginConfig = {
   builder: TwilioWhatsappPlugin,

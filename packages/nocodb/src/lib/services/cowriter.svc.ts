@@ -1,6 +1,5 @@
-import { NcError } from '../meta/helpers/catchError';
-import type { CowriterType } from 'nocodb-sdk';
 import { UITypes } from 'nocodb-sdk';
+import { NcError } from '../meta/helpers/catchError';
 import Cowriter from '../models/Cowriter';
 import Column from '../models/Column';
 import Model from '../models/Model';
@@ -10,6 +9,7 @@ import { getUniqueColumnAliasName } from '../meta/helpers/getUniqueName';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
 import { Altered } from './column.svc';
+import type { CowriterType } from 'nocodb-sdk';
 
 const { Configuration, OpenAIApi } = require('openai');
 

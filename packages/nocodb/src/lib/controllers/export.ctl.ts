@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import View from '../models/View';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { extractCsvData } from './dbData/helpers';
+import type { Request, Response } from 'express';
 
 async function exportCsv(req: Request, res: Response) {
   const view = await View.get(req.params.viewId);

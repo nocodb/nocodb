@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { getConditionalHandler } from '../meta/helpers/getHandler';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { orgTokenService, orgTokenServiceEE } from '../services';
+import type { Request, Response } from 'express';
 
 async function apiTokenList(req, res) {
   res.json(

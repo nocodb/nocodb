@@ -1,7 +1,7 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import catchError from '../../meta/helpers/catchError';
 import { publicMetaService } from '../../services';
+import type { Request, Response } from 'express';
 
 export async function viewMetaGet(req: Request, res: Response) {
   res.json(

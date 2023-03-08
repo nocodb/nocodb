@@ -1,12 +1,12 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import { Client as MinioClient } from 'minio';
-import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
 import {
   generateTempFilePath,
   waitForStreamClose,
 } from '../../utils/pluginUtils';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 
 export default class Minio implements IStorageAdapterV2 {
   private minioClient: MinioClient;

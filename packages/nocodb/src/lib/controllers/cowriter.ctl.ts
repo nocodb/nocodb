@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
-import type { CowriterListType, CowriterType } from 'nocodb-sdk';
 import { cowriterService } from '../services';
+import type { CowriterListType, CowriterType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 export async function cowriterCreate(
   req: Request<any, CowriterType, CowriterType>,

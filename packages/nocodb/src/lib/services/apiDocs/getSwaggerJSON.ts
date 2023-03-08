@@ -1,12 +1,12 @@
-import type { Model, Project, View } from '../../models';
-import type FormViewColumn from '../../models/FormViewColumn';
-import type GalleryViewColumn from '../../models/GalleryViewColumn';
+import { ViewTypes } from 'nocodb-sdk';
 import Noco from '../../Noco';
 import swaggerBase from './swagger-base.json';
 import getPaths from './getPaths';
 import getSchemas from './getSchemas';
 import getSwaggerColumnMetas from './getSwaggerColumnMetas';
-import { ViewTypes } from 'nocodb-sdk';
+import type GalleryViewColumn from '../../models/GalleryViewColumn';
+import type FormViewColumn from '../../models/FormViewColumn';
+import type { Model, Project, View } from '../../models';
 import type GridViewColumn from '../../models/GridViewColumn';
 
 export default async function getSwaggerJSON(

@@ -1,13 +1,4 @@
-import type {
-  IEmailAdapter,
-  IStorageAdapterV2,
-  IWebhookNotificationAdapter,
-  // XcEmailPlugin,
-  // XcPlugin,
-  // XcStoragePlugin,
-  // XcWebhookNotificationPlugin
-} from 'nc-plugin';
-
+import { PluginCategory } from 'nocodb-sdk';
 import BackblazePluginConfig from '../../plugins/backblaze';
 import DiscordPluginConfig from '../../plugins/discord';
 import GcsPluginConfig from '../../plugins/gcs';
@@ -30,9 +21,17 @@ import SESPluginConfig from '../../plugins/ses';
 import Noco from '../../Noco';
 import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { MetaTable } from '../../utils/globals';
-import { PluginCategory } from 'nocodb-sdk';
 import Plugin from '../../models/Plugin';
 import { NcError } from './catchError';
+import type {
+  IEmailAdapter,
+  IStorageAdapterV2,
+  IWebhookNotificationAdapter,
+  // XcEmailPlugin,
+  // XcPlugin,
+  // XcStoragePlugin,
+  // XcWebhookNotificationPlugin
+} from 'nc-plugin';
 
 const defaultPlugins = [
   SlackPluginConfig,

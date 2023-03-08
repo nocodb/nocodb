@@ -5,16 +5,16 @@ import { promisify } from 'util';
 import axios from 'axios';
 import { Router } from 'express';
 
-import type { NcConfig } from '../../interface/config';
+import { T } from 'nc-help';
 import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 import Migrator from '../db/sql-migrator/lib/KnexMigrator';
 
-import type Noco from '../Noco';
-import { T } from 'nc-help';
-import { GqlApiBuilder } from './gql/GqlApiBuilder';
 import { XCEeError } from '../meta/NcMetaMgr';
-import { RestApiBuilder } from './rest/RestApiBuilder';
 import NcConnectionMgr from '../utils/common/NcConnectionMgr';
+import { GqlApiBuilder } from './gql/GqlApiBuilder';
+import { RestApiBuilder } from './rest/RestApiBuilder';
+import type Noco from '../Noco';
+import type { NcConfig } from '../../interface/config';
 
 export default class NcProjectBuilder {
   public readonly id: string;

@@ -1,19 +1,19 @@
+import { UITypes } from 'nocodb-sdk';
 import Noco from '../Noco';
-import Model from './Model';
-import Column from './Column';
-import Hook from './Hook';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import View from './View';
-import type { BoolType, FilterType } from 'nocodb-sdk';
-import { UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
+import Column from './Column';
+import Hook from './Hook';
+import View from './View';
+import type { BoolType, FilterType } from 'nocodb-sdk';
 
 export const COMPARISON_OPS = <const>[
   'eq',

@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import Audit from '../models/Audit';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { auditService } from '../services';
+import type { Request, Response } from 'express';
 
 export async function commentRow(req: Request<any, any>, res) {
   res.json(

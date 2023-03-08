@@ -1,4 +1,8 @@
 import { customAlphabet } from 'nanoid';
+import { UITypes } from 'nocodb-sdk';
+import Column from '../../../models/Column';
+import { getUniqueColumnAliasName } from '../../helpers/getUniqueName';
+import validateParams from '../../helpers/validateParams';
 import type {
   BoolType,
   ColumnReqType,
@@ -8,13 +12,9 @@ import type {
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
-import { UITypes } from 'nocodb-sdk';
-import Column from '../../../models/Column';
 import type LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import type LookupColumn from '../../../models/LookupColumn';
 import type Model from '../../../models/Model';
-import { getUniqueColumnAliasName } from '../../helpers/getUniqueName';
-import validateParams from '../../helpers/validateParams';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',

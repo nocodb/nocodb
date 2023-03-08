@@ -1,11 +1,11 @@
-import type { NcUpgraderCtx } from './NcUpgrader';
+import { UITypes } from 'nocodb-sdk';
 import { MetaTable } from '../utils/globals';
-import type NcMetaIO from '../meta/NcMetaIO';
 import Column from '../models/Column';
 import Filter from '../models/Filter';
 import Project from '../models/Project';
+import type NcMetaIO from '../meta/NcMetaIO';
+import type { NcUpgraderCtx } from './NcUpgrader';
 import type { SelectOptionsType } from 'nocodb-sdk';
-import { UITypes } from 'nocodb-sdk';
 
 // as of 0.104.3, almost all filter operators are available to all column types
 // while some of them aren't supposed to be shown

@@ -1,7 +1,7 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { commandPaletteService } from '../services';
+import type { Request, Response } from 'express';
 import type { UserType } from 'nocodb-sdk';
 
 export async function commandPalette(req: Request, res: Response) {

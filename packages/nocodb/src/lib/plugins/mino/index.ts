@@ -1,7 +1,6 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
-import type { XcPluginConfig } from 'nc-plugin';
-
 import S3Plugin from './MinioPlugin';
+import type { XcPluginConfig } from 'nc-plugin';
 
 const config: XcPluginConfig = {
   builder: S3Plugin,

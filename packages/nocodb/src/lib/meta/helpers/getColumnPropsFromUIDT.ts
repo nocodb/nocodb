@@ -1,5 +1,5 @@
-import type { ColumnReqType, NormalColumnRequestType } from 'nocodb-sdk';
 import { SqlUiFactory, UITypes } from 'nocodb-sdk';
+import type { ColumnReqType, NormalColumnRequestType } from 'nocodb-sdk';
 import type Base from '../../models/Base';
 import type Column from '../../models/Column';
 

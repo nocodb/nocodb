@@ -2,13 +2,13 @@ import axios from 'axios';
 import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Noco from '../../../Noco';
-import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
-import resetMysqlSakilaProject from './resetMysqlSakilaProject';
-import resetPgSakilaProject from './resetPgSakilaProject';
 import User from '../../../models/User';
 import NocoCache from '../../../cache/NocoCache';
 import { CacheScope } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
+import resetPgSakilaProject from './resetPgSakilaProject';
+import resetMysqlSakilaProject from './resetMysqlSakilaProject';
+import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
 
 const workerStatus = {};
 

@@ -1,22 +1,22 @@
+import { isVirtualCol, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import Noco from '../Noco';
 import { parseMetaProp } from '../utils/modelUtils';
-import Column from './Column';
 import NocoCache from '../cache/NocoCache';
-import type { XKnex } from '../db/sql-data-mapper';
 import { BaseModelSqlv2 } from '../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
-import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
-import { isVirtualCol, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import View from './View';
 import { NcError } from '../meta/helpers/catchError';
-import Audit from './Audit';
 import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
 import { extractProps } from '../meta/helpers/extractProps';
+import Audit from './Audit';
+import View from './View';
+import Column from './Column';
+import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
+import type { XKnex } from '../db/sql-data-mapper';
 
 export default class Model implements TableType {
   copy_enabled: BoolType;

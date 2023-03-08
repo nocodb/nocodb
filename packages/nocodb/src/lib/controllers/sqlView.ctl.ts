@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { sqlViewService } from '../services';
+import type { Request, Response } from 'express';
 
 export async function sqlViewCreate(
   req: Request<any, any, any>,

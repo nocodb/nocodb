@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Editor, Range } from '@tiptap/vue-3'
+import { isMacOS } from '@tiptap/vue-3'
 import showdown from 'showdown'
 import { generateJSON } from '@tiptap/html'
 import { createTable } from '@tiptap/extension-table'
@@ -94,6 +95,7 @@ const items = [
     },
     icon: MdiFormatHeader1,
     iconClass: 'pt-0.5',
+    shortCutText: isMacOS() ? '^ ⇧ 1' : 'Ctrl ⇧ 1',
   },
   {
     title: 'Heading 2',
@@ -104,6 +106,7 @@ const items = [
     },
     icon: MdiFormatHeader2,
     iconClass: 'pt-0.5',
+    shortCutText: isMacOS() ? '^ ⇧ 2' : 'Ctrl ⇧ 2',
   },
   {
     title: 'Heading 3',
@@ -115,6 +118,7 @@ const items = [
     icon: MdiFormatHeader3,
     iconClass: 'pt-0.5',
     hasDivider: true,
+    shortCutText: isMacOS() ? '^ ⇧ 3' : 'Ctrl ⇧ 3',
   },
   {
     title: 'Link',
@@ -123,6 +127,7 @@ const items = [
       editor.chain().focus().deleteRange(range).setLink({ href: '' }).run()
     },
     icon: MdiLinkVariant,
+    shortCutText: isMacOS() ? '^ K' : 'Ctrl K',
   },
   {
     title: 'Body Text',
@@ -141,6 +146,7 @@ const items = [
     },
     icon: MdiFormatQuoteOpen,
     iconClass: '',
+    shortCutText: isMacOS() ? '⌘ ]' : 'Ctrl ]',
   },
   {
     title: 'Image',
@@ -161,26 +167,7 @@ const items = [
     icon: MdiCodeSnippet,
     iconClass: '',
     hasDivider: true,
-  },
-  {
-    title: 'Bullet List',
-    class: 'text-xs',
-    command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('bulletList').run()
-      ;(editor.chain().focus() as any).toggleBulletList().run()
-    },
-    icon: MdiBulletList,
-    iconClass: '',
-  },
-  {
-    title: 'Numbered List',
-    class: 'text-xs',
-    command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('orderedList').run()
-      ;(editor.chain().focus() as any).toggleOrderedList().run()
-    },
-    icon: MdiNumberedList,
-    iconClass: '',
+    shortCutText: isMacOS() ? '⌥ ⌘ C' : 'Alt Ctrl C',
   },
   {
     title: 'Task list',
@@ -191,8 +178,33 @@ const items = [
     },
     icon: MdiTaskList,
     iconClass: '',
+    shortCutText: isMacOS() ? '^ ⌥ 1' : 'Ctrl Alt 1',
+  },
+  {
+    title: 'Bullet List',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('bulletList').run()
+      ;(editor.chain().focus() as any).toggleBulletList().run()
+    },
+    icon: MdiBulletList,
+    iconClass: '',
+    // Ctrl + Option + Shift + 8
+    shortCutText: isMacOS() ? '^ ⌥ 2' : 'Ctrl Alt 2',
+  },
+  {
+    title: 'Numbered List',
+    class: 'text-xs',
+    command: ({ editor, range }: { editor: Editor; range: Range }) => {
+      editor.chain().focus().deleteRange(range).setNode('orderedList').run()
+      ;(editor.chain().focus() as any).toggleOrderedList().run()
+    },
+    icon: MdiNumberedList,
+    iconClass: '',
+    shortCutText: isMacOS() ? '^ ⌥ 3' : 'Ctrl Alt 3',
     hasDivider: true,
   },
+
   {
     title: 'Info notice',
     class: 'text-xs',
@@ -295,6 +307,7 @@ const items = [
     icon: MdiMinus,
     iconClass: '',
     hasDivider: true,
+    shortCutText: isMacOS() ? '⌘ Space' : 'Ctrl Space',
   },
   {
     title: 'Google Docs',
@@ -629,10 +642,15 @@ defineExpose({
             accept="image/*"
             @change="onFilePicked"
           />
-          <div class="flex flex-row items-center gap-x-1.5">
-            <component :is="item.icon" v-if="item.icon && loadingOperationName !== item.title" :class="item.iconClass" />
-            <div :class="item.class" :style="item.style">
-              {{ item.title }}
+          <div class="flex flex-row items-center justify-between w-full">
+            <div class="flex items-center gap-x-1.5">
+              <component :is="item.icon" v-if="item.icon && loadingOperationName !== item.title" :class="item.iconClass" />
+              <div :class="item.class" :style="item.style">
+                {{ item.title }}
+              </div>
+            </div>
+            <div class="flex text-gray-400 items-center">
+              {{ item.shortCutText }}
             </div>
           </div>
         </a-button>

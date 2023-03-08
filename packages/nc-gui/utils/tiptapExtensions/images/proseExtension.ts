@@ -82,15 +82,17 @@ export const dropImagePlugin = (upload: UploadFn) => {
       handlePaste(view, event) {
         const items = Array.from(event.clipboardData?.items || [])
         event.preventDefault()
+        let isImageAdded = false
 
         for (const item of items) {
           const image = item.getAsFile()
           if (!image || item.type.indexOf('image') !== 0) continue
 
           addImage(image, view, upload)
+          isImageAdded = true
         }
 
-        return false
+        return isImageAdded
       },
       handleDOMEvents: {
         drop: (view, event) => {

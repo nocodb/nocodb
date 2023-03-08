@@ -5,7 +5,24 @@ import { Plugin } from 'prosemirror-state'
 export const Link = TiptapLink.extend({
   addKeyboardShortcuts() {
     return {
-      Space: () => {
+      'Mod-k': () => {
+        const to = this.editor.view.state.selection.to
+        this.editor
+          .chain()
+          .toggleLink({
+            href: '',
+          })
+          .setTextSelection(to)
+          .run()
+
+        setTimeout(() => {
+          const linkInput = document.querySelector('.docs-link-option-input')
+          if (linkInput) {
+            ;(linkInput as any).focus()
+          }
+        }, 100)
+      },
+      'Space': () => {
         const editor = this.editor
         const selection = editor.view.state.selection
         const nodeBefore = selection.$to.nodeBefore

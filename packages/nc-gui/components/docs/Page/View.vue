@@ -207,7 +207,7 @@ watch(
           <EditorContent
             v-else
             :editor="editor"
-            class="px-2"
+            class="px-2 !mb-48"
             :class="{
               '-ml-1': !isEditAllowed,
               '-ml-12.5': isEditAllowed,
@@ -493,7 +493,7 @@ watch(
     list-style: disc;
   }
 
-  hr.nc-docs-horizontal-rule {
+  hr {
     border: 0;
     border-top: 1px solid #ccc;
     margin: 1.5em 0;

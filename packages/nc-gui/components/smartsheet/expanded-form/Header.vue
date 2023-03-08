@@ -138,7 +138,6 @@ const onConfirmDeleteRowClick = async () => {
     </a-tooltip>
 
     <a-tooltip v-if="!isSqlView" placement="bottom">
-      &lt;!&ndash; Duplicate row &ndash;&gt;
       <template #title>
         <div class="text-center w-full">{{ $t('activity.duplicateRow') }}</div>
       </template>
@@ -224,7 +223,6 @@ const onConfirmDeleteRowClick = async () => {
         @click="emit('cancel')"
       />
     </a-tooltip>
--->
 
     <a-modal v-model:visible="showDeleteRowModal" title="Delete row?" @ok="onConfirmDeleteRowClick">
       <p>Are you sure you want to delete this row?</p>

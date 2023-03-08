@@ -201,7 +201,12 @@ defineExpose({
     class="p-4 menu-filter-dropdown bg-gray-50 !border"
     :class="{ 'shadow min-w-[430px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
   >
-    <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
+    <div
+      v-if="filters && filters.length"
+      class="nc-filter-grid mb-2"
+      :class="{ 'max-h-420px overflow-y-auto': !nested }"
+      @click.stop
+    >
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
@@ -230,7 +235,7 @@ defineExpose({
               </a-select>
             </div>
             <span class="col-span-3" />
-            <div class="col-span-5">
+            <div class="col-span-6">
               <LazySmartsheetToolbarColumnFilter
                 v-if="filter.id || filter.children"
                 :key="filter.id ?? i"

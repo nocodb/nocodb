@@ -370,8 +370,9 @@ export async function signup(param: {
 
   const {
     email: _email,
-    firstname,
-    lastname,
+    avatar,
+    display_name,
+    user_name,
     token,
     ignore_subscribe,
   } = param.req.body;
@@ -418,8 +419,9 @@ export async function signup(param: {
   if (user) {
     if (token) {
       await User.update(user.id, {
-        firstname,
-        lastname,
+        avatar,
+        display_name,
+        user_name,
         salt,
         password,
         email_verification_token,
@@ -432,8 +434,9 @@ export async function signup(param: {
     }
   } else {
     await registerNewUserIfAllowed({
-      firstname,
-      lastname,
+      avatar,
+      display_name,
+      user_name,
       email,
       salt,
       password,

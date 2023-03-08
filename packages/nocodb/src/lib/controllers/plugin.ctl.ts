@@ -17,6 +17,7 @@ export async function pluginTest(req: Request<any, any>, res: Response) {
 export async function pluginRead(req: Request, res: Response) {
   res.json(await pluginService.pluginRead({ pluginId: req.params.pluginId }));
 }
+
 export async function pluginUpdate(
   req: Request<any, any, PluginType>,
   res: Response
@@ -27,6 +28,7 @@ export async function pluginUpdate(
   });
   res.json(plugin);
 }
+
 export async function isPluginActive(req: Request, res: Response) {
   res.json(
     await pluginService.isPluginActive({ pluginTitle: req.params.pluginTitle })
@@ -34,6 +36,11 @@ export async function isPluginActive(req: Request, res: Response) {
 }
 
 const router = Router({ mergeParams: true });
+router.use((_req, res, next) => {
+  if (process.env.NC_CLOUD) {
+    res.status(403).send('Not allowed');
+  } else next();
+});
 router.get(
   '/api/v1/db/meta/plugins',
   metaApiMetrics,

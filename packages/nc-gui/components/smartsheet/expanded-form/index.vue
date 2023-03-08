@@ -43,6 +43,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
+const key = ref(0)
+
 const { t } = useI18n()
 
 const row = ref(props.row)
@@ -177,6 +179,8 @@ const addNewRow = () => {
       oldRow: {},
       rowMeta: { new: true },
     }
+    rowState.value = {}
+    key.value++
     isExpanded.value = true
   }, 500)
 }
@@ -273,7 +277,7 @@ export default {
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
 
-    <div class="!bg-gray-100 rounded flex-1">
+    <div :key="key" class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container relative">
           <template v-if="props.showNextPrevIcons">

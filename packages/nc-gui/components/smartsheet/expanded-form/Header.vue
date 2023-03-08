@@ -150,20 +150,6 @@ const onConfirmDeleteRowClick = async () => {
       />
     </a-tooltip>
 
-    <!--
-    <!--    <a-tooltip v-if="!isSqlView" placement="bottom">
-      &lt;!&ndash; Delete row &ndash;&gt;
-      <template #title>
-        <div class="text-center w-full">{{ $t('activity.deleteRow') }}</div>
-      </template>
-      <MdiDeleteOutline
-        v-if="isUIAllowed('xcDatatableEditable') && !isNew"
-        v-e="['c:row-expand:delete']"
-        class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
-        @click="!isNew && onDeleteRowClick()"
-      />
-    </a-tooltip> -->
-
     <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
       <template #icon><MdiMenuDown /></template>
 

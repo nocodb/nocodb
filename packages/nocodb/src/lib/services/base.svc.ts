@@ -1,5 +1,5 @@
 import Project from '../models/Project';
-import { BaseReqType } from 'nocodb-sdk';
+import type { BaseReqType } from 'nocodb-sdk';
 import { syncBaseMigration } from '../meta/helpers/syncMigration';
 import Base from '../models/Base';
 import { T } from 'nc-help';

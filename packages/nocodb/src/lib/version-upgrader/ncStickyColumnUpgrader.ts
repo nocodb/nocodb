@@ -1,4 +1,4 @@
-import { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
 
 // before 0.104.3, display value column can be in any position in table

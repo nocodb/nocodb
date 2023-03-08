@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { promisify } from 'util';
-import { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import AWS from 'aws-sdk';
 import request from 'request';
 import {

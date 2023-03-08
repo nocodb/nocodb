@@ -1,8 +1,9 @@
 import autoBind from 'auto-bind';
-import { NextFunction, Request, Response, Router } from 'express';
+import type { NextFunction, Request, Response } from 'express';
+import { Router } from 'express';
 
-import { Route } from '../../../interface/config';
-import { BaseModelSql } from '../../db/sql-data-mapper';
+import type { Route } from '../../../interface/config';
+import type { BaseModelSql } from '../../db/sql-data-mapper';
 
 import { RestBaseCtrl } from './RestBaseCtrl';
 

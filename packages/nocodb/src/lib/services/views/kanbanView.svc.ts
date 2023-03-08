@@ -1,4 +1,5 @@
-import { KanbanReqType, ViewTypes } from 'nocodb-sdk';
+import type { KanbanReqType } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../meta/api/helpers';
 import { KanbanView, View } from '../../models';
 import { T } from 'nc-help';

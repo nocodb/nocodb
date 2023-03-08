@@ -1,4 +1,5 @@
-import { ProjectRoles, ProjectType, WorkspaceUserRoles } from 'nocodb-sdk';
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import type { ProjectType } from 'nocodb-sdk';
 import {
   // CacheDelDirection,
   CacheGetType,

@@ -1,4 +1,4 @@
-import { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from './NcUpgrader';
 import { MetaTable } from '../utils/globals';
 import View from '../models/View';
 import Hook from '../models/Hook';

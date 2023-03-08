@@ -1,4 +1,4 @@
-import { ModelRoleVisibilityType } from 'nocodb-sdk';
+import type { ModelRoleVisibilityType } from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
   CacheDelDirection,

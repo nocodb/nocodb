@@ -1,6 +1,6 @@
 import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import projectAcl from '../../utils/projectAcl';
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import catchError, { NcError } from './catchError';
 import extractWorkspaceProjectAndAuthenticate from './extractWorkspaceProjectAndAuthenticate';
 

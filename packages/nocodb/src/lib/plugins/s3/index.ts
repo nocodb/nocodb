@@ -1,5 +1,5 @@
 import { PluginCategory, XcActionType, XcType } from 'nocodb-sdk';
-import { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from 'nc-plugin';
 
 import S3Plugin from './S3Plugin';
 

@@ -1,11 +1,12 @@
 import autoBind from 'auto-bind';
-import { NextFunction, Request, Response, Router } from 'express';
+import type { NextFunction, Request, Response } from 'express';
+import { Router } from 'express';
 
-import { Acl, Acls, Route } from '../../../interface/config';
-import { BaseModelSql } from '../../db/sql-data-mapper';
+import type { Acl, Acls, Route } from '../../../interface/config';
+import type { BaseModelSql } from '../../db/sql-data-mapper';
 
 import { RestBaseCtrl } from './RestBaseCtrl';
-import { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
+import type { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 
 function parseHrtimeToSeconds(hrtime) {
   const seconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);

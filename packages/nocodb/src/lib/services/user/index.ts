@@ -1,13 +1,11 @@
-import {
+import type {
   PasswordChangeReqType,
   PasswordForgotReqType,
   PasswordResetReqType,
   SignUpReqType,
   UserType,
-  validatePassword,
-  WorkspaceUserRoles,
 } from 'nocodb-sdk';
-import { OrgUserRoles } from 'nocodb-sdk';
+import { OrgUserRoles, validatePassword, WorkspaceUserRoles } from 'nocodb-sdk';
 import { T } from 'nc-help';
 
 import * as ejs from 'ejs';

@@ -1,12 +1,12 @@
-import { Knex } from 'knex';
-import { XKnex } from '../../index';
+import type { Knex } from 'knex';
+import type { XKnex } from '../../index';
 import Sort from '../../../../models/Sort';
-import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import type LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
 import genRollupSelectv2 from './genRollupSelectv2';
-import RollupColumn from '../../../../models/RollupColumn';
-import LookupColumn from '../../../../models/LookupColumn';
+import type RollupColumn from '../../../../models/RollupColumn';
+import type LookupColumn from '../../../../models/LookupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import FormulaColumn from '../../../../models/FormulaColumn';
+import type FormulaColumn from '../../../../models/FormulaColumn';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { sanitize } from './helpers/sanitize';
 

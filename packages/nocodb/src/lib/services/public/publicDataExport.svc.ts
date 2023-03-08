@@ -2,14 +2,12 @@ import { nocoExecute } from 'nc-help';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { NcError } from '../../meta/helpers/catchError';
-import {
-  Base,
-  Column,
+import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
-  Model,
   View,
 } from '../../models';
+import { Base, Column, Model } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 
 export async function getDbRows(param: {

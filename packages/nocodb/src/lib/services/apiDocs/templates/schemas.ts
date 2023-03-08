@@ -1,4 +1,4 @@
-import { SwaggerColumn } from '../getSwaggerColumnMetas';
+import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 
 export const getModelSchemas = (ctx: {
   tableName: string;

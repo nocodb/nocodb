@@ -1,4 +1,4 @@
-import IEmailAdapter from '../../../../../interface/IEmailAdapter';
+import type IEmailAdapter from '../../../../../interface/IEmailAdapter';
 
 import SES from './SES';
 import SMTP from './SMTP';

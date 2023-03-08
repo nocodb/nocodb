@@ -14,14 +14,8 @@ import GalleryView from './GalleryView';
 import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
 import Filter from './Filter';
-import {
-  BoolType,
-  ColumnReqType,
-  isSystemColumn,
-  UITypes,
-  ViewType,
-  ViewTypes,
-} from 'nocodb-sdk';
+import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import KanbanViewColumn from './KanbanViewColumn';

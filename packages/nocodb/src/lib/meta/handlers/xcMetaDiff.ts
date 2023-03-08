@@ -1,4 +1,4 @@
-import NcMetaMgr from '../NcMetaMgr';
+import type NcMetaMgr from '../NcMetaMgr';
 
 enum XcMetaDiffType {
   TABLE_NEW = 'TABLE_NEW',

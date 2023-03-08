@@ -2,7 +2,8 @@ import autoBind from 'auto-bind';
 import _ from 'lodash';
 import Validator from 'validator';
 
-import BaseModel, { XcFilter, XcFilterWithAlias } from '../BaseModel';
+import type { XcFilter, XcFilterWithAlias } from '../BaseModel';
+import BaseModel from '../BaseModel';
 import formulaQueryBuilder from './formulaQueryBuilderFromString';
 import genRollupSelect from './genRollupSelect';
 import Papaparse from 'papaparse';

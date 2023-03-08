@@ -2,7 +2,7 @@ import { extractProps } from '../meta/helpers/extractProps';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 
-import { CowriterType } from 'nocodb-sdk';
+import type { CowriterType } from 'nocodb-sdk';
 
 export default class Cowriter implements CowriterType {
   id?: string;

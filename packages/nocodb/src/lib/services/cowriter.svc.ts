@@ -1,5 +1,6 @@
 import { NcError } from '../meta/helpers/catchError';
-import { CowriterType, UITypes } from 'nocodb-sdk';
+import type { CowriterType } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import Cowriter from '../models/Cowriter';
 import Column from '../models/Column';
 import Model from '../models/Model';
@@ -41,10 +42,10 @@ export async function cowriterCreate(param: {
   let translatedPromptStatement = promptStatement;
 
   table.columns.forEach((c) => {
-    if (formState[c.title!]) {
+    if (formState[c.title]) {
       translatedPromptStatement = translatedPromptStatement.replaceAll(
         `{{${c.title}}}`,
-        formState[c.title!]
+        formState[c.title]
       );
     }
   });

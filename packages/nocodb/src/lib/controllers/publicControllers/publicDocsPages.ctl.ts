@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 import catchError from '../../meta/helpers/catchError';
 import { publicDocsPagesService } from '../../services';

@@ -1,10 +1,7 @@
 import { validatePayload } from '../meta/api/helpers';
 import Audit from '../models/Audit';
-import {
-  AuditOperationSubTypes,
-  AuditOperationTypes,
-  AuditRowUpdateReqType,
-} from 'nocodb-sdk';
+import type { AuditRowUpdateReqType } from 'nocodb-sdk';
+import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import Model from '../models/Model';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 

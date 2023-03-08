@@ -1,5 +1,5 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
-import { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from 'nc-plugin';
 
 import SlackPlugin from './SlackPlugin';
 

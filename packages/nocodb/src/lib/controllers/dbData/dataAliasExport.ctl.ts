@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import * as XLSX from 'xlsx';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';

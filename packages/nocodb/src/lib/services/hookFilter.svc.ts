@@ -1,5 +1,5 @@
 import { T } from 'nc-help';
-import { FilterReqType } from 'nocodb-sdk';
+import type { FilterReqType } from 'nocodb-sdk';
 import { validatePayload } from '../meta/api/helpers';
 import Filter from '../models/Filter';
 

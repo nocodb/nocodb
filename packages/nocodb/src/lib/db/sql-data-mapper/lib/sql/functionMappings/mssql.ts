@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { MapFnArgs } from '../mapFunctionName';
+import type { MapFnArgs } from '../mapFunctionName';
 import commonFns from './commonFns';
 import { convertUnits } from '../helpers/convertUnits';
 import { getWeekdayByText } from '../helpers/formulaFnHelper';

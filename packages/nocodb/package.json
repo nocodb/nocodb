@@ -25,7 +25,7 @@
     "obfuscate:build:publish": "npm run build:obfuscate && npm publish .",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts --fix",
     "test": "cross-env TS_NODE_PROJECT=tsconfig.json mocha -r ts-node/register   src/__tests__/**/*.test.ts --recursive",
     "unit-test": "cross-env TS_NODE_PROJECT=tsconfig.json mocha --require ts-node/register 'src/__tests__/unit/**/*.test.ts' --recursive --check-leaks --exit",
     "local:test:unit": "cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",

@@ -1,5 +1,5 @@
 import Page from '../../models/Page';
-import { UserType } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
 import { NcError } from '../../meta/helpers/catchError';
 import Project from '../../models/Project';
 import JSON5 from 'json5';

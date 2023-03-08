@@ -1,8 +1,8 @@
+import type { UserType } from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
   PluginCategory,
-  UserType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';

@@ -2,7 +2,7 @@ import { extractProps } from '../meta/helpers/extractProps';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 
-import { WorkspaceType } from 'nocodb-sdk';
+import type { WorkspaceType } from 'nocodb-sdk';
 
 export default class Workspace implements WorkspaceType {
   id?: string;

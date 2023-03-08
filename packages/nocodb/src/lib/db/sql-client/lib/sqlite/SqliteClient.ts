@@ -1312,10 +1312,7 @@ class SqliteClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `DROP TRIGGER ${args.view_name}`
     try {
-      const query = this.genQuery(
-        `DROP VIEW ??;`,
-        [args.view_name]
-      );
+      const query = this.genQuery(`DROP VIEW ??;`, [args.view_name]);
 
       await this.sqlClient.raw(query);
 

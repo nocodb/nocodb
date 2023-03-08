@@ -62,9 +62,36 @@ const tiptapExtensions = (): Extensions => {
         return 'Press / to open the command menu or start writing'
       },
     }),
-    BulletList,
-    OrderedList,
-    TaskList.configure({
+    BulletList.extend({
+      addKeyboardShortcuts() {
+        return {
+          'Ctrl-Alt-2': () => {
+            this.editor.chain().focus().setNode('bulletList').run()
+            return (this.editor.chain().focus() as any).toggleBulletList().run()
+          },
+        }
+      },
+    }),
+    OrderedList.extend({
+      addKeyboardShortcuts() {
+        return {
+          'Ctrl-Alt-3': () => {
+            this.editor.chain().focus().setNode('orderedList').run()
+            return (this.editor.chain().focus() as any).toggleOrderedList().run()
+          },
+        }
+      },
+    }),
+    TaskList.extend({
+      addKeyboardShortcuts() {
+        return {
+          'Ctrl-Alt-1': () => {
+            this.editor.chain().focus().setNode('taskList').run()
+            return (this.editor.chain().focus() as any).toggleTaskList().run()
+          },
+        }
+      },
+    }).configure({
       HTMLAttributes: {
         class: 'nc-docs-task-list',
       },
@@ -72,7 +99,20 @@ const tiptapExtensions = (): Extensions => {
     TaskItem.configure({
       nested: true,
     }),
-    HorizontalRule,
+    HorizontalRule.extend({
+      addKeyboardShortcuts() {
+        return {
+          'Ctrl-Space': () => {
+            const from = this.editor.state.selection.from
+            return this.editor
+              .chain()
+              .setHorizontalRule()
+              .setTextSelection(from + 3)
+              .run()
+          },
+        }
+      },
+    }),
     Code,
     CodeBlock,
     createImageExtension(async (image: any) => {
@@ -80,7 +120,13 @@ const tiptapExtensions = (): Extensions => {
     }),
     Underline,
     History,
-    Blockquote,
+    Blockquote.extend({
+      addKeyboardShortcuts() {
+        return {
+          'Mod-]': () => this.editor.commands.toggleBlockquote(),
+        }
+      },
+    }),
     InfoCallout,
     WarningCallout,
     TipCallout,

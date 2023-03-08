@@ -493,7 +493,7 @@ watch(
     list-style: disc;
   }
 
-  hr.nc-docs-horizontal-rule {
+  hr {
     border: 0;
     border-top: 1px solid #ccc;
     margin: 1.5em 0;

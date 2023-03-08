@@ -1,6 +1,6 @@
-import type { PathParams } from './helpers';
-import { getViewAndModelByAliasOrId } from './helpers';
 import { View } from '../../models';
+import { getViewAndModelByAliasOrId } from './helpers';
+import type { PathParams } from './helpers';
 
 // Todo: bring logic from controller
 export async function excelDataExport(

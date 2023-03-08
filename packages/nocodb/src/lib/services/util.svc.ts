@@ -1,6 +1,7 @@
 import { compareVersions, validate } from 'compare-versions';
 
 import { ViewTypes } from 'nocodb-sdk';
+import axios from 'axios';
 import { Project } from '../models';
 import { NcError } from '../meta/helpers/catchError';
 import Noco from '../Noco';
@@ -12,7 +13,6 @@ import NcConfigFactory, {
   defaultConnectionConfig,
 } from '../utils/NcConfigFactory';
 import { User } from '../models';
-import axios from 'axios';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 
 const versionCache = {

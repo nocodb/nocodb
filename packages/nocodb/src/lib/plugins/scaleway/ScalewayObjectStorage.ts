@@ -1,12 +1,12 @@
 import fs from 'fs';
 import { promisify } from 'util';
-import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import AWS from 'aws-sdk';
 import request from 'request';
 import {
   generateTempFilePath,
   waitForStreamClose,
 } from '../../utils/pluginUtils';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 
 export default class ScalewayObjectStorage implements IStorageAdapterV2 {
   private s3Client: AWS.S3;

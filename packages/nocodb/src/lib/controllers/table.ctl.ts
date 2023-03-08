@@ -1,10 +1,10 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import type { TableListType, TableReqType, TableType } from 'nocodb-sdk';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { tableService } from '../services';
+import type { TableListType, TableReqType, TableType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 export async function tableList(req: Request, res: Response<TableListType>) {
   res.json(

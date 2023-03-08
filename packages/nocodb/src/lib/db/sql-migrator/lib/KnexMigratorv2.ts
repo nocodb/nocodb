@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import type { Knex } from 'knex';
 
 import glob from 'glob';
 import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
@@ -14,11 +13,12 @@ import * as fileHelp from '../../util/file.help';
 // import SqlMigrator from './SqlMigrator';
 // import NcConfigFactory from '../../../utils/NcConfigFactory';
 import Noco from '../../../Noco';
-import type { XKnex } from '../../sql-data-mapper';
 import Project from '../../../models/Project';
-import type Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import Result from '../../util/Result';
+import type Base from '../../../models/Base';
+import type { XKnex } from '../../sql-data-mapper';
+import type { Knex } from 'knex';
 
 const evt = new Emit();
 const log = new Debug('KnexMigrator');

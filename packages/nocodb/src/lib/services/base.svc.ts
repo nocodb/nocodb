@@ -1,9 +1,9 @@
+import { T } from 'nc-help';
 import Project from '../models/Project';
-import type { BaseReqType } from 'nocodb-sdk';
 import { syncBaseMigration } from '../meta/helpers/syncMigration';
 import Base from '../models/Base';
-import { T } from 'nc-help';
 import { populateMeta, validatePayload } from '../meta/api/helpers';
+import type { BaseReqType } from 'nocodb-sdk';
 
 export async function baseGetWithConfig(param: { baseId: any }) {
   const base = await Base.get(param.baseId);

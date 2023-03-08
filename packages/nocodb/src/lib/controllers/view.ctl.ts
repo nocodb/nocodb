@@ -1,10 +1,10 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import type { View } from '../models';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { viewService } from '../services';
+import type { View } from '../models';
+import type { Request, Response } from 'express';
 
 // @ts-ignore
 export async function viewGet(req: Request, res: Response) {}

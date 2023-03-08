@@ -1,8 +1,8 @@
 // // Project CRUD
-import type { Request, Response } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import catchError from '../meta/helpers/catchError';
 import { utilService } from '../services';
+import type { Request, Response } from 'express';
 
 export async function testConnection(req: Request, res: Response) {
   res.json(await utilService.testConnection({ body: req.body }));

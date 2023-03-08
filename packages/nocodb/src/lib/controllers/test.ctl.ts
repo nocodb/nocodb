@@ -1,6 +1,6 @@
-import type { Request } from 'express';
 import { Router } from 'express';
 import { TestResetService } from '../services/test/TestResetService';
+import type { Request } from 'express';
 
 export async function reset(req: Request<any, any>, res) {
   const service = new TestResetService({

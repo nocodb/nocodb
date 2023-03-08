@@ -1,7 +1,7 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import View from './View';
 import NocoCache from '../cache/NocoCache';
+import View from './View';
 import type { BoolType } from 'nocodb-sdk';
 
 export default class MapViewColumn {

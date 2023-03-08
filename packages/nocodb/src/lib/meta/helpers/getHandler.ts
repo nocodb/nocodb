@@ -1,5 +1,5 @@
-import type express from 'express';
 import Noco from '../../Noco';
+import type express from 'express';
 
 export default function getHandler(
   defaultHandler: express.Handler,

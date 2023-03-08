@@ -1,10 +1,10 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import type { FilterReqType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 
 import { filterService } from '../services';
+import type { FilterReqType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 // @ts-ignore
 export async function filterGet(req: Request, res: Response) {

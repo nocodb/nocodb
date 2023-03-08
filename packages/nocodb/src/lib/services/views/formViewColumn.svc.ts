@@ -1,6 +1,6 @@
+import { T } from 'nc-help';
 import { validatePayload } from '../../meta/api/helpers';
 import { FormViewColumn } from '../../models';
-import { T } from 'nc-help';
 export async function columnUpdate(param: {
   formViewColumnId: string;
   // todo: replace with FormColumnReq

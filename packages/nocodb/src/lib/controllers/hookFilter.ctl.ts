@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { T } from 'nc-help';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { hookFilterService } from '../services';
+import type { Request, Response } from 'express';
 
 export async function filterGet(req: Request, res: Response) {
   const filter = await hookFilterService.filterGet({

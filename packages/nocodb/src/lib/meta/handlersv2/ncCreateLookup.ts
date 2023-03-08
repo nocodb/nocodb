@@ -1,6 +1,6 @@
-import type { NcContextV2 } from '../NcMetaMgrv2';
-import Column from '../../models/Column';
 import { UITypes } from 'nocodb-sdk';
+import Column from '../../models/Column';
+import type { NcContextV2 } from '../NcMetaMgrv2';
 
 export default async function (this: NcContextV2, { args }: any) {
   if (

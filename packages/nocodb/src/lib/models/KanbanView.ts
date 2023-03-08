@@ -1,10 +1,10 @@
-import Noco from '../Noco';
 import { UITypes } from 'nocodb-sdk';
-import type { BoolType, KanbanType, MetaType } from 'nocodb-sdk';
+import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import View from './View';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import View from './View';
+import type { BoolType, KanbanType, MetaType } from 'nocodb-sdk';
 
 export default class KanbanView implements KanbanType {
   fk_view_id: string;

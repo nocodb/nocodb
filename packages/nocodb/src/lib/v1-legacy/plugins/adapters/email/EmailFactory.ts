@@ -1,7 +1,6 @@
-import type IEmailAdapter from '../../../../../interface/IEmailAdapter';
-
 import SES from './SES';
 import SMTP from './SMTP';
+import type IEmailAdapter from '../../../../../interface/IEmailAdapter';
 
 export default class EmailFactory {
   private static instance: IEmailAdapter;

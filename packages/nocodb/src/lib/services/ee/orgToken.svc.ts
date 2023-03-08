@@ -1,7 +1,7 @@
-import type { UserType } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
 import { ApiToken } from '../../models';
+import type { UserType } from 'nocodb-sdk';
 
 export async function apiTokenListEE(param: { user: UserType; query: any }) {
   let fk_user_id = param.user.id;

@@ -1,9 +1,9 @@
 import { T } from 'nc-help';
-import type { GridReqType } from 'nocodb-sdk';
 import { ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from '../../meta/api/helpers';
 import { View } from '../../models';
 import { GridView } from '../../models';
+import type { GridReqType } from 'nocodb-sdk';
 
 export async function gridViewCreate(param: {
   tableId: string;

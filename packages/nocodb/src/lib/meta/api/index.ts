@@ -1,4 +1,7 @@
+import crypto from 'crypto';
 import { T } from 'nc-help';
+import { Server } from 'socket.io';
+import passport from 'passport';
 import orgLicenseController from '../../controllers/orgLicense.ctl';
 import orgTokenController from '../../controllers/orgToken.ctl';
 import orgUserController from '../../controllers/orgUser.ctl';
@@ -6,7 +9,6 @@ import projectController from '../../controllers/project.ctl';
 import baseController from '../../controllers/base.ctl';
 import tableController from '../../controllers/table.ctl';
 import columnController from '../../controllers/column.ctl';
-import type { Router } from 'express';
 import sortController from '../../controllers/sort.ctl';
 import filterController from '../../controllers/filter.ctl';
 import viewColumnController from '../../controllers/viewColumn.ctl';
@@ -47,14 +49,12 @@ import {
   publicDataExportController,
   publicMetaController,
 } from '../../controllers/publicControllers';
-import type { Socket } from 'socket.io';
-import { Server } from 'socket.io';
-import passport from 'passport';
 
-import crypto from 'crypto';
 import swaggerController from '../../controllers/apiDocs';
 import { importController, syncSourceController } from '../../controllers/sync';
 import mapViewController from '../../controllers/views/mapView.ctl';
+import type { Socket } from 'socket.io';
+import type { Router } from 'express';
 
 const clients: { [id: string]: Socket } = {};
 const jobs: { [id: string]: { last_message: any } } = {};

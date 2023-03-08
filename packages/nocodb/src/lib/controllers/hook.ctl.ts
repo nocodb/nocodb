@@ -1,11 +1,11 @@
-import catchError from '../meta/helpers/catchError';
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import type { HookListType, HookType } from 'nocodb-sdk';
+import catchError from '../meta/helpers/catchError';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { hookService } from '../services';
+import type { HookListType, HookType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 export async function hookList(
   req: Request<any, any, any>,

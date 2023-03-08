@@ -1,12 +1,11 @@
-import { OrgUserRoles } from 'nocodb-sdk';
 import { promisify } from 'util';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { Strategy as CustomStrategy } from 'passport-custom';
 import passport from 'passport';
 import passportJWT from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
-const PassportLocalStrategy = require('passport-local').Strategy;
 const ExtractJwt = passportJWT.ExtractJwt;
 const JwtStrategy = passportJWT.Strategy;
 
@@ -20,6 +19,7 @@ import { ApiToken, Plugin, Project, ProjectUser, User } from '../../models';
 import Noco from '../../Noco';
 import { CacheGetType, CacheScope } from '../../utils/globals';
 import { userService } from '../../services';
+const PassportLocalStrategy = require('passport-local').Strategy;
 
 export function initStrategies(router): void {
   passport.use(

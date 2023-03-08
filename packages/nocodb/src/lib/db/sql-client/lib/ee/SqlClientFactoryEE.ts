@@ -1,6 +1,6 @@
+import { SnowflakeClient } from 'nc-help';
 import { SqlClientFactory } from '../SqlClientFactory';
 import SfClient from '../snowflake/SnowflakeClient';
-import { SnowflakeClient } from 'nc-help';
 
 class SqlClientFactoryEE {
   static create(connectionConfig) {

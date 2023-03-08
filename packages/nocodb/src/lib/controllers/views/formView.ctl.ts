@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import type { FormType } from 'nocodb-sdk';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../../meta/helpers/apiMetrics';
 import { formViewService } from '../../services';
+import type { FormType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 export async function formViewGet(req: Request, res: Response<FormType>) {
   const formViewData = await formViewService.formViewGet({

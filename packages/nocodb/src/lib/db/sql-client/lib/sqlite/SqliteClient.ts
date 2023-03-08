@@ -1,14 +1,14 @@
 import { promisify } from 'util';
-import knex from 'knex';
 import fs from 'fs';
-import KnexClient from '../KnexClient';
-import Debug from '../../../util/Debug';
-import Result from '../../../util/Result';
-import queries from './sqlite.queries';
+import knex from 'knex';
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
 import { customAlphabet } from 'nanoid';
+import KnexClient from '../KnexClient';
+import Debug from '../../../util/Debug';
+import Result from '../../../util/Result';
+import queries from './sqlite.queries';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 6);
 

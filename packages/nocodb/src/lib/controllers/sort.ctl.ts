@@ -1,11 +1,11 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import type { SortListType, SortReqType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 
 import { sortService } from '../services';
+import type { SortListType, SortReqType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 // @ts-ignore
 export async function sortList(

@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import type { MapType } from 'nocodb-sdk';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../../meta/helpers/apiMetrics';
 import { mapViewService } from '../../services';
+import type { MapType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 export async function mapViewGet(req: Request, res: Response<MapType>) {
   res.json(

@@ -1,9 +1,9 @@
+import { promises as fs } from 'fs';
 import axios from 'axios';
-import type { Knex } from 'knex';
 import { knex } from 'knex';
 
-import { promises as fs } from 'fs';
 import Audit from '../../../models/Audit';
+import type { Knex } from 'knex';
 import type Project from '../../../models/Project';
 
 const config = {

@@ -1,9 +1,3 @@
-import type {
-  ColumnReqType,
-  LinkToAnotherColumnReqType,
-  LinkToAnotherRecordType,
-  RelationTypes,
-} from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -12,9 +6,9 @@ import {
   substituteColumnIdWithAliasInFormula,
   UITypes,
 } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import formulaQueryBuilderv2 from '../db/sql-data-mapper/lib/sql/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '../db/sql-mgr/v2/ProjectMgrv2';
-import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
 import {
   createHmAndBtColumn,
   generateFkName,
@@ -32,20 +26,26 @@ import {
 } from '../meta/helpers/getUniqueName';
 import mapDefaultDisplayValue from '../meta/helpers/mapDefaultDisplayValue';
 import validateParams from '../meta/helpers/validateParams';
-import type NcMetaIO from '../meta/NcMetaIO';
 import Audit from '../models/Audit';
 import Base from '../models/Base';
 import Column from '../models/Column';
 import FormulaColumn from '../models/FormulaColumn';
 import KanbanView from '../models/KanbanView';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import Model from '../models/Model';
-import type Project from '../models/Project';
 import Noco from '../Noco';
 import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 
-import { T } from 'nc-help';
 import { MetaTable } from '../utils/globals';
+import type Project from '../models/Project';
+import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type NcMetaIO from '../meta/NcMetaIO';
+import type SqlMgrv2 from '../db/sql-mgr/v2/SqlMgrv2';
+import type {
+  ColumnReqType,
+  LinkToAnotherColumnReqType,
+  LinkToAnotherRecordType,
+  RelationTypes,
+} from 'nocodb-sdk';
 
 export enum Altered {
   NEW_COLUMN = 1,

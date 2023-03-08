@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-
+import * as crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import * as ejs from 'ejs';
 import * as jwt from 'jsonwebtoken';
@@ -10,27 +10,21 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import validator from 'validator';
 
+import { Strategy as CustomStrategy } from 'passport-custom';
+import axios from 'axios';
+import { T } from 'nc-help';
+import XcCache from '../plugins/adapters/cache/XcCache';
 import type { DbConfig, NcConfig } from '../../../interface/config';
 import type { Knex } from '../../db/sql-data-mapper';
 import type Noco from '../../Noco';
 
+import type NcMetaIO from '../../meta/NcMetaIO';
+import type IEmailAdapter from '../../../interface/IEmailAdapter';
+
 const autoBind = require('auto-bind');
 const PassportLocalStrategy = require('passport-local').Strategy;
-import { Strategy as CustomStrategy } from 'passport-custom';
-
 const { v4: uuidv4 } = require('uuid');
-
-import * as crypto from 'crypto';
-
-import type NcMetaIO from '../../meta/NcMetaIO';
-
 const { isEmail } = require('validator');
-
-import axios from 'axios';
-
-import type IEmailAdapter from '../../../interface/IEmailAdapter';
-import { T } from 'nc-help';
-import XcCache from '../plugins/adapters/cache/XcCache';
 
 passport.serializeUser(function (
   {

@@ -1,12 +1,12 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import type { KanbanType } from 'nocodb-sdk';
 import { ViewTypes } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import View from '../../models/View';
 import KanbanView from '../../models/KanbanView';
-import { T } from 'nc-help';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../../meta/helpers/apiMetrics';
+import type { KanbanType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 // todo: map to service
 

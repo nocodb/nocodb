@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -5,7 +6,6 @@ import {
   MetaTable,
 } from '../utils/globals';
 import Noco from '../Noco';
-import { nanoid } from 'nanoid';
 import NocoCache from '../cache/NocoCache';
 import type { ApiTokenType } from 'nocodb-sdk';
 

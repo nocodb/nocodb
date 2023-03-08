@@ -1,20 +1,20 @@
 /* eslint-disable no-constant-condition */
-import type { Knex } from 'knex';
+import fs from 'fs';
+import { promisify } from 'util';
+import path from 'path';
 import { knex } from 'knex';
 import { T } from 'nc-help';
-import Debug from '../../util/Debug';
-import Emit from '../../util/emit';
-import Result from '../../util/Result';
 
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
-import fs from 'fs';
-import { promisify } from 'util';
 import jsonfile from 'jsonfile';
-import path from 'path';
 import mkdirp from 'mkdirp';
+import Result from '../../util/Result';
+import Emit from '../../util/emit';
+import Debug from '../../util/Debug';
 import * as dataHelp from './data.helper';
 import SqlClient from './SqlClient';
+import type { Knex } from 'knex';
 const evt = new Emit();
 
 const log = new Debug('KnexClient');

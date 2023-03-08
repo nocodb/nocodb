@@ -1,8 +1,8 @@
 import { UITypes } from 'nocodb-sdk';
-import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import SwaggerTypes from '../../db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
-import type Column from '../../models/Column';
 import Noco from '../../Noco';
+import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
+import type Column from '../../models/Column';
 import type Project from '../../models/Project';
 
 export default async (

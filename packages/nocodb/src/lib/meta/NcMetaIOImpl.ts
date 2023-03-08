@@ -1,17 +1,17 @@
 import CryptoJS from 'crypto-js';
 import { customAlphabet } from 'nanoid';
 
-import type { NcConfig } from '../../interface/config';
-import type { Knex } from '../db/sql-data-mapper';
 import { XKnex } from '../db/sql-data-mapper';
-import type Noco from '../Noco';
 import XcMigrationSource from '../migrations/XcMigrationSource';
 
-import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import NcConnectionMgr from '../utils/common/NcConnectionMgr';
 import { MetaTable } from '../utils/globals';
 import XcMigrationSourcev2 from '../migrations/XcMigrationSourcev2';
 import XcMigrationSourcev3 from '../migrations/XcMigrationSourcev3';
+import NcMetaIO, { META_TABLES } from './NcMetaIO';
+import type Noco from '../Noco';
+import type { Knex } from '../db/sql-data-mapper';
+import type { NcConfig } from '../../interface/config';
 
 // import { nanoid } from 'nanoid';
 /*import { v4 as uuidv4 } from 'uuid';*/

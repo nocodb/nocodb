@@ -1,7 +1,6 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import Model from '../../models/Model';
 import { nocoExecute } from 'nc-help';
+import Model from '../../models/Model';
 import Base from '../../models/Base';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import View from '../../models/View';
@@ -10,6 +9,7 @@ import Project from '../../models/Project';
 import { NcError } from '../../meta/helpers/catchError';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
+import type { Request, Response } from 'express';
 
 export async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);

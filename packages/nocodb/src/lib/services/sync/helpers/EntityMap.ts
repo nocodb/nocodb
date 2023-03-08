@@ -1,5 +1,5 @@
-import sqlite3 from 'sqlite3';
 import { Readable } from 'stream';
+import sqlite3 from 'sqlite3';
 
 class EntityMap {
   initialized: boolean;

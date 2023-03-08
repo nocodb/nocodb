@@ -1,16 +1,17 @@
-import DOMPurify from 'isomorphic-dompurify';
-import type { ProjectReqType } from 'nocodb-sdk';
-import { OrgUserRoles } from 'nocodb-sdk';
 import { promisify } from 'util';
-import { populateMeta, validatePayload } from '../meta/api/helpers';
-import { extractPropsAndSanitize } from '../meta/helpers/extractProps';
-import syncMigration from '../meta/helpers/syncMigration';
-import Project from '../models/Project';
-import ProjectUser from '../models/ProjectUser';
+import { OrgUserRoles } from 'nocodb-sdk';
+import DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import Noco from '../Noco';
+import { T } from 'nc-help';
 import NcConfigFactory from '../utils/NcConfigFactory';
 import { NcError } from '../meta/helpers/catchError';
+import Noco from '../Noco';
+import ProjectUser from '../models/ProjectUser';
+import Project from '../models/Project';
+import syncMigration from '../meta/helpers/syncMigration';
+import { populateMeta, validatePayload } from '../meta/api/helpers';
+import { extractPropsAndSanitize } from '../meta/helpers/extractProps';
+import type { ProjectReqType } from 'nocodb-sdk';
 
 export async function projectCreate(param: {
   project: ProjectReqType;
@@ -113,8 +114,6 @@ export async function projectCreate(param: {
 }
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
-
-import { T } from 'nc-help';
 
 export async function getProjectWithInfo(param: { projectId: string }) {
   const project = await Project.getWithInfo(param.projectId);

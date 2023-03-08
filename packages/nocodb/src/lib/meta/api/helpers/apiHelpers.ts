@@ -1,10 +1,10 @@
-import type { NextFunction, Request, Response } from 'express';
-import type { ErrorObject } from 'ajv';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 // @ts-ignore
 import swagger from '../../../../schema/swagger.json';
 import { NcError } from '../../helpers/catchError';
+import type { ErrorObject } from 'ajv';
+import type { NextFunction, Request, Response } from 'express';
 
 export function parseHrtimeToSeconds(hrtime) {
   const seconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);

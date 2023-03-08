@@ -6,23 +6,23 @@ import { GraphQLJSON } from 'graphql-type-json';
 import _ from 'lodash';
 import { BaseType } from 'xc-core-ts';
 
-import type XcMetaMgr from '../../../interface/XcMetaMgr';
-import type { DbConfig, NcConfig } from '../../../interface/config';
 import ExpressXcTsPolicyGql from '../../db/sql-mgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql';
 import GqlXcSchemaFactory from '../../db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import NcHelp from '../../utils/NcHelp';
-import type NcProjectBuilder from '../NcProjectBuilder';
-import type Noco from '../../Noco';
-import type { XcTablesPopulateParams } from '../../utils/common/BaseApiBuilder';
 import BaseApiBuilder from '../../utils/common/BaseApiBuilder';
-import type NcMetaIO from '../../meta/NcMetaIO';
 
 import { m2mNotChildren, m2mNotChildrenCount } from './GqlCommonResolvers';
 import GqlMiddleware from './GqlMiddleware';
 import { GqlProcedureResolver } from './GqlProcedureResolver';
 import GqlResolver from './GqlResolver';
 import commonSchema from './common.schema';
+import type NcMetaIO from '../../meta/NcMetaIO';
+import type { XcTablesPopulateParams } from '../../utils/common/BaseApiBuilder';
+import type Noco from '../../Noco';
+import type NcProjectBuilder from '../NcProjectBuilder';
+import type { DbConfig, NcConfig } from '../../../interface/config';
+import type XcMetaMgr from '../../../interface/XcMetaMgr';
 
 const log = debug('nc:api:gql');
 

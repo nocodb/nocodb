@@ -1,9 +1,9 @@
 // import Model from '../../models/Model';
 import Project from '../models/Project';
 import { WorkspaceUser } from '../models';
-import type { UserType } from 'nocodb-sdk';
 import { NcError } from '../meta/helpers/catchError';
 import { tableService } from '.';
+import type { UserType } from 'nocodb-sdk';
 
 export async function commandPalette(param: { body: any; user: UserType }) {
   const cmdData = [];

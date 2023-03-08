@@ -1,7 +1,7 @@
-import type { IStorageAdapterV2 } from 'nc-plugin';
 import { XcStoragePlugin } from 'nc-plugin';
 
 import Vultr from './Vultr';
+import type { IStorageAdapterV2 } from 'nc-plugin';
 
 class VultrPlugin extends XcStoragePlugin {
   private static storageAdapter: Vultr;

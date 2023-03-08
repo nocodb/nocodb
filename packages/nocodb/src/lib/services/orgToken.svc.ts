@@ -1,11 +1,11 @@
-import type { ApiTokenReqType } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { validatePayload } from '../meta/api/helpers';
-import type { User } from '../models';
-import ApiToken from '../models/ApiToken';
 import { T } from 'nc-help';
+import ApiToken from '../models/ApiToken';
+import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
+import type { User } from '../models';
+import type { ApiTokenReqType } from 'nocodb-sdk';
 
 export async function apiTokenList(param: { user: User; query: any }) {
   const fk_user_id = param.user.id;

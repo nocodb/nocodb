@@ -1,4 +1,3 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import * as XLSX from 'xlsx';
 import apiMetrics from '../../meta/helpers/apiMetrics';
@@ -6,6 +5,7 @@ import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import { View } from '../../models';
 import { extractCsvData, extractXlsxData } from '../../services/dbData/helpers';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
+import type { Request, Response } from 'express';
 
 async function excelDataExport(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);

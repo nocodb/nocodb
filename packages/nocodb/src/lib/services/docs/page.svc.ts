@@ -1,9 +1,9 @@
+import JSON5 from 'json5';
 import Page from '../../models/Page';
-import type { UserType } from 'nocodb-sdk';
 import { NcError } from '../../meta/helpers/catchError';
 import Project from '../../models/Project';
-import JSON5 from 'json5';
 import { fetchGHDocs } from '../../meta/helpers/docImportHelpers';
+import type { UserType } from 'nocodb-sdk';
 
 const { Configuration, OpenAIApi } = require('openai');
 

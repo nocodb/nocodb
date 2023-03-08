@@ -1,8 +1,8 @@
-import type { GalleryReqType } from 'nocodb-sdk';
 import { ViewTypes } from 'nocodb-sdk';
 import { T } from 'nc-help';
 import { validatePayload } from '../../meta/api/helpers';
 import { GalleryView, View } from '../../models';
+import type { GalleryReqType } from 'nocodb-sdk';
 
 export async function galleryViewGet(param: { galleryViewId: string }) {
   return await GalleryView.get(param.galleryViewId);

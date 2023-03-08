@@ -1,9 +1,9 @@
-import type { VisibilityRuleReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { NcError } from '../meta/helpers/catchError';
 import ModelRoleVisibility from '../models/ModelRoleVisibility';
-import { T } from 'nc-help';
 import { Model, View } from '../models';
+import type { VisibilityRuleReqType } from 'nocodb-sdk';
 
 export async function xcVisibilityMetaSetAll(param: {
   visibilityRule: VisibilityRuleReqType;

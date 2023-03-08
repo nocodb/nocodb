@@ -1,6 +1,6 @@
-import type JobsMgr from './JobsMgr';
 import EmitteryJobsMgr from './EmitteryJobsMgr';
 import RedisJobsMgr from './RedisJobsMgr';
+import type JobsMgr from './JobsMgr';
 
 export default class NocoJobs {
   private static client: JobsMgr;

@@ -1,11 +1,10 @@
 import autoBind from 'auto-bind';
-import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
+import { RestBaseCtrl } from './RestBaseCtrl';
+import type { NextFunction, Request, Response } from 'express';
 
 import type { Route } from '../../../interface/config';
 import type { BaseModelSql } from '../../db/sql-data-mapper';
-
-import { RestBaseCtrl } from './RestBaseCtrl';
 
 export class RestCtrlCustom extends RestBaseCtrl {
   public app: any;

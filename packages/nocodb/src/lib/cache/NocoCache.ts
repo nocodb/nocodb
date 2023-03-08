@@ -1,7 +1,7 @@
-import type CacheMgr from './CacheMgr';
+import { CacheGetType } from '../utils/globals';
 import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
-import { CacheGetType } from '../utils/globals';
+import type CacheMgr from './CacheMgr';
 
 export default class NocoCache {
   private static client: CacheMgr;

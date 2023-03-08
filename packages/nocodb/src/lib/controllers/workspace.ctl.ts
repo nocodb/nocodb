@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
-import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 
 import { workspaceService } from '../services';
+import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 const workspaceCreate = async (
   req: Request<any, WorkspaceType, WorkspaceType>,

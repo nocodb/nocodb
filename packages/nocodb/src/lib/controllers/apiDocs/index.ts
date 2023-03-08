@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
+import { swaggerService } from '../../services';
 import getSwaggerHtml from './swaggerHtml';
 import getRedocHtml from './redocHtml';
-import { swaggerService } from '../../services';
 
 async function swaggerJson(req, res) {
   const swagger = await swaggerService.swaggerJson({

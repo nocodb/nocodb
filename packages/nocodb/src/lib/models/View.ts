@@ -1,3 +1,4 @@
+import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
 import Noco from '../Noco';
 import {
   CacheDelDirection,
@@ -6,6 +7,8 @@ import {
   MetaTable,
 } from '../utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '../utils/modelUtils';
+import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 import Model from './Model';
 import FormView from './FormView';
 import GridView from './GridView';
@@ -14,16 +17,13 @@ import GalleryView from './GalleryView';
 import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
 import Filter from './Filter';
-import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
-import { isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import KanbanViewColumn from './KanbanViewColumn';
 import Column from './Column';
-import NocoCache from '../cache/NocoCache';
-import { extractProps } from '../meta/helpers/extractProps';
 import MapView from './MapView';
 import MapViewColumn from './MapViewColumn';
+import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 
 const { v4: uuidv4 } = require('uuid');
 export default class View implements ViewType {

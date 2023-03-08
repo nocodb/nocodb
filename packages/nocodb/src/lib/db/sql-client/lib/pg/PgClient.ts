@@ -1,13 +1,13 @@
 import { nanoid } from 'nanoid';
 
 import knex from 'knex';
+import isEmpty from 'lodash/isEmpty';
+import mapKeys from 'lodash/mapKeys';
+import find from 'lodash/find';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import queries from './pg.queries';
-import isEmpty from 'lodash/isEmpty';
-import mapKeys from 'lodash/mapKeys';
-import find from 'lodash/find';
 const log = new Debug('PGClient');
 
 class PGClient extends KnexClient {

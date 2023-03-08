@@ -1,11 +1,10 @@
+import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
+import DOMPurify from 'isomorphic-dompurify';
 import { validatePayload } from '../meta/api/helpers';
 import Audit from '../models/Audit';
-import type { AuditRowUpdateReqType } from 'nocodb-sdk';
-import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
 import Model from '../models/Model';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-
-import DOMPurify from 'isomorphic-dompurify';
+import type { AuditRowUpdateReqType } from 'nocodb-sdk';
 
 export async function commentRow(param: {
   rowId: string;

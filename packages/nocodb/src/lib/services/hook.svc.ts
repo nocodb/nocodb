@@ -1,10 +1,10 @@
 import { T } from 'nc-help';
 import { validatePayload } from '../meta/api/helpers';
 import { Hook, Model } from '../models';
-import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
 
 import { invokeWebhook } from '../meta/helpers/webhookHelpers';
 import populateSamplePayload from '../meta/helpers/populateSamplePayload';
+import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
 
 export async function hookList(param: { tableId: string }) {
   // todo: pagination

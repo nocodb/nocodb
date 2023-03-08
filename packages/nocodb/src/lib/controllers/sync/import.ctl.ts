@@ -1,12 +1,12 @@
-import type { Request, Router } from 'express';
 // import { Queue } from 'bullmq';
 // import axios from 'axios';
 import catchError, { NcError } from '../../meta/helpers/catchError';
-import type { Server } from 'socket.io';
 import NocoJobs from '../../jobs/NocoJobs';
 import { SyncSource } from '../../models';
 import Noco from '../../Noco';
 import { syncService, userService } from '../../services';
+import type { Server } from 'socket.io';
+import type { Request, Router } from 'express';
 import type { AirtableSyncConfig } from '../../services/sync/helpers/job';
 
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';

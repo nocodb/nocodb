@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { dataService } from '../../services';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import apiMetrics from '../../meta/helpers/apiMetrics';
+import type { Request, Response } from 'express';
 
 export async function dataList(req: Request, res: Response) {
   res.json(

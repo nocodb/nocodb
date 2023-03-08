@@ -1,7 +1,7 @@
 import { T } from 'nc-help';
-import type { FilterReqType } from 'nocodb-sdk';
 import { validatePayload } from '../meta/api/helpers';
 import Filter from '../models/Filter';
+import type { FilterReqType } from 'nocodb-sdk';
 
 export async function filterGet(param: { hookId: string }) {
   const filter = await Filter.getFilterObject({ hookId: param.hookId });

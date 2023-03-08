@@ -1,5 +1,5 @@
-import cors from 'cors';
 import path from 'path';
+import cors from 'cors';
 import express from 'express';
 
 import Noco from '../lib/Noco';

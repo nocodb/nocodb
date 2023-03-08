@@ -1,5 +1,5 @@
-import { OrgUserRoles } from 'nocodb-sdk';
 import { promisify } from 'util';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { Strategy as CustomStrategy } from 'passport-custom';
 import passport from 'passport';
 import passportJWT from 'passport-jwt';
@@ -7,7 +7,6 @@ import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as OidcStrategy } from '@techpass/passport-openidconnect';
 
-const PassportLocalStrategy = require('passport-local').Strategy;
 const ExtractJwt = passportJWT.ExtractJwt;
 const JwtStrategy = passportJWT.Strategy;
 
@@ -16,6 +15,7 @@ const jwtOptions = {
 };
 
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 import NocoCache from '../../cache/NocoCache';
 import {
   ApiToken,
@@ -29,7 +29,7 @@ import {
 import Noco from '../../Noco';
 import { CacheGetType } from '../../utils/globals';
 import { userService } from '../../services';
-import { v4 as uuidv4 } from 'uuid';
+const PassportLocalStrategy = require('passport-local').Strategy;
 
 export function initStrategies(router): void {
   passport.use(

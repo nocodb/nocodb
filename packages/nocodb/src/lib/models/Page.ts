@@ -1,7 +1,7 @@
+import slugify from 'slug';
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
-import slugify from 'slug';
 import type { DocsPageType, UserType } from 'nocodb-sdk';
 import type NcMetaIO from '../meta/NcMetaIO';
 const { v4: uuidv4 } = require('uuid');

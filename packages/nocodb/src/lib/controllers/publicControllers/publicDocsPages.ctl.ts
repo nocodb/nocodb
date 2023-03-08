@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import apiMetrics from '../../meta/helpers/apiMetrics';
 import catchError from '../../meta/helpers/catchError';
 import { publicDocsPagesService } from '../../services';
+import type { Request, Response } from 'express';
 
 async function get(
   req: Request<any> & { user: { id: string; roles: string } },

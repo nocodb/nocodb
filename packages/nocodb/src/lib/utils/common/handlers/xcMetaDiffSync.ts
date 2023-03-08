@@ -1,9 +1,9 @@
-import type { XcTablesPopulateParams } from '../BaseApiBuilder';
-import type BaseApiBuilder from '../BaseApiBuilder';
-import type { NcMetaDiff as NcMetaDiffType } from '../../../meta/handlers/xcMetaDiff';
 import xcMetaDiff, { XcMetaDiffType } from '../../../meta/handlers/xcMetaDiff';
 import XcCache from '../../../v1-legacy/plugins/adapters/cache/XcCache';
 import { GqlApiBuilder } from '../../../v1-legacy/gql/GqlApiBuilder';
+import type { XcTablesPopulateParams } from '../BaseApiBuilder';
+import type BaseApiBuilder from '../BaseApiBuilder';
+import type { NcMetaDiff as NcMetaDiffType } from '../../../meta/handlers/xcMetaDiff';
 
 // @ts-ignore
 export default async function (this: BaseApiBuilder<any> | any) {

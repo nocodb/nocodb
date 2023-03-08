@@ -1,13 +1,13 @@
 import fs from 'fs';
 import { promisify } from 'util';
-import type { StorageOptions } from '@google-cloud/storage';
 import { Storage } from '@google-cloud/storage';
-import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
 import {
   generateTempFilePath,
   waitForStreamClose,
 } from '../../utils/pluginUtils';
+import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import type { StorageOptions } from '@google-cloud/storage';
 
 export default class Gcs implements IStorageAdapterV2 {
   private storageClient: Storage;

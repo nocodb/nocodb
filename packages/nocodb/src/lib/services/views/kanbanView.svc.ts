@@ -1,8 +1,8 @@
-import type { KanbanReqType } from 'nocodb-sdk';
 import { ViewTypes } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../meta/api/helpers';
 import { KanbanView, View } from '../../models';
-import { T } from 'nc-help';
+import type { KanbanReqType } from 'nocodb-sdk';
 
 export async function kanbanViewGet(param: { kanbanViewId: string }) {
   return await KanbanView.get(param.kanbanViewId);

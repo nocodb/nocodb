@@ -1,7 +1,4 @@
-import type { DB_TYPES } from './/Base';
-import Base from './/Base';
 import Noco from '../Noco';
-import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -10,6 +7,9 @@ import {
 } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
+import Base from './/Base';
+import type { BoolType, MetaType, ProjectType } from 'nocodb-sdk';
+import type { DB_TYPES } from './/Base';
 
 export default class Project implements ProjectType {
   public id: string;

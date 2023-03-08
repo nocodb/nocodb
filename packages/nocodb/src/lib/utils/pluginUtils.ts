@@ -1,6 +1,6 @@
-import type fs from 'fs';
 import path from 'path';
 import os from 'os';
+import type fs from 'fs';
 
 export function generateTempFilePath() {
   return path.join(os.tmpdir(), 'temp.txt');

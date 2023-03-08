@@ -1,8 +1,8 @@
-import type { LinkToAnotherRecordType } from 'nocodb-sdk';
 import { ErrorMessages, RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from '../../meta/helpers/catchError';
-import type { LinkToAnotherRecordColumn } from '../../models';
 import { Base, Column, Model, Project, View } from '../../models';
+import type { LinkToAnotherRecordColumn } from '../../models';
+import type { LinkToAnotherRecordType } from 'nocodb-sdk';
 
 export async function viewMetaGet(param: {
   sharedViewUuid: string;

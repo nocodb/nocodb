@@ -1,10 +1,4 @@
-import type {
-  PasswordChangeReqType,
-  PasswordForgotReqType,
-  PasswordResetReqType,
-  SignUpReqType,
-  UserType,
-} from 'nocodb-sdk';
+import { promisify } from 'util';
 import { validatePassword } from 'nocodb-sdk';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { T } from 'nc-help';
@@ -12,7 +6,6 @@ import { T } from 'nc-help';
 import * as ejs from 'ejs';
 
 import bcrypt from 'bcryptjs';
-import { promisify } from 'util';
 import { NC_APP_SETTINGS } from '../../constants';
 import { validatePayload } from '../../meta/api/helpers';
 import { NcError } from '../../meta/helpers/catchError';
@@ -21,6 +14,13 @@ import { Audit, Store, User } from '../../models';
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
 import { genJwt, randomTokenString, setTokenCookie } from './helpers';
+import type {
+  PasswordChangeReqType,
+  PasswordForgotReqType,
+  PasswordResetReqType,
+  SignUpReqType,
+  UserType,
+} from 'nocodb-sdk';
 
 const { v4: uuidv4 } = require('uuid');
 const { isEmail } = require('validator');

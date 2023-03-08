@@ -4,24 +4,13 @@ import debug from 'debug';
 import { Router } from 'express';
 import inflection from 'inflection';
 // import Knex from "knex";
-import type {
-  MysqlClient,
-  PgClient,
-  SqlClient,
-  // SqlClientFactory,
-} from 'nc-help';
-
-import type XcDynamicChanges from '../../../interface/XcDynamicChanges';
-import type { Acls, DbConfig, NcConfig } from '../../../interface/config';
-import type { BaseModelSql, XKnex } from '../../db/sql-data-mapper';
+import { T } from 'nc-help';
+import { UITypes } from 'nocodb-sdk';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
+
 import ExpressXcPolicy from '../../db/sql-mgr/code/policies/xc/ExpressXcPolicy';
 import NcHelp from '../NcHelp';
-import type NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
-import type Noco from '../../Noco';
-import type NcMetaIO from '../../meta/NcMetaIO';
 import XcCache from '../../v1-legacy/plugins/adapters/cache/XcCache';
-import { T } from 'nc-help';
 
 import BaseModel from './BaseModel';
 import { XcCron } from './XcCron';
@@ -32,7 +21,18 @@ import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
 import ncParentModelTitleUpgrader from './jobs/ncParentModelTitleUpgrader';
 import ncRemoveDuplicatedRelationRows from './jobs/ncRemoveDuplicatedRelationRows';
 import xcMetaDiffSync from './handlers/xcMetaDiffSync';
-import { UITypes } from 'nocodb-sdk';
+import type NcMetaIO from '../../meta/NcMetaIO';
+import type Noco from '../../Noco';
+import type NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
+import type { BaseModelSql, XKnex } from '../../db/sql-data-mapper';
+import type { Acls, DbConfig, NcConfig } from '../../../interface/config';
+import type XcDynamicChanges from '../../../interface/XcDynamicChanges';
+import type {
+  MysqlClient,
+  PgClient,
+  SqlClient,
+  // SqlClientFactory,
+} from 'nc-help';
 
 const log = debug('nc:api:base');
 

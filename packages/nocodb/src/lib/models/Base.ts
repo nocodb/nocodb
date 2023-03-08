@@ -1,19 +1,19 @@
-import Noco from '../Noco';
-import Project from './Project';
+import { UITypes } from 'nocodb-sdk';
+import CryptoJS from 'crypto-js';
+import NocoCache from '../cache/NocoCache';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
 } from '../utils/globals';
-import Model from './Model';
-import type { BaseType, BoolType } from 'nocodb-sdk';
-import { UITypes } from 'nocodb-sdk';
-import NocoCache from '../cache/NocoCache';
-import CryptoJS from 'crypto-js';
+import Noco from '../Noco';
 import { extractProps } from '../meta/helpers/extractProps';
 import { NcError } from '../meta/helpers/catchError';
+import Model from './Model';
+import Project from './Project';
 import SyncSource from './SyncSource';
+import type { BaseType, BoolType } from 'nocodb-sdk';
 
 export const DB_TYPES = <const>[
   'mysql2',

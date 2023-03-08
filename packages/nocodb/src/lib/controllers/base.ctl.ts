@@ -1,11 +1,11 @@
-import type { Request, Response } from 'express';
-import type { BaseListType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
-import type Base from '../models/Base';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 
 import { baseService } from '../services';
+import type Base from '../models/Base';
+import type { BaseListType } from 'nocodb-sdk';
+import type { Request, Response } from 'express';
 
 async function baseGet(req: Request<any>, res: Response<Base>) {
   const base = await baseService.baseGetWithConfig({

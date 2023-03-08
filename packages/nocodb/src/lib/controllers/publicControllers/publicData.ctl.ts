@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import multer from 'multer';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import catchError from '../../meta/helpers/catchError';
 import { publicDataService } from '../../services';
+import type { Request, Response } from 'express';
 
 export async function dataList(req: Request, res: Response) {
   const pagedResponse = await publicDataService.dataList({

@@ -1,8 +1,8 @@
 import autoBind from 'auto-bind';
-import type { Handler, NextFunction, Request, Response, Router } from 'express';
 
 import BaseProcedure from '../../utils/common/BaseProcedure';
 import XcProcedure from '../../utils/common/XcProcedure';
+import type { Handler, NextFunction, Request, Response, Router } from 'express';
 
 import type { RestApiBuilder } from './RestApiBuilder';
 

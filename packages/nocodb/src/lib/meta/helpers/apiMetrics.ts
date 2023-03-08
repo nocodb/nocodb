@@ -1,5 +1,5 @@
-import type { Request } from 'express';
 import { T } from 'nc-help';
+import type { Request } from 'express';
 
 const countMap = {};
 

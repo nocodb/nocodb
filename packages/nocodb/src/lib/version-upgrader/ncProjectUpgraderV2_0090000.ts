@@ -1,26 +1,17 @@
-import type { NcUpgraderCtx } from './NcUpgrader';
-import Noco from '../Noco';
-import User from '../models/User';
-import Project from '../models/Project';
-import ProjectUser from '../models/ProjectUser';
-import Model from '../models/Model';
-import type { ViewType } from 'nocodb-sdk';
 import {
   ModelTypes,
   substituteColumnAliasWithIdInFormula,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import Model from '../models/Model';
+import ProjectUser from '../models/ProjectUser';
+import Project from '../models/Project';
+import User from '../models/User';
+import Noco from '../Noco';
 import Column from '../models/Column';
-import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import NcHelp from '../utils/NcHelp';
-import type { ROLLUP_FUNCTIONS } from '../models/RollupColumn';
-import type RollupColumn from '../models/RollupColumn';
 import View from '../models/View';
-import type GridView from '../models/GridView';
-import type KanbanView from '../models/KanbanView';
-import type FormView from '../models/FormView';
-import type GalleryView from '../models/GalleryView';
 import Sort from '../models/Sort';
 import Filter from '../models/Filter';
 import ModelRoleVisibility from '../models/ModelRoleVisibility';
@@ -31,6 +22,15 @@ import GridViewColumn from '../models/GridViewColumn';
 import { getUniqueColumnAliasName } from '../meta/helpers/getUniqueName';
 import NcProjectBuilderEE from '../v1-legacy/NcProjectBuilderEE';
 import Audit from '../models/Audit';
+import type GalleryView from '../models/GalleryView';
+import type FormView from '../models/FormView';
+import type { ViewType } from 'nocodb-sdk';
+import type KanbanView from '../models/KanbanView';
+import type GridView from '../models/GridView';
+import type RollupColumn from '../models/RollupColumn';
+import type { ROLLUP_FUNCTIONS } from '../models/RollupColumn';
+import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import type { NcUpgraderCtx } from './NcUpgrader';
 
 export default async function (ctx: NcUpgraderCtx) {
   const ncMeta = ctx.ncMeta;

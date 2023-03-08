@@ -1,5 +1,5 @@
-import express from 'express';
 import path from 'path';
+import express from 'express';
 
 const pageContent = `<!DOCTYPE html>
 <html>

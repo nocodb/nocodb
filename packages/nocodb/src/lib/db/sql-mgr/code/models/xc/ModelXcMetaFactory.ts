@@ -1,10 +1,10 @@
-import type BaseModelXcMeta from './BaseModelXcMeta';
 import ModelXcMetaMssql from './ModelXcMetaMssql';
 import ModelXcMetaMysql from './ModelXcMetaMysql';
 import ModelXcMetaOracle from './ModelXcMetaOracle';
 import ModelXcMetaPg from './ModelXcMetaPg';
 import ModelXcMetaSqlite from './ModelXcMetaSqlite';
 import ModelXcMetaSnowflake from './ModelXcMetaSnowflake';
+import type BaseModelXcMeta from './BaseModelXcMeta';
 
 class ModelXcMetaFactory {
   public static create(connectionConfig, args): BaseModelXcMeta {

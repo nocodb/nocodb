@@ -8,13 +8,13 @@ import importFresh from 'import-fresh';
 import inflection from 'inflection';
 import slash from 'slash';
 import { T } from 'nc-help';
+import { customAlphabet } from 'nanoid';
 import SqlClientFactory from '../sql-client/lib/SqlClientFactory';
 // import debug from 'debug';
 
 import KnexMigrator from '../sql-migrator/lib/KnexMigrator';
 // import {XKnex} from "../sql-data-mapper";
 import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
-import { customAlphabet } from 'nanoid';
 import Debug from '../util/Debug';
 import Result from '../util/Result';
 

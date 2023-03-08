@@ -1,4 +1,3 @@
-import type { UserType } from 'nocodb-sdk';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -7,17 +6,18 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import { OrgUserRoles } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { NC_APP_SETTINGS } from '../constants';
 import { validatePayload } from '../meta/api/helpers';
 import { Audit, ProjectUser, Store, SyncSource, User } from '../models';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
-import { T } from 'nc-help';
 import { NcError } from '../meta/helpers/catchError';
 import { extractProps } from '../meta/helpers/extractProps';
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { randomTokenString } from '../meta/helpers/stringHelpers';
 import { sendInviteEmail } from './projectUser.svc';
+import type { UserType } from 'nocodb-sdk';
 
 export async function userList(param: {
   // todo: add better typing

@@ -1,8 +1,7 @@
-import type { Request, Response } from 'express';
+import path from 'path';
 import { Router } from 'express';
 import multer from 'multer';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
-import path from 'path';
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 import extractProjectIdAndAuthenticate from '../meta/helpers/extractProjectIdAndAuthenticate';
@@ -10,6 +9,7 @@ import catchError, { NcError } from '../meta/helpers/catchError';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
 import { getCacheMiddleware } from '../meta/api/helpers';
 import { attachmentService } from '../services';
+import type { Request, Response } from 'express';
 
 const isUploadAllowedMw = async (req: Request, _res: Response, next: any) => {
   if (!req['user']?.id) {

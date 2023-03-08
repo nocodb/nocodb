@@ -1,18 +1,18 @@
-import { nocoExecute } from 'nc-help';
-import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
 import path from 'path';
+import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
+import { nocoExecute } from 'nc-help';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
 import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { NcError } from '../../meta/helpers/catchError';
 import NcPluginMgrv2 from '../../meta/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '../../meta/helpers/PagedResponse';
-import type { LinkToAnotherRecordColumn } from '../../models';
 import { Base, Column, Model, View } from '../../models';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { mimeIcons } from '../../utils/mimeTypes';
 import { sanitizeUrlPath } from '../attachment.svc';
 import { getColumnByIdOrName } from '../dbData/helpers';
+import type { LinkToAnotherRecordColumn } from '../../models';
 
 export async function dataList(param: {
   sharedViewUuid: string;

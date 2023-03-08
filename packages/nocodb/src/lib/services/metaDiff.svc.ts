@@ -1,9 +1,8 @@
 // // Project CRUD
 
 import { T } from 'nc-help';
-import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '../models';
+import NcConnectionMgrv2 from '../utils/common/NcConnectionMgrv2';
 import { Base, Column, Model, Project } from '../models';
 import ModelXcMetaFactory from '../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import { getUniqueColumnAliasName } from '../meta/helpers/getUniqueName';
@@ -13,6 +12,7 @@ import getTableNameAlias, {
 } from '../meta/helpers/getTableName';
 import mapDefaultDisplayValue from '../meta/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '../meta/helpers/getColumnUiType';
+import type { LinkToAnotherRecordColumn } from '../models';
 
 export enum MetaDiffType {
   TABLE_NEW = 'TABLE_NEW',

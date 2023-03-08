@@ -1,7 +1,7 @@
+import { promises as fs } from 'fs';
 import axios from 'axios';
 import { knex } from 'knex';
 
-import { promises as fs } from 'fs';
 // const util = require('util');
 // const exec = util.promisify(require('child_process').exec);
 

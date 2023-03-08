@@ -1,4 +1,3 @@
-import type { BoolType, HookReqType, HookType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -6,11 +5,12 @@ import {
   MetaTable,
 } from '../utils/globals';
 import Noco from '../Noco';
-import Model from './Model';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
+import Model from './Model';
 import Filter from './Filter';
 import HookFilter from './HookFilter';
-import { extractProps } from '../meta/helpers/extractProps';
+import type { BoolType, HookReqType, HookType } from 'nocodb-sdk';
 
 export default class Hook implements HookType {
   id?: string;

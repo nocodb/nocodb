@@ -1,8 +1,8 @@
 import Noco from '../Noco';
-import Column from './Column';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
+import Column from './Column';
 import type { LookupType } from 'nocodb-sdk';
 
 export default class LookupColumn implements LookupType {

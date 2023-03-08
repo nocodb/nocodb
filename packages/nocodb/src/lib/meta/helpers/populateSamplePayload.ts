@@ -1,6 +1,6 @@
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 import View from '../../models/View';
 import Column from '../../models/Column';
-import { RelationTypes, UITypes } from 'nocodb-sdk';
 import Model from '../../models/Model';
 import type LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import type LookupColumn from '../../models/LookupColumn';

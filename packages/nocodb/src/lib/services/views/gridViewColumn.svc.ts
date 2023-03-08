@@ -1,7 +1,7 @@
-import type { GridColumnReqType } from 'nocodb-sdk';
+import { T } from 'nc-help';
 import { validatePayload } from '../../meta/api/helpers';
 import GridViewColumn from '../../models/GridViewColumn';
-import { T } from 'nc-help';
+import type { GridColumnReqType } from 'nocodb-sdk';
 
 export async function columnList(param: { gridViewId: string }) {
   return await GridViewColumn.list(param.gridViewId);

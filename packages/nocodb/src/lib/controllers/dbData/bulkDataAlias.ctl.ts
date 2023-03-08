@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { bulkDataService } from '../../services';
 import ncMetaAclMw from '../../meta/helpers/ncMetaAclMw';
 import apiMetrics from '../../meta/helpers/apiMetrics';
+import type { Request, Response } from 'express';
 
 async function bulkDataInsert(req: Request, res: Response) {
   res.json(

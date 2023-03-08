@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { viewColumnService } from '../services';
+import type { Request, Response } from 'express';
 
 export async function columnList(req: Request, res: Response) {
   res.json(await viewColumnService.columnList({ viewId: req.params.viewId }));

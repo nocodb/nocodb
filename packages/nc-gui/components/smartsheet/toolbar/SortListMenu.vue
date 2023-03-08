@@ -23,7 +23,7 @@ const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-const { sorts, saveOrUpdate, loadSorts, addSort:_addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const removeIcon = ref<HTMLElement>()
 
@@ -40,7 +40,6 @@ eventBus.on((event) => {
     loadSorts()
   }
 })
-
 
 const columns = computed(() => meta.value?.columns || [])
 
@@ -68,8 +67,6 @@ watch(
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
-
-
 </script>
 
 <template>
@@ -89,12 +86,18 @@ useMenuCloseOnEsc(open)
     </div>
     <template #overlay>
       <div
-        class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border"
+        :class="{ ' min-w-[400px]': sorts.length }"
+        class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown max-h-[max(80vh,500px)] overflow-auto !border"
         data-testid="nc-sorts-menu"
       >
         <div v-if="sorts?.length" class="sort-grid mb-2 max-h-420px overflow-y-auto" @click.stop>
           <template v-for="(sort, i) of sorts" :key="i">
-            <MdiCloseBox ref="removeIcon" class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
+            <MdiCloseBox
+              ref="removeIcon"
+              class="nc-sort-item-remove-btn text-grey self-center"
+              small
+              @click.stop="deleteSort(sort, i)"
+            />
 
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"

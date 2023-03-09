@@ -1,10 +1,7 @@
-import TaskItem from '@tiptap/extension-task-item'
-import TaskList from '@tiptap/extension-task-list'
 import Underline from '@tiptap/extension-underline'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import DropCursor from '@tiptap/extension-dropcursor'
-import ListItem from '@tiptap/extension-list-item'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
 import Strike from '@tiptap/extension-strike'
@@ -12,8 +9,7 @@ import Code from '@tiptap/extension-code'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
-import OrderedList from '@tiptap/extension-ordered-list'
-import { BulletList } from './bulletList'
+import { ListItem } from './listItem'
 import { HorizontalRule } from './horizontalRule'
 import { Link } from './link'
 import { TableCell } from './table/cell'
@@ -62,7 +58,7 @@ const tiptapExtensions = (): Extensions => {
         return 'Press / to open the command menu or start writing'
       },
     }),
-    BulletList,
+    ListItem,
     // OrderedList.extend({
     //   addKeyboardShortcuts() {
     //     return {

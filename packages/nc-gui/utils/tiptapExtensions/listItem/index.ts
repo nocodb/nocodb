@@ -1,18 +1,18 @@
 import { Node, PasteRule, callOrReturn, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import { Fragment, ParseOptions, Node as ProseMirrorNode } from 'prosemirror-model'
 import { NodeSelection, Plugin, TextSelection } from 'prosemirror-state'
-export interface BulletListOptions {
-  itemTypeName: string
+export interface ListOptions {
+  type: string
   HTMLAttributes: Record<string, any>
 }
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
-    bulletList: {
+    listItem: {
       /**
-       * Toggle a bullet list
+       * Toggle a list item
        */
-      toggleBulletList: () => ReturnType
+      toggleListItem: (type: string) => ReturnType
     }
   }
 }
@@ -22,14 +22,12 @@ const inputRegex = /^\s*([-+*])\s$/g
 
 let lastTransaction: any = null
 
-export const BulletList = Node.create<BulletListOptions>({
-  name: 'bullet',
+export const ListItem = Node.create<ListOptions>({
+  name: 'listItem',
 
   addOptions() {
     return {
-      HTMLAttributes: {
-        'data-type': 'bullet',
-      },
+      type: 'bullet',
     }
   },
 
@@ -40,11 +38,17 @@ export const BulletList = Node.create<BulletListOptions>({
   },
 
   parseHTML() {
-    return [{ tag: 'div', attrs: { 'data-type': 'bullet' } }]
+    return [{ tag: 'div', attrs: { 'data-type': this.options.type } }]
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0]
+    return [
+      'div',
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+        'data-type': this.options.type,
+      }),
+      0,
+    ]
   },
 
   addCommands() {
@@ -78,14 +82,14 @@ export const BulletList = Node.create<BulletListOptions>({
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-2': () => {
-        this.editor.chain().focus().setNode('bullet').run()
+        this.editor.chain().focus().setNode('listItem').run()
         return (this.editor.chain().focus() as any).toggleBulletList().run()
       },
       'Enter': () => {
         const { selection } = this.editor.state
 
         const parentNode = selection.$from.node(-1)
-        if (parentNode.type.name !== 'bullet') return false
+        if (parentNode.type.name !== 'listItem') return false
         const currentNode = selection.$from.node()
 
         // Delete the bullet point if it's empty
@@ -129,7 +133,7 @@ export const BulletList = Node.create<BulletListOptions>({
             type: 'dBlock',
             content: [
               {
-                type: 'bullet',
+                type: 'listItem',
                 content: [
                   {
                     type: 'paragraph',

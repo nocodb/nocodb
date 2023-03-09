@@ -1,9 +1,7 @@
 import { promisify } from 'util';
 import { OrgUserRoles, validatePassword, WorkspaceUserRoles } from 'nocodb-sdk';
 import { T } from 'nc-help';
-
 import * as ejs from 'ejs';
-
 import bcrypt from 'bcryptjs';
 import { NC_APP_SETTINGS } from '../../constants';
 import { validatePayload } from '../../meta/api/helpers';

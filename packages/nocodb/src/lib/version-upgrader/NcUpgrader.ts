@@ -15,6 +15,14 @@ import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import type { NcConfig } from '../../interface/config';
 import type NcMetaIO from '../meta/NcMetaIO';
 
+import ncFilterUpgrader from './ncFilterUpgrader';
+import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
+import ncDataTypesUpgrader from './ncDataTypesUpgrader';
+import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
+import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
+import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
+import type { NcConfig } from '../../interface/config';
+import type NcMetaIO from '../meta/NcMetaIO';
 const log = debug('nc:version-upgrader');
 
 export interface NcUpgraderCtx {

@@ -25,7 +25,7 @@ let selectedTokenData = $ref<ApiToken>({})
 const loadApiTokens = async () => {
   if (!project?.id) return
 
-  tokensInfo = await $api.apiToken.list(project.id)
+  tokensInfo = (await $api.apiToken.list(project.id)).list
 }
 
 const openNewTokenModal = () => {
@@ -40,7 +40,7 @@ const copyToken = async (token: string | undefined) => {
     await copy(token)
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:api-token:copy')

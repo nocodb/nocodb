@@ -98,11 +98,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
     commentsAndLogs.value =
       (
-        await api.utils.commentList({
+        (await api.utils.commentList({
           row_id: rowId,
           fk_model_id: meta.value.id as string,
           comments_only: commentsOnly.value,
-        })
+        })).list
       )?.reverse?.() || []
   }
 

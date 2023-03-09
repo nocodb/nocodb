@@ -144,7 +144,7 @@ const duplicateColumn = async () => {
   }
 
   try {
-    const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
+    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
@@ -175,7 +175,7 @@ const duplicateColumn = async () => {
 
 // add column before or after current column
 const addColumn = async (before = false) => {
-  const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
+  const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
 
   const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
 
@@ -204,7 +204,7 @@ const addColumn = async (before = false) => {
 
 // hide the field in view
 const hideField = async () => {
-  const gridViewColumnList = await $api.dbViewColumn.list(view.value?.id as string)
+  const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
 
   const currentColumn = gridViewColumnList.find((f) => f.fk_column_id === column!.value.id)
 

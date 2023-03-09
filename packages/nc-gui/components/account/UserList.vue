@@ -35,13 +35,13 @@ const pagination = reactive({
 const loadUsers = async (page = currentPage, limit = currentLimit) => {
   currentPage = page
   try {
-    const response: any = await api.orgUsers.list({
+    const response: any = (await api.orgUsers.list({
       query: {
         limit,
         offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
         query: searchText.value,
       },
-    } as RequestParams)
+    } as RequestParams)).list
     if (!response) return
 
     pagination.total = response.pageInfo.totalRows ?? 0

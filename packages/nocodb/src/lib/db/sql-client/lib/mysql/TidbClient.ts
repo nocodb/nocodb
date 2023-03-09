@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import mapKeys from 'lodash/mapKeys';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import MysqlClient from './MysqlClient';
@@ -32,7 +32,7 @@ class Tidb extends MysqlClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let index = response[0][i];
-          index = _.mapKeys(index, function (_v, k) {
+          index = mapKeys(index, function (_v, k) {
             return k.toLowerCase();
           });
           indexes.push(index);

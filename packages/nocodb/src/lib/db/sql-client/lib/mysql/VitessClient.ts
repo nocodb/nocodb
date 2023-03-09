@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import mapKeys from 'lodash/mapKeys';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import MysqlClient from './MysqlClient';
@@ -140,9 +140,7 @@ class Vitess extends MysqlClient {
         for (let i = 0; i < response[0].length; ++i) {
           const column: any = {};
 
-          response[0][i] = _.mapKeys(response[0][i], (_v, k) =>
-            k.toLowerCase()
-          );
+          response[0][i] = mapKeys(response[0][i], (_v, k) => k.toLowerCase());
 
           column.tn = args.tn;
           column.cn = response[0][i].cn;
@@ -219,7 +217,7 @@ class Vitess extends MysqlClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let index = response[0][i];
-          index = _.mapKeys(index, function (_v, k) {
+          index = mapKeys(index, function (_v, k) {
             return k.toLowerCase();
           });
           indexes.push(index);

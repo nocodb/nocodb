@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
+import groupBy from 'lodash/groupBy';
 import type { Knex } from 'knex';
 import type Filter from '../../../models/Filter';
 import type Sort from '../../../models/Sort';
 
 const autoBind = require('auto-bind');
-const _ = require('lodash');
 const Validator = require('validator');
 
 // interface BaseModel {
@@ -977,7 +977,7 @@ abstract class BaseModel {
       )
     );
 
-    const gs = _.groupBy(childs, cn);
+    const gs = groupBy(childs, cn);
     parent.forEach((row) => {
       row[child] = gs[row[this.pks?.[0]?.cn]] || [];
     });
@@ -1133,7 +1133,7 @@ abstract class BaseModel {
         .whereIn(rcn, parentIds)
     );
 
-    const gs = _.groupBy(parents, rcn);
+    const gs = groupBy(parents, rcn);
 
     childs.forEach((row) => {
       row[parent] = gs[row[cn]] && gs[row[cn]][0];
@@ -1179,7 +1179,7 @@ abstract class BaseModel {
         )
       );
 
-      return _.groupBy(childs, cn);
+      return groupBy(childs, cn);
     } catch (e) {
       console.log(e);
       throw e;
@@ -1224,7 +1224,7 @@ abstract class BaseModel {
       );
 
       return childs.map(({ count }) => count);
-      // return _.groupBy(childs, cn);
+      // return groupBy(childs, cn);
     } catch (e) {
       console.log(e);
       throw e;

@@ -1,5 +1,5 @@
 import autoBind from 'auto-bind';
-import _ from 'lodash';
+import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
 import {
   AuditOperationSubTypes,
@@ -436,7 +436,7 @@ class BaseModelSqlv2 {
         })
       ).getProto();
 
-      return _.groupBy(
+      return groupBy(
         children.map((c) => {
           c.__proto__ = proto;
           return c;
@@ -604,7 +604,6 @@ class BaseModelSqlv2 {
         .first();
       const { count } = await query;
       return count;
-      // return _.groupBy(children, cn);
     } catch (e) {
       console.log(e);
       throw e;
@@ -682,7 +681,7 @@ class BaseModelSqlv2 {
         dbDriver: this.dbDriver,
       })
     ).getProto();
-    const gs = _.groupBy(
+    const gs = groupBy(
       children.map((c) => {
         c.__proto__ = proto;
         return c;
@@ -799,7 +798,7 @@ class BaseModelSqlv2 {
       !this.isSqlite
     );
 
-    const gs = _.groupBy(children, GROUP_COL);
+    const gs = groupBy(children, GROUP_COL);
     return parentIds.map((id) => gs?.[id]?.[0] || []);
   }
 
@@ -1361,7 +1360,7 @@ class BaseModelSqlv2 {
                     },
                     true
                   );
-                  const gs = _.groupBy(data, pCol.title);
+                  const gs = groupBy(data, pCol.title);
                   return ids.map(async (id: string) => gs?.[id]?.[0]);
                 } catch (e) {
                   console.log(e);

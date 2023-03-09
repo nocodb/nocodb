@@ -1,6 +1,6 @@
 import { Node, PasteRule, callOrReturn, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
 import { Fragment, ParseOptions, Node as ProseMirrorNode } from 'prosemirror-model'
-import { Plugin, TextSelection } from 'prosemirror-state'
+import { NodeSelection, Plugin, TextSelection } from 'prosemirror-state'
 export interface BulletListOptions {
   itemTypeName: string
   HTMLAttributes: Record<string, any>
@@ -19,6 +19,8 @@ declare module '@tiptap/core' {
 
 const inputPasteRegex = /^\s*([-+*])\s/g
 const inputRegex = /^\s*([-+*])\s$/g
+
+let lastTransaction: any = null
 
 export const BulletList = Node.create<BulletListOptions>({
   name: 'bullet',
@@ -153,35 +155,6 @@ export const BulletList = Node.create<BulletListOptions>({
     }
   },
 
-  addPasteRules() {
-    return [
-      new PasteRule({
-        find: inputPasteRegex,
-        handler({ match, chain, range, state }) {
-          if (match.input) {
-            const actualText = match.input.split('-')[1].trim()
-            const fragment = Fragment.from(
-              state.schema.nodes.bullet.create(undefined, [
-                state.schema.nodes.paragraph.create(undefined, [state.schema.text(actualText)]),
-              ]),
-            )
-
-            const autoInsertedTextNodePos = range.from + fragment.size
-
-            chain()
-              .deleteRange(range)
-              .insertContentAt(range.from - 1, fragment.toJSON())
-              .setNodeSelection(autoInsertedTextNodePos)
-              // todo: this is a hack, we should find a better way to do this
-              // For some reason with paste rule getting triggered, the normal
-              // text is also being pasted, which causes duplication
-              .deleteSelection()
-          }
-        },
-      }),
-    ]
-  },
-
   addInputRules() {
     return [
       wrappingInputRule({
@@ -194,13 +167,78 @@ export const BulletList = Node.create<BulletListOptions>({
   addProseMirrorPlugins() {
     return [
       new Plugin({
+        filterTransaction: (transaction) => {
+          // todo: Hacky way to remove auto inserted line
+          // Line is auto inserted when we paste text somewhere in tiptap editor
+          // Find a way to avoid this auto insertion
+          if (transaction.getMeta('paste-remove-auto-inserted-line')) {
+            lastTransaction = transaction
+            return true
+          }
+
+          if (!lastTransaction) return true
+
+          if (transaction.steps.length !== 1) return true
+
+          let transactionContent: string | undefined = transaction.steps[0].slice?.content?.toJSON()?.[0].text
+          if (!transactionContent) return true
+
+          transactionContent = transactionContent.replace('\n', ' ')
+          transactionContent = transactionContent
+            .split('-')
+            .map((item, index) => (index === 0 ? item : item.trim()))
+            .join()
+
+          const lastTransactionContent = (lastTransaction.getMeta('paste-remove-auto-inserted-line') as string)
+            .replace('\n', ' ')
+            .split('-')
+            .map((item, index) => (index === 0 ? item : item.trim()))
+            .join()
+
+          if (transactionContent === lastTransactionContent) {
+            lastTransaction = null
+            return false
+          }
+
+          return true
+        },
         props: {
           handleDOMEvents: {
             paste: (view, event) => {
               // const htmlContent = event.clipboardData.getData('text/html')
-              // const textContent = event.clipboardData.getData('text/plain')
+              const textContent = event.clipboardData.getData('text/plain')
+              const matches = textContent.matchAll(inputPasteRegex)
+              const state = view.state
+              const selection = state.selection
+              const tr = state.tr
 
-              // console.log(view.state.doc.toString())
+              let found = false
+
+              for (const match of matches) {
+                if (!match || !match.input) continue
+
+                const listItems = match.input
+                  .split('\n')
+                  .map((item) => item.split('-')[1].trim())
+                  .reverse()
+
+                for (const listItem of listItems) {
+                  found = true
+                  const fragment = Fragment.from(
+                    state.schema.nodes.bullet.create(undefined, [
+                      state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)]),
+                    ]),
+                  )
+
+                  tr.insert(selection.from - 1, fragment)
+                }
+              }
+
+              if (found) {
+                tr.setMeta('paste-remove-auto-inserted-line', textContent)
+                view.dispatch(tr)
+                return true
+              }
 
               return false
             },

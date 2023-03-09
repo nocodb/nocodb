@@ -13,7 +13,7 @@ export async function apiTokenCreate(param: {
   userId: string;
   tokenBody: ApiTokenReqType;
 }) {
-  await validatePayload(
+  validatePayload(
     'swagger.json#/components/schemas/ApiTokenReq',
     param.tokenBody
   );

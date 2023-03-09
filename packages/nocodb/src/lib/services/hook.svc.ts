@@ -16,7 +16,7 @@ function validateHookPayload(notificationJsonOrObject: string | object) {
         : notificationJsonOrObject;
   } catch {}
 
-  if (notification.type !== 'URL' && process.env.NC_CLOUD) {
+  if (notification.type !== 'URL' && process.env.NC_CLOUD === 'true') {
     NcError.badRequest('Only URL notification is supported');
   }
 }

@@ -36,7 +36,7 @@ export async function isPluginActive(req: Request, res: Response) {
 }
 
 const blockInCloudMw = (_req, res, next) => {
-  if (process.env.NC_CLOUD) {
+  if (process.env.NC_CLOUD === 'true') {
     res.status(403).send('Not allowed');
   } else next();
 }

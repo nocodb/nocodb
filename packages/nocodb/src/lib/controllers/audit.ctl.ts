@@ -25,13 +25,16 @@ export async function auditRowUpdate(req: Request<any, any>, res) {
 }
 
 export async function commentList(req: Request<any, any, any>, res) {
-  res.json(await Audit.commentsList(req.query));
+  res.json(await auditService.commentList({ query: req.query }));
 }
 
 export async function auditList(req: Request, res: Response) {
   res.json(
     new PagedResponseImpl(
-      await Audit.projectAuditList(req.params.projectId, req.query),
+      await auditService.auditList({
+        query: req.query,
+        projectId: req.params.projectId,
+      }),
       {
         count: await Audit.projectAuditCount(req.params.projectId),
         ...req.query,
@@ -42,7 +45,7 @@ export async function auditList(req: Request, res: Response) {
 
 export async function commentsCount(req: Request<any, any, any>, res) {
   res.json(
-    await Audit.commentsCount({
+    await auditService.commentsCount({
       fk_model_id: req.query.fk_model_id as string,
       ids: req.query.ids as string[],
     })
@@ -50,24 +53,30 @@ export async function commentsCount(req: Request<any, any, any>, res) {
 }
 
 const router = Router({ mergeParams: true });
+
 router.get(
   '/api/v1/db/meta/audits/comments',
   ncMetaAclMw(commentList, 'commentList')
 );
+
 router.post(
   '/api/v1/db/meta/audits/comments',
   ncMetaAclMw(commentRow, 'commentRow')
 );
+
 router.post(
   '/api/v1/db/meta/audits/rows/:rowId/update',
   ncMetaAclMw(auditRowUpdate, 'auditRowUpdate')
 );
+
 router.get(
   '/api/v1/db/meta/audits/comments/count',
   ncMetaAclMw(commentsCount, 'commentsCount')
 );
+
 router.get(
   '/api/v1/db/meta/projects/:projectId/audits',
   ncMetaAclMw(auditList, 'auditList')
 );
+
 export default router;

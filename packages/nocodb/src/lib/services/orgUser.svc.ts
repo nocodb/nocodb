@@ -22,6 +22,7 @@ export async function userList(param: {
   // todo: add better typing
   query: Record<string, any>;
 }) {
+  return await User.list(param.query);
 }
 
 export async function userUpdate(param: {

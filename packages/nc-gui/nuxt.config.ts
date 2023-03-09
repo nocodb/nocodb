@@ -12,7 +12,7 @@ import PurgeIcons from 'vite-plugin-purge-icons'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge', '@pinia/nuxt',],
 
   ssr: false,
 

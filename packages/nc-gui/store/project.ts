@@ -5,7 +5,6 @@ import {
   ClientType,
   computed,
   createEventHook,
-  createSharedComposable,
   ref,
   useApi,
   useGlobal,
@@ -15,8 +14,9 @@ import {
   useTheme,
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
+import { defineStore } from 'pinia'
 
-export const project = createSharedComposable(() => {
+export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()
@@ -68,7 +68,7 @@ export const project = createSharedComposable(() => {
         temp[base.id] = SqlUiFactory.create({ client: base.type }) as Exclude<
           ReturnType<typeof SqlUiFactory['create']>,
           typeof OracleUi
-        >
+          >
       }
     }
     return temp

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import {
   ActiveViewInj,
   MetaInj,
@@ -16,7 +17,6 @@ import {
   useViews,
   watch,
 } from '#imports'
-import { storeToRefs } from 'pinia'
 
 const meta = inject(MetaInj, ref())
 

@@ -5,8 +5,8 @@ import { Dropdown, Tooltip, message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 import Sortable from 'sortablejs'
 import GithubButton from 'vue-github-button'
-import type { VNodeRef } from '#imports'
 import { Icon } from '@iconify/vue'
+import type { VNodeRef } from '#imports'
 import {
   ClientType,
   Empty,
@@ -713,8 +713,8 @@ const setIcon = async (icon: string, table: TableType) => {
                     <MdiPlus />
 
                     <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
-                        $t('tooltip.addTable')
-                      }}</span>
+                      $t('tooltip.addTable')
+                    }}</span>
 
                     <a-dropdown
                       v-if="!isSharedBase"
@@ -808,8 +808,7 @@ const setIcon = async (icon: string, table: TableType) => {
                       overlay-class-name="nc-dropdown-import-menu"
                       @click.stop
                     >
-                      <MdiDotsVertical
-                        class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
+                      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu outline-0" />
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
@@ -910,8 +909,7 @@ const setIcon = async (icon: string, table: TableType) => {
                             >
                               <div class="flex items-center" @click.stop>
                                 <component :is="isUIAllowed('tableIconCustomisation') ? Tooltip : 'div'">
-                                  <span v-if="table.meta?.icon" :key="table.meta?.icon"
-                                        class="nc-table-icon flex items-center">
+                                  <span v-if="table.meta?.icon" :key="table.meta?.icon" class="nc-table-icon flex items-center">
                                     <Icon
                                       :key="table.meta?.icon"
                                       :data-testid="`nc-icon-${table.meta?.icon}`"

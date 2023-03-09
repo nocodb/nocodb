@@ -44,7 +44,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
-  const { project } = storeToRefs( useProject)
+  const { project } = storeToRefs(useProject)
 
   const { t } = useI18n()
 

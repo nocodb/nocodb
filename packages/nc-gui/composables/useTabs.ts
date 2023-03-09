@@ -1,6 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { computed, createSharedComposable, navigateTo, ref, useProject, useRouter, watch } from '#imports'
 import { storeToRefs } from 'pinia'
+import { computed, createSharedComposable, navigateTo, ref, useProject, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 

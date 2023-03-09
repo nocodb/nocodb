@@ -1,6 +1,7 @@
 import type { BaseType, OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
+import { defineStore } from 'pinia'
 import {
   ClientType,
   computed,
@@ -14,7 +15,6 @@ import {
   useTheme,
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
-import { defineStore } from 'pinia'
 
 export const useProject = defineStore('projectStore', () => {
   const { $e } = useNuxtApp()
@@ -68,7 +68,7 @@ export const useProject = defineStore('projectStore', () => {
         temp[base.id] = SqlUiFactory.create({ client: base.type }) as Exclude<
           ReturnType<typeof SqlUiFactory['create']>,
           typeof OracleUi
-          >
+        >
       }
     }
     return temp

@@ -53,7 +53,7 @@ export function useMultiSelect(
 
   const { appInfo } = useGlobal()
 
-  const { isMysql } = storeToRefs( useProject)
+  const { isMysql } = storeToRefs(useProject)
 
   let clipboardContext = $ref<{ value: any; uidt: UITypes } | null>(null)
 

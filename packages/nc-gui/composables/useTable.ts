@@ -1,5 +1,6 @@
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import {
   Modal,
   SYSTEM_COLUMNS,
@@ -14,7 +15,6 @@ import {
   useTabs,
   watch,
 } from '#imports'
-import { storeToRefs } from 'pinia'
 import { TabType } from '~/lib'
 
 export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?: string) {

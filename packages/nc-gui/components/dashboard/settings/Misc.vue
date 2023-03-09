@@ -4,9 +4,8 @@ import { useGlobal, useProject, watch } from '#imports'
 
 const { includeM2M, showNull } = useGlobal()
 
-
 const projectStore = useProject()
-const {  updateProject, loadTables,hasEmptyOrNullFilters } = projectStore
+const { updateProject, loadTables, hasEmptyOrNullFilters } = projectStore
 const { project, projectMeta } = projectStore
 
 watch(includeM2M, async () => await loadTables())

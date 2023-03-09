@@ -3,6 +3,7 @@ import type { Form } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import type { VNodeRef } from '@vue/runtime-core'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { storeToRefs } from 'pinia'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -13,14 +14,13 @@ import {
   useProject,
   useRoute,
 } from '#imports'
-import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 
 const projectStore = useProject()
 
-const {  loadProject, updateProject } = projectStore
-const {project, isLoading } = storeToRefs(projectStore)
+const { loadProject, updateProject } = projectStore
+const { project, isLoading } = storeToRefs(projectStore)
 
 const nameValidationRules = [
   {

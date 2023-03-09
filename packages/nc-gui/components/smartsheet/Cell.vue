@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -45,7 +46,6 @@ import {
   useSmartsheetRowStoreOrThrow,
   useVModel,
 } from '#imports'
-import { storeToRefs } from 'pinia'
 import { NavigateDir } from '~/lib'
 
 interface Props {

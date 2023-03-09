@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import {
   Empty,
   computed,
@@ -11,7 +12,6 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
-import { storeToRefs } from 'pinia'
 
 const props = defineProps<{
   baseId: string

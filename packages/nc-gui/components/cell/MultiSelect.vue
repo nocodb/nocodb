@@ -68,7 +68,7 @@ const { getMeta } = useMetas()
 
 const { hasRole } = useRoles()
 
-const { isPg, isMysql } = (useProject())
+const { isPg, isMysql } = useProject()
 
 // a variable to keep newly created options value
 // temporary until it's add the option to column meta

@@ -2,6 +2,7 @@
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
+import { storeToRefs } from 'pinia'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -22,7 +23,6 @@ import {
   useProject,
   useVModel,
 } from '#imports'
-import { storeToRefs } from 'pinia'
 import type { importFileList, streamImportFileList } from '~/lib'
 
 interface Props {

@@ -32,7 +32,7 @@ const props = defineProps<{
 const emit = defineEmits(['baseUpdated'])
 
 const projectStore = useProject()
-const {  loadProject } = projectStore
+const { loadProject } = projectStore
 const { project } = projectStore
 
 const useForm = Form.useForm

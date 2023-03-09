@@ -1,5 +1,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
+import { storeToRefs } from 'pinia'
 import {
   ColumnInj,
   computed,
@@ -33,7 +34,6 @@ import {
   toRef,
   useProject,
 } from '#imports'
-import { storeToRefs } from 'pinia'
 import FilePhoneIcon from '~icons/mdi/file-phone'
 import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'

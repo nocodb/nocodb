@@ -47,11 +47,10 @@ const router = useRouter()
 
 const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
 
-
 const projectStore = useProject()
 
 const { loadProjectMetaInfo, saveTheme, loadProject, reset } = projectStore
-const {project, isSharedBase, projectMetaInfo } = storeToRefs(projectStore)
+const { project, isSharedBase, projectMetaInfo } = storeToRefs(projectStore)
 
 const { clearTabs, addTab } = useTabs()
 

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import {
   message,
   ref,
@@ -13,7 +14,6 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import { storeToRefs } from 'pinia'
 
 const dropZone = ref<HTMLDivElement>()
 

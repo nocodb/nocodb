@@ -1,7 +1,7 @@
 import type { ExportTypes, FilterType, KanbanType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 import { storeToRefs } from 'pinia'
+import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])

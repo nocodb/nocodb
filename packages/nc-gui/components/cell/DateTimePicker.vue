@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { storeToRefs } from 'pinia'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -13,7 +14,6 @@ import {
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
-import { storeToRefs } from 'pinia'
 
 interface Props {
   modelValue?: string | null
@@ -24,7 +24,7 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMysql } = (useProject())
+const { isMysql } = useProject()
 
 const { showNull } = useGlobal()
 

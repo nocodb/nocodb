@@ -5,6 +5,7 @@ import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
 import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
 import type { Row, Row as RowType } from '~/lib'
+
 const route = useRoute()
 
 const popupIsOpen = ref(false)

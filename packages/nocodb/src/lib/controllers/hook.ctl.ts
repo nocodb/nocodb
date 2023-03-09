@@ -11,7 +11,6 @@ export async function hookList(
   req: Request<any, any, any>,
   res: Response<HookListType>
 ) {
-  // todo: pagination
   res.json(
     new PagedResponseImpl(
       await hookService.hookList({ tableId: req.params.tableId })

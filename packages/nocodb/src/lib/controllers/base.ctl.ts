@@ -31,13 +31,12 @@ async function baseList(
     projectId: req.params.projectId,
   });
 
-  res // todo: pagination
-    .json({
-      bases: new PagedResponseImpl(bases, {
-        count: bases.length,
-        limit: bases.length,
-      }),
-    });
+  res.json({
+    bases: new PagedResponseImpl(bases, {
+      count: bases.length,
+      limit: bases.length,
+    }),
+  });
 }
 
 export async function baseDelete(

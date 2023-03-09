@@ -58,7 +58,6 @@ export async function tableReorder(req: Request, res: Response) {
   );
 }
 
-// todo: move to table service
 export async function tableUpdate(req: Request<any, any>, res) {
   await tableService.tableUpdate({
     tableId: req.params.tableId,

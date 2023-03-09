@@ -1,5 +1,5 @@
 import { Node, PasteRule, callOrReturn, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
-import { Fragment, ParseOptions, Node as ProseMirrorNode } from 'prosemirror-model'
+import { Fragment, ParseOptions, Node as ProseMirrorNode, Slice } from 'prosemirror-model'
 import { NodeSelection, Plugin, TextSelection } from 'prosemirror-state'
 export interface ListOptions {
   type: string
@@ -12,7 +12,8 @@ declare module '@tiptap/core' {
       /**
        * Toggle a list item
        */
-      toggleListItem: (type: string) => ReturnType
+      insertBulletList: () => ReturnType
+      toogleBulletList: () => ReturnType
     }
   }
 }
@@ -53,7 +54,7 @@ export const ListItem = Node.create<ListOptions>({
 
   addCommands() {
     return {
-      toggleBulletList:
+      insertBulletList:
         () =>
         ({ commands, chain, tr }) => {
           const selection = this.editor.state.selection
@@ -76,6 +77,50 @@ export const ListItem = Node.create<ListOptions>({
               return true
             })
         },
+      toogleBulletList:
+        () =>
+        ({ chain, state }) => {
+          const { selection } = state
+
+          const topDBlockPos = selection.$from.before(1)
+
+          const bottomDBlockPos = selection.$to.after(1)
+
+          const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
+          const sliceJson = slice.toJSON()
+
+          // Toggle a bullet under `dblock` nodes in slice
+          for (const node of sliceJson.content) {
+            if (node.type === 'dBlock') {
+              for (const child of node.content) {
+                if (child.type !== this.name) {
+                  child.content = [structuredClone(child)]
+                  child.type = this.name
+                  child.attrs = {
+                    type: this.options.type,
+                  }
+                } else {
+                  child.type = 'paragraph'
+
+                  if (child.content.length === 1) {
+                    child.content = child.content[0].content
+                  }
+                }
+              }
+            }
+          }
+
+          const newSlice = Slice.fromJSON(state.schema, sliceJson)
+
+          return chain()
+            .command(() => {
+              const tr = state.tr
+              tr.replaceRange(topDBlockPos, bottomDBlockPos, newSlice)
+
+              return true
+            })
+            .setTextSelection(topDBlockPos + newSlice.size - 1)
+        },
     }
   },
 
@@ -83,7 +128,7 @@ export const ListItem = Node.create<ListOptions>({
     return {
       'Ctrl-Alt-2': () => {
         this.editor.chain().focus().setNode('listItem').run()
-        return (this.editor.chain().focus() as any).toggleBulletList().run()
+        return (this.editor.chain().focus() as any).toogleBulletList().run()
       },
       'Enter': () => {
         const { selection } = this.editor.state

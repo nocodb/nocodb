@@ -171,7 +171,7 @@ const onToggleLink = () => {
         type="text"
         :class="{ 'is-active': editor.isActive('bulletList') }"
         class="menu-button"
-        @click="editor!.chain().focus().toggleBulletList().run()"
+        @click="editor!.chain().focus().toogleBulletList().run()"
       >
         <MdiFormatBulletList />
       </a-button>

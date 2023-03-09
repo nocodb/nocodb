@@ -39,7 +39,6 @@ const tiptapExtensions = (): Extensions => {
     Text,
     Strike,
     Heading,
-    ListItem,
     Bold,
     Italic,
     DropCursor.configure({
@@ -83,9 +82,9 @@ const tiptapExtensions = (): Extensions => {
     //     class: 'nc-docs-task-list',
     //   },
     // }),
-    TaskItem.configure({
-      nested: true,
-    }),
+    // TaskItem.configure({
+    //   nested: true,
+    // }),
     HorizontalRule.extend({
       addKeyboardShortcuts() {
         return {

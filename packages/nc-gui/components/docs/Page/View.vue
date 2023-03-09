@@ -496,6 +496,17 @@ watch(
     }
   }
 
+  [data-type='bullet'] {
+    display: list-item;
+    list-style: disc;
+    padding-left: '1rem' !important;
+
+    p {
+      margin-top: '0.01rem';
+      margin-bottom: '0.01rem';
+    }
+  }
+
   ul {
     // bullet color black
     list-style: disc;

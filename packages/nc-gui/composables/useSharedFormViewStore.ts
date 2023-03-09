@@ -1,5 +1,6 @@
 import useVuelidate from '@vuelidate/core'
 import { helpers, minLength, required } from '@vuelidate/validators'
+import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
 import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
@@ -43,7 +44,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
-  const { project } = useProject()
+  const { project } = storeToRefs( useProject)
 
   const { t } = useI18n()
 

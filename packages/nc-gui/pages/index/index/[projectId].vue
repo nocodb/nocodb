@@ -13,10 +13,14 @@ import {
   useProject,
   useRoute,
 } from '#imports'
+import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 
-const { project, loadProject, updateProject, isLoading } = useProject()
+const projectStore = useProject()
+
+const {  loadProject, updateProject } = projectStore
+const {project, isLoading } = storeToRefs(projectStore)
 
 const nameValidationRules = [
   {

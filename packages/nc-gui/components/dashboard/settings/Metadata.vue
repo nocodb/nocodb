@@ -9,7 +9,9 @@ const emit = defineEmits(['baseSynced'])
 
 const { $api } = useNuxtApp()
 
-const { project, loadTables } = useProject()
+const projectStore = useProject()
+const {  loadTables } = projectStore
+const { project } = projectStore
 
 const { t } = useI18n()
 

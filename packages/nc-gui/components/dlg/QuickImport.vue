@@ -22,6 +22,7 @@ import {
   useProject,
   useVModel,
 } from '#imports'
+import { storeToRefs } from 'pinia'
 import type { importFileList, streamImportFileList } from '~/lib'
 
 interface Props {
@@ -37,7 +38,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { tables } = useProject()
+const { tables } = storeToRefs(useProject())
 
 const activeKey = ref('uploadTab')
 

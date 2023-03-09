@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onUnmounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
+import { storeToRefs } from 'pinia'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
@@ -60,7 +61,7 @@ const { getMeta } = useMetas()
 
 const { hasRole } = useRoles()
 
-const { isPg, isMysql } = useProject()
+const { isPg, isMysql } = storeToRefs(useProject())
 
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta

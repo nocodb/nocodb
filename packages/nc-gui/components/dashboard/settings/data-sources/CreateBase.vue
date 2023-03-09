@@ -33,7 +33,9 @@ const emit = defineEmits(['baseCreated'])
 
 const { appInfo } = useGlobal()
 
-const { project, loadProject } = useProject()
+const projectStore = useProject()
+const {  loadProject } = projectStore
+const { project } = projectStore
 
 const useForm = Form.useForm
 

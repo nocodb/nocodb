@@ -1,5 +1,6 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
 import { computed, ref, unref, useEventBus, useFieldQuery, useInjectionState, useNuxtApp, useProject } from '#imports'
 import type { SmartsheetStoreEvents } from '~/lib'
@@ -14,7 +15,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   ) => {
     const { $api } = useNuxtApp()
 
-    const { sqlUis } = useProject()
+    const projectStore = useProject()
+
+    const { sqlUis } = storeToRefs(projectStore)
 
     const sqlUi = ref(
       (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],

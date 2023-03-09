@@ -11,6 +11,7 @@ import {
   useNuxtApp,
   useProject,
 } from '#imports'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps<{
   baseId: string
@@ -20,7 +21,7 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { includeM2M } = useGlobal()
 

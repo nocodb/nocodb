@@ -1,5 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { computed, createSharedComposable, navigateTo, ref, useProject, useRouter, watch } from '#imports'
+import { storeToRefs } from 'pinia'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 
@@ -17,7 +18,9 @@ export const useTabs = createSharedComposable(() => {
 
   const route = $(router.currentRoute)
 
-  const { bases, tables } = useProject()
+  const projectStore = useProject()
+
+  const { bases, tables } = storeToRefs(projectStore)
 
   const projectType = $computed(() => route.params.projectType as string)
 

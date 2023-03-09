@@ -1,4 +1,5 @@
 import type { SortType, ViewType } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
 import {
   IsPublicInj,
@@ -24,7 +25,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { isUIAllowed } = useUIPermission()
 
-  const { isSharedBase } = useProject()
+  const { isSharedBase } = storeToRefs(useProject())
 
   const reloadHook = inject(ReloadViewDataHookInj)
 

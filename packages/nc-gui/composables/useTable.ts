@@ -14,6 +14,7 @@ import {
   useTabs,
   watch,
 } from '#imports'
+import { storeToRefs } from 'pinia'
 import { TabType } from '~/lib'
 
 export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?: string) {
@@ -32,7 +33,8 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
   const { loadTables } = useProject()
 
   const { closeTab } = useTabs()
-  const { sqlUis, project, tables } = useProject()
+  const projectStore = useProject()
+  const { sqlUis, project, tables } = storeToRefs(projectStore)
 
   const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 

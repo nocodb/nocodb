@@ -31,7 +31,10 @@ const baseURL = appInfo.ncSiteUrl
 
 const { $state } = useNuxtApp()
 
-const { project, loadTables } = useProject()
+
+const projectStore = useProject()
+const {  loadProject } = projectStore
+const { project } = projectStore
 
 const showGoToDashboardButton = ref(false)
 

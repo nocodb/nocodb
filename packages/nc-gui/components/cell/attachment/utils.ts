@@ -1,4 +1,5 @@
 import type { AttachmentType } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import RenameFile from './RenameFile.vue'
 import {
   ColumnInj,
@@ -51,7 +52,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** for image carousel */
     const selectedImage = ref()
 
-    const { project } = useProject()
+    const { project } = storeToRefs(useProject())
 
     const { api, isLoading } = useApi()
 

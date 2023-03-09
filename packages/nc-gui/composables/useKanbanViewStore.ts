@@ -1,3 +1,4 @@
+import { storeToRefs } from 'pinia'
 import type { ComputedRef, Ref } from 'vue'
 import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
@@ -40,7 +41,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { api } = useApi()
 
-    const { project } = useProject()
+    const { project,sqlUis } = storeToRefs(useProject())
 
     const { $e, $api } = useNuxtApp()
 
@@ -56,7 +57,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { search } = useFieldQuery()
 
-    const { sqlUis } = useProject()
 
     const sqlUi = ref(
       (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],

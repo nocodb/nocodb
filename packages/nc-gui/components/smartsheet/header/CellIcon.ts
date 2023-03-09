@@ -33,6 +33,7 @@ import {
   toRef,
   useProject,
 } from '#imports'
+import { storeToRefs } from 'pinia'
 import FilePhoneIcon from '~icons/mdi/file-phone'
 import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'
@@ -123,7 +124,7 @@ export default defineComponent({
 
     const column = inject(ColumnInj, columnMeta)
 
-    const { sqlUis } = useProject()
+    const { sqlUis } = storeToRefs(useProject())
 
     const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import tinycolor from 'tinycolor2'
 import {
   TabType,
@@ -46,7 +47,11 @@ const router = useRouter()
 
 const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
 
-const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
+
+const projectStore = useProject()
+
+const { loadProjectMetaInfo, saveTheme, loadProject, reset } = projectStore
+const {project, isSharedBase, projectMetaInfo } = storeToRefs(projectStore)
 
 const { clearTabs, addTab } = useTabs()
 

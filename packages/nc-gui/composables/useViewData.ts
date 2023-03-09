@@ -1,5 +1,6 @@
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import { storeToRefs } from 'pinia'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -70,7 +71,7 @@ export function useViewData(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { project, isSharedBase } = useProject()
+  const { project, isSharedBase } = storeToRefs(useProject())
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 

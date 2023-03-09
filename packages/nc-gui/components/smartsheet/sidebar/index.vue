@@ -16,6 +16,7 @@ import {
   useViews,
   watch,
 } from '#imports'
+import { storeToRefs } from 'pinia'
 
 const meta = inject(MetaInj, ref())
 
@@ -25,7 +26,7 @@ const { activeTab } = useTabs()
 
 const { views, loadViews, isLoading } = useViews(meta)
 
-const { lastOpenedViewMap } = useProject()
+const { lastOpenedViewMap } = storeToRefs(useProject())
 
 const setLastOpenedViewId = (viewId?: string) => {
   if (viewId && activeTab.value?.id) {

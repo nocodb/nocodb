@@ -38,7 +38,10 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { updateTab } = useTabs()
 
-const { loadTables, tables, project, isMysql, isMssql, isPg } = useProject()
+
+const projectStore = useProject()
+const {  loadTables, isMysql, isMssql, isPg } = projectStore
+const { project } = projectStore
 
 const inputEl = $ref<ComponentPublicInstance>()
 

@@ -16,7 +16,7 @@ import {
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
 
-export const useProject = createSharedComposable(() => {
+export const project = createSharedComposable(() => {
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()

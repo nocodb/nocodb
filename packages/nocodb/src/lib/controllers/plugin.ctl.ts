@@ -39,7 +39,7 @@ const blockInCloudMw = (_req, res, next) => {
   if (process.env.NC_CLOUD === 'true') {
     res.status(403).send('Not allowed');
   } else next();
-}
+};
 
 const router = Router({ mergeParams: true });
 router.get(

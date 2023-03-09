@@ -1,6 +1,7 @@
 // @wingkwong: Deprecated. Moved to nocodb/packages/nocodb/src/plugins/ses instead. Keep this file for migration only.
 
-import { XcActionType, XcForm, XcType } from 'nocodb-sdk';
+import { XcActionType, XcType } from 'nocodb-sdk';
+import type { XcForm } from 'nocodb-sdk';
 
 const input: XcForm = {
   title: 'Configure Amazon Simple Email Service(SES)',

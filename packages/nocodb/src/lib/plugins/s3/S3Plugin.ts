@@ -1,6 +1,7 @@
-import { IStorageAdapterV2, XcStoragePlugin } from 'nc-plugin';
+import { XcStoragePlugin } from 'nc-plugin';
 
 import S3 from './S3';
+import type { IStorageAdapterV2 } from 'nc-plugin';
 
 class S3Plugin extends XcStoragePlugin {
   private static storageAdapter: S3;

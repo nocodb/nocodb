@@ -235,6 +235,7 @@
     "action": "إجراء",
     "actions": "إجراءات",
     "operation": "عملية",
+    "operationSub": "Sub Operation",
     "operationType": "نوع العملية",
     "operationSubType": "نوع العملية الفرعية",
     "description": "وصف",

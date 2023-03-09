@@ -235,6 +235,7 @@
     "action": "Actie",
     "actions": "Acties",
     "operation": "Operatie",
+    "operationSub": "Sub Operation",
     "operationType": "Operatietype",
     "operationSubType": "Operatiesubtype",
     "description": "Beschrijving",

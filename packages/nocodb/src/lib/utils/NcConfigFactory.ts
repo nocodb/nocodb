@@ -1,16 +1,16 @@
 import fs from 'fs';
-import parseDbUrl from 'parse-database-url';
 import { URL } from 'url';
 import { promisify } from 'util';
 
-import {
+import * as path from 'path';
+import parseDbUrl from 'parse-database-url';
+import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
+import type {
   AuthConfig,
   DbConfig,
   MailerConfig,
   NcConfig,
 } from '../../interface/config';
-import * as path from 'path';
-import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 
 const {
   uniqueNamesGenerator,

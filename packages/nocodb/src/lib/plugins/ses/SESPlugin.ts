@@ -1,6 +1,7 @@
-import { IEmailAdapter, XcEmailPlugin } from 'nc-plugin';
+import { XcEmailPlugin } from 'nc-plugin';
 
 import SES from './SES';
+import type { IEmailAdapter } from 'nc-plugin';
 
 class SESPlugin extends XcEmailPlugin {
   private static storageAdapter: SES;

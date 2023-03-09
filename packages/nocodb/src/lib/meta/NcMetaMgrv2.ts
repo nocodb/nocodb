@@ -1,17 +1,18 @@
 import bodyParser from 'body-parser';
-import { Handler, Router } from 'express';
+import { Router } from 'express';
 import multer from 'multer';
 
-import { NcConfig } from '../../interface/config';
 import ProjectMgr from '../db/sql-mgr/ProjectMgr';
 import { packageVersion } from '../utils/packageVersion';
 import projectAcl from '../utils/projectAcl';
-import Noco from '../Noco';
 import NcPluginMgr from '../v1-legacy/plugins/NcPluginMgr';
-import NcMetaIO from './NcMetaIO';
 import { defaultConnectionConfig } from '../utils/NcConfigFactory';
-import ncCreateLookup from './handlersv2/ncCreateLookup';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
+import ncCreateLookup from './handlersv2/ncCreateLookup';
+import type NcMetaIO from './NcMetaIO';
+import type Noco from '../Noco';
+import type { NcConfig } from '../../interface/config';
+import type { Handler } from 'express';
 // import ncGetMeta from './handlersv2/ncGetMeta';
 
 export default class NcMetaMgrv2 {

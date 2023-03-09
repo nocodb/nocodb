@@ -1,9 +1,9 @@
-import { XKnex } from '../../index';
 import mssql from './functionMappings/mssql';
 import mysql from './functionMappings/mysql';
 import pg from './functionMappings/pg';
 import sqlite from './functionMappings/sqlite';
-import { Knex } from 'knex';
+import type { XKnex } from '../../index';
+import type { Knex } from 'knex';
 
 export interface MapFnArgs {
   pt: any;

@@ -235,6 +235,7 @@
     "action": "اقدام",
     "actions": "اقدامات",
     "operation": "عملیات",
+    "operationSub": "Sub Operation",
     "operationType": "نوع عملیات",
     "operationSubType": "زیرگونه عملیات",
     "description": "شرح",

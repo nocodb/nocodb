@@ -22,6 +22,7 @@ import {
   useVModel,
   watch,
 } from '#imports'
+import { useActiveKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 import type { Row } from '~/lib'
 
 interface Props {
@@ -34,11 +35,15 @@ interface Props {
   rowId?: string
   view?: ViewType
   showNextPrevIcons?: boolean
+  firstRow?: boolean
+  lastRow?: boolean
 }
 
 const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
+
+const key = ref(0)
 
 const { t } = useI18n()
 
@@ -64,7 +69,16 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 provide(MetaInj, meta)
 
-const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
+const {
+  commentsDrawer,
+  changedColumns,
+  state: rowState,
+  isNew,
+  loadRow,
+  saveRowAndStay,
+  syncLTARRefs,
+  save,
+} = useProvideExpandedFormStore(meta, row)
 
 const duplicatingRowInProgress = ref(false)
 
@@ -126,6 +140,11 @@ const onDuplicateRow = () => {
   }, 500)
 }
 
+const onNext = async () => {
+  await save()
+  emits('next')
+}
+
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
 
 // override reload trigger and use it to reload grid and the form itself
@@ -152,6 +171,92 @@ const cellWrapperEl = ref<HTMLElement>()
 onMounted(() => {
   setTimeout(() => (cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus())
 })
+
+const addNewRow = () => {
+  setTimeout(async () => {
+    row.value = {
+      row: {},
+      oldRow: {},
+      rowMeta: { new: true },
+    }
+    rowState.value = {}
+    key.value++
+    isExpanded.value = true
+  }, 500)
+}
+
+// attach keyboard listeners to switch between rows
+// using alt + left/right arrow keys
+useActiveKeyupListener(
+  isExpanded,
+  async (e: KeyboardEvent) => {
+    if (!e.altKey) return
+    if (e.key === 'ArrowLeft') {
+      e.stopPropagation()
+      emits('prev')
+    } else if (e.key === 'ArrowRight') {
+      e.stopPropagation()
+      emits('next')
+    }
+    // on alt + s save record
+    else if (e.code === 'KeyS') {
+      // remove focus from the active input if any
+      document.activeElement?.blur()
+
+      e.stopPropagation()
+
+      if (isNew.value) {
+        const data = await save(rowState.value)
+        await syncLTARRefs(data)
+        reloadHook?.trigger(null)
+      } else {
+        await save()
+        reloadHook?.trigger(null)
+      }
+      if (!saveRowAndStay.value) {
+        onClose()
+      }
+      // on alt + n create new record
+    } else if (e.code === 'KeyN') {
+      // remove focus from the active input if any to avoid unwanted input
+      ;(document.activeElement as HTMLInputElement)?.blur?.()
+
+      if (changedColumns.value.size > 0) {
+        await Modal.confirm({
+          title: 'Do you want to save the changes?',
+          okText: 'Save',
+          cancelText: 'Discard',
+          onOk: async () => {
+            await save()
+            reloadHook?.trigger(null)
+            addNewRow()
+          },
+          onCancel: () => {
+            addNewRow()
+          },
+        })
+      } else if (isNew.value) {
+        await Modal.confirm({
+          title: 'Do you want to save the record?',
+          okText: 'Save',
+          cancelText: 'Discard',
+          onOk: async () => {
+            const data = await save(rowState.value)
+            await syncLTARRefs(data)
+            reloadHook?.trigger(null)
+            addNewRow()
+          },
+          onCancel: () => {
+            addNewRow()
+          },
+        })
+      } else {
+        addNewRow()
+      }
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <script lang="ts">
@@ -172,21 +277,25 @@ export default {
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
 
-    <div class="!bg-gray-100 rounded flex-1">
+    <div :key="key" class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container relative">
           <template v-if="props.showNextPrevIcons">
-            <a-tooltip placement="bottom">
-              <template #title>
-                {{ $t('labels.nextRow') }}
-              </template>
-              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="$emit('next')" />
-            </a-tooltip>
-            <a-tooltip placement="bottom">
+            <a-tooltip v-if="!props.firstRow" placement="bottom">
               <template #title>
                 {{ $t('labels.prevRow') }}
+
+                <GeneralShortcutLabel class="justify-center" :keys="['Alt', '←']" />
               </template>
               <MdiChevronLeft class="cursor-pointer nc-prev-arrow" @click="$emit('prev')" />
+            </a-tooltip>
+
+            <a-tooltip v-if="!props.lastRow" placement="bottom">
+              <template #title>
+                {{ $t('labels.nextRow') }}
+                <GeneralShortcutLabel class="justify-center" :keys="['Alt', '→']" />
+              </template>
+              <MdiChevronRight class="cursor-pointer nc-next-arrow" @click="onNext" />
             </a-tooltip>
           </template>
           <div class="w-[500px] mx-auto">

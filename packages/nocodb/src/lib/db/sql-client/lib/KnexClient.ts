@@ -1,19 +1,20 @@
 /* eslint-disable no-constant-condition */
-import { knex, Knex } from 'knex';
-import { Tele } from 'nc-help';
-import Debug from '../../util/Debug';
-import Emit from '../../util/emit';
-import Result from '../../util/Result';
+import fs from 'fs';
+import { promisify } from 'util';
+import path from 'path';
+import { knex } from 'knex';
+import { T } from 'nc-help';
 
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
-import fs from 'fs';
-import { promisify } from 'util';
 import jsonfile from 'jsonfile';
-import path from 'path';
 import mkdirp from 'mkdirp';
+import Result from '../../util/Result';
+import Emit from '../../util/emit';
+import Debug from '../../util/Debug';
 import * as dataHelp from './data.helper';
 import SqlClient from './SqlClient';
+import type { Knex } from 'knex';
 const evt = new Emit();
 
 const log = new Debug('KnexClient');
@@ -620,7 +621,7 @@ class KnexClient extends SqlClient {
         KnexClient.___ext = await this._validateInput();
       }
       if (!KnexClient.___ext) {
-        Tele.emit('evt', {
+        T.emit('evt', {
           evt_type: 'project:external',
           payload: null,
           check: true,

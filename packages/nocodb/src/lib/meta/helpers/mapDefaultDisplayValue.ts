@@ -1,4 +1,4 @@
-import { ColumnType } from 'nocodb-sdk';
+import type { ColumnType } from 'nocodb-sdk';
 
 export default function mapDefaultDisplayValue<T extends ColumnType>(
   columnsArr: Array<T>

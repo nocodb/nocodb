@@ -1,4 +1,4 @@
-import { NcBuilderUpgraderCtx } from '../BaseApiBuilder';
+import type { NcBuilderUpgraderCtx } from '../BaseApiBuilder';
 
 export default async function (ctx: NcBuilderUpgraderCtx) {
   try {

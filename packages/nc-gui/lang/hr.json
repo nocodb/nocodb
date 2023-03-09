@@ -235,6 +235,7 @@
     "action": "Akcijski",
     "actions": "Akcije",
     "operation": "Operacija",
+    "operationSub": "Sub Operation",
     "operationType": "Vrsta rada",
     "operationSubType": "Operacija pod-vrsti",
     "description": "Opis",

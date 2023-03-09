@@ -1,4 +1,4 @@
-import Column from '../../models/Column';
+import type Column from '../../models/Column';
 
 export function getUniqueColumnName(columns: Column[], initialName = 'field') {
   let c = 0;

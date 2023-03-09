@@ -235,6 +235,7 @@
     "action": "Azione",
     "actions": "Azioni",
     "operation": "Operazione",
+    "operationSub": "Sub Operation",
     "operationType": "Tipo di operazioni",
     "operationSubType": "Sottotipo di operazioni",
     "description": "Descrizione",

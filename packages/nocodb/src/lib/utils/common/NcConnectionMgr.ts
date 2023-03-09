@@ -1,12 +1,12 @@
-import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
-import { XKnex } from '../../db/sql-data-mapper';
-import { NcConfig } from '../../../interface/config';
 import fs from 'fs';
 import { promisify } from 'util';
-import { Knex } from 'knex';
-
-import NcMetaIO from '../../meta/NcMetaIO';
+import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
+import { XKnex } from '../../db/sql-data-mapper';
 import { defaultConnectionConfig } from '../NcConfigFactory';
+import type { NcConfig } from '../../../interface/config';
+import type { Knex } from 'knex';
+
+import type NcMetaIO from '../../meta/NcMetaIO';
 
 export default class NcConnectionMgr {
   private static connectionRefs: {

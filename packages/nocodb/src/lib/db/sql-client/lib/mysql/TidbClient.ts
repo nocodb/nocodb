@@ -1,10 +1,9 @@
 import _ from 'lodash';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
+import MysqlClient from './MysqlClient';
 
 const log = new Debug('TidbClient');
-
-import MysqlClient from './MysqlClient';
 
 class Tidb extends MysqlClient {
   /**

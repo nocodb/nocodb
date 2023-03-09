@@ -25,7 +25,6 @@ import pluginController from '../../controllers/plugin.ctl';
 import gridViewColumnController from '../../controllers/views/gridViewColumn.ctl';
 import kanbanViewController from '../../controllers/views/kanbanView.ctl';
 import { userController } from '../../controllers/user';
-// import extractProjectIdAndAuthenticate from './helpers/extractProjectIdAndAuthenticate';
 import utilController from '../../controllers/util.ctl';
 import projectUserController from '../../controllers/projectUser.ctl';
 import sharedBaseController from '../../controllers/sharedBase.ctl';
@@ -49,7 +48,6 @@ import {
   publicDataExportController,
   publicMetaController,
 } from '../../controllers/publicControllers';
-
 import swaggerController from '../../controllers/apiDocs';
 import { importController, syncSourceController } from '../../controllers/sync';
 import mapViewController from '../../controllers/views/mapView.ctl';

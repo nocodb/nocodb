@@ -1,5 +1,4 @@
 import lodash from 'lodash';
-
 import BaseRender from '../../BaseRender';
 import type { Acl } from '../../../../../../interface/config';
 

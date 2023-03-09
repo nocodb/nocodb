@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-
 import { filterService } from '../services';
 import type { FilterReqType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';

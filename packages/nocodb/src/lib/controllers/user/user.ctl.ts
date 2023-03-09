@@ -1,6 +1,5 @@
 import { promisify } from 'util';
 import * as ejs from 'ejs';
-
 import passport from 'passport';
 import catchError, { NcError } from '../../meta/helpers/catchError';
 import extractProjectIdAndAuthenticate from '../../meta/helpers/extractProjectIdAndAuthenticate';

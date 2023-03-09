@@ -9,7 +9,6 @@ import Noco from '../Noco';
 import Project from '../models/Project';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import Filter from '../models/Filter';
-
 import { projectService } from '../services';
 import type { ProjectListType } from 'nocodb-sdk';
 import type { ProjectType } from 'nocodb-sdk';

@@ -1,7 +1,5 @@
 import lodash from 'lodash';
-
 import BaseRender from '../../BaseRender';
-
 import { AGG_DEFAULT_COLS, GROUPBY_DEFAULT_COLS } from './schemaHelp';
 
 abstract class BaseGqlXcTsSchema extends BaseRender {

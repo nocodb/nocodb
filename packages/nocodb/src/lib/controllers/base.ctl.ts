@@ -1,7 +1,6 @@
 import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
-
 import { baseService } from '../services';
 import type Base from '../models/Base';
 import type { BaseListType } from 'nocodb-sdk';

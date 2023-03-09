@@ -1,7 +1,6 @@
 import autoBind from 'auto-bind';
 import _ from 'lodash';
 import Validator from 'validator';
-
 import Papaparse from 'papaparse';
 import BaseModel from '../BaseModel';
 import formulaQueryBuilder from './formulaQueryBuilderFromString';

@@ -9,7 +9,6 @@ import { Strategy as GithubStrategy } from 'passport-github';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import validator from 'validator';
-
 import { Strategy as CustomStrategy } from 'passport-custom';
 import axios from 'axios';
 import { T } from 'nc-help';
@@ -17,13 +16,15 @@ import XcCache from '../plugins/adapters/cache/XcCache';
 import type { DbConfig, NcConfig } from '../../../interface/config';
 import type { Knex } from '../../db/sql-data-mapper';
 import type Noco from '../../Noco';
-
 import type NcMetaIO from '../../meta/NcMetaIO';
 import type IEmailAdapter from '../../../interface/IEmailAdapter';
 
 const autoBind = require('auto-bind');
+
 const PassportLocalStrategy = require('passport-local').Strategy;
+
 const { v4: uuidv4 } = require('uuid');
+
 const { isEmail } = require('validator');
 
 passport.serializeUser(function (

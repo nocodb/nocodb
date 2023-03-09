@@ -5,13 +5,11 @@ import { execute } from 'graphql';
 import { GraphQLJSON } from 'graphql-type-json';
 import _ from 'lodash';
 import { BaseType } from 'xc-core-ts';
-
 import ExpressXcTsPolicyGql from '../../db/sql-mgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql';
 import GqlXcSchemaFactory from '../../db/sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import NcHelp from '../../utils/NcHelp';
 import BaseApiBuilder from '../../utils/common/BaseApiBuilder';
-
 import { m2mNotChildren, m2mNotChildrenCount } from './GqlCommonResolvers';
 import GqlMiddleware from './GqlMiddleware';
 import { GqlProcedureResolver } from './GqlProcedureResolver';

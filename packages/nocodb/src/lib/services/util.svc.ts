@@ -1,5 +1,4 @@
 import { compareVersions, validate } from 'compare-versions';
-
 import { ViewTypes } from 'nocodb-sdk';
 import axios from 'axios';
 import { Project } from '../models';

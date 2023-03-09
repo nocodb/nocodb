@@ -1,6 +1,5 @@
 import autoBind from 'auto-bind';
 import _ from 'lodash';
-
 import DataLoader from 'dataloader';
 import {
   AuditOperationSubTypes,

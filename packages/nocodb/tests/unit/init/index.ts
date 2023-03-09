@@ -1,7 +1,6 @@
 
 import express from 'express';
 import { Noco } from '../../../src/lib';
-
 import cleanupMeta from './cleanupMeta';
 import {cleanUpSakila, resetAndSeedSakila} from './cleanupSakila';
 import { createUser } from '../factory/user';

@@ -1,17 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-
 import glob from 'glob';
 import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
-// import Handlebars from 'handlebars';
-// import mkdirp from 'mkdirp';
 import * as fileHelp from '../../util/file.help';
-
-// import SqlMigrator from './SqlMigrator';
-// import NcConfigFactory from '../../../utils/NcConfigFactory';
 import Noco from '../../../Noco';
 import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
@@ -21,7 +15,9 @@ import type { XKnex } from '../../sql-data-mapper';
 import type { Knex } from 'knex';
 
 const evt = new Emit();
+
 const log = new Debug('KnexMigrator');
+
 const NC_MIGRATION = 'nc_migrations';
 /**
  * Class to create an instance of KnexMigrator

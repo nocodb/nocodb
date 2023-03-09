@@ -12,8 +12,10 @@ export async function kanbanViewCreate(param: {
   tableId: string;
   kanban: KanbanReqType;
 }) {
-  validatePayload('swagger.json#/components/schemas/KanbanReq', param.kanban),
-    T.emit('evt', { evt_type: 'vtable:created', show_as: 'kanban' });
+  validatePayload('swagger.json#/components/schemas/KanbanReq', param.kanban);
+
+  T.emit('evt', { evt_type: 'vtable:created', show_as: 'kanban' });
+
   const view = await View.insert({
     ...param.kanban,
     // todo: sanitize

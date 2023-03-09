@@ -6,7 +6,6 @@ import populateSamplePayload from '../meta/helpers/populateSamplePayload';
 import type { HookReqType, HookTestReqType } from 'nocodb-sdk';
 
 export async function hookList(param: { tableId: string }) {
-  // todo: pagination
   return await Hook.list({ fk_model_id: param.tableId });
 }
 

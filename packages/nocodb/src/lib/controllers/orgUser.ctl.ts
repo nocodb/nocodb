@@ -2,13 +2,21 @@ import { Router } from 'express';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
+import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { orgUserService } from '../services';
+import { User } from '../models';
 
 async function userList(req, res) {
   res.json(
-    await orgUserService.userList({
-      query: req.query,
-    })
+    new PagedResponseImpl(
+      await orgUserService.userList({
+        query: req.query,
+      }),
+      {
+        ...req.query,
+        count: await User.count(req.query),
+      }
+    )
   );
 }
 

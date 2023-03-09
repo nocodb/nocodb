@@ -78,9 +78,11 @@ async function hideAllColumns(req: Request<any, any>, res) {
 
 async function shareViewList(req: Request<any, any>, res) {
   res.json(
-    await viewService.shareViewList({
-      tableId: req.params.tableId,
-    })
+    new PagedResponseImpl(
+      await viewService.shareViewList({
+        tableId: req.params.tableId,
+      })
+    )
   );
 }
 

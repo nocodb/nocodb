@@ -3,6 +3,7 @@ import { T } from 'nc-help';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
 import { hookFilterService } from '../services';
+import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import type { Request, Response } from 'express';
 
 export async function filterGet(req: Request, res: Response) {
@@ -14,11 +15,13 @@ export async function filterGet(req: Request, res: Response) {
 }
 
 export async function filterList(req: Request, res: Response) {
-  const filter = await hookFilterService.filterList({
-    hookId: req.params.hookId,
-  });
-
-  res.json(filter);
+  res.json(
+    new PagedResponseImpl(
+      await hookFilterService.filterList({
+        hookId: req.params.hookId,
+      })
+    )
+  );
 }
 
 export async function filterChildrenRead(req: Request, res: Response) {

@@ -25,7 +25,9 @@ export async function auditRowUpdate(req: Request<any, any>, res) {
 }
 
 export async function commentList(req: Request<any, any, any>, res) {
-  res.json(await auditService.commentList({ query: req.query }));
+  res.json(
+    new PagedResponseImpl(await auditService.commentList({ query: req.query }))
+  );
 }
 
 export async function auditList(req: Request, res: Response) {

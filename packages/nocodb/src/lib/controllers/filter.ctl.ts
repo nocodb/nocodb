@@ -1,25 +1,25 @@
 import { Router } from 'express';
 import ncMetaAclMw from '../meta/helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../meta/helpers/apiMetrics';
+import { PagedResponseImpl } from '../meta/helpers/PagedResponse';
 import { filterService } from '../services';
 import type { FilterReqType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 
-// @ts-ignore
 export async function filterGet(req: Request, res: Response) {
   res.json(await filterService.filterGet({ filterId: req.params.filterId }));
 }
 
-// @ts-ignore
 export async function filterList(req: Request, res: Response) {
   res.json(
-    await filterService.filterList({
-      viewId: req.params.viewId,
-    })
+    new PagedResponseImpl(
+      await filterService.filterList({
+        viewId: req.params.viewId,
+      })
+    )
   );
 }
 
-// @ts-ignore
 export async function filterChildrenRead(req: Request, res: Response) {
   const filter = await filterService.filterChildrenList({
     filterId: req.params.filterParentId,

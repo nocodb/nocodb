@@ -7,7 +7,7 @@ import type { ApiTokenReqType } from 'nocodb-sdk';
 import type User from '../models/User';
 
 export async function apiTokenList(param: { userId: string }) {
-  return ApiToken.list(param.userId);
+  return await ApiToken.list(param.userId);
 }
 export async function apiTokenCreate(param: {
   userId: string;
@@ -19,7 +19,10 @@ export async function apiTokenCreate(param: {
   );
 
   T.emit('evt', { evt_type: 'apiToken:created' });
-  return ApiToken.insert({ ...param.tokenBody, fk_user_id: param.userId });
+  return await ApiToken.insert({
+    ...param.tokenBody,
+    fk_user_id: param.userId,
+  });
 }
 
 export async function apiTokenDelete(param: { token; user: User }) {

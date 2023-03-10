@@ -178,7 +178,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           })
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, offset: params.offset })
 
-      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response.list)])
+      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response!.list)])
     }
 
     async function loadKanbanMeta() {

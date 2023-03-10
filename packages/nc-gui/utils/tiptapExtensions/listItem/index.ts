@@ -127,7 +127,7 @@ export const ListItem = Node.create<ListOptions>({
           const slice = state.doc.slice(topDBlockPos, bottomDBlockPos)
           const sliceJson = slice.toJSON()
 
-          const prevNumberListNode: any = null
+          let prevOrderedListNodeNumber = 0
           // Toggle a bullet under `dblock` nodes in slice
           for (const node of sliceJson.content) {
             if (node.type === 'dBlock') {
@@ -136,10 +136,18 @@ export const ListItem = Node.create<ListOptions>({
                   child.content = [structuredClone(child)]
                   child.type = this.name
                   child.attrs = {
-                    value: '1',
+                    value: String(prevOrderedListNodeNumber + 1),
                     type,
                   }
+                  prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
+                } else if (child.attrs?.type !== type) {
+                  child.attrs = {
+                    value: String(prevOrderedListNodeNumber + 1),
+                    type,
+                  }
+                  prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
                 } else {
+                  prevOrderedListNodeNumber = 0
                   child.type = 'paragraph'
 
                   if (child.content.length === 1) {
@@ -253,6 +261,11 @@ export const ListItem = Node.create<ListOptions>({
       wrappingInputRule({
         find: inputRegex,
         type: this.type,
+        getAttributes: (match) => {
+          return {
+            type: 'bullet',
+          }
+        },
       }),
     ]
   },

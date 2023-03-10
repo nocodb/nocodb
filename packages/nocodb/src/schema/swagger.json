@@ -6069,7 +6069,88 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "alias": "string",
+                          "column": [
+                            {
+                              "alias": "string",
+                              "auto_increment": true,
+                              "auto_update_timestamp": true,
+                              "base_id": "string",
+                              "character_maximum_length": "string",
+                              "character_set_name": "string",
+                              "colOptions": {
+                                "deleted": "string",
+                                "dr": "string",
+                                "fk_child_column_id": "string",
+                                "fk_column_id": "string",
+                                "fk_index_name": "string",
+                                "fk_mm_child_column_id": "string",
+                                "fk_mm_model_id": "string",
+                                "fk_mm_parent_column_id": "string",
+                                "fk_parent_column_id": "string",
+                                "id": "string",
+                                "order": "string",
+                                "type": "string",
+                                "ur": "string",
+                                "virtual": true
+                              },
+                              "column_comment": "string",
+                              "column_default": "string",
+                              "column_ordinal_position": "string",
+                              "column_type": "string",
+                              "data_type": "string",
+                              "data_type_x": "string",
+                              "data_type_x_precision": "string",
+                              "data_type_x_scale": "string",
+                              "deleted": true,
+                              "fk_model_id": "string",
+                              "id": "string",
+                              "numeric_precision": "string",
+                              "numeric_scale": "string",
+                              "order": 0,
+                              "primary_key": true,
+                              "primary_value": true,
+                              "rqd": "string",
+                              "title": "string",
+                              "ui_data_type": "string",
+                              "un": "string",
+                              "unique": true,
+                              "visible": true
+                            }
+                          ],
+                          "columnByIds": {},
+                          "deleted": true,
+                          "enabled": true,
+                          "fk_base_id": "string",
+                          "fk_project_id": "string",
+                          "id": "string",
+                          "order": 0,
+                          "parent_id": "string",
+                          "pinned": true,
+                          "show_as": "string",
+                          "tags": "string",
+                          "title": "string",
+                          "type": "string"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -7449,7 +7530,52 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SharedViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "base_id": "ds_g4ccx6e77h1dmi",
+                          "created_at": "2023-03-02 17:46:31",
+                          "fk_model_id": "md_mhs9z4r2ak98x0",
+                          "id": "vw_lg052cnc1c26kf",
+                          "is_default": 1,
+                          "lock_type": "collaborative",
+                          "meta": {},
+                          "order": 1,
+                          "password": null,
+                          "project_id": "p_xm3thidrblw4n7",
+                          "show": 1,
+                          "show_system_fields": null,
+                          "title": "Sheet-1",
+                          "type": 3,
+                          "updated_at": "2023-03-02 17:46:31",
+                          "uuid": null,
+                          "view": {
+                            "base_id": "ds_g4ccx6e77h1dmi",
+                            "created_at": "2023-03-02 17:46:31",
+                            "fk_view_id": "vw_lg052cnc1c26kf",
+                            "meta": null,
+                            "project_id": "p_xm3thidrblw4n7",
+                            "row_height": null,
+                            "updated_at": "2023-03-02 17:46:31",
+                            "uuid": null
+                          }
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
               }
             }
           }

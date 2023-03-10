@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
+import { storeToRefs } from 'pinia'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 import { TabMetaInj, iconMap, provide, useGlobal, useSidebar, useTabs } from '#imports'
 
-const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
+const tabStore = useTabs()
+const { closeTab } = tabStore
+const { tabs, activeTabIndex, activeTab } = storeToRefs(tabStore)
 
 const { isLoading } = useGlobal()
 

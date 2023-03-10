@@ -1,6 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { storeToRefs } from 'pinia'
-import { computed, createSharedComposable, navigateTo, ref, useProject, useRouter, watch } from '#imports'
+import { defineStore } from 'pinia'
+import { computed, navigateTo, ref, useProject, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 
@@ -11,7 +11,7 @@ function getPredicate(key: Partial<TabItem>) {
     (!('type' in key) || tab.type === key.type)
 }
 
-export const useTab = createSharedComposable(() => {
+export const useTabs = defineStore('tabStore', () => {
   const tabs = ref<TabItem[]>([])
 
   const router = useRouter()
@@ -20,8 +20,6 @@ export const useTab = createSharedComposable(() => {
 
   const projectStore = useProject()
 
-  const { bases, tables } = storeToRefs(projectStore)
-
   const projectType = $computed(() => route.params.projectType as string)
 
   const previousActiveTabIndex = ref(-1)
@@ -29,14 +27,14 @@ export const useTab = createSharedComposable(() => {
     get() {
       const routeName = route.name as string
 
-      if (routeName.startsWith('projectType-projectId-index-index-type-title-viewTitle') && tables.value.length) {
+      if (routeName.startsWith('projectType-projectId-index-index-type-title-viewTitle') && projectStore.tables.length) {
         const tab: TabItem = { type: route.params.type as TabType, title: route.params.title as string }
 
-        const currentTable = tables.value.find((t) => t.id === tab.title || t.title === tab.title)
+        const currentTable = projectStore.tables.find((t) => t.id === tab.title || t.title === tab.title)
 
         if (!currentTable) return -1
 
-        const currentBase = bases.value.find((b) => b.id === currentTable.base_id)
+        const currentBase = projectStore.bases.find((b) => b.id === currentTable.base_id)
 
         tab.id = currentTable.id
 
@@ -47,7 +45,7 @@ export const useTab = createSharedComposable(() => {
         tab.meta = currentTable.meta
 
         // append base alias to tab title if duplicate titles exist on other bases
-        if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+        if (projectStore.tables.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
           tab.title = `${tab.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
 
         if (index === -1) {
@@ -94,13 +92,13 @@ export const useTab = createSharedComposable(() => {
     }
     // if tab not found add it
     else {
-      const currentTable = tables.value.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
-      const currentBase = bases.value.find((b) => b.id === currentTable?.base_id)
+      const currentTable = projectStore.tables.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
+      const currentBase = projectStore.bases.find((b) => b.id === currentTable?.base_id)
 
       tabMeta.meta = currentTable?.meta
 
       // append base alias to tab title if duplicate titles exist on other bases
-      if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+      if (projectStore.tables.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
         tabMeta.title = `${tabMeta.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
 
       tabs.value = [...(tabs.value || []), tabMeta]

@@ -581,9 +581,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         v-model:open-key="openDialogKey"
         v-model:data-sources-state="dataSourcesState"
       />
-
       <NuxtPage :page-key="$route.params.projectId" />
-
       <LazyGeneralPreviewAs float />
     </div>
   </NuxtLayout>

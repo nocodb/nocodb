@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
 import { storeToRefs } from 'pinia'
+import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
 
 const props = defineProps<{
   baseId: string

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { storeToRefs } from 'pinia'
 import { ActiveCellInj, ReadonlyInj, inject, onClickOutside, useProject, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {

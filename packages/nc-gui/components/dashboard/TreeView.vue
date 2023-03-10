@@ -41,7 +41,7 @@ const projectStore = useProject()
 const { loadTables } = projectStore
 const { bases, tables, isSharedBase } = storeToRefs(projectStore)
 
-const { activeTab } = useTabs()
+const { activeTab } = storeToRefs(useTabs())
 
 const { deleteTable } = useTable()
 

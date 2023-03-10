@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { onUnmounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
-import { storeToRefs } from 'pinia'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'

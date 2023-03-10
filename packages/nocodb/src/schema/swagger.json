@@ -163,6 +163,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["Auth"],
@@ -15724,6 +15727,33 @@
             "examples": {}
           }
         }
+      },
+      "BadRequest": {
+        "description": "BadReqeust Example Response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "x-stoplight": {
+                    "id": "p9mk4oi0hbihm"
+                  },
+                  "example": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              }
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "msg": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              }
+            }
+          }
+        },
+        "headers": {}
       }
     },
     "securitySchemes": {

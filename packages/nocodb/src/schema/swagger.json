@@ -12925,7 +12925,7 @@
             "description": "Is Plugin Active?"
           },
           "input": {
-            "type": "string",
+            "$ref": "#/components/schemas/StringOrNull",
             "description": "Plugin Input"
           }
         }

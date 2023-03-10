@@ -24,16 +24,25 @@ export class ExpandedFormPage extends BasePage {
     return this.dashboard.get().locator(`.nc-drawer-expanded-form`);
   }
 
-  async clickDuplicateRow() {
-    await this.duplicateRowButton.click();
+  async click3DotsMenu(menuItem: string) {
+    await this.get().locator('.nc-icon-transition.ant-dropdown-trigger').last().click();
 
+    // add delay; wait for the menu to appear
+    await this.rootPage.waitForTimeout(500);
+
+    const popUpMenu = await this.rootPage.locator('.ant-dropdown');
+    await popUpMenu.locator(`.ant-dropdown-menu-item:has-text("${menuItem}")`).click();
+  }
+
+  async clickDuplicateRow() {
+    await this.click3DotsMenu('Duplicate Row');
     // wait for loader to disappear
     // await this.dashboard.waitForLoaderToDisappear();
     await this.rootPage.waitForTimeout(2000);
   }
 
   async clickDeleteRow() {
-    await this.deleteRowButton.click();
+    await this.click3DotsMenu('Delete Row');
     await this.rootPage.locator('.ant-btn-primary:has-text("OK")').click();
   }
 
@@ -142,17 +151,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('.nc-icon-transition.ant-dropdown-trigger').last().click();
-
-    // TODO: fix this; remove the delay
-    // await this.rootPage.locator('.ant-dropdown').waitFor({ state: 'visible' });
-    // await this.rootPage.locator('.ant-dropdown').locator('.ant-dropdown-menu-item:has-text("Close")').click();
-
-    // add delay; wait for the menu to appear
-    await this.rootPage.waitForTimeout(500);
-
-    const popUpMenu = await this.rootPage.locator('.ant-dropdown');
-    await popUpMenu.locator('.ant-dropdown-menu-item:has-text("Close")').click();
+    await this.click3DotsMenu('Close');
   }
 
   async openChildCard(param: { column: string; title: string }) {

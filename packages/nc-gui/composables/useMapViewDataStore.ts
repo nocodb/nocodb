@@ -23,7 +23,7 @@ const formatData = (list: Record<string, any>[]) =>
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
     meta: Ref<TableType | undefined>,
-    viewMeta: Ref<ViewType | MapType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
+    viewMeta: Ref<(ViewType | MapType | undefined) & { id: string }> | ComputedRef<(ViewType & { id: string }) | undefined>,
     shared = false,
     where?: ComputedRef<string | undefined>,
   ) => {
@@ -88,7 +88,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
           })
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
-      formattedData.value = formatData(res.list)
+      formattedData.value = formatData(res!.list)
     }
 
     async function updateMapMeta(updateObj: Partial<MapType>) {
@@ -107,7 +107,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       {
         metaValue = meta.value,
         viewMetaValue = viewMeta.value,
-      }: { metaValue?: MapType; viewMetaValue?: ViewType | MapType } = {},
+      }: { metaValue?: MapType & { id: string }; viewMetaValue?: (ViewType | MapType) & { id: string } } = {},
     ) {
       const row = currentRow.row
       if (currentRow.rowMeta) currentRow.rowMeta.saving = true

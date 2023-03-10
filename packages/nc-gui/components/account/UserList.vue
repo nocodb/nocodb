@@ -3,6 +3,7 @@ import { Modal, message } from 'ant-design-vue'
 import type { RequestParams, UserType } from 'nocodb-sdk'
 import { Role, extractSdkResponseErrorMsg, useApi, useCopy, useDashboard, useNuxtApp } from '#imports'
 import type { User } from '~/lib'
+import { OrgUserReqType, UserListType } from 'nocodb-sdk'
 
 const { api, isLoading } = useApi()
 
@@ -35,16 +36,18 @@ const pagination = reactive({
 const loadUsers = async (page = currentPage, limit = currentLimit) => {
   currentPage = page
   try {
-    const response: any = (await api.orgUsers.list({
+    const response: any = await api.orgUsers.list({
       query: {
         limit,
         offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
         query: searchText.value,
       },
-    } as RequestParams)).list
+    } as RequestParams)
+
     if (!response) return
 
     pagination.total = response.pageInfo.totalRows ?? 0
+
     pagination.pageSize = 10
 
     users = response.list as UserType[]
@@ -59,7 +62,7 @@ const updateRole = async (userId: string, roles: Role) => {
   try {
     await api.orgUsers.update(userId, {
       roles,
-    } as unknown as UserType)
+    } as OrgUserReqType)
     message.success(t('msg.success.roleUpdated'))
 
     $e('a:org-user:role-updated', { role: roles })

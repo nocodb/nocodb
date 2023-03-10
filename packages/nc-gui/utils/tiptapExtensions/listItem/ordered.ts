@@ -1,36 +1,31 @@
-import { Node, PasteRule, callOrReturn, mergeAttributes, nodePasteRule, wrappingInputRule } from '@tiptap/core'
-import { Fragment, ParseOptions, Node as ProseMirrorNode, Slice } from 'prosemirror-model'
-import { NodeSelection, Plugin, TextSelection } from 'prosemirror-state'
-export interface ListOptions {
-  type: 'bullet' | 'ordered' | 'task'
-  value: string
+import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
+import { Fragment, Slice } from 'prosemirror-model'
+import { Plugin } from 'prosemirror-state'
+
+export interface OrderItemsOptions {
+  number: string
   HTMLAttributes: Record<string, any>
 }
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
-    listItem: {
-      /**
-       * Toggle a list item
-       */
-      insertBulletList: () => ReturnType
-      toggleListItem: (type: string) => ReturnType
+    ordered: {
+      toggleOrdered: () => ReturnType
     }
   }
 }
 
-const inputPasteRegex = /^\s*([-+*])\s/g
-const inputRegex = /^\s*([-+*])\s$/g
+const inputRegex = /^\d+\.\s+(.*)$/gm
+const inputPasteRegex = /^\d+\.\s+(.*)$/gm
 
 let lastTransaction: any = null
 
-export const ListItem = Node.create<ListOptions>({
-  name: 'listItem',
+export const Ordered = Node.create<OrderItemsOptions>({
+  name: 'ordered',
 
   addOptions() {
     return {
-      type: 'bullet',
-      content: '',
+      number: '1',
       HTMLAttributes: {},
     }
   },
@@ -41,20 +36,21 @@ export const ListItem = Node.create<ListOptions>({
     return 'paragraph'
   },
 
+  parseHTML() {
+    return [
+      {
+        tag: 'div[data-type="ordered"]',
+        attrs: { 'data-type': 'ordered' },
+      },
+    ]
+  },
+
   addAttributes() {
     return {
-      type: {
+      number: {
         default: null,
         parseHTML: (element) => {
-          const type = element.getAttribute('data-sub-type')
-
-          return type || 'bullet'
-        },
-      },
-      value: {
-        default: null,
-        parseHTML: (element) => {
-          const value = element.getAttribute('data-value')
+          const value = element.getAttribute('data-number')
 
           return value || ''
         },
@@ -62,17 +58,12 @@ export const ListItem = Node.create<ListOptions>({
     }
   },
 
-  parseHTML() {
-    return [{ tag: 'div', attrs: { 'data-type': this.name } }]
-  },
-
   renderHTML({ node, HTMLAttributes }) {
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         'data-type': node.type.name,
-        'data-sub-type': node.attrs.type,
-        'data-value': node.attrs.value,
+        'data-number': node.attrs.number,
       }),
       [
         'div',
@@ -82,7 +73,7 @@ export const ListItem = Node.create<ListOptions>({
         [
           'span',
           {
-            'data-value': node.attrs.value,
+            'data-number': node.attrs.number,
           },
         ],
       ],
@@ -92,31 +83,8 @@ export const ListItem = Node.create<ListOptions>({
 
   addCommands() {
     return {
-      insertBulletList:
+      toggleOrdered:
         () =>
-        ({ chain, tr }) => {
-          const selection = this.editor.state.selection
-          const currentNode = this.editor.state.doc.nodeAt(selection.from - 1)
-          const parentNodePos = selection.from - currentNode!.nodeSize
-          const parentNode = this.editor.state.doc.nodeAt(parentNodePos)
-
-          const paragraphFragment = Fragment.from(
-            this.editor.state.schema.nodes.paragraph.create(undefined, currentNode?.content),
-          )
-          const bulletNode = this.editor.state.schema.nodes.bullet.create(undefined, paragraphFragment)
-
-          return chain()
-            .deleteRange({ from: selection.from - parentNode!.nodeSize, to: selection.from })
-            .focus()
-            .selectParentNode()
-            .command(() => {
-              tr.replaceSelectionWith(bulletNode)
-
-              return true
-            })
-        },
-      toggleListItem:
-        (type: string) =>
         ({ chain, state }) => {
           const { selection } = state
 
@@ -136,15 +104,9 @@ export const ListItem = Node.create<ListOptions>({
                   child.content = [structuredClone(child)]
                   child.type = this.name
                   child.attrs = {
-                    value: String(prevOrderedListNodeNumber + 1),
-                    type,
+                    number: String(prevOrderedListNodeNumber + 1),
                   }
-                  prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
-                } else if (child.attrs?.type !== type) {
-                  child.attrs = {
-                    value: String(prevOrderedListNodeNumber + 1),
-                    type,
-                  }
+                  console.log('child', child)
                   prevOrderedListNodeNumber = prevOrderedListNodeNumber + 1
                 } else {
                   prevOrderedListNodeNumber = 0
@@ -175,17 +137,16 @@ export const ListItem = Node.create<ListOptions>({
   addKeyboardShortcuts() {
     return {
       'Ctrl-Alt-2': () => {
-        this.editor.chain().focus().setNode('listItem').run()
-        return (this.editor.chain().focus() as any).toggleListItem().run()
+        return (this.editor.chain().focus() as any).toggleOrdered().run()
       },
       'Enter': () => {
         const { selection } = this.editor.state
 
         const parentNode = selection.$from.node(-1)
-        if (parentNode.type.name !== 'listItem') return false
+        if (parentNode.type.name !== 'ordered') return false
         const currentNode = selection.$from.node()
 
-        // Delete the bullet point if it's empty
+        // Delete the ordered point if it's empty
         const currentNodeIsEmpty = currentNode.textContent.length === 1
         if (currentNodeIsEmpty) {
           this.editor
@@ -204,12 +165,12 @@ export const ListItem = Node.create<ListOptions>({
         const from = selection.from
         const currentNodeEndPos = currentNodePosResolve.posAtIndex(1)
 
-        // We check if cursor at the end of the bullet point
-        const isEndOfBullet = currentNodeEndPos === selection.to
+        // We check if cursor at the end of the ordered point
+        const isEndOfOrdered = currentNodeEndPos === selection.to
 
         const sliceToBeMoved = this.editor.state.doc.slice(from, currentNodeEndPos)
 
-        const sliceToBeMovedContent = !isEndOfBullet
+        const sliceToBeMovedContent = !isEndOfOrdered
           ? sliceToBeMoved.toJSON().content
           : [
               {
@@ -226,10 +187,9 @@ export const ListItem = Node.create<ListOptions>({
             type: 'dBlock',
             content: [
               {
-                type: 'listItem',
+                type: 'ordered',
                 attrs: {
-                  type: parentNode.attrs.type,
-                  value: parentNode.attrs.type === 'ordered' ? Number(parentNode.attrs.value) + 1 : '',
+                  number: String(Number(parentNode.attrs.number) + 1),
                 },
                 content: [
                   {
@@ -243,7 +203,7 @@ export const ListItem = Node.create<ListOptions>({
           .setTextSelection(currentNodeEndPos + 1)
           .deleteRange({ from, to: currentNodeEndPos })
           .command(({ tr }) => {
-            if (isEndOfBullet) {
+            if (isEndOfOrdered) {
               tr.deleteRange(currentNodeEndPos + 1, currentNodeEndPos + 2)
             }
 
@@ -262,8 +222,10 @@ export const ListItem = Node.create<ListOptions>({
         find: inputRegex,
         type: this.type,
         getAttributes: (match) => {
+          console.log('match', match)
+          const number = match[0].split('.')[0].trim()
           return {
-            type: 'bullet',
+            number,
           }
         },
       }),
@@ -277,7 +239,7 @@ export const ListItem = Node.create<ListOptions>({
           // todo: Hacky way to remove auto inserted line
           // Line is auto inserted when we paste text somewhere in tiptap editor
           // Find a way to avoid this auto insertion
-          if (transaction.getMeta('paste-remove-auto-inserted-line')) {
+          if (transaction.getMeta('ordered-paste-remove-auto-inserted-line')) {
             lastTransaction = transaction
             return true
           }
@@ -290,18 +252,16 @@ export const ListItem = Node.create<ListOptions>({
           if (!transactionContent) return true
 
           transactionContent = transactionContent.replace('\n', ' ')
-          transactionContent = transactionContent
-            .split('-')
-            .map((item, index) => (index === 0 ? item : item.trim()))
-            .join()
 
-          const lastTransactionContent = (lastTransaction.getMeta('paste-remove-auto-inserted-line') as string)
-            .replace('\n', ' ')
-            .split('-')
-            .map((item, index) => (index === 0 ? item : item.trim()))
-            .join()
+          console.log(
+            'transactionContent',
+            transactionContent,
+            lastTransaction.getMeta('ordered-paste-remove-auto-inserted-line'),
+          )
 
-          if (transactionContent === lastTransactionContent) {
+          const lastTransactionContent = lastTransaction.getMeta('ordered-paste-remove-auto-inserted-line')
+
+          if (lastTransactionContent.trim().includes(transactionContent.trim())) {
             lastTransaction = null
             return false
           }
@@ -318,30 +278,32 @@ export const ListItem = Node.create<ListOptions>({
               const selection = state.selection
               const tr = state.tr
 
-              let found = false
-
+              let count = 0
+              const fragments: Fragment[] = []
               for (const match of matches) {
                 if (!match || !match.input) continue
 
-                const listItems = match.input
-                  .split('\n')
-                  .map((item) => item.split('-')[1].trim())
-                  .reverse()
+                count = count + 1
+                const listItem = match[1]
 
-                for (const listItem of listItems) {
-                  found = true
-                  const fragment = Fragment.from(
-                    state.schema.nodes.bullet.create(undefined, [
-                      state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)]),
-                    ]),
-                  )
-
-                  tr.insert(selection.from - 1, fragment)
-                }
+                fragments.push(
+                  Fragment.from(
+                    state.schema.nodes.ordered.create(
+                      {
+                        number: String(count),
+                      },
+                      [state.schema.nodes.paragraph.create(undefined, [state.schema.text(listItem)])],
+                    ),
+                  ),
+                )
               }
 
-              if (found) {
-                tr.setMeta('paste-remove-auto-inserted-line', textContent)
+              if (count > 0) {
+                for (const fragment of fragments.reverse()) {
+                  tr.insert(selection.from - 1, fragment)
+                }
+
+                tr.setMeta('ordered-paste-remove-auto-inserted-line', textContent)
                 view.dispatch(tr)
                 return true
               }

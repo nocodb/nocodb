@@ -9,7 +9,8 @@ import Code from '@tiptap/extension-code'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
-import { ListItem } from './listItem'
+import { Bullet } from './listItem/bullet'
+import { Ordered } from './listItem/ordered'
 import { HorizontalRule } from './horizontalRule'
 import { Link } from './link'
 import { TableCell } from './table/cell'
@@ -57,7 +58,8 @@ const tiptapExtensions = (): Extensions => {
         return 'Press / to open the command menu or start writing'
       },
     }),
-    ListItem,
+    Ordered,
+    Bullet,
     // OrderedList.extend({
     //   addKeyboardShortcuts() {
     //     return {

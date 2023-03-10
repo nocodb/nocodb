@@ -50,7 +50,7 @@ export function useViewColumns(
     let order = 1
 
     if (view.value?.id) {
-      const data = (isPublic.value ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id))).list as any[]
+      const data = (isPublic.value ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
         curr.show = !!curr.show

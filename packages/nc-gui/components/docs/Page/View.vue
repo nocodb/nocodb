@@ -496,6 +496,32 @@ watch(
     }
   }
 
+  [data-type='bullet'] {
+    .tiptap-list-item-content {
+      display: list-item;
+      list-style: disc;
+      padding-left: '1rem' !important;
+
+      p {
+        margin-top: '0.01rem';
+        margin-bottom: '0.01rem';
+      }
+    }
+  }
+
+  [data-type='ordered'] {
+    @apply flex flex-row items-center gap-x-1;
+    .tiptap-list-item-start > span::before {
+      content: attr(data-number) '. ';
+      display: inline-block;
+      white-space: nowrap;
+    }
+  }
+
+  [data-type='task'] {
+    @apply flex flex-row items-center gap-x-2;
+  }
+
   ul {
     // bullet color black
     list-style: disc;

@@ -1,11 +1,7 @@
-import BulletList from '@tiptap/extension-bullet-list'
-import TaskItem from '@tiptap/extension-task-item'
-import TaskList from '@tiptap/extension-task-list'
 import Underline from '@tiptap/extension-underline'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import DropCursor from '@tiptap/extension-dropcursor'
-import ListItem from '@tiptap/extension-list-item'
 import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
 import Strike from '@tiptap/extension-strike'
@@ -13,7 +9,9 @@ import Code from '@tiptap/extension-code'
 import CodeBlock from '@tiptap/extension-code-block'
 import Blockquote from '@tiptap/extension-blockquote'
 import type { Extensions } from '@tiptap/core'
-import OrderedList from '@tiptap/extension-ordered-list'
+import { Bullet } from './listItem/bullet'
+import { Ordered } from './listItem/ordered'
+import { Task } from './listItem/task'
 import { HorizontalRule } from './horizontalRule'
 import { Link } from './link'
 import { TableCell } from './table/cell'
@@ -43,7 +41,6 @@ const tiptapExtensions = (): Extensions => {
     Text,
     Strike,
     Heading,
-    ListItem,
     Bold,
     Italic,
     DropCursor.configure({
@@ -62,43 +59,36 @@ const tiptapExtensions = (): Extensions => {
         return 'Press / to open the command menu or start writing'
       },
     }),
-    BulletList.extend({
-      addKeyboardShortcuts() {
-        return {
-          'Ctrl-Alt-2': () => {
-            this.editor.chain().focus().setNode('bulletList').run()
-            return (this.editor.chain().focus() as any).toggleBulletList().run()
-          },
-        }
-      },
-    }),
-    OrderedList.extend({
-      addKeyboardShortcuts() {
-        return {
-          'Ctrl-Alt-3': () => {
-            this.editor.chain().focus().setNode('orderedList').run()
-            return (this.editor.chain().focus() as any).toggleOrderedList().run()
-          },
-        }
-      },
-    }),
-    TaskList.extend({
-      addKeyboardShortcuts() {
-        return {
-          'Ctrl-Alt-1': () => {
-            this.editor.chain().focus().setNode('taskList').run()
-            return (this.editor.chain().focus() as any).toggleTaskList().run()
-          },
-        }
-      },
-    }).configure({
-      HTMLAttributes: {
-        class: 'nc-docs-task-list',
-      },
-    }),
-    TaskItem.configure({
-      nested: true,
-    }),
+    Task,
+    Ordered,
+    Bullet,
+    // OrderedList.extend({
+    //   addKeyboardShortcuts() {
+    //     return {
+    //       'Ctrl-Alt-3': () => {
+    //         this.editor.chain().focus().setNode('orderedList').run()
+    //         return (this.editor.chain().focus() as any).toggleOrderedList().run()
+    //       },
+    //     }
+    //   },
+    // }),
+    // TaskList.extend({
+    //   addKeyboardShortcuts() {
+    //     return {
+    //       'Ctrl-Alt-1': () => {
+    //         this.editor.chain().focus().setNode('taskList').run()
+    //         return (this.editor.chain().focus() as any).toggleTaskList().run()
+    //       },
+    //     }
+    //   },
+    // }).configure({
+    //   HTMLAttributes: {
+    //     class: 'nc-docs-task-list',
+    //   },
+    // }),
+    // TaskItem.configure({
+    //   nested: true,
+    // }),
     HorizontalRule.extend({
       addKeyboardShortcuts() {
         return {

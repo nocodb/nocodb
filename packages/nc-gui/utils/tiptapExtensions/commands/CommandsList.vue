@@ -173,8 +173,7 @@ const items = [
     title: 'Task list',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('taskList').run()
-      ;(editor.chain().focus() as any).toggleTaskList().run()
+      editor.chain().focus().deleteRange(range).toggleTask().run()
     },
     icon: MdiTaskList,
     iconClass: '',
@@ -184,8 +183,7 @@ const items = [
     title: 'Bullet List',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('bulletList').run()
-      ;(editor.chain().focus() as any).toggleBulletList().run()
+      editor.chain().focus().deleteRange(range).toggleBullet().run()
     },
     icon: MdiBulletList,
     iconClass: '',
@@ -196,8 +194,7 @@ const items = [
     title: 'Numbered List',
     class: 'text-xs',
     command: ({ editor, range }: { editor: Editor; range: Range }) => {
-      editor.chain().focus().deleteRange(range).setNode('orderedList').run()
-      ;(editor.chain().focus() as any).toggleOrderedList().run()
+      editor.chain().focus().deleteRange(range).toggleOrdered().run()
     },
     icon: MdiNumberedList,
     iconClass: '',

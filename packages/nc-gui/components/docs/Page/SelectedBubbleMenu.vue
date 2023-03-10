@@ -7,6 +7,8 @@ import showdown from 'showdown'
 import type { Mark } from 'prosemirror-model'
 import MdiFormatBulletList from '~icons/mdi/format-list-bulleted'
 import MdiFormatStrikeThrough from '~icons/mdi/format-strikethrough'
+import MdiFormatListNumber from '~icons/mdi/format-list-numbered'
+import MdiFormatListCheckbox from '~icons/mdi/format-list-checkbox'
 
 const { editor } = defineProps<Props>()
 
@@ -132,7 +134,7 @@ const onToggleLink = () => {
 </script>
 
 <template>
-  <BubbleMenu :editor="editor" :tippy-options="{ duration: 100, maxWidth: 600 }">
+  <BubbleMenu :editor="editor" :update-delay="300" :tippy-options="{ duration: 100, maxWidth: 600 }">
     <div v-if="showMenuDebounced" class="bubble-menu flex flex-row gap-x-1 bg-gray-100 py-1 rounded-lg px-1">
       <a-button
         type="text"
@@ -158,7 +160,6 @@ const onToggleLink = () => {
       >
         <MdiFormatUnderline />
       </a-button>
-      <div class="divider"></div>
       <a-button
         type="text"
         :class="{ 'is-active': editor.isActive('strike') }"
@@ -167,15 +168,31 @@ const onToggleLink = () => {
       >
         <MdiFormatStrikeThrough />
       </a-button>
+      <div class="divider"></div>
       <a-button
         type="text"
-        :class="{ 'is-active': editor.isActive('bulletList') }"
+        :class="{ 'is-active': editor.isActive('task') }"
         class="menu-button"
-        @click="editor!.chain().focus().toggleBulletList().run()"
+        @click="editor!.chain().focus().toggleTask().run()"
+      >
+        <MdiFormatListCheckbox />
+      </a-button>
+      <a-button
+        type="text"
+        :class="{ 'is-active': editor.isActive('bullet') }"
+        class="menu-button"
+        @click="editor!.chain().focus().toggleBullet().run()"
       >
         <MdiFormatBulletList />
       </a-button>
-
+      <a-button
+        type="text"
+        :class="{ 'is-active': editor.isActive('ordered') }"
+        class="menu-button"
+        @click="editor!.chain().focus().toggleOrdered().run()"
+      >
+        <MdiFormatListNumber />
+      </a-button>
       <div class="divider"></div>
 
       <a-button type="text" :class="{ 'is-active': editor.isActive('link') }" class="menu-button" @click="onToggleLink">

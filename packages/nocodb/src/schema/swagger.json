@@ -673,6 +673,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {
@@ -1401,6 +1404,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "description": "List all project meta data",
@@ -4949,6 +4955,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB View"],
@@ -7167,6 +7176,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -7409,6 +7421,9 @@
                 "schema": {}
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "tags": ["DB Table Row"],
@@ -8517,6 +8532,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           }
         },
         "requestBody": {

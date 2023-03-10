@@ -3116,16 +3116,27 @@ export class Api<
       }),
 
     /**
-     * @description Set the application license key. Exclusive for super admin.
-     *
-     * @tags Org License
-     * @name Set
-     * @summary Create App License
-     * @request POST:/api/v1/license
-     * @response `200` `void` OK
-     */
+ * @description Set the application license key. Exclusive for super admin.
+ * 
+ * @tags Org License
+ * @name Set
+ * @summary Create App License
+ * @request POST:/api/v1/license
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     set: (data: LicenseReqType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/license`,
         method: 'POST',
         body: data,
@@ -3580,16 +3591,27 @@ export class Api<
       }),
 
     /**
-     * @description List all project meta data
-     *
-     * @tags Project
-     * @name List
-     * @summary List Projects
-     * @request GET:/api/v1/db/meta/projects/
-     * @response `200` `ProjectListType` OK
-     */
+ * @description List all project meta data
+ * 
+ * @tags Project
+ * @name List
+ * @summary List Projects
+ * @request GET:/api/v1/db/meta/projects/
+ * @response `200` `ProjectListType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     list: (params: RequestParams = {}) =>
-      this.request<ProjectListType, any>({
+      this.request<
+        ProjectListType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/projects/`,
         method: 'GET',
         format: 'json',
@@ -4927,20 +4949,31 @@ export class Api<
       }),
 
     /**
-     * @description Update the form data by Form ID
-     *
-     * @tags DB View
-     * @name FormUpdate
-     * @summary Update Form
-     * @request PATCH:/api/v1/db/meta/forms/{formViewId}
-     * @response `200` `void` OK
-     */
+ * @description Update the form data by Form ID
+ * 
+ * @tags DB View
+ * @name FormUpdate
+ * @summary Update Form
+ * @request PATCH:/api/v1/db/meta/forms/{formViewId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     formUpdate: (
       formViewId: IdType,
       data: FormReqType,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/forms/${formViewId}`,
         method: 'PATCH',
         body: data,
@@ -6421,14 +6454,19 @@ export class Api<
       }),
 
     /**
-     * @description Bulk Update all Table Rows if the condition is true
-     *
-     * @tags DB Table Row
-     * @name BulkUpdateAll
-     * @summary Bulk Update Table Rows with Conditions
-     * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
-     * @response `200` `any` OK
-     */
+ * @description Bulk Update all Table Rows if the condition is true
+ * 
+ * @tags DB Table Row
+ * @name BulkUpdateAll
+ * @summary Bulk Update Table Rows with Conditions
+ * @request PATCH:/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     bulkUpdateAll: (
       orgs: string,
       projectName: string,
@@ -6439,7 +6477,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
         method: 'PATCH',
         query: query,
@@ -6524,14 +6568,19 @@ export class Api<
       }),
 
     /**
-     * @description List all nested relations rows
-     *
-     * @tags DB Table Row
-     * @name NestedList
-     * @summary List Nested Relations Rows
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}
-     * @response `200` `any` OK
-     */
+ * @description List all nested relations rows
+ * 
+ * @tags DB Table Row
+ * @name NestedList
+ * @summary List Nested Relations Rows
+ * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/{relationType}/{columnName}
+ * @response `200` `any` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     nestedList: (
       orgs: string,
       projectName: string,
@@ -6548,7 +6597,13 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<
+        any,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/${relationType}/${columnName}`,
         method: 'GET',
         query: query,
@@ -7521,16 +7576,27 @@ export class Api<
       }),
 
     /**
-     * @description Create a new comment in a row. Logged in Audit.
-     *
-     * @tags Utils
-     * @name CommentRow
-     * @summary Comment Rows
-     * @request POST:/api/v1/db/meta/audits/comments
-     * @response `200` `void` OK
-     */
+ * @description Create a new comment in a row. Logged in Audit.
+ * 
+ * @tags Utils
+ * @name CommentRow
+ * @summary Comment Rows
+ * @request POST:/api/v1/db/meta/audits/comments
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg?: string,
+
+}`
+ */
     commentRow: (data: CommentReqType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg?: string;
+        }
+      >({
         path: `/api/v1/db/meta/audits/comments`,
         method: 'POST',
         body: data,

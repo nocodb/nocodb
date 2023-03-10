@@ -289,8 +289,11 @@ export class CellPageObject extends BasePage {
     // editable cell
     await cell.dblclick();
     await expect(await cell.locator(`input`)).toHaveCount(param.role === 'creator' || param.role === 'editor' ? 1 : 0);
-    // right click context menu
-    await cell.click({ button: 'right' });
+
+    // press escape to close the input
+    await cell.press('Escape');
+
+    await cell.click({ button: 'right', clickCount: 1 });
     await expect(await this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(
       param.role === 'creator' || param.role === 'editor' ? 1 : 0
     );

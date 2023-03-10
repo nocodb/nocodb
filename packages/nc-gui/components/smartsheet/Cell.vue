@@ -139,6 +139,15 @@ const isNumericField = computed(() => {
     isDuration(column.value)
   )
 })
+
+// disable contexxtmenu event propagation when cell is in
+// editable state and typable (e.g. text area)
+// this is to prevent the custom grid view context menu from opening
+const onContextmenu = (e: MouseEvent) => {
+  if (props.editEnabled && isTypableInputColumn(column.value)) {
+    e.stopPropagation()
+  }
+}
 </script>
 
 <template>
@@ -151,6 +160,7 @@ const isNumericField = computed(() => {
     ]"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
+    @contextmenu="onContextmenu"
   >
     <template v-if="column">
       <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />

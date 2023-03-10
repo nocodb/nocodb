@@ -15276,29 +15276,6 @@
         },
         "title": "Visibility Rule Request Model",
         "type": "array"
-      },
-      "ApiTokenReq - copy": {
-        "type": "object",
-        "properties": {
-          "list": {
-            "type": "array",
-            "x-stoplight": {
-              "id": "uukp6v55zfp7i"
-            },
-            "items": {
-              "$ref": "#/components/schemas/ApiToken",
-              "x-stoplight": {
-                "id": "9zqpoqfkdxy0y"
-              }
-            }
-          },
-          "pageInfo": {
-            "$ref": "#/components/schemas/Paginated",
-            "x-stoplight": {
-              "id": "6unr17jyisial"
-            }
-          }
-        }
       }
     },
     "responses": {
@@ -15725,6 +15702,27 @@
               "$ref": "#/components/schemas/ApiTokenList"
             },
             "examples": {}
+          }
+        },
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "uukp6v55zfp7i"
+            },
+            "items": {
+              "$ref": "#/components/schemas/ApiToken",
+              "x-stoplight": {
+                "id": "9zqpoqfkdxy0y"
+              }
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "x-stoplight": {
+              "id": "6unr17jyisial"
+            }
           }
         }
       },
